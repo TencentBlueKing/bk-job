@@ -26,7 +26,6 @@ apply plugin: 'java'
 dependencies {
     compile(files("libs/iam-sdk-1.0.0.jar"))
     implementation(group: 'org.springframework', name: 'spring-context')
-    implementation(project(":commons:common-web"))
     implementation(project(":commons:esb-sdk"))
     compile(project(":commons:common"))
     compileOnly 'org.springframework.boot:spring-boot-starter-web'

@@ -39,8 +39,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EsbIpDTO {
+
     @JsonProperty("bk_cloud_id")
     private Long cloudAreaId;
+
+    @JsonProperty("ip")
     private String ip;
 
     public static EsbIpDTO fromApplicationHostInfo(ApplicationHostInfoDTO applicationHostInfo) {

@@ -22,37 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.i18n;
+package com.tencent.bk.job.common.i18n.service.impl;
+
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
 /**
- * 定义国际化API
+ * @date 2019/09/19
  */
-public interface MessageI18nService {
-    /**
-     * 获取国际化
-     *
-     * @param msgKey i18nKey
-     * @return 国际化之后的值
-     */
-    String getI18n(String msgKey);
+@Slf4j
+@Service
+public class MessageI18nServiceImpl implements MessageI18nService {
+    private final MessageSource messageSource;
 
-    /**
-     * 获取国际化，带参数
-     *
-     * @param msgKey i18nKey
-     * @param args   参数
-     * @return 国际化之后的值
-     */
-    String getI18nWithArgs(String msgKey, Object... args);
+    @Autowired
+    public MessageI18nServiceImpl(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
-    /**
-     * 根据locale获取国际化
-     *
-     * @param msgKey
-     * @param locale
-     * @return
-     */
-    String getI18n(String msgKey, Locale locale);
+    @Override
+    public String getI18n(String msgKey) {
+        if (StringUtils.isBlank(msgKey)) {
+            return "";
+        }
+        return messageSource.getMessage(msgKey, null, LocaleContextHolder.getLocale());
+    }
+
+    @Override
+    public String getI18n(String msgKey, Locale locale) {
+        if (StringUtils.isBlank(msgKey)) {
+            return "";
+        }
+        return messageSource.getMessage(msgKey, null, locale);
+    }
+
+    @Override
+    public String getI18nWithArgs(String msgKey, Object... args) {
+        if (StringUtils.isBlank(msgKey)) {
+            return "";
+        }
+        return messageSource.getMessage(msgKey, args, LocaleContextHolder.getLocale());
+    }
 }

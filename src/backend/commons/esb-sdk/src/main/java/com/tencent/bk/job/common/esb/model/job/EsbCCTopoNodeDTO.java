@@ -40,6 +40,7 @@ public class EsbCCTopoNodeDTO {
      */
     @JsonProperty("id")
     private Long id;
+
     /**
      * topo节点类型
      */

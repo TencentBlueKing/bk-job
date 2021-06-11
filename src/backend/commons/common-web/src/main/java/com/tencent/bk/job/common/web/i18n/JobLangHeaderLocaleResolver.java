@@ -22,45 +22,54 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker;
+package com.tencent.bk.job.common.web.i18n;
 
-import com.tencent.bk.job.common.i18n.config.MultiReloadableResourceBundleMessageSource;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
-import java.nio.charset.StandardCharsets;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Locale;
 
-@Configuration
-public class I18nConfig {
+/**
+ * Job 自定义国际化LocaleResolver
+ */
+@Slf4j
+public class JobLangHeaderLocaleResolver implements LocaleResolver {
+    @Nullable
+    private Locale defaultLocale;
 
-    @Bean("localeResolver")
-    public LocaleResolver localeResolver() {
-        CookieLocaleResolver resolver = new CookieLocaleResolver();
-        resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
-        return resolver;
+    public JobLangHeaderLocaleResolver() {
     }
 
-    @Bean("messageSource")
-    public ReloadableResourceBundleMessageSource messageSource() {
-        MultiReloadableResourceBundleMessageSource messageSource = new MultiReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message", "classpath*:i18n" +
-            "/common/message");
-        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setUseCodeAsDefaultMessage(true);
-        return messageSource;
+    @Nullable
+    public Locale getDefaultLocale() {
+        return this.defaultLocale;
     }
 
-    @Bean("localeChangeInterceptor")
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
-        interceptor.setParamName(LocaleUtils.COMMON_LANG_HEADER);
-        return interceptor;
+    public void setDefaultLocale(@Nullable Locale defaultLocale) {
+        this.defaultLocale = defaultLocale;
     }
 
+    public Locale resolveLocale(HttpServletRequest request) {
+        if (StringUtils.isNotBlank(request.getHeader(LocaleUtils.COMMON_LANG_HEADER))) {
+            String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
+            Locale locale = LocaleUtils.getLocale(lang);
+            if (locale == null) {
+                locale = getDefaultLocale();
+            }
+            return locale;
+        } else {
+            return getDefaultLocale();
+        }
+    }
+
+    public void setLocale(HttpServletRequest request, @Nullable HttpServletResponse response,
+                          @Nullable Locale locale) {
+        throw new UnsupportedOperationException(
+            "Cannot change HTTP accept header - use a different locale resolution strategy");
+    }
 }

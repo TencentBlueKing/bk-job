@@ -29,8 +29,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.error.ErrorDetail;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,12 +49,15 @@ public class EsbResp<T> {
 
     private Boolean result;
 
-    @JsonProperty("request_id")
+    @JsonProperty("job_request_id")
     private String requestId;
 
     private String message;
 
     private T data;
+
+    @JsonProperty("error_detail")
+    private ErrorDetail errorDetail;
 
     /**
      * 无权限返回数据
@@ -98,6 +102,14 @@ public class EsbResp<T> {
             errorMsg = String.valueOf(errorCode);
         }
         return new EsbResp<>(errorCode, errorMsg, null);
+    }
+
+    public static <T> EsbResp<T> buildCommonFailResp(int errorCode, ErrorDetail errorDetail,
+                                                     MessageI18nService i18nService) {
+        String errorMsg = i18nService.getI18n(String.valueOf(errorCode));
+        EsbResp<T> esbResp = new EsbResp<>(errorCode, errorMsg, null);
+        esbResp.setErrorDetail(errorDetail);
+        return esbResp;
     }
 
     public static <T> EsbResp<T> buildCommonFailResp(int errorCode, MessageI18nService i18nService,

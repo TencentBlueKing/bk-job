@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v2.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
 import com.tencent.bk.job.execute.api.esb.v3.EsbGetJobInstanceGlobalVarValueV3Resource;

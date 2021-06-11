@@ -21,31 +21,12 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+package com.tencent.bk.job.common.annotation;
 
-package com.tencent.bk.job.common.iam.controller;
+import java.lang.annotation.*;
 
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.method.HandlerMethod;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/**
- * @since 29/5/2020 15:46
- */
-@Slf4j
-public class AbstractIamController extends AbstractJobController {
-
-    private final AuthHelper authHelper;
-
-    protected AbstractIamController(AuthHelper authHelper) {
-        this.authHelper = authHelper;
-    }
-
-    @Override
-    public boolean preService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        return authHelper.validRequest(request);
-    }
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ServiceAPI {
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.execute.model.web.request.*;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = {"job-execute:web:Task_Execute"})
 @RequestMapping("/web/execution/")
 @RestController
+@WebAPI
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")

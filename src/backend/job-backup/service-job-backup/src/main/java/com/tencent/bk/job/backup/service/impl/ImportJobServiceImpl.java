@@ -33,7 +33,7 @@ import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
 import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.crypto.AESUtils;

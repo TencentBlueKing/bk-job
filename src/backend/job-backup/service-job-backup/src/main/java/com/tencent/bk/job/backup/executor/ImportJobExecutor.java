@@ -33,7 +33,7 @@ import com.tencent.bk.job.backup.model.dto.TemplateIdMapDTO;
 import com.tencent.bk.job.backup.service.*;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;

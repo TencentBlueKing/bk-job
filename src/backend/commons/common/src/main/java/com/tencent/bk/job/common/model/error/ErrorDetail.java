@@ -21,53 +21,25 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+package com.tencent.bk.job.common.model.error;
 
-package com.tencent.bk.job.common.i18n.impl;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import com.tencent.bk.job.common.i18n.MessageI18nService;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.stereotype.Service;
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ErrorDetail {
+    /**
+     * @see ErrorType
+     */
+    private Integer type;
 
-import java.util.Locale;
+    @JsonProperty("bad_request_detail")
+    private BadRequestDetail badRequestDetail;
 
-/**
- * @date 2019/09/19
- */
-@Slf4j
-@Service
-public class MessageI18nServiceImpl implements MessageI18nService {
-    private final MessageSource messageSource;
-
-    @Autowired
-    public MessageI18nServiceImpl(MessageSource messageSource) {
-        this.messageSource = messageSource;
-    }
-
-    @Override
-    public String getI18n(String msgKey) {
-        if (StringUtils.isBlank(msgKey)) {
-            return "";
-        }
-        return messageSource.getMessage(msgKey, null, LocaleContextHolder.getLocale());
-    }
-
-    @Override
-    public String getI18n(String msgKey, Locale locale) {
-        if (StringUtils.isBlank(msgKey)) {
-            return "";
-        }
-        return messageSource.getMessage(msgKey, null, locale);
-    }
-
-    @Override
-    public String getI18nWithArgs(String msgKey, Object... args) {
-        if (StringUtils.isBlank(msgKey)) {
-            return "";
-        }
-        return messageSource.getMessage(msgKey, args, LocaleContextHolder.getLocale());
+    public ErrorDetail(BadRequestDetail badRequestDetail) {
+        this.badRequestDetail = badRequestDetail;
+        this.type = ErrorType.BadRequest.getType();
     }
 }

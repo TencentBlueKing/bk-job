@@ -22,13 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common;
+package com.tencent.bk.job.common.web.exception.handler;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.web.exception.HttpStatusServiceException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,45 +61,76 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
-/**
- * 处理ESB异常
- */
-@ControllerAdvice({"com.tencent.bk.job.execute.api.esb"})
+@ControllerAdvice(annotations = {WebAPI.class})
 @Slf4j
-public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+public class WebExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     private final MessageI18nService i18nService;
+    private final WebAuthService webAuthService;
 
     @Autowired
-    public EsbExceptionControllerAdvice(MessageI18nService i18nService) {
+    public WebExceptionControllerAdvice(MessageI18nService i18nService, WebAuthService webAuthService) {
         this.i18nService = i18nService;
+        this.webAuthService = webAuthService;
     }
 
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
     ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
         log.warn("Handle service exception", ex);
-        // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode(), i18nService, ex.getErrorParams()),
-            HttpStatus.OK);
+        if (ex instanceof HttpStatusServiceException) {
+            HttpStatusServiceException httpStatusServiceException = (HttpStatusServiceException) ex;
+            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException, i18nService),
+                httpStatusServiceException.getHttpStatus());
+        } else if (ex instanceof InSufficientPermissionException) {
+            InSufficientPermissionException inSufficientPermissionException = (InSufficientPermissionException) ex;
+            AuthResult authResult = inSufficientPermissionException.getAuthResult();
+            log.debug("Insufficient permission, authResult: {}", authResult);
+            if (StringUtils.isEmpty(authResult.getApplyUrl())) {
+                authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
+            }
+            return new ResponseEntity<>(ServiceResponse.buildAuthFailResp(
+                webAuthService.toAuthResultVO(inSufficientPermissionException.getAuthResult())), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex, i18nService),
+                HttpStatus.OK);
+        }
     }
 
     @ExceptionHandler(Throwable.class)
     @ResponseBody
     ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
         log.warn("Handle exception", ex);
-        // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService),
-            HttpStatus.OK);
+        // 默认处理
+        HttpStatus status = getStatus(request);
+        return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR,
+            i18nService), status);
     }
 
+    private HttpStatus getStatus(HttpServletRequest request) {
+        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+        if (statusCode == null) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return HttpStatus.valueOf(statusCode);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
+                                                         ConstraintViolationException ex) {
+        log.warn("Handle ConstraintViolationException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
 
     @Override
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                          HttpHeaders headers, HttpStatus status,
                                                                          WebRequest request) {
-        log.warn("Catch HttpRequestMethodNotSupportedException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle HttpRequestMethodNotSupportedException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -101,8 +138,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
-        log.warn("Catch HttpMediaTypeNotSupportedException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle HttpMediaTypeNotSupportedException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -110,16 +147,16 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
                                                                       HttpHeaders headers, HttpStatus status,
                                                                       WebRequest request) {
-        log.warn("Catch HttpMediaTypeNotAcceptableException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle HttpMediaTypeNotAcceptableException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
     protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers,
                                                                HttpStatus status, WebRequest request) {
-        log.warn("Catch MissingPathVariableException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        log.warn("Handle MissingPathVariableException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -127,8 +164,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
                                                                           HttpHeaders headers, HttpStatus status,
                                                                           WebRequest request) {
-        log.warn("Catch MissingServletRequestParameterException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle MissingServletRequestParameterException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -136,8 +173,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
                                                                           HttpHeaders headers, HttpStatus status,
                                                                           WebRequest request) {
-        log.warn("Catch ServletRequestBindingException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle ServletRequestBindingException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -145,16 +182,16 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        log.warn("Catch ConversionNotSupportedException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        log.warn("Handle ConversionNotSupportedException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
                                                         HttpStatus status, WebRequest request) {
-        log.warn("Catch TypeMismatchException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle TypeMismatchException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -162,8 +199,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        log.warn("Catch HttpMessageNotReadableException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle HttpMessageNotReadableException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -171,8 +208,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        log.warn("Catch HttpMessageNotWritableException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        log.warn("Handle HttpMessageNotWritableException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -180,8 +217,8 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        log.warn("Catch MethodArgumentNotValidException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle MethodArgumentNotValidException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -189,24 +226,24 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
-        log.warn("Catch MissingServletRequestPartException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle MissingServletRequestPartException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
                                                          WebRequest request) {
-        log.warn("Catch BindException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle BindException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
-        log.warn("Catch NoHandlerFoundException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        log.warn("Handle NoHandlerFoundException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
@@ -214,8 +251,9 @@ public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
                                                                         HttpHeaders headers, HttpStatus status,
                                                                         WebRequest webRequest) {
-        log.warn("Catch AsyncRequestTimeoutException, cause:{}", ex.getMessage());
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        log.warn("Handle AsyncRequestTimeoutException", ex);
+        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
+
 }

@@ -51,6 +51,7 @@ dependencies {
     implementation 'com.google.guava:guava'
     implementation 'org.apache.commons:commons-pool2'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation "org.hibernate.validator:hibernate-validator"
     // https://mvnrepository.com/artifact/org.apache.curator/curator-framework
     compile(group: 'org.apache.curator', name: 'curator-framework', version: '2.13.0')
     // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes

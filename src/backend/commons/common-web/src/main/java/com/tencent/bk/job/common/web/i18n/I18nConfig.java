@@ -22,45 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.config;
+package com.tencent.bk.job.common.web.i18n;
 
-import com.tencent.bk.job.common.i18n.config.MultiReloadableResourceBundleMessageSource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 @Configuration
+@ConditionalOnClass(LocaleResolver.class)
 public class I18nConfig {
 
     @Bean("localeResolver")
-    public LocaleResolver localeResolver() {
-        CookieLocaleResolver resolver = new CookieLocaleResolver();
-        resolver.setCookieName("blueking_language");
+    @ConditionalOnClass(LocaleResolver.class)
+    public JobLangHeaderLocaleResolver localeResolver() {
+        JobLangHeaderLocaleResolver resolver = new JobLangHeaderLocaleResolver();
         resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
         return resolver;
     }
-
-    @Bean("messageSource")
-    public ReloadableResourceBundleMessageSource messageSource() {
-        MultiReloadableResourceBundleMessageSource messageSource = new MultiReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message", "classpath*:i18n" +
-            "/common/message");
-        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setUseCodeAsDefaultMessage(true);
-        return messageSource;
-    }
-
-    @Bean("localeChangeInterceptor")
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
-        interceptor.setParamName("blueking_language");
-        return interceptor;
-    }
-
 }
+

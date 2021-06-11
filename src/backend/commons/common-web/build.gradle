@@ -27,6 +27,10 @@ dependencies {
     implementation project(":commons:common")
     implementation project(":commons:common-security")
     implementation project(":commons:common-spring-ext")
+    implementation project(":commons:esb-sdk")
+    implementation project(":commons:common-iam")
+    implementation "org.hibernate.validator:hibernate-validator"
+    implementation('jakarta.validation:jakarta.validation-api')
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
 }

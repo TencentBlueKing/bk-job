@@ -22,13 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.common;
+package com.tencent.bk.job.common.web.exception.handler;
 
+import com.tencent.bk.job.common.annotation.ServiceAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.exception.HttpStatusServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,40 +42,45 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import javax.servlet.http.HttpServletRequest;
 
-@ControllerAdvice({"com.tencent.bk.job.logsvr"})
+@ControllerAdvice(annotations = {ServiceAPI.class})
 @Slf4j
-public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+public class ServiceExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     private final MessageI18nService i18nService;
 
     @Autowired
-    public ExceptionControllerAdvice(MessageI18nService i18nService) {
+    public ServiceExceptionControllerAdvice(MessageI18nService i18nService) {
         this.i18nService = i18nService;
     }
 
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
     ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
-        log.error("Handle service exception", ex);
+        String exceptionInfo = "Handle service exception, exception: " + ex.toString();
+        log.warn(exceptionInfo, ex);
         if (ex instanceof HttpStatusServiceException) {
             HttpStatusServiceException httpStatusServiceException = (HttpStatusServiceException) ex;
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException.getErrorCode()
-                , i18nService), httpStatusServiceException.getHttpStatus());
-        } else {
-            log.info("exception:{}", JsonUtils.toJson(ex));
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex.getErrorCode(), ex.getErrorParams(),
+            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException,
+                i18nService), httpStatusServiceException.getHttpStatus());
+        } else if (ex instanceof InSufficientPermissionException) {
+            InSufficientPermissionException inSufficientPermissionException = (InSufficientPermissionException) ex;
+            log.debug("Insufficient permission, authResult: {}", inSufficientPermissionException.getAuthResult());
+            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.USER_NO_PERMISSION_COMMON,
                 i18nService), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex, i18nService), HttpStatus.OK);
         }
     }
 
     @ExceptionHandler(Throwable.class)
     @ResponseBody
     ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
-        log.error("Handle exception", ex);
+        log.warn("Handle exception", ex);
         // 默认处理
         HttpStatus status = getStatus(request);
         return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR,
             i18nService), status);
     }
+
 
     private HttpStatus getStatus(HttpServletRequest request) {
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");

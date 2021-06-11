@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.gateway;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -43,8 +45,9 @@ import javax.annotation.PreDestroy;
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
 @EnableDiscoveryClient
 @EnableFeignClients
+@Slf4j
 public class JobGatewayBootApplication {
-    private final HttpHandler httpHandler;
+    private HttpHandler httpHandler;
 
     private WebServer httpWebServer;
 
@@ -54,8 +57,7 @@ public class JobGatewayBootApplication {
     @Value("${server.http.port:}")
     private Integer httpPort;
 
-
-    public JobGatewayBootApplication(HttpHandler httpHandler) {
+    public JobGatewayBootApplication(@Autowired HttpHandler httpHandler) {
         this.httpHandler = httpHandler;
     }
 

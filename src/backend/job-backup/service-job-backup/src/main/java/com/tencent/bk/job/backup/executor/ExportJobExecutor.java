@@ -34,7 +34,7 @@ import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
 import com.tencent.bk.job.backup.service.*;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;

@@ -22,45 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.common.i18n.config;
 
-import com.tencent.bk.job.common.i18n.config.MultiReloadableResourceBundleMessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 @Configuration
-public class I18nConfig {
-
-    @Bean("localeResolver")
-    public LocaleResolver localeResolver() {
-        CookieLocaleResolver resolver = new CookieLocaleResolver();
-        resolver.setCookieName("blueking_language");
-        resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
-        return resolver;
-    }
+public class MessageSourceConfig {
 
     @Bean("messageSource")
     public ReloadableResourceBundleMessageSource messageSource() {
         MultiReloadableResourceBundleMessageSource messageSource = new MultiReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message", "classpath*:i18n" +
-            "/common/message");
+        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message",
+            "classpath*:i18n/common/message");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setUseCodeAsDefaultMessage(true);
+        messageSource.setUseCodeAsDefaultMessage(false);
         return messageSource;
     }
 
-    @Bean("localeChangeInterceptor")
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
-        interceptor.setParamName("blueking_language");
-        return interceptor;
-    }
-
 }
+

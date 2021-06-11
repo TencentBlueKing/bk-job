@@ -22,48 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.i18n;
+package com.tencent.bk.job.common.i18n.service;
 
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.LocaleResolver;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Locale;
 
 /**
- * Job 自定义国际化LocaleResolver
+ * 定义国际化API
  */
-public class JobLangHeaderLocaleResolver implements LocaleResolver {
-    @Nullable
-    private Locale defaultLocale;
+public interface MessageI18nService {
+    /**
+     * 获取国际化
+     *
+     * @param msgKey i18nKey
+     * @return 国际化之后的值
+     */
+    String getI18n(String msgKey);
 
-    public JobLangHeaderLocaleResolver() {
-    }
+    /**
+     * 获取国际化，带参数
+     *
+     * @param msgKey i18nKey
+     * @param args   参数
+     * @return 国际化之后的值
+     */
+    String getI18nWithArgs(String msgKey, Object... args);
 
-    @Nullable
-    public Locale getDefaultLocale() {
-        return this.defaultLocale;
-    }
-
-    public void setDefaultLocale(@Nullable Locale defaultLocale) {
-        this.defaultLocale = defaultLocale;
-    }
-
-    public Locale resolveLocale(HttpServletRequest request) {
-        Locale defaultLocale = getDefaultLocale();
-        if (defaultLocale != null && StringUtils.isEmpty(request.getHeader(LocaleUtils.COMMON_LANG_HEADER))) {
-            return defaultLocale;
-        } else {
-            String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
-            return LocaleUtils.getLocale(lang);
-        }
-    }
-
-    public void setLocale(HttpServletRequest request, @Nullable HttpServletResponse response, @Nullable Locale locale) {
-        throw new UnsupportedOperationException("Cannot change HTTP accept header - use a different locale resolution" +
-            " strategy");
-    }
+    /**
+     * 根据locale获取国际化
+     *
+     * @param msgKey
+     * @param locale
+     * @return
+     */
+    String getI18n(String msgKey, Locale locale);
 }

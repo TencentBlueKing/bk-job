@@ -22,28 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.config;
+package com.tencent.bk.job.common.esb.validate;
 
-import com.tencent.bk.job.common.i18n.config.MultiReloadableResourceBundleMessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import java.nio.charset.StandardCharsets;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * @date 2019/09/19
- */
-@Configuration
-public class I18nConfig {
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = CheckServerValidator.class)
+@Documented
+@Repeatable(CheckServer.List.class)
+public @interface CheckServer {
+    String message() default "{validation.CheckServer.message}";
 
-    @Bean("messageSource")
-    public ReloadableResourceBundleMessageSource messageSource() {
-        MultiReloadableResourceBundleMessageSource messageSource = new MultiReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message", "classpath*:i18n" +
-            "/common/message");
-        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        messageSource.setUseCodeAsDefaultMessage(true);
-        return messageSource;
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+
+    @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Documented
+    @interface List {
+        CheckServer[] value();
     }
 }

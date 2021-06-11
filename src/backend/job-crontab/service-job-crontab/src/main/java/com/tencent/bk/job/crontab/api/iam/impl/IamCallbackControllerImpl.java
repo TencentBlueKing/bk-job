@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.api.iam.impl;
 
-import com.tencent.bk.job.common.iam.controller.AbstractIamController;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.crontab.api.iam.IamCallbackController;
@@ -33,7 +32,6 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.*;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,13 +45,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class IamCallbackControllerImpl extends AbstractIamController implements IamCallbackController {
+public class IamCallbackControllerImpl implements IamCallbackController {
 
     private final CronJobService cronJobService;
 
     @Autowired
-    public IamCallbackControllerImpl(CronJobService cronJobService, AuthHelper authHelper) {
-        super(authHelper);
+    public IamCallbackControllerImpl(CronJobService cronJobService) {
         this.cronJobService = cronJobService;
     }
 
