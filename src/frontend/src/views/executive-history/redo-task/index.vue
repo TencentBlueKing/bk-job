@@ -48,6 +48,9 @@
                 <bk-button @click="handleCancle">{{ $t('history.取消') }}</bk-button>
             </template>
         </smart-action>
+        <element-teleport v-if="taskName">
+            <div style="font-size: 12px; color: #63656e;">（{{ taskName }}）</div>
+        </element-teleport>
     </div>
 </template>
 <script>
@@ -65,6 +68,7 @@
         },
         data () {
             return {
+                taskName: '',
                 taskVariables: [],
                 isLoading: true,
                 isSubmiting: false,
@@ -86,6 +90,7 @@
                 TaskExecuteService.fetchTaskInstance({
                     id: this.taskInstanceId,
                 }).then((data) => {
+                    this.taskName = data.taskInstance.name;
                     this.taskVariables = Object.freeze(data.variables.map(({
                         id,
                         name,
