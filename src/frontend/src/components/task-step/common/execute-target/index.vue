@@ -35,13 +35,15 @@
             :rules="rules">
             <div style="display: flex;">
                 <template v-if="mode === 'onlyHost'">
+                    <!-- 快速执行场景只能操作主机列表 -->
                     <bk-button class="mr10" @click="handleShowChooseIp">
                         <Icon type="plus" />
                         {{ $t('添加服务器') }}
                     </bk-button>
                 </template>
                 <template v-else>
-                    <compose-form-item type="select">
+                    <!-- 作业步骤场景可以切换主机列表和主机变量 -->
+                    <compose-form-item>
                         <bk-select
                             :style="targetSelectorStyle"
                             :value="targetType"
@@ -118,9 +120,7 @@
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
     import I18n from '@/i18n';
-    import {
-        execCopy,
-    } from '@utils/assist';
+    import { execCopy } from '@utils/assist';
     import ComposeFormItem from '@components/compose-form-item';
     import ChooseIp from '@components/choose-ip';
     import ServerPanel from '@components/choose-ip/server-panel';
@@ -146,7 +146,7 @@
             },
             mode: {
                 type: String,
-                default: '',
+                default: '', // onlyHost: 快速执行只可以选择主机列表
             },
         },
         data () {
@@ -154,7 +154,7 @@
                 isShowChooseIp: false,
                 isSearchMode: false,
                 searchData: [],
-                targetType: 'variable',
+                targetType: 'variable', // variable：主机变量；hostNodeInfo：手动添加
                 localVariable: '',
                 localHost: {},
             };
@@ -162,12 +162,14 @@
         computed: {
             /**
              * @desc 执行目标是否是全局变量
+             * @returns {Boolean}
              */
             isGolbalVariableType () {
                 return this.targetType === 'variable';
             },
             /**
              * @desc 是否显示主机结果面板
+             * @returns {Boolean}
              */
             isShowServerPanel () {
                 if (this.isGolbalVariableType) {
@@ -177,6 +179,7 @@
             },
             /**
              * @desc 是否显示主机结果快捷操作
+             * @returns {Boolean}
              */
             isShowServerAction () {
                 if (this.isGolbalVariableType) {
@@ -186,12 +189,14 @@
             },
             /**
              * @desc 清除异常主机是否可用
+             * @returns {Boolean}
              */
             isClearFailDisabled () {
                 return this.localHost.ipList.length < 1;
             },
             /**
              * @desc 选择的主机才显示主机搜索框
+             * @returns {Boolean}
              */
             isShowHostSearch () {
                 if (this.isGolbalVariableType) {
@@ -199,6 +204,10 @@
                 }
                 return this.localHost.ipList.length > 0;
             },
+            /**
+             * @desc 切换执行目标选择的展示样式
+             * @returns {Object}
+             */
             targetSelectorStyle () {
                 return {
                     width: this.$i18n.locale === 'en-US' ? '156px' : '120px',
@@ -215,19 +224,35 @@
 
                     this.localHost = hostNodeInfo;
                     this.localVariable = variable;
-                    if (this.mode === 'onlyHost' || !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost)) {
-                        this.targetType = 'hostNodeInfo';
+                    if (this.mode !== 'onlyHost') {
+                        // 编辑态，执行目标为服务器列表
+                        if (!TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost)) {
+                            this.targetType = 'hostNodeInfo';
+                        }
                     }
                 },
                 immediate: true,
             },
         },
         created () {
-            // 执行目标时服务器变量时，被引用的变量被删除执行目标的值重置为空
-            if (this.isGolbalVariableType && this.localVariable) {
-                if (!this.variable.find(_ => _.name === this.localVariable)) {
-                    this.localVariable = '';
-                    this.trigger();
+            // 执行目标是主机变量
+            if (this.isGolbalVariableType) {
+                if (this.localVariable) {
+                    // 编辑态
+                    // 如果被引用的主机变量被删除，则将执行目标的值重置为空
+                    // 主机变量被删除
+                    if (!this.variable.find(_ => _.name === this.localVariable)) {
+                        setTimeout(() => {
+                            this.handleVariableChange('');
+                        });
+                    }
+                } else {
+                    // 主机变量为空，默认选中第一个
+                    if (this.variable.length > 0) {
+                        setTimeout(() => {
+                            this.handleVariableChange(this.variable[0].name);
+                        });
+                    }
                 }
             }
             
@@ -248,7 +273,7 @@
             /**
              * @desc 执行目标值更新
              */
-            trigger () {
+            triggerChange () {
                 const taskHostNode = new TaskHostNodeModel({});
                 if (this.isGolbalVariableType) {
                     taskHostNode.variable = this.localVariable;
@@ -265,7 +290,7 @@
              */
             handleTargetTypeChange (value) {
                 this.targetType = value;
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 弹出ip选择器弹层
@@ -279,7 +304,7 @@
              */
             handleVariableChange (value) {
                 this.localVariable = value;
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 主机值更新
@@ -287,7 +312,7 @@
              */
             handleHostChange (hostNodeInfo) {
                 this.localHost = Object.freeze(hostNodeInfo);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 复制所有主机
@@ -320,7 +345,7 @@
                 const { hostNodeInfo } = new TaskHostNodeModel({});
                 this.localHost = Object.freeze(hostNodeInfo);
                 this.messageSuccess(I18n.t('清空成功'));
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 刷新所有主机的状态信息

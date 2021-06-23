@@ -112,13 +112,9 @@
 </template>
 <script>
     import _ from 'lodash';
-    import {
-        mapMutations,
-    } from 'vuex';
+    import { mapMutations } from 'vuex';
     import SourceFileVO from '@domain/variable-object/source-file';
-    import {
-        findParent,
-    } from '@utils/vdom';
+    import { findParent } from '@utils/vdom';
     import ChooseIp from '@components/choose-ip';
     import AccountSelect from '@components/account-select';
     import EditFilePath from '../../components/edit-file-path';
@@ -137,6 +133,7 @@
             EditFilePath,
         },
         props: {
+            // 服务器文件列表
             data: {
                 type: Array,
                 required: true,
@@ -153,11 +150,21 @@
         data () {
             return {
                 isShowChooseIp: false,
+                // 服务器文件列表为空时，默认显示
                 hasSaved: this.data.length > 0,
                 sourceFileType: 'globalVar',
                 serverFile: new SourceFileVO(generatorDefault()),
                 reset: 0,
             };
+        },
+        created () {
+            if (this.variable.length > 0) {
+                this.handleVariableChange(this.variable[0].name);
+                // 设置默认数据，需要取消 window.changeAlert 的状态
+                window.changeAlert = false;
+                // 设置默认数据，需要取消服务器文件的编辑状态
+                this.editNewSourceFile(false);
+            }
         },
         methods: {
             ...mapMutations('distroFile', [
@@ -178,7 +185,7 @@
              */
             handleSourceFileTypeChange (type) {
                 this.sourceFileType = type;
-                const formItem = findParent(this, 'jb-form-item');
+                const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
                     setTimeout(() => {
                         formItem.clearValidator();
@@ -196,7 +203,7 @@
                 this.serverFile.host.variable = variable;
                 window.changeAlert = true;
                 this.editNewSourceFile(true);
-                const formItem = findParent(this, 'jb-form-item');
+                const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
                     setTimeout(() => {
                         formItem.clearValidator();
@@ -228,7 +235,7 @@
                 }
                 const { id } = _.find(this.account, item => item.id === accountId);
                 this.serverFile.account = id;
-                const formItem = findParent(this, 'jb-form-item');
+                const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
                     setTimeout(() => {
                         formItem.clearValidator();
