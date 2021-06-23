@@ -36,8 +36,9 @@
                 <bk-button v-show="isNotEmpty" :disabled="readonly" @click="handleClear">{{ $t('清空') }}</bk-button>
             </div>
             <server-panel
-                class="host-value-panel"
                 v-show="isNotEmpty"
+                ref="choostIP"
+                class="host-value-panel"
                 :host-node-info="hostNodeInfo"
                 detail-fullscreen
                 :editable="!readonly"
@@ -45,6 +46,7 @@
             <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
         </div>
         <choose-ip
+            
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
             @on-change="handleChange" />
@@ -101,6 +103,9 @@
             this.init();
         },
         methods: {
+            /**
+             * @desc 解析默认值
+             */
             init () {
                 if (this.data.defaultTargetValue) {
                     this.hostNodeInfo = this.data.defaultTargetValue.hostNodeInfo;
@@ -108,21 +113,44 @@
                     this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
                 }
             },
+            /**
+             * @desc 外部调用——移除无效主机
+             */
+            removeAllInvalidHost () {
+                window.changeAlert = true;
+                this.$refs.choostIP.removeAllInvalidHost();
+            },
+            /**
+             * @desc 编辑主机列表
+             */
             handleChooseIp () {
                 this.isShowChooseIp = true;
             },
+            /**
+             * @desc 清空主机列表
+             */
             handleClear () {
                 const { hostNodeInfo } = new TaskHostNodeModel({});
                 this.hostNodeInfo = hostNodeInfo;
                 window.changeAlert = true;
             },
+            /**
+             * @desc 提交编辑的数据
+             */
             handleChange (hostNodeInfo) {
                 this.hostNodeInfo = Object.freeze(hostNodeInfo);
                 window.changeAlert = true;
             },
+            /**
+             * @desc 外部调用——还原默认值
+             */
             reset () {
                 this.init();
             },
+            /**
+             * @desc 外部调用——值验证
+             * @returns {Promise}
+             */
             validate () {
                 const { type, id, name } = this.data;
                 
@@ -149,9 +177,10 @@
     .variable-type-host {
         width: 100%;
         max-width: 960px;
+
+        .host-value-panel {
+            margin-top: 10px;
+        }
     }
 
-    .host-value-panel {
-        margin-top: 10px;
-    }
 </style>

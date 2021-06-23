@@ -295,6 +295,20 @@
                 return stack;
             },
             /**
+             * @desc 外部调用移除所有无效的分组
+             */
+            removeAllInvalidHost () {
+                this.invalidList = [];
+                this.triggerChange();
+            },
+            triggerChange () {
+                this.isInnerChange = true;
+                this.$emit('on-change', [
+                    ...this.invalidList,
+                    ...this.list,
+                ]);
+            },
+            /**
              * @desc 失败重试
              */
             handleRefresh () {
@@ -310,7 +324,7 @@
                 ];
                 invalidList.splice(index, 1);
                 this.invalidList = Object.freeze(invalidList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 移除所有节点
@@ -321,31 +335,24 @@
                     return;
                 }
                 // 内部显示删除
-                this.isInnerChange = true;
                 this.list = [];
                 this.nodeMap = {};
                 this.invalidList = [];
+                this.triggerChange();
                 this.messageSuccess(I18n.t('移除成功'));
-                this.$emit('on-change', []);
             },
             /**
              * @desc 移除节点
              * @param {Number} index 节点索引
              */
             handleRemoveOne (index) {
-                this.isInnerChange = true;
                 // 内部显示删除
                 const currentNode = this.list[index];
                 const list = [...this.list];
                 list.splice(index, 1);
                 this.list = Object.freeze(list);
                 delete this.nodeMap[currentNode.id];
-                // 外部数据更新
-                const newData = [
-                    ...this.data,
-                ];
-                newData.splice(index, 1);
-                this.$emit('on-change', Object.freeze(newData));
+                this.triggerChange();
                 this.messageSuccess(I18n.t('移除成功'));
             },
             /**
