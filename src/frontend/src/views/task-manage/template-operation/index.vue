@@ -61,6 +61,7 @@
                 </jb-form-item>
                 <jb-form-item :label="$t('template.作业步骤.label')" required property="steps" style="margin-bottom: 30px;">
                     <render-task-step
+                        ref="step"
                         :list="formData.steps"
                         :variable="formData.variables"
                         mode="operation"
@@ -82,6 +83,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
@@ -138,6 +140,8 @@
         created () {
             this.taskId = this.$route.params.id || 0;
             this.isEdit = this.$route.name === 'templateEdit';
+            // 是否默认显示步骤编辑框
+            this.initShowStepId = Number(this.$route.params.stepId);
 
             // 编辑和克隆作业模版时需要获取模版数据
             if (this.$route.name !== 'templateCreate') {
@@ -196,8 +200,15 @@
                         variables,
                         steps: stepList,
                     };
+                    // 克隆模板提示密文变量
                     if (!this.isEdit) {
                         this.searchCiphertextVariable();
+                    }
+                    // 编辑执行步骤
+                    if (isFirst && this.isEdit && this.initShowStepId > 0) {
+                        setTimeout(() => {
+                            this.$refs.step.clickStepByIndex(_.findIndex(stepList, ({ id }) => id === this.initShowStepId));
+                        });
                     }
                     // 再次编辑
                     // 拉取模版最新数据

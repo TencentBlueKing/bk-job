@@ -85,11 +85,26 @@ export default class TaskStep extends Model {
         return this.scriptStepInfo.scriptStatusHtml;
     }
 
-    get needUpdate () {
+    /**
+     * @desc 执行脚本步骤——引用脚本需要更新
+     * @returns { Boolean }
+     */
+    get isScriptNeedUpdate () {
         if (this.type !== TYPE_SCRIPT) {
             return false;
         }
-        return this.scriptStepInfo.needUpdate === 1;
+        return this.scriptStepInfo.isNeedUpdate;
+    }
+
+    /**
+     * @desc 执行脚本步骤——引用脚本本禁用
+     * @returns { Boolean }
+     */
+    get isScriptDisabled () {
+        if (this.type !== TYPE_SCRIPT) {
+            return false;
+        }
+        return this.scriptStepInfo.isDisabled;
     }
 
     get isScript () {

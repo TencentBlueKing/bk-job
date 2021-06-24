@@ -55,12 +55,13 @@
                         <div
                             class="render-task-step"
                             :class="[diff[step.id] && diff[step.id].type]">
-                            <div class="step-content" @click="handleStepClick(step, index)">
+                            <div class="step-content" @click="handleStepClick(index)">
                                 <div class="step-icon">
                                     <Icon :type="step.icon" />
                                 </div>
                                 <div class="step-name">
                                     <div class="step-name-text">{{ step.name || '--' }}</div>
+                                    <!-- 执行脚本，引用脚本的状态 -->
                                     <div v-html="step.scriptStatusHtml" />
                                 </div>
                                 <Icon v-if="isOperation" type="move" class="draggable-flag" />
@@ -84,6 +85,7 @@
                                 <!-- 编辑状态的新建步骤需要标记出来 -->
                                 <div v-if="!step.id" class="step-new-flag">new</div>
                             </template>
+                            <!-- 本地验证不通过标记 -->
                             <div v-if="step.localValidator === false" class="need-validate-falg">
                                 {{ $t('template.待补全') }}
                             </div>
@@ -302,7 +304,7 @@
                         }
                     }
                     this.steps = Object.freeze([...list]);
-                    this.parseUrl();
+                    // this.parseUrl();
                 },
                 immediate: true,
             },
@@ -312,29 +314,35 @@
         },
         methods: {
             /**
+             * @desc 外部调用——点击指定 index 的步骤
+             */
+            clickStepByIndex (index) {
+                this.handleStepClick(index);
+            },
+            /**
              * @desc 如果url指定了步骤id，默认显示对应步骤的弹层
              */
-            parseUrl () {
-                if (this.innerChange) {
-                    return;
-                }
-                const stepId = Number(this.$route.params.stepId);
-                if (!stepId) {
-                    return;
-                }
-                const currntStepIndex = _.findIndex(this.steps, item => item.id === stepId);
-                if (currntStepIndex > -1) {
-                    setTimeout(() => {
-                        this.handleShowEdit(currntStepIndex);
-                    }, 500);
-                }
-            },
+            // parseUrl () {
+            //     if (this.innerChange) {
+            //         return;
+            //     }
+            //     const stepId = Number(this.$route.params.stepId);
+            //     if (!stepId) {
+            //         return;
+            //     }
+            //     const currntStepIndex = _.findIndex(this.steps, item => item.id === stepId);
+            //     if (currntStepIndex > -1) {
+            //         setTimeout(() => {
+            //             this.handleShowEdit(currntStepIndex);
+            //         }, 500);
+            //     }
+            // },
             /**
              * @desc 鼠标点击某个步骤
              * @param {Object} payload 点击的模版步骤数据
              * @param {Number} index 点击的模版步骤索引
              */
-            handleStepClick (payload, index) {
+            handleStepClick (index) {
                 if (this.isOperation) {
                     // 编辑步骤
                     this.handleShowEdit(index);
@@ -342,7 +350,7 @@
                 }
                 // 查看步骤详情
                 this.operationType = 'detail';
-                this.detailInfo = payload;
+                this.detailInfo = this.steps[index];
                 this.isShowDetail = true;
             },
             /**

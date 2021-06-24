@@ -71,7 +71,10 @@
                 <render-global-var :list="formData.variables" />
             </detail-item>
             <detail-item :label="$t('template.作业步骤：')" class="task-step-item">
-                <render-task-step :list="formData.stepList" :variable="formData.variables" />
+                <render-task-step
+                    ref="step"
+                    :list="formData.stepList"
+                    :variable="formData.variables" />
             </detail-item>
         </detail-layout>
         <template #action>
@@ -129,12 +132,11 @@
     </smart-action>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
-    import {
-        taskTemplateName,
-    } from '@utils/validator';
+    import { taskTemplateName } from '@utils/validator';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
     import BackTop from '@components/back-top';
@@ -186,9 +188,17 @@
             isSkeletonLoading () {
                 return this.isLoading;
             },
+            /**
+             * @desc 模板关联的执行方案是否需要同步
+             * @returns { Boolean }
+             */
             isNotNeedUpdate () {
                 return !this.planList.some(_ => _.needUpdate);
             },
+            /**
+             * @desc 模板关联的执行方案同步 tips
+             * @returns { Boolean }
+             */
             notNeedUpdateTips () {
                 if (this.planList.length < 1) {
                     return I18n.t('template.该模版下面没有执行方案');
@@ -201,7 +211,12 @@
         },
         created () {
             this.taskId = this.$route.params.id;
+            // 是否默认显示需要更新脚本的执行脚本步骤
+            this.initShowScriptUpdateStep = this.$route.query.mode === 'scriptUpdate';
             this.formDataLocal = {};
+
+            this.fetchData();
+            this.fetchPlanList();
             
             this.rules = {
                 name: [
@@ -222,9 +237,6 @@
                     },
                 ],
             };
-
-            this.fetchData();
-            this.fetchPlanList();
         },
         methods: {
             /**
@@ -248,6 +260,17 @@
                         } else {
                             this.formData = data;
                             this.formDataLocal = { ...data };
+                            // 查看脚本更新模式，执行脚本步骤的脚本有更新或者禁用默认展示第一个脚本步骤详情
+                            if (this.initShowScriptUpdateStep) {
+                                setTimeout(() => {
+                                    const { stepList } = data;
+                                    const index = _.findIndex(stepList, step => step.isScriptDisabled
+                                        || step.isScriptNeedUpdate);
+                                    if (index > -1) {
+                                        this.$refs.step.clickStepByIndex(index);
+                                    }
+                                });
+                            }
                         }
                     })
                     .catch((error) => {
