@@ -229,6 +229,8 @@
                         if (!TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost)) {
                             this.targetType = 'hostNodeInfo';
                         }
+                    } else {
+                        this.targetType = 'hostNodeInfo';
                     }
                 },
                 immediate: true,

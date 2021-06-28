@@ -566,3 +566,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-many-dot:before {
 	content: "\e1f8";
 }
+.job-icon-ip-audit:before {
+	content: "\e1fb";
+}
+.job-icon-delete:before {
+	content: "\e1fc";
+}
