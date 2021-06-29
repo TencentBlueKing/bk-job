@@ -26,14 +26,14 @@
 -->
 
 <template>
-    <div class="jb-edit-textarea">
-        <div v-if="!isEditing" class="value-text-wraper">
+    <div class="jb-edit-textarea" :class="mode">
+        <div v-if="!isEditing" class="render-value-box" @click.stop="handleBlockShowEdit">
             <div
                 ref="textWraper"
                 class="render-text-box"
                 :style="boxStyles">
                 <slot v-bind:value="newVal">{{ renderText }}</slot>
-                <span v-if="renderLength > 0" class="text-whole" @click="handleExpandAll">
+                <span v-if="renderLength > 0" class="text-whole" @click.stop="handleExpandAll">
                     <template v-if="isExpand">
                         <Icon type="angle-double-up" style="font-size: 12px;" />
                         <span>收起</span>
@@ -45,14 +45,21 @@
                 </span>
             </div>
             <div v-if="!readonly" class="edit-action-box">
-                <Icon v-if="!isSubmiting" type="edit-2" class="edit-action" @click.self.stop="handleShowInput" />
-                <Icon v-if="isSubmiting" type="loading-circle" class="edit-loading" />
+                <Icon
+                    v-if="!isBlock && !isSubmiting"
+                    type="edit-2"
+                    class="edit-action"
+                    @click.self.stop="handleShowInput" />
+                <Icon
+                    v-if="isSubmiting"
+                    type="loading-circle"
+                    class="edit-loading" />
             </div>
         </div>
         <div v-else @click.stop="">
             <jb-textarea
                 v-model="newVal"
-                class="edit-value-container"
+                class="edit-value-box"
                 ref="input"
                 :rows="rows"
                 v-bind="$attrs"
@@ -70,6 +77,14 @@
             JbTextarea,
         },
         props: {
+            /**
+             * @value block 块级交互
+             * @value ‘’ 默认鼠标点击编辑按钮
+             */
+            mode: {
+                type: String,
+                default: '',
+            },
             field: {
                 type: String,
                 required: true,
@@ -134,6 +149,9 @@
                 }
                 return styles;
             },
+            isBlock () {
+                return this.mode === 'block';
+            },
         },
         watch: {
             value: {
@@ -153,6 +171,12 @@
             });
         },
         methods: {
+            handleBlockShowEdit () {
+                if (!this.isBlock) {
+                    return;
+                }
+                this.handleShowInput();
+            },
             /**
              * @desc 开始编辑
              *
@@ -246,7 +270,7 @@
                     setTimeout(() => {
                         this.renderLength = 0;
                         if (realHeight > lineHeight) {
-                            this.renderLength = realLength - 11;
+                            this.renderLength = realLength - 7;
                         }
                         this.$refs.textWraper.removeChild($el);
                     });
@@ -258,18 +282,32 @@
         },
     };
 </script>
-<style lang="postcss">
-    @keyframes textarea-edit-loading {
-        to {
-            transform: rotateZ(360deg);
-        }
-    }
-</style>
 <style lang='postcss' scoped>
     .jb-edit-textarea {
         position: relative;
 
-        .value-text-wraper {
+        &.block {
+            position: relative;
+            cursor: pointer;
+
+            .render-value-box {
+                padding-left: 10px;
+                margin-left: -10px;
+
+                &:hover {
+                    background: #f0f1f5;
+                }
+            }
+
+            .edit-action-box {
+                position: absolute;
+                top: 0;
+                right: 10px;
+                width: 16px;
+            }
+        }
+
+        .render-value-box {
             position: relative;
             display: flex;
             align-items: center;
@@ -325,11 +363,11 @@
                 position: absolute;
                 top: 8px;
                 margin-left: 2px;
-                animation: 'textarea-edit-loading' 1s linear infinite;
+                animation: rotate-loading 1s linear infinite;
             }
         }
 
-        .edit-value-container {
+        .edit-value-box {
             width: 100%;
         }
     }

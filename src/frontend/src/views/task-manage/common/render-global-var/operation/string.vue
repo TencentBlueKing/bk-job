@@ -76,21 +76,6 @@
     } from '@utils/validator';
     import JbInput from '@components/jb-input';
 
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 初始值
-        defaultValue: '',
-        // 变量描述
-        description: '',
-        // 赋值可变 0-不可变 1-可变
-        changeable: 0,
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
-
     export default {
         name: 'VarString',
         components: {
@@ -105,35 +90,13 @@
             },
             data: {
                 type: Object,
-                default () {
-                    return {};
-                },
+                default: () => ({}),
             },
         },
         data () {
             return {
-                formData: getDefaultData(),
+                formData: { ...this.data },
             };
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    if (data.name) {
-                        const { name, defaultValue, description, changeable, required, id } = data;
-                        this.formData = {
-                            id,
-                            name,
-                            defaultValue,
-                            description,
-                            changeable,
-                            required,
-                            delete: data.delete,
-                        };
-                    }
-                },
-                immediate: true,
-            },
-            
         },
         created () {
             this.rules = {
@@ -159,7 +122,7 @@
         methods: {
             submit () {
                 return this.$refs.varStringForm.validate()
-                    .then((validator) => {
+                    .then(() => {
                         this.$emit('on-change', {
                             ...this.formData,
                             type: 1,

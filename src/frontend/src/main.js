@@ -25,6 +25,8 @@
 
 import './public-path';
 import Vue from 'vue';
+import '@icon-cool/bk-icon-job';
+import '@icon-cool/bk-icon-job/src/index.js';
 import createRouter from '@/router';
 import store from '@/store';
 import AppService from '@service/app-manage';
@@ -34,7 +36,6 @@ import TaskPlanService from '@service/task-plan';
 import EntryTask from '@/utils/entry-task';
 import { appIdCache } from '@/utils/cache-helper';
 import '@/common/bkmagic';
-import '@/css/icon-cool/iconcool.js';
 import '@/css/reset.css';
 import '@/css/app.css';
 import App from '@/App';

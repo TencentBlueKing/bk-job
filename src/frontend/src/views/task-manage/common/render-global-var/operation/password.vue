@@ -65,19 +65,6 @@
     } from '@utils/validator';
     import JbInput from '@components/jb-input';
 
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 初始值
-        defaultValue: '',
-        // 变量描述
-        description: '',
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
-
     export default {
         name: 'VarPassword',
         components: {
@@ -99,7 +86,7 @@
         },
         data () {
             return {
-                formData: getDefaultData(),
+                formData: { ...this.data },
                 passwordIcon: [],
             };
         },
@@ -107,21 +94,12 @@
             data: {
                 handler (data) {
                     if (data.name) {
-                        const { name, defaultValue, description, required, id } = data;
-                        this.formData = {
-                            id,
-                            name,
-                            defaultValue,
-                            description,
-                            required,
-                            delete: data.delete,
-                        };
                         this.passwordIcon = [];
-                        return;
+                    } else {
+                        this.passwordIcon = [
+                            'icon-eye-slash',
+                        ];
                     }
-                    this.passwordIcon = [
-                        'icon-eye-slash',
-                    ];
                 },
                 immediate: true,
             },
@@ -151,7 +129,7 @@
         methods: {
             submit () {
                 return this.$refs.varPasswordForm.validate()
-                    .then((validator) => {
+                    .then(() => {
                         this.$emit('on-change', {
                             ...this.formData,
                             type: 4,

@@ -94,21 +94,6 @@
     } from '@utils/validator';
     import JbInput from '@components/jb-input';
 
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 初始值
-        defaultValue: '',
-        // 变量描述
-        description: '',
-        // 赋值可变 0-不可变 1-可变
-        changeable: 0,
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
-
     export default {
         name: 'VarArray',
         components: {
@@ -131,7 +116,7 @@
         data () {
             return {
                 arrayType: 5,
-                formData: getDefaultData(),
+                formData: { ...this.data },
             };
         },
         computed: {
@@ -143,17 +128,7 @@
             data: {
                 handler (data) {
                     if (data.name) {
-                        const { name, defaultValue, description, changeable, required, id, type } = data;
-                        this.formData = {
-                            id,
-                            name,
-                            defaultValue,
-                            description,
-                            changeable,
-                            required,
-                            delete: data.delete,
-                        };
-                        this.arrayType = type;
+                        this.arrayType = data.type;
                     }
                 },
                 immediate: true,
@@ -187,7 +162,7 @@
             },
             submit () {
                 return this.$refs.varArrayForm.validate()
-                    .then((validator) => {
+                    .then(() => {
                         this.$emit('on-change', {
                             ...this.formData,
                             type: this.arrayType,
