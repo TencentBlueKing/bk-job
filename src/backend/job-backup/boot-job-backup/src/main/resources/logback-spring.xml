@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="LOG_PATTERN"
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{X-B3-TraceId}|%X{X-B3-SpanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="BK_LOG_DIR_BACKUP" value="${BK_LOG_DIR}/job-backup"/>
+    <property name="BACKUP_LOG_FILE" value="${BK_LOG_DIR_BACKUP}/backup.log"/>
+    <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_BACKUP}/error.log"/>
+    <property name="ARCHIVE_LOG_FILE" value="${BK_LOG_DIR_BACKUP}/archive.log"/>
+    <property name="ARCHIVE_ERROR_LOG_FILE" value="${BK_LOG_DIR_BACKUP}/archive_error.log"/>
+    <contextName>logback</contextName>
+
+    <appender name="backup-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${BACKUP_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${BACKUP_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>168</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>168</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="archive-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ARCHIVE_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ARCHIVE_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>168</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="archive-error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ARCHIVE_ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ARCHIVE_ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>168</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>utf8</charset>
+            </encoder>
+        </appender>
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="ArchiveFailedLogger" level="DEBUG" additivity="false">
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="dev">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="backup-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="backup-appender"/>
+        </logger>
+        <logger name="ArchiveFailedLogger" level="DEBUG" additivity="false">
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="backup-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+            <appender-ref ref="backup-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="backup-appender"/>
+        </logger>
+        <logger name="ArchiveFailedLogger" level="DEBUG" additivity="false">
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="backup-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+</configuration>

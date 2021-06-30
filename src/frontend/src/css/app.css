@@ -1,0 +1,64 @@
+@import "./bk-patch.css";
+@import "./icon-cool/style.css";
+
+@keyframes rotate-loading {
+    0% {
+        transform: rotateZ(0);
+    }
+
+    100% {
+        transform: rotateZ(360deg);
+    }
+}
+
+.full-width {
+    width: 100%;
+}
+
+.disable {
+    color: #c4c6cc;
+    user-select: none;
+}
+
+.center-content {
+    display: flex;
+    background-color: #fff;
+    justify-content: center;
+    align-items: center;
+}
+
+.control-append-group {
+    .group-append {
+        background: #f5f7fa;
+    }
+}
+
+*[tabindex] {
+    outline: none;
+}
+
+.w120 {
+    width: 120px;
+}
+
+.number {
+    padding: 0 4px;
+}
+
+.strong {
+    font-weight: bold;
+    color: #3a84ff;
+}
+
+.error {
+    color: #ea3636;
+}
+
+.rotate-loading {
+    color: #3a84ff;
+    animation: rotate-loading 1s linear infinite;
+}
+
+.__cov-progress {
+    z-index: 1000 !important;
+}

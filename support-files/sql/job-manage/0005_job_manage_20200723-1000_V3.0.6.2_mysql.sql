@@ -1,0 +1,2 @@
+USE job_manage;
+ALTER TABLE host_topo MODIFY COLUMN host_id BIGINT(20) UNSIGNED;

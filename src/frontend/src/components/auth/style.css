@@ -1,0 +1,20 @@
+.component-permission-disabled {
+    position: relative;
+    color: #c4c6cc !important;
+    cursor: default !important;
+
+    &::after {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        content: "";
+    }
+
+    * {
+        color: #c4c6cc !important;
+        cursor: default !important;
+    }
+}

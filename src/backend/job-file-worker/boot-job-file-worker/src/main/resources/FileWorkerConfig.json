@@ -1,0 +1,394 @@
+{
+  "fileWorkerName": "公共Worker-1",
+  "fileSourceMetaDataList": [
+    {
+      "storageTypeCode": "OSS",
+      "fileSourceTypeCode": "TENCENT_CLOUD_COS",
+      "name": "腾讯云COS",
+      "iconPath": "tencent_cloud.png",
+      "staticParamList": [
+        {
+          "name": "endPointDomain",
+          "label": "EndPoint",
+          "required": true,
+          "type": "TextInput",
+          "default": ""
+        },
+        {
+          "name": "appId",
+          "label": "APPID",
+          "required": true,
+          "type": "TextInput",
+          "default": ""
+        }
+      ],
+      "fileTreeNodeDefList": [
+        {
+          "nodeType": "FILE_SOURCE",
+          "childNodeType": "BUCKET",
+          "description": "根节点：文件源",
+          "properties": []
+        },
+        {
+          "nodeType": "BUCKET",
+          "childNodeType": "FILE",
+          "description": "COS-Bucket",
+          "properties": [
+            {
+              "label": "名称",
+              "labelEn": "Name",
+              "field": "name",
+              "type": "text",
+              "@type": "text",
+              "actions": [
+                {
+                  "@type": "FILE_LINK",
+                  "type": "FILE_LINK",
+                  "target": "${name}"
+                }
+              ]
+            },
+            {
+              "label": "类别",
+              "labelEn": "Type",
+              "field": "type",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "创建时间",
+              "labelEn": "CreateTime",
+              "field": "createTime",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "操作",
+              "labelEn": "Operations",
+              "type": "buttonGroup",
+              "@type": "buttonGroup",
+              "actions": [
+                {
+                  "@type": "WORKER_ACTION",
+                  "type": "WORKER_ACTION",
+                  "displayType": "Confirm",
+                  "label": "删除",
+                  "labelEn": "Delete",
+                  "actionCode": "DELETE_BUCKET",
+                  "actionType": "DELETE",
+                  "params": "{\"bucketName\":\"${name}\"}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "nodeType": "FILE",
+          "childNodeType": "FILE",
+          "description": "COS-File",
+          "properties": [
+            {
+              "@type": "checkbox",
+              "type": "checkbox",
+              "output": "${completePath}",
+              "defaultValue": false,
+              "enable": {
+                "rely": {
+                  "operation": "AND",
+                  "expressions": [
+                    {
+                      "key": "dir",
+                      "value": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "label": "名称",
+              "labelEn": "Name",
+              "field": "name",
+              "type": "text",
+              "@type": "text",
+              "actions": [
+                {
+                  "@type": "FILE_LINK",
+                  "type": "FILE_LINK",
+                  "target": "${completePath}",
+                  "rely": {
+                    "operation": "AND",
+                    "expressions": [
+                      {
+                        "key": "dir",
+                        "value": true
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "label": "类别",
+              "labelEn": "Type",
+              "field": "type",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "更新时间",
+              "labelEn": "UpdateTime",
+              "field": "updateTime",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "操作",
+              "labelEn": "Operations",
+              "type": "buttonGroup",
+              "@type": "buttonGroup",
+              "actions": [
+                {
+                  "@type": "WORKER_ACTION",
+                  "type": "WORKER_ACTION",
+                  "displayType": "Confirm",
+                  "label": "删除",
+                  "labelEn": "Delete",
+                  "actionCode": "DELETE_FILE",
+                  "actionType": "DELETE",
+                  "params": "{\"path\":\"${completePath}\"}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "storageTypeCode": "OSS",
+      "fileSourceTypeCode": "BLUEKING_ARTIFACTORY",
+      "name": "蓝鲸制品库",
+      "iconPath": "bk_artifactory.png",
+      "staticParamList": [
+        {
+          "name": "baseUrl",
+          "label": "制品库根地址",
+          "required": true,
+          "type": "TextInput",
+          "default": "https://"
+        }
+      ],
+      "fileTreeNodeDefList": [
+        {
+          "nodeType": "FILE_SOURCE",
+          "childNodeType": "PROJECT",
+          "description": "根节点：文件源",
+          "properties": []
+        },
+        {
+          "nodeType": "PROJECT",
+          "childNodeType": "REPO",
+          "description": "制品库-Project",
+          "properties": [
+            {
+              "label": "项目名",
+              "labelEn": "Name",
+              "field": "name",
+              "type": "text",
+              "@type": "text",
+              "actions": [
+                {
+                  "@type": "FILE_LINK",
+                  "type": "FILE_LINK",
+                  "target": "${completePath}"
+                }
+              ]
+            },
+            {
+              "label": "项目展示名称",
+              "labelEn": "DisplayName",
+              "field": "displayName",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "创建人",
+              "labelEn": "Creator",
+              "field": "createdBy",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "项目描述",
+              "labelEn": "Description",
+              "field": "description",
+              "type": "text",
+              "@type": "text"
+            }
+          ]
+        },
+        {
+          "nodeType": "REPO",
+          "childNodeType": "NODE",
+          "description": "制品库-Repo",
+          "properties": [
+            {
+              "label": "项目Id",
+              "labelEn": "ProjectId",
+              "field": "projectId",
+              "type": "text",
+              "@type": "text",
+              "hidden": true
+            },
+            {
+              "label": "名称",
+              "labelEn": "Name",
+              "field": "name",
+              "type": "text",
+              "@type": "text",
+              "actions": [
+                {
+                  "@type": "FILE_LINK",
+                  "type": "FILE_LINK",
+                  "target": "${completePath}"
+                }
+              ]
+            },
+            {
+              "label": "类型",
+              "labelEn": "Type",
+              "field": "type",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "是否公共",
+              "labelEn": "Public",
+              "field": "public",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "创建人",
+              "labelEn": "Creator",
+              "field": "createdBy",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "描述",
+              "labelEn": "Description",
+              "field": "description",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "操作",
+              "labelEn": "Operations",
+              "type": "buttonGroup",
+              "@type": "buttonGroup",
+              "actions": [
+                {
+                  "@type": "WORKER_ACTION",
+                  "type": "WORKER_ACTION",
+                  "displayType": "Confirm",
+                  "label": "删除",
+                  "labelEn": "Delete",
+                  "actionCode": "DELETE_REPO",
+                  "actionType": "DELETE",
+                  "params": "{\"projectId\":\"${projectId}\",\"name\":\"${name}\"}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "nodeType": "NODE",
+          "childNodeType": "NODE",
+          "description": "制品库-节点",
+          "properties": [
+            {
+              "type": "checkbox",
+              "@type": "checkbox",
+              "output": "${completePath}",
+              "defaultValue": false,
+              "enable": {
+                "rely": {
+                  "operation": "AND",
+                  "expressions": [
+                    {
+                      "key": "folder",
+                      "value": false
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "label": "名称",
+              "labelEn": "Name",
+              "field": "name",
+              "type": "text",
+              "@type": "text",
+              "actions": [
+                {
+                  "@type": "FILE_LINK",
+                  "type": "FILE_LINK",
+                  "target": "${completePath}",
+                  "rely": {
+                    "operation": "AND",
+                    "expressions": [
+                      {
+                        "key": "folder",
+                        "value": true
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "label": "大小",
+              "labelEn": "Size",
+              "field": "size",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "更新人",
+              "labelEn": "LastModifiedBy",
+              "field": "lastModifiedBy",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "最近更新时间",
+              "labelEn": "LastModifiedDate",
+              "field": "lastModifiedDate",
+              "type": "text",
+              "@type": "text"
+            },
+            {
+              "label": "操作",
+              "labelEn": "Operations",
+              "field": "operations",
+              "type": "buttonGroup",
+              "@type": "buttonGroup",
+              "actions": [
+                {
+                  "@type": "WORKER_ACTION",
+                  "type": "WORKER_ACTION",
+                  "displayType": "Confirm",
+                  "label": "删除",
+                  "labelEn": "Delete",
+                  "actionCode": "DELETE_NODE",
+                  "actionType": "DELETE",
+                  "params": "{\"projectId\":\"${projectId}\",\"repoName\":\"${repoName}\",\"fullPath\":\"${fullPath}\"}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

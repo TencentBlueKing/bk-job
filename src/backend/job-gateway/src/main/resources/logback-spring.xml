@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="LOG_PATTERN"
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{X-B3-TraceId}|%X{X-B3-SpanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="BK_LOG_DIR_GATEWAY" value="${BK_LOG_DIR}/job-gateway"/>
+    <property name="GATEWAY_LOG_FILE" value="${BK_LOG_DIR_GATEWAY}/gateway.log"/>
+    <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_GATEWAY}/error.log"/>
+    <property name="ACCESS_LOG" value="${BK_LOG_DIR_GATEWAY}/access.log"/>
+    <property name="ESB_ACCESS_LOG" value="${BK_LOG_DIR_GATEWAY}/esb_access.log"/>
+    <property name="IAM_ACCESS_LOG" value="${BK_LOG_DIR_GATEWAY}/iam_access.log"/>
+    <contextName>logback</contextName>
+
+    <appender name="gateway-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${GATEWAY_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${GATEWAY_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="accessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ACCESS_LOG}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%X{X-B3-TraceId}|%X{X-B3-SpanId}]%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="esbAccessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ESB_ACCESS_LOG}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ESB_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="iamAccessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${IAM_ACCESS_LOG}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${IAM_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <!--    <appender name="async" class="ch.qos.logback.classic.AsyncAppender">-->
+    <!--        <appender-ref ref="accessLog" />-->
+    <!--    </appender>-->
+    <logger name="reactor.netty.http.server.AccessLog" level="DEBUG" additivity="false">
+        <appender-ref ref="accessLog"/>
+    </logger>
+
+
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>utf8</charset>
+            </encoder>
+        </appender>
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordEsbAccessLogGatewayFilterFactory" level="INFO"
+                additivity="false">
+            <appender-ref ref="esbAccessLog"/>
+        </logger>
+        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordIamAccessLogGatewayFilterFactory" level="INFO"
+                additivity="false">
+            <appender-ref ref="iamAccessLog"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="dev">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="gateway-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="gateway-appender"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="gateway-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+            <appender-ref ref="gateway-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="gateway-appender"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="gateway-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+</configuration>

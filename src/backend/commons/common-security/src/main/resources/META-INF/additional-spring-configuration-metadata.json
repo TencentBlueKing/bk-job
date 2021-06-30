@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "job.security.service.public-key-base64",
+      "type": "java.lang.String",
+      "description": "Job base64 encode public key.",
+      "sourceType": "com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties"
+    },
+    {
+      "name": "job.security.service.private-key-base64",
+      "type": "java.lang.String",
+      "description": "Job base64 encode private key.",
+      "sourceType": "com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties"
+    }
+  ]
+}

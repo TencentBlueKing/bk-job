@@ -1,0 +1,16 @@
+spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  cloud:
+    consul:
+      enabled: false
+    config:
+      discovery:
+        enabled: false
+      enabled: false
+
+server:
+  port: 19805

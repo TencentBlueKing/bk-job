@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: job-file-worker
+  profiles:
+    active: prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: ${job.file.worker.server.port:19810}
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

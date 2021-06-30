@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    consul:
+      enabled: false
+    config:
+      discovery:
+        enabled: false
+      enabled: false

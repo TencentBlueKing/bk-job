@@ -1,0 +1,122 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
+<template>
+    <bk-form-item
+        ref="bkFormItem"
+        :class="classes"
+        v-bind="$attrs"
+        :label="label"
+        v-on="$listeners">
+        <div class="jb-form-item-content">
+            <slot />
+        </div>
+        <p v-if="validator.state === 'error'" class="error">{{ validator.content }}</p>
+    </bk-form-item>
+</template>
+<script>
+    export default {
+        name: 'JbFormItem',
+        inheritAttrs: false,
+        props: {
+            label: {
+                type: String,
+                default: '',
+            },
+            layout: {
+                type: String,
+                default: '',
+            },
+        },
+        data () {
+            return {
+                validator: {
+                    state: '',
+                    content: '',
+                },
+            };
+        },
+        computed: {
+            classes () {
+                const classes = {
+                    'jb-form-item': true,
+                    'label-miss': !this.label,
+                };
+                if (this.layout) {
+                    classes[`layout-${this.layout}`] = true;
+                }
+                return classes;
+            },
+        },
+        mounted () {
+            this.validator = this.$refs.bkFormItem.validator;
+        },
+        methods: {
+            clearValidator () {
+                this.$refs.bkFormItem.clearValidator();
+            },
+        },
+    };
+</script>
+<style lang='postcss'>
+    .jb-form-item {
+        &.label-miss {
+            .bk-label {
+                height: 0;
+                min-height: 0;
+                font-size: 0;
+            }
+        }
+
+        &.layout-inline {
+            flex-direction: row !important;
+        }
+
+        &.layout-vertical {
+            flex-direction: column !important;
+        }
+
+        .jb-form-item-content {
+            flex: 1;
+        }
+
+        .bk-label {
+            height: 32px;
+        }
+
+        .error {
+            margin-bottom: -4px;
+            font-size: 12px;
+            line-height: 20px;
+            color: #ff4d4d;
+        }
+
+        .tooltips-icon {
+            display: none;
+        }
+    }
+</style>

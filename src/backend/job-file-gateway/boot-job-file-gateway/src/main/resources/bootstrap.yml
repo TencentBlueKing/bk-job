@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: job-file-gateway
+  profiles:
+    active: prod
+  cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-file-gateway
+        instance-id: job-file-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: shutdown,health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: ${job.file-gateway.server.port:19809}
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

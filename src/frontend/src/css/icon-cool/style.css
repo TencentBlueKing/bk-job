@@ -1,0 +1,568 @@
+@font-face {
+	font-family: "job";
+	src: url("fonts/iconcool.svg#iconcool") format("svg"),
+url("fonts/iconcool.ttf") format("truetype"),
+url("fonts/iconcool.woff") format("woff"),
+url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+.job-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'job' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  text-align: center;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.job-icon-check-circle:before {
+	content: "\e14a";
+}
+.job-icon-filter:before {
+	content: "\e153";
+}
+.job-icon-minus-circle:before {
+	content: "\e143";
+}
+.job-icon-plus-circle:before {
+	content: "\e141";
+}
+.job-icon-warning-circle:before {
+	content: "\e142";
+}
+.job-icon-help-fill:before {
+	content: "\e17e";
+}
+.job-icon-retry:before {
+	content: "\e159";
+}
+.job-icon-confirm:before {
+	content: "\e15a";
+}
+.job-icon-history:before {
+	content: "\e184";
+}
+.job-icon-set:before {
+	content: "\e154";
+}
+.job-icon-download:before {
+	content: "\e195";
+}
+.job-icon-info:before {
+	content: "\e183";
+}
+.job-icon-loading:before {
+	content: "\e11d";
+}
+.job-icon-check:before {
+	content: "\e178";
+}
+.job-icon-close:before {
+	content: "\e145";
+}
+.job-icon-tag:before {
+	content: "\e101";
+}
+.job-icon-copy:before {
+	content: "\e102";
+}
+.job-icon-approval:before {
+	content: "\e104";
+}
+.job-icon-unclassified:before {
+	content: "\e103";
+}
+.job-icon-exec-script:before {
+	content: "\e107";
+}
+.job-icon-paste:before {
+	content: "\e105";
+}
+.job-icon-file:before {
+	content: "\e106";
+}
+.job-icon-global-var:before {
+	content: "\e108";
+}
+.job-icon-flow:before {
+	content: "\e109";
+}
+.job-icon-edit-2:before {
+	content: "\e10c";
+}
+.job-icon-edit:before {
+	content: "\e10d";
+}
+.job-icon-info:before {
+	content: "\e10e";
+}
+.job-icon-new:before {
+	content: "\e10f";
+}
+.job-icon-link:before {
+	content: "\e121";
+}
+.job-icon-business-manage:before {
+	content: "\e130";
+}
+.job-icon-collection:before {
+	content: "\e131";
+}
+.job-icon-execute-history:before {
+	content: "\e132";
+}
+.job-icon-fast-execute:before {
+	content: "\e133";
+}
+.job-icon-job-logo:before {
+	content: "\e135";
+}
+.job-icon-script-manage:before {
+	content: "\e137";
+}
+.job-icon-system-manage:before {
+	content: "\e13a";
+}
+.job-icon-job-manage:before {
+	content: "\e139";
+}
+.job-icon-angle-double-down:before {
+	content: "\e13b";
+}
+.job-icon-angle-double-left:before {
+	content: "\e13d";
+}
+.job-icon-angle-double-right:before {
+	content: "\e13e";
+}
+.job-icon-angle-double-up:before {
+	content: "\e13f";
+}
+.job-icon-circle-italics-info:before {
+	content: "\e146";
+}
+.job-icon-back:before {
+	content: "\e147";
+}
+.job-icon-back1:before {
+	content: "\e149";
+}
+.job-icon-timing:before {
+	content: "\e14b";
+}
+.job-icon-sync:before {
+	content: "\e14c";
+}
+.job-icon-password:before {
+	content: "\e14f";
+}
+.job-icon-host:before {
+	content: "\e150";
+}
+.job-icon-update:before {
+	content: "\e151";
+}
+.job-icon-plus:before {
+	content: "\e152";
+}
+.job-icon-arrow-full-right:before {
+	content: "\e155";
+}
+.job-icon-step-pending:before {
+	content: "\e158";
+}
+.job-icon-skip:before {
+	content: "\e15b";
+}
+.job-icon-stop:before {
+	content: "\e15c";
+}
+.job-icon-move:before {
+	content: "\e15d";
+}
+.job-icon-more:before {
+	content: "\e15e";
+}
+.job-icon-upload:before {
+	content: "\e15f";
+}
+.job-icon-eye-shape:before {
+	content: "\e1fa";
+}
+.job-icon-eye-slash-shape:before {
+	content: "\e1f9";
+}
+.job-icon-step-next:before {
+	content: "\e160";
+}
+.job-icon-down-small:before {
+	content: "\e161";
+}
+.job-icon-full-screen:before {
+	content: "\e166";
+}
+.job-icon-un-full-screen:before {
+	content: "\e167";
+}
+.job-icon-arrow-full-down:before {
+	content: "\e168";
+}
+.job-icon-audit:before {
+	content: "\e169";
+}
+.job-icon-clock:before {
+	content: "\e16a";
+}
+.job-icon-arrow-3:before {
+	content: "\e16c";
+}
+.job-icon-user:before {
+	content: "\e16d";
+}
+.job-icon-user-group-gray:before {
+	content: "\e16e";
+}
+.job-icon-loading-circle:before {
+	content: "\e16f";
+}
+.job-icon-dingding:before {
+	content: "\e170";
+}
+.job-icon-duanxin:before {
+	content: "\e171";
+}
+.job-icon-moren:before {
+	content: "\e172";
+}
+.job-icon-qiyeweixin:before {
+	content: "\e173";
+}
+.job-icon-youxiang:before {
+	content: "\e175";
+}
+.job-icon-weixin:before {
+	content: "\e174";
+}
+.job-icon-msn:before {
+	content: "\e176";
+}
+.job-icon-qq:before {
+	content: "\e177";
+}
+.job-icon-down-arrow:before {
+	content: "\e179";
+}
+.job-icon-up-arrow:before {
+	content: "\e17a";
+}
+.job-icon-hexagon:before {
+	content: "\e17b";
+}
+.job-icon-job-statistics:before {
+	content: "\e17c";
+}
+.job-icon-script-statistics:before {
+	content: "\e17d";
+}
+.job-icon-search:before {
+	content: "\e194";
+}
+.job-icon-script-disable:before {
+	content: "\e17f";
+}
+.job-icon-step-detail:before {
+	content: "\e182";
+}
+.job-icon-array:before {
+	content: "\e185";
+}
+.job-icon-redo:before {
+	content: "\e187";
+}
+.job-icon-up-to-top:before {
+	content: "\e188";
+}
+.job-icon-position-tag:before {
+	content: "\e189";
+}
+.job-icon-namespace:before {
+	content: "\e18a";
+}
+.job-icon-string:before {
+	content: "\e18b";
+}
+.job-icon-forbid-en:before {
+	content: "\e18c";
+}
+.job-icon-blacklist-en:before {
+	content: "\e18d";
+}
+.job-icon-blacklist:before {
+	content: "\e18f";
+}
+.job-icon-forbid:before {
+	content: "\e18e";
+}
+.job-icon-step-copy:before {
+	content: "\e190";
+}
+.job-icon-filter-fill:before {
+	content: "\e191";
+}
+.job-icon-script-update:before {
+	content: "\e192";
+}
+.job-icon-expand-line:before {
+	content: "\e1f5";
+}
+.job-icon-job-fast-file:before {
+	content: "\e198";
+}
+.job-icon-job-script:before {
+	content: "\e19a";
+}
+.job-icon-job-setting:before {
+	content: "\e19d";
+}
+.job-icon-job-white-list:before {
+	content: "\e19e";
+}
+.job-icon-job-public-script:before {
+	content: "\e19f";
+}
+.job-icon-job-message:before {
+	content: "\e1a2";
+}
+.job-icon-job-fast-script:before {
+	content: "\e1a3";
+}
+.job-icon-job-timing:before {
+	content: "\e1a4";
+}
+.job-icon-job-job:before {
+	content: "\e1a5";
+}
+.job-icon-job-homepage:before {
+	content: "\e1a6";
+}
+.job-icon-job-account:before {
+	content: "\e1a7";
+}
+.job-icon-job-history:before {
+	content: "\e1a9";
+}
+.job-icon-file-line:before {
+	content: "\e1c8";
+}
+.job-icon-log-copy:before {
+	content: "\e1ac";
+}
+.job-icon-jump:before {
+	content: "\e1ad";
+}
+.job-icon-close-big:before {
+	content: "\e1ae";
+}
+.job-icon-refresh:before {
+	content: "\e1af";
+}
+.job-icon-qiyesiyouyun:before {
+	content: "\e1b1";
+}
+.job-icon-shoudouyun:before {
+	content: "\e1b2";
+}
+.job-icon-alicloud:before {
+	content: "\e1b3";
+}
+.job-icon-aws:before {
+	content: "\e1b7";
+}
+.job-icon-azure:before {
+	content: "\e1b4";
+}
+.job-icon-baiducloud:before {
+	content: "\e1b5";
+}
+.job-icon-ecloud:before {
+	content: "\e1b6";
+}
+.job-icon-googlecloudplatform:before {
+	content: "\e1b8";
+}
+.job-icon-huaweicloud:before {
+	content: "\e1ba";
+}
+.job-icon-ibmcloud:before {
+	content: "\e1b9";
+}
+.job-icon-meituanopenservices:before {
+	content: "\e1bc";
+}
+.job-icon-oraclecloud:before {
+	content: "\e1bd";
+}
+.job-icon-salesforce:before {
+	content: "\e1be";
+}
+.job-icon-tencentcloud:before {
+	content: "\e1bf";
+}
+.job-icon-u-cloud:before {
+	content: "\e1c0";
+}
+.job-icon-local:before {
+	content: "\e1c1";
+}
+.job-icon-sync-failed:before {
+	content: "\e1c2";
+}
+.job-icon-sync-pending:before {
+	content: "\e1c3";
+}
+.job-icon-sync-success:before {
+	content: "\e1c4";
+}
+.job-icon-sync-default:before {
+	content: "\e1c5";
+}
+.job-icon-plan:before {
+	content: "\e1c6";
+}
+.job-icon-file-line-2:before {
+	content: "\e1c9";
+}
+.job-icon-folder-open:before {
+	content: "\e1ca";
+}
+.job-icon-folder-2:before {
+	content: "\e1cb";
+}
+.job-icon-detail-line:before {
+	content: "\e1cc";
+}
+.job-icon-global-var-line:before {
+	content: "\e1cd";
+}
+.job-icon-assembly-line:before {
+	content: "\e1ce";
+}
+.job-icon-suspend:before {
+	content: "\e1cf";
+}
+.job-icon-certificate:before {
+	content: "\e1d0";
+}
+.job-icon-file-fill:before {
+	content: "\e1d1";
+}
+.job-icon-abnormal:before {
+	content: "\e1d3";
+}
+.job-icon-normal:before {
+	content: "\e1d4";
+}
+.job-icon-unknown:before {
+	content: "\e1d5";
+}
+.job-icon-sync-small:before {
+	content: "\e1d6";
+}
+.job-icon-script-5:before {
+	content: "\e1d7";
+}
+.job-icon-line-chart-line:before {
+	content: "\e1d8";
+}
+.job-icon-table-line:before {
+	content: "\e1d9";
+}
+.job-icon-increase-line:before {
+	content: "\e1da";
+}
+.job-icon-decrease-line:before {
+	content: "\e1db";
+}
+.job-icon-linux:before {
+	content: "\e1dc";
+}
+.job-icon-others:before {
+	content: "\e1de";
+}
+.job-icon-windows:before {
+	content: "\e1dd";
+}
+.job-icon-db:before {
+	content: "\e1df";
+}
+.job-icon-aix:before {
+	content: "\e1e0";
+}
+.job-icon-dashboard:before {
+	content: "\e1e1";
+}
+.job-icon-equally:before {
+	content: "\e1e2";
+}
+.job-icon-star-line:before {
+	content: "\e1e3";
+}
+.job-icon-reduce-fill:before {
+	content: "\e1e4";
+}
+.job-icon-lang-jp:before {
+	content: "\e1e5";
+}
+.job-icon-lang-en:before {
+	content: "\e1e6";
+}
+.job-icon-lang-zh:before {
+	content: "\e1e7";
+}
+.job-icon-help-document-fill:before {
+	content: "\e1e8";
+}
+.job-icon-file-full:before {
+	content: "\e1e9";
+}
+.job-icon-folder-full:before {
+	content: "\e1ea";
+}
+.job-icon-status-2:before {
+	content: "\e1ec";
+}
+.job-icon-sync-waiting-01:before {
+	content: "\e1ef";
+}
+.job-icon-location:before {
+	content: "\e1f0";
+}
+.job-icon-variable:before {
+	content: "\e1f1";
+}
+.job-icon-fx:before {
+	content: "\e1f2";
+}
+.job-icon-script-template:before {
+	content: "\e1f3";
+}
+.job-icon-refresh-2:before {
+	content: "\e1f4";
+}
+.job-icon-lanjiejilu:before {
+	content: "\e1f6";
+}
+.job-icon-gaoweiyujujiance:before {
+	content: "\e1f7";
+}
+.job-icon-many-dot:before {
+	content: "\e1f8";
+}

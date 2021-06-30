@@ -1,0 +1,244 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
+<template>
+    <layout :title="$t('script.编辑脚本')" class="edit-script-box" offset-target="bk-form-content" v-bind="$attrs">
+        <jb-form ref="form" :model="formData" :rules="rules" class="edit-script-form">
+            <jb-form-item :label="$t('script.版本号.label')" required>
+                <bk-input class="input" :value="formData.version" readonly />
+            </jb-form-item>
+            <jb-form-item :label="$t('script.版本日志')">
+                <bk-input class="input" v-model="formData.versionDesc" type="textarea" :maxlength="100" />
+            </jb-form-item>
+            <jb-form-item :label="$t('script.脚本内容')" required property="content" style="margin-bottom: 0;">
+                <div ref="content">
+                    <ace-editor
+                        v-if="contentHeight > 0"
+                        v-model="formData.content"
+                        :lang="formData.typeName"
+                        :height="contentHeight"
+                        :readonly="!scriptInfo.isDraft"
+                        :options="[formData.typeName]" />
+                </div>
+            </jb-form-item>
+        </jb-form>
+        <template #footer>
+            <bk-button
+                theme="primary"
+                :loading="isSubmiting"
+                @click="handleSubmit"
+                class="w120 mr10">
+                {{ $t('script.提交') }}
+            </bk-button>
+            <bk-button class="mr10" @click="handleDebugScript">调试</bk-button>
+            <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+        </template>
+    </layout>
+</template>
+<script>
+    import I18n from '@/i18n';
+    import ScriptService from '@service/script-manage';
+    import PublicScriptService from '@service/public-script-manage';
+    import AceEditor from '@components/ace-editor';
+    import {
+        checkPublicScript,
+        leaveConfirm,
+        getOffset,
+        scriptErrorAlert,
+    } from '@utils/assist';
+    import {
+        debugScriptCache,
+    } from '@utils/cache-helper';
+    import Layout from './layout';
+
+    const genDefaultFormData = () => ({
+        id: '',
+        name: '',
+        scriptVersionId: '',
+        typeName: 'Shell',
+        version: '',
+        versionDesc: '',
+        type: 1,
+        content: '',
+    });
+
+    export default {
+        name: '',
+        components: {
+            AceEditor,
+            Layout,
+        },
+        inheritAttrs: false,
+        props: {
+            scriptInfo: {
+                type: Object,
+                required: true,
+            },
+        },
+        data () {
+            return {
+                isSubmiting: false,
+                contentHeight: 0,
+                formData: {},
+            };
+        },
+        watch: {
+            scriptInfo: {
+                handler (scriptInfo) {
+                    if (!scriptInfo.id) {
+                        return;
+                    }
+                    const {
+                        id,
+                        name,
+                        scriptVersionId,
+                        version,
+                        versionDesc,
+                        type,
+                        typeName,
+                        content,
+                    } = scriptInfo;
+
+                    this.formData = {
+                        ...genDefaultFormData(),
+                        id,
+                        name,
+                        scriptVersionId,
+                        version,
+                        versionDesc,
+                        type,
+                        typeName,
+                        content,
+                    };
+                },
+                immediate: true,
+            },
+        },
+        created () {
+            this.publicScript = checkPublicScript(this.$route);
+            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+
+            this.rules = {
+                content: [
+                    {
+                        required: true,
+                        message: I18n.t('script.脚本内容不能为空'),
+                        trigger: 'change',
+                    },
+                    {
+                        validator: value => ScriptService.getScriptValidation({
+                            content: value,
+                            scriptType: this.formData.type,
+                        }).then((data) => {
+                            // 高危语句报错状态需要全局保存
+                            this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                            return true;
+                        }),
+                        message: I18n.t('script.脚本内容检测失败'),
+                        trigger: 'blur',
+                    },
+                ],
+            };
+
+            window.addEventListener('resize', this.init);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('resize', this.init);
+            });
+        },
+        mounted () {
+            this.init();
+        },
+        methods: {
+            /**
+             * @desc 计算内容区高度
+             */
+            init () {
+                const contentOffsetTop = getOffset(this.$refs.content).top;
+                const contentHeight = window.innerHeight - contentOffsetTop - 100;
+                this.contentHeight = contentHeight < 480 ? 480 : contentHeight;
+            },
+            /**
+             * @desc 保存脚本
+             */
+            handleSubmit () {
+                this.isSubmiting = true;
+                this.$refs.form.validate()
+                    .then(() => {
+                        if (this.$store.state.scriptCheckError) {
+                            scriptErrorAlert();
+                            return;
+                        }
+                        return this.serviceHandler.scriptUpdate({
+                            ...this.formData,
+                            scriptVersionId: this.scriptInfo.scriptVersionId,
+                        }).then(() => {
+                            window.changeAlert = false;
+                            this.$emit('on-edit', {
+                                scriptVersionId: this.scriptInfo.scriptVersionId,
+                            });
+                            this.messageSuccess(I18n.t('script.操作成功'));
+                        });
+                    })
+                    .finally(() => {
+                        this.isSubmiting = false;
+                    });
+            },
+            /**
+             * @desc 跳转到快速执行脚本页面调试脚本
+             */
+            handleDebugScript () {
+                debugScriptCache.setItem(this.scriptInfo.content);
+                const { href } = this.$router.resolve({
+                    name: 'fastExecuteScript',
+                    query: {
+                        model: 'debugScript',
+                    },
+                });
+                window.open(href);
+            },
+            /**
+             * @desc 取消编辑
+             */
+            handleCancel () {
+                leaveConfirm()
+                    .then(() => {
+                        this.$emit('on-edit-cancel', {
+                            scriptVersionId: this.scriptInfo.scriptVersionId,
+                        });
+                    });
+            },
+        },
+    };
+</script>
+<style lang='postcss'>
+    .edit-script-box {
+        .input {
+            width: 510px;
+            background: #fff;
+        }
+    }
+</style>

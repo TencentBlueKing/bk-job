@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="LOG_PATTERN"
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{X-B3-TraceId}|%X{X-B3-SpanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="BK_LOG_DIR_FILE_GATEWAY" value="${BK_LOG_DIR}/job-file-gateway"/>
+    <property name="FILE_GATEWAY_LOG_FILE" value="${BK_LOG_DIR_FILE_GATEWAY}/gateway.log"/>
+    <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_FILE_GATEWAY}/error.log"/>
+    <property name="ESB_LOG_FILE" value="${BK_LOG_DIR_FILE_GATEWAY}/esb_client.log"/>
+    <property name="IAM_LOG_FILE" value="${BK_LOG_DIR_FILE_GATEWAY}/iam.log"/>
+    <contextName>logback</contextName>
+
+    <appender name="file-gateway-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${FILE_GATEWAY_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${FILE_GATEWAY_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>120</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>120</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="esb-client-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ESB_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ESB_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>72</maxHistory>
+            <totalSizeCap>50GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="iam-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${IAM_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${IAM_LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>72</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>utf8</charset>
+            </encoder>
+        </appender>
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="dev">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="file-gateway-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="file-gateway-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="iam-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
+            <appender-ref ref="esb-client-appender"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="file-gateway-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+            <appender-ref ref="file-gateway-appender"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="file-gateway-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
+            <appender-ref ref="iam-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.esb" level="INFO" additivity="false">
+            <appender-ref ref="esb-client-appender"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="file-gateway-appender"/>
+            <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+</configuration>

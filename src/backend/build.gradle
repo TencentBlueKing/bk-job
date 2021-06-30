@@ -1,0 +1,260 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+import com.dorongold.gradle.tasktree.TaskTreePlugin
+
+buildscript {
+    ext {
+        set('springDependencyManagePluginVersion', "1.0.8.RELEASE")
+        set("springBootVersion", "2.3.5.RELEASE")
+        set("gradleJooqVersion", "3.0.0")
+    }
+
+    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+
+    if (mavenRepoUrl == null) {
+        mavenRepoUrl = System.getenv("mavenRepoUrl")
+    }
+
+    if (mavenRepoUrl == null) {
+        println "use default maven repo url."
+        mavenRepoUrl = MAVEN_REPO_URL
+    }
+    repositories {
+        mavenLocal()
+        maven { url mavenRepoUrl }
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:$springDependencyManagePluginVersion"
+        classpath "nu.studer:gradle-jooq-plugin:$gradleJooqVersion"
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
+        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
+    }
+}
+
+plugins {
+    id "java"
+    id "io.spring.dependency-management" version '1.0.8.RELEASE' apply false
+    id 'org.springframework.boot' version '2.3.5.RELEASE' apply false
+    id "idea"
+    id 'nu.studer.jooq' version '3.0.0'
+}
+
+ext {
+    // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
+    set("springVersion", "5.2.9.RELEASE")
+    set("springAmqpVersion", "2.2.6.RELEASE")
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
+    set("springBootVersion", "2.3.5.RELEASE")
+    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
+    set('springCloudVersion', "Hoxton.SR3")
+    // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
+    set('swaggerVersion', "2.9.2")
+    set('junitVersion', "5.5.2")
+    // https://mvnrepository.com/artifact/org.projectlombok/lombok
+    set('lombokVersion', "1.18.10")
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+    set('jacksonVersion', "2.11.0")
+    set('jaxrsVersion', "2.0")
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
+    set('logbackVersion', "1.2.3")
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+    set('slf4jVersion', "1.7.30")
+    set('servletVersion', "3.0.1")
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    set('apacheCommonsVersion', "3.9")
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+    set('apacheCommonsCollectionVersion', "4.4")
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
+    set('apacheCommonsPoolVersion', "2.8.0")
+    set('apacheCommonsCodecVersion', "1.14")
+    set('dozerVersion', "5.5.1")
+    set('jedisVersion', "3.0.1")
+    // https://mvnrepository.com/artifact/org.jooq/jooq
+    set('jooqVersion', "3.14.8")
+    set('h2Version', "1.4.199")
+    set('gradleJooqVersion', "2.0.11")
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+    set('apacheHttpClientVersion', "4.5.10")
+    set('apacheThriftVersion', "0.12.0")
+    set('commonsIOVersion', "2.6")
+    set('javaxServletVersion', "4.0.1")
+    set('guavaVersion', "28.2-jre")
+    set('jjwtVersion', "0.9.1")
+    set('hibernateValidatorVersion', "6.1.4.Final")
+    set('micrometerPrometheusVersion', "1.5.1")
+    set('flapdoodleEmbeddedMongdbDBVersion', "2.2.0")
+    set('jodaTimeVersion', "2.10.5")
+    set('bcprovVersion', "1.64")
+    set('reflectionsVersion', "0.9.12")
+    if (System.getProperty("bkjobVersion")) {
+        set('bkjobVersion', System.getProperty("bkjobVersion"))
+    } else {
+        set('bkjobVersion', "1.0.0")
+    }
+}
+
+group "com.tencent.bk.job"
+version "${bkjobVersion}"
+
+allprojects {
+    group "com.tencent.bk.job"
+    version "${bkjobVersion}"
+
+    apply plugin: "idea"
+    apply plugin: "eclipse"
+    apply plugin: "java"
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    tasks.withType(org.gradle.api.tasks.compile.JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+
+    if (mavenRepoUrl == null) {
+        mavenRepoUrl = System.getenv("mavenRepoUrl")
+    }
+
+    if (mavenRepoUrl == null) {
+        println "use default maven repo url."
+        mavenRepoUrl = MAVEN_REPO_URL
+    }
+
+    repositories {
+        mavenLocal()
+        maven { url mavenRepoUrl }
+        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: "java"
+    apply plugin: "idea"
+    apply plugin: "io.spring.dependency-management"
+
+    tasks.withType(org.gradle.api.tasks.compile.JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+    tasks.withType(Javadoc) {
+        options.encoding("UTF-8")
+    }
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events 'PASSED', 'FAILED', 'SKIPPED'
+        }
+        include '**/*Test.class'
+        exclude '**/*IntegrationTest.class'
+    }
+    task integrationTest(type: Test, dependsOn: test) {
+        useJUnitPlatform()
+        include '**/*IntegrationTest.class'
+    }
+
+    task testAll(type: Test) {
+        useJUnitPlatform()
+        testLogging {
+            events 'PASSED', 'FAILED', 'SKIPPED'
+        }
+        include '**/*Test.class'
+    }
+
+    dependencyManagement {
+        applyMavenExclusions = false
+        dependencies {
+            imports {
+                mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+            }
+            dependency "org.junit.jupiter:junit-jupiter:$junitVersion"
+            dependency "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+            dependency "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"
+            dependency "org.springframework.boot:spring-boot-starter-quartz:$springBootVersion"
+            dependency "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
+            dependency "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
+            dependency "org.springframework:spring-jdbc:$springVersion"
+            dependency "org.springframework:spring-webflux:$springVersion"
+            dependency "org.springframework.amqp:spring-rabbit:$springAmqpVersion"
+            dependency "org.projectlombok:lombok:$lombokVersion"
+            dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
+            dependency "org.slf4j:slf4j-api:$slf4jVersion"
+            dependency "io.springfox:springfox-swagger2:$swaggerVersion"
+            dependency "io.springfox:springfox-swagger-ui:$swaggerVersion"
+            dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
+            dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
+            dependency "net.sf.dozer:dozer:$dozerVersion"
+            dependency "org.jedis:jedis:$jedisVersion"
+            dependency "com.h2database:h2:$h2Version"
+            dependency "commons-io:commons-io:$commonsIOVersion"
+            dependency "commons-codec:commons-codec:$apacheCommonsCodecVersion"
+            dependency "javax.servlet:javax.servlet-api:$javaxServletVersion"
+            // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+            dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: "$apacheHttpClientVersion"
+            // https://mvnrepository.com/artifact/org.apache.thrift/libthrift
+            dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
+            dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
+            dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
+            dependency "net.sourceforge.jchardet:jchardet:1.0"
+            dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
+            dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
+            dependency "joda-time:joda-time:$jodaTimeVersion"
+            dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            // https://github.com/ronmamo/reflections
+            dependency "org.reflections:reflections:$reflectionsVersion"
+            dependencySet(group: "org.jooq", version: "$jooqVersion") {
+                entry "jooq"
+                entry "jooq-codegen"
+                entry "jooq-meta"
+            }
+            dependencySet(group: "com.fasterxml.jackson", version: "$jacksonVersion") {
+                entry "jackson-core"
+                entry "jackson-databind"
+                entry "jackson-annotations"
+            }
+            dependencySet(group: 'ch.qos.logback', version: "$logbackVersion") {
+                entry "logback-core"
+                entry "logback-classic"
+            }
+            dependencySet(group: 'org.apache.commons', version: "$apacheCommonsVersion") {
+                entry "commons-lang3"
+            }
+            dependencySet(group: 'org.hibernate.validator', version: "$hibernateValidatorVersion") {
+                entry "hibernate-validator"
+            }
+        }
+    }
+    configurations {
+        all*.exclude group: 'junit', module: 'junit'
+        all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
+apply plugin: TaskTreePlugin
+

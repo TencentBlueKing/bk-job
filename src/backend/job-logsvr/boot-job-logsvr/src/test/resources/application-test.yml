@@ -1,0 +1,7 @@
+spring:
+  data:
+    mongodb:
+      uri: ${job.logsvr.mongodb.uri}
+  cloud:
+    config:
+      enabled: false

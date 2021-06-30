@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      uri: ${job.logsvr.mongodb.uri}
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN
+job:
+  security:
+    service:
+      private-key-base64: ${job.security.private-key-base64}
+      public-key-base64: ${job.security.public-key-base64}

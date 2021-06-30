@@ -1,0 +1,223 @@
+@import "@/css/mixins/scroll";
+
+/**
+    覆盖导航样式
+ */
+.navigation-bar {
+    width: 100%;
+    height: 100%;
+}
+
+.navigation-bar-container {
+    width: 100%;
+    max-width: 100%;
+}
+
+/**
+    覆盖 bk-form-control 样式
+ */
+.bk-form-control {
+    letter-spacing: 0;
+}
+
+/**
+    覆盖table样式
+ */
+.bk-table {
+    &.bk-table-scrollable-y .bk-table-body-wrapper {
+        @mixin scroller;
+    }
+
+    &.bk-table-scrollable-x .bk-table-body-wrapper {
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+    }
+
+    .cell {
+        font-size: 13px;
+
+        [type="button"] ~ [type="button"] {
+            margin-left: 10px;
+        }
+
+        .bk-button-text {
+            font-size: 13px;
+        }
+    }
+
+    th {
+        &.is-leaf {
+            border-color: #e4e5eb;
+        }
+
+        & > .cell {
+            font-weight: normal;
+            color: #313238;
+        }
+
+        .bk-table-caret-wrapper {
+            flex: 0 0 10px;
+            margin-left: 5px;
+        }
+    }
+
+    td {
+        &.is-last {
+            .cell {
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
+
+    tr {
+        &.bk-table-row {
+            &.hover-row {
+                & > td {
+                    background-color: #f0f1f5;
+                }
+            }
+        }
+    }
+}
+
+.bk-table-setting-popover-content-theme.tippy-tooltip {
+    padding: 15px 0 0 !important;
+}
+
+/**
+    覆盖分页器样式
+ */
+.bk-page .bk-page-total-small {
+    /* margin-top: 0 !important; */
+    line-height: 24px !important;
+}
+
+/**
+    覆盖 select 样式
+ */
+.bk-select .bk-select-name {
+    padding-right: 20px;
+}
+
+.bk-options .bk-option-content {
+    padding: 0 10px;
+}
+
+.bk-select-dropdown-content {
+    .bk-options {
+        .bk-option-content {
+            .bk-option-content-default {
+                padding: 0;
+
+                .bk-option-name {
+                    width: 100%;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+            }
+        }
+    }
+}
+
+/**
+    覆盖 dialog 样式
+ */
+.bk-dialog-wrapper {
+    .bk-dialog {
+        top: auto;
+        display: flex;
+        height: 100%;
+        align-items: center;
+    }
+
+    .header-on-left {
+        padding-bottom: 0 !important;
+    }
+
+    .bk-dialog-content {
+        width: 100%;
+    }
+}
+
+/**
+    覆盖 big-tree 样式
+ */
+.bk-big-tree-node.has-link-line.is-leaf {
+    .node-checkbox {
+        margin-left: 4px;
+    }
+}
+
+/**
+    覆盖 sideslider 样式
+ */
+.bk-sideslider-title {
+    font-weight: normal;
+}
+
+/**
+    覆盖 loading 样式
+ */
+.bk-loading,
+.bk-loading-box {
+    z-index: 100 !important;
+}
+
+/**
+    覆盖 tooltip 样式
+ */
+.tippy-tooltip {
+    z-index: 1;
+}
+
+.bk-diff {
+    .hljs-comment {
+        color: #c4c6dd;
+    }
+
+    &.dark {
+        .hljs-comment {
+            color: #63656e;
+        }
+    }
+}
+
+/**
+    覆盖 bk-radio-button 样式
+ */
+.bk-form-radio-button {
+    font-size: 0;
+
+    &.disabled {
+        box-shadow: none;
+
+        &:first-child {
+            .bk-radio-button-text {
+                border-left: 1px solid currentColor !important;
+            }
+        }
+    }
+
+    &:nth-child(n + 2) {
+        margin-left: -1px !important;
+    }
+
+    .bk-radio-button-input:disabled + .bk-radio-button-text {
+        position: relative;
+        z-index: 0;
+        color: #dcdee5;
+        background: #fafbfd;
+        border-left: 1px solid currentColor !important;
+    }
+
+    .bk-radio-button-input:checked + .bk-radio-button-text {
+        position: relative;
+        z-index: 3;
+        color: #3a84ff;
+        background: #e1ecff;
+        border-left: 1px solid currentColor !important;
+    }
+}

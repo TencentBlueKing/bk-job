@@ -1,0 +1,93 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+rootProject.name = 'bk-job-backend'
+include 'commons'
+include 'commons:common'
+include 'commons:esb-sdk'
+include 'commons:cmdb-sdk'
+include 'commons:cmdb-sdk-ext'
+include 'commons:paas-sdk'
+include 'commons:gse-sdk'
+include 'commons:common-iam'
+include 'commons:common-utils'
+include 'commons:common-redis'
+include 'commons:common-security'
+include 'commons:common-spring-ext'
+include 'commons:common-statistics'
+include 'commons:common-web'
+include 'commons:common-i18n'
+include 'job-config'
+include 'job-gateway'
+include 'job-manage'
+include 'job-manage:api-job-manage'
+include 'job-manage:service-job-manage'
+include 'job-manage:boot-job-manage'
+include 'job-manage:model-job-manage'
+include 'job-crontab'
+include 'job-crontab:api-job-crontab'
+include 'job-crontab:service-job-crontab'
+include 'job-crontab:boot-job-crontab'
+include 'job-crontab:model-job-crontab'
+include 'job-execute'
+include 'job-execute:api-job-execute'
+include 'job-execute:service-job-execute'
+include 'job-execute:boot-job-execute'
+include 'job-execute:model-job-execute'
+include 'job-logsvr'
+include 'job-logsvr:api-job-logsvr'
+include 'job-logsvr:service-job-logsvr'
+include 'job-logsvr:boot-job-logsvr'
+include 'job-backup'
+include 'job-backup:api-job-backup'
+include 'job-backup:service-job-backup'
+include 'job-backup:boot-job-backup'
+include 'job-backup:model-job-backup'
+include 'job-file-worker-sdk'
+include 'job-file-worker-sdk:api-job-file-worker-sdk'
+include 'job-file-worker-sdk:boot-job-file-worker-sdk'
+include 'job-file-worker-sdk:service-job-file-worker-sdk'
+include 'job-file-worker'
+include 'job-file-worker:api-job-file-worker'
+include 'job-file-worker:boot-job-file-worker'
+include 'job-file-worker:service-job-file-worker'
+include 'job-file-gateway'
+include 'job-file-gateway:api-job-file-gateway'
+include 'job-file-gateway:api-job-file-gateway-worker'
+include 'job-file-gateway:boot-job-file-gateway'
+include 'job-file-gateway:model-job-file-gateway'
+include 'job-file-gateway:service-job-file-gateway'
+include 'job-ticket'
+include 'job-ticket:api-job-ticket'
+include 'job-ticket:api-job-ticket-pojo'
+include 'job-ticket:boot-job-ticket'
+include 'job-ticket:model-job-ticket'
+include 'job-ticket:service-job-ticket'
+include 'job-analysis'
+include 'job-analysis:api-job-analysis'
+include 'job-analysis:service-job-analysis'
+include 'job-analysis:boot-job-analysis'
+include 'job-analysis:model-job-analysis'
+include 'upgrader'
+

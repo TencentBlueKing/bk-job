@@ -1,0 +1,8 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${job.file-worker.upload.filesize.max:5GB}
+      max-request-size: ${job.file-worker.upload.filesize.max:5GB}
+
+server:
+  port: ${job.file.worker.server.port:19810}

@@ -1,0 +1,21 @@
+{
+  "properties": [
+    {
+      "name": "spring.redis.mode",
+      "type": "java.lang.String",
+      "description": "Redis deploy mode.",
+      "values": [
+        {
+          "value": "standalone"
+        },
+        {
+          "value": "sentinel"
+        },
+        {
+          "value": "cluster"
+        }
+      ],
+      "defaultValue": "sentinel"
+    }
+  ]
+}

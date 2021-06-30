@@ -1,0 +1,6 @@
+spring:
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:///${BK_JOB_CONFIG_DIR}/job-gateway,file:///${BK_JOB_CONFIG_DIR}/job-manage,file:///${BK_JOB_CONFIG_DIR}/job-execute,file:///${BK_JOB_CONFIG_DIR}/job-logsvr,file:///${BK_JOB_CONFIG_DIR}/job-crontab,file:///${BK_JOB_CONFIG_DIR}/job-backup,file:///${BK_JOB_CONFIG_DIR}/job-file-gateway,file:///${BK_JOB_CONFIG_DIR}/job-ticket,file:///${BK_JOB_CONFIG_DIR}/job-analysis

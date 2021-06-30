@@ -1,0 +1,73 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="/static/images/favicon.ico" type="image/x-icon" />
+    <link
+      rel="shortcut icon"
+      href="/static/images/favicon.ico"
+      type="image/x-icon"
+    />
+    <meta charset="utf-8" />
+    <title>loading...</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.PROJECT_CONFIG = (function() {
+        const SITE_URL = "/";
+        const BK_STATIC_URL = "/";
+        const REMOTE_STATIC_URL = "";
+        const AJAX_URL_PREFIX = "{{JOB_API_GATEWAY_URL}}";
+        const EXTERNAL_THEME = "{{JOB_EXTERNAL_THEME}}";
+
+        return {
+          APP_ID: "",
+          AJAX_URL_PREFIX: AJAX_URL_PREFIX,
+          SITE_URL: SITE_URL,
+          BK_STATIC_URL: BK_STATIC_URL,
+          REMOTE_STATIC_URL: REMOTE_STATIC_URL,
+          EXTERNAL_THEME: EXTERNAL_THEME,
+        };
+      })();
+    </script>
+    <script>
+      if (
+        window.PROJECT_CONFIG.EXTERNAL_THEME &&
+        window.PROJECT_CONFIG.EXTERNAL_THEME !== "{{JOB_EXTERNAL_THEME}}"
+      ) {
+        var $link = document.createElement("link");
+        $link.type = "text/css";
+        $link.rel = "stylesheet";
+        $link.href = window.PROJECT_CONFIG.EXTERNAL_THEME;
+        document.querySelector("body").appendChild($link);
+      }
+    </script>
+  </body>
+</html>

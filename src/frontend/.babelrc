@@ -1,0 +1,40 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "loose": false,
+                "useBuiltIns": "usage",
+                "corejs": {
+                    "version": 3
+                },
+                "targets": {
+                    "browsers": [
+                        "Chrome >= 46",
+                        "Firefox >= 45",
+                        "Safari >= 10",
+                        "Edge >= 13",
+                        "iOS >= 10",
+                        "Electron >= 0.36"
+                    ]
+                }
+            }
+        ]
+    ],
+    "plugins": [
+        "@babel/syntax-dynamic-import",
+        "@babel/transform-modules-commonjs",
+        "@babel/proposal-export-namespace-from",
+        "@babel/proposal-class-properties",
+        "@babel/syntax-jsx",
+        ["@babel/plugin-transform-runtime", {
+            "regenerator": false,
+            "corejs": false,
+            "helpers": true,
+            "useESModules": false
+        }],
+        "@vue/transform-vue-jsx",
+        "module:@vue/babel-sugar-inject-h",
+        "lodash"
+    ]
+}

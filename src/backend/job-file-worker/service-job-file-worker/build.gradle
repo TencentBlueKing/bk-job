@@ -1,0 +1,45 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+dependencies {
+    compile(files("libs/innercos-java-sdk-5.6.9.jar"))
+    compile project(":job-file-worker:api-job-file-worker")
+    compile project(":job-file-worker-sdk:api-job-file-worker-sdk")
+    compile project(":job-file-worker-sdk:service-job-file-worker-sdk")
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "ch.qos.logback:logback-core"
+    implementation "ch.qos.logback:logback-classic"
+    implementation "org.slf4j:slf4j-api"
+    implementation "org.apache.commons:commons-collections4"
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation group: 'org.apache.thrift', name: 'libthrift'
+    implementation "commons-io:commons-io"
+    implementation "commons-codec:commons-codec"
+    implementation 'io.springfox:springfox-swagger2'
+    implementation 'io.springfox:springfox-swagger-ui'
+    implementation 'joda-time:joda-time'
+    implementation 'org.bouncycastle:bcprov-jdk15on'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.apache.commons:commons-lang3'
+}

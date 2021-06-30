@@ -1,0 +1,311 @@
+{
+  "system_id": "bk_job",
+  "operations": [
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "use_account",
+        "name": "执行账号使用",
+        "name_en": "Use Account",
+        "description": "对指定业务下的执行账号的使用权限",
+        "description_en": "Permission of use specified account under business",
+        "type": "execute",
+        "related_actions": [
+          "access_business"
+        ],
+        "related_resource_types": [
+          {
+            "system_id": "bk_job",
+            "id": "account",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_job",
+                "id": "account_list",
+                "ignore_iam_path": true
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action_groups",
+      "data": [
+        {
+          "name": "业务",
+          "name_en": "Business",
+          "actions": [
+            {
+              "id": "access_business"
+            }
+          ],
+          "sub_groups": [
+            {
+              "name": "快速执行",
+              "name_en": "Quick Launch",
+              "actions": [
+                {
+                  "id": "quick_execute_script"
+                },
+                {
+                  "id": "quick_transfer_file"
+                }
+              ]
+            },
+            {
+              "name": "脚本",
+              "name_en": "Script",
+              "actions": [
+                {
+                  "id": "execute_script"
+                },
+                {
+                  "id": "create_script"
+                },
+                {
+                  "id": "view_script"
+                },
+                {
+                  "id": "manage_script"
+                }
+              ]
+            },
+            {
+              "name": "作业",
+              "name_en": "Job",
+              "actions": [
+                {
+                  "id": "create_job_template"
+                },
+                {
+                  "id": "view_job_template"
+                },
+                {
+                  "id": "edit_job_template"
+                },
+                {
+                  "id": "delete_job_template"
+                },
+                {
+                  "id": "debug_job_template"
+                },
+                {
+                  "id": "launch_job_plan"
+                },
+                {
+                  "id": "create_job_plan"
+                },
+                {
+                  "id": "view_job_plan"
+                },
+                {
+                  "id": "edit_job_plan"
+                },
+                {
+                  "id": "delete_job_plan"
+                },
+                {
+                  "id": "sync_job_plan"
+                }
+              ]
+            },
+            {
+              "name": "标签",
+              "name_en": "Tag",
+              "actions": [
+                {
+                  "id": "create_tag"
+                },
+                {
+                  "id": "manage_tag"
+                }
+              ]
+            },
+            {
+              "name": "定时任务",
+              "name_en": "Cron",
+              "actions": [
+                {
+                  "id": "create_cron"
+                },
+                {
+                  "id": "manage_cron"
+                }
+              ]
+            },
+            {
+              "name": "执行历史",
+              "name_en": "History",
+              "actions": [
+                {
+                  "id": "view_history"
+                }
+              ]
+            },
+            {
+              "name": "消息通知",
+              "name_en": "Notification",
+              "actions": [
+                {
+                  "id": "notification_setting"
+                }
+              ]
+            },
+            {
+              "name": "执行账号",
+              "name_en": "Account",
+              "actions": [
+                {
+                  "id": "create_account"
+                },
+                {
+                  "id": "manage_account"
+                },
+                {
+                  "id": "use_account"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "全局",
+          "name_en": "Global",
+          "sub_groups": [
+            {
+              "name": "IP白名单",
+              "name_en": "IP whitelist",
+              "actions": [
+                {
+                  "id": "create_whitelist"
+                },
+                {
+                  "id": "manage_whitelist"
+                }
+              ]
+            },
+            {
+              "name": "公共脚本",
+              "name_en": "Public Script",
+              "actions": [
+                {
+                  "id": "execute_public_script"
+                },
+                {
+                  "id": "create_public_script"
+                },
+                {
+                  "id": "manage_public_script"
+                }
+              ]
+            },
+            {
+              "name": "全局设置",
+              "name_en": "Global Settings",
+              "actions": [
+                {
+                  "id": "global_settings"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "operation": "upsert_resource_creator_actions",
+      "data": {
+        "config": [
+          {
+            "id": "job_template",
+            "actions": [
+              {
+                "id": "view_job_template",
+                "required": false
+              },
+              {
+                "id": "edit_job_template",
+                "required": false
+              },
+              {
+                "id": "delete_job_template",
+                "required": false
+              },
+              {
+                "id": "create_job_plan",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "job_plan",
+            "actions": [
+              {
+                "id": "view_job_plan",
+                "required": false
+              },
+              {
+                "id": "edit_job_plan",
+                "required": false
+              },
+              {
+                "id": "delete_job_plan",
+                "required": false
+              },
+              {
+                "id": "sync_job_plan",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "script",
+            "actions": [
+              {
+                "id": "view_script",
+                "required": false
+              },
+              {
+                "id": "manage_script",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "cron",
+            "actions": [
+              {
+                "id": "manage_cron",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "account",
+            "actions": [
+              {
+                "id": "manage_account",
+                "required": false
+              },
+              {
+                "id": "use_account",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "tag",
+            "actions": [
+              {
+                "id": "manage_tag",
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

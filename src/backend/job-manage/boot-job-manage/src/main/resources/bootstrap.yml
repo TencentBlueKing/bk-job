@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: job-manage
+  profiles:
+    active: prod
+  cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-manage
+        instance-id: job-manage-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: ${job.manage.server.port:19803}
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

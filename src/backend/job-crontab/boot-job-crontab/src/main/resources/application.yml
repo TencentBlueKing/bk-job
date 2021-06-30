@@ -1,0 +1,83 @@
+spring:
+  cloud:
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-crontab:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: ${job.crontab.db.url}
+      username: ${job.crontab.db.username}
+      password: ${job.crontab.db.password}
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      poolName: "job-crontab"
+      validationTimeout: 5000
+  redis:
+    mode: ${job.crontab.redis.mode:sentinel}
+    host: ${job.crontab.redis.host:}
+    port: ${job.crontab.redis.port:6379}
+    sentinel:
+      password: ${job.crontab.redis.sentinel.password:}
+      master: ${job.crontab.redis.sentinel.master:}
+      nodes: ${job.crontab.redis.sentinel.nodes:}
+    cluster:
+      nodes: ${job.crontab.redis.cluster.nodes:}
+    password: ${job.crontab.redis.password:}
+    database: ${job.crontab.redis.database}
+    lettuce:
+      pool:
+        min-idle: ${job.crontab.redis.lettuce.pool.min-idle}
+        max-idle: ${job.crontab.redis.lettuce.pool.max-idle}
+        max-active: ${job.crontab.redis.lettuce.pool.max-active}
+        max-wait: ${job.crontab.redis.lettuce.pool.max-wait}
+      shutdown-timeout: ${job.crontab.redis.lettuce.shutdown-timeout}
+  rabbitmq:
+    host: ${job.crontab.rabbitmq.host}
+    port: ${job.crontab.rabbitmq.port}
+    username: ${job.crontab.rabbitmq.username}
+    password: ${job.crontab.rabbitmq.password}
+    virtual-host: ${job.crontab.rabbitmq.vhost:job}
+  quartz:
+    thread-pool:
+      thread-name-prefix: QuartzThreadPoolTaskExecutor-
+      thread-priority: 5
+      daemon: false
+      thread-group-name: QuartzThreadPoolTaskExecutorGroup
+      core-pool-size: ${job.crontab.quartz.thread-pool.core-pool-size}
+      max-pool-size: ${job.crontab.quartz.thread-pool.max-pool-size}
+      keep-alive-seconds: ${job.crontab.quartz.thread-pool.keep-alive-seconds}
+      queue-capacity: ${job.crontab.quartz.thread-pool.queue-capacity}
+      allow-core-thread-timeout: false
+      waitfor-tasks-tocomplete-onshutdown: true
+      await-termination-seconds: 900
+    scheduler:
+      config-location: classpath:quartz.properties
+      scheduler-name: quartz-scheduler
+      application-context-scheduler-contextkey: applicationContext
+      overwrite-existing-jobs: true
+      auto-startup: true
+      startup-delay: 10
+    properties:
+      org:
+        quartz:
+          scheduler:
+            batchTriggerAcquisitionMaxCount: ${job.crontab.quartz.thread-pool.core-pool-size}
+          threadPool:
+            threadCount: ${job.crontab.quartz.thread-pool.core-pool-size}
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN
+ribbon:
+  ReadTimeout: 120000
+  ConnectTimeout: 10000
+  eureka:
+    enabled: false
+job:
+  security:
+    service:
+      private-key-base64: ${job.security.private-key-base64}
+      public-key-base64: ${job.security.public-key-base64}

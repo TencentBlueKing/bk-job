@@ -1,0 +1,233 @@
+spring:
+  cloud:
+    ssl:
+      useInsecureTrustManager: true
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+      routes:
+        - id: job-logout
+          uri: lb://job-gateway
+          predicates:
+            - Path= /logout
+          filters:
+            - Logout
+        - id: job-manage-web
+          uri: lb://job-manage
+          predicates:
+            - Path= /job-manage/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-crontab-web
+          uri: lb://job-crontab
+          predicates:
+            - Path= /job-crontab/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-execute-web
+          uri: lb://job-execute
+          predicates:
+            - Path= /job-execute/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-backup-web
+          uri: lb://job-backup
+          predicates:
+            - Path= /job-backup/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-file-gateway-web
+          uri: lb://job-file-gateway
+          predicates:
+            - Path= /job-file-gateway/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-ticket-web
+          uri: lb://job-ticket
+          predicates:
+            - Path= /job-ticket/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+        - id: job-analysis-web
+          uri: lb://job-analysis
+          predicates:
+            - Path= /job-analysis/web/**
+          filters:
+            - Authorize
+            - LicenseCheck
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+
+        - id: job-file-gateway-remote
+          uri: lb://job-file-gateway
+          predicates:
+            - Path= /job-file-gateway/remote/**
+          filters:
+            - AuthorizeRemote
+            - StripPrefix=1
+
+        - id: job-manage-esb
+          uri: lb://job-manage
+          predicates:
+            - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v2/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-manage-esb-v3
+          uri: lb://job-manage
+          predicates:
+            - Path=/api/job/v3/job-manage/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v3/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-crontab-esb
+          uri: lb://job-crontab
+          predicates:
+            - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v2/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-crontab-esb-v3
+          uri: lb://job-crontab
+          predicates:
+            - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v3/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-execute-esb
+          uri: lb://job-execute
+          predicates:
+            - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v2/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-execute-esb-v3
+          uri: lb://job-execute
+          predicates:
+            - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
+          filters:
+            - LicenseCheck
+            - CheckEsbJwt
+            - SetPath=/esb/api/v3/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-file-gateway-iam
+          uri: lb://job-file-gateway
+          predicates:
+            - Path=/iam/api/v1/resources/file_source
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+
+        - id: job-ticket-iam
+          uri: lb://job-ticket
+          predicates:
+            - Path=/iam/api/v1/resources/ticket
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+
+        - id: job-analysis-iam
+          uri: lb://job-analysis
+          predicates:
+            - Path=/iam/api/v1/resources/dashboard_view
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+
+        - id: job-manage-iam
+          uri: lb://job-manage
+          predicates:
+            - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+
+        - id: job-crontab-iam
+          uri: lb://job-crontab
+          predicates:
+            - Path=/iam/api/v1/resources/cron/job
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+
+        - id: job-execute-iam
+          uri: lb://job-execute
+          predicates:
+            - Path=/iam/api/v1/resources/execute/record
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN
+server:
+  http:
+    enabled: ${job.gateway.server.http.enabled:true}
+    port: ${job.gateway.server.http.port:9802}
+  port: ${job.gateway.server.port:19802}
+  shutdown: graceful
+  ssl:
+    enabled: true
+    key-store-type: ${job.gateway.server.ssl.keystore.type}
+    key-store: ${job.gateway.server.ssl.keystore.path}
+    key-store-password: ${job.gateway.server.ssl.keystore.password}
+    key-alias: ${job.gateway.server.ssl.key.alias}
+    trust-store: ${job.gateway.server.ssl.truststore.path}
+    trust-store-password: ${job.gateway.server.ssl.truststore.password}
+job:
+  security:
+    service:
+      private-key-base64: ${job.security.private-key-base64}
+      public-key-base64: ${job.security.public-key-base64}
+  edition: ee

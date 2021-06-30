@@ -1,0 +1,71 @@
+- name: job-config
+  module: job
+  project_dir: job/job-config
+  alias: job-config
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-gateway
+  module: job
+  project_dir: job/job-gateway
+  alias: job-gateway
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-manage
+  module: job
+  project_dir: job/job-manage
+  alias: job-manage
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-execute
+  module: job
+  project_dir: job/job-execute
+  alias: job-execute
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-crontab
+  module: job
+  project_dir: job/job-crontab
+  alias: job-crontab
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-logsvr
+  module: job
+  project_dir: job/job-logsvr
+  alias: job-logsvr
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-file-gateway
+  module: job
+  project_dir: job/job-file-gateway
+  alias: job-file-gateway
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-ticket
+  module: job
+  project_dir: job/job-ticket
+  alias: job-ticket
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee
+
+- name: job-analysis
+  module: job
+  project_dir: job/job-analysis
+  alias: job-analysis
+  language: java/1.8
+  version: 1.0.0
+  version_type: ee

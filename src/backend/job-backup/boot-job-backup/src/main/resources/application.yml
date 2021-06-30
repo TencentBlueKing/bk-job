@@ -1,0 +1,84 @@
+spring:
+  cloud:
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-backup:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: ${job.backup.db.url}
+      username: ${job.backup.db.username}
+      password: ${job.backup.db.password}
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      poolName: "job-backup"
+      validationTimeout: 5000
+    job-execute-db:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: ${job.execute.db.url:}
+      username: ${job.execute.db.username:}
+      password: ${job.execute.db.password:}
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 6000
+      poolName: "job-execute-db"
+      validationTimeout: 5000
+    job-execute-archive:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: ${job.execute.db.archive.url:}
+      username: ${job.execute.db.archive.username:}
+      password: ${job.execute.db.archive.password:}
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 6000
+      poolName: "job-execute-archive"
+      validationTimeout: 5000
+
+  redis:
+    mode: ${job.backup.redis.mode:sentinel}
+    host: ${job.backup.redis.host:}
+    port: ${job.backup.redis.port:6379}
+    sentinel:
+      password: ${job.backup.redis.sentinel.password:}
+      master: ${job.backup.redis.sentinel.master:}
+      nodes: ${job.backup.redis.sentinel.nodes:}
+    cluster:
+      nodes: ${job.backup.redis.cluster.nodes:}
+    password: ${job.backup.redis.password:}
+    database: ${job.backup.redis.database}
+    lettuce:
+      pool:
+        min-idle: ${job.backup.redis.lettuce.pool.min-idle}
+        max-idle: ${job.backup.redis.lettuce.pool.max-idle}
+        max-active: ${job.backup.redis.lettuce.pool.max-active}
+        max-wait: ${job.backup.redis.lettuce.pool.max-wait}
+      shutdown-timeout: ${job.backup.redis.lettuce.shutdown-timeout}
+  rabbitmq:
+    host: ${job.backup.rabbitmq.host}
+    port: ${job.backup.rabbitmq.port}
+    username: ${job.backup.rabbitmq.username}
+    password: ${job.backup.rabbitmq.password}
+    virtual-host: ${job.backup.rabbitmq.vhost:job}
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN
+  servlet:
+    multipart:
+      max-file-size: ${job.backup.upload.filesize.max:5GB}
+      max-request-size: ${job.backup.upload.filesize.max:5GB}
+
+ribbon:
+  ReadTimeout: 60000
+  ConnectTimeout: 10000
+  eureka:
+    enabled: false
+job:
+  security:
+    service:
+      private-key-base64: ${job.security.private-key-base64}
+      public-key-base64: ${job.security.public-key-base64}

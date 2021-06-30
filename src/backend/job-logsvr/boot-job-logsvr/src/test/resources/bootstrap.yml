@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: job-logsvr
+server:
+  port: 19806

@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        prefer-ip-address: true
+        service-name: 'job-config'
+        instance-id: job-config-${machine.ip}-${server.port}
+        scheme: http
+      scheme: http
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN

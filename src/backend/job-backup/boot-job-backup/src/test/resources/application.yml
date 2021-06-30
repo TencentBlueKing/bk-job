@@ -1,0 +1,14 @@
+spring:
+  cloud:
+    consul:
+      enabled: false
+    config:
+      discovery:
+        enabled: false
+      enabled: false
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

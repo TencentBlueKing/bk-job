@@ -1,0 +1,64 @@
+spring:
+  cloud:
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-analysis:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: ${job.analysis.db.url}
+      username: ${job.analysis.db.username}
+      password: ${job.analysis.db.password}
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      poolName: "job-analysis"
+      validationTimeout: 5000
+
+  redis:
+    mode: ${job.analysis.redis.mode:sentinel}
+    host: ${job.analysis.redis.host:}
+    port: ${job.analysis.redis.port:6379}
+    sentinel:
+      password: ${job.analysis.redis.sentinel.password:}
+      master: ${job.analysis.redis.sentinel.master:}
+      nodes: ${job.analysis.redis.sentinel.nodes:}
+    cluster:
+      nodes: ${job.analysis.redis.cluster.nodes:}
+    password: ${job.analysis.redis.password:}
+    database: ${job.analysis.redis.database}
+    lettuce:
+      pool:
+        min-idle: ${job.analysis.redis.lettuce.pool.min-idle}
+        max-idle: ${job.analysis.redis.lettuce.pool.max-idle}
+        max-active: ${job.analysis.redis.lettuce.pool.max-active}
+        max-wait: ${job.analysis.redis.lettuce.pool.max-wait}
+      shutdown-timeout: ${job.analysis.redis.lettuce.shutdown-timeout}
+  rabbitmq:
+    host: ${job.analysis.rabbitmq.host}
+    port: ${job.analysis.rabbitmq.port}
+    username: ${job.analysis.rabbitmq.username}
+    password: ${job.analysis.rabbitmq.password}
+    virtual-host: ${job.analysis.rabbitmq.vhost:job}
+  security:
+    user:
+      name: ${job.security.actuator.user.name}
+      password: ${job.security.actuator.user.password}
+      roles: ENDPOINT_ADMIN
+  servlet:
+    multipart:
+      max-file-size: ${job.analysis.upload.filesize.max:5GB}
+      max-request-size: ${job.analysis.upload.filesize.max:5GB}
+
+job:
+  security:
+    service:
+      private-key-base64: ${job.security.private-key-base64}
+      public-key-base64: ${job.security.public-key-base64}
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: ${job.analysis.feign.client.readTimeout.mills:300000}

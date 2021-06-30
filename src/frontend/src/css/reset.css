@@ -1,0 +1,76 @@
+/* // 浏览器重置样式 */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "PingFang SC",
+        "Microsoft YaHei",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    font-size: 12px;
+    line-height: 1.4285;
+    letter-spacing: 0.4px;
+    text-rendering: optimizeLegibility;
+    background: #f5f6fa;
+    -webkit-tap-highlight-color: transparent;
+}
+
+ul,
+li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+dl,
+dt,
+dd,
+p,
+button,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    padding: 0;
+    margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold;
+}
+
+a {
+    color: #3a84ff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button {
+    outline: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+td,
+th {
+    padding: 0;
+}

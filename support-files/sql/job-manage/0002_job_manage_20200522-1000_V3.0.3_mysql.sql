@@ -1,0 +1,3 @@
+ALTER TABLE `job_manage`.`task_template` ADD COLUMN `script_status` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 AFTER `is_latest_version`;
+ALTER TABLE `job_manage`.`task_template_step_script` ADD COLUMN `status` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 AFTER `is_latest_version`;
+ALTER TABLE `job_manage`.`task_plan_step_script` ADD COLUMN `status` tinyint(2) UNSIGNED NOT NULL DEFAULT 0 AFTER `is_secure_param`;

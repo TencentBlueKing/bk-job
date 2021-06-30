@@ -1,0 +1,89 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+import com.tencent.bk.gradle.tasks.GenCompleteDependJarListAndRemoveInfectedJarsTask
+import com.tencent.bk.gradle.tasks.ReplaceCETextTask
+task copyToRelease(type: Copy) {
+    from("build/libs") {
+        include("**/job-*.jar")
+        include("**/upgrader-*.jar")
+    }
+    into "${rootDir}/release"
+    outputs.upToDateWhen { false }
+}
+
+copyToRelease.dependsOn assemble
+build.dependsOn copyToRelease
+
+task replaceCEConfig(type: ReplaceCETextTask) {
+    group = "build"
+    description = "社区版打包时替换classpath下的ee配置为ce"
+    processResourcesOutputFiles = fileTree(processResources.destinationDir)
+    srcStr = "edition:\\s*ee"
+    targetStr = "edition: ce"
+    process ".*.yml"
+}
+replaceCEConfig.dependsOn processResources
+classes.dependsOn replaceCEConfig
+
+task postProcessRelease(type: GenCompleteDependJarListAndRemoveInfectedJarsTask) {
+    group = "build"
+    description = "生成含有传染性协议Jar包的完整清单，并在最终Jar包中移除含传染性协议的包"
+    bootJarOutputFiles = fileTree(copyToRelease.destinationDir)
+    completeJarListsRootPath = "../../support-files/dependJarLists"
+
+    remove "amqp-client-.*jar"
+    remove "annotations-.*jar"
+    remove "aspectjrt-.*jar"
+    remove "aspectjweaver-.*jar"
+    remove "bcpkix-jdk15on-.*jar"
+    remove "bcprov-jdk15on-.*jar"
+    remove "c3p0-.*jar"
+    remove "HdrHistogram-.*jar"
+    remove "jakarta.activation-api-.*jar"
+    remove "jakarta.annotation-api-.*jar"
+    remove "jakarta.el-.*jar"
+    remove "jakarta.xml.bind-api-.*jar"
+    remove "javax.activation-api-.*jar"
+    remove "javax.servlet-api-.*jar"
+    remove "javax.ws.rs-api-.*jar"
+    remove "jaxb-api-.*jar"
+    remove "jchardet-.*jar"
+    remove "jersey-apache-client4-.*jar"
+    remove "jersey-client-.*jar"
+    remove "jersey-core-.*jar"
+    remove "jsch-.*jar"
+    remove "jsr311-api-.*jar"
+    remove "jzlib-.*jar"
+    remove "LatencyUtils-.*jar"
+    remove "logback-classic-.*jar"
+    remove "logback-core-.*jar"
+    remove "mchange-commons-java-.*jar"
+    remove "mysql-connector-java-.*jar"
+    remove "org.eclipse.jgit-.*jar"
+    remove "org.eclipse.jgit.http.apache-.*jar"
+    remove "reactive-streams-.*jar"
+}
+postProcessRelease.dependsOn copyToRelease
+build.dependsOn postProcessRelease
