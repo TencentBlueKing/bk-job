@@ -103,7 +103,8 @@ public class Upgrader {
             try {
                 properties.load(new BufferedReader(new FileReader(configFilePath)));
             } catch (IOException e) {
-                log.warn("Cannot read configFile from path:{}", configFilePath, e);
+                log.warn("Cannot read configFile from path:{}, exit", configFilePath, e);
+                return;
             }
         } else {
             log.warn("Config file is empty");
@@ -111,8 +112,11 @@ public class Upgrader {
         }
         log.info("Upgrader begin to run");
         // 找出所有UpgradeTask
-        Reflections reflections = new Reflections("com.tencent.bk.job.upgrader.task", new SubTypesScanner(false),
-            new TypeAnnotationsScanner());
+        Reflections reflections = new Reflections(
+            "com.tencent.bk.job.upgrader.task",
+            new SubTypesScanner(false),
+            new TypeAnnotationsScanner()
+        );
         List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList = new ArrayList<>();
         Set<Class<?>> upgradeTaskSet = reflections.getTypesAnnotatedWith(UpgradeTask.class);
         // 筛选
@@ -165,11 +169,18 @@ public class Upgrader {
                 log.info("UpgradeTask [{}][priority={}] for version {} begin to run", upgradeTask.getName(),
                     upgradeTask.getPriority(),
                     upgradeTask.getTargetVersion());
-                upgradeTask.execute(args);
-                successfulTaskCount++;
-                log.info("UpgradeTask [{}][priority={}] for version {} successfully end", upgradeTask.getName(),
-                    upgradeTask.getPriority(),
-                    upgradeTask.getTargetVersion());
+                int resultCode = upgradeTask.execute(args);
+                if (resultCode == 0) {
+                    successfulTaskCount++;
+                    log.info("UpgradeTask [{}][priority={}] for version {} successfully end", upgradeTask.getName(),
+                        upgradeTask.getPriority(),
+                        upgradeTask.getTargetVersion());
+                } else {
+                    log.warn("UpgradeTask [{}][priority={}] for version {} failed", upgradeTask.getName(),
+                        upgradeTask.getPriority(),
+                        upgradeTask.getTargetVersion());
+                    break;
+                }
             } catch (InstantiationException e) {
                 log.error("Fail to Instantiate {}", clazz.getSimpleName(), e);
                 break;
