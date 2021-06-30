@@ -71,14 +71,25 @@ public class AESUtils {
      *
      * @param data     待加密数据
      * @param password 密钥
-     * @return byte[] 加密后的数据
+     * @return String 加密后的数据
      */
     public static String encryptToBase64EncodedCipherText(byte[] data, String password) throws Exception {
         return Base64Util.encodeContentToStr(encrypt(data, password.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
-     * 加密数据
+     * 解密base64编码的数据，并转换成字符明文
+     *
+     * @param data     待解密数据，base64编码
+     * @param password 密钥
+     * @return String 解密后的数据
+     */
+    public static String decryptBase64EncodedDataToPlainText(String data, String password) throws Exception {
+        return decryptToPlainText(Base64Util.decodeContentToByte(data), password);
+    }
+
+    /**
+     * 加密数据，并是使用base64编码
      *
      * @param data     待加密数据
      * @param password 密钥

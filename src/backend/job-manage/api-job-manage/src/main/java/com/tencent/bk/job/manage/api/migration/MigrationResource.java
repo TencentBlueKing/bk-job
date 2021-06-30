@@ -25,11 +25,11 @@
 package com.tencent.bk.job.manage.api.migration;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.manage.model.migration.EncryptDbAccountPasswordReq;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 微服务升级
@@ -38,6 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public interface MigrationResource {
 
+    /**
+     * 对DB账号的密码进行加密
+     *
+     * @return
+     */
     @PostMapping("/action/encryptDbAccountPassword")
-    ServiceResponse encryptDbAccountPassword(@RequestBody EncryptDbAccountPasswordReq req);
+    ServiceResponse<List<Long>> encryptDbAccountPassword();
 }

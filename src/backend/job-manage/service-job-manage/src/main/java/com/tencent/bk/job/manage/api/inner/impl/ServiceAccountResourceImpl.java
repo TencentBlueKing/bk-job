@@ -47,7 +47,8 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     private final MessageI18nService i18nService;
 
     @Autowired
-    public ServiceAccountResourceImpl(AccountService accountService, MessageI18nService i18nService) {
+    public ServiceAccountResourceImpl(AccountService accountService,
+                                      MessageI18nService i18nService) {
         this.accountService = accountService;
         this.i18nService = i18nService;
     }

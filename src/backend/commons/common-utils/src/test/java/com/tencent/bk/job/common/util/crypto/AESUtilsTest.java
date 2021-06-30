@@ -22,17 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.util.crypto;
 
-/**
- * 微服务升级
- */
-public interface MigrationService {
-    /**
-     * 加密DB账号的密码
-     *
-     * @param key 加密key
-     * @return 结果
-     */
-    boolean encryptDbAccountPassword(String key);
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
+public class AESUtilsTest {
+    @Test
+    void testEncryptToBase64EncodedCipherText() throws Exception {
+        String text = "job";
+        String encryptPassword = "job#123";
+        String encryptedData = AESUtils.encryptToBase64EncodedCipherText(text, encryptPassword);
+        assertThat(encryptedData).isNotEmpty();
+    }
+
+    @Test
+    void testDecryptBase64EncodedCipherText() throws Exception {
+        String encryptedBase64EncodedData = "GQ6kLqtMevL8z/kXGVANQ+VP5o2Bt30yzXALfZbeOoY=";
+        String encryptPassword = "job#123";
+        String decodeData = AESUtils.decryptBase64EncodedDataToPlainText(encryptedBase64EncodedData, encryptPassword);
+        assertThat(decodeData).isEqualTo("job");
+    }
+
 }
