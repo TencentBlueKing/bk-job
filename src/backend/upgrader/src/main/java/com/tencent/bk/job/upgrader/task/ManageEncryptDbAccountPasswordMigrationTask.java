@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.ServiceResponse;
@@ -37,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
+import java.util.List;
 import java.util.Properties;
 
 import static com.tencent.bk.job.common.constant.ErrorCode.RESULT_OK;
@@ -58,7 +60,7 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        String jobManageHost = getProperties().getProperty("job-manage.host");
+        String jobManageHost = System.getProperty("job-manage.host");
         if (StringUtils.isBlank(jobManageHost)) {
             log.error("job-manage.host is not configured");
             return 1;
@@ -82,21 +84,15 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
         headers[0] = new BasicHeader("x-job-auth-token", jobAuthToken);
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
-
-        String key = getProperties().getProperty("job.encrypt.password");
-        if (StringUtils.isBlank(key)) {
-            log.error("job.encrypt.password is not configured");
-            return 1;
-        }
-
         try {
-            String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "{\"key\":\"" + key + "\"}",
-                headers);
+            String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);
             if (StringUtils.isBlank(respStr)) {
                 log.error("Fail:response is blank|uri={}", url);
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
             }
-            ServiceResponse resp = JsonUtils.fromJson(respStr, ServiceResponse.class);
+            ServiceResponse<List<Long>> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<ServiceResponse<List<Long>>>() {
+                });
             if (resp == null) {
                 log.error("Fail:parse respStr fail|uri={}", url);
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
@@ -104,7 +100,9 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
                 log.error("Fail: code!=0");
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
             }
+            log.info("Encrypt db account password successfully!accountIds: {}", resp.getData());
         } catch (Exception e) {
+            log.error("Fail: caught exception", e);
             throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
         }
         return 0;
