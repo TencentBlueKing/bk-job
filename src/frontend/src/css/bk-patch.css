@@ -169,6 +169,9 @@
 /**
     覆盖 tooltip 样式
  */
+.tippy-content{
+    padding: 0;
+}
 .tippy-tooltip {
     z-index: 1;
 }
