@@ -176,8 +176,6 @@ public class Upgrader {
         upgradeTaskList.forEach(entry -> {
             log.info("[{}] for version {}, priority={}", entry.getLeft(), entry.getMiddle(), entry.getRight());
         });
-        int taskSize = upgradeTaskList.size();
-        AtomicInteger successfulTaskCount = new AtomicInteger(0);
         // 参数输入
         Map<String, String> paramMap = new HashMap<>();
         Scanner scanner = new Scanner(System.in);
@@ -238,6 +236,16 @@ public class Upgrader {
         }
         paramMap.forEach(properties::setProperty);
         // 运行
+        runTasks(upgradeTaskList, args, properties);
+    }
+
+    private static int runTasks(
+        List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList,
+        String[] args,
+        Properties properties
+    ) {
+        int taskSize = upgradeTaskList.size();
+        AtomicInteger successfulTaskNum = new AtomicInteger(0);
         int taskNum = upgradeTaskList.size();
         final AtomicInteger currentTaskNum = new AtomicInteger(0);
         for (Triple<Class<?>, String, Integer> entry : upgradeTaskList) {
@@ -257,7 +265,7 @@ public class Upgrader {
                             upgradeTask.getTargetVersion());
                         int resultCode = upgradeTask.execute(args);
                         if (resultCode == 0) {
-                            successfulTaskCount.incrementAndGet();
+                            successfulTaskNum.incrementAndGet();
                             taskSuccess.set(true);
                             log.info("UpgradeTask [{}][priority={}] for version {} successfully end",
                                 upgradeTask.getName(),
@@ -292,18 +300,24 @@ public class Upgrader {
                 log.error("taskThread interrupted", e);
             }
             beatTask.interrupt();
+            if (currentTaskNum.get() != successfulTaskNum.get()) {
+                break;
+            }
         }
         if (taskSize > 0) {
-            if (successfulTaskCount.get() == taskSize) {
+            if (successfulTaskNum.get() == taskSize) {
                 log.info("All {} upgradeTasks finished successfully", taskSize);
+                return 0;
             } else {
-                log.warn("{} of {} upgradeTasks finished successfully, others failed, please check",
-                    successfulTaskCount,
+                log.warn("{} of {} upgradeTasks finished successfully, others not run yet, please check",
+                    successfulTaskNum,
                     taskSize);
+                return 1;
             }
         } else {
             log.info("No matched upgradeTasks need to run");
         }
+        return 0;
     }
 
     private static IUpgradeTask getUpgradeTaskByClass(Class<? extends Object> clazz, Properties properties) {
