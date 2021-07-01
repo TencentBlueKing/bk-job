@@ -29,9 +29,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * get_job_instance_log,根据作业实例ID查询作业执行日志请求
- */
 @Getter
 @Setter
 public class EsbGetJobInstanceIpLogV3Request extends EsbReq {
