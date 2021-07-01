@@ -37,6 +37,7 @@ import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
 import com.tencent.bk.job.upgrader.model.Policy;
+import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,9 +66,9 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
         Properties properties = getProperties();
         if (iamClient == null) {
             iamClient = new IamClient(
-                (String) properties.get("iam.base-url"),
-                (String) properties.get("app.code"),
-                (String) properties.get("app.secret")
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_IAM_BASE_URL),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
             );
         }
         return iamClient;
@@ -77,9 +78,9 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
         Properties properties = getProperties();
         if (esbIamClient == null) {
             esbIamClient = new EsbIamClient(
-                (String) properties.get("esb.service.url"),
-                (String) properties.get("app.code"),
-                (String) properties.get("app.secret"),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET),
                 false
             );
         }

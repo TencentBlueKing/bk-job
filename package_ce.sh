@@ -144,6 +144,7 @@ log "Packaging project doc ..."
 cp README.md release/job/
 cp projects.yaml release/job/
 cp release.md release/job/
+cp UPGRADE.md release/job/
 cp VERSION release/job/
 cp -r docs/ release/job/
 echo "Package project doc successfully"
