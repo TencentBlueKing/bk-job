@@ -170,7 +170,7 @@
     覆盖 tooltip 样式
  */
 .tippy-content {
-    padding: 0;
+    padding: 0 !important;
 }
 
 .tippy-tooltip {
