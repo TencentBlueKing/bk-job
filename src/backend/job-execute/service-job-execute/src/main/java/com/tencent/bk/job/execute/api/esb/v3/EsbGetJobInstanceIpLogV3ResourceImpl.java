@@ -81,6 +81,10 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        if (taskInstance == null) {
+            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+        }
+
         EsbResp<EsbIpLogV3DTO> authResult = authViewTaskInstance(request.getUserName(),
             request.getAppId(), taskInstance);
         if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
@@ -160,7 +164,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
 
     private List<EsbFileLogV3DTO> buildDownloadFileLogs(FileIpLogContent downloadIpLog) {
         List<EsbFileLogV3DTO> downloadFileLogs = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(downloadIpLog.getFileTaskLogs())) {
+        if (downloadIpLog != null && CollectionUtils.isNotEmpty(downloadIpLog.getFileTaskLogs())) {
             downloadFileLogs = downloadIpLog.getFileTaskLogs().stream().map(this::toEsbFileLogV3DTO)
                 .collect(Collectors.toList());
         }
