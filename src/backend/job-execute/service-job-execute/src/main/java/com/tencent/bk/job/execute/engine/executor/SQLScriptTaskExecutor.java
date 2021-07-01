@@ -62,8 +62,8 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
     static {
         try {
             log.info("Init sql template!");
-            try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sqltask" +
-                "/mysql_exec_template.sh")) {
+            try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                "sqltask/mysql_exec_template.sh")) {
                 StringWriter stringWriter = new StringWriter();
                 if (stream != null) {
                     IOUtils.copy(stream, stringWriter, StandardCharsets.UTF_8);
@@ -74,8 +74,8 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
                     throw new RuntimeException("Init sql task shell failed");
                 }
             }
-            try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sqltask" +
-                "/oracle_exec_template.sh")) {
+            try (InputStream stream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("sqltask/oracle_exec_template.sh")) {
                 StringWriter stringWriter = new StringWriter();
                 if (stream != null) {
                     IOUtils.copy(stream, stringWriter, StandardCharsets.UTF_8);
@@ -86,8 +86,8 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
                     throw new RuntimeException("Init sql task shell failed");
                 }
             }
-            try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sqltask" +
-                "/db2_exec_template.sh")) {
+            try (InputStream stream = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("sqltask/db2_exec_template.sh")) {
                 StringWriter stringWriter = new StringWriter();
                 if (stream != null) {
                     IOUtils.copy(stream, stringWriter, StandardCharsets.UTF_8);

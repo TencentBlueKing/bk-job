@@ -22,49 +22,89 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.manage.migration;
 
+import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
-import com.tencent.bk.job.manage.service.MigrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @Slf4j
-public class MigrationServiceImpl implements MigrationService {
+public class EncryptDbAccountPasswordMigrationTask {
     private final AccountDAO accountDAO;
 
+    private final JobManageConfig jobManageConfig;
+
     @Autowired
-    public MigrationServiceImpl(AccountDAO accountDAO) {
+    public EncryptDbAccountPasswordMigrationTask(AccountDAO accountDAO,
+                                                 JobManageConfig jobManageConfig) {
         this.accountDAO = accountDAO;
+        this.jobManageConfig = jobManageConfig;
     }
 
-    @Override
-    public boolean encryptDbAccountPassword(String key) {
+    /**
+     * 加密DB账号的密码
+     *
+     * @return 结果
+     */
+    public ServiceResponse<List<Long>> encryptDbAccountPassword() {
+        log.info("Encrypt db account password start...");
+        if (StringUtils.isBlank(jobManageConfig.getEncryptPassword())) {
+            log.error("Encrypt password is blank");
+            return ServiceResponse.buildCommonFailResp("Encrypt password is blank");
+        }
+
         List<AccountDTO> dbAccounts = accountDAO.listAccountByAccountCategory(AccountCategoryEnum.DB);
         if (CollectionUtils.isEmpty(dbAccounts)) {
             log.info("Db account is empty, skip");
-            return true;
+            return ServiceResponse.buildSuccessResp(Collections.emptyList());
         }
+
         try {
+            List<Long> updateAccountIdList = new ArrayList<>();
             for (AccountDTO dbAccount : dbAccounts) {
                 if (StringUtils.isNotEmpty(dbAccount.getDbPassword())) {
-                    dbAccount.setDbPassword(AESUtils.encryptToBase64EncodedCipherText(dbAccount.getDbPassword(), key));
+                    if (isEncrypted(dbAccount.getDbPassword(), jobManageConfig.getEncryptPassword())) {
+                        log.info("Account[id={}] is encrypted", dbAccount.getId());
+                        continue;
+                    }
+                    dbAccount.setDbPassword(AESUtils.encryptToBase64EncodedCipherText(dbAccount.getDbPassword(),
+                        jobManageConfig.getEncryptPassword()));
+                    updateAccountIdList.add(dbAccount.getId());
                 }
             }
             accountDAO.batchUpdateDbAccountPassword(dbAccounts);
+            log.info("Encrypt db account password successfully!");
+            return ServiceResponse.buildSuccessResp(updateAccountIdList);
         } catch (Throwable e) {
             log.error("Encrypt db account password error", e);
+            return ServiceResponse.buildCommonFailResp("Encrypt db account password error");
+        }
+    }
+
+    private boolean isEncrypted(String base64EncodedCipherText, String key) {
+        return tryDecrypt(base64EncodedCipherText, key);
+    }
+
+    private boolean tryDecrypt(String base64EncodedCipherText, String key) {
+        try {
+            AESUtils.decryptBase64EncodedDataToPlainText(base64EncodedCipherText, key);
+            return true;
+        } catch (Throwable e) {
+            log.warn("Decrypt fail", e);
             return false;
         }
-        return true;
     }
 }

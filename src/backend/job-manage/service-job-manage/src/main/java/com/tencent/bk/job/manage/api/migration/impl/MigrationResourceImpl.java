@@ -26,36 +26,26 @@ package com.tencent.bk.job.manage.api.migration.impl;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.migration.MigrationResource;
-import com.tencent.bk.job.manage.model.migration.EncryptDbAccountPasswordReq;
-import com.tencent.bk.job.manage.service.MigrationService;
+import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Slf4j
 @RestController
 public class MigrationResourceImpl implements MigrationResource {
-    private final MigrationService migrationService;
+    private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
 
     @Autowired
-    public MigrationResourceImpl(MigrationService migrationService) {
-        this.migrationService = migrationService;
+    public MigrationResourceImpl(
+        EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask) {
+        this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
     }
 
     @Override
-    public ServiceResponse encryptDbAccountPassword(EncryptDbAccountPasswordReq req) {
-        log.info("Encrypt db password start ...");
-        if (StringUtils.isBlank(req.getKey())) {
-            log.error("Encrypt key is blank");
-            return ServiceResponse.buildCommonFailResp("Encrypt key is blank");
-        }
-        boolean success = migrationService.encryptDbAccountPassword(req.getKey());
-        if (success) {
-            log.info("Encrypt db password successfully");
-            return ServiceResponse.buildSuccessResp(null);
-        } else {
-            return ServiceResponse.buildCommonFailResp("Encrypt db account password failed");
-        }
+    public ServiceResponse<List<Long>> encryptDbAccountPassword() {
+        return encryptDbAccountPasswordMigrationTask.encryptDbAccountPassword();
     }
 }
