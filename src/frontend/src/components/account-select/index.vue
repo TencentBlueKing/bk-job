@@ -182,7 +182,7 @@
              */
             handleCreate () {
                 const { href } = this.$router.resolve({
-                    name: 'businessManageAccount',
+                    name: 'accountList',
                 });
                 this.$refs.select.close();
                 window.open(href);
