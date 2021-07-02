@@ -232,4 +232,5 @@ else
   tar -czf "job_ce-${JOB_VERSION}.tgz" job
   log "Package job successfully! File: job_ce-${JOB_VERSION}.tgz"
 fi
+
 set +e
