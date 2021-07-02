@@ -41,6 +41,10 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.joda.time.DateTime;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -52,7 +56,6 @@ import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +63,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 @SuppressWarnings("all")
-public class LicenseCheckServiceImpl implements LicenseCheckService {
+public class LicenseCheckServiceImpl implements LicenseCheckService, ApplicationContextAware {
+
+    private ApplicationContext context;
 
     private final BkConfig bkConfig;
 
@@ -152,27 +157,14 @@ public class LicenseCheckServiceImpl implements LicenseCheckService {
 
                 @Override
                 public void run() {
-                    long minCheckInterval = 60 * 1000L;
-                    long maxCheckInterval = 2 * 3600 * 1000L;
-                    long sleepTime = minCheckInterval;
-                    while (run) {
-                        licenseCheckResult = getLicenceCheckResult();
-                        if (licenseCheckResult != null && licenseCheckResult.isOk()) {
-                            // 检查下次要再向LicenceServer通信的时间,根据有效期来定
-                            if (licenseCheckResult.getValidEndTime() != null) {
-                                sleepTime = licenseCheckResult.getValidEndTime().getTime() - System.currentTimeMillis();
-                            }
-                        } else { //错误情况下，每分钟都会尝试去连接验证Licence，以求最快速度恢复系统服务
-                            sleepTime = minCheckInterval;
-                        }
-
-                        if (sleepTime > maxCheckInterval) {
-                            sleepTime = maxCheckInterval;
-                        }
-                        try {
-                            Thread.sleep(sleepTime);
-                        } catch (InterruptedException ignored) {
-                        }
+                    licenseCheckResult = getLicenceCheckResult();
+                    if (licenseCheckResult != null && licenseCheckResult.isOk()) {
+                        // License有效，一直保持至下次重启进程
+                        log.info("Check license on start finished, license is ok");
+                    } else {
+                        log.error("Fail to check license, please check whether the license server is avaliable");
+                        ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) context;
+                        ctx.close();
                     }
                 }
             };
@@ -198,6 +190,9 @@ public class LicenseCheckServiceImpl implements LicenseCheckService {
                 log.info("Check license, resp={}", responseBody);
                 if (StringUtils.isNotBlank(responseBody)) {
                     licenseCheckResult = JsonUtils.fromJson(responseBody, LicenseCheckResultDTO.class);
+                    if (licenseCheckResult != null && !licenseCheckResult.isStatus()) {
+                        log.error("license is invalid, please check license server configuration");
+                    }
                 } else {
                     createFailCheck(licenseCheckResult);
                 }
@@ -227,11 +222,9 @@ public class LicenseCheckServiceImpl implements LicenseCheckService {
     }
 
     private void createFailCheck(LicenseCheckResultDTO licenseCheckDto) {
-        licenseCheckDto.setStatus(true);
+        licenseCheckDto.setStatus(false);
         licenseCheckDto.setMessage("License Server unreachable");
-        licenseCheckDto.setResult(ErrorCode.RESULT_OK);
-        licenseCheckDto.setValidStartTime(new Date());
-        licenseCheckDto.setValidEndTime(new Date(DateTime.now().plusDays(100).getMillis()));
+        licenseCheckDto.setResult(ErrorCode.LICENSE_ERROR);
     }
 
     private String buildCheckRequestBody() throws IOException {
@@ -243,5 +236,10 @@ public class LicenseCheckServiceImpl implements LicenseCheckService {
         requestParams.put("time", DateTime.now().toString("yyyy-MM-dd HH:mm:ss"));
         requestParams.put("certificate", certContent);
         return JsonUtils.toJson(requestParams);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 }
