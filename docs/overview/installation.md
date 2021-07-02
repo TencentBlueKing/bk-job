@@ -36,7 +36,7 @@
 ```
 |- /data/bkee/etc   # 蓝鲸配置文件总目录
   |- job 		    # job配置文件目录
-    |- api.cert     # job调用GSE接口使用的证书文件
+    |- job.env      # 通过模板渲染job配置文件时所需要指定的环境变量
     |- application-manage.yml  # job-manage的基础配置，每个微服务各有1个基础配置yaml文件，如有增加微服务也放此处
     |- job-manage              # job-manage的扩展配置，每个微服务各有1个对应目录存放扩展配置文件，如有增加微服务须增加对应目录
       |- job-manage.properties # job-manage扩展配置properties文件

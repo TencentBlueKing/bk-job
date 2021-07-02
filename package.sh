@@ -4,6 +4,7 @@ echo 'Begin to package job'
 BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis)
 FRONTEND_MODULES=(job-frontend)
 ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis job-frontend)
+JOB_EDITION=ce
 
 if [[ ! -d "release" ]]; then
 	mkdir release
@@ -17,6 +18,7 @@ usage () {
     $PROGRAM [ -h --help -?  查看帮助 ]
             [ -m, --module      [必选] "子模块(${PROJECTS[*]}), 逗号分隔。ALL表示全部都更新" ]
             [ -v, --version    [必选] "Job版本" ]
+            [ -e, --edition    [非必选] "Job出包类型，ce表示社区版，ee表示企业版，默认ce" ]
 EOF
 }
 
@@ -50,6 +52,10 @@ while (( $# > 0 )); do
         -v | --version )
             shift
             JOB_VERSION="$1"
+            ;;
+        -e | --edition )
+            shift
+            JOB_EDITION="$1"
             ;;
         --help | -h | '-?' )
             usage_and_exit 0
@@ -134,10 +140,76 @@ for m in "${PACKAGE_MODULES[@]}"; do
 	done
 done
 
-
 # Package support-files
 log "Packaging support-files ..."
-cp -r support-files/ release/job/
+if [[ ! -d "release/job/support-files" ]]; then
+  mkdir -p release/job/support-files
+fi
+cp -r support-files/bkiam/ release/job/support-files/
+cp -r support-files/dependJarInfo/ release/job/support-files/
+# Package SQL by modules
+if [[ ! -d "release/job/support-files/sql" ]]; then
+  mkdir -p release/job/support-files/sql
+fi
+for m in "${PACKAGE_MODULES[@]}"; do
+  if [[ -d "support-files/sql/${m}" ]]; then
+    cp -r "support-files/sql/${m}/" release/job/support-files/sql/
+  fi
+done
+# Package Templates by modules
+if [[ -d "support-files/templates" ]]; then
+  if [[ ! -d "release/job/support-files/templates" ]]; then
+    mkdir -p release/job/support-files/templates
+  fi
+  for m in "${PACKAGE_MODULES[@]}"; do
+    if [[ "job-frontend" == "${m}" ]]; then
+      continue
+    fi
+    simpleName=${m:4}
+    # Copy yml templates
+    ymlFilePath="support-files/templates/#etc#job#application-${simpleName}.yml"
+    if [[ -f "${ymlFilePath}" ]]; then
+      cp "${ymlFilePath}" release/job/support-files/templates
+    else
+      if [[ "${simpleName}" != "config" && "${simpleName}" != "file-worker" ]];then
+        echo "cannot find yml template of job-${simpleName}"
+        exit 1
+      fi
+    fi
+    # Copy properties templates
+    propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.properties"
+    if [[ -f "${propertiesFilePath}" ]]; then
+      cp "${propertiesFilePath}" release/job/support-files/templates
+    else
+      if [[ "${simpleName}" != "config" && "${simpleName}" != "file-worker" ]];then
+        echo "cannot find properties template of job-${simpleName}"
+        exit 1
+      fi
+    fi
+  done
+  # Copy upgrader.properties
+  upgraderPropertiesFile="support-files/templates/#etc#job#upgrader#upgrader.properties"
+  if [[ -f "${upgraderPropertiesFile}" ]]; then
+    cp "${upgraderPropertiesFile}" release/job/support-files/templates
+  else
+    echo "warn: cannot find ${upgraderPropertiesFile}, ignore"
+  fi
+  # Copy job.env
+  jobEnvFile="support-files/templates/job.env"
+  if [[ -f "${jobEnvFile}" ]]; then
+    cp "${jobEnvFile}" release/job/support-files/templates
+  else
+    echo "warn: cannot find ${jobEnvFile}, ignore"
+  fi
+fi
+# readme.md、requirements.txt
+for fileName in "readme.md" "requirements.txt";
+do
+filePath="support-files/${fileName}"
+if [[ -f "${filePath}" ]]; then
+  cp "${filePath}" release/job/support-files/
+fi
+done
 echo "Package support-files successfully"
 
 # Package project documents
@@ -151,7 +223,14 @@ cp -r docs/ release/job/
 echo "Package project doc successfully"
 
 cd release
-tar -czf "job_ee-${JOB_VERSION}.tgz" job
 
-log "Package job successfully! File: job_ee-${JOB_VERSION}.tgz"
+# 企业版、社区版包名称差异处理
+if [[ "${JOB_EDITION}" == "ee" ]];then
+  tar -czf "job_ee-${JOB_VERSION}.tgz" job
+  log "Package job successfully! File: job_ee-${JOB_VERSION}.tgz"
+else
+  tar -czf "job_ce-${JOB_VERSION}.tgz" job
+  log "Package job successfully! File: job_ce-${JOB_VERSION}.tgz"
+fi
+
 set +e
