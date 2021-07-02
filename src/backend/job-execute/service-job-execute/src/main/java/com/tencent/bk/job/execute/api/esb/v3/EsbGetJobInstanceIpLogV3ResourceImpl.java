@@ -181,7 +181,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
 
     private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
-        fileLog.setMode(FileDistModeEnum.DOWNLOAD.getValue());
+        fileLog.setMode(fileTaskLog.getMode());
         if (StringUtils.isNotBlank(fileTaskLog.getDisplaySrcIp())) {
             EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDisplaySrcIp());
             if (srcIp != null) {
@@ -189,14 +189,15 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
             }
         }
         fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
-
-        if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
-            EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
-            if (destIp != null) {
-                fileLog.setDestIp(destIp);
+        if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
+            if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
+                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
+                if (destIp != null) {
+                    fileLog.setDestIp(destIp);
+                }
             }
+            fileLog.setDestPath(fileTaskLog.getDestFile());
         }
-        fileLog.setDestPath(fileTaskLog.getDestFile());
 
         fileLog.setLogContent(fileTaskLog.getContent());
         fileLog.setStatus(fileTaskLog.getStatus());
