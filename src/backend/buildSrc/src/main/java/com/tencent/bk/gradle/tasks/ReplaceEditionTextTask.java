@@ -53,7 +53,7 @@ class ReplaceEditionTextTask extends DefaultTask {
     Set<String> patternSet = new HashSet<>();
 
     @Inject
-    public ReplaceEditionTextTask() {
+    ReplaceEditionTextTask() {
     }
 
     @TaskAction
