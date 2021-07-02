@@ -23,7 +23,7 @@
  */
 
 import com.tencent.bk.gradle.tasks.GenCompleteDependJarListAndRemoveInfectedJarsTask
-import com.tencent.bk.gradle.tasks.ReplaceCETextTask
+import com.tencent.bk.gradle.tasks.ReplaceEditionTextTask
 task copyToRelease(type: Copy) {
     from("build/libs") {
         include("**/job-*.jar")
@@ -36,16 +36,16 @@ task copyToRelease(type: Copy) {
 copyToRelease.dependsOn assemble
 build.dependsOn copyToRelease
 
-task replaceCEConfig(type: ReplaceCETextTask) {
+task replaceEEConfig(type: ReplaceEditionTextTask) {
     group = "build"
-    description = "社区版打包时替换classpath下的ee配置为ce"
+    description = "企业版打包时替换classpath下的ce配置为ee"
     processResourcesOutputFiles = fileTree(processResources.destinationDir)
-    srcStr = "edition:\\s*ee"
-    targetStr = "edition: ce"
+    srcStr = "edition:\\s*ce"
+    targetStr = "edition: ee"
     process ".*.yml"
 }
-replaceCEConfig.dependsOn processResources
-classes.dependsOn replaceCEConfig
+replaceEEConfig.dependsOn processResources
+classes.dependsOn replaceEEConfig
 
 task postProcessRelease(type: GenCompleteDependJarListAndRemoveInfectedJarsTask) {
     group = "build"

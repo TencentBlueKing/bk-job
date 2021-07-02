@@ -22,43 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.execute.model.esb.v3.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
-/**
- * IP对应的作业执行日志
- */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsbIpLogV3DTO {
+@Getter
+@Setter
+public class EsbBatchGetJobInstanceIpLogV3Request extends EsbReq {
     /**
-     * 日志类型
+     * 业务 ID
      */
-    @JsonProperty("log_type")
-
-    private Integer logType;
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
-
-    private String ip;
+    @JsonProperty("bk_biz_id")
+    private Long appId;
 
     /**
-     * 脚本任务日志内容
+     * 作业执行实例 ID
      */
-    @JsonProperty("log_content")
-    private String scriptLogContent;
+    @JsonProperty("job_instance_id")
+    private Long taskInstanceId;
 
     /**
-     * 文件任务日志
+     * 作业步骤实例ID
      */
-    @JsonProperty("file_logs")
-    private List<EsbFileLogV3DTO> fileLogs;
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
+
+    /**
+     * 目标服务器IP列表
+     */
+    @JsonProperty("ip_list")
+    private List<EsbIpDTO> ipList;
 }

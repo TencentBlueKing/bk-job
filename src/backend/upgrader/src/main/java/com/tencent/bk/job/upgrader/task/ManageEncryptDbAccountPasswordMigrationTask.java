@@ -31,7 +31,11 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
+import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
+import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
+import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
+import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.job.upgrader.utils.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +51,9 @@ import static com.tencent.bk.job.common.constant.ErrorCode.RESULT_OK;
  * DB账号密码加密
  */
 @Slf4j
+@RequireTaskParam(value = {
+    @UpgradeTaskInputParam(value = JobManageServerAddress.class)
+})
 @UpgradeTask(
     dataStartVersion = "3.0.0.0",
     targetVersion = "3.3.4.0",
@@ -60,10 +67,12 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        String jobManageHost = System.getProperty("job-manage.host");
-        if (StringUtils.isBlank(jobManageHost)) {
-            log.error("job-manage.host is not configured");
-            return 1;
+        String jobManageServerAddress = getProperties().getProperty(
+            ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS
+        );
+        String jobManageHost = "";
+        if (!jobManageServerAddress.startsWith("http://") && !jobManageServerAddress.startsWith("https://")) {
+            jobManageHost = "http://" + jobManageServerAddress;
         }
         String uri = "/migration/action/encryptDbAccountPassword";
         String url;
@@ -73,9 +82,11 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
             url = jobManageHost.substring(0, jobManageHost.length() - 1) + uri;
         }
 
-        String jobAuthToken = getProperties().getProperty("job.security.public-key-base64");
+        String jobAuthToken = getProperties().getProperty(
+            ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64
+        );
         if (StringUtils.isBlank(jobAuthToken)) {
-            log.error("job.security.public-key-base64 is not configured");
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
             return 1;
         }
         jobAuthToken = Base64Util.decodeContentToStr(jobAuthToken);
@@ -83,6 +94,13 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
         Header[] headers = new Header[2];
         headers[0] = new BasicHeader("x-job-auth-token", jobAuthToken);
         headers[1] = new BasicHeader("Content-Type", "application/json");
+
+
+        String key = getProperties().getProperty(ParamNameConsts.CONFIG_PROPERTY_JOB_ENCRYPT_PASSWORD);
+        if (StringUtils.isBlank(key)) {
+            log.error("{} is not configured", ParamNameConsts.CONFIG_PROPERTY_JOB_ENCRYPT_PASSWORD);
+            return 1;
+        }
 
         try {
             String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);

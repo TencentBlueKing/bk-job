@@ -38,7 +38,11 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
-import com.tencent.bk.job.execute.common.constants.*;
+import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
+import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -104,6 +108,7 @@ public class EsbFastTransferFileV3ResourceImpl
 
             EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
             jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+            jobExecuteInfo.setStepInstanceId(stepInstance.getId());
             jobExecuteInfo.setTaskName(stepInstance.getName());
             return EsbResp.buildSuccessResp(jobExecuteInfo);
         } catch (InSufficientPermissionException e) {

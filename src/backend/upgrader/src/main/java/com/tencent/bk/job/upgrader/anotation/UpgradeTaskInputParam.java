@@ -22,43 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.upgrader.anotation;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
-import java.util.List;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * IP对应的作业执行日志
+ * 升级任务输入参数注解
  */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsbIpLogV3DTO {
-    /**
-     * 日志类型
-     */
-    @JsonProperty("log_type")
+@Target({})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface UpgradeTaskInputParam {
 
-    private Integer logType;
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
-
-    private String ip;
-
-    /**
-     * 脚本任务日志内容
-     */
-    @JsonProperty("log_content")
-    private String scriptLogContent;
-
-    /**
-     * 文件任务日志
-     */
-    @JsonProperty("file_logs")
-    private List<EsbFileLogV3DTO> fileLogs;
+    Class<?> value();
 }

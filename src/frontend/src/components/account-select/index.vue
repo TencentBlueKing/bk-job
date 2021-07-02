@@ -48,7 +48,7 @@
                 </auth-option>
             </template>
             <template slot="extension">
-                <auth-component auth="account/create" :permission="canManage">
+                <auth-component auth="account/create">
                     <div @click="handleCreate" style="cursor: pointer;">
                         <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
                     </div>
@@ -82,7 +82,6 @@
         data () {
             return {
                 isLoading: false,
-                canManage: false,
                 wholeList: [],
                 systemAccountList: [],
                 dbAccountList: [],
@@ -121,9 +120,6 @@
                 this.isLoading = true;
                 AccountManageService.fetchAccountWhole()
                     .then((data) => {
-                        if (data.length > 0) {
-                            this.canManage = data[0].canManage;
-                        }
                         const systemAccountList = [];
                         const dbAccountList = [];
                         data.forEach((account) => {
@@ -182,7 +178,7 @@
              */
             handleCreate () {
                 const { href } = this.$router.resolve({
-                    name: 'businessManageAccount',
+                    name: 'accountList',
                 });
                 this.$refs.select.close();
                 window.open(href);

@@ -27,24 +27,36 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.i18n.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
+import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.esb.v3.EsbFileLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @Slf4j
-public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Processor implements EsbGetJobInstanceIpLogV3Resource {
+public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Processor
+    implements EsbGetJobInstanceIpLogV3Resource {
 
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
@@ -69,7 +81,12 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        EsbResp authResult = authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        if (taskInstance == null) {
+            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+        }
+
+        EsbResp<EsbIpLogV3DTO> authResult = authViewTaskInstance(request.getUserName(),
+            request.getAppId(), taskInstance);
         if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
             return authResult;
         }
@@ -83,14 +100,11 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
         ipLog.setCloudAreaId(request.getCloudAreaId());
         ipLog.setIp(request.getIp());
         if (stepInstance.isScriptStep()) {
-            ScriptIpLogContent logContent = logService.getScriptIpLogContent(request.getStepInstanceId(),
-                stepInstance.getExecuteCount(),
-                new IpDTO(request.getCloudAreaId(), request.getIp()));
-            if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
-                ipLog.setLogContent(logContent.getContent());
-            }
+            buildScriptLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(), request.getCloudAreaId(),
+                request.getIp());
         } else if (stepInstance.isFileStep()) {
-            // TODO
+            buildFileLog(ipLog, request.getStepInstanceId(), stepInstance.getExecuteCount(), request.getCloudAreaId(),
+                request.getIp());
         }
         return EsbResp.buildSuccessResp(ipLog);
     }
@@ -122,5 +136,71 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
         }
 
         return ValidateResult.pass();
+    }
+
+    private void buildScriptLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
+                                Long cloudAreaId, String ip) {
+        ipLog.setLogType(LogTypeEnum.SCRIPT.getValue());
+        ScriptIpLogContent logContent = logService.getScriptIpLogContent(stepInstanceId,
+            executeCount, new IpDTO(cloudAreaId, ip));
+        if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
+            ipLog.setScriptLogContent(logContent.getContent());
+        }
+    }
+
+    private void buildFileLog(EsbIpLogV3DTO ipLog, Long stepInstanceId, Integer executeCount,
+                              Long cloudAreaId, String ip) {
+        ipLog.setLogType(LogTypeEnum.FILE.getValue());
+        FileIpLogContent downloadIpLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
+            new IpDTO(cloudAreaId, ip), FileDistModeEnum.DOWNLOAD.getValue());
+        List<ServiceFileTaskLogDTO> uploadTaskLogs = logService.batchGetFileSourceIpLogContent(
+            stepInstanceId, executeCount);
+
+        List<EsbFileLogV3DTO> fileLogs = new ArrayList<>();
+        fileLogs.addAll(buildDownloadFileLogs(downloadIpLog));
+        fileLogs.addAll(buildUploadFileLogs(uploadTaskLogs));
+        ipLog.setFileLogs(fileLogs);
+    }
+
+    private List<EsbFileLogV3DTO> buildDownloadFileLogs(FileIpLogContent downloadIpLog) {
+        List<EsbFileLogV3DTO> downloadFileLogs = new ArrayList<>();
+        if (downloadIpLog != null && CollectionUtils.isNotEmpty(downloadIpLog.getFileTaskLogs())) {
+            downloadFileLogs = downloadIpLog.getFileTaskLogs().stream().map(this::toEsbFileLogV3DTO)
+                .collect(Collectors.toList());
+        }
+        return downloadFileLogs;
+    }
+
+    private List<EsbFileLogV3DTO> buildUploadFileLogs(List<ServiceFileTaskLogDTO> uploadTaskLogs) {
+        List<EsbFileLogV3DTO> uploadFileLogs = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(uploadTaskLogs)) {
+            uploadFileLogs = uploadTaskLogs.stream().map(this::toEsbFileLogV3DTO).collect(Collectors.toList());
+        }
+        return uploadFileLogs;
+    }
+
+    private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
+        EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
+        fileLog.setMode(fileTaskLog.getMode());
+        if (StringUtils.isNotBlank(fileTaskLog.getDisplaySrcIp())) {
+            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDisplaySrcIp());
+            if (srcIp != null) {
+                fileLog.setSrcIp(srcIp);
+            }
+        }
+        fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
+        if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
+            if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
+                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
+                if (destIp != null) {
+                    fileLog.setDestIp(destIp);
+                }
+            }
+            fileLog.setDestPath(fileTaskLog.getDestFile());
+        }
+
+        fileLog.setLogContent(fileTaskLog.getContent());
+        fileLog.setStatus(fileTaskLog.getStatus());
+        return fileLog;
     }
 }

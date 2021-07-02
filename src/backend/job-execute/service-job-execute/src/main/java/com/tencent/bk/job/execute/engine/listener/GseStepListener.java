@@ -81,14 +81,14 @@ public class GseStepListener {
             } else {
                 log.error("Error gse step control action:{}", action);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             String errorMsg = "Handling gse step control message error,stepInstanceId:" + stepInstanceId;
-            log.warn(errorMsg, e);
+            log.error(errorMsg, e);
             handleException(e);
         }
     }
 
-    private void handleException(Exception e) throws MessageHandleException {
+    private void handleException(Throwable e) throws MessageHandleException {
         // 服务关闭，消息被拒绝，重新入队列
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;

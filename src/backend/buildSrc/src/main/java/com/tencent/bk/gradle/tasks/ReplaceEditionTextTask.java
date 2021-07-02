@@ -32,13 +32,20 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-class ReplaceCETextTask extends DefaultTask {
+class ReplaceEditionTextTask extends DefaultTask {
 
     @InputFiles
     public FileCollection processResourcesOutputFiles;
@@ -47,13 +54,13 @@ class ReplaceCETextTask extends DefaultTask {
     @Input
     public String targetStr = null;
     @Input
-    public String defaultEdition = "ee";
+    public String defaultEdition = "ce";
     @Input
     public String defaultPackageType = "allInOne";
     Set<String> patternSet = new HashSet<>();
 
     @Inject
-    public ReplaceCETextTask() {
+    public ReplaceEditionTextTask() {
     }
 
     @TaskAction
@@ -73,12 +80,12 @@ class ReplaceCETextTask extends DefaultTask {
         }
         System.out.println("edition=" + edition);
         System.out.println("packageType=" + packageType);
-        if ("ce".equals(edition)) {
-            replaceCEText();
+        if ("ee".equals(edition)) {
+            replaceEditionText();
         } else {
-            System.out.println("Skip ReplaceCETextTask, set build param edition=ce to enable");
+            System.out.println("Skip ReplaceEditionTextTask, set build param edition=ee to enable");
         }
-        System.out.println("ReplaceCETextTask Done");
+        System.out.println("ReplaceEditionTextTask Done");
     }
 
     private boolean match(String pattern, String targetStr) {
@@ -91,7 +98,7 @@ class ReplaceCETextTask extends DefaultTask {
         return Pattern.matches(pattern, targetStr);
     }
 
-    private void replaceCEText() {
+    private void replaceEditionText() {
         for (File file : processResourcesOutputFiles) {
             String absPath = file.getAbsolutePath();
             System.out.println("check file:" + absPath);

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -64,5 +65,13 @@ public class EsbIpDTO {
         esbIp.setCloudAreaId(host.getCloudAreaId());
         esbIp.setIp(host.getIp());
         return esbIp;
+    }
+
+    public static EsbIpDTO fromCloudIp(String cloudIp) {
+        if (!IpUtils.checkCloudAreaIdAndIpStr(cloudIp)) {
+            return null;
+        }
+        String[] ipProps = cloudIp.split(IpUtils.COLON);
+        return new EsbIpDTO(Long.valueOf(ipProps[0]), ipProps[1]);
     }
 }

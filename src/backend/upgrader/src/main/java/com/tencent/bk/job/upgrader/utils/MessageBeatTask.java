@@ -22,43 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.upgrader.utils;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+@Slf4j
+public class MessageBeatTask extends Thread {
 
-/**
- * IP对应的作业执行日志
- */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsbIpLogV3DTO {
-    /**
-     * 日志类型
-     */
-    @JsonProperty("log_type")
+    private String message;
+    private long intervalMills;
+    volatile boolean runFlag = true;
 
-    private Integer logType;
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
+    public MessageBeatTask(String message, long intervalMills) {
+        this.message = message;
+        this.intervalMills = intervalMills;
+    }
 
-    private String ip;
+    public MessageBeatTask(String message) {
+        this(message, 5000L);
+    }
 
-    /**
-     * 脚本任务日志内容
-     */
-    @JsonProperty("log_content")
-    private String scriptLogContent;
-
-    /**
-     * 文件任务日志
-     */
-    @JsonProperty("file_logs")
-    private List<EsbFileLogV3DTO> fileLogs;
+    @Override
+    public void run() {
+        try {
+            while (runFlag) {
+                log.info(message);
+                sleep(intervalMills);
+            }
+        } catch (InterruptedException e) {
+            log.info("Stop beat");
+        }
+    }
 }

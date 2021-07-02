@@ -92,32 +92,32 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
     }
 
     private EsbTaskInstanceGlobalVarValueDTO convertToEsbJobInstanceGlobalVarValueDTO(
-        EsbJobInstanceGlobalVarValueV3DTO esbJobInstanceGlobalVarValueV3DTO) {
-        if (esbJobInstanceGlobalVarValueV3DTO == null) {
+        EsbJobInstanceGlobalVarValueV3DTO originResult) {
+        if (originResult == null) {
             return null;
         }
 
         EsbTaskInstanceGlobalVarValueDTO result = new EsbTaskInstanceGlobalVarValueDTO();
-        result.setTaskInstanceId(esbJobInstanceGlobalVarValueV3DTO.getTaskInstanceId());
+        result.setTaskInstanceId(originResult.getTaskInstanceId());
 
-        if (CollectionUtils.isNotEmpty(result.getStepGlobalVarValues())) {
+        if (CollectionUtils.isNotEmpty(originResult.getStepGlobalVarValues())) {
             List<EsbStepInstanceGlobalVarValues> globalVarValuesForSteps = new ArrayList<>();
-            result.getStepGlobalVarValues().forEach(originGlobalVarValuesForStep -> {
-                EsbStepInstanceGlobalVarValues globalVarValuesForStep =
+            originResult.getStepGlobalVarValues().forEach(originStepGlobalVarValues -> {
+                EsbStepInstanceGlobalVarValues stepGlobalVarValues =
                     new EsbStepInstanceGlobalVarValues();
-                globalVarValuesForStep.setStepInstanceId(originGlobalVarValuesForStep.getStepInstanceId());
-                if (CollectionUtils.isNotEmpty(originGlobalVarValuesForStep.getGlobalVarValues())) {
+                stepGlobalVarValues.setStepInstanceId(originStepGlobalVarValues.getStepInstanceId());
+                if (CollectionUtils.isNotEmpty(originStepGlobalVarValues.getGlobalVarValues())) {
                     List<GlobalVarValue> globalVarValues = new ArrayList<>();
-                    originGlobalVarValuesForStep.getGlobalVarValues().forEach(originGlobalVarValue -> {
+                    originStepGlobalVarValues.getGlobalVarValues().forEach(originGlobalVarValue -> {
                         GlobalVarValue globalVarValue = new GlobalVarValue();
-                        globalVarValue.setCategory(originGlobalVarValue.getCategory());
+                        globalVarValue.setCategory(originGlobalVarValue.getType());
                         globalVarValue.setName(originGlobalVarValue.getName());
                         globalVarValue.setValue(originGlobalVarValue.getValue());
                         globalVarValues.add(globalVarValue);
                     });
-                    globalVarValuesForStep.setGlobalVarValues(globalVarValues);
+                    stepGlobalVarValues.setGlobalVarValues(globalVarValues);
                 }
-                globalVarValuesForSteps.add(globalVarValuesForStep);
+                globalVarValuesForSteps.add(stepGlobalVarValues);
             });
             result.setStepGlobalVarValues(globalVarValuesForSteps);
         }
