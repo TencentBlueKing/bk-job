@@ -22,16 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
-dependencies {
-    implementation project(":commons:common")
-    implementation project(":commons:common-security")
-    implementation project(":commons:common-spring-ext")
-    implementation project(":commons:esb-sdk")
-    implementation project(":commons:common-iam")
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
+package com.tencent.bk.job.common.web.feign;
+
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class FeignAddHeaderRequestInterceptor implements RequestInterceptor {
+    @Override
+    public void apply(RequestTemplate template) {
+        String lang = JobContextUtil.getUserLang();
+        template.header(LocaleUtils.COMMON_LANG_HEADER, lang);
+    }
 }

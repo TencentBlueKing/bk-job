@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.common.web.i18n;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.LocaleResolver;
 
 import java.util.Locale;
 
 @Configuration
-@ConditionalOnClass(LocaleResolver.class)
+@Slf4j
 public class I18nConfig {
 
     @Bean("localeResolver")
-    @ConditionalOnClass(LocaleResolver.class)
     public JobLangHeaderLocaleResolver localeResolver() {
+        log.info("Init JobLangHeaderLocaleResolver");
         JobLangHeaderLocaleResolver resolver = new JobLangHeaderLocaleResolver();
         resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
         return resolver;

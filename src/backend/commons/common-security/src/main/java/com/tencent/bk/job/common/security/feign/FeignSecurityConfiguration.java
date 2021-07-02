@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class FeignConfiguration {
+public class FeignSecurityConfiguration {
 
     /**
      * Feign 服务认证拦截
