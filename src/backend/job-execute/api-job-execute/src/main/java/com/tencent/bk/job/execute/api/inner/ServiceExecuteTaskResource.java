@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"Task_Execute"})
 @RequestMapping("/service/execution")
 @RestController
+@InternalAPI
 public interface ServiceExecuteTaskResource {
     @PostMapping("/task-execution/task")
     ServiceResponse<ServiceTaskExecuteResult> executeTask(@RequestBody ServiceTaskExecuteRequest request);

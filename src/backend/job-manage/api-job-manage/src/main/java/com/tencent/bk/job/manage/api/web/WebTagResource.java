@@ -24,13 +24,22 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.request.TagCreateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -42,6 +51,7 @@ import java.util.List;
 @Api(tags = {"job-manage:web:Tag_Management"})
 @RequestMapping("/web/tag/app/{appId}")
 @RestController
+@WebAPI
 public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")

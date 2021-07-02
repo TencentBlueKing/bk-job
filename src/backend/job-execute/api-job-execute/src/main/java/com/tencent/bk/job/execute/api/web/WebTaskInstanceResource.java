@@ -24,12 +24,21 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.execute.model.web.vo.*;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -39,6 +48,7 @@ import java.util.List;
 @Api(tags = {"job-execute:web:Task_Step_Instance"})
 @RequestMapping("/web/execution/")
 @RestController
+@WebAPI
 public interface WebTaskInstanceResource {
     @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
     @GetMapping("/app/{appId}/task-instance/step_instance/{stepInstanceId}")

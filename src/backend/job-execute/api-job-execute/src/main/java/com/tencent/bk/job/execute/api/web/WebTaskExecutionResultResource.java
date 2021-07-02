@@ -24,15 +24,30 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
-import com.tencent.bk.job.execute.model.web.vo.*;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.IpFileLogContentVO;
+import com.tencent.bk.job.execute.model.web.vo.IpScriptLogContentVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecutionRecordVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -42,6 +57,7 @@ import java.util.List;
 @Api(tags = {"job-execute:web:Task_Execution_Result"})
 @RequestMapping("/web/execution")
 @RestController
+@WebAPI
 public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
     @GetMapping("/app/{appId}/task-execution-history/list")

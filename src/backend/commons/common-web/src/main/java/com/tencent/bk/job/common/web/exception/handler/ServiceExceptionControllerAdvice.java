@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.web.exception.handler;
 
-import com.tencent.bk.job.common.annotation.ServiceAPI;
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -42,7 +42,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import javax.servlet.http.HttpServletRequest;
 
-@ControllerAdvice(annotations = {ServiceAPI.class})
+@ControllerAdvice(annotations = {InternalAPI.class})
 @Slf4j
 public class ServiceExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     private final MessageI18nService i18nService;

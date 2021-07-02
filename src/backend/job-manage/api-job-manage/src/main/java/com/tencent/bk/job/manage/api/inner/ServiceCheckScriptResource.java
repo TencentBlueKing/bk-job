@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
@@ -41,6 +42,7 @@ import java.util.List;
 @RequestMapping("/service/script/check")
 @Api(tags = {"job-manage:service:Script_Check"})
 @RestController
+@InternalAPI
 public interface ServiceCheckScriptResource {
 
     @PostMapping

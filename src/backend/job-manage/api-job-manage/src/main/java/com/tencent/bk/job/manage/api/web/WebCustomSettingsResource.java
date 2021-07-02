@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateRenderReq;
@@ -32,13 +33,20 @@ import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVariab
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-manage:web:CustomSettings_ScriptTemplate"})
 @RequestMapping("/web/customSettings/scriptTemplate")
 @RestController
+@WebAPI
 public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "获取用户自定义的脚本模板", produces = "application/json")

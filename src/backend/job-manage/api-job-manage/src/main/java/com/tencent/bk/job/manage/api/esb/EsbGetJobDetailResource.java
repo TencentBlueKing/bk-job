@@ -24,10 +24,15 @@
 
 package com.tencent.bk.job.manage.api.esb;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.EsbJobDetailDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetJobDetailRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
@@ -36,6 +41,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  */
 @RequestMapping("/esb/api/v2")
 @RestController
+@EsbAPI
 public interface EsbGetJobDetailResource {
 
     @PostMapping("/get_job_detail")

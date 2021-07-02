@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.api;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"job-file-worker:api:File"})
 @RequestMapping("/worker/api/file")
 @RestController
+@InternalAPI
 public interface FileResource {
 
     @ApiOperation(value = "获取文件源/FileNode下的子FileNode列表", produces = "application/json")

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.inner;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"job-crontab:Service:Metrics"})
 @RequestMapping("/service/metrics")
 @RestController
+@EsbAPI
 public interface ServiceCronMetricsResource {
 
     @ApiOperation(value = "定时任务总量", produces = "application/json")

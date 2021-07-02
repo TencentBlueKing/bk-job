@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -34,13 +35,19 @@ import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRe
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-execute:service:Metrics"})
 @RequestMapping("/service/metrics")
 @RestController
+@InternalAPI
 public interface ServiceMetricsResource {
 
     @ApiOperation(value = "接入（执行过一次任务）的业务Id列表", produces = "application/json")

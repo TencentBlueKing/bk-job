@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.ticket.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.ticket.model.inner.resp.ServiceCredentialDTO;
 import io.swagger.annotations.Api;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"job-ticket:service:Credential"})
 @RequestMapping("/service/credentials/app/{appId}")
 @RestController
+@InternalAPI
 public interface ServiceCredentialResource {
 
     @ApiOperation(value = "获取凭据详情", produces = "application/json")
