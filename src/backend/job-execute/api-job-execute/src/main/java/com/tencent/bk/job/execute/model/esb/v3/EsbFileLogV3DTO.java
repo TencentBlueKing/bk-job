@@ -26,39 +26,37 @@ package com.tencent.bk.job.execute.model.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * IP对应的作业执行日志
+ * 文件任务日志
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsbIpLogV3DTO {
-    /**
-     * 日志类型
-     */
-    @JsonProperty("log_type")
+public class EsbFileLogV3DTO {
 
-    private Integer logType;
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
+    @JsonProperty("mode")
+    private Integer mode;
 
-    private String ip;
+    @JsonProperty("src_ip")
+    private EsbIpDTO srcIp;
 
-    /**
-     * 脚本任务日志内容
-     */
+    @JsonProperty("src_path")
+    private String srcPath;
+
+    @JsonProperty("dest_ip")
+    private EsbIpDTO destIp;
+
+    @JsonProperty("dest_path")
+    private String destPath;
+
+    @JsonProperty("status")
+    private Integer status;
+
     @JsonProperty("log_content")
-    private String scriptLogContent;
+    private String logContent;
 
-    /**
-     * 文件任务日志
-     */
-    @JsonProperty("file_logs")
-    private List<EsbFileLogV3DTO> fileLogs;
 }
+
+

@@ -22,43 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpLogV3Request;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-/**
- * IP对应的作业执行日志
- */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class EsbIpLogV3DTO {
-    /**
-     * 日志类型
-     */
-    @JsonProperty("log_type")
-
-    private Integer logType;
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
-
-    private String ip;
-
-    /**
-     * 脚本任务日志内容
-     */
-    @JsonProperty("log_content")
-    private String scriptLogContent;
-
-    /**
-     * 文件任务日志
-     */
-    @JsonProperty("file_logs")
-    private List<EsbFileLogV3DTO> fileLogs;
+@RestController
+@Slf4j
+public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJobInstanceIpLogV3Resource {
+    @Override
+    public EsbResp<EsbIpLogV3DTO> batchGetJobInstanceIpLogs(String lang, EsbBatchGetJobInstanceIpLogV3Request request) {
+        return null;
+    }
 }
