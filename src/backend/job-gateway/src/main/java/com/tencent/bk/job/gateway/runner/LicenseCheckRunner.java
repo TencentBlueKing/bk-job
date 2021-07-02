@@ -22,13 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.service.impl;
+package com.tencent.bk.job.gateway.runner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.model.LicenseCheckResultDTO;
-import com.tencent.bk.job.gateway.service.LicenseCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,13 +41,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeansException;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -60,10 +59,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Component
 @Slf4j
 @SuppressWarnings("all")
-public class LicenseCheckServiceImpl implements LicenseCheckService, ApplicationContextAware {
+public class LicenseCheckRunner implements CommandLineRunner, ApplicationContextAware {
 
     private ApplicationContext context;
 
@@ -71,33 +70,10 @@ public class LicenseCheckServiceImpl implements LicenseCheckService, Application
 
     private CloseableHttpClient httpClient;
 
-    private Thread checkLicenseThread;
-
-    private boolean run = true;
-
     private volatile LicenseCheckResultDTO licenseCheckResult;
 
-    public LicenseCheckServiceImpl(BkConfig bkConfig) {
+    public LicenseCheckRunner(BkConfig bkConfig) {
         this.bkConfig = bkConfig;
-    }
-
-    @Override
-    public LicenseCheckResultDTO checkLicense() {
-        if (licenseCheckResult == null) {
-            synchronized (LicenseCheckServiceImpl.class) {
-                if (licenseCheckResult == null) {
-                    licenseCheckResult = getLicenceCheckResult();
-                }
-            }
-        }
-        return licenseCheckResult;
-    }
-
-
-    @PreDestroy
-    public void destroy() {
-        run = false;
-        checkLicenseThread.interrupt();
     }
 
     @PostConstruct
@@ -147,7 +123,6 @@ public class LicenseCheckServiceImpl implements LicenseCheckService, Application
                 log.error("Init license check http client fail", e);
                 throw e;
             }
-            checkLicence();
         }
     }
 
@@ -232,5 +207,10 @@ public class LicenseCheckServiceImpl implements LicenseCheckService, Application
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        checkLicence();
     }
 }
