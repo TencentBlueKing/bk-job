@@ -230,4 +230,4 @@ job:
     service:
       private-key-base64: ${job.security.private-key-base64}
       public-key-base64: ${job.security.public-key-base64}
-  edition: ee
+  edition: ce
