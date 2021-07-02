@@ -48,7 +48,7 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
     @Input
     public String dependJarInfoRootPath = "../../support-files/dependJarInfo";
     @Input
-    public String defaultEdition = "ee";
+    public String defaultEdition = "ce";
     @Input
     public String defaultPackageType = "allInOne";
     Set<String> patternSet = new HashSet<>();
