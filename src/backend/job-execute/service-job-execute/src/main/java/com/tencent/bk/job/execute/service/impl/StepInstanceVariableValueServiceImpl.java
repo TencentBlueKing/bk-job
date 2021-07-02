@@ -41,7 +41,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,6 +76,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         List<StepInstanceBaseDTO> stepInstanceList =
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (CollectionUtils.isEmpty(stepInstanceList)) {
+            log.info("Step instance is empty! taskInstanceId: {}", taskInstanceId);
             return resultStepInstanceVariableValuesList;
         }
 
@@ -94,9 +99,10 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
             resultStepInstanceVariableValues.setExecuteCount(stepInstance.getExecuteCount());
             List<VariableValueDTO> globalVarValues = new ArrayList<>();
             List<StepInstanceVariableValuesDTO> variableValuesForStep = stepInstanceVariableValuesList.stream()
-                .filter(stepInstanceVariableValues -> stepInstanceVariableValues.getStepInstanceId() == stepInstance.getId())
-                .sorted(Comparator.comparingInt(StepInstanceVariableValuesDTO::getExecuteCount)).collect(Collectors.toList());
-            log.info("variableValuesForStep->{}", variableValuesForStep);
+                .filter(stepInstanceVariableValues ->
+                    stepInstanceVariableValues.getStepInstanceId() == stepInstance.getId())
+                .sorted(Comparator.comparingInt(StepInstanceVariableValuesDTO::getExecuteCount))
+                .collect(Collectors.toList());
             variableValuesForStep.forEach(variableValues -> {
                 if (CollectionUtils.isNotEmpty(variableValues.getGlobalParams())) {
                     variableValues.getGlobalParams().forEach(globalVar -> globalVarValueMap.put(globalVar.getName(),
