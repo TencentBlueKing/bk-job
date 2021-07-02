@@ -20,7 +20,6 @@ spring:
             - Path= /job-manage/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -30,7 +29,6 @@ spring:
             - Path= /job-crontab/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -40,7 +38,6 @@ spring:
             - Path= /job-execute/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -50,7 +47,6 @@ spring:
             - Path= /job-backup/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -60,7 +56,6 @@ spring:
             - Path= /job-file-gateway/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -70,7 +65,6 @@ spring:
             - Path= /job-ticket/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -80,7 +74,6 @@ spring:
             - Path= /job-analysis/web/**
           filters:
             - Authorize
-            - LicenseCheck
             - CsrfCheck
             - StripPrefix=1
             - AddWebLangHeader
@@ -98,7 +91,6 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
@@ -109,7 +101,6 @@ spring:
           predicates:
             - Path=/api/job/v3/job-manage/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
@@ -120,7 +111,6 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
@@ -131,7 +121,6 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
@@ -142,7 +131,6 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
@@ -153,7 +141,6 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
           filters:
-            - LicenseCheck
             - CheckEsbJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog

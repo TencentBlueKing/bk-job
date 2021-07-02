@@ -147,28 +147,19 @@ public class LicenseCheckServiceImpl implements LicenseCheckService, Application
                 log.error("Init license check http client fail", e);
                 throw e;
             }
-            startCheckLicenceThread();
+            checkLicence();
         }
     }
 
-    private void startCheckLicenceThread() {
-        if (checkLicenseThread == null || !checkLicenseThread.isAlive()) {
-            checkLicenseThread = new Thread("Check-License") {
-
-                @Override
-                public void run() {
-                    licenseCheckResult = getLicenceCheckResult();
-                    if (licenseCheckResult != null && licenseCheckResult.isOk()) {
-                        // License有效，一直保持至下次重启进程
-                        log.info("Check license on start finished, license is ok");
-                    } else {
-                        log.error("Fail to check license, please check whether the license server is avaliable");
-                        ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) context;
-                        ctx.close();
-                    }
-                }
-            };
-            checkLicenseThread.start();
+    private void checkLicence() {
+        licenseCheckResult = getLicenceCheckResult();
+        if (licenseCheckResult != null && licenseCheckResult.isOk()) {
+            // License有效，一直保持至下次重启进程
+            log.info("Check license on start finished, license is ok");
+        } else {
+            log.error("Fail to check license, please check whether the license server is avaliable");
+            ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) context;
+            ctx.close();
         }
     }
 
