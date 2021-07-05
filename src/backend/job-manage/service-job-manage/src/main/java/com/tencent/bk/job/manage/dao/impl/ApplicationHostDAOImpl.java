@@ -305,7 +305,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .join(tHostTopo)
                 .on(tHost.HOST_ID.eq(tHostTopo.HOST_ID))
                 .where(conditions)
-                .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID);
+                .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         log.debug("SQL={}", query.getSQL(ParamType.INLINED));
         Result<Record> records;
         if (start == null || start < 0) {
