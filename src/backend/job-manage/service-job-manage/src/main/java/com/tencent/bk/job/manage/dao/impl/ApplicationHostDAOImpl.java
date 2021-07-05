@@ -195,7 +195,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc());
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         Result<Record12<ULong, ULong, String, String, String, String, ULong, String, String, String, String, UByte>> records;
         if (start == null || start < 0) {
             start = 0L;
@@ -341,7 +341,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -362,7 +362,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -384,7 +384,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -410,7 +410,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).limit(start, length).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc())
+                .limit(start, length).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -917,7 +918,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.ROW_UPDATE_TIME.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.ROW_UPDATE_TIME.desc(), TABLE.HOST_ID.asc()).fetch();
         if (records != null && records.size() >= 1) {
             return DbRecordMapper.convertRecordToApplicationHostInfo(records.get(0));
         }
