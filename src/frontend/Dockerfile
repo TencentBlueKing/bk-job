@@ -4,6 +4,7 @@ COPY package.json .npmrc ./
 RUN npm install
 COPY . .
 RUN npm run build
+RUN sed -i 's/{{JOB_API_GATEWAY_URL}}/api/g' /app/dist/index.html
 
 FROM containerize/nginx:prod
 LABEL maintainer="llitfkitfk@gmail.com"
