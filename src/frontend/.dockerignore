@@ -1,0 +1,9 @@
+.idea
+.git
+.gitignore
+
+.history
+dist
+node_modules
+
+docker-compose.yml
