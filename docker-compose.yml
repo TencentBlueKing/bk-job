@@ -20,3 +20,13 @@ services:
       - traefik.http.routers.bk-job-frontend.rule=Host(`job.l.containerize.cn`)
       - traefik.http.routers.bk-job-frontend.service=frontend-bk-job
 
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - ./support-files/sql:/docker-entrypoint-initdb.d/
+      - dbdata:/var/lib/mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
