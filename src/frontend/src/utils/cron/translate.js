@@ -24,6 +24,10 @@
 */
 
 class Node {
+    static TYPE_ENUM = 1
+    static TYPE_RANG = 2
+    static TYPE_REPEAT = 3
+    static TYPE_RANG_REPEAT = 4
     constructor ({
         type,
         value,
@@ -40,7 +44,11 @@ class Node {
 }
 
 const fieldList = [
-    'minute', 'hour', 'dayOfMonth', 'month', 'dayOfWeek',
+    'minute',
+    'hour',
+    'dayOfMonth',
+    'month',
+    'dayOfWeek',
 ];
 
 // const preDefined = {
@@ -106,7 +114,7 @@ const getMinuteValue = (value) => {
     return num;
 };
 
-const parsetest = (expression) => {
+const parsetext = (expression) => {
     const stack = [];
     const rangReg = /-/;
     const repeatReg = /\//;
@@ -116,42 +124,37 @@ const parsetest = (expression) => {
     while (++index < atoms.length) {
         const enumValue = atoms[index];
         if (rangReg.test(enumValue) && repeatReg.test(enumValue)) {
-            const [
-                rang, repeatInterval,
-            ] = enumValue.split('/');
-            const [
-                min, max,
-            ] = rang.split('-');
+            // 在指定区间重复
+            const [rang, repeatInterval] = enumValue.split('/');
+            const [min, max] = rang.split('-');
             stack.push(new Node({
-                type: 4,
+                type: Node.TYPE_RANG_REPEAT,
                 min,
                 max,
                 repeatInterval,
             }));
             continue;
         } else if (repeatReg.test(enumValue)) {
-            const [
-                value, repeatInterval,
-            ] = enumValue.split('/');
+            // 从指定起始位置重复
+            const [value, repeatInterval] = enumValue.split('/');
             stack.push(new Node({
-                type: 3,
+                type: Node.TYPE_REPEAT,
                 value,
                 repeatInterval,
             }));
             continue;
         } else if (rangReg.test(enumValue)) {
-            const [
-                min, max,
-            ] = enumValue.split('-');
+            // 指定区间
+            const [min, max] = enumValue.split('-');
             stack.push(new Node({
-                type: 2,
+                type: Node.TYPE_RANG,
                 min,
                 max,
             }));
             continue;
         } else {
             stack.push(new Node({
-                type: 1,
+                type: Node.TYPE_ENUM,
                 value: enumValue,
             }));
         }
@@ -161,7 +164,7 @@ const parsetest = (expression) => {
 
 const optimze = (fieldMap) => {
     const isAllValue = node => node.length === 1
-    && node[0].type === 1
+    && node[0].type === Node.TYPE_ENUM
     && (node[0].value === '*' || node[0].value === '?');
     const prettyMap = {};
 
@@ -192,167 +195,98 @@ const optimze = (fieldMap) => {
     return prettyMap;
 };
 
+const translateMap = {
+    minute: {
+        genAll: () => '每分钟',
+        [Node.TYPE_ENUM]: node => `${getMinuteValue(node.value)}分`,
+        [Node.TYPE_RANG]: node => `${getMinuteValue(node.min)}分到${getMinuteValue(node.max)}分`,
+        [Node.TYPE_REPEAT]: (node) => {
+            if (node.value === '*') {
+                return `每隔${node.repeatInterval}分钟`;
+            }
+            return `从${getMinuteValue(node.value)}分开始每隔${node.repeatInterval}分钟`;
+        },
+        // eslint-disable-next-line max-len
+        [Node.TYPE_RANG_REPEAT]: node => `从${getMinuteValue(node.min)}分开始到${getMinuteValue(node.max)}分的每${node.repeatInterval}分钟`,
+    },
+    hour: {
+        genAll: () => '每小时',
+        [Node.TYPE_ENUM]: node => `${getHourValue(node.value)}`,
+        [Node.TYPE_RANG]: node => `${getHourValue(node.min)}到${getHourValue(node.max)}`,
+        [Node.TYPE_REPEAT]: (node) => {
+            if (node.value === '*') {
+                return `每隔${node.repeatInterval}个小时`;
+            }
+            return `从${getHourValue(node.value)}开始每隔${node.repeatInterval}个小时`;
+        },
+        // eslint-disable-next-line max-len
+        [Node.TYPE_RANG_REPEAT]: node => `从${getHourValue(node.min)}开始到${getHourValue(node.max)}的每${node.repeatInterval}个小时`,
+    },
+    dayOfMonth: {
+        genAll: () => '每天',
+        [Node.TYPE_ENUM]: node => `${node.value}号`,
+        [Node.TYPE_RANG]: node => `${node.min}号到${node.max}号`,
+        [Node.TYPE_REPEAT]: (node) => {
+            if (node.value === '*') {
+                return `每隔${node.repeatInterval}天`;
+            }
+            return `从${node.value}号开始每隔${node.repeatInterval}天`;
+        },
+        // eslint-disable-next-line max-len
+        [Node.TYPE_RANG_REPEAT]: node => `从${node.min}号开始到${node.max}号的每${node.repeatInterval}天`,
+    },
+    month: {
+        genAll: () => '每月',
+        [Node.TYPE_ENUM]: node => `${node.value}月`,
+        [Node.TYPE_RANG]: node => `${node.min}月到${node.max}月`,
+        [Node.TYPE_REPEAT]: (node) => {
+            if (node.value === '*') {
+                return `每隔${node.repeatInterval}个月`;
+            }
+            return `从${node.value}月开始每隔${node.repeatInterval}个月`;
+        },
+        // eslint-disable-next-line max-len
+        [Node.TYPE_RANG_REPEAT]: node => `从${node.min}月开始到${node.max}月的每${node.repeatInterval}个月`,
+    },
+    dayOfWeek: {
+        genAll: () => '每天',
+        [Node.TYPE_ENUM]: node => `每周${getWeekDayValue(node.value)}`,
+        [Node.TYPE_RANG]: node => `每周${getWeekDayValue(node.min)}到周${getWeekDayValue(node.max)}`,
+        [Node.TYPE_REPEAT]: (node) => {
+            if (node.value === '*') {
+                return `每个星期内的每隔${node.repeatInterval}天`;
+            }
+            return `从每周${getWeekDayValue(node.value)}开始每隔${node.repeatInterval}天`;
+        },
+        // eslint-disable-next-line max-len
+        [Node.TYPE_RANG_REPEAT]: node => `从每周${getWeekDayValue(node.min)}开始到周${getWeekDayValue(node.max)}的每隔${node.repeatInterval}天`,
+    },
+};
+
 const translateText = (ast) => {
-    const concatText = (target) => {
-        if (target.length < 2) {
-            return target.join('');
+    const concatTextNew = (ast, field) => {
+        if (!Object.prototype.hasOwnProperty.call(ast, field)) {
+            return '';
         }
-        const pre = target.slice(0, -1);
-        const last = target.slice(-1);
+        const sequence = ast[field];
+        const translate = translateMap[field];
+        if (sequence.length < 1) {
+            return translate.genAll();
+        }
+        const stack = sequence.map(node => translate[node.type](node));
+        if (stack.length < 2) {
+            return stack.join('');
+        }
+        const pre = stack.slice(0, -1);
+        const last = stack.slice(-1);
         return `${pre.join('，')}和${last[0]}`;
     };
-    const translateMinute = (ast) => {
-        if (!Object.prototype.hasOwnProperty.call(ast, 'minute')) {
-            return '';
-        }
-        const sequence = ast.minute;
-        if (sequence.length < 1) {
-            return '每分钟';
-        }
-        
-        const stack = sequence.map((day) => {
-            if (day.type === 1) {
-                return `${getMinuteValue(day.value)}分`;
-            }
-            if (day.type === 2) {
-                return `${getMinuteValue(day.min)}分到${getMinuteValue(day.max)}分`;
-            }
-            if (day.type === 3) {
-                if (day.value === '*') {
-                    return `每隔${day.repeatInterval}分钟`;
-                }
-                return `从${getMinuteValue(day.value)}分开始每隔${day.repeatInterval}分钟`;
-            }
-            if (day.type === 4) {
-                return `从${getMinuteValue(day.min)}分开始到${getMinuteValue(day.max)}分的每${day.repeatInterval}分钟`;
-            }
-            return '';
-        });
-        return concatText(stack);
-    };
-    
-    const translateHour = (ast) => {
-        if (!Object.prototype.hasOwnProperty.call(ast, 'hour')) {
-            return '';
-        }
-        const sequence = ast.hour;
-        if (sequence.length < 1) {
-            return '每小时';
-        }
-        const stack = sequence.map((hour) => {
-            if (hour.type === 1) {
-                return `${getHourValue(hour.value)}`;
-            }
-            if (hour.type === 2) {
-                return `${getHourValue(hour.min)}到${getHourValue(hour.max)}`;
-            }
-            if (hour.type === 3) {
-                if (hour.value === '*') {
-                    return `每隔${hour.repeatInterval}个小时`;
-                }
-                return `从${getHourValue(hour.value)}开始每隔${hour.repeatInterval}个小时`;
-            }
-            if (hour.type === 4) {
-                return `从${getHourValue(hour.min)}开始到${getHourValue(hour.max)}的每${hour.repeatInterval}个小时`;
-            }
-            return '';
-        });
-        return concatText(stack);
-    };
-    
-    const translateDayOfMonth = (ast) => {
-        if (!Object.prototype.hasOwnProperty.call(ast, 'dayOfMonth')) {
-            return '';
-        }
-        const sequence = ast.dayOfMonth;
-        if (sequence.length < 1) {
-            return '每天';
-        }
-        const stack = sequence.map((day) => {
-            if (day.type === 1) {
-                return `${day.value}号`;
-            }
-            if (day.type === 2) {
-                return `${day.min}号到${day.max}号`;
-            }
-            if (day.type === 3) {
-                if (day.value === '*') {
-                    return `每隔${day.repeatInterval}天`;
-                }
-                return `从${day.value}号开始每隔${day.repeatInterval}天`;
-            }
-            if (day.type === 4) {
-                return `从${day.min}号开始到${day.max}号的每${day.repeatInterval}天`;
-            }
-            return '';
-        });
-        return concatText(stack);
-    };
-    
-    const translateMonth = (ast) => {
-        if (!Object.prototype.hasOwnProperty.call(ast, 'month')) {
-            return '';
-        }
-        const sequence = ast.month;
-        if (sequence.length < 1) {
-            return '每月';
-        }
-        const stack = sequence.map((month) => {
-            if (month.type === 1) {
-                return `${month.value}月`;
-            }
-            if (month.type === 2) {
-                return `${month.min}月到${month.max}月`;
-            }
-            if (month.type === 3) {
-                if (month.value === '*') {
-                    return `每隔${month.repeatInterval}个月`;
-                }
-                return `从${month.value}月开始每隔${month.repeatInterval}个月`;
-            }
-            if (month.type === 4) {
-                return `从${month.min}月开始到${month.max}月的每${month.repeatInterval}个月`;
-            }
-            return '';
-        });
-        return concatText(stack);
-    };
-    
-    const translateDayOfWeek = (ast) => {
-        if (!Object.prototype.hasOwnProperty.call(ast, 'dayOfWeek')) {
-            return '';
-        }
-        const sequence = ast.dayOfWeek;
-        if (sequence.length < 1) {
-            return '每天';
-        }
-        const stack = sequence.map((week) => {
-            if (week.type === 1) {
-                return `每周${getWeekDayValue(week.value)}`;
-            }
-            if (week.type === 2) {
-                return `每周${getWeekDayValue(week.min)}到周${getWeekDayValue(week.max)}`;
-            }
-            if (week.type === 3) {
-                if (week.value === '*') {
-                    return `每隔${week.repeatInterval}天`;
-                }
-                return `从每周${getWeekDayValue(week.value)}开始每隔${week.repeatInterval}天`;
-            }
-            if (week.type === 4) {
-                return `从每周${getWeekDayValue(week.min)}开始到周${getWeekDayValue(week.max)}的每${week.repeatInterval}天`;
-            }
-            return '';
-        });
-        return concatText(stack);
-    };
-    
     return [
-        translateMonth(ast),
-        translateDayOfMonth(ast),
-        translateDayOfWeek(ast),
-        translateHour(ast),
-        translateMinute(ast),
+        concatTextNew(ast, 'month'),
+        concatTextNew(ast, 'dayOfMonth'),
+        concatTextNew(ast, 'dayOfWeek'),
+        concatTextNew(ast, 'hour'),
+        concatTextNew(ast, 'minute'),
     ];
 };
 
@@ -360,7 +294,7 @@ const print = (expression) => {
     const atoms = (`${expression}`).trim().split(/\s+/);
     const fieldMap = {};
     atoms.forEach((item, index) => {
-        fieldMap[fieldList[index]] = parsetest(item);
+        fieldMap[fieldList[index]] = parsetext(item);
     });
     const ast = optimze(fieldMap);
     return translateText(ast);
