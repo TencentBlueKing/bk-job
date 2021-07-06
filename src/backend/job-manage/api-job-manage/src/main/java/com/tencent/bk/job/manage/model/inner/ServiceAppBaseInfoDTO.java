@@ -22,33 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.client;
+package com.tencent.bk.job.manage.model.inner;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
-public abstract class AbstractIamClient extends AbstractHttpClient {
-    private String appSecret;
-    private String appCode;
+/**
+ * 业务
+ */
+@Data
+@ApiModel("业务")
+public class ServiceAppBaseInfoDTO {
 
-    public AbstractIamClient(String iamHostUrl, String appCode, String appSecret) {
-        super(iamHostUrl);
-        this.appCode = appCode;
-        this.appSecret = appSecret;
-    }
+    @ApiModelProperty("业务ID")
+    private Long id;
 
-    @Override
-    protected List<Header> getBasicHeaders() {
-        List<Header> headerList = new ArrayList<>();
-        headerList.add(new BasicHeader("X-Bk-App-Code", appCode));
-        headerList.add(new BasicHeader("X-Bk-App-Secret", appSecret));
-        headerList.add(new BasicHeader("X-Bk-IAM-Version", "1"));
-        return headerList;
-    }
-
+    /**
+     * 业务名称
+     */
+    @ApiModelProperty("业务名称")
+    private String name;
 }

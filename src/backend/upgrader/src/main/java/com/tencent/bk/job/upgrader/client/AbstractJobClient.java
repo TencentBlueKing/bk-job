@@ -22,17 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.client;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class Expression {
-    private String field;
-    private String op;
-    private String value;
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+public abstract class AbstractJobClient extends AbstractHttpClient {
+    private String jobAuthToken;
+
+    public AbstractJobClient(String jobHostUrl, String jobAuthToken) {
+        super(jobHostUrl);
+        this.jobAuthToken = jobAuthToken;
+    }
+
+    @Override
+    protected List<Header> getBasicHeaders() {
+        List<Header> headerList = new ArrayList<>();
+        headerList.add(new BasicHeader("x-job-auth-token", jobAuthToken));
+        headerList.add(new BasicHeader("Content-Type", "application/json"));
+        return headerList;
+    }
+
 }

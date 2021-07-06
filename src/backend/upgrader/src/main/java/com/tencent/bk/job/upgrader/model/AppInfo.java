@@ -28,12 +28,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class CompositeExpression {
-    private String op;
-    private List<Expression> content;
+public class AppInfo {
+    private Long id;
+
+    private String name;
 }

@@ -39,8 +39,12 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         this.properties = properties;
     }
 
-    public Properties getProperties(){
+    public Properties getProperties() {
         return properties;
+    }
+
+    @Override
+    public void init() {
     }
 
     @Override
