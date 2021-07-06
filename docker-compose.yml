@@ -1,0 +1,22 @@
+version: '3.8'
+
+networks:
+  default:
+    external: true
+    name: proxy-net
+
+volumes:
+  dbdata: {}
+
+services:
+  frontend:
+    image: bk-job-frontend
+    build:
+      context: src/frontend
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bk-job-frontend.rule=Host(`job.l.containerize.cn`)
+      - traefik.http.routers.bk-job-frontend.service=frontend-bk-job
+
