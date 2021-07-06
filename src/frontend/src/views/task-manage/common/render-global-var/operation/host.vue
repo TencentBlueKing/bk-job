@@ -86,20 +86,6 @@
     import ChooseIp from '@components/choose-ip';
     import ServerPanel from '@components/choose-ip/server-panel';
 
-    const getDefaultData = () => ({
-        // 变量名
-        name: '',
-        // 初始值
-        defaultTargetValue: {
-            hostNodeInfo: {},
-            variable: '',
-        },
-        // 变量描述
-        description: '',
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
-
     export default {
         name: 'VarHost',
         components: {
@@ -119,23 +105,17 @@
         },
         data () {
             return {
-                formData: new TaskGlobalVariableModel(getDefaultData()),
+                formData: { ...this.data },
                 isShowChooseIp: false,
             };
         },
         computed: {
+            /**
+             * @desc 显示清空按钮
+             * @returns { Boolean }
+             */
             isShowClear () {
                 return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
-            },
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    if (data.name) {
-                        this.formData = new TaskGlobalVariableModel(data);
-                    }
-                },
-                immediate: true,
             },
         },
         created () {
@@ -160,21 +140,32 @@
             };
         },
         methods: {
+            /**
+             * @desc 编辑主机信息
+             * @param { hostNodeInfo } 主机信息
+             */
             handleHostChange (hostNodeInfo) {
                 this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
             },
-
+            /**
+             * @desc 显示 IP 选择器
+             */
             handleOpenChooseIp () {
                 this.isShowChooseIp = true;
             },
-
+            /**
+             * @desc 清空主机信息
+             */
             handleClearDefault () {
                 const { hostNodeInfo } = new TaskHostNodeModel({});
                 this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
             },
+            /**
+             * @desc 保存变量
+             */
             submit () {
                 return this.$refs.varHostForm.validate()
-                    .then((validator) => {
+                    .then(() => {
                         this.$emit('on-change', {
                             ...this.formData,
                             type: TaskGlobalVariableModel.TYPE_HOST,

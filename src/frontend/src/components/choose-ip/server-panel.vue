@@ -263,6 +263,14 @@
                 return Object.values(hostMap);
             },
             /**
+             * @desc 外部调用——移除无效主机
+             */
+            removeAllInvalidHost () {
+                this.$refs.host && this.$refs.host.removeAllInvalidHost();
+                this.$refs.node && this.$refs.node.removeAllInvalidHost();
+                this.$refs.group && this.$refs.group.removeAllInvalidHost();
+            },
+            /**
              * @desc 外部刷新主机状态接口
              *
              * 获取主机面板中的所有主机（主机），根据（ip + 云区域）去重

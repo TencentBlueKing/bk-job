@@ -119,7 +119,21 @@
                                 }">
                                 {{ row.name }}
                             </auth-router-link>
-                            <span v-html="row.scriptStatusHtml" />
+                            <auth-router-link
+                                :permission="row.canView"
+                                auth="job_template/view"
+                                :resource-id="row.id"
+                                :to="{
+                                    name: 'templateDetail',
+                                    params: {
+                                        id: row.id,
+                                    },
+                                    query: {
+                                        mode: 'scriptUpdate',
+                                    },
+                                }">
+                                <span v-html="row.scriptStatusHtml" />
+                            </auth-router-link>
                         </div>
                     </template>
                 </bk-table-column>

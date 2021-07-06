@@ -162,7 +162,7 @@
             outline: none;
 
             &:focus {
-                background: #fff;
+                background: #fff !important;
                 border: 1px solid #3a84ff !important;
             }
         }
@@ -179,7 +179,7 @@
             color: #c4c6cc;
             text-overflow: ellipsis;
             white-space: nowrap;
-            background: inherit;
+            background: transparent;
         }
     }
 </style>

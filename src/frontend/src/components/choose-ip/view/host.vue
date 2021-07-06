@@ -189,10 +189,8 @@
                         this.isLoading = false;
                     });
             },
-            
             /**
              * @desc 外部调用刷新主机状态
-             *
              */
             refresh: _.debounce(function () {
                 this.fetchHostOfHost();
@@ -200,7 +198,6 @@
 
             /**
              * @desc 外部调用获取所有主机
-             *
              */
             getAllHost () {
                 return [
@@ -210,14 +207,20 @@
             },
 
             /**
+             * @desc 外部调用移除所有无效的主机
+             */
+            removeAllInvalidHost () {
+                this.invalidList = [];
+                this.triggerChange();
+            },
+            /**
              * @desc 外部调用获取所有无效的主机
-             *
              */
             getAllInvalidHost () {
                 return this.invalidList;
             },
 
-            trigger () {
+            triggerChange () {
                 this.isInnerChange = true;
                 this.$emit('on-change', [
                     ...this.invalidList,
@@ -226,14 +229,12 @@
             },
             /**
              * @desc 失败重试
-             *
              */
             handleRefresh () {
                 this.fetchHostOfHost();
             },
             /**
-             * @desc 移除异常主机
-             *
+             * @desc 移除无效主机
              * @prams host [Object] 移除主机
              */
             handleInvalidRemove (host) {
@@ -244,11 +245,10 @@
                     }
                 });
                 this.invalidList = Object.freeze(result);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 移除所有主机
-             *
              */
             handleRemoveAll () {
                 if (this.list.length < 1 && this.invalidList.length < 1) {
@@ -258,12 +258,11 @@
                 this.invalidList = [];
                 this.list = [];
                 this.messageSuccess(I18n.t('移除全部主机成功'));
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 移除主机
              * @param {String} hostRealId 主机id
-             *
              */
             handleRemoveOne (hostRealId) {
                 // 内部显示删除
@@ -274,11 +273,10 @@
                     }
                 });
                 this.list = Object.freeze(result);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 移除异常主机
-             *
              */
             handleRemoveFail () {
                 const effectiveIp = [];
@@ -297,7 +295,7 @@
                 this.invalidList = [];
                 this.list = Object.freeze(effectiveIp);
                 this.messageSuccess(I18n.t('移除异常主机成功'));
-                this.trigger();
+                this.triggerChange();
             },
         },
     };

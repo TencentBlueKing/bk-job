@@ -26,47 +26,35 @@
 -->
 
 <template>
-    <div class="jb-edit-input" :class="mode" :key="value">
-        <template v-if="!isEditing">
-            <div class="render-value-box" @click.stop="handleBlockShowEdit">
-                <div class="value-text" v-bk-overflow-tips>
-                    <slot v-bind:value="newVal">
-                        <span>{{ newVal || '--' }}</span>
-                    </slot>
-                </div>
-                <div class="edit-action-box">
-                    <Icon
-                        v-if="!isBlock && !isSubmiting"
-                        type="edit-2"
-                        class="edit-action"
-                        @click.self.stop="handleShowEdit" />
-                    <Icon
-                        v-if="isSubmiting"
-                        type="loading-circle"
-                        class="edit-loading" />
-                </div>
+    <div class="jb-edit-host" :class="mode">
+        <div class="render-value-box" @click.stop="handleBlockShowEdit">
+            <div class="value-text">
+                <slot v-bind:value="localValue">
+                    <span>{{ renderText }}</span>
+                </slot>
             </div>
-        </template>
-        <template v-else>
-            <div class="edit-value-box" :class="{ 'edit-error': !!error }" @click.stop="">
-                <bk-input
-                    ref="input"
-                    :value="newVal"
-                    @change="handleInputChange"
-                    @blur="handleInputBlur"
-                    @keyup="handleInputEnter" />
-                <div v-if="error" class="input-edit-info" v-bk-tooltips.top="error">
-                    <Icon type="info" />
-                </div>
+            <div class="edit-action-box">
+                <Icon v-if="!isBlock && !isSubmiting" type="edit-2" class="edit-action" @click.self.stop="handleShowEdit" />
+                <Icon v-if="isSubmiting" type="loading-circle" class="edit-loading" />
             </div>
-        </template>
+        </div>
+        <choose-ip
+            v-model="isShowChooseIp"
+            :host-node-info="localValue.hostNodeInfo"
+            @on-change="handleHostChange" />
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
+    import TaskHostNodeModel from '@model/task-host-node';
+    import ChooseIp from '@components/choose-ip';
 
     export default {
-        name: 'JbEditInput',
+        name: 'JbEditHost',
+        components: {
+            ChooseIp,
+        },
         props: {
             /**
              * @value block 块级交互
@@ -74,7 +62,7 @@
              */
             mode: {
                 type: String,
-                default: '',
+                default: 'block',
             },
             /**
              * @desc 编辑操作对应的字段名称
@@ -87,8 +75,8 @@
              * @desc 默认值
              */
             value: {
-                type: String,
-                default: '',
+                type: Object,
+                default: new TaskHostNodeModel({}),
             },
             /**
              * @desc 宽度
@@ -111,13 +99,35 @@
         },
         data () {
             return {
-                newVal: this.value,
+                localValue: this.value,
+                isShowChooseIp: false,
                 error: '',
                 isEditing: false,
                 isSubmiting: false,
             };
         },
         computed: {
+            renderText () {
+                if (!this.localValue) {
+                    return '--';
+                }
+                const {
+                    dynamicGroupList,
+                    ipList,
+                    topoNodeList,
+                } = this.localValue.hostNodeInfo || {};
+                const strs = [];
+                if (ipList.length > 0) {
+                    strs.push(`${ipList.length} ${I18n.t('台主机.result')}`);
+                }
+                if (topoNodeList.length > 0) {
+                    strs.push(`${topoNodeList.length} ${I18n.t('个节点.result')}`);
+                }
+                if (dynamicGroupList.length > 0) {
+                    strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
+                }
+                return strs.length > 0 ? strs.join('\n') : '--';
+            },
             styles () {
                 return {
                     width: this.width,
@@ -128,16 +138,12 @@
             },
         },
         watch: {
-            value (newVal) {
-                this.newVal = newVal;
+            value: {
+                handler (value) {
+                    this.localValue = Object.freeze(_.cloneDeep(value));
+                },
+                immediate: true,
             },
-        },
-        mounted () {
-            this.isValidatoring = false;
-            document.body.addEventListener('click', this.handleHideEdit);
-            this.$once('hook:beforeDestroy', () => {
-                document.body.removeEventListener('click', this.handleHideEdit);
-            });
         },
         methods: {
             /**
@@ -170,7 +176,7 @@
                     }
                 });
                 
-                const allPromise = this.rules.map(rule => checkValidator(rule, this.newVal));
+                const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
                 this.isValidatoring = true;
                 return Promise.all(allPromise).finally(() => {
                     this.isValidatoring = false;
@@ -183,20 +189,20 @@
                 this.doValidator()
                     .then(() => {
                         this.isEditing = false;
-                        if (this.newVal === this.value) {
+                        if (this.localValue === this.value) {
                             return;
                         }
                         this.isSubmiting = true;
                         this.remoteHander({
-                            [this.field]: this.newVal,
+                            [this.field]: this.localValue,
                         }).then(() => {
                             this.$emit('on-change', {
-                                [this.field]: this.newVal,
+                                [this.field]: this.localValue,
                             });
                             this.messageSuccess(I18n.t('编辑成功'));
                         })
                             .catch(() => {
-                                this.newVal = this.value;
+                                this.localValue = this.value;
                             })
                             .finally(() => {
                                 this.isSubmiting = false;
@@ -217,64 +223,27 @@
              */
             handleShowEdit () {
                 document.body.click();
-                this.isEditing = true;
-                this.$nextTick(() => {
-                    this.$refs.input.focus();
+                this.isShowChooseIp = true;
+            },
+            
+            handleHostChange (hostNodeInfo) {
+                this.localValue = Object.freeze({
+                    ...this.localValue,
+                    hostNodeInfo,
                 });
-            },
-            /**
-             * @desc input 值更新
-             * @param {String} value 最新输入值
-             */
-            handleInputChange (value) {
-                this.newVal = value.trim();
-            },
-            /**
-             * @desc input 失去焦点开始提交
-             */
-            handleInputBlur () {
                 this.triggerChange();
-            },
-            /**
-             * @desc input enter 提交
-             * @param {String} value 最新输入值
-             * @param {Object} event dom 事件
-             */
-            handleInputEnter (value, event) {
-                if (!this.isEditing) return;
-                if (event.key === 'Enter' && event.keyCode === 13) {
-                    this.triggerChange();
-                }
-            },
-            /**
-             * @desc 隐藏 input 框
-             * @param {Object} event dom 事件
-             */
-            handleHideEdit (event) {
-                if (this.isValidatoring || this.error) {
-                    return;
-                }
-                if (event.path && event.path.length > 0) {
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = 0; i < event.path.length; i++) {
-                        const target = event.path[i];
-                        if (target.className === 'jb-edit-input') {
-                            return;
-                        }
-                    }
-                }
-                this.isEditing = false;
             },
         },
     };
 </script>
 <style lang='postcss'>
-    .jb-edit-input {
+    .jb-edit-host {
         &.block {
             position: relative;
             cursor: pointer;
 
             .render-value-box {
+                padding-top: 5px;
                 padding-left: 10px;
                 margin-left: -10px;
 
@@ -294,7 +263,6 @@
         .render-value-box {
             position: relative;
             display: flex;
-            height: 30px;
             min-width: 36px;
             min-height: 28px;
 
@@ -307,10 +275,8 @@
         }
 
         .value-text {
-            overflow: hidden;
-            line-height: 30px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            line-height: 18px;
+            white-space: pre;
         }
 
         .edit-action-box {
@@ -342,7 +308,7 @@
             }
         }
 
-        .edit-value-box {
+        .edit-value-container {
             position: relative;
             width: 100%;
             font-size: 0;

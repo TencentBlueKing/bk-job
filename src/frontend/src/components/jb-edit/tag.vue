@@ -27,8 +27,8 @@
 
 <template>
     <div class="jb-edit-tag" :class="{ shortcurt }" @click.stop="">
-        <div v-if="!isEditing" class="value-tag-wraper" @click.stop="handleTextClick">
-            <div ref="content" class="render-tag-box" v-bk-overflow-tips>
+        <div v-if="!isEditing" class="render-value-box" @click.stop="handleTextClick">
+            <div ref="content" class="value-text" v-bk-overflow-tips>
                 <slot v-bind:value="text">{{ text || '--' }}</slot>
             </div>
             <template v-if="!isLoading">
@@ -44,7 +44,7 @@
             </template>
             <Icon v-if="isLoading" type="loading-circle" class="tag-edit-loading" />
         </div>
-        <div v-else class="edit-tag-container">
+        <div v-else class="edit-value-box">
             <jb-tag-select
                 ref="tagSelect"
                 :value="localValue"
@@ -264,7 +264,7 @@
             }
         }
 
-        .value-tag-wraper {
+        .render-value-box {
             display: flex;
             height: 30px;
             padding-left: 4px;
@@ -272,7 +272,7 @@
             align-items: center;
         }
 
-        .render-tag-box {
+        .value-text {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -330,7 +330,7 @@
             animation: 'tag-edit-loading' 1s linear infinite;
         }
 
-        .edit-tag-container {
+        .edit-value-box {
             width: 100%;
         }
     }

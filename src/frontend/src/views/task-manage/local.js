@@ -480,5 +480,6 @@ export default {
         选择变量: 'Global Var.(s)',
         编辑变量: 'Edit',
         更新预览: 'Preview',
+        移除无效主机: '',
     },
 };

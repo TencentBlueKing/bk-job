@@ -235,8 +235,13 @@
              * @desc 退出登录
              */
             handleLogout () {
-                EventBus.$emit('logout');
-                LogoutService.logout();
+                this.$bkInfo({
+                    title: '确认退出登录？',
+                    confirmFn: () => {
+                        EventBus.$emit('logout');
+                        LogoutService.logout();
+                    },
+                });
             },
         },
     };

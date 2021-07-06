@@ -121,6 +121,15 @@
             this.placement = labelWith + valueWith + 220 > containerWidth ? 'top' : 'right';
         },
         methods: {
+            /**
+             * @desc 外部调用——移除主机变量中的无效主机
+             */
+            removeAllInvalidHost () {
+                this.$refs.target.removeAllInvalidHost && this.$refs.target.removeAllInvalidHost();
+            },
+            /**
+             * @desc 外部调用——移除主机变量中的无效主机
+             */
             reset () {
                 this.$refs.target.reset();
             },

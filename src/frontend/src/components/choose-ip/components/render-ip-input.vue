@@ -27,20 +27,53 @@
 
 <template>
     <div class="choose-ip-server-ip-input">
-        <bk-input
-            type="textarea"
-            :rows="inputRows"
-            :value="ipInput"
-            :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带云区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
-            @change="handleIPChange" />
+        <div @click="handleInputClick">
+            <bk-input
+                ref="input"
+                type="textarea"
+                :class="{
+                    'focus-error': isFocusError,
+                }"
+                :rows="inputRows"
+                :value="ipInputText"
+                :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带云区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
+                @change="handleIPChange" />
+        </div>
         <div class="input-action">
-            <div class="input-error">
-                <span v-if="isError">{{ $t('以上内容因无法识别导致添加失败，请检查是否格式有误、或者IP不存在业务下导致。') }}</span>
+            <div v-if="isError" class="input-error">
+                <div>{{ $t('以上内容存在错误：') }}</div>
+                <div v-if="invalidIPList.length > 0">
+                    <span>{{ $t('IP 在本业务下不存在') }}</span>
+                    <Icon
+                        type="ip-audit"
+                        class="error-action"
+                        v-bk-tooltips="$t('标识错误')"
+                        @click="handleHighlightInvilad" />
+                    <Icon
+                        type="delete"
+                        class="error-action"
+                        v-bk-tooltips="$t('一键清除')"
+                        @click="handleRemoveInvalid" />
+                </div>
+                <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">；</div>
+                <div v-if="errorIPList.length > 0">
+                    <span>{{ $t('内容格式错误，无法识别') }}</span>
+                    <Icon
+                        type="ip-audit"
+                        class="error-action"
+                        v-bk-tooltips="$t('标识错误')"
+                        @click="handleHightlightError" />
+                    <Icon
+                        type="delete"
+                        class="error-action"
+                        v-bk-tooltips="$t('一键清除')"
+                        @click="handleRemoveError" />
+                </div>
             </div>
-            <bk-button class="submit-btn" theme="primary" outline :loading="isLoading" @click="handleAddHost">
+            <bk-button class="submit-btn" theme="primary" outline :loading="isSubmiting" @click="handleAddHost">
                 <span>{{ $t('添加到已选择') }}</span>
-                <div v-if="searchParams.length > 0" ref="inputNumber" class="server-input-number">
-                    <span class="text">{{ searchParams.length }}</span>
+                <div v-if="inputItemList.length > 0" ref="inputNumber" class="server-input-number">
+                    <span class="text">{{ inputItemList.length }}</span>
                 </div>
             </bk-button>
         </div>
@@ -49,9 +82,8 @@
 <script>
     import _ from 'lodash';
     import AppManageService from '@service/app-manage';
-    import {
-        generateHostRealId,
-    } from './utils';
+    import { encodeRegexp } from '@utils/assist';
+    import { generateHostRealId } from './utils';
 
     export default {
         name: '',
@@ -68,10 +100,12 @@
         },
         data () {
             return {
-                ipInput: '',
-                searchParams: [],
-                isLoading: false,
-                isError: false,
+                isSubmiting: false,
+                ipInputText: '',
+                inputItemList: [],
+                invalidIPList: [],
+                errorIPList: [],
+                isFocusError: false,
             };
         },
         computed: {
@@ -82,55 +116,91 @@
 
                 return Math.floor((this.dialogHeight - offsetTop - offsetBottom - inputPadding) / 18);
             },
+            isError () {
+                return this.invalidIPList.length > 0 || this.errorIPList.length > 0;
+            },
         },
         deactivated () {
-            this.errorMemo = this.isError;
-            this.isError = false;
+            // this.errorMemo = this.isError;
+            // this.isError = false;
         },
+        // keep-alive 组件切换时还原 isError 状态
         activated () {
-            this.isError = this.errorMemo;
+            // this.isError = this.errorMemo;
         },
         created () {
-            this.errorMemo = false;
+            // this.errorMemo = false;
         },
         methods: {
             /**
-             * @desc 根据输入值获取主机信息
-             * @param {Object} params 筛选参数
+             * @desc 更新输入框内容
              */
-            fetchHost (params) {
-                this.$emit('on-loading', true);
-                return AppManageService.fetchHostOfHost(params)
-                    .then((data) => {
-                        const mapIpRealId = list => list.map(item => ({
-                            ...item,
-                            realId: generateHostRealId(item),
-                        }));
-                        const uniqIp = list => _.uniqBy(list, item => item.realId);
-                        return _.flow([
-                            mapIpRealId, uniqIp,
-                        ])(data);
-                    })
-                    .finally(() => {
-                        this.$emit('on-loading', false);
-                    });
+            updateInputValue () {
+                this.ipInputText = [...this.invalidIPList, ...this.errorIPList].join('\n');
+            },
+            /**
+             * @desc 用户点击输入框时切换选中文本样式
+             */
+            handleInputClick () {
+                this.isFocusError = false;
+            },
+            /**
+             * @desc 高亮输入框内无效的 IP 输入
+             */
+            handleHighlightInvilad () {
+                this.isFocusError = true;
+                const $inputEl = this.$refs.input.$el.querySelector('textarea');
+                const errorText = this.invalidIPList.join('\n');
+                $inputEl.focus();
+                $inputEl.selectionStart = 0;
+                $inputEl.selectionEnd = errorText.length;
+            },
+            /**
+             * @desc 清空输入框内无效的 IP 输入
+             */
+            handleRemoveInvalid () {
+                this.invalidIPList = [];
+                this.updateInputValue();
+            },
+            /**
+             * @desc 高亮输入框内错误格式的 IP 输入
+             */
+            handleHightlightError () {
+                this.isFocusError = true;
+                const $inputEl = this.$refs.input.$el.querySelector('textarea');
+                $inputEl.focus();
+                const invalidText = this.invalidIPList.join('\n');
+                const errorText = this.errorIPList.join('\n');
+                const startIndex = invalidText.length > 0 ? invalidText.length + 1 : 0;
+                $inputEl.selectionStart = startIndex;
+                $inputEl.selectionEnd = startIndex + errorText.length;
+            },
+            /**
+             * @desc 清空输入框内错误格式的 IP 输入
+             */
+            handleRemoveError () {
+                this.errorIPList = [];
+                this.updateInputValue();
             },
             /**
              * @desc 输入框值改变
              * @param {String} value 用户输入值
              */
-            handleIPChange (value) {
-                this.ipInput = value;
-                const realValue = value.replace(/\s/g, '');
+            handleIPChange: _.throttle(function (value) {
+                const realValue = _.trim(value);
+                this.invalidIPList = [];
+                this.errorIPList = [];
                 if (!realValue) {
-                    this.searchParams = [];
+                    this.inputItemList = [];
+                    // 通知外部组件输入框没有值需要保存
                     this.$emit('on-input-change', false);
                 } else {
-                    this.searchParams = value.split(/[;,；，\n\s|-]+/).filter(_ => !!_);
+                    this.inputItemList = value.split(/[;,；，\n|]+/).filter(_ => !!_);
+                    // 通知外部组件输入框有值还没被保存
                     this.$emit('on-input-change', true);
                 }
-                this.isError = false;
-            },
+                // this.isError = false;
+            }, 60),
             /**
              * @desc 提交输入值时的抛射动画效果
              * @param {Function} callback 动画结束后的回调
@@ -168,46 +238,82 @@
              * @desc 提交输入结果
              */
             handleAddHost () {
-                if (this.searchParams.length < 1) {
+                if (this.inputItemList.length < 1) {
                     return;
                 }
-                const searchMap = this.searchParams.reduce((result, item) => {
-                    result[item] = true;
-                    return result;
-                }, {});
-                this.isLoading = true;
+                const IPReg = /(((\d+:)?)(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))/;
+                const IPList = [];
+                // 无法解析出 IP 的内容
+                const errorIPList = [];
+                this.inputItemList.forEach((IPText) => {
+                    const IPMatch = IPText.match(IPReg);
+                    if (IPMatch) {
+                        const [IPStr] = IPMatch;
+                        const errorIPRule = new RegExp(`([\\d:.]${encodeRegexp(IPStr)})|(${encodeRegexp(IPStr)}[\\d.])`);
+                        if (errorIPRule.test(IPText)) {
+                            // 无法完全正确的解析 IP（eq: 1.1.1.12.2.2.2，少了分隔造成的）
+                            errorIPList.push(IPText);
+                        } else {
+                            // 提取识别成功的 IP
+                            IPList.push(IPStr);
+                            // 将剩下的内容作为错误 IP 处理
+                            const errorText = IPText.replace(new RegExp(`(${encodeRegexp(IPStr)})|(\\s)`, 'g'), '');
+                            if (errorText) {
+                                errorIPList.push(errorText);
+                            }
+                        }
+                    } else {
+                        // 输入内容中不包含 IP
+                        errorIPList.push(IPText);
+                    }
+                });
                 
-                this.fetchHost(this.searchParams)
+                this.isSubmiting = true;
+
+                AppManageService.fetchHostOfHost(IPList)
                     .then((data) => {
-                        if (data.length > 0) {
+                        // 输入的有效 IP
+                        const hostList = [];
+                        const hostIPMap = {};
+                        
+                        data.forEach((host) => {
+                            const {
+                                ip,
+                                cloudAreaInfo,
+                            } = host;
+                            hostList.push({
+                                realId: generateHostRealId(host),
+                                ip,
+                                cloudAreaInfo: {
+                                    id: cloudAreaInfo.id,
+                                },
+                            });
+                            // 记录 IP 和 云区域 ID + IP 组成的检索
+                            hostIPMap[ip] = true;
+                            hostIPMap[`${cloudAreaInfo.id}:${ip}`] = true;
+                        });
+                        // 提交输入内容
+                        if (hostList.length > 0) {
                             this.shot(() => {
-                                this.$emit('on-change', 'hostInput', data);
+                                this.$emit('on-change', 'hostInput', hostList);
                             });
                         }
-                        this.$emit('on-input-change', false);
-                        this.searchParams = [];
-                        // 处理输入的无效值
-                        data.forEach((item) => {
-                            if (searchMap[item.ip]) {
-                                delete searchMap[item.ip];
+                        // 正确的 IP 输入，但是 IP 不存于当前业务下
+                        this.invalidIPList = IPList.reduce((result, IPItem) => {
+                            if (!hostIPMap[IPItem]) {
+                                result.push(IPItem);
                             }
-                            const cloudAreaIP = `${item.cloudAreaInfo.id}:${item.ip}`;
-                            if (searchMap[cloudAreaIP]) {
-                                delete searchMap[cloudAreaIP];
-                            }
-                        });
+                            return result;
+                        }, []);
+                        this.errorIPList = errorIPList;
+                        // 提交成功后重置用户输入内容的分隔符解析
+                        this.inputItemList = [];
                         
-                        const invalidipInput = Object.keys(searchMap);
-                        if (invalidipInput.length > 0) {
-                            this.ipInput = invalidipInput.join('\n');
-                            this.isError = true;
-                        } else {
-                            this.ipInput = '';
-                            this.isError = false;
-                        }
+                        this.updateInputValue();
+                        this.$emit('on-input-change', false);
                     })
                     .finally(() => {
-                        this.isLoading = false;
+                        this.isSubmiting = false;
                     });
             },
         },
@@ -217,6 +323,15 @@
     .choose-ip-server-ip-input {
         padding: 20px 24px;
 
+        .focus-error {
+            textarea {
+                &::selection {
+                    color: #63656e;
+                    background: #fdd;
+                }
+            }
+        }
+
         .input-action {
             display: flex;
             align-items: center;
@@ -224,11 +339,24 @@
         }
 
         .input-error {
+            display: flex;
             margin-right: auto;
             color: #ea3636;
+
+            .error-action {
+                font-size: 16px;
+                color: #63656e;
+                cursor: pointer;
+
+                &:hover {
+                    color: #3a84ff;
+                }
+            }
         }
 
         .submit-btn {
+            margin-left: auto;
+
             &:hover {
                 .server-input-number .text {
                     color: #3a84ff;

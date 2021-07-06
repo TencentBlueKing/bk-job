@@ -26,14 +26,15 @@
 -->
 
 <template>
-    <div class="jb-edit-input" :class="mode" :key="value">
+    <div class="jb-edit-select" :class="mode" :key="value">
         <template v-if="!isEditing">
             <div class="render-value-box" @click.stop="handleBlockShowEdit">
                 <div class="value-text" v-bk-overflow-tips>
-                    <slot v-bind:value="newVal">
-                        <span>{{ newVal || '--' }}</span>
+                    <slot v-bind:value="renderText">
+                        <span>{{ renderText }}</span>
                     </slot>
                 </div>
+                <i class="bk-icon icon-angle-down value-arrow" />
                 <div class="edit-action-box">
                     <Icon
                         v-if="!isBlock && !isSubmiting"
@@ -48,13 +49,21 @@
             </div>
         </template>
         <template v-else>
-            <div class="edit-value-box" :class="{ 'edit-error': !!error }" @click.stop="">
-                <bk-input
-                    ref="input"
-                    :value="newVal"
-                    @change="handleInputChange"
-                    @blur="handleInputBlur"
-                    @keyup="handleInputEnter" />
+            <div
+                class="edit-value-box"
+                :class="{ 'edit-error': !!error }"
+                @click.stop="">
+                <bk-select
+                    ref="select"
+                    :value="value"
+                    @change="handleSelectChange"
+                    @toggle="handleSelectToggle">
+                    <bk-option
+                        v-for="item in list"
+                        :id="item.id"
+                        :name="item.name"
+                        :key="item.id" />
+                </bk-select>
                 <div v-if="error" class="input-edit-info" v-bk-tooltips.top="error">
                     <Icon type="info" />
                 </div>
@@ -63,10 +72,11 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
 
     export default {
-        name: 'JbEditInput',
+        name: 'JbEditSelect',
         props: {
             /**
              * @value block 块级交互
@@ -87,8 +97,15 @@
              * @desc 默认值
              */
             value: {
-                type: String,
+                type: [String, Number],
                 default: '',
+            },
+            /**
+             * @desc 下拉数据列表
+             */
+            list: {
+                type: Array,
+                require: true,
             },
             /**
              * @desc 宽度
@@ -111,13 +128,24 @@
         },
         data () {
             return {
-                newVal: this.value,
+                localValue: this.value,
                 error: '',
                 isEditing: false,
                 isSubmiting: false,
             };
         },
         computed: {
+            /**
+             * @desc 非编辑状态时
+             * @returns { Boolean }
+             */
+            renderText () {
+                const item = _.find(this.list, ({ id }) => this.localValue === id);
+                if (!item) {
+                    return '--';
+                }
+                return item.name;
+            },
             styles () {
                 return {
                     width: this.width,
@@ -128,8 +156,8 @@
             },
         },
         watch: {
-            value (newVal) {
-                this.newVal = newVal;
+            value (localValue) {
+                this.localValue = localValue;
             },
         },
         mounted () {
@@ -170,7 +198,7 @@
                     }
                 });
                 
-                const allPromise = this.rules.map(rule => checkValidator(rule, this.newVal));
+                const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
                 this.isValidatoring = true;
                 return Promise.all(allPromise).finally(() => {
                     this.isValidatoring = false;
@@ -183,20 +211,20 @@
                 this.doValidator()
                     .then(() => {
                         this.isEditing = false;
-                        if (this.newVal === this.value) {
+                        if (this.localValue === this.value) {
                             return;
                         }
                         this.isSubmiting = true;
                         this.remoteHander({
-                            [this.field]: this.newVal,
+                            [this.field]: this.localValue,
                         }).then(() => {
                             this.$emit('on-change', {
-                                [this.field]: this.newVal,
+                                [this.field]: this.localValue,
                             });
                             this.messageSuccess(I18n.t('编辑成功'));
                         })
                             .catch(() => {
-                                this.newVal = this.value;
+                                this.localValue = this.value;
                             })
                             .finally(() => {
                                 this.isSubmiting = false;
@@ -219,32 +247,8 @@
                 document.body.click();
                 this.isEditing = true;
                 this.$nextTick(() => {
-                    this.$refs.input.focus();
+                    this.$refs.select.$el.querySelector('.bk-select-name').click();
                 });
-            },
-            /**
-             * @desc input 值更新
-             * @param {String} value 最新输入值
-             */
-            handleInputChange (value) {
-                this.newVal = value.trim();
-            },
-            /**
-             * @desc input 失去焦点开始提交
-             */
-            handleInputBlur () {
-                this.triggerChange();
-            },
-            /**
-             * @desc input enter 提交
-             * @param {String} value 最新输入值
-             * @param {Object} event dom 事件
-             */
-            handleInputEnter (value, event) {
-                if (!this.isEditing) return;
-                if (event.key === 'Enter' && event.keyCode === 13) {
-                    this.triggerChange();
-                }
             },
             /**
              * @desc 隐藏 input 框
@@ -258,18 +262,35 @@
                     // eslint-disable-next-line no-plusplus
                     for (let i = 0; i < event.path.length; i++) {
                         const target = event.path[i];
-                        if (target.className === 'jb-edit-input') {
+                        if (target.className === 'jb-edit-select') {
                             return;
                         }
                     }
                 }
                 this.isEditing = false;
             },
+            /**
+             * @desc input 值更新
+             * @param {String} value 最新输入值
+             */
+            handleSelectChange (value) {
+                this.localValue = value;
+                this.triggerChange();
+            },
+            /**
+             * @desc 下拉面板收起，取消编辑状态
+             */
+            handleSelectToggle (toggle) {
+                if (!toggle) {
+                    this.isEditing = false;
+                }
+            },
+            
         },
     };
 </script>
 <style lang='postcss'>
-    .jb-edit-input {
+    .jb-edit-select {
         &.block {
             position: relative;
             cursor: pointer;
@@ -280,6 +301,10 @@
 
                 &:hover {
                     background: #f0f1f5;
+
+                    .value-text {
+                        max-width: calc(100% - 32px);
+                    }
                 }
             }
 
@@ -298,10 +323,23 @@
             min-width: 36px;
             min-height: 28px;
 
+            .value-arrow {
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                display: none;
+                font-size: 22px;
+                color: #979ba5;
+            }
+
             &:hover {
                 .edit-action {
                     opacity: 1;
                     transform: scale(1);
+                }
+
+                .value-arrow {
+                    display: block;
                 }
             }
         }
