@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceGlobalVarValueV3Request;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
@@ -38,6 +40,8 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  * 获取作业实例全局变量的值-V3
  */
 @RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
 public interface EsbGetJobInstanceGlobalVarValueV3Resource {
 
     @PostMapping("/get_job_instance_global_var_value")

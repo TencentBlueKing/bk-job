@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.api.esb.gse.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.api.esb.gse.GseManageProcessResource;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;

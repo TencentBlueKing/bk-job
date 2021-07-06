@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
@@ -43,16 +44,19 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     private final UriPermissionInterceptor uriPermissionInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
+    private final JobIamInterceptor iamInterceptor;
 
     @Autowired
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
                                     UriPermissionInterceptor uriPermissionInterceptor,
                                     EsbApiLogInterceptor esbApiLogInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor) {
+                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
+                                    JobIamInterceptor iamInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
+        this.iamInterceptor = iamInterceptor;
     }
 
     @Override
@@ -64,6 +68,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
             .addPathPatterns(
                 uriPermissionInterceptor.getControlUriPatterns()
             ).order(2);
+        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(3);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
     }
 }

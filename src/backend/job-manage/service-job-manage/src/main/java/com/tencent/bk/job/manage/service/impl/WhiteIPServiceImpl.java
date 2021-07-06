@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;

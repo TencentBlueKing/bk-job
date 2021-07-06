@@ -35,4 +35,6 @@ dependencies {
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation "javax.servlet:javax.servlet-api"
     implementation('org.springframework:spring-webmvc')
+    implementation "org.hibernate.validator:hibernate-validator"
+    implementation('jakarta.validation:jakarta.validation-api')
 }

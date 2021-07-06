@@ -25,17 +25,23 @@
 package com.tencent.bk.job.analysis.api.web;
 
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-analysis:web:脚本统计量统计接口"})
 @RequestMapping("/web/statistics/script")
 @RestController
+@WebAPI
 public interface WebScriptStatisticsResource {
 
     @ApiOperation(value = "查询脚本引用统计信息", produces = "application/json")

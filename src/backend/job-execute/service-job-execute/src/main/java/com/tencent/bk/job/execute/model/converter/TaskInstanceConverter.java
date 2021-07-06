@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model.converter;
 
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;

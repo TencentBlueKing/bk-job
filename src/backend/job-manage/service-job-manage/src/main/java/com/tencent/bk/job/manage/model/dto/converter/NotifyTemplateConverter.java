@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.dto.converter;
 
-import com.tencent.bk.job.common.i18n.MessageI18nService;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;

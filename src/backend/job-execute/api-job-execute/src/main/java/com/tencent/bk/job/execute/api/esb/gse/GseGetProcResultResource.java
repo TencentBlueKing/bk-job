@@ -24,9 +24,14 @@
 
 package com.tencent.bk.job.execute.api.esb.gse;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.gse.req.EsbGseGetProcResultRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -37,6 +42,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  */
 @RequestMapping(value = {"/esb/api/v2", "/esb/api/v3"})
 @RestController
+@EsbAPI
 public interface GseGetProcResultResource {
 
     @PostMapping("/get_proc_result")

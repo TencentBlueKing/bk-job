@@ -24,18 +24,26 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceAddAppSetRequest;
 import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
 import io.swagger.annotations.Api;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RequestMapping("/service/app-set")
 @Api(tags = {"job-manage:service:App_Set_Management"})
 @RestController
+@InternalAPI
 public interface ServiceAppSetResource {
     @GetMapping("/{appId}")
     ServiceResponse<ServiceApplicationDTO> queryAppSetById(@PathVariable("appId") Long appId);

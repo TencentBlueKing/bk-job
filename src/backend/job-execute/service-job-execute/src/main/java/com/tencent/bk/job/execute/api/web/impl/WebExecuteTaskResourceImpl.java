@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -348,28 +348,28 @@ public class WebExecuteTaskResourceImpl extends AbstractJobController implements
 
     private ServiceResponse<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
                                                                   StepInstanceDTO stepInstance) {
-        try {
-            long taskInstanceId;
-            if (!isRedoTask) {
-                taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-            } else {
-                taskInstanceId = taskExecuteService.createTaskInstanceForFastTaskRedo(taskInstance, stepInstance);
-            }
-            taskExecuteService.startTask(taskInstanceId);
-            StepExecuteVO stepExecuteVO = new StepExecuteVO();
-            stepExecuteVO.setTaskInstanceId(taskInstanceId);
-            stepExecuteVO.setStepInstanceId(stepInstance.getId());
-            stepExecuteVO.setStepName(stepInstance.getName());
-            return ServiceResponse.buildSuccessResp(stepExecuteVO);
-        } catch (InSufficientPermissionException e) {
-            return handleInSufficientPermissionException(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+        long taskInstanceId;
+        if (!isRedoTask) {
+            taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+        } else {
+            taskInstanceId = taskExecuteService.createTaskInstanceForFastTaskRedo(taskInstance, stepInstance);
         }
+        taskExecuteService.startTask(taskInstanceId);
+        StepExecuteVO stepExecuteVO = new StepExecuteVO();
+        stepExecuteVO.setTaskInstanceId(taskInstanceId);
+        stepExecuteVO.setStepInstanceId(stepInstance.getId());
+        stepExecuteVO.setStepName(stepInstance.getName());
+        return ServiceResponse.buildSuccessResp(stepExecuteVO);
+//        try {
+//        } catch (InSufficientPermissionException e) {
+//            return handleInSufficientPermissionException(e);
+//        } catch (ServiceException e) {
+//            log.warn("Fail to start task", e);
+//            return ServiceResponse.buildCommonFailResp(e, i18nService);
+//        } catch (Exception e) {
+//            log.warn("Fail to start task", e);
+//            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+//        }
     }
 
     private <T> ServiceResponse<T> handleInSufficientPermissionException(InSufficientPermissionException e) {

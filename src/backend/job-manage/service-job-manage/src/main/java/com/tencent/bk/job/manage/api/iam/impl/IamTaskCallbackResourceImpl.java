@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceId;
-import com.tencent.bk.job.common.iam.controller.AbstractIamController;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamTaskCallbackResource;
@@ -37,7 +36,6 @@ import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.*;
-import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,15 +49,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class IamTaskCallbackResourceImpl extends AbstractIamController implements IamTaskCallbackResource {
+public class IamTaskCallbackResourceImpl implements IamTaskCallbackResource {
 
     private final TaskTemplateService templateService;
     private final TaskPlanService planService;
 
     @Autowired
-    public IamTaskCallbackResourceImpl(TaskTemplateService templateService, TaskPlanService planService,
-                                       AuthHelper authHelper) {
-        super(authHelper);
+    public IamTaskCallbackResourceImpl(TaskTemplateService templateService, TaskPlanService planService) {
         this.templateService = templateService;
         this.planService = planService;
     }

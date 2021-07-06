@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import io.swagger.annotations.Api;
@@ -39,6 +40,7 @@ import java.util.List;
 @Api(tags = {"job-manage:Service:Tag"})
 @RequestMapping("/service/tag")
 @RestController
+@InternalAPI
 public interface ServiceTagResource {
 
     @ApiOperation(value = "获取业务下的所有标签", produces = "application/json")

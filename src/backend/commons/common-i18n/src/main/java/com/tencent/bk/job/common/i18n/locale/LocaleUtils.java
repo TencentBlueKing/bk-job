@@ -43,7 +43,7 @@ public class LocaleUtils {
      */
     public static final String COMMON_LANG_HEADER = "lang";
 
-    public static final Map<String, String> localeMap = new HashMap<>();
+    private static final Map<String, String> localeMap = new HashMap<>();
 
     static {
         localeMap.put("zh", LANG_ZH);
@@ -62,7 +62,7 @@ public class LocaleUtils {
      */
     public static String getNormalLang(String lang) {
         lang = lang.toLowerCase();
-        if (localeMap.keySet().contains(lang)) {
+        if (localeMap.containsKey(lang)) {
             return localeMap.get(lang);
         }
         return lang;
@@ -70,7 +70,7 @@ public class LocaleUtils {
 
     public static Locale getLocale(String lang) {
         if (StringUtils.isBlank(lang)) {
-            return Locale.CHINESE;
+            return Locale.SIMPLIFIED_CHINESE;
         } else if (lang.equalsIgnoreCase(LANG_ZH_CN)) {
             return Locale.SIMPLIFIED_CHINESE;
         } else if (lang.equalsIgnoreCase(LANG_ZH)) {
@@ -80,7 +80,7 @@ public class LocaleUtils {
         } else if (lang.equalsIgnoreCase(LANG_EN_US)) {
             return Locale.US;
         } else {
-            return Locale.CHINESE;
+            return Locale.SIMPLIFIED_CHINESE;
         }
     }
 }

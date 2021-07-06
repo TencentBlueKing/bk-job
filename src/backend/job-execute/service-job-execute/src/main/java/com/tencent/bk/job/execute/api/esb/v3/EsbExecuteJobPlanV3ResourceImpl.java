@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;

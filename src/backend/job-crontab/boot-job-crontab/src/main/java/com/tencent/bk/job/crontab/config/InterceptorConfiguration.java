@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.config;
 
+import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
@@ -41,14 +42,17 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     private final JobCommonInterceptor jobCommonInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
+    private final JobIamInterceptor iamInterceptor;
 
     @Autowired
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
                                     EsbApiLogInterceptor esbApiLogInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor) {
+                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
+                                    JobIamInterceptor iamInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
+        this.iamInterceptor = iamInterceptor;
     }
 
     @Override
@@ -56,6 +60,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         // 注册拦截器
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
+        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(2);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
     }
 

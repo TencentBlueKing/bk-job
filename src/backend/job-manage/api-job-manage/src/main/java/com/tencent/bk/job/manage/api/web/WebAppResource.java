@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -32,12 +33,23 @@ import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
-import com.tencent.bk.job.manage.model.web.vo.*;
+import com.tencent.bk.job.manage.model.web.vo.AppVO;
+import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -49,6 +61,7 @@ import java.util.List;
 @Api(tags = {"job-manage:web:App_Management"})
 @RequestMapping("/web/app")
 @RestController
+@WebAPI
 public interface WebAppResource {
 
     @Deprecated
