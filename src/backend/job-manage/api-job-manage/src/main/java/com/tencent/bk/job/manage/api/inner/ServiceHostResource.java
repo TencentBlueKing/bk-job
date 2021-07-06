@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -36,6 +37,7 @@ import javax.ws.rs.QueryParam;
 @RequestMapping("/service/host")
 @Api(tags = {"job-manage:service:Host_Management"})
 @RestController
+@InternalAPI
 public interface ServiceHostResource {
 
     @ApiOperation(value = "判断主机是否存在", produces = "application/json")

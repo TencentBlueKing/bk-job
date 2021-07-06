@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,6 +39,7 @@ import java.util.Set;
 @Api(tags = {"job-manage:service:User"})
 @RequestMapping("/service/user")
 @RestController
+@InternalAPI
 public interface ServiceUserResource {
 
     @ApiOperation(value = "根据业务Id与角色获取用户信息", produces = "application/json")

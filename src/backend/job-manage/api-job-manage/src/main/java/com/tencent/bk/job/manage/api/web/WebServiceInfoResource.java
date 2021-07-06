@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import io.swagger.annotations.Api;
@@ -39,6 +40,7 @@ import java.util.List;
 @Api(tags = {"job-manage:web:ServiceInfo"})
 @RequestMapping("/web/serviceInfo")
 @RestController
+@WebAPI
 public interface WebServiceInfoResource {
 
     @ApiOperation(value = "获取所有服务信息", produces = "application/json")

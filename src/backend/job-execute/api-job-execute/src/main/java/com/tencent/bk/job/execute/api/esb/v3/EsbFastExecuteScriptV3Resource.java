@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteScriptV3Request;
@@ -36,6 +37,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  */
 @RequestMapping("/esb/api/v3")
 @RestController
+@EsbAPI
 public interface EsbFastExecuteScriptV3Resource {
 
     @PostMapping("/fast_execute_script")

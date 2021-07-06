@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.plan.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ParamErrorException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobContextUtil;

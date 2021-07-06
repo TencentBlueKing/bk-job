@@ -24,13 +24,25 @@
 
 package com.tencent.bk.job.logsvr.api;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.logsvr.model.service.*;
+import com.tencent.bk.job.logsvr.model.service.BatchSaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.SaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.ScriptLogQueryRequest;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -40,6 +52,7 @@ import java.util.List;
 @Api(tags = {"Log"})
 @RequestMapping("/service/log")
 @RestController
+@InternalAPI
 public interface ServiceLogResource {
 
     @ApiOperation("保存执行日志")

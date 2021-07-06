@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.constant.ActionId;

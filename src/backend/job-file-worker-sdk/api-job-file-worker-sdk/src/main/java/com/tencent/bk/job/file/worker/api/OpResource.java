@@ -24,18 +24,24 @@
 
 package com.tencent.bk.job.file.worker.api;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.file.worker.model.req.WorkerOffLineReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-file-worker:api:OP"})
 @RequestMapping("/worker/api/op")
 @RestController
+@InternalAPI
 public interface OpResource {
 
     @ApiOperation(value = "Worker下线", produces = "application/json")

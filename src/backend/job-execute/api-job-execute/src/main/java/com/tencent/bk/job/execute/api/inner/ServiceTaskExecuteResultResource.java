@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
@@ -32,7 +33,13 @@ import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteS
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -42,6 +49,7 @@ import java.util.Map;
 @Api(tags = {"job-execute:service:Task_Execution_Result"})
 @RequestMapping("/service/execution")
 @RestController
+@InternalAPI
 public interface ServiceTaskExecuteResultResource {
     /**
      * @param request 定时任务结果统计请求

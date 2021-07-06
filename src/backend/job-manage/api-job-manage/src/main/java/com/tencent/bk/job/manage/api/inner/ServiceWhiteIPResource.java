@@ -24,19 +24,27 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-manage:service:WhiteIP"})
 @RequestMapping("/service/whiteip")
 @RestController
+@InternalAPI
 public interface ServiceWhiteIPResource {
 
     @ApiOperation(value = "获取指定IP在白名单中的生效范围（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）", produces = "application/json")

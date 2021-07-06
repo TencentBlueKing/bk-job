@@ -46,25 +46,25 @@ public class JobIamAutoConfiguration {
     /**
      * 权限中心对应的系统 ID
      */
-    @Value("${iam.system-id}")
+    @Value("${iam.system-id:}")
     private String systemId;
 
     /**
      * ESB 分配的系统 App Code
      */
-    @Value("${app.code}")
+    @Value("${app.code:}")
     private String appCode;
 
     /**
      * ESB 分配的系统 App Secret
      */
-    @Value("${app.secret}")
+    @Value("${app.secret:}")
     private String appSecret;
 
     /**
      * 权限中心的访问地址
      */
-    @Value("${iam.base-url}")
+    @Value("${iam.base-url:}")
     private String iamBaseUrl;
 
     /**

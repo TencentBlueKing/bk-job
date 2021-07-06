@@ -26,8 +26,8 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;

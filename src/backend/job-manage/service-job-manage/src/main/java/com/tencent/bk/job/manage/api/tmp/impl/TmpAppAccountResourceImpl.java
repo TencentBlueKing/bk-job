@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.tmp.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;

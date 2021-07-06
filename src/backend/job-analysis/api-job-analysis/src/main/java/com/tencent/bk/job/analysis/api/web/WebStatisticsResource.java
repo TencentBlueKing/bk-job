@@ -28,12 +28,22 @@ import com.tencent.bk.job.analysis.consts.DimensionEnum;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.ResourceEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.model.web.*;
+import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
+import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
+import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
+import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
+import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +51,7 @@ import java.util.Map;
 @Api(tags = {"job-analysis:web:统计量统计接口"})
 @RequestMapping("/web/statistics")
 @RestController
+@WebAPI
 public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某个统计量的统计信息", produces = "application/json")

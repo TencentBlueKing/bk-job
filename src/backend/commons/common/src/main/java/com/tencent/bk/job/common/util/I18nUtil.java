@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 
 /**
  * @Description

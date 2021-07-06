@@ -27,7 +27,8 @@ package com.tencent.bk.job.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.MessageI18nService;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.error.ErrorDetail;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -50,19 +51,29 @@ public class ServiceResponse<T> {
     public static final Integer SUCCESS_CODE = 0;
     public static final Integer COMMON_FAIL_CODE = 1;
     private static volatile MessageI18nService i18nService;
+
     @ApiModelProperty("是否成功")
     private boolean success;
+
     @ApiModelProperty("返回码")
     private Integer code;
+
     @ApiModelProperty("错误信息")
     private String errorMsg;
+
     @ApiModelProperty("请求成功返回的数据")
     private T data;
+
     @ApiModelProperty("请求 ID")
     private String requestId;
+
     @ApiModelProperty("鉴权结果，当返回码为1238001时，该字段有值")
     @JsonProperty("authResult")
     private AuthResultVO authResult;
+
+    @ApiModelProperty("错误详情")
+    @JsonProperty("errorDetail")
+    private ErrorDetail errorDetail;
 
     public ServiceResponse(Integer code, String errorMsg, T data) {
         this.code = code;
@@ -184,5 +195,13 @@ public class ServiceResponse<T> {
             return ServiceResponse.buildCommonFailResp(validateResult.getErrorCode(),
                 i18nService.getI18n(String.valueOf(validateResult.getErrorCode())));
         }
+    }
+
+    public static <T> ServiceResponse<T> buildCommonFailResp(int errorCode, ErrorDetail errorDetail,
+                                                             MessageI18nService i18nService) {
+        String errorMsg = i18nService.getI18n(String.valueOf(errorCode));
+        ServiceResponse<T> esbResp = new ServiceResponse<>(errorCode, errorMsg, null);
+        esbResp.setErrorDetail(errorDetail);
+        return esbResp;
     }
 }

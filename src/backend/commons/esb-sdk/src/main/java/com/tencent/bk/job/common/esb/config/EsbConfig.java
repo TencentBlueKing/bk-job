@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class EsbConfig {
 
-    @Value("${app.code}")
+    @Value("${app.code:}")
     private String appCode;
 
-    @Value("${app.secret}")
+    @Value("${app.secret:}")
     private String appSecret;
 
     @Value("${esb.service.url:}")

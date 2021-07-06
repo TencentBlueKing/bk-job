@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.api;
 
+import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.file.worker.model.req.ClearTaskFilesReq;
 import com.tencent.bk.job.file.worker.model.req.DownloadFilesTaskReq;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"job-file-worker:api:FileTask"})
 @RequestMapping("/worker/api/filetask")
 @RestController
+@InternalAPI
 public interface FileTaskResource {
 
     // 子路径与gateway转发请求子路径保持一致

@@ -24,12 +24,17 @@
 
 package com.tencent.bk.job.crontab.api.esb;
 
+import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.crontab.model.esb.request.EsbGetCronListRequest;
 import com.tencent.bk.job.crontab.model.esb.request.EsbSaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.request.EsbUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -40,6 +45,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  */
 @RequestMapping("/esb/api/v2")
 @RestController
+@EsbAPI
 public interface EsbCronJobResource {
 
     @PostMapping("/get_cron_list")

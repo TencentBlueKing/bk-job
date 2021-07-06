@@ -303,13 +303,13 @@ public class ErrorCode {
     public static final int API_NO_PERMISSION = 9900403;
 
     // ========= 系统错误-请求 ====================//
-    // 服务不可用
-    public static final int SERVICE_INTERNAL_ERROR = 1240002;
     // 内部服务异常
-    public static final int BAD_REQUEST = 1240003;
+    public static final int SERVICE_INTERNAL_ERROR = 1240002;
     // 错误的请求
-    public static final int COOKIE_ILLEGAL = 1240004;
+    public static final int BAD_REQUEST = 1240003;
     // Cookie过期或者不存在
+    public static final int COOKIE_ILLEGAL = 1240004;
+    // 服务不可用
     public static final int SERVICE_UNAVAILABLE = 1240001;
     // 服务认证失败
     public static final int SERVICE_AUTH_FAIL = 1240005;
