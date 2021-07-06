@@ -165,7 +165,7 @@
                 }
                 const { id } = _.find(this.account, item => item.id === accountId);
                 this.serverFile.account = id;
-                const formItem = findParent(this, 'jb-form-item');
+                const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
                     setTimeout(() => {
                         formItem.clearValidator();

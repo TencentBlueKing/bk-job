@@ -213,8 +213,21 @@
                 return stack;
             },
             /**
+             * @desc 外部调用移除所有无效的分组
+             */
+            removeAllInvalidHost () {
+                this.invalidList = [];
+                this.triggerChange();
+            },
+            triggerChange () {
+                this.isInnerChange = true;
+                this.$emit('on-change', [
+                    ...this.invalidList,
+                    ...this.list,
+                ]);
+            },
+            /**
              * @desc 失败重试
-             *
              */
             handleRefresh () {
                 this.fetchDynamicGroup();
@@ -229,7 +242,7 @@
                 ];
                 invalidList.splice(index, 1);
                 this.invalidList = Object.freeze(invalidList);
-                this.trigger();
+                this.triggerChange();
             },
             /**
              * @desc 移除所有分组
@@ -240,11 +253,10 @@
                     this.messageSuccess(I18n.t('你还未选择动态分组'));
                     return;
                 }
-                this.isInnerChange = true;
                 this.list = [];
                 this.groupMap = {};
                 this.invalidList = [];
-                this.$emit('on-change', []);
+                this.triggerChange();
                 this.messageSuccess(I18n.t('移除成功'));
             },
             /**
@@ -252,19 +264,12 @@
              * @param {Number} index 分组的索引
              */
             handleRemove (index) {
-                // 内部显示删除
                 const currentNode = this.list[index];
-                this.isInnerChange = true;
                 const list = [...this.list];
                 list.splice(index, 1);
                 this.list = Object.freeze(list);
                 delete this.groupMap[currentNode.id];
-                // 外部数据更新
-                const newData = [
-                    ...this.data,
-                ];
-                newData.splice(index, 1);
-                this.$emit('on-change', Object.freeze(newData));
+                this.triggerChange();
                 this.messageSuccess(I18n.t('移除成功'));
             },
             /**

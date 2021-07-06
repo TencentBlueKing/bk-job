@@ -37,17 +37,24 @@
                     :data="variable" />
             </global-variable-layout>
             <template #action>
-                <bk-button
-                    theme="primary"
-                    class="w120 mr10"
-                    :loading="isSubmiting"
-                    @click="handleGoExec">
-                    {{ $t('template.执行') }}
-                </bk-button>
-                <bk-button
-                    @click="handleCancle">
-                    {{ $t('template.取消') }}
-                </bk-button>
+                <div class="action-wraper">
+                    <bk-button
+                        theme="primary"
+                        class="w120 mr10"
+                        :loading="isSubmiting"
+                        @click="handleGoExec">
+                        {{ $t('template.执行') }}
+                    </bk-button>
+                    <bk-button
+                        @click="handleCancle">
+                        {{ $t('template.取消') }}
+                    </bk-button>
+                    <bk-button
+                        class="remove-all"
+                        @click="handleRemoveAllInvalidHost">
+                        {{ $t('template.移除无效主机') }}
+                    </bk-button>
+                </div>
             </template>
         </smart-action>
         <back-top />
@@ -165,6 +172,12 @@
                 this.routerBack();
             },
             /**
+             * @desc 一键移除所有无效主机
+             */
+            handleRemoveAllInvalidHost () {
+                this.$refs.variable.forEach(item => item.removeAllInvalidHost());
+            },
+            /**
              * @desc 路由回退
              */
             routerBack () {
@@ -193,15 +206,14 @@
 </script>
 <style lang='postcss'>
     .setting-variable-page {
-        .title {
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1;
-            color: #313238;
-        }
+        .action-wraper {
+            display: flex;
+            align-items: center;
+            width: 960px;
 
-        .variable-list {
-            display: inline-block;
+            .remove-all {
+                margin-left: auto;
+            }
         }
     }
 </style>

@@ -48,6 +48,9 @@
                 <bk-button @click="handleCancle">{{ $t('history.取消') }}</bk-button>
             </template>
         </smart-action>
+        <element-teleport v-if="taskName">
+            <div style="font-size: 12px; color: #63656e;">（{{ taskName }}）</div>
+        </element-teleport>
     </div>
 </template>
 <script>
@@ -65,6 +68,7 @@
         },
         data () {
             return {
+                taskName: '',
                 taskVariables: [],
                 isLoading: true,
                 isSubmiting: false,
@@ -82,10 +86,14 @@
             this.fetchData();
         },
         methods: {
+            /**
+             * @desc 获取任务详情数据
+             */
             fetchData () {
                 TaskExecuteService.fetchTaskInstance({
                     id: this.taskInstanceId,
                 }).then((data) => {
+                    this.taskName = data.taskInstance.name;
                     this.taskVariables = Object.freeze(data.variables.map(({
                         id,
                         name,
@@ -106,7 +114,9 @@
                         this.isLoading = false;
                     });
             },
-
+            /**
+             * @desc 任务重做执行
+             */
             handleGoExec () {
                 if (!this.$refs.variable) {
                     return;
@@ -141,9 +151,15 @@
                             });
                     });
             },
+            /**
+             * @desc 取消重做
+             */
             handleCancle () {
                 this.routerBack();
             },
+            /**
+             * @desc 路由回退
+             */
             routerBack () {
                 this.$router.push({
                     name: 'historyList',

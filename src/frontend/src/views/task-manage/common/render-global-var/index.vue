@@ -29,6 +29,18 @@
     <div id="templateVariableRender">
         <div v-if="showEmpty">--</div>
         <template v-else>
+            <div v-if="isOperation">
+                <bk-button text @click="handleShowBatchOperation">
+                    <Icon type="bulk-edit" />
+                    批量编辑
+                </bk-button>
+            </div>
+            <div v-if="isEditOfPlan">
+                <bk-button text @click="handleShowBatchEditOfPlan">
+                    <Icon type="bulk-edit" />
+                    批量编辑变量值
+                </bk-button>
+            </div>
             <div class="variable-container">
                 <template v-for="(item, index) in variable">
                     <div
@@ -94,6 +106,17 @@
                     @on-change="handlePlanEditSubmit" />
             </jb-sideslider>
             <jb-sideslider
+                v-if="isEditOfPlan"
+                :is-show.sync="isShowBatchEditOfPlan"
+                :title="$t('template.编辑全局变量')"
+                :width="960">
+                <batch-edit-of-plan
+                    v-if="isShowBatchEditOfPlan"
+                    ref="planGlobalVar"
+                    :variable-list="variable"
+                    @on-change="handleBatchPlanEditSubmit" />
+            </jb-sideslider>
+            <jb-sideslider
                 v-if="isOperation"
                 :is-show.sync="isShowOperation"
                 v-bind="operationSideSliderInfo"
@@ -105,26 +128,39 @@
                     :data="currentData"
                     @on-change="handleOperationSubmit" />
             </jb-sideslider>
+            <jb-sideslider
+                v-if="isOperation"
+                :is-show.sync="isShowBatchOperation"
+                v-bind="operationSideSliderInfo"
+                :width="1040">
+                <batch-operation
+                    v-if="isShowBatchOperation"
+                    :variable="variable"
+                    :data="currentData"
+                    @on-change="handleBatchOperationSubmit" />
+            </jb-sideslider>
         </template>
     </div>
 </template>
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import JbSideslider from '@components/jb-sideslider';
+    import VariableModel from '@model/task/global-variable';
     import Operation from './operation';
+    import BatchOperation from './batch-operation';
     import Detail from './detail';
     import EditOfPlan from './edit-of-plan';
+    import BatchEditOfPlan from './batch-edit-of-plan';
     import PopoverDetail from './popover-detail';
-    import VariableModel from '@model/task/global-variable';
 
     export default {
         name: 'RenderGlobalVar',
         components: {
-            JbSideslider,
             Operation,
+            BatchOperation,
             Detail,
             EditOfPlan,
+            BatchEditOfPlan,
             PopoverDetail,
         },
         props: {
@@ -161,7 +197,9 @@
             return {
                 isShowDetail: false,
                 isShowOperation: false,
+                isShowBatchOperation: false,
                 isShowEditOfPlan: false,
+                isShowBatchEditOfPlan: false,
                 variable: [],
                 currentPopoverDetail: {},
                 currentData: {},
@@ -255,6 +293,18 @@
                 this.currentPopoverDetail = {};
             },
             /**
+             * @desc 批量编辑
+             */
+            handleShowBatchOperation () {
+                this.isShowBatchOperation = true;
+            },
+            /**
+             * @desc 批量编辑执行方案中变量值
+             */
+            handleShowBatchEditOfPlan () {
+                this.isShowBatchEditOfPlan = true;
+            },
+            /**
              * @desc 点击全局变量
              * @param {Object} variableInfo 全局变量详情
              * @param {Index} index 点击变量的索引
@@ -314,6 +364,15 @@
                 this.$emit('on-change', this.variable, this.currentOperation, this.currentIndex);
             },
             /**
+             * @desc 批量编辑执行方案全局变量
+             * @param {Array} variableList 全局变量列表
+             */
+            handleBatchPlanEditSubmit (variableList) {
+                const variables = variableList.map(item => new VariableModel(item));
+                this.variable = variables;
+                this.$emit('on-change', variables);
+            },
+            /**
              * @desc 全局变量编辑
              * @param {Object} payload 全局变量数据
              */
@@ -328,6 +387,14 @@
                 }
                 this.$emit('on-change', this.variable, this.currentOperation, this.currentIndex);
                 this.currentOperation = '';
+            },
+            /**
+             * @desc 全局变量批量编辑
+             * @param {Array} variableList 全局变量数据
+             */
+            handleBatchOperationSubmit (variableList) {
+                this.variable = variableList;
+                this.$emit('on-change', variableList);
             },
         },
     };

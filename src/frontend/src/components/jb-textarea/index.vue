@@ -90,7 +90,10 @@
                 return styles;
             },
             wraperStyles () {
-                const styles = {};
+                const styles = {
+                    // eslint-disable-next-line no-underscore-dangle
+                    zIndex: window.__bk_zIndex_manager.nextZIndex(),
+                };
                 
                 if (!this.isFocused) {
                     styles['max-height'] = '100%';
@@ -202,6 +205,7 @@
 
             &:focus {
                 padding-bottom: 30px;
+                background: #fff;
                 border: 1px solid #3a84ff !important;
             }
 

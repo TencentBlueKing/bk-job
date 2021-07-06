@@ -67,6 +67,10 @@ export default class Task {
         this.canCreate = payload.canCreate;
     }
 
+    /**
+     * @desc 作业模版 tag 展示文本
+     * @returns { String }
+     */
     get tagText () {
         if (this.tags.length < 1) {
             return '--';
@@ -74,16 +78,22 @@ export default class Task {
         return this.tags.map(tag => tag.name).join('，');
     }
 
+    /**
+     * @desc 执行脚本步骤，引用的脚本状态展示标记
+     * @returns { String }
+     */
     get scriptStatusHtml () {
         const stack = [];
         if ([
-            STATUS_SCRIPT_NEED_UPDATE, STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE,
+            STATUS_SCRIPT_NEED_UPDATE,
+            STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE,
         ].includes(this.scriptStatus)) {
         // eslint-disable-next-line max-len
             stack.push(`<span tippy-tips="${I18n.t('引用脚本待更新')}"><i class="job-icon job-icon-script-update"></i></span>`);
         }
         if ([
-            STATUS_SCRIPT_DISABLED, STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE,
+            STATUS_SCRIPT_DISABLED,
+            STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE,
         ].includes(this.scriptStatus)) {
         // eslint-disable-next-line max-len
             stack.push(`<span tippy-tips="${I18n.t('引用脚本被禁用')}"><i class="job-icon job-icon-script-disable"></i></span>`);
@@ -91,10 +101,9 @@ export default class Task {
         return `<span style="color: #EA3636">${stack.join('')}</span>`;
     }
 
-    get statusText () {
-        return I18n.t('已上线');
-    }
-
+    /**
+     * @desc 切换作业模板的收藏状态
+     */
     toggleFavored () {
         this.favored = !this.favored;
     }

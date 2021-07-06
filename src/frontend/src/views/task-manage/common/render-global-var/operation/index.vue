@@ -76,7 +76,7 @@
             ref="handler"
             :is="globalVarCom"
             :variable="variable"
-            :data="data"
+            :data="formData"
             @on-change="handleGetValue" />
     </jb-form>
 </template>
@@ -87,6 +87,7 @@
     import VarHost from './host';
     import VarPassword from './password';
     import VarArray from './array';
+    import { createVariable } from '../util';
 
     export default {
         name: 'GlobalVar',
@@ -114,6 +115,7 @@
         data () {
             return {
                 globalType: 'string',
+                formData: {},
             };
         },
         computed: {
@@ -136,10 +138,15 @@
         },
         watch: {
             data: {
-                handler  (value) {
-                    if (Object.keys(value).length) {
-                        this.globalType = value.typeDescription;
+                handler  (data) {
+                    if (data.name) {
+                        // 编辑变量
+                        this.formData = data;
+                    } else {
+                        // 新建变量
+                        this.formData = createVariable();
                     }
+                    this.globalType = this.formData.typeDescription;
                 },
                 immediate: true,
             },

@@ -61,6 +61,7 @@
                 </jb-form-item>
                 <jb-form-item :label="$t('template.作业步骤.label')" required property="steps" style="margin-bottom: 30px;">
                     <render-task-step
+                        ref="step"
                         :list="formData.steps"
                         :variable="formData.variables"
                         mode="operation"
@@ -82,6 +83,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
@@ -138,6 +140,8 @@
         created () {
             this.taskId = this.$route.params.id || 0;
             this.isEdit = this.$route.name === 'templateEdit';
+            // 是否默认显示步骤编辑框
+            this.initShowStepId = Number(this.$route.params.stepId);
 
             // 编辑和克隆作业模版时需要获取模版数据
             if (this.$route.name !== 'templateCreate') {
@@ -196,8 +200,15 @@
                         variables,
                         steps: stepList,
                     };
+                    // 克隆模板提示密文变量
                     if (!this.isEdit) {
                         this.searchCiphertextVariable();
+                    }
+                    // 编辑执行步骤
+                    if (isFirst && this.isEdit && this.initShowStepId > 0) {
+                        setTimeout(() => {
+                            this.$refs.step.clickStepByIndex(_.findIndex(stepList, ({ id }) => id === this.initShowStepId));
+                        });
                     }
                     // 再次编辑
                     // 拉取模版最新数据
@@ -269,51 +280,16 @@
                     extCls: 'password-variable-info',
                 });
             },
+            
             /**
-             * @desc 更新全局变量名时自动替换步骤中已经引用的全局变量
-             * @param {Object} updateMap 全局变量对应的最新名字
-             */
-            syncStepVariable (updateMap) {
-                this.formData.steps.forEach((currentStep) => {
-                    if (currentStep.isFile) {
-                        // 分发文件步骤
-
-                        // 执行目标使用全局变量
-                        const { fileDestination, fileSourceList } = currentStep.fileStepInfo;
-                        const { server } = fileDestination;
-                        if (updateMap[server.variable]) {
-                            server.variable = updateMap[server.variable];
-                        }
-                        // 源文件使用全局变量
-                        fileSourceList.forEach((currentFile) => {
-                            if (currentFile.fileType === 1) {
-                                // 服务器文件
-                                if (updateMap[currentFile.host.variable]) {
-                                    currentFile.host.variable = updateMap[currentFile.host.variable];
-                                }
-                            }
-                        });
-                    } else if (currentStep.isScript) {
-                        // 脚本步骤
-
-                        // 执行目标使用全局变量
-                        const { executeTarget } = currentStep.scriptStepInfo;
-                        if (updateMap[executeTarget.variable]) {
-                            executeTarget.variable = updateMap[executeTarget.variable];
-                        }
-                    }
-                });
-                this.formData.steps = [
-                    ...this.formData.steps,
-                ];
-            },
-            /**
-             * @desc 删除全局变量时，提示已经引用该变量的步骤
+             * @desc 删除全局变量-删除步骤中的变量引用
+             * @param {Array} stepList 步骤列表
+             * @param {Object} deleteMap 删除的变量名
              * @returns {Array}
              *
              * 忽略已经删除的步骤
              */
-            updateStepLocalValidator (stepList, removeVariableName) {
+            syncStepVarialbeDelete (stepList, deleteMap) {
                 let changeFlag = false;
                 // 所有主机全局变量
                 stepList.forEach((currentStep) => {
@@ -326,7 +302,7 @@
                         const { fileDestination, fileSourceList } = currentStep.fileStepInfo;
                         // 执行目标使用变量
                         const { server } = fileDestination;
-                        if (server.variable && server.variable === removeVariableName) {
+                        if (deleteMap[server.variable]) {
                             server.variable = '';
                             currentStep.localValidator = false;
                             changeFlag = true;
@@ -334,8 +310,7 @@
                         // 源文件使用变量
                         fileSourceList.forEach((currentFile) => {
                             if (currentFile.fileType === 1) {
-                                if (currentFile.host.variable
-                                    && currentFile.host.variable === removeVariableName) {
+                                if (deleteMap[currentFile.host.variable]) {
                                     currentFile.host.variable = '';
                                     // 步骤使用的全局变量被删除，步骤需要被标记为待补全状态
                                     currentStep.localValidator = false;
@@ -343,11 +318,12 @@
                                 }
                             }
                         });
-                    } else if (currentStep.isScript) {
+                        return;
+                    }
+                    if (currentStep.isScript) {
                         // 脚本步骤
                         const { executeTarget } = currentStep.scriptStepInfo;
-                        if (executeTarget.variable
-                            && executeTarget.variable === removeVariableName) {
+                        if (deleteMap[executeTarget.variable]) {
                             executeTarget.variable = '';
                             // 步骤使用的全局变量被删除，步骤需要被标记为待补全状态
                             currentStep.localValidator = false;
@@ -358,35 +334,96 @@
                 return changeFlag ? [...stepList] : stepList;
             },
             /**
+             * @desc 修改全局变量名-同步步骤中引用的变量
+             * @param {Array} stepList 步骤列表
+             * @param {Object} renameMap 全局变量对应的最新名字
+             * @returns {Array}
+             *
+             * 忽略已经删除的步骤
+             */
+            syncStepVariableRename (stepList, renameMap) {
+                stepList.forEach((currentStep) => {
+                    // 步骤已经删除
+                    if (currentStep.delete) {
+                        return;
+                    }
+                    // 分发文件步骤
+                    if (currentStep.isFile) {
+                        // 执行目标使用全局变量
+                        const { fileDestination, fileSourceList } = currentStep.fileStepInfo;
+                        const { server } = fileDestination;
+                        if (renameMap[server.variable]) {
+                            server.variable = renameMap[server.variable];
+                        }
+                        // 源文件使用全局变量
+                        fileSourceList.forEach((currentFile) => {
+                            if (currentFile.fileType === 1) {
+                                // 服务器文件
+                                if (renameMap[currentFile.host.variable]) {
+                                    currentFile.host.variable = renameMap[currentFile.host.variable];
+                                }
+                            }
+                        });
+                        return;
+                    }
+                    // 脚本步骤
+                    if (currentStep.isScript) {
+                        // 执行目标使用全局变量
+                        const { executeTarget } = currentStep.scriptStepInfo;
+                        if (renameMap[executeTarget.variable]) {
+                            executeTarget.variable = renameMap[executeTarget.variable];
+                        }
+                    }
+                });
+                return [...stepList];
+            },
+            /**
              * @desc 全局变量更新
-             * @param {Array} variableArr 最新的变量列表
+             * @param {Array} variableList 最新的变量列表
              * @param {String} actionType 对变量的进行的操作（edit、create、delete）
              * @param {Number} index 当前操作的变量索引
              *
-             * 更新全局变量名
+             * 更新主机变量名
              *  -自动替换步骤中已经引用的全局变量
-             * 删除全局变量
+             * 删除主机变量
              *  -将使用了该全局变量的步骤标记为待补全
              */
-            handleGlobalVariableChange (variableArr, actionType, index) {
-                const memoVariable = this.formData.variables[index];
-                // 变量有更新同步更新步骤引用
-                if (actionType === 'edit' && memoVariable && memoVariable.isHost) {
-                    const changeMap = {};
-                    // 修改了变量名自动同步
-                    if (memoVariable.name !== variableArr[index].name) {
-                        changeMap[memoVariable.name] = variableArr[index].name;
-                        this.syncStepVariable(changeMap);
+            handleGlobalVariableChange (variableList) {
+                const newVariableMap = variableList.reduce((result, variable) => {
+                    result[variable.id] = {
+                        name: variable.name,
+                        delete: variable.delete,
+                    };
+                    return result;
+                }, {});
+                // 主机变量修改变量名自动同步步骤里面的变量引用
+                const renameMap = {};
+                // 主机变量被删除同步删除步骤里面的引用记录
+                const deleteMap = {};
+                this.formData.variables.forEach((variable) => {
+                    if (!variable.isHost) {
+                        return;
                     }
-                }
-
-                this.formData.variables = variableArr;
-                if (actionType === 'delete') {
-                    this.formData.steps = this.updateStepLocalValidator(
-                        this.formData.steps,
-                        memoVariable.name,
-                    );
-                }
+                    const {
+                        id,
+                        name,
+                    } = variable;
+                    // 全局变量被删除
+                    if (!newVariableMap[id] || newVariableMap[id].delete) {
+                        deleteMap[name] = true;
+                        return;
+                    }
+                    // 修改了变量
+                    if (newVariableMap[id].name !== name) {
+                        renameMap[name] = newVariableMap[id].name;
+                    }
+                });
+                // 优先同步删除操作
+                let stepList = this.syncStepVarialbeDelete(this.formData.steps, deleteMap);
+                // 同步改名操作
+                stepList = this.syncStepVariableRename(stepList, renameMap);
+                this.formData.variables = variableList;
+                this.formData.steps = stepList;
             },
             /**
              * @desc 步骤更新
@@ -404,28 +441,6 @@
              * - 步骤的基本数据是否完整
              */
             handlerSubmit () {
-                // const tips = this.searchStepInvalidVariable();
-                // if (tips.length > 0) {
-                //     const subHeader = () => (
-                //     <div style="width: 100%; overflow: auto;">
-                //         { tips.map(tip => (
-                //             <div>
-                //                 <span>{I18n.t('template.步骤')}：{tip.name} / </span>
-                //                 <span>{tip.flag}{I18n.t('template.中')}</span>
-                //                 <span>{I18n.t('template.变量')}：{tip.variable}</span>
-                //             </div>
-                //         )) }
-                //     </div>
-                // );
-                //     this.$bkInfo({
-                //         title: I18n.t('template.变量被删除，请重新设置'),
-                //         type: 'error',
-                //         subHeader: subHeader(),
-                //         okText: I18n.t('template.去设置'),
-                //         extCls: 'invalid-variable-info',
-                //     });
-                //     return;
-                // }
                 // eslint-disable-next-line no-plusplus
                 for (let i = 0; i < this.formData.steps.length; i++) {
                     if (this.formData.steps[i].localValidator === false) {

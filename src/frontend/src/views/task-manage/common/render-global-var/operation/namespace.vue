@@ -54,25 +54,12 @@
     </jb-form>
 </template>
 <script>
-    import _ from 'lodash';
     import I18n from '@/i18n';
     import {
         globalVariableNameRule,
     } from '@utils/validator';
     import JbInput from '@components/jb-input';
 
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 初始值
-        defaultValue: '',
-        // 变量描述
-        description: '',
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
     export default {
         name: 'VarNamespace',
         components: {
@@ -87,34 +74,13 @@
             },
             data: {
                 type: Object,
-                default () {
-                    return {};
-                },
+                default: () => ({}),
             },
         },
         data () {
             return {
-                formData: getDefaultData(),
+                formData: { ...this.data },
             };
-        },
-        watch: {
-            data: {
-                handler (value) {
-                    if (value.name) {
-                        const newFormData = _.cloneDeep(value);
-                        const { name, defaultValue, description, required, id } = newFormData;
-                        this.formData = {
-                            id,
-                            name,
-                            defaultValue,
-                            description,
-                            required,
-                            delete: newFormData.delete,
-                        };
-                    }
-                },
-                immediate: true,
-            },
         },
         created () {
             this.rules = {
@@ -139,12 +105,13 @@
         },
         methods: {
             submit () {
-                return this.$refs.varNamespaceForm.validate().then((validator) => {
-                    this.$emit('on-change', {
-                        ...this.formData,
-                        type: 2,
-                    });
-                }, validator => Promise.reject(validator.content));
+                return this.$refs.varNamespaceForm.validate()
+                    .then(() => {
+                        this.$emit('on-change', {
+                            ...this.formData,
+                            type: 2,
+                        });
+                    }, validator => Promise.reject(validator.content));
             },
         },
     };
