@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.manage.model.web.request.BatchGetPlanReq;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
@@ -91,6 +92,17 @@ public interface WebTaskPlanResource {
         @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID", required = true)
         @PathVariable(value = "templateId") Long templateId
+    );
+
+    @ApiOperation(value = "批量获取执行方案基本信息", produces = "application/json")
+    @GetMapping("/app/{appId}/task/plan:batchGet")
+    ServiceResponse<List<TaskPlanVO>> batchGetPlans(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId") Long appId,
+        @ApiParam(value = "批量获取执行方案请求", required = true)
+        @RequestBody BatchGetPlanReq batchGetPlanReq
     );
 
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")

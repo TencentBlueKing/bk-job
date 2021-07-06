@@ -38,8 +38,24 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.TaskStepConverter;
 import com.tencent.bk.job.manage.model.dto.converter.TaskVariableConverter;
-import com.tencent.bk.job.manage.model.dto.task.*;
-import com.tencent.bk.job.manage.model.inner.*;
+import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalUserDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskFileStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.AccountService;
@@ -52,7 +68,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -222,7 +242,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     @Override
     public ServiceResponse<List<ServiceTaskPlanDTO>> listPlans(String username, Long appId, Long templateId) {
-        List<TaskPlanInfoDTO> taskPlanInfoDTOList = taskPlanService.listPageTaskPlansBasicInfo(appId, templateId);
+        List<TaskPlanInfoDTO> taskPlanInfoDTOList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         List<ServiceTaskPlanDTO> resultList = taskPlanInfoDTOList.parallelStream().map(it -> {
             ServiceTaskPlanDTO serviceTaskPlanDTO = new ServiceTaskPlanDTO();
             serviceTaskPlanDTO.setId(it.getId());

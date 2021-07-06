@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
@@ -35,7 +36,11 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.crontab.model.CronJobVO;
@@ -45,6 +50,7 @@ import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.web.request.BatchGetPlanReq;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
@@ -62,7 +68,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -205,11 +218,18 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
         if (!authResultVO.isPass()) {
             return ServiceResponse.buildAuthFailResp(authResultVO);
         }
+
+        List<TaskPlanVO> taskPlanList = listPlansByTemplateId(username, appId, templateId);
+        return ServiceResponse.buildSuccessResp(taskPlanList);
+    }
+
+    private List<TaskPlanVO> listPlansByTemplateId(String username, Long appId, Long templateId) {
         TaskTemplateInfoDTO taskTemplateBasicInfo = templateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateBasicInfo == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_PLAN_NOT_EXIST, i18nService);
+            throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
-        List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPageTaskPlansBasicInfo(appId, templateId);
+
+        List<TaskPlanInfoDTO> taskPlanInfoList = planService.listTaskPlansBasicInfo(appId, templateId);
         fillCronInfo(appId, taskPlanInfoList);
         final String templateVersion = taskTemplateBasicInfo.getVersion();
         List<TaskPlanVO> taskPlanList = taskPlanInfoList.stream().map(taskPlanInfo -> {
@@ -218,7 +238,7 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
             return TaskPlanInfoDTO.toVO(taskPlanInfo);
         }).collect(Collectors.toList());
         processPlanPermission(username, appId, taskPlanList);
-        return ServiceResponse.buildSuccessResp(taskPlanList);
+        return taskPlanList;
     }
 
     private void processPlanPermission(String username, Long appId, List<TaskPlanVO> taskPlanList) {
@@ -255,6 +275,31 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
                 plan.setVariableList(null);
             }
         });
+    }
+
+    @Override
+    public ServiceResponse<List<TaskPlanVO>> batchGetPlans(String username, Long appId,
+                                                           BatchGetPlanReq batchGetPlanReq) {
+        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+            ResourceTypeEnum.BUSINESS, appId.toString(), null);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
+
+        if (batchGetPlanReq == null || CollectionUtils.isEmpty(batchGetPlanReq.getTemplateIdList())) {
+            log.warn("Invalid request, req: {}", batchGetPlanReq);
+            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+        }
+
+        List<TaskPlanVO> planList = new ArrayList<>();
+        for (Long templateId : batchGetPlanReq.getTemplateIdList()) {
+            List<TaskPlanVO> templatePlanList = listPlansByTemplateId(username, appId, templateId);
+            if (CollectionUtils.isNotEmpty(templatePlanList)) {
+                planList.addAll(templatePlanList);
+            }
+        }
+
+        return ServiceResponse.buildSuccessResp(planList);
     }
 
     @Override
