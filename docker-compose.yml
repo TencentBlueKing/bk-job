@@ -19,6 +19,20 @@ services:
       - traefik.enable=true
       - traefik.http.routers.bk-job-frontend.rule=Host(`job.l.containerize.cn`)
       - traefik.http.routers.bk-job-frontend.service=frontend-bk-job
+  config:
+    image: bk-job-config
+    environment:
+      - SPRING_PROFILES_ACTIVE=native,prod
+      - SPRING_CLOUD_CONSUL_HOST=consul
+    build:
+      context: src/backend
+      dockerfile: job-config/Dockerfile
+  consul:
+    image: consul
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
+    ports:
+      - 8500:8500
+      - 8600:8600/udp
 
   mysql:
     image: mysql:5.7
