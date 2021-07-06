@@ -41,7 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.jooq.BatchBindStep;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Query;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Record12;
+import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Host;
 import org.jooq.generated.tables.HostTopo;
@@ -52,7 +59,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -183,7 +195,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc());
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         Result<Record12<ULong, ULong, String, String, String, String, ULong, String, String, String, String, UByte>> records;
         if (start == null || start < 0) {
             start = 0L;
@@ -293,7 +305,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .join(tHostTopo)
                 .on(tHost.HOST_ID.eq(tHostTopo.HOST_ID))
                 .where(conditions)
-                .orderBy(TABLE.IS_AGENT_ALIVE.desc());
+                .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         log.debug("SQL={}", query.getSQL(ParamType.INLINED));
         Result<Record> records;
         if (start == null || start < 0) {
@@ -308,8 +320,15 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (records != null && records.size() >= 1) {
             hostIdList = records.parallelStream().map(record -> record.get(0, Long.class)).collect(Collectors.toList());
         }
-        hostIdList = new ArrayList<>(new HashSet<>(hostIdList));
-        return hostIdList;
+        Set<Long> hostIdSet = new HashSet<>();
+        List<Long> uniqueHostIdList = new ArrayList<>();
+        hostIdList.forEach(hostId -> {
+            if (!hostIdSet.contains(hostId)) {
+                uniqueHostIdList.add(hostId);
+                hostIdSet.add(hostId);
+            }
+        });
+        return uniqueHostIdList;
     }
 
     @Override
@@ -322,7 +341,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -343,7 +362,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -365,7 +384,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc()).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -391,7 +410,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc()).limit(start, length).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc())
+                .limit(start, length).fetch();
 
         List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
 
@@ -898,7 +918,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .select(TABLE.HOST_ID, TABLE.APP_ID, TABLE.IP, TABLE.IP_DESC,
                     TABLE.SET_IDS, TABLE.MODULE_IDS, TABLE.CLOUD_AREA_ID,
                     TABLE.DISPLAY_IP, TABLE.OS, TABLE.OS_TYPE, TABLE.MODULE_TYPE, TABLE.IS_AGENT_ALIVE)
-                .from(TABLE).where(conditions).orderBy(TABLE.ROW_UPDATE_TIME.desc()).fetch();
+                .from(TABLE).where(conditions).orderBy(TABLE.ROW_UPDATE_TIME.desc(), TABLE.HOST_ID.asc()).fetch();
         if (records != null && records.size() >= 1) {
             return DbRecordMapper.convertRecordToApplicationHostInfo(records.get(0));
         }
