@@ -40,6 +40,13 @@ class TaskPlan extends ModuleBase {
         });
     }
 
+    // 批量获取作业模板的执行方案列表
+    getAllTemplatePlan (params = {}) {
+        return Request.get(`${this.path}/task/plan:batchGet`, {
+            params,
+        });
+    }
+
     // 获取执行方案信息
     getDetail (params = {}, payload = {}) {
         const { templateId, id } = params;
