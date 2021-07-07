@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 @UpgradeTask(
     dataStartVersion = "3.0.0.0",
     targetVersion = "3.3.6.0",
-    targetExecuteTime = ExecuteTimeEnum.BEFORE_UPDATE_JOB)
+    targetExecuteTime = ExecuteTimeEnum.AFTER_UPDATE_JOB)
 public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
 
     private JobIamHelper jobIamHelper;
@@ -138,7 +138,12 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
     }
 
     private List<AppInfo> getAllNormalAppInfoFromManage() {
-        return jobManageClient.listNormalApps();
+        try {
+            return jobManageClient.listNormalApps();
+        } catch (Exception e) {
+            log.error("Fail to get normal apps from job-manage, please confirm job-manage version>=3.3.6.0");
+            throw e;
+        }
     }
 
     /**

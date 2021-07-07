@@ -41,9 +41,11 @@ import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,11 +131,23 @@ public class Upgrader {
         Properties properties = new Properties();
         String configFilePath = System.getProperty("config.file");
         if (StringUtils.isNotBlank(configFilePath)) {
+            BufferedReader br=null;
             try {
-                properties.load(new BufferedReader(new FileReader(configFilePath)));
+                br = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(configFilePath), StandardCharsets.UTF_8)
+                );
+                properties.load(br);
             } catch (IOException e) {
                 log.warn("Cannot read configFile from path:{}, exit", configFilePath, e);
                 return;
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.warn("Fail to close br", e);
+                    }
+                }
             }
         } else {
             log.warn("Config file is empty");
