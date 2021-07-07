@@ -32,13 +32,13 @@
             <div v-if="isOperation">
                 <bk-button text @click="handleShowBatchOperation">
                     <Icon type="bulk-edit" />
-                    批量编辑
+                    {{ $t('template.批量编辑') }}
                 </bk-button>
             </div>
             <div v-if="isEditOfPlan">
                 <bk-button text @click="handleShowBatchEditOfPlan">
                     <Icon type="bulk-edit" />
-                    批量编辑变量值
+                    {{ $t('template.批量编辑变量值') }}
                 </bk-button>
             </div>
             <div class="variable-container">
@@ -91,7 +91,7 @@
                 :title="$t('template.查看全局变量')"
                 :show-footer="false"
                 ref="variableView"
-                :media="mediaQueryMap">
+                :media="detailMedia">
                 <detail v-if="isShowDetail" :data="currentData" :default-field="defaultField" />
             </jb-sideslider>
             <jb-sideslider
@@ -109,7 +109,8 @@
                 v-if="isEditOfPlan"
                 :is-show.sync="isShowBatchEditOfPlan"
                 :title="$t('template.编辑全局变量')"
-                :width="960">
+                :width="960"
+                footer-offset-target="variable-value">
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
                     ref="planGlobalVar"
@@ -132,7 +133,7 @@
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
                 v-bind="operationSideSliderInfo"
-                :width="1040">
+                :media="batchOperationMediaQuery">
                 <batch-operation
                     v-if="isShowBatchOperation"
                     :variable="variable"
@@ -205,10 +206,14 @@
                 currentData: {},
                 currentIndex: -1,
                 currentOperation: 'create',
-                mediaQueryMap: [],
+                detailMedia: [],
             };
         },
         computed: {
+            /**
+             * @desc 展示数据为空时的文本
+             * @returns { Boolean }
+             */
             showEmpty () {
                 if (this.isOperation) {
                     return false;
@@ -217,36 +222,42 @@
             },
             /**
              * @desc 新建、编辑全局变量
+             * @returns { Boolean }
              */
             isOperation () {
                 return this.mode === 'operate';
             },
             /**
              * @desc 选择全局变量
+             * @returns { Boolean }
              */
             isSelect () {
                 return this.mode === 'select' || this.mode === 'editOfPlan';
             },
             /**
              * @desc 编辑执行方案中的全局变量
+             * @returns { Boolean }
              */
             isEditOfPlan () {
                 return this.mode === 'editOfPlan';
             },
             /**
              * @desc 查看全局变量
+             * @returns { Boolean }
              */
             isView () {
                 return !this.mode;
             },
             /**
              * @desc 插卡全局变量同步对比差异
+             * @returns { Boolean }
              */
             isDiff () {
                 return this.mode === 'diff';
             },
             /**
              * @desc 展示的全局变量不包含已删除
+             * @returns { Array }
              */
             realVariable () {
                 // 过滤掉已经删除的变量
@@ -257,6 +268,10 @@
                 }
                 return validVariable;
             },
+            /**
+             * @desc 变量编辑侧栏的展示信息
+             * @returns { Object }
+             */
             operationSideSliderInfo () {
                 if (Object.keys(this.currentData).length < 1) {
                     return {
@@ -278,7 +293,16 @@
                 immediate: true,
             },
         },
+        created () {
+            this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
+        },
         methods: {
+            /**
+             * @desc 更新外部数据
+             */
+            triggerChange () {
+                this.$emit('on-change', this.variable);
+            },
             /**
              * @desc 显示全局变量详情tips
              * @param {Object} variableInfo 全局变量详情
@@ -312,7 +336,7 @@
             handlerOperation (variableInfo, index) {
                 this.currentData = variableInfo;
                 if (this.isView) {
-                    this.mediaQueryMap = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
+                    this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
                     this.isShowDetail = true;
                     return;
                 }
@@ -326,7 +350,7 @@
             },
             /**
              * @desc 删除全局变量
-             * @param {Index} index 删除变量的索引
+             * @param {Number} index 删除变量的索引
              */
             handleDelete (index) {
                 this.$bkInfo({
@@ -341,7 +365,7 @@
                             // 删除新建的变量——直接删除
                             this.variable.splice(index, 1);
                         }
-                        this.$emit('on-change', this.variable, 'delete', index);
+                        this.triggerChange();
                     },
                 });
             },
@@ -361,7 +385,7 @@
             handlePlanEditSubmit (payload) {
                 const variable = new VariableModel(payload);
                 this.variable.splice(this.currentIndex, 1, variable);
-                this.$emit('on-change', this.variable, this.currentOperation, this.currentIndex);
+                this.triggerChange();
             },
             /**
              * @desc 批量编辑执行方案全局变量
@@ -370,7 +394,7 @@
             handleBatchPlanEditSubmit (variableList) {
                 const variables = variableList.map(item => new VariableModel(item));
                 this.variable = variables;
-                this.$emit('on-change', variables);
+                this.triggerChange();
             },
             /**
              * @desc 全局变量编辑
@@ -385,7 +409,7 @@
                     // 编辑变量——替换
                     this.variable.splice(this.currentIndex, 1, payloadModel);
                 }
-                this.$emit('on-change', this.variable, this.currentOperation, this.currentIndex);
+                this.triggerChange();
                 this.currentOperation = '';
             },
             /**
@@ -394,7 +418,7 @@
              */
             handleBatchOperationSubmit (variableList) {
                 this.variable = variableList;
-                this.$emit('on-change', variableList);
+                this.triggerChange();
             },
         },
     };

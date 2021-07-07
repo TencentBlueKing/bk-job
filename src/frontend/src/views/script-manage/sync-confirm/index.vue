@@ -108,10 +108,9 @@
     import _ from 'lodash';
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
+    
     import PublicScriptService from '@service/public-script-manage';
-    import {
-        checkPublicScript,
-    } from '@utils/assist';
+    import { checkPublicScript } from '@utils/assist';
     import JbDiff from '@components/jb-diff';
     import ActionBar from '../common/action-bar';
     import ScriptDetail from './components/script-detail';

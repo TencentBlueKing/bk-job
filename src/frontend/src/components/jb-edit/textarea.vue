@@ -93,7 +93,7 @@
                 type: String,
                 default: '',
             },
-            // true 时值的内容一行展示
+            // 忽略换行强制文本在一行显示
             singleRowRender: {
                 type: Boolean,
                 default: false,
@@ -171,63 +171,6 @@
             });
         },
         methods: {
-            handleBlockShowEdit () {
-                if (!this.isBlock) {
-                    return;
-                }
-                this.handleShowInput();
-            },
-            /**
-             * @desc 开始编辑
-             *
-             * 阻止事件的冒泡
-             * 手动触发body的 click 事件，
-             */
-            handleShowInput () {
-                document.body.click();
-                this.isEditing = true;
-                this.$nextTick(() => {
-                    this.$refs.input.focus();
-                });
-            },
-            /**
-             * @desc 输入框失去焦点
-             *
-             * 值没有改变不需要提交
-             */
-            handleInputBlur () {
-                this.isEditing = false;
-                if (this.newVal === this.value) {
-                    return;
-                }
-                this.isSubmiting = true;
-                this.remoteHander({
-                    [this.field]: this.newVal,
-                }).then(() => {
-                    this.$emit('on-change', {
-                        [this.field]: this.newVal,
-                    });
-                    this.messageSuccess(I18n.t('编辑成功'));
-                })
-                    .finally(() => {
-                        this.isSubmiting = false;
-                    });
-            },
-            /**
-             * @desc 退出编辑状态
-             */
-            handleHideInput (event) {
-                if (event.path && event.path.length > 0) {
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = 0; i < event.path.length; i++) {
-                        const target = event.path[i];
-                        if (target.className === 'jb-edit-textarea') {
-                            return;
-                        }
-                    }
-                }
-                this.isEditing = false;
-            },
             /**
              * @desc 计算默认展示的文本宽度
              *
@@ -276,6 +219,70 @@
                     });
                 });
             },
+            /**
+             * @desc 切换编辑状态
+             */
+            handleBlockShowEdit () {
+                if (!this.isBlock) {
+                    return;
+                }
+                this.handleShowInput();
+            },
+            /**
+             * @desc 开始编辑
+             *
+             * 阻止事件的冒泡
+             * 手动触发body的 click 事件，
+             */
+            handleShowInput () {
+                document.body.click();
+                this.isEditing = true;
+                this.$nextTick(() => {
+                    this.$refs.input.focus();
+                });
+            },
+            /**
+             * @desc 输入框失去焦点
+             *
+             * 值没有改变不需要提交
+             */
+            handleInputBlur () {
+                this.isEditing = false;
+                if (this.newVal === this.value) {
+                    return;
+                }
+                this.isSubmiting = true;
+                this.remoteHander({
+                    [this.field]: this.newVal,
+                }).then(() => {
+                    this.$emit('on-change', {
+                        [this.field]: this.newVal,
+                    });
+                    this.calcEllTextLength();
+                    this.messageSuccess(I18n.t('编辑成功'));
+                })
+                    .finally(() => {
+                        this.isSubmiting = false;
+                    });
+            },
+            /**
+             * @desc 退出编辑状态
+             */
+            handleHideInput (event) {
+                if (event.path && event.path.length > 0) {
+                    // eslint-disable-next-line no-plusplus
+                    for (let i = 0; i < event.path.length; i++) {
+                        const target = event.path[i];
+                        if (target.className === 'jb-edit-textarea') {
+                            return;
+                        }
+                    }
+                }
+                this.isEditing = false;
+            },
+            /**
+             * @desc 查看态的文本展开收起
+             */
             handleExpandAll () {
                 this.isExpand = !this.isExpand;
             },
@@ -290,9 +297,13 @@
             position: relative;
             cursor: pointer;
 
+            .render-value-box,
+            .edit-value-box {
+                margin-left: -10px;
+            }
+
             .render-value-box {
                 padding-left: 10px;
-                margin-left: -10px;
 
                 &:hover {
                     background: #f0f1f5;
@@ -324,6 +335,7 @@
 
             .text-whole {
                 color: #3a84ff;
+                white-space: nowrap;
                 cursor: pointer;
             }
         }
@@ -332,7 +344,7 @@
             position: relative;
             max-width: calc(100% - 25px);
             overflow: hidden;
-            line-height: 26px;
+            line-height: 24px;
             white-space: pre-wrap;
             flex: 0 0 auto;
         }

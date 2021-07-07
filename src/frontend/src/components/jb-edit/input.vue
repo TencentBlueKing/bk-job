@@ -274,9 +274,13 @@
             position: relative;
             cursor: pointer;
 
+            .render-value-box,
+            .edit-value-box {
+                margin-left: -10px;
+            }
+
             .render-value-box {
                 padding-left: 10px;
-                margin-left: -10px;
 
                 &:hover {
                     background: #f0f1f5;
@@ -364,6 +368,10 @@
                 padding: 0 10px;
                 font-size: 16px;
                 color: #ea3636;
+            }
+
+            .bk-form-input {
+                height: 30px;
             }
         }
     }

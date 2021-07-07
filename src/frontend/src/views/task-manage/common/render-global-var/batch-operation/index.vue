@@ -4,13 +4,13 @@
             <thead>
                 <tr>
                     <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
-                    <th style="width: 120px;">{{ $t('template.变量名称') }}<span class="require-flag" /></th>
-                    <th style="width: 150px;">
+                    <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
+                    <th>
                         <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
                             {{ $t('template.初始值') }}
                         </span>
                     </th>
-                    <th>{{ $t('template.变量描述') }}</th>
+                    <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
                     <th style="width: 80px;">
                         <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
                             {{ $t('template.赋值可变') }}
@@ -41,6 +41,13 @@
                     @on-append="handleAppendVariable(index)" />
             </template>
         </table>
+        <div
+            v-if="variableList.length < 1"
+            class="empty-box"
+            @click="handleAppendVariable(0)">
+            <Icon type="add-fill" />
+            <span>{{ $t('template.全局变量') }}</span>
+        </div>
     </div>
 </template>
 <script>
@@ -66,11 +73,6 @@
             return {
                 variableList: _.cloneDeep(this.variable),
             };
-        },
-        created () {
-            if (this.variable.length < 1) {
-                this.variableList.push(createVariable());
-            }
         },
         methods: {
             /**
@@ -152,7 +154,8 @@
             th,
             td {
                 height: 41px;
-                padding: 0 15px;
+                padding-right: 5px;
+                padding-left: 15px;
                 text-align: left;
             }
 
@@ -191,6 +194,35 @@
                     font-size: 18px;
                     color: #c4c6cc;
                     cursor: pointer;
+                }
+            }
+        }
+
+        .empty-box {
+            display: flex;
+            height: 32px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #979ba5;
+            cursor: pointer;
+            background: #fcfdff;
+            border: 1px dashed #c4c6cc;
+            border-radius: 2px;
+            align-items: center;
+            justify-content: center;
+
+            i {
+                margin-right: 7px;
+                font-size: 14px;
+                color: #c4c6cc;
+            }
+
+            &:hover {
+                color: #3a84ff;
+                border-color: #3a84ff;
+
+                i {
+                    color: #3a84ff;
                 }
             }
         }

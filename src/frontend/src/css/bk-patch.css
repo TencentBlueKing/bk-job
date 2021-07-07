@@ -94,6 +94,17 @@
     line-height: 24px !important;
 }
 
+.bk-textarea-wrapper {
+    border: none;
+
+    .bk-form-textarea {
+        padding-bottom: 26px;
+        margin-bottom: 0;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+    }
+}
+
 .bk-form-input,
 .bk-form-password,
 .bk-form-select,
@@ -179,10 +190,6 @@
 /**
     覆盖 tooltip 样式
  */
-.tippy-content {
-    padding: 0 !important;
-}
-
 .tippy-tooltip {
     z-index: 1;
 }
