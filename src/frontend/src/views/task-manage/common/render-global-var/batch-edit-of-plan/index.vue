@@ -1,14 +1,12 @@
 <template>
-    <div>
-        <global-variable-layout>
-            <global-variable
-                v-for="variable in variableList"
-                ref="variable"
-                :type="variable.type"
-                :key="variable.id"
-                :data="variable" />
-        </global-variable-layout>
-    </div>
+    <global-variable-layout style="margin-bottom: -20px;">
+        <global-variable
+            v-for="variable in variableList"
+            ref="variable"
+            :type="variable.type"
+            :key="variable.id"
+            :data="variable" />
+    </global-variable-layout>
 </template>
 <script>
     import GlobalVariableLayout from '@components/global-variable/layout';

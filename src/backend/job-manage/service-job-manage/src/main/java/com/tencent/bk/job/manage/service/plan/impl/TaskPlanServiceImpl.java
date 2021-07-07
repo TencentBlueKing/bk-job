@@ -54,7 +54,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -115,7 +121,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    public List<TaskPlanInfoDTO> listPageTaskPlansBasicInfo(Long appId, Long templateId) {
+    public List<TaskPlanInfoDTO> listTaskPlansBasicInfo(Long appId, Long templateId) {
         checkTemplateExist(appId, templateId);
         return taskPlanDAO.listTaskPlans(appId, templateId);
     }
