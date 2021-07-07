@@ -69,14 +69,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            v-if="filterColumnMap.scriptVersionId"
+                            v-if="allColumnMap.scriptVersionId"
                             :label="$t('script.版本 ID')"
                             prop="scriptVersionId"
                             key="scriptVersionId"
                             align="left"
                             width="100" />
                         <bk-table-column
-                            v-if="filterColumnMap.version"
+                            v-if="allColumnMap.version"
                             :label="$t('script.版本号.colHead')"
                             prop="version"
                             key="version"
@@ -88,7 +88,7 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            v-if="filterColumnMap.relatedTaskNum"
+                            v-if="allColumnMap.relatedTaskNum"
                             :label="$t('script.被引用.colHead')"
                             prop="relatedTaskNum"
                             key="relatedTaskNum"
@@ -106,14 +106,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column
-                            v-if="filterColumnMap.lastModifyUser"
+                            v-if="allColumnMap.lastModifyUser"
                             :label="$t('script.更新人.colHead')"
                             prop="lastModifyUser"
                             key="lastModifyUser"
                             align="left"
                             width="160" />
                         <bk-table-column
-                            v-if="filterColumnMap.lastModifyTime"
+                            v-if="allColumnMap.lastModifyTime"
                             :label="$t('script.更新时间')"
                             prop="lastModifyTime"
                             key="lastModifyTime"
@@ -121,7 +121,7 @@
                             width="200"
                             :sortable="true" />
                         <bk-table-column
-                            v-if="filterColumnMap.statusDesc"
+                            v-if="allColumnMap.statusDesc"
                             :label="$t('script.状态')"
                             prop="statusDesc"
                             key="statusDesc"
@@ -345,9 +345,17 @@
             };
         },
         computed: {
+            /**
+             * @desc 骨架屏 Loading
+             * @returns { Boolean }
+             */
             isSkeletonLoading () {
                 return this.isLoading;
             },
+            /**
+             * @desc 脚本展示状态组件
+             * @returns { Object }
+             */
             curCom () {
                 if (!this.displayCom) {
                     return 'div';
@@ -359,6 +367,10 @@
                 };
                 return comMap[this.displayCom];
             },
+            /**
+             * @desc 脚本引用弹窗的信息
+             * @returns { Object }
+             */
             relatedScriptDialogInfo () {
                 const info = {
                     title: I18n.t('script.引用脚本的作业模版'),
@@ -368,6 +380,10 @@
                 }
                 return info;
             },
+            /**
+             * @desc 选中的脚本版本
+             * @returns { Object }
+             */
             selectVersion () {
                 const current = _.find(this.renderList, _ => _.scriptVersionId === this.selectVersionId);
                 if (!current) {
@@ -375,15 +391,27 @@
                 }
                 return _.find(this.renderList, _ => _.scriptVersionId === this.selectVersionId);
             },
+            /**
+             * @desc 列表数据
+             * @returns { Array }
+             */
             renderList () {
                 return [
                     ...this.dataAppendList,
                     ...this.data,
                 ];
             },
+            /**
+             * @desc 需要选中两个脚本才能对比
+             * @returns { Boolean }
+             */
             disableDiff () {
                 return Object.keys(this.choosedMap).length < 2;
             },
+            /**
+             * @desc 将要对比的脚本数据
+             * @returns { Object }
+             */
             diffInfo () {
                 const diffVersion = Object.keys(this.choosedMap);
                 return {
@@ -391,13 +419,21 @@
                     newVersionId: parseInt(diffVersion[1], 10) || '',
                 };
             },
+            /**
+             * @desc 当前脚本版本的 name
+             * @returns { String }
+             */
             currentVersionName () {
                 if (this.dataMemo.length < 1) {
                     return '';
                 }
                 return this.dataMemo[0].name;
             },
-            filterColumnMap () {
+            /**
+             * @desc 展示的列表列
+             * @returns { Object }
+             */
+            allColumnMap () {
                 if (this.isListFlod) {
                     return {
                         version: true,
