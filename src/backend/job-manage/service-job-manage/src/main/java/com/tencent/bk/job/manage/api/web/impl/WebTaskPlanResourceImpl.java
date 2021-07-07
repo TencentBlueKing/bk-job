@@ -50,7 +50,6 @@ import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
-import com.tencent.bk.job.manage.model.web.request.BatchGetPlanReq;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
@@ -279,20 +278,30 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
 
     @Override
     public ServiceResponse<List<TaskPlanVO>> batchGetPlans(String username, Long appId,
-                                                           BatchGetPlanReq batchGetPlanReq) {
+                                                           String templateIds) {
+        if (StringUtils.isEmpty(templateIds)) {
+            log.warn("TemplateIds is empty!");
+            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+        }
+
+        String[] templateIdArray = templateIds.split(",");
+        List<Long> templateIdList = new ArrayList<>();
+        for (String templateIdStr : templateIdArray) {
+            templateIdList.add(Long.parseLong(templateIdStr));
+        }
+        if (CollectionUtils.isEmpty(templateIdList)) {
+            log.warn("TemplateIdList is empty!");
+            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+        }
+
         AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResultVO.isPass()) {
             return ServiceResponse.buildAuthFailResp(authResultVO);
         }
 
-        if (batchGetPlanReq == null || CollectionUtils.isEmpty(batchGetPlanReq.getTemplateIdList())) {
-            log.warn("Invalid request, req: {}", batchGetPlanReq);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
-
         List<TaskPlanVO> planList = new ArrayList<>();
-        for (Long templateId : batchGetPlanReq.getTemplateIdList()) {
+        for (Long templateId : templateIdList) {
             List<TaskPlanVO> templatePlanList = listPlansByTemplateId(username, appId, templateId);
             if (CollectionUtils.isNotEmpty(templatePlanList)) {
                 planList.addAll(templatePlanList);
