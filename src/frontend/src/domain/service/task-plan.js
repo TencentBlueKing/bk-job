@@ -45,6 +45,10 @@ export default {
         return TaskPlanSource.getAllPlanOfTemplate(params, config)
             .then(({ data }) => Object.freeze(data.map(item => new PlanModel(item))));
     },
+    fetchBatchTaskPlan (params) {
+        return TaskPlanSource.getAllTemplatePlan(params)
+            .then(({ data }) => Object.freeze(data.map(item => new PlanModel(item))));
+    },
     fetchPlanEditInfo (params) {
         return TaskPlanSource.getDetail(params)
             .then(({ data }) => new PlanModel(data));
