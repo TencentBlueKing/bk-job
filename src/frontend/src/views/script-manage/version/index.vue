@@ -126,7 +126,7 @@
                             prop="statusDesc"
                             key="statusDesc"
                             align="left"
-                            width="100"
+                            width="120"
                             :sortable="true">
                             <template slot-scope="{ row }">
                                 <span v-html="row.statusHtml" />
