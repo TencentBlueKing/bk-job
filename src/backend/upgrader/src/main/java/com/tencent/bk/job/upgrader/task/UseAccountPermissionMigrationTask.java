@@ -185,41 +185,42 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         }
     }
 
-    /**
-     * 授予任意业务下任意执行账号使用的权限
-     *
-     * @param policy
-     * @return
-     */
-    private boolean authAnyBizUseAccountByPolicy(Policy policy) {
+    private List<EsbIamAction> getUseAccountActions() {
         EsbIamAction esbIamAction = new EsbIamAction();
         esbIamAction.setId(ActionId.USE_ACCOUNT);
         List<EsbIamAction> actions = new ArrayList<>();
         actions.add(esbIamAction);
+        return actions;
+    }
+
+    private EsbIamSubject getSubjectByPolicy(Policy policy) {
         EsbIamSubject esbIamSubject = new EsbIamSubject();
         esbIamSubject.setId(policy.getSubject().getId());
         esbIamSubject.setType(policy.getSubject().getType());
+        return esbIamSubject;
+    }
+
+    /**
+     * 授予任意业务下任意执行账号使用的权限
+     *
+     * @param policy 权限策略
+     * @return 是否授权成功
+     */
+    private boolean authAnyBizUseAccountByPolicy(Policy policy) {
         EsbIamBatchPathResource esbIamBatchPathResource = new EsbIamBatchPathResource();
         esbIamBatchPathResource.setSystem(SystemId.JOB);
         esbIamBatchPathResource.setType(ResourceTypeEnum.ACCOUNT.getId());
         esbIamBatchPathResource.setPaths(new ArrayList<>());
-        return batchAuth(policy, actions, esbIamSubject, esbIamBatchPathResource);
+        return batchAuth(policy, getUseAccountActions(), getSubjectByPolicy(policy), esbIamBatchPathResource);
     }
 
     /**
      * 授予某些业务下任意执行账号使用的权限
      *
-     * @param policy
-     * @return
+     * @param policy 权限策略
+     * @return 是否授权成功
      */
     private boolean authBizUseAccountByPolicy(Policy policy, List<Long> appIdList) {
-        EsbIamAction esbIamAction = new EsbIamAction();
-        esbIamAction.setId(ActionId.USE_ACCOUNT);
-        List<EsbIamAction> actions = new ArrayList<>();
-        actions.add(esbIamAction);
-        EsbIamSubject esbIamSubject = new EsbIamSubject();
-        esbIamSubject.setId(policy.getSubject().getId());
-        esbIamSubject.setType(policy.getSubject().getType());
         EsbIamBatchPathResource esbIamBatchPathResource = new EsbIamBatchPathResource();
         esbIamBatchPathResource.setSystem(SystemId.JOB);
         esbIamBatchPathResource.setType(ResourceTypeEnum.ACCOUNT.getId());
@@ -234,9 +235,18 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             pathList.add(esbIamPathItemList);
         }
         esbIamBatchPathResource.setPaths(pathList);
-        return batchAuth(policy, actions, esbIamSubject, esbIamBatchPathResource);
+        return batchAuth(policy, getUseAccountActions(), getSubjectByPolicy(policy), esbIamBatchPathResource);
     }
 
+    /**
+     * 调用权限中心接口进行批量授权
+     *
+     * @param policy                  权限策略
+     * @param actions                 授权操作列表
+     * @param esbIamSubject           授权对象
+     * @param esbIamBatchPathResource 批量资源路径
+     * @return 是否授权成功
+     */
     private boolean batchAuth(
         Policy policy,
         List<EsbIamAction> actions,
