@@ -32,7 +32,7 @@
             fouced: isFocused,
         }"
         :style="boxStyles">
-        <div class="job-textarea-wraper" :style="wraperStyles">
+        <div ref="wraper" class="job-textarea-wraper" :style="wraperStyles">
             <div style="min-height: 30px; word-break: break-all; white-space: pre-wrap; visibility: hidden;">{{ localValue }}</div>
             <textarea
                 ref="textarea"
@@ -58,6 +58,8 @@
     </div>
 </template>
 <script>
+    const rowHeight = 18;
+
     export default {
         name: '',
         props: {
@@ -70,6 +72,7 @@
                 type: Boolean,
                 default: false,
             },
+            // 默认展示多少行
             rows: {
                 type: Number,
                 default: 1,
@@ -84,9 +87,9 @@
         },
         computed: {
             boxStyles () {
-                const styles = {
-                    height: `${this.rows * 18 + 12}px`,
-                };
+                const styles = {};
+                const defaultHeight = this.rows * rowHeight + 12;
+                styles.height = `${defaultHeight}px`;
                 return styles;
             },
             wraperStyles () {
@@ -158,7 +161,6 @@
         line-height: 18px;
         word-break: break-all;
         cursor: pointer;
-        background: #fff;
 
         .job-textarea-wraper {
             position: absolute;
@@ -169,8 +171,6 @@
             max-height: 300px;
             min-height: 100%;
             padding-bottom: 20px;
-            background: inherit;
-            transition: all 0.15s;
 
             .value-length {
                 position: absolute;
@@ -193,11 +193,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 6px 10px;
+            padding: 6px 10px 0;
             overflow-y: scroll;
             font-size: 12px;
             color: #63656e;
-            background: inherit;
+            background: #fff;
             border: 1px solid #c4c6cc;
             border-radius: 2px;
             outline: none;
@@ -205,7 +205,7 @@
 
             &:focus {
                 padding-bottom: 30px;
-                background: #fff;
+                background: #fff !important;
                 border: 1px solid #3a84ff !important;
             }
 

@@ -109,7 +109,8 @@
                 v-if="isEditOfPlan"
                 :is-show.sync="isShowBatchEditOfPlan"
                 :title="$t('template.编辑全局变量')"
-                :width="960">
+                :width="960"
+                footer-offset-target="variable-value">
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
                     ref="planGlobalVar"
