@@ -168,6 +168,7 @@ export default class Request {
         if (config.payload && config.payload.setCancelSource) {
             config.payload.setCancelSource(source)
         }
+        
         const requestHandler = axios({
             url: this.url,
             cancelToken: source.token,

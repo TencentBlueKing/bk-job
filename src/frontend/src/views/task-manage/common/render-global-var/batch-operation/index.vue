@@ -4,13 +4,13 @@
             <thead>
                 <tr>
                     <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
-                    <th style="width: 120px;">{{ $t('template.变量名称') }}<span class="require-flag" /></th>
-                    <th style="width: 150px;">
+                    <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
+                    <th>
                         <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
                             {{ $t('template.初始值') }}
                         </span>
                     </th>
-                    <th>{{ $t('template.变量描述') }}</th>
+                    <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
                     <th style="width: 80px;">
                         <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
                             {{ $t('template.赋值可变') }}

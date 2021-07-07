@@ -151,6 +151,8 @@
                                 observer.observe(this.$refs.bkSideslider.$el, {
                                     subtree: true,
                                     childList: true,
+                                    attributeName: true,
+                                    characterData: true,
                                 });
                             });
                             this.checkFooterPosition();

@@ -30,12 +30,19 @@
         <div class="render-value-box" @click.stop="handleBlockShowEdit">
             <div class="value-text">
                 <slot v-bind:value="localValue">
-                    <span>{{ renderText }}</span>
+                    <div v-html="renderHtml" style="margin-left: -4px;" />
                 </slot>
             </div>
             <div class="edit-action-box">
-                <Icon v-if="!isBlock && !isSubmiting" type="edit-2" class="edit-action" @click.self.stop="handleShowEdit" />
-                <Icon v-if="isSubmiting" type="loading-circle" class="edit-loading" />
+                <Icon
+                    v-if="!isBlock && !isSubmiting"
+                    type="edit-2"
+                    class="edit-action"
+                    @click.self.stop="handleShowEdit" />
+                <Icon
+                    v-if="isSubmiting"
+                    type="loading-circle"
+                    class="edit-loading" />
             </div>
         </div>
         <choose-ip
@@ -107,7 +114,7 @@
             };
         },
         computed: {
-            renderText () {
+            renderHtml () {
                 if (!this.localValue) {
                     return '--';
                 }
@@ -118,13 +125,13 @@
                 } = this.localValue.hostNodeInfo || {};
                 const strs = [];
                 if (ipList.length > 0) {
-                    strs.push(`${ipList.length} ${I18n.t('台主机.result')}`);
+                    strs.push(`<span class="number strong">${ipList.length}</span>${I18n.t('台主机.result')}`);
                 }
                 if (topoNodeList.length > 0) {
-                    strs.push(`${topoNodeList.length} ${I18n.t('个节点.result')}`);
+                    strs.push(`<span class="number strong">${topoNodeList.length}</span>${I18n.t('个节点.result')}`);
                 }
                 if (dynamicGroupList.length > 0) {
-                    strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
+                    strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
                 }
                 return strs.length > 0 ? strs.join('\n') : '--';
             },

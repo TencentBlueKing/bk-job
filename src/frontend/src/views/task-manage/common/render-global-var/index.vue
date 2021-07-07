@@ -91,7 +91,7 @@
                 :title="$t('template.查看全局变量')"
                 :show-footer="false"
                 ref="variableView"
-                :media="mediaQueryMap">
+                :media="detailMedia">
                 <detail v-if="isShowDetail" :data="currentData" :default-field="defaultField" />
             </jb-sideslider>
             <jb-sideslider
@@ -132,7 +132,7 @@
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
                 v-bind="operationSideSliderInfo"
-                :width="1040">
+                :media="batchOperationMediaQuery">
                 <batch-operation
                     v-if="isShowBatchOperation"
                     :variable="variable"
@@ -205,7 +205,7 @@
                 currentData: {},
                 currentIndex: -1,
                 currentOperation: 'create',
-                mediaQueryMap: [],
+                detailMedia: [],
             };
         },
         computed: {
@@ -278,6 +278,9 @@
                 immediate: true,
             },
         },
+        created () {
+            this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
+        },
         methods: {
             /**
              * @desc 显示全局变量详情tips
@@ -312,7 +315,7 @@
             handlerOperation (variableInfo, index) {
                 this.currentData = variableInfo;
                 if (this.isView) {
-                    this.mediaQueryMap = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
+                    this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
                     this.isShowDetail = true;
                     return;
                 }

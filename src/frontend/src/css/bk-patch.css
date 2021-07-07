@@ -94,6 +94,15 @@
     line-height: 24px !important;
 }
 
+.bk-textarea-wrapper {
+    border: none;
+
+    .bk-form-textarea {
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+    }
+}
+
 .bk-form-input,
 .bk-form-password,
 .bk-form-select,
