@@ -14,7 +14,11 @@
             </bk-select>
         </td>
         <td>
-            <div class="variable-name-box offset-left" :class="{ 'edit-error': isNameError }">
+            <div
+                class="variable-name-box offset-left"
+                :class="{
+                    'edit-error': isNameError,
+                }">
                 <bk-input
                     :value="formData.name"
                     @blur="handleShowNameError"
@@ -41,11 +45,12 @@
                     field="defaultTargetValue"
                     :value="formData.defaultTargetValue" />
             </template>
-            <bk-input
-                v-else
-                class="offset-left"
-                :value="formData.defaultValue"
-                @change="value => handleChange('defaultValue', value)" />
+            <template v-else>
+                <bk-input
+                    class="offset-left"
+                    :value="formData.defaultValue"
+                    @change="value => handleChange('defaultValue', value)" />
+            </template>
         </td>
         <td>
             <jb-textarea
@@ -56,7 +61,6 @@
         <td>
             <bk-checkbox
                 v-if="withChangable"
-                class="offset-left"
                 :value="formData.changeable"
                 @change="value => handleChange('changeable', value)"
                 :true-value="1"
@@ -65,7 +69,6 @@
         </td>
         <td>
             <bk-checkbox
-                class="offset-left"
                 :value="formData.required"
                 @change="value => handleChange('required', value)"
                 :true-value="1"
@@ -284,14 +287,13 @@
         }
 
         .job-textarea {
-            background: #f7f8fa;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-
             .job-textarea-edit {
+                background: #f7f8fa;
                 border: 1px solid transparent;
+
+                &:hover {
+                    background: #f0f1f5;
+                }
             }
         }
 
