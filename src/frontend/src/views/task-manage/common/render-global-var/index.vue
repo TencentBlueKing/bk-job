@@ -110,6 +110,7 @@
                 :is-show.sync="isShowBatchEditOfPlan"
                 :title="$t('template.编辑全局变量')"
                 :width="960"
+                :ok-text="$t('template.确定')"
                 footer-offset-target="variable-value">
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
