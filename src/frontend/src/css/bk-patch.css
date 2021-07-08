@@ -192,6 +192,10 @@
  */
 .tippy-tooltip {
     z-index: 1;
+
+    .tippy-content {
+        padding: 0;
+    }
 }
 
 .bk-diff {
