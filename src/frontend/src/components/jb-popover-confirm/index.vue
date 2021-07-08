@@ -186,7 +186,7 @@
 
     .jb-popover-confirm-theme.tippy-tooltip {
         .tippy-content {
-            padding: 20px;
+            padding: 20px !important;
         }
 
         .jb-popover-content {
