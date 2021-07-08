@@ -316,7 +316,6 @@
                         {
                             name: this.name,
                             type: 'line',
-                            smooth: true,
                             sampling: 'average',
                             ...styleMap[styles],
                             data: valueList,
