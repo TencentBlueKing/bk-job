@@ -42,7 +42,7 @@
             </template>
         </table>
         <div
-            v-if="variableList.length < 1"
+            v-if="isEmpty"
             class="empty-box"
             @click="handleAppendVariable(0)">
             <Icon type="add-fill" />
@@ -73,6 +73,17 @@
             return {
                 variableList: _.cloneDeep(this.variable),
             };
+        },
+        computed: {
+            isEmpty () {
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.variableList.length; i++) {
+                    if (!this.variableList[i].delete) {
+                        return false;
+                    }
+                }
+                return true;
+            },
         },
         methods: {
             /**
