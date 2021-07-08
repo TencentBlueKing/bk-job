@@ -257,7 +257,7 @@
                                 </div>
                             ))(),
                             okText: I18n.t('script.立即前往'),
-                            cancelText: I18n.t('script.暂不使用'),
+                            cancelText: I18n.t('script.暂时不用'),
                             // 获取同步的作业模板对应的执行方案列表，批量同步需要同步的执行方案
                             confirmFn: () => TaskPlanService.fetchBatchTaskPlan({
                                 templateIds: this.stepList.map(({ templateId }) => templateId).join(','),

@@ -58,6 +58,15 @@
       })();
     </script>
     <script>
+      // 通过 URL 直接访问时 chrome 默认使用 https 协议，强制前端系统协议和 AJAX_URL_PREFIX 保持一直
+      // 降级处理（在 https 域名下，请求 http 的 api 会失败）
+      if (/^http:/.test(window.PROJECT_CONFIG.AJAX_URL_PREFIX)) {
+        if (/^https/.test(window.location.href)) {
+          window.location.href = window.location.href.replace(/^https/, 'http')
+        }
+      }
+    </script>
+    <script>
       if (
         window.PROJECT_CONFIG.EXTERNAL_THEME &&
         window.PROJECT_CONFIG.EXTERNAL_THEME !== "{{JOB_EXTERNAL_THEME}}"

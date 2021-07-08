@@ -32,16 +32,15 @@
         </td>
         <td>
             <template v-if="isHostVarialbe">
-                <bk-button
+                <div
                     v-if="formData.defaultTargetValue.isEmpty"
                     class="add-host-btn offset-left"
                     @click="handleShowChooseIp">
-                    <Icon type="plus" />
+                    <Icon type="plus" style="margin-right: 6px;" />
                     {{ $t('添加服务器') }}
-                </bk-button>
+                </div>
                 <jb-edit-host
                     v-else
-                    class="offset-left"
                     field="defaultTargetValue"
                     :value="formData.defaultTargetValue" />
             </template>
@@ -298,7 +297,19 @@
         }
 
         .add-host-btn {
+            display: flex;
             height: 30px;
+            padding: 0 10px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #f7f8fa;
+            border-radius: 2px;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+                background: #f0f1f5;
+            }
         }
 
         .edit-error {
