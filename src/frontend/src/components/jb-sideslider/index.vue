@@ -199,10 +199,10 @@
                 const queryRange = [
                     1366, 1680, 1920, 2560,
                 ];
-                const { clientWidth } = document.documentElement;
+                const windowHeight = window.innerWidth;
                 while (index < 3) {
                     const current = queryRange[index];
-                    if (current < clientWidth) index += 1;
+                    if (current < windowHeight) index += 1;
                     else break;
                 }
                 if (index > this.media.length - 1) {
