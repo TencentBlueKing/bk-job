@@ -1035,9 +1035,9 @@ public class SyncServiceImpl implements SyncService {
         updateHostsInApp(appId, updateList);
         watch.stop();
         if (watch.getTotalTimeMillis() > 10000) {
-            log.info("Performance:UpdateHosts:appId={},{}", appId, watch.toString());
+            log.info("Performance:refreshAppHosts:appId={},{}", appId, watch.toString());
         } else {
-            log.debug("Performance:UpdateHosts:appId={},{}", appId, watch.toString());
+            log.debug("Performance:refreshAppHosts:appId={},{}", appId, watch.toString());
         }
         return 1;
     }
