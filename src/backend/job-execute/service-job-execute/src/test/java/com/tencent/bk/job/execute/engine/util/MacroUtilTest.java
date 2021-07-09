@@ -26,6 +26,9 @@ package com.tencent.bk.job.execute.engine.util;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MacroUtilTest {
@@ -34,21 +37,26 @@ public class MacroUtilTest {
         String str = "/tmp/[DATE:yyyy-MM-dd]/test/";
         // 2021-01-01 12:01:01
         long timestamp = 1609473661000L;
-        String result = MacroUtil.resolveDate(str, timestamp);
-        assertThat(result).isEqualTo("/tmp/2021-01-01/test/");
+        ZoneId zoneId = ZoneOffset.systemDefault();
+        String zoneIdStr = zoneId.getId();
+        System.out.println("systemDefault zoneId=" + zoneIdStr);
+        String result = null;
+        if ("Asia/Shanghai".equals(zoneIdStr)) {
+            result = MacroUtil.resolveDate(str, timestamp);
+            assertThat(result).isEqualTo("/tmp/2021-01-01/test/");
 
-        str = "/tmp/[DATE:YYYY-MM-dd]/test/";
-        result = MacroUtil.resolveDate(str, timestamp);
-        assertThat(result).isEqualTo("/tmp/2021-01-01/test/");
+            str = "/tmp/[DATE:YYYY-MM-dd]/test/";
+            result = MacroUtil.resolveDate(str, timestamp);
+            assertThat(result).isEqualTo("/tmp/2021-01-01/test/");
 
-        str = "/tmp/[DATE:yyyy-MM-dd_HH:mm:ss]/test/";
-        result = MacroUtil.resolveDate(str, timestamp);
-        assertThat(result).isEqualTo("/tmp/2021-01-01_12:01:01/test/");
+            str = "/tmp/[DATE:yyyy-MM-dd_HH:mm:ss]/test/";
+            result = MacroUtil.resolveDate(str, timestamp);
+            assertThat(result).isEqualTo("/tmp/2021-01-01_12:01:01/test/");
 
-        str = "/tmp/[DATE:yyyy-MM-dd]/[DATE:HH:mm:ss]/test/";
-        result = MacroUtil.resolveDate(str, timestamp);
-        assertThat(result).isEqualTo("/tmp/2021-01-01/12:01:01/test/");
-
+            str = "/tmp/[DATE:yyyy-MM-dd]/[DATE:HH:mm:ss]/test/";
+            result = MacroUtil.resolveDate(str, timestamp);
+            assertThat(result).isEqualTo("/tmp/2021-01-01/12:01:01/test/");
+        }
         str = "/tmp/test/";
         result = MacroUtil.resolveDate(str, timestamp);
         assertThat(result).isEqualTo("/tmp/test/");
