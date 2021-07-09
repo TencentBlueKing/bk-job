@@ -337,5 +337,10 @@
                 cursor: pointer;
             }
         }
+
+        .bk-form-control {
+            display: block;
+            width: auto;
+        }
     }
 </style>

@@ -138,7 +138,6 @@
                 <batch-operation
                     v-if="isShowBatchOperation"
                     :variable="variable"
-                    :data="currentData"
                     @on-change="handleBatchOperationSubmit" />
             </jb-sideslider>
         </template>
