@@ -75,6 +75,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./job_ce-${{ steps.variables.outputs.version }}.tgz
+          asset_path: ./release/job_ce-${{ steps.variables.outputs.version }}.tgz
           asset_name: job_ce-${{ steps.variables.outputs.version }}.tgz
           asset_content_type: application/gzip
