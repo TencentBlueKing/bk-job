@@ -10,6 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set up variables
+        id: variables
+        run: |
+          tag="$(basename $GITHUB_REF)"
+          version=${tag##v}
+          echo "::set-output name=tag::${tag}"
+          echo "::set-output name=version::${version}"
       - name: init mysql
         run: |
           sudo /etc/init.d/mysql start
@@ -29,18 +36,11 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build Backend
         working-directory: src/backend
-        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="http://maven.aliyun.com/nexus/content/groups/public/"
-      - name: Set up variables
-        id: variables
-        run: |
-          echo "npm version=$(npm -v)"
-          tag="$(basename $GITHUB_REF)"
-          version=${tag##v}
-          echo "::set-output name=tag::${tag}"
-          echo "::set-output name=version::${version}"
+        run: ./gradlew clean build -Dversion=${{ steps.variables.outputs.version }} -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="http://maven.aliyun.com/nexus/content/groups/public/"
 
       - name: Npm Build Frontend
         run: |
+          echo "npm version=$(npm -v)"
           export JOB_VERSION=${{ steps.variables.outputs.version }}
           npm i && npm run build
           mkdir -p release/job/frontend
