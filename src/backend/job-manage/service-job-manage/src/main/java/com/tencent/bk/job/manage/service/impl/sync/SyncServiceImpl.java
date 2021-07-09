@@ -55,8 +55,19 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -424,31 +435,32 @@ public class SyncServiceImpl implements SyncService {
     }
 
     private Pair<Long, Long> syncAppHostsIndeed(ApplicationInfoDTO applicationInfoDTO) {
+        Long appId = applicationInfoDTO.getId();
         Long cmdbInterfaceTimeConsuming = 0L;
         Long writeToDBTimeConsuming = 0L;
         CcClient ccClient = CcClientFactory.getCcClient();
         StopWatch appHostsWatch = new StopWatch();
         appHostsWatch.start("getHostsByAppInfo from CMDB");
         Long startTime = System.currentTimeMillis();
-        log.info("begin to syncAppHosts:appId={}", applicationInfoDTO.getId());
+        log.info("begin to syncAppHosts:appId={}", appId);
         List<ApplicationHostInfoDTO> hosts = getHostsByAppInfo(ccClient, applicationInfoDTO);
         cmdbInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostsWatch.stop();
         appHostsWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        updateHosts(applicationInfoDTO, hosts);
+        refreshAppHosts(appId, hosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostsWatch.stop();
-        log.info("Performance:syncAppHosts:appId={},{}", applicationInfoDTO.getId(), appHostsWatch.toString());
+        log.info("Performance:syncAppHosts:appId={},{}", appId, appHostsWatch.toString());
         return Pair.of(cmdbInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
-    private Pair<Long, Long> syncAppHostAgentStatus(ApplicationInfoDTO applicationInfoDTO) {
+    private Pair<Long, Long> syncAppHostAgentStatus(Long appId) {
         Long gseInterfaceTimeConsuming = 0L;
         Long writeToDBTimeConsuming = 0L;
         StopWatch appHostAgentStatusWatch = new StopWatch();
         appHostAgentStatusWatch.start("listHostInfoByAppId");
-        List<ApplicationHostInfoDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(applicationInfoDTO.getId());
+        List<ApplicationHostInfoDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(appId);
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
         Long startTime = System.currentTimeMillis();
@@ -457,10 +469,10 @@ public class SyncServiceImpl implements SyncService {
         appHostAgentStatusWatch.stop();
         appHostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        updateHostsToDB(applicationInfoDTO, localAppHosts);
+        updateHostsInApp(appId, localAppHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostAgentStatusWatch.stop();
-        log.debug("Performance:syncAppHostAgentStatus:appId={},{}", applicationInfoDTO.getId(),
+        log.debug("Performance:syncAppHostAgentStatus:appId={},{}", appId,
             appHostAgentStatusWatch.toString());
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
@@ -723,7 +735,7 @@ public class SyncServiceImpl implements SyncService {
                     Long writeToDBTimeConsuming = 0L;
                     for (ApplicationInfoDTO applicationInfoDTO : localNormalApps) {
                         try {
-                            Pair<Long, Long> timeConsumingPair = syncAppHostAgentStatus(applicationInfoDTO);
+                            Pair<Long, Long> timeConsumingPair = syncAppHostAgentStatus(applicationInfoDTO.getId());
                             gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
                             writeToDBTimeConsuming += timeConsumingPair.getSecond();
                         } catch (Throwable t) {
@@ -785,7 +797,9 @@ public class SyncServiceImpl implements SyncService {
         return 1;
     }
 
-    private void updateHostsToDB(ApplicationInfoDTO applicationInfoDTO, List<ApplicationHostInfoDTO> updateList) {
+    private void updateHostsInApp(Long appId, List<ApplicationHostInfoDTO> updateList) {
+        StopWatch watch = new StopWatch();
+        watch.start("updateAppHostInfo");
         // 更新主机
         long updateCount = 0L;
         List<Long> updateHostIds = new ArrayList<>();
@@ -821,82 +835,94 @@ public class SyncServiceImpl implements SyncService {
                         notChangeCount += 1;
                     }
                 } catch (Throwable t) {
-                    log.error("updateHost fail:appId={},hostInfo={}", applicationInfoDTO.getId(), hostInfoDTO, t);
+                    log.error("updateHost fail:appId={},hostInfo={}", appId, hostInfoDTO, t);
                     errorCount += 1;
                     errorHostIds.add(hostInfoDTO.getHostId());
                 }
             }
         }
+        watch.stop();
         if (!batchUpdated) {
-            StopWatch watch = new StopWatch();
             watch.start("log updateAppHostInfo");
             allAppUpdateFailHostIds.addAll(errorHostIds);
             log.info("Update host of appId={},errorCount={},updateCount={},notChangeCount={},errorHostIds={}," +
-                    "updateHostIds={}", applicationInfoDTO.getId(), errorCount, updateCount, notChangeCount,
+                    "updateHostIds={}", appId, errorCount, updateCount, notChangeCount,
                 errorHostIds
                 , updateHostIds);
             watch.stop();
         }
+        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.toString());
     }
 
-    private int updateHosts(ApplicationInfoDTO applicationInfoDTO,
-                            List<ApplicationHostInfoDTO> applicationHostInfoDTOList) {
-        Long appId = applicationInfoDTO.getId();
+    private void deleteHostsFromApp(Long appId, List<ApplicationHostInfoDTO> deleteList) {
         StopWatch watch = new StopWatch();
-        //找出要删除的/更新的/新增的分别处理
-        List<ApplicationHostInfoDTO> insertList;
-        List<ApplicationHostInfoDTO> updateList;
-        List<ApplicationHostInfoDTO> deleteList;
-        //对比库中数据与接口数据
-        watch.start("listHostInfoByAppId");
-        List<ApplicationHostInfoDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(applicationInfoDTO.getId());
+        // 删除主机
+        watch.start("deleteAppHostInfo");
+        List<Long> deleteFailHostIds = new ArrayList<>();
+        boolean batchDeleted = false;
+        try {
+            // 尝试批量删除
+            if (!deleteList.isEmpty()) {
+                applicationHostDAO.batchDeleteAppHostInfoById(dslContext, appId,
+                    deleteList.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toList()));
+            }
+            batchDeleted = true;
+        } catch (Throwable throwable) {
+            log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
+            // 批量删除失败，尝试逐条删除
+            for (ApplicationHostInfoDTO applicationHostInfoDTO : deleteList) {
+                try {
+                    applicationHostDAO.deleteAppHostInfoById(dslContext, appId, applicationHostInfoDTO.getHostId());
+                } catch (Throwable t) {
+                    log.error("deleteHost fail:appId={},hostInfo={}", appId,
+                        applicationHostInfoDTO, t);
+                    deleteFailHostIds.add(applicationHostInfoDTO.getHostId());
+                }
+            }
+        }
         watch.stop();
-        watch.start("mapTo ccAppHostIds");
-        Set<Long> ccAppHostIds =
-            applicationHostInfoDTOList.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toSet());
-        watch.stop();
-        watch.start("mapTo localAppHostIds");
-        Set<Long> localAppHostIds =
-            localAppHosts.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toSet());
-        watch.stop();
-        watch.start("log ccAppHostIds");
-        log.info(String.format("appId=%s,ccAppHostIds=%s", applicationInfoDTO.getId(), String.join(",",
-            ccAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-        watch.stop();
-        watch.start("log localAppHostIds");
-        log.info(String.format("appId=%s,localAppHostIds=%s", applicationInfoDTO.getId(), String.join(",",
-            localAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-        watch.stop();
-        watch.start("compute insertList");
-        insertList =
-            applicationHostInfoDTOList.stream().filter(applicationHostInfoDTO ->
-                !localAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
-        watch.stop();
-        watch.start("log insertList");
-        log.info(String.format("appId=%s,insertHostIds=%s", applicationInfoDTO.getId(), String.join(",",
-            insertList.stream().map(ApplicationHostInfoDTO::getHostId).map(Object::toString)
-                .collect(Collectors.toSet()))));
-        watch.stop();
-        watch.start("compute updateList");
-        updateList =
-            applicationHostInfoDTOList.stream().filter(applicationHostInfoDTO ->
-                localAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
-        watch.stop();
-        watch.start("log updateList");
-        log.info(String.format("appId=%s,updateHostIds=%s", applicationInfoDTO.getId(), String.join(",",
-            updateList.stream().map(ApplicationHostInfoDTO::getHostId)
-                .map(Object::toString).collect(Collectors.toSet()))));
-        watch.stop();
-        watch.start("compute deleteList");
-        deleteList =
-            localAppHosts.stream().filter(applicationHostInfoDTO ->
-                !ccAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
-        watch.stop();
-        watch.start("log deleteList");
-        log.info(String.format("appId=%s,deleteHostIds=%s", applicationInfoDTO.getId(), String.join(",",
-            deleteList.stream().map(ApplicationHostInfoDTO::getHostId).map(Object::toString)
-                .collect(Collectors.toSet()))));
-        watch.stop();
+        if (!batchDeleted) {
+            watch.start("log deleteAppHostInfo");
+            if (!deleteFailHostIds.isEmpty()) {
+                allAppDeleteFailHostIds.addAll(deleteFailHostIds);
+                log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
+                    appId, deleteFailHostIds.size(), String.join(",",
+                        deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+            }
+            watch.stop();
+        }
+        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.toString());
+    }
+
+    private boolean insertOrUpdateOneAppHost(Long appId, ApplicationHostInfoDTO infoDTO) {
+        try {
+            applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
+        } catch (DataAccessException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
+                log.warn("insertHost fail, try to update:Duplicate entry:appId={},insert hostInfo={}, old " +
+                        "hostInfo={}", appId, infoDTO,
+                    applicationHostDAO.getHostById(infoDTO.getHostId()), e);
+                try {
+                    // 插入失败了就应当更新，以后来的数据为准
+                    applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
+                } catch (Throwable t) {
+                    log.error("update after insert fail:appId={},hostInfo={}", appId, infoDTO, t);
+                    return false;
+                }
+            } else {
+                log.error("insertHost fail:appId={},hostInfo={}", appId, infoDTO, e);
+                return false;
+            }
+        } catch (Throwable t) {
+            log.error("insertHost fail:appId={},hostInfo={}", appId, infoDTO, t);
+            return false;
+        }
+        return true;
+    }
+
+    private void insertHostsToApp(Long appId, List<ApplicationHostInfoDTO> insertList) {
+        StopWatch watch = new StopWatch();
         // 插入主机
         watch.start("insertAppHostInfo");
         List<Long> insertFailHostIds = new ArrayList<>();
@@ -920,22 +946,7 @@ public class SyncServiceImpl implements SyncService {
             }
             //批量插入失败，尝试逐条插入
             for (ApplicationHostInfoDTO infoDTO : insertList) {
-                try {
-                    applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
-                } catch (DataAccessException e) {
-                    String errorMessage = e.getMessage();
-                    if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                        log.warn("insertHost fail, try to update:Duplicate entry:appId={},insert hostInfo={}, old " +
-                                "hostInfo={}", applicationInfoDTO.getId(), infoDTO,
-                            applicationHostDAO.getHostById(infoDTO.getHostId()), e);
-                        // 插入失败了就应当更新，以后来的数据为准
-                        applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
-                    } else {
-                        log.error("insertHost fail:appId={},hostInfo={}", applicationInfoDTO.getId(), infoDTO, e);
-                        insertFailHostIds.add(infoDTO.getHostId());
-                    }
-                } catch (Throwable t) {
-                    log.error("insertHost fail:appId={},hostInfo={}", applicationInfoDTO.getId(), infoDTO, t);
+                if (!insertOrUpdateOneAppHost(appId, infoDTO)) {
                     insertFailHostIds.add(infoDTO.getHostId());
                 }
             }
@@ -946,51 +957,88 @@ public class SyncServiceImpl implements SyncService {
             if (!insertFailHostIds.isEmpty()) {
                 allAppInsertFailHostIds.addAll(insertFailHostIds);
                 log.warn(String.format("appId=%s,insertFailHostIds.size=%d,insertFailHostIds=%s",
-                    applicationInfoDTO.getId(), insertFailHostIds.size(), String.join(",",
+                    appId, insertFailHostIds.size(), String.join(",",
                         insertFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
             }
             watch.stop();
         }
-        watch.start("updateAppHostInfo");
-        // 更新主机
-        updateHostsToDB(applicationInfoDTO, updateList);
+        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.toString());
+    }
+
+    private int refreshAppHosts(Long appId,
+                                List<ApplicationHostInfoDTO> applicationHostInfoDTOList) {
+        StopWatch watch = new StopWatch();
+        //找出要删除的/更新的/新增的分别处理
+        List<ApplicationHostInfoDTO> insertList;
+        List<ApplicationHostInfoDTO> updateList;
+        List<ApplicationHostInfoDTO> deleteList;
+        //对比库中数据与接口数据
+        watch.start("listHostInfoByAppId");
+        List<ApplicationHostInfoDTO> localAppHosts = applicationHostDAO.listHostInfoByAppId(appId);
         watch.stop();
-        // 删除主机
-        watch.start("deleteAppHostInfo");
-        List<Long> deleteFailHostIds = new ArrayList<>();
-        boolean batchDeleted = false;
-        try {
-            // 尝试批量删除
-            if (!deleteList.isEmpty()) {
-                applicationHostDAO.batchDeleteAppHostInfoById(dslContext, appId,
-                    deleteList.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toList()));
-            }
-            batchDeleted = true;
-        } catch (Throwable throwable) {
-            log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
-            // 批量删除失败，尝试逐条删除
-            for (ApplicationHostInfoDTO applicationHostInfoDTO : deleteList) {
-                try {
-                    applicationHostDAO.deleteAppHostInfoById(dslContext, appId, applicationHostInfoDTO.getHostId());
-                } catch (Throwable t) {
-                    log.error("deleteHost fail:appId={},hostInfo={}", applicationInfoDTO.getId(),
-                        applicationHostInfoDTO, t);
-                    deleteFailHostIds.add(applicationHostInfoDTO.getHostId());
-                }
-            }
-        }
+        watch.start("mapTo ccAppHostIds");
+        Set<Long> ccAppHostIds =
+            applicationHostInfoDTOList.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toSet());
         watch.stop();
-        if (!batchDeleted) {
-            watch.start("log deleteAppHostInfo");
-            if (!deleteFailHostIds.isEmpty()) {
-                allAppDeleteFailHostIds.addAll(deleteFailHostIds);
-                log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
-                    applicationInfoDTO.getId(), deleteFailHostIds.size(), String.join(",",
-                        deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-            }
-            watch.stop();
+        watch.start("mapTo localAppHostIds");
+        Set<Long> localAppHostIds =
+            localAppHosts.stream().map(ApplicationHostInfoDTO::getHostId).collect(Collectors.toSet());
+        watch.stop();
+        watch.start("log ccAppHostIds");
+        log.info(String.format("appId=%s,ccAppHostIds=%s", appId, String.join(",",
+            ccAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        watch.stop();
+        watch.start("log localAppHostIds");
+        log.info(String.format("appId=%s,localAppHostIds=%s", appId, String.join(",",
+            localAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        watch.stop();
+        watch.start("compute insertList");
+        insertList =
+            applicationHostInfoDTOList.stream().filter(applicationHostInfoDTO ->
+                !localAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
+        watch.stop();
+        watch.start("log insertList");
+        log.info(String.format("appId=%s,insertHostIds=%s", appId, String.join(",",
+            insertList.stream().map(ApplicationHostInfoDTO::getHostId).map(Object::toString)
+                .collect(Collectors.toSet()))));
+        watch.stop();
+        watch.start("compute updateList");
+        updateList =
+            applicationHostInfoDTOList.stream().filter(applicationHostInfoDTO ->
+                localAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
+        watch.stop();
+        watch.start("log updateList");
+        log.info(String.format("appId=%s,updateHostIds=%s", appId, String.join(",",
+            updateList.stream().map(ApplicationHostInfoDTO::getHostId)
+                .map(Object::toString).collect(Collectors.toSet()))));
+        watch.stop();
+        watch.start("compute deleteList");
+        deleteList =
+            localAppHosts.stream().filter(applicationHostInfoDTO ->
+                !ccAppHostIds.contains(applicationHostInfoDTO.getHostId())).collect(Collectors.toList());
+        watch.stop();
+        watch.start("log deleteList");
+        log.info(String.format("appId=%s,deleteHostIds=%s", appId, String.join(",",
+            deleteList.stream().map(ApplicationHostInfoDTO::getHostId).map(Object::toString)
+                .collect(Collectors.toSet()))));
+        watch.stop();
+        watch.start("deleteHostsFromApp");
+        // 需要删除的主机
+        deleteHostsFromApp(appId, deleteList);
+        watch.stop();
+        watch.start("insertHostsToApp");
+        // 需要新增的主机
+        insertHostsToApp(appId, insertList);
+        watch.stop();
+        watch.start("updateHostsInApp");
+        // 需要更新的主机
+        updateHostsInApp(appId, updateList);
+        watch.stop();
+        if (watch.getTotalTimeMillis() > 10000) {
+            log.info("Performance:UpdateHosts:appId={},{}", appId, watch.toString());
+        } else {
+            log.debug("Performance:UpdateHosts:appId={},{}", appId, watch.toString());
         }
-        log.debug("Performance:UpdateHosts:appId={},{}", applicationInfoDTO.getId(), watch.toString());
         return 1;
     }
 
