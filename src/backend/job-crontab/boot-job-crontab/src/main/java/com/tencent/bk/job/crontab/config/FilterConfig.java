@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.common.web.filter.RepeatableReadServletRequestResponseFilter;
+import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class FilterConfig {
     @Bean
     public FilterRegistrationBean repeatableRSRRFilterRegister() {
-        FilterRegistrationBean<RepeatableReadServletRequestResponseFilter> registration =
+        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
             new FilterRegistrationBean<>();
         registration.setFilter(repeatableRRRFilter());
         registration.addUrlPatterns("/esb/api/*");
@@ -43,7 +43,7 @@ public class FilterConfig {
     }
 
     @Bean(name = "repeatableReadRequestResponseFilter")
-    public RepeatableReadServletRequestResponseFilter repeatableRRRFilter() {
-        return new RepeatableReadServletRequestResponseFilter();
+    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
+        return new RepeatableReadWriteServletRequestResponseFilter();
     }
 }

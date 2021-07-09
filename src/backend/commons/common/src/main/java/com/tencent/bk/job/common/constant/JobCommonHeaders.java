@@ -22,34 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletRequest;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+public interface JobCommonHeaders {
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-@Slf4j
-public class RepeatableReadServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        ServletRequest requestWrapper = new RepeatableReadHttpServletRequest((HttpServletRequest) request);
-        ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(requestWrapper, responseWrapper);
-    }
-
-    @Override
-    public void destroy() {
-
-    }
+    String APP_CODE = "X-AppCode";
+    String USERNAME = "X-Username";
 }

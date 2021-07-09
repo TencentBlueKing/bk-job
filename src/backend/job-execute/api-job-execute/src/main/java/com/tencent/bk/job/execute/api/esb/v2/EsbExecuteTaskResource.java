@@ -45,9 +45,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbExecuteTaskResource {
 
     @PostMapping("/execute_job")
-    EsbResp<EsbJobExecuteDTO> executeJob(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbExecuteJobRequest request);
+    EsbResp<EsbJobExecuteDTO> executeJob(@RequestBody EsbExecuteJobRequest request);
 
 
 }

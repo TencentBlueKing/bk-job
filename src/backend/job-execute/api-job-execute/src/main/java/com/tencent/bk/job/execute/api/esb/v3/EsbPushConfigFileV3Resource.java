@@ -49,7 +49,6 @@ public interface EsbPushConfigFileV3Resource {
      */
     @PostMapping("/push_config_file")
     EsbResp<EsbJobExecuteV3DTO> pushConfigFile(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbPushConfigFileV3Request request);
 
 

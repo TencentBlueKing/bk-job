@@ -45,9 +45,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbFastExecuteScriptResource {
 
     @PostMapping("/fast_execute_script")
-    EsbResp<EsbJobExecuteDTO> fastExecuteScript(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbFastExecuteScriptRequest request);
+    EsbResp<EsbJobExecuteDTO> fastExecuteScript(@RequestBody EsbFastExecuteScriptRequest request);
 
 
 }

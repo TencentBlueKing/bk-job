@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.config;
 
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
+import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import com.tencent.bk.job.file_gateway.interceptor.UriPermissionInterceptor;
@@ -38,16 +39,19 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
+    private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
 
     @Autowired
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
                                     EsbApiLogInterceptor esbApiLogInterceptor,
+                                    EsbReqRewriteInterceptor esbReqRewriteInterceptor,
                                     ServiceSecurityInterceptor serviceSecurityInterceptor,
                                     UriPermissionInterceptor uriPermissionInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
+        this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
     }
@@ -60,5 +64,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(uriPermissionInterceptor.getControlUriPatternsList()).order(2);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
+        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
     }
 }

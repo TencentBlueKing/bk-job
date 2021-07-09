@@ -46,7 +46,6 @@ public interface EsbOperateJobInstanceV3Resource {
 
     @PostMapping("/operate_job_instance")
     EsbResp<EsbJobExecuteV3DTO> operateJobInstance(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbOperateJobInstanceV3Request request);
 
 

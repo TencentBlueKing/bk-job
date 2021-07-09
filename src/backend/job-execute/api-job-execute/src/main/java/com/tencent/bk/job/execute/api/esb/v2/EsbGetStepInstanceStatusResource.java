@@ -46,7 +46,6 @@ public interface EsbGetStepInstanceStatusResource {
 
     @PostMapping("/get_step_instance_status")
     EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetStepInstanceStatusRequest request);
 
 

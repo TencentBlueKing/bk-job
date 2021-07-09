@@ -46,7 +46,6 @@ public interface EsbFastTransferFileV3Resource {
 
     @PostMapping("/fast_transfer_file")
     EsbResp<EsbJobExecuteV3DTO> fastTransferFile(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbFastTransferFileV3Request request);
 
 

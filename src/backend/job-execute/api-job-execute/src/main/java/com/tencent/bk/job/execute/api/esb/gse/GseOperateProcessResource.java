@@ -45,9 +45,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface GseOperateProcessResource {
 
     @PostMapping("/operate_proc")
-    EsbResp<EsbGseTaskResultDTO> gseOperateProcess(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbGseOperateProcessRequest request);
+    EsbResp<EsbGseTaskResultDTO> gseOperateProcess(@RequestBody EsbGseOperateProcessRequest request);
 
 
 }

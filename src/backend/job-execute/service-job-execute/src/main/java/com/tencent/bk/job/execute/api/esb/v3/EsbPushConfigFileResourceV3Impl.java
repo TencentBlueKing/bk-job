@@ -86,7 +86,7 @@ public class EsbPushConfigFileResourceV3Impl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_push_config_file"})
-    public EsbResp<EsbJobExecuteV3DTO> pushConfigFile(String lang, EsbPushConfigFileV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> pushConfigFile(EsbPushConfigFileV3Request request) {
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

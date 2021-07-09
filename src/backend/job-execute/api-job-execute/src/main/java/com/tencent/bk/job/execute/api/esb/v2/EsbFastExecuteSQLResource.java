@@ -46,7 +46,6 @@ public interface EsbFastExecuteSQLResource {
 
     @PostMapping("/fast_execute_sql")
     EsbResp<EsbJobExecuteDTO> fastExecuteSQL(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbFastExecuteSQLRequest request);
 
 

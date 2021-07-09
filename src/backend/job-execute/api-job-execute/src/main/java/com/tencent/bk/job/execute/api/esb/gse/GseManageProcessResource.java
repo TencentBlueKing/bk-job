@@ -45,9 +45,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface GseManageProcessResource {
 
     @PostMapping("/manage_proc")
-    EsbResp<EsbGseTaskResultDTO> gseManageProc(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbGseManageProcRequest request);
+    EsbResp<EsbGseTaskResultDTO> gseManageProc(@RequestBody EsbGseManageProcRequest request);
 
 
 }

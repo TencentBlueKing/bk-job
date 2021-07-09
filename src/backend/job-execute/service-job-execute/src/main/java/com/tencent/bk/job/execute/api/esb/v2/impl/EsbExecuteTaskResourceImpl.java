@@ -72,7 +72,7 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_execute_job"})
-    public EsbResp<EsbJobExecuteDTO> executeJob(String lang, EsbExecuteJobRequest request) {
+    public EsbResp<EsbJobExecuteDTO> executeJob(EsbExecuteJobRequest request) {
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         if (!checkResult.isPass()) {

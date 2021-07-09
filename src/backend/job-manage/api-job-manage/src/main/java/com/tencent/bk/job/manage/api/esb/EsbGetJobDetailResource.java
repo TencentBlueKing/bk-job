@@ -46,6 +46,5 @@ public interface EsbGetJobDetailResource {
 
     @PostMapping("/get_job_detail")
     EsbResp<EsbJobDetailDTO> getJobDetail(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetJobDetailRequest request);
 }

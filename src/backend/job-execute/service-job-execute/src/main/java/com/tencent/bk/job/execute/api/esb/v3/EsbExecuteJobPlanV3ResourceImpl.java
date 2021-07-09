@@ -74,7 +74,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_execute_job_plan"})
-    public EsbResp<EsbJobExecuteV3DTO> executeJobPlan(String lang, EsbExecuteJobV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> executeJobPlan(EsbExecuteJobV3Request request) {
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         if (!checkResult.isPass()) {

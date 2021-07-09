@@ -89,7 +89,7 @@ public class EsbFastTransferFileV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_fast_transfer_file"})
-    public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(String lang, EsbFastTransferFileV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(EsbFastTransferFileV3Request request) {
         ValidateResult checkResult = checkFastTransferFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

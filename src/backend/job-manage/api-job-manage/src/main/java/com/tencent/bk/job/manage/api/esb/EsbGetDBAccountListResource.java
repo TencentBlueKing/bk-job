@@ -48,7 +48,6 @@ public interface EsbGetDBAccountListResource {
 
     @PostMapping("/get_own_db_account_list")
     EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetDBAccountListRequest request);
 
 }

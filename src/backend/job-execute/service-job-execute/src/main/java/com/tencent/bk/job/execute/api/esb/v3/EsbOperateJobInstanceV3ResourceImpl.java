@@ -57,7 +57,7 @@ public class EsbOperateJobInstanceV3ResourceImpl implements EsbOperateJobInstanc
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_operate_job_instance"})
-    public EsbResp<EsbJobExecuteV3DTO> operateJobInstance(String lang, EsbOperateJobInstanceV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> operateJobInstance(EsbOperateJobInstanceV3Request request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);

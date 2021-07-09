@@ -47,7 +47,6 @@ public interface EsbGetScriptListResource {
 
     @PostMapping("/get_script_list")
     EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetScriptListRequest request);
 
 }

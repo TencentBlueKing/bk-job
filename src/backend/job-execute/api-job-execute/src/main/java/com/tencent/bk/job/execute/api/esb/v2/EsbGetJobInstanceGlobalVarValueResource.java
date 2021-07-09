@@ -46,7 +46,6 @@ public interface EsbGetJobInstanceGlobalVarValueResource {
 
     @PostMapping("/get_job_instance_global_var_value")
     EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetJobInstanceGlobalVarValueRequest request);
 
 

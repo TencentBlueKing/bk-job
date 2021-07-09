@@ -46,7 +46,6 @@ public interface EsbExecuteJobPlanV3Resource {
 
     @PostMapping("/execute_job_plan")
     EsbResp<EsbJobExecuteV3DTO> executeJobPlan(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbExecuteJobV3Request request);
 
 

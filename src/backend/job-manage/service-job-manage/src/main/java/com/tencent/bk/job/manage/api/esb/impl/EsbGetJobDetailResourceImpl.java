@@ -85,7 +85,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_job_detail"})
-    public EsbResp<EsbJobDetailDTO> getJobDetail(String lang, EsbGetJobDetailRequest request) {
+    public EsbResp<EsbJobDetailDTO> getJobDetail(EsbGetJobDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job detail, request is illegal!");

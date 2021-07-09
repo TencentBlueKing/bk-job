@@ -48,7 +48,6 @@ public interface EsbGetOSAccountResource {
 
     @PostMapping("/get_os_account")
     EsbResp<List<EsbAccountDTO>> getAppOsAccountList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetOSAccountListRequest request);
 
 }

@@ -46,9 +46,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface GseGetProcResultResource {
 
     @PostMapping("/get_proc_result")
-    EsbResp<Map<String, Object>> gseGetProcResult(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbGseGetProcResultRequest request);
+    EsbResp<Map<String, Object>> gseGetProcResult(@RequestBody EsbGseGetProcResultRequest request);
 
 
 }

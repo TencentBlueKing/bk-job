@@ -44,7 +44,6 @@ public interface EsbBatchGetJobInstanceIpLogV3Resource {
 
     @PostMapping("/batch_get_job_instance_ip_log")
     EsbResp<EsbIpLogV3DTO> batchGetJobInstanceIpLogs(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbBatchGetJobInstanceIpLogV3Request request);
 
 }

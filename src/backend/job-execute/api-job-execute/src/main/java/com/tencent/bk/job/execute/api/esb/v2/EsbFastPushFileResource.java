@@ -46,7 +46,6 @@ public interface EsbFastPushFileResource {
 
     @PostMapping("/fast_push_file")
     EsbResp<EsbJobExecuteDTO> fastPushFile(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbFastPushFileRequest request);
 
 
