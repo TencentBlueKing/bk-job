@@ -25,6 +25,8 @@
 ext {
     if (System.getProperty("jobCrontabVersion")) {
         set("jobCrontabVersion", System.getProperty("jobCrontabVersion"))
+    } else if (System.getProperty("version")) {
+        set("jobCrontabVersion", System.getProperty("version"))
     } else {
         set("jobCrontabVersion", "1.0.0")
     }
