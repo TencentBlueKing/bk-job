@@ -49,6 +49,8 @@ jobs:
         run: |
           tag=${{ github.ref }}
           version=${tag##v}
+          echo ${version} > ./VERSION
+          chmod 755 ./package.sh
           echo "::set-output name=version::${version}"
           ./package.sh -m all -v ${version}
 
