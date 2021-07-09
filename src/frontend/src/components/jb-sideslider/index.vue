@@ -206,10 +206,10 @@
                 
                 queryRange.forEach((mediaWidth) => {
                     if (mediaWidth < windowHeight) {
-                        // eslint-disable-next-line no-plusplus
-                        index++;
+                        index = index + 1;
                     }
                 });
+                index = Math.min(index, this.media.length - 1);
                 this.mediaWidth = this.media[index];
             }, 60),
             /**

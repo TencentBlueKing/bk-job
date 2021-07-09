@@ -77,7 +77,7 @@
                 {{ $t('template.赋值可变') }}
             </bk-checkbox>
         </jb-form-item>
-        <jb-form-item>
+        <jb-form-item style="margin-bottom: 0;">
             <bk-checkbox
                 v-model="formData.required"
                 :true-value="1"
