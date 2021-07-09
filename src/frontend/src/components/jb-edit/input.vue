@@ -272,12 +272,8 @@
     .jb-edit-input {
         &.block {
             position: relative;
+            margin-left: -10px;
             cursor: pointer;
-
-            .render-value-box,
-            .edit-value-box {
-                margin-left: -10px;
-            }
 
             .render-value-box {
                 padding-left: 10px;

@@ -98,8 +98,8 @@
     border: none;
 
     .bk-form-textarea {
-        padding-bottom: 26px;
-        margin-bottom: 0;
+        padding-bottom: 26px !important;
+        margin-bottom: 0 !important;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
     }

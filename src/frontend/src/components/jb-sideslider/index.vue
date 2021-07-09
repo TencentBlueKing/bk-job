@@ -190,27 +190,28 @@
             /**
              * @desc 计算响应式宽度
              */
-            getMediaWidth () {
+            getMediaWidth: _.throttle(function () {
                 if (!this.media.length) {
                     return;
                 }
-
-                let index = 0;
+                
                 const queryRange = [
-                    1366, 1680, 1920, 2560,
+                    // 1366,
+                    1680,
+                    1920,
+                    2560,
                 ];
                 const windowHeight = window.innerWidth;
-                while (index < 3) {
-                    const current = queryRange[index];
-                    if (current < windowHeight) index += 1;
-                    else break;
-                }
-                if (index > this.media.length - 1) {
-                    this.mediaWidth = this.media[this.media.length - 1];
-                    return;
-                }
+                let index = 0;
+                
+                queryRange.forEach((mediaWidth) => {
+                    if (mediaWidth < windowHeight) {
+                        index = index + 1;
+                    }
+                });
+                index = Math.min(index, this.media.length - 1);
                 this.mediaWidth = this.media[index];
-            },
+            }, 60),
             /**
              * @desc 计算footer的位置
              */
