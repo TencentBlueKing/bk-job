@@ -356,7 +356,7 @@ public class SyncServiceImpl implements SyncService {
                     handleFailedSyncAppHosts();
                     appSyncRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
-                    log.info("syncApp time consuming:" + watch.toString());
+                    log.info("syncApp time consuming:" + watch.prettyPrint());
                 }
             });
         } finally {
@@ -572,7 +572,7 @@ public class SyncServiceImpl implements SyncService {
                     handleFailedSyncAppHosts();
                     hostSyncRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
-                    log.info("syncHost time consuming:" + watch.toString());
+                    log.info("syncHost time consuming:" + watch.prettyPrint());
                 }
             });
         } finally {
@@ -754,7 +754,7 @@ public class SyncServiceImpl implements SyncService {
                 } finally {
                     agentStatusSyncRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
-                    log.info("syncAgentStatus time consuming:" + watch.toString());
+                    log.info("syncAgentStatus time consuming:" + watch.prettyPrint());
                 }
             });
         } finally {
@@ -851,7 +851,7 @@ public class SyncServiceImpl implements SyncService {
                 , updateHostIds);
             watch.stop();
         }
-        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.toString());
+        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.prettyPrint());
     }
 
     private void deleteHostsFromApp(Long appId, List<ApplicationHostInfoDTO> deleteList) {
@@ -891,7 +891,7 @@ public class SyncServiceImpl implements SyncService {
             }
             watch.stop();
         }
-        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.toString());
+        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.prettyPrint());
     }
 
     private boolean insertOrUpdateOneAppHost(Long appId, ApplicationHostInfoDTO infoDTO) {
@@ -962,7 +962,7 @@ public class SyncServiceImpl implements SyncService {
             }
             watch.stop();
         }
-        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.toString());
+        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.prettyPrint());
     }
 
     private int refreshAppHosts(Long appId,
@@ -1035,9 +1035,9 @@ public class SyncServiceImpl implements SyncService {
         updateHostsInApp(appId, updateList);
         watch.stop();
         if (watch.getTotalTimeMillis() > 10000) {
-            log.info("Performance:refreshAppHosts:appId={},{}", appId, watch.toString());
+            log.info("Performance:refreshAppHosts:appId={},{}", appId, watch.prettyPrint());
         } else {
-            log.debug("Performance:refreshAppHosts:appId={},{}", appId, watch.toString());
+            log.debug("Performance:refreshAppHosts:appId={},{}", appId, watch.prettyPrint());
         }
         return 1;
     }
