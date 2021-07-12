@@ -358,7 +358,7 @@
                     subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
                     confirmFn: () => {
                         const currentVar = this.variable[index];
-                        if (currentVar.id) {
+                        if (currentVar.id > 0) {
                             // 删除已存在的变量——设置delete
                             currentVar.delete = 1;
                         } else {
