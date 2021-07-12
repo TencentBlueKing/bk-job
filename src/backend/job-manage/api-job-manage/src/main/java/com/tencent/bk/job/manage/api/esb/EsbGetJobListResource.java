@@ -30,13 +30,10 @@ import com.tencent.bk.job.manage.model.esb.EsbJobBasicInfoDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetJobListRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 查询业务下的执行方案列表-V2
