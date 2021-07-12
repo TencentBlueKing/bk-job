@@ -25,17 +25,18 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 账号API-V3
@@ -46,8 +47,16 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbAccountV3Resource {
 
     @PostMapping("/get_account_list")
-    EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
+    EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(
         @RequestBody EsbGetAccountListV3Req request);
+
+    @GetMapping("/get_account_list")
+    EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "category", required = false) Integer category,
+        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "length", required = false) Integer length);
 
 }

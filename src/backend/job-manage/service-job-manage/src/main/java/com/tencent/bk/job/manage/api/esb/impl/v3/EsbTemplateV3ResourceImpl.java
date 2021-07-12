@@ -64,9 +64,37 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     }
 
     @Override
+    public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(String username,
+                                                                             String appCode,
+                                                                             Long appId,
+                                                                             String creator,
+                                                                             String name,
+                                                                             Long createTimeStart,
+                                                                             Long createTimeEnd,
+                                                                             String lastModifyUser,
+                                                                             Long lastModifyTimeStart,
+                                                                             Long lastModifyTimeEnd,
+                                                                             Integer start,
+                                                                             Integer length) {
+        EsbGetTemplateListV3Request request = new EsbGetTemplateListV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setCreator(creator);
+        request.setName(name);
+        request.setCreateTimeStart(createTimeStart);
+        request.setLastModifyUser(lastModifyUser);
+        request.setCreateTimeEnd(createTimeEnd);
+        request.setLastModifyTimeEnd(lastModifyTimeEnd);
+        request.setLastModifyTimeStart(lastModifyTimeStart);
+        request.setStart(start);
+        request.setLength(length);
+        return getTemplateListUsingPost(request);
+    }
+
+    @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_template_list"})
-    public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(String lang,
-                                                                             EsbGetTemplateListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(EsbGetTemplateListV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get template list, request is illegal!");

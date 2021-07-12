@@ -63,8 +63,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_instance_status"})
-    public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(String lang,
-                                                                   EsbGetJobInstanceStatusV3Request request) {
+    public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(EsbGetJobInstanceStatusV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
@@ -74,7 +73,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
-        EsbResp authResult = authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        EsbResp<EsbJobInstanceStatusV3DTO> authResult = authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
         if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
             return authResult;
         }
@@ -162,5 +161,20 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         jobInstanceStatus.setStepInstances(stepInsts);
 
         return jobInstanceStatus;
+    }
+
+    @Override
+    public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(String username,
+                                                                   String appCode,
+                                                                   Long appId,
+                                                                   Long taskInstanceId,
+                                                                   boolean returnIpResult) {
+        EsbGetJobInstanceStatusV3Request request = new EsbGetJobInstanceStatusV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setTaskInstanceId(taskInstanceId);
+        request.setReturnIpResult(returnIpResult);
+        return getJobInstanceStatusUsingPost(request);
     }
 }

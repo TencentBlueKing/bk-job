@@ -86,7 +86,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_push_config_file"})
-    public EsbResp<EsbJobExecuteDTO> pushConfigFile(String lang, EsbPushConfigFileRequest request) {
+    public EsbResp<EsbJobExecuteDTO> pushConfigFile(EsbPushConfigFileRequest request) {
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

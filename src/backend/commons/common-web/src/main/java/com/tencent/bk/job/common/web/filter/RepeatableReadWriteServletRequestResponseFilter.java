@@ -22,25 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.consts;
+package com.tencent.bk.job.common.web.filter;
 
-/**
- * 常量定义
- */
-public final class BkConsts {
+import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
+import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
-    public static final String X_CSRF_KEY = "X-CSRFToken";
-    public static final String CSRF_KEY = "csrftoken";
-    public static final String C_BK_TOKEN = "bk_token";
-    public static final String C_BK_UID = "bk_uid";
-    public static final String C_BK_TICKET = "bk_ticket";
-    public static final String SYS_LANGUAGE = "lang";
-    public static final String USER_SESSION = "user";
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
-    public static final String STATIC_VERSION = "STATIC_VERSION"; // 静态资源URL
-    public static final String APP_ID = "APP_ID";
-    public static final String SITE_URL = "SITE_URL"; //APP URL
+@Slf4j
+public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) {
 
+    }
 
-    public static final String TZ_ASIA_SHANGHAI = "Asia/Shanghai";
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+        ServletException {
+        ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
+        ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
+        chain.doFilter(requestWrapper, responseWrapper);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
 }

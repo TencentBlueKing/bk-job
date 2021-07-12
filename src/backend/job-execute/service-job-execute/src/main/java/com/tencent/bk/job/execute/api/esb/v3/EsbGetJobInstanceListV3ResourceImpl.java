@@ -64,8 +64,9 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_instance_list"})
-    public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(String lang,
-                                                                           EsbGetJobInstanceListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
+        EsbGetJobInstanceListV3Request request) {
+
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance ip log request is illegal!");
@@ -154,5 +155,38 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "type");
         }
         return ValidateResult.pass();
+    }
+
+    @Override
+    public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(String username,
+                                                                           String appCode,
+                                                                           Long appId,
+                                                                           Long createTimeStart,
+                                                                           Long createTimeEnd,
+                                                                           Long taskInstanceId,
+                                                                           String operator,
+                                                                           String taskName,
+                                                                           Integer startupMode,
+                                                                           Integer taskType,
+                                                                           Integer taskStatus,
+                                                                           String ip,
+                                                                           Integer start,
+                                                                           Integer length) {
+        EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setCreateTimeStart(createTimeStart);
+        request.setCreateTimeEnd(createTimeEnd);
+        request.setTaskInstanceId(taskInstanceId);
+        request.setOperator(operator);
+        request.setTaskName(taskName);
+        request.setStartupMode(startupMode);
+        request.setTaskType(taskType);
+        request.setTaskStatus(taskStatus);
+        request.setIp(ip);
+        request.setStart(start);
+        request.setLength(length);
+        return getJobInstanceListUsingPost(request);
     }
 }

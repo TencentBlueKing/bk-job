@@ -70,7 +70,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_script_list"})
-    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(String lang, EsbGetScriptListRequest request) {
+    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(EsbGetScriptListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");

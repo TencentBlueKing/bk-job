@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
+import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import com.tencent.bk.job.manage.common.interceptor.UriPermissionInterceptor;
@@ -43,6 +44,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     private final JobCommonInterceptor jobCommonInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
+    private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final JobIamInterceptor iamInterceptor;
 
@@ -50,11 +52,13 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
                                     UriPermissionInterceptor uriPermissionInterceptor,
                                     EsbApiLogInterceptor esbApiLogInterceptor,
+                                    EsbReqRewriteInterceptor esbReqRewriteInterceptor,
                                     ServiceSecurityInterceptor serviceSecurityInterceptor,
                                     JobIamInterceptor iamInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
+        this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.iamInterceptor = iamInterceptor;
     }
@@ -70,5 +74,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
             ).order(2);
         registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(3);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
+        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
     }
 }

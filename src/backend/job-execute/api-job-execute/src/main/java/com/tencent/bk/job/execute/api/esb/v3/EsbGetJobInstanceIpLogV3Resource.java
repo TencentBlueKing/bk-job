@@ -25,16 +25,17 @@
 package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 根据ip查询作业执行日志 -V3
@@ -45,9 +46,17 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbGetJobInstanceIpLogV3Resource {
 
     @PostMapping("/get_job_instance_ip_log")
-    EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
+    EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(
         @RequestBody EsbGetJobInstanceIpLogV3Request request);
 
+    @GetMapping("/get_job_instance_ip_log")
+    EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "job_instance_id") Long taskInstanceId,
+        @RequestParam(value = "step_instance_id") Long stepInstanceId,
+        @RequestParam(value = "bk_cloud_id") Long cloudAreaId,
+        @RequestParam(value = "ip") String ip);
 
 }
