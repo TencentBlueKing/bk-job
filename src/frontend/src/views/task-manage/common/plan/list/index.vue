@@ -531,9 +531,6 @@
                 };
                 if (this.templateId) {
                     searchParams.templateId = this.templateId;
-                // if (this.viewPlanId > 0) {
-                //     searchParams.viewPlanId = this.viewPlanId
-                // }
                 }
                 this.$refs.list.$emit('onFetch', searchParams);
             },
@@ -550,26 +547,55 @@
              * @desc 解析 url 参数
              */
             parseUrl () {
+                console.log(this);
+                // 查看作业模板的执行方案
                 this.isViewTemplatePlanList = this.$route.name === 'viewPlan';
                 // 执行方案列表所属的作业模版
                 this.templateId = '';
                 
                 if (this.isViewTemplatePlanList) {
-                    // 用于查看指定作业模版的执行方案列表
+                    // 查看指定作业模版的执行方案列表
+
                     // 解析路由查询参数viewPlanId，没有指定viewPlanId或者viewPlanId不存在列表数据中，默认赋值列表数据的第一个
-                    const templateId = Number(this.$route.params.templateId);
+                    let {
+                        templateId,
+                    } = this.$route.params;
+                    templateId = Number(templateId);
                     // 记录 templateId
                     this.templateId = templateId;
-                    const id = Number(this.$route.query.viewPlanId) || 0;
+                    
+                    const {
+                        viewPlanId,
+                        mode,
+                    } = this.$route.query;
+                    // 默认显示新建执行方案
+                    if (mode === 'create') {
+                        setTimeout(() => {
+                            this.handleCreatePlan();
+                        });
+                        
+                        return;
+                    }
+                    // url 记录了指定查看那个执行方案
+                    // 默认显示执行方案详情
+                    const id = Number(viewPlanId) || 0;
                     if (id > 0) {
-                        this.handlePlanSelect({
-                            templateId,
-                            id,
+                        setTimeout(() => {
+                            this.handlePlanSelect({
+                                templateId,
+                                id,
+                            });
                         });
                     }
                 } else {
-                    const templateId = Number(this.$route.query.viewTemplateId) || 0;
-                    const id = Number(this.$route.query.viewPlanId) || 0;
+                    // 查看所有执行方案列表
+                    const {
+                        viewTemplateId,
+                        viewPlanId,
+                    } = this.$route.query;
+                    const templateId = Number(viewTemplateId) || 0;
+                    const id = Number(viewPlanId) || 0;
+
                     if (templateId && id) {
                         setTimeout(() => {
                             this.handlePlanSelect({

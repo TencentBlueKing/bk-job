@@ -512,6 +512,9 @@
                         params: {
                             templateId: taskId,
                         },
+                        query: {
+                            mode: 'create',
+                        },
                     });
                     isClickClose = true;
                     confirmInfo.close();
@@ -599,7 +602,6 @@
                             templateId: taskId,
                         },
                         query: {
-                            mode: 'create',
                             from: 'templateDetail',
                         },
                     });
