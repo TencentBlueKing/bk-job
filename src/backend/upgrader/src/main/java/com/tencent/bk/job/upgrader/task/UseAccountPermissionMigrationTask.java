@@ -141,7 +141,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         try {
             return jobManageClient.listNormalApps();
         } catch (Exception e) {
-            log.error("Fail to get normal apps from job-manage, please confirm job-manage version>=3.3.6.0");
+            log.error("Fail to get normal apps from job-manage, please confirm job-manage version>=3.3.5.0");
             throw e;
         }
     }
