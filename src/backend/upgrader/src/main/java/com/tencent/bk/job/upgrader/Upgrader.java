@@ -226,8 +226,8 @@ public class Upgrader {
                         AbstractTaskParam paramInstance = (AbstractTaskParam) paramClass.newInstance();
                         log.info("Param {}", i + 1);
                         log.info("Name: " + paramInstance.getKey());
-                        log.info("描述：" + paramInstance.getDescription());
                         log.info("Description: " + paramInstance.getDescriptionEn());
+                        log.info("描述：" + paramInstance.getDescription());
                         // 从JVM参数中取值
                         String valueBySystemProperty = System.getProperty(paramInstance.getKey());
                         if (!StringUtils.isBlank(valueBySystemProperty)) {
@@ -247,6 +247,7 @@ public class Upgrader {
                         }
                         // 都没有再要求输入
                         log.info("Please input param value and click enter to continue:");
+                        log.info("请输入上述提示所描述的参数，按回车键确认输入：");
                         AbstractTaskParam.ParamCheckResult paramCheckResult;
                         String paramValue;
                         do {
