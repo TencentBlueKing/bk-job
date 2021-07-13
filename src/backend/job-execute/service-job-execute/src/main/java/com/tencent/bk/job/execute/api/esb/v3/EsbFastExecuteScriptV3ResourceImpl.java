@@ -73,7 +73,7 @@ public class EsbFastExecuteScriptV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_fast_execute_script"})
-    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(String lang, EsbFastExecuteScriptV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(EsbFastExecuteScriptV3Request request) {
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");

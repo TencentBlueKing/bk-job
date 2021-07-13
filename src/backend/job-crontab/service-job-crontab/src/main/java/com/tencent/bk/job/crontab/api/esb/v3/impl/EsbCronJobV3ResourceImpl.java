@@ -84,8 +84,51 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
+    public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronList(String username,
+                                                                     String appCode,
+                                                                     Long appId,
+                                                                     Long id,
+                                                                     String creator,
+                                                                     String name,
+                                                                     Integer status,
+                                                                     Long createTimeStart,
+                                                                     Long createTimeEnd,
+                                                                     String lastModifyUser,
+                                                                     Long lastModifyTimeStart,
+                                                                     Long lastModifyTimeEnd,
+                                                                     Integer start,
+                                                                     Integer length) {
+        EsbGetCronListV3Request request = new EsbGetCronListV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setId(id);
+        request.setCreator(creator);
+        request.setName(name);
+        request.setStatus(status);
+        request.setCreateTimeStart(createTimeStart);
+        request.setLastModifyUser(lastModifyUser);
+        request.setCreateTimeEnd(createTimeEnd);
+        request.setLastModifyTimeEnd(lastModifyTimeEnd);
+        request.setLastModifyTimeStart(lastModifyTimeStart);
+        request.setStart(start);
+        request.setLength(length);
+        return getCronListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbCronInfoV3Response> getCronDetail(String username, String appCode, Long appId, Long id) {
+        EsbGetCronDetailV3Request request = new EsbGetCronDetailV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setId(id);
+        return getCronDetailUsingPost(request);
+    }
+
+    @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_cron_list"})
-    public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronList(String lang, EsbGetCronListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronListUsingPost(EsbGetCronListV3Request request) {
         if (request == null) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
                 i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
@@ -154,7 +197,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_update_cron_status"})
-    public EsbResp<EsbCronInfoV3Response> updateCronStatus(String lang, EsbUpdateCronStatusV3Request request) {
+    public EsbResp<EsbCronInfoV3Response> updateCronStatus(EsbUpdateCronStatusV3Request request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
         if (request.validate()) {
@@ -192,7 +235,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_save_cron"})
-    public EsbResp<EsbCronInfoV3Response> saveCron(String lang, EsbSaveCronV3Request request) {
+    public EsbResp<EsbCronInfoV3Response> saveCron(EsbSaveCronV3Request request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
         esbCronInfoV3Response.setId(0L);
@@ -295,7 +338,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    public EsbResp<EsbCronInfoV3Response> getCronDetail(String lang, EsbGetCronDetailV3Request request) {
+    public EsbResp<EsbCronInfoV3Response> getCronDetailUsingPost(EsbGetCronDetailV3Request request) {
         AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {

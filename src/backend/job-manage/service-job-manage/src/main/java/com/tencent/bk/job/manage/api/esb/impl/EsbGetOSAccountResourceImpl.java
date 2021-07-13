@@ -63,7 +63,7 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_os_account"})
-    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(String lang, EsbGetOSAccountListRequest request) {
+    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(EsbGetOSAccountListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get system account list, request is illegal!");

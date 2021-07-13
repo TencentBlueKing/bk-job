@@ -61,7 +61,7 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_own_db_account_list"})
-    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(String lang, EsbGetDBAccountListRequest request) {
+    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(EsbGetDBAccountListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get db account list, request is illegal!");

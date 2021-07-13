@@ -67,8 +67,7 @@ public class EsbGetJobInstanceStatusResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_job_instance_status"})
-    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatusUsingPost(String lang,
-                                                                          EsbGetJobInstanceStatusRequest request) {
+    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatusUsingPost(EsbGetJobInstanceStatusRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
@@ -177,13 +176,13 @@ public class EsbGetJobInstanceStatusResourceImpl
     }
 
     @Override
-    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String lang, String appCode, String username,
+    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String appCode, String username,
                                                                  Long appId, Long taskInstanceId) {
         EsbGetJobInstanceStatusRequest req = new EsbGetJobInstanceStatusRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
         req.setAppId(appId);
         req.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceStatusUsingPost(lang, req);
+        return getJobInstanceStatusUsingPost(req);
     }
 }

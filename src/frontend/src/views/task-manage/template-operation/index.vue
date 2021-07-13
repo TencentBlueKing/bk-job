@@ -380,8 +380,6 @@
             /**
              * @desc 全局变量更新
              * @param {Array} variableList 最新的变量列表
-             * @param {String} actionType 对变量的进行的操作（edit、create、delete）
-             * @param {Number} index 当前操作的变量索引
              *
              * 更新主机变量名
              *  -自动替换步骤中已经引用的全局变量
@@ -484,7 +482,7 @@
             },
             /**
              * @desc 创建作业模版成功
-             * @param {Number} taskId 作业摸吧id
+             * @param {Number} taskId 作业模板id
              */
             createSuccessCallback (taskId) {
                 let confirmInfo = '';
@@ -567,9 +565,9 @@
             },
             /**
              * @desc 编辑作业模版成功
-             * @param {Number} taskId 作业摸吧id
+             * @param {Number} taskId 作业模板id
              * @param {Boolean} planSync 执行方案是否需要同步
-             * @param {Boolean} isPlanEmpty 作业摸吧关联的执行方案是否为空
+             * @param {Boolean} isPlanEmpty 作业模板关联的执行方案是否为空
              */
             editSuccessCallback (taskId, planSync, isPlanEmpty) {
                 let confirmInfo = '';

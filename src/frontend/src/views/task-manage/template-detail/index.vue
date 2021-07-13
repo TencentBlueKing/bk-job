@@ -383,7 +383,7 @@
                 });
             },
             /**
-             * @desc 删除作业摸吧，然后路由回退
+             * @desc 删除作业模版，然后路由回退
              */
             handleDelete () {
                 return TaskManageService.taskDelete({

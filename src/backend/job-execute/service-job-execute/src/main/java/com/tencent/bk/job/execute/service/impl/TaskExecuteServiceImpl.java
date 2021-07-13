@@ -53,9 +53,31 @@ import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepOperationDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteParam;
+import com.tencent.bk.job.execute.model.TaskInfo;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.execute.service.ScriptService;
+import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.TaskExecuteService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
@@ -63,7 +85,20 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.model.inner.*;
+import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskFileStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskNodeInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -74,11 +109,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.*;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.MANUAL_CONFIRM;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SEND_FILE;
 
 @Service
 @Slf4j
@@ -743,21 +795,22 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             hostsNotInCache);
 
         List<IpDTO> notInAppHosts = new ArrayList<>();
-        // 对于其他业务下的主机，重新去CMDB查是否已转移到当前业务下
-        hostsNotInCache.addAll(hostsInOtherApp);
-        // 普通业务，再次去cmdb确认该host
         if (isNormalApp) {
-            List<IpDTO> notInCmdbAppHosts = hostService.checkHostsNotInAppByCmdb(cacheApp.getId(), hostsNotInCache);
+            // 普通业务，再次去cmdb实时检查
+            List<IpDTO> recheckedHosts = new ArrayList<>();
+            recheckedHosts.addAll((hostsInOtherApp));
+            recheckedHosts.addAll((hostsNotInCache));
+            List<IpDTO> notInCmdbAppHosts = hostService.checkHostsNotInAppByCmdb(cacheApp.getId(), recheckedHosts);
             log.info("Check host from cmdb, appId:{}, hostsNotInCache:{}, notInCmdbAppHosts:{}", cacheApp.getId(),
-                hostsNotInCache, notInCmdbAppHosts);
+                recheckedHosts, notInCmdbAppHosts);
             if (notInCmdbAppHosts != null && !notInCmdbAppHosts.isEmpty()) {
                 notInAppHosts.addAll(notInCmdbAppHosts);
             }
+        } else {
+            notInAppHosts.addAll((hostsInOtherApp));
+            notInAppHosts.addAll((hostsNotInCache));
         }
 
-        if (notInAppHosts.isEmpty()) {
-            return Collections.emptyList();
-        }
         log.info("Check host, appId:{}, not in current app hosts:{}", cacheApp.getId(), notInAppHosts);
         return notInAppHosts;
     }

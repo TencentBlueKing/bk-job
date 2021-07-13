@@ -25,7 +25,6 @@
 package com.tencent.bk.job.analysis.config;
 
 import com.tencent.bk.job.analysis.interceptor.UriPermissionInterceptor;
-import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,17 +36,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
-    private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
 
     @Autowired
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    EsbApiLogInterceptor esbApiLogInterceptor,
                                     ServiceSecurityInterceptor serviceSecurityInterceptor,
                                     UriPermissionInterceptor uriPermissionInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
-        this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
     }
@@ -59,6 +55,5 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(uriPermissionInterceptor.getControlUriPatterns()).order(2);
-        registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
     }
 }

@@ -93,6 +93,16 @@ public interface WebTaskPlanResource {
         @PathVariable(value = "templateId") Long templateId
     );
 
+    @ApiOperation(value = "批量获取执行方案基本信息", produces = "application/json")
+    @GetMapping("/app/{appId}/task/plan:batchGet")
+    ServiceResponse<List<TaskPlanVO>> batchGetPlans(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId") Long appId,
+        @ApiParam(value = "模板ID列表，用英文逗号分隔", required = true)
+        @RequestParam(value = "templateIds") String templateIds);
+
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
     @GetMapping("/app/{appId}/task/plan/{templateId}/{planId}")
     ServiceResponse<TaskPlanVO> getPlanById(

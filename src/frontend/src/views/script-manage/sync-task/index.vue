@@ -60,7 +60,7 @@
                 <template slot-scope="{ row }">
                     <bk-button
                         text
-                        @click="handleShowSideslider(row.scriptVersionId)">
+                        @click="handleShowDetail(row.scriptVersionId)">
                         {{ row.scriptVersion }}
                     </bk-button>
                 </template>
@@ -101,7 +101,7 @@
                 {{ $t('script.完成') }}
             </bk-button>
         </action-bar>
-        <script-detail :is-show.sync="showSideslider" :script-version-id="selectScriptVersionId" />
+        <script-detail :is-show.sync="isShowDetail" :script-version-id="selectScriptVersionId" />
         <element-teleport v-if="lastVersionScriptInfo.version">
             <span> - {{ $t('script.同步至') }}</span>
             <span>{{ lastVersionScriptInfo.version }}</span>
@@ -116,6 +116,7 @@
     } from '@utils/assist';
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
+    import TaskPlanService from '@service/task-plan';
     import ActionBar from '../common/action-bar';
     import ScriptDetail from './components/script-detail';
 
@@ -128,7 +129,7 @@
             return {
                 data: [],
                 isLoading: false,
-                showSideslider: false,
+                isShowDetail: false,
                 selectScriptVersionId: 0,
                 lastVersionScriptInfo: {},
             };
@@ -164,6 +165,9 @@
             this.fetchLastScriptVersionDetail();
         },
         methods: {
+            /**
+             * @desc 开始同步脚本
+             */
             fetchData () {
                 this.isLoading = true;
                 this.serviceHandler.scriptVersionSync({
@@ -177,6 +181,9 @@
                         this.isLoading = false;
                     });
             },
+            /**
+             * @desc 脚本的最新版本信息
+             */
             fetchLastScriptVersionDetail () {
                 this.serviceHandler.versionDetail({
                     id: this.$route.params.scriptVersionId,
@@ -184,13 +191,23 @@
                     this.lastVersionScriptInfo = Object.freeze(data);
                 });
             },
-            handleShowSideslider (id) {
+            /**
+             * @desc 脚本详情
+             * @param { Number } id
+             */
+            handleShowDetail (id) {
                 this.selectScriptVersionId = id;
-                this.showSideslider = true;
+                this.isShowDetail = true;
             },
+            /**
+             * @desc 全部重试
+             */
             handleAllRetry () {
                 this.fetchData();
             },
+            /**
+             * @desc 单个重试
+             */
             handleRetry (row, index) {
                 this.serviceHandler.scriptVersionSync({
                     scriptId: this.scriptId,
@@ -205,21 +222,67 @@
                     this.data.splice(index, 1, data[0]);
                 });
             },
-            statusFilterMethod (value, row, column) {
+            /**
+             * @desc 数据过滤
+             * @param {Number} value 选中的状态
+             * @param {Object} row 单条数据
+             */
+            statusFilterMethod (value, row) {
                 return row.scriptStatus === value;
             },
+            /**
+             * @desc 完成同步任务
+             */
             handleFinish () {
                 this.routerBack();
             },
+            /**
+             * @desc 路由回退
+             */
             routerBack () {
                 window.changeAlert = !this.isRetryAllDisable;
+                this.isSyncPlanLoading = false;
                 leaveConfirm(I18n.t('script.部分作业模板同步失败，请留意'))
                     .then(() => {
-                        const routerName = this.publicScript ? 'publicScriptVersion' : 'scriptVersion';
-                        this.$router.push({
-                            name: routerName,
-                            params: {
-                                id: this.scriptId,
+                        this.$bkInfo({
+                            title: I18n.t('script.是否需要进行执行方案同步？'),
+                            closeIcon: false,
+                            subHeader: (() => (
+                                <div>
+                                    <span>{ I18n.t('script.点击') }</span>
+                                    <span style="font-weight: bold"> { I18n.t('script.“立即前往”') } </span>
+                                    <span>{ I18n.t('script.将进入关联的执行方案同步确认页面，点击') }</span>
+                                    <span style="font-weight: bold"> { I18n.t('script.“暂时不用”') } </span>
+                                    <span>{ I18n.t('script.结束本次操作并退出。') }</span>
+                                </div>
+                            ))(),
+                            okText: I18n.t('script.立即前往'),
+                            cancelText: I18n.t('script.暂时不用'),
+                            // 获取同步的作业模板对应的执行方案列表，批量同步需要同步的执行方案
+                            confirmFn: () => TaskPlanService.fetchBatchTaskPlan({
+                                templateIds: this.stepList.map(({ templateId }) => templateId).join(','),
+                            }).then((planList) => {
+                                // 跳转批量同步执行方案页面
+                                this.$router.push({
+                                    name: 'syncPlanBatch',
+                                    query: {
+                                        planIds: planList.reduce((result, plan) => {
+                                            if (plan.needUpdate) {
+                                                result.push(plan.id);
+                                            }
+                                            return result;
+                                        }, []).join(','),
+                                    },
+                                });
+                            }),
+                            cancelFn: () => {
+                                const routerName = this.publicScript ? 'publicScriptVersion' : 'scriptVersion';
+                                this.$router.push({
+                                    name: routerName,
+                                    params: {
+                                        id: this.scriptId,
+                                    },
+                                });
                             },
                         });
                     });

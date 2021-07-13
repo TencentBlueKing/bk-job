@@ -55,7 +55,7 @@ public class GseGetProcResultResourceImpl implements GseGetProcResultResource {
     }
 
     @Override
-    public EsbResp<Map<String, Object>> gseGetProcResult(String lang, EsbGseGetProcResultRequest request) {
+    public EsbResp<Map<String, Object>> gseGetProcResult(EsbGseGetProcResultRequest request) {
         log.info("Gse process result, request={}", request);
         if (!checkRequest(request)) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);

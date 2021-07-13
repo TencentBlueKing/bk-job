@@ -60,8 +60,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_job_instance_log"})
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(String lang,
-                                                                                 EsbGetJobInstanceLogRequest request) {
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(EsbGetJobInstanceLogRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance log request is illegal!");
@@ -147,13 +146,13 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
     }
 
     @Override
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String lang, String appCode, String username,
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode, String username,
                                                                         Long appId, Long taskInstanceId) {
         EsbGetJobInstanceLogRequest req = new EsbGetJobInstanceLogRequest();
         req.setAppCode(appCode);
         req.setUserName(username);
         req.setAppId(appId);
         req.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceLogUsingPost(lang, req);
+        return getJobInstanceLogUsingPost(req);
     }
 }

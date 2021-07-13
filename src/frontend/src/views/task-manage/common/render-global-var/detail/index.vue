@@ -48,6 +48,7 @@
 </template>
 <script>
     import I18n from '@/i18n';
+    import GlobalVariableModel from '@model/task/global-variable';
     import ServerPanel from '@components/choose-ip/server-panel';
     import JbEditTextarea from '@components/jb-edit/textarea';
 
@@ -59,12 +60,12 @@
     const required = () => ({ label: I18n.t('template.必填'), filed: 'requiredText' });
 
     const generateVariableDescribeMap = (defaultField = I18n.t('template.初始值')) => ({
-        1: [type(), name(), defaultValue(defaultField), description(), changeable(), required()],
-        2: [type(), name(), defaultValue(defaultField), description(), required()],
-        3: [type(), name(), defaultValue(defaultField), description(), required()],
-        4: [type(), name(), defaultValue(defaultField), description(), required()],
-        5: [type(), name(), defaultValue(defaultField), description(), required()],
-        6: [type(), name(), defaultValue(defaultField), description(), required()],
+        [GlobalVariableModel.TYPE_STRING]: [type(), name(), defaultValue(defaultField), description(), changeable(), required()],
+        [GlobalVariableModel.TYPE_NAMESPACE]: [type(), name(), defaultValue(defaultField), description(), required()],
+        [GlobalVariableModel.TYPE_HOST]: [type(), name(), defaultValue(defaultField), description(), required()],
+        [GlobalVariableModel.TYPE_PASSWORD]: [type(), name(), defaultValue(defaultField), description(), required()],
+        [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
+        [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
     });
     
     export default {

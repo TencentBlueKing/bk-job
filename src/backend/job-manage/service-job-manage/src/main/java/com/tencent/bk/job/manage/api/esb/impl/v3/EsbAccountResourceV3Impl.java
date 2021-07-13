@@ -61,7 +61,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_account_list"})
-    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(String lang, EsbGetAccountListV3Req request) {
+    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(EsbGetAccountListV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get account list, request is illegal!");
@@ -122,4 +122,16 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         return ValidateResult.pass();
     }
 
+    @Override
+    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(String username, String appCode, Long appId,
+                                                                  Integer category, Integer start, Integer length) {
+        EsbGetAccountListV3Req request = new EsbGetAccountListV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setCategory(category);
+        request.setStart(start);
+        request.setLength(length);
+        return getAccountListUsingPost(request);
+    }
 }

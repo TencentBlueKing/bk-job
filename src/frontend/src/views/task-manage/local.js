@@ -481,5 +481,6 @@ export default {
         编辑变量: 'Edit',
         更新预览: 'Preview',
         移除无效主机: '',
+        批量编辑: 'Multi-Edit',
     },
 };

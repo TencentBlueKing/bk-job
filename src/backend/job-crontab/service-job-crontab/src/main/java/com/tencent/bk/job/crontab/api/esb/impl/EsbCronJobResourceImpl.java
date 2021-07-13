@@ -77,7 +77,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_cron_list"})
-    public EsbResp<List<EsbCronInfoResponse>> getCronList(String lang, EsbGetCronListRequest request) {
+    public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
         if (request == null) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
                 i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
@@ -135,7 +135,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_update_cron_status"})
-    public EsbResp<EsbCronInfoResponse> updateCronStatus(String lang, EsbUpdateCronStatusRequest request) {
+    public EsbResp<EsbCronInfoResponse> updateCronStatus(EsbUpdateCronStatusRequest request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
         if (request.validate()) {
@@ -173,7 +173,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_save_cron"})
-    public EsbResp<EsbCronInfoResponse> saveCron(String lang, EsbSaveCronRequest request) {
+    public EsbResp<EsbCronInfoResponse> saveCron(EsbSaveCronRequest request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(0L);

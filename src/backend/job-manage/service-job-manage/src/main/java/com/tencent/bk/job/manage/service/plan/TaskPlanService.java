@@ -50,7 +50,7 @@ public interface TaskPlanService {
      * @param templateId 模版 ID
      * @return 执行方案列表
      */
-    List<TaskPlanInfoDTO> listPageTaskPlansBasicInfo(Long appId, Long templateId);
+    List<TaskPlanInfoDTO> listTaskPlansBasicInfo(Long appId, Long templateId);
 
     /**
      * 查询执行方案基础信息列表，支持分页

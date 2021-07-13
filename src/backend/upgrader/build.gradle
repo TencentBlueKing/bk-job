@@ -27,6 +27,8 @@ plugins {
 ext {
     if (System.getProperty("jobVersion")) {
         set("jobVersion", System.getProperty("jobVersion"))
+    } else if (System.getProperty("version")) {
+        set("jobVersion", System.getProperty("version"))
     } else {
         set("jobVersion", "1.0.0")
     }

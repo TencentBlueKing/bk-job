@@ -49,29 +49,75 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         this.esbScriptV3Resource = esbScriptV3Resource;
     }
 
+    @Override
+    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptList(String username,
+                                                                      String appCode,
+                                                                      String name,
+                                                                      Integer scriptLanguage,
+                                                                      Integer start,
+                                                                      Integer length) {
+        EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setName(name);
+        request.setScriptLanguage(scriptLanguage);
+        request.setStart(start);
+        request.setLength(length);
+        return getPublicScriptListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionList(String username,
+                                                                                          String appCode,
+                                                                                          String scriptId,
+                                                                                          boolean returnScriptContent,
+                                                                                          Integer start,
+                                                                                          Integer length) {
+        EsbGetScriptVersionListV3Req request = new EsbGetScriptVersionListV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setScriptId(scriptId);
+        request.setReturnScriptContent(returnScriptContent);
+        request.setStart(start);
+        request.setLength(length);
+        return getPublicScriptVersionListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetail(String username,
+                                                                             String appCode,
+                                                                             Long scriptVersionId,
+                                                                             String scriptId,
+                                                                             String version) {
+        EsbGetScriptVersionDetailV3Req request = new EsbGetScriptVersionDetailV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setId(scriptVersionId);
+        request.setScriptId(scriptId);
+        request.setVersion(version);
+        return getPublicScriptVersionDetailUsingPost(request);
+    }
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_list"})
-    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptList(String lang, EsbGetScriptListV3Req request) {
+    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(EsbGetScriptListV3Req request) {
         request.setAppId(JobManageConstants.PUBLIC_APP_ID);
-        return esbScriptV3Resource.getScriptList(lang, request);
+        return esbScriptV3Resource.getScriptListUsingPost(request);
     }
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_version_list"})
-    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionList(
-        String lang,
+    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
         request.setAppId(JobManageConstants.PUBLIC_APP_ID);
-        return esbScriptV3Resource.getScriptVersionList(lang, request);
+        return esbScriptV3Resource.getScriptVersionListUsingPost(request);
     }
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_version_detail"})
-    public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetail(String lang,
-                                                                             EsbGetScriptVersionDetailV3Req request) {
+    public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
         request.setAppId(JobManageConstants.PUBLIC_APP_ID);
-        return esbScriptV3Resource.getScriptVersionDetail(lang, request);
+        return esbScriptV3Resource.getScriptVersionDetailUsingPost(request);
     }
 }

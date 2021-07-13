@@ -56,7 +56,7 @@ public class GseManageProcessResourceImpl implements GseManageProcessResource {
     }
 
     @Override
-    public EsbResp<EsbGseTaskResultDTO> gseManageProc(String lang, EsbGseManageProcRequest request) {
+    public EsbResp<EsbGseTaskResultDTO> gseManageProc(EsbGseManageProcRequest request) {
         log.info("Gse manage process, request={}", request);
         if (!checkRequest(request)) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);

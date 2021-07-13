@@ -30,13 +30,10 @@ import com.tencent.bk.job.manage.model.esb.EsbAccountDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetOSAccountListRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 查询业务下的系统执行账号API-V2
@@ -48,7 +45,6 @@ public interface EsbGetOSAccountResource {
 
     @PostMapping("/get_os_account")
     EsbResp<List<EsbAccountDTO>> getAppOsAccountList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetOSAccountListRequest request);
 
 }

@@ -30,11 +30,8 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteScriptRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 快速执行脚本API-V2
@@ -45,9 +42,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbFastExecuteScriptResource {
 
     @PostMapping("/fast_execute_script")
-    EsbResp<EsbJobExecuteDTO> fastExecuteScript(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbFastExecuteScriptRequest request);
+    EsbResp<EsbJobExecuteDTO> fastExecuteScript(@RequestBody EsbFastExecuteScriptRequest request);
 
 
 }

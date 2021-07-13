@@ -14,7 +14,11 @@
             </bk-select>
         </td>
         <td>
-            <div class="variable-name-box offset-left" :class="{ 'edit-error': isNameError }">
+            <div
+                class="variable-name-box offset-left"
+                :class="{
+                    'edit-error': isNameError,
+                }">
                 <bk-input
                     :value="formData.name"
                     @blur="handleShowNameError"
@@ -28,24 +32,24 @@
         </td>
         <td>
             <template v-if="isHostVarialbe">
-                <bk-button
+                <div
                     v-if="formData.defaultTargetValue.isEmpty"
                     class="add-host-btn offset-left"
                     @click="handleShowChooseIp">
-                    <Icon type="plus" />
+                    <Icon type="plus" style="margin-right: 6px;" />
                     {{ $t('添加服务器') }}
-                </bk-button>
+                </div>
                 <jb-edit-host
                     v-else
-                    class="offset-left"
                     field="defaultTargetValue"
                     :value="formData.defaultTargetValue" />
             </template>
-            <bk-input
-                v-else
-                class="offset-left"
-                :value="formData.defaultValue"
-                @change="value => handleChange('defaultValue', value)" />
+            <template v-else>
+                <bk-input
+                    class="offset-left"
+                    :value="formData.defaultValue"
+                    @change="value => handleChange('defaultValue', value)" />
+            </template>
         </td>
         <td>
             <jb-textarea
@@ -56,7 +60,6 @@
         <td>
             <bk-checkbox
                 v-if="withChangable"
-                class="offset-left"
                 :value="formData.changeable"
                 @change="value => handleChange('changeable', value)"
                 :true-value="1"
@@ -65,7 +68,6 @@
         </td>
         <td>
             <bk-checkbox
-                class="offset-left"
                 :value="formData.required"
                 @change="value => handleChange('required', value)"
                 :true-value="1"
@@ -284,19 +286,30 @@
         }
 
         .job-textarea {
-            background: #f7f8fa;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-
             .job-textarea-edit {
+                background: #f7f8fa;
                 border: 1px solid transparent;
+
+                &:hover {
+                    background: #f0f1f5;
+                }
             }
         }
 
         .add-host-btn {
+            display: flex;
             height: 30px;
+            padding: 0 10px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #f7f8fa;
+            border-radius: 2px;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+                background: #f0f1f5;
+            }
         }
 
         .edit-error {
@@ -323,6 +336,11 @@
                 color: #ea3636;
                 cursor: pointer;
             }
+        }
+
+        .bk-form-control {
+            display: block;
+            width: auto;
         }
     }
 </style>
