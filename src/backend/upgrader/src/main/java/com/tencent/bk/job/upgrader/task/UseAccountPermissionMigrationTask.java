@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -33,8 +35,9 @@ import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamPathItem;
 import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
-import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
@@ -50,6 +53,8 @@ import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,9 +104,20 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         );
         String securityPublicKeyBase64 =
             (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+        String securityPrivateKeyBase64 =
+            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+        JwtManager jwtManager = null;
+        try {
+            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+        } catch (IOException | GeneralSecurityException e) {
+            String msg = "Fail to generate jwt auth token";
+            log.error(msg, e);
+            throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, msg);
+        }
+        String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
         jobManageClient = new JobClient(
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
-            Base64Util.decodeContentToStr(securityPublicKeyBase64)
+            jobAuthToken
         );
         this.appInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();

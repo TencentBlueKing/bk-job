@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.security.jwt;
+package com.tencent.bk.job.common.util.jwt;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -32,7 +32,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -44,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
-public class JwtManager {
+public class BasicJwtManager implements JwtManager {
     private volatile String token = null;
     private PublicKey publicKey;
     private PrivateKey privateKey;
@@ -52,8 +51,8 @@ public class JwtManager {
     private Cache<String, Long> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(9999).expireAfterWrite(5, TimeUnit.MINUTES).build();
 
-    public JwtManager(String privateKeyBase64,
-                      String publicKeyBase64) throws IOException, GeneralSecurityException {
+    public BasicJwtManager(String privateKeyBase64,
+                           String publicKeyBase64) throws IOException, GeneralSecurityException {
         this.privateKey = RSAUtils.getPrivateKey(privateKeyBase64);
         this.publicKey = RSAUtils.getPublicKey(publicKeyBase64);
         log.info("Init JwtManager successfully!");
@@ -64,6 +63,7 @@ public class JwtManager {
      *
      * @return
      */
+    @Override
     public String getToken() {
         if (token != null) {
             return token;
@@ -71,12 +71,18 @@ public class JwtManager {
         return generateToken();
     }
 
-    private String generateToken() {
+    @Override
+    public String generateToken(long expireMills) {
         // token 超时10min
-        long expireAt = System.currentTimeMillis() + 1000 * 60 * 10;
+        long expireAt = System.currentTimeMillis() + expireMills;
         this.token = Jwts.builder().setSubject("job-service-auth").setExpiration(new Date(expireAt))
             .signWith(SignatureAlgorithm.RS512, privateKey).compact();
         return token;
+    }
+
+    public String generateToken() {
+        // token 默认超时10min
+        return generateToken(10 * 60 * 1000);
     }
 
     /**
@@ -85,6 +91,7 @@ public class JwtManager {
      * @param token jwt token
      * @return
      */
+    @Override
     public boolean verifyJwt(String token) {
         long start = System.currentTimeMillis();
         Long tokenExpireAt = tokenCache.getIfPresent(token);
@@ -118,11 +125,5 @@ public class JwtManager {
             }
         }
         return true;
-    }
-
-    @Scheduled(fixedDelay = 5 * 60 * 1000)
-    public void refreshToken() {
-        log.info("Refresh token");
-        generateToken();
     }
 }
