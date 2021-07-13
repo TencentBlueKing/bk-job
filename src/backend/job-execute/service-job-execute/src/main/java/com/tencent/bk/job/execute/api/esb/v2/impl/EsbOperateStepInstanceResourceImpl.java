@@ -59,7 +59,7 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_operate_step_instance"})
-    public EsbResp<EsbJobExecuteDTO> operateStepInstance(String lang, EsbOperateStepInstanceRequest request) {
+    public EsbResp<EsbJobExecuteDTO> operateStepInstance(EsbOperateStepInstanceRequest request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);

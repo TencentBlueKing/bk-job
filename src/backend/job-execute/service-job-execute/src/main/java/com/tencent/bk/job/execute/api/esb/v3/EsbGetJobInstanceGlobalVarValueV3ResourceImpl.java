@@ -65,8 +65,9 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_instance_var_value"})
-    public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValue(String lang,
-                                                                                   EsbGetJobInstanceGlobalVarValueV3Request request) {
+    public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
+        EsbGetJobInstanceGlobalVarValueV3Request request) {
+
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
@@ -121,5 +122,18 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
         }
         return ValidateResult.pass();
+    }
+
+    @Override
+    public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValue(String username,
+                                                                                   String appCode,
+                                                                                   Long appId,
+                                                                                   Long taskInstanceId) {
+        EsbGetJobInstanceGlobalVarValueV3Request request = new EsbGetJobInstanceGlobalVarValueV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setTaskInstanceId(taskInstanceId);
+        return getJobInstanceGlobalVarValueUsingPost(request);
     }
 }

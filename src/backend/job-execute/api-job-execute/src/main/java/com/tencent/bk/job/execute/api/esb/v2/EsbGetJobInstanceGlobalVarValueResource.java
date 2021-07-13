@@ -30,11 +30,8 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceGlobalVarValueRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 获取作业实例全局变量的值-V2
@@ -46,7 +43,6 @@ public interface EsbGetJobInstanceGlobalVarValueResource {
 
     @PostMapping("/get_job_instance_global_var_value")
     EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbGetJobInstanceGlobalVarValueRequest request);
 
 

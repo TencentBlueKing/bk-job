@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJobInstanceIpLogV3Resource {
     @Override
-    public EsbResp<EsbIpLogV3DTO> batchGetJobInstanceIpLogs(String lang, EsbBatchGetJobInstanceIpLogV3Request request) {
+    public EsbResp<EsbIpLogV3DTO> batchGetJobInstanceIpLogs(EsbBatchGetJobInstanceIpLogV3Request request) {
         return null;
     }
 }

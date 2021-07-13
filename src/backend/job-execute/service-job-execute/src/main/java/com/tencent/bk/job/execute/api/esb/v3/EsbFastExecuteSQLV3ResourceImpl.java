@@ -73,7 +73,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_fast_execute_sql"})
-    public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(String lang, EsbFastExecuteSQLV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(EsbFastExecuteSQLV3Request request) {
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute sql request is illegal!");

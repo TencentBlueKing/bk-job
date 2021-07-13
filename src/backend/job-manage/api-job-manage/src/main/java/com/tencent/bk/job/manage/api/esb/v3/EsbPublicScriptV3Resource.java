@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
@@ -32,13 +33,13 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 公共脚本相关API-V3
@@ -48,19 +49,43 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 @EsbAPI
 public interface EsbPublicScriptV3Resource {
 
-    @PostMapping("/get_public_script_list")
+    @GetMapping("/get_public_script_list")
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "name", required = false) String name,
+        @RequestParam(value = "script_language", required = false) Integer scriptLanguage,
+        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "length", required = false) Integer length);
+
+    @GetMapping("/get_public_script_version_list")
+    EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionList(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "script_id") String scriptId,
+        @RequestParam(value = "return_script_content", required = false, defaultValue = "false")
+            boolean returnScriptContent,
+        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "length", required = false) Integer length);
+
+    @GetMapping("/get_public_script_version_detail")
+    EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetail(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "id", required = false) Long scriptVersionId,
+        @RequestParam(value = "script_id", required = false) String scriptId,
+        @RequestParam(value = "version", required = false) String version);
+
+    @PostMapping("/get_public_script_list")
+    EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(
         @RequestBody EsbGetScriptListV3Req request);
 
     @PostMapping("/get_public_script_version_list")
-    EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
+    EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
         @RequestBody EsbGetScriptVersionListV3Req request);
 
     @PostMapping("/get_public_script_version_detail")
-    EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetail(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
+    EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(
         @RequestBody EsbGetScriptVersionDetailV3Req request);
 
 }

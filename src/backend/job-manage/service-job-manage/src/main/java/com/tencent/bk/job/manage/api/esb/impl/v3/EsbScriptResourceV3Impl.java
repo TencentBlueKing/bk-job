@@ -51,7 +51,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -70,8 +74,63 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
 
     @Override
+    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(String username,
+                                                                String appCode,
+                                                                Long appId,
+                                                                String name,
+                                                                Integer scriptLanguage,
+                                                                Integer start,
+                                                                Integer length) {
+        EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setName(name);
+        request.setScriptLanguage(scriptLanguage);
+        request.setStart(start);
+        request.setLength(length);
+        return getScriptListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(String username,
+                                                                                    String appCode,
+                                                                                    Long appId,
+                                                                                    String scriptId,
+                                                                                    boolean returnScriptContent,
+                                                                                    Integer start,
+                                                                                    Integer length) {
+        EsbGetScriptVersionListV3Req request = new EsbGetScriptVersionListV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setScriptId(scriptId);
+        request.setReturnScriptContent(returnScriptContent);
+        request.setStart(start);
+        request.setLength(length);
+        return getScriptVersionListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(String username,
+                                                                       String appCode,
+                                                                       Long appId,
+                                                                       Long scriptVersionId,
+                                                                       String scriptId,
+                                                                       String version) {
+        EsbGetScriptVersionDetailV3Req request = new EsbGetScriptVersionDetailV3Req();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setId(scriptVersionId);
+        request.setScriptId(scriptId);
+        request.setVersion(version);
+        return getScriptVersionDetailUsingPost(request);
+    }
+
+    @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_list"})
-    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(String lang, EsbGetScriptListV3Req request) {
+    public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(EsbGetScriptListV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
@@ -267,8 +326,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_list"})
-    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(
-        String lang,
+    public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
         ValidateResult checkResult = checkRequest(request);
@@ -346,8 +404,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_detail"})
-    public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(String lang,
-                                                                       EsbGetScriptVersionDetailV3Req request) {
+    public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get scriptVersion list, request is illegal!");

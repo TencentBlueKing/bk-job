@@ -30,11 +30,8 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbOperateStepInstanceV3Request;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 步骤操作API-V3
@@ -46,7 +43,6 @@ public interface EsbOperateStepInstanceV3Resource {
 
     @PostMapping("/operate_step_instance")
     EsbResp<EsbJobExecuteV3DTO> operateStepInstance(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
         @RequestBody EsbOperateStepInstanceV3Request request);
 
 

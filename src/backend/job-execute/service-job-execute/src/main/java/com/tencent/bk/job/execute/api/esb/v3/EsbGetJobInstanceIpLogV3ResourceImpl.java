@@ -72,7 +72,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_instance_ip_log"})
-    public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(String lang, EsbGetJobInstanceIpLogV3Request request) {
+    public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(EsbGetJobInstanceIpLogV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance ip log request is illegal!");
@@ -202,5 +202,24 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonV3Proces
         fileLog.setLogContent(fileTaskLog.getContent());
         fileLog.setStatus(fileTaskLog.getStatus());
         return fileLog;
+    }
+
+    @Override
+    public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(String username,
+                                                      String appCode,
+                                                      Long appId,
+                                                      Long taskInstanceId,
+                                                      Long stepInstanceId,
+                                                      Long cloudAreaId,
+                                                      String ip) {
+        EsbGetJobInstanceIpLogV3Request request = new EsbGetJobInstanceIpLogV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setTaskInstanceId(taskInstanceId);
+        request.setStepInstanceId(stepInstanceId);
+        request.setCloudAreaId(cloudAreaId);
+        request.setIp(ip);
+        return getJobInstanceIpLogUsingPost(request);
     }
 }

@@ -30,11 +30,8 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbExecuteJobRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * 执行作业API-V2
@@ -45,9 +42,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbExecuteTaskResource {
 
     @PostMapping("/execute_job")
-    EsbResp<EsbJobExecuteDTO> executeJob(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbExecuteJobRequest request);
+    EsbResp<EsbJobExecuteDTO> executeJob(@RequestBody EsbExecuteJobRequest request);
 
 
 }

@@ -32,13 +32,10 @@ import com.tencent.bk.job.crontab.model.esb.request.EsbUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * @since 26/2/2020 16:24
@@ -49,16 +46,11 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface EsbCronJobResource {
 
     @PostMapping("/get_cron_list")
-    EsbResp<List<EsbCronInfoResponse>> getCronList(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbGetCronListRequest request);
+    EsbResp<List<EsbCronInfoResponse>> getCronList(@RequestBody EsbGetCronListRequest request);
 
     @PostMapping(value = "/update_cron_status")
-    EsbResp<EsbCronInfoResponse> updateCronStatus(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbUpdateCronStatusRequest request);
+    EsbResp<EsbCronInfoResponse> updateCronStatus(@RequestBody EsbUpdateCronStatusRequest request);
 
     @PostMapping(value = "/save_cron")
-    EsbResp<EsbCronInfoResponse> saveCron(@RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-                                          @RequestBody EsbSaveCronRequest request);
+    EsbResp<EsbCronInfoResponse> saveCron(@RequestBody EsbSaveCronRequest request);
 }

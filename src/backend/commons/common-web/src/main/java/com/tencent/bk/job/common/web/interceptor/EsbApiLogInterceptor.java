@@ -27,8 +27,8 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletRequest;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
+import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
@@ -45,10 +45,10 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (!(request instanceof RepeatableReadHttpServletRequest)) {
+        if (!(request instanceof RepeatableReadWriteHttpServletRequest)) {
             return true;
         }
-        RepeatableReadHttpServletRequest wrapperRequest = (RepeatableReadHttpServletRequest) request;
+        RepeatableReadWriteHttpServletRequest wrapperRequest = (RepeatableReadWriteHttpServletRequest) request;
         String desensitizedBody = "";
         String desensitizedQueryParams = "";
         String username = "";

@@ -57,7 +57,7 @@ public class GseOperateProcessV2ResourceImpl implements GseOperateProcessV2Resou
     }
 
     @Override
-    public EsbResp<EsbGseTaskResultDTO> gseOperateProcessV2(String lang, EsbGseOperateProcessRequest request) {
+    public EsbResp<EsbGseTaskResultDTO> gseOperateProcessV2(EsbGseOperateProcessRequest request) {
         log.info("Gse operate process v2, request={}", request);
         if (!checkRequest(request)) {
             return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);

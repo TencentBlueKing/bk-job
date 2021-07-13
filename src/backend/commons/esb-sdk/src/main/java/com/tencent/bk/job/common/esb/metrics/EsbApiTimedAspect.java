@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.esb.metrics;
 
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -35,7 +35,11 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 
 
@@ -61,29 +65,21 @@ public class EsbApiTimedAspect {
 
     @Around("execution (@com.tencent.bk.job.common.esb.metrics.EsbApiTimed * *.*(..))")
     public Object timedMethod(ProceedingJoinPoint pjp) throws Throwable {
-        Object[] args = pjp.getArgs();
-        if (args == null || args.length == 0) {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = null;
+        if (requestAttributes != null) {
+            request = ((ServletRequestAttributes)requestAttributes).getRequest();
+        }
+        if (request == null) {
             return pjp.proceed();
         }
 
-        String appCode = "";
-        try {
-            for (Object arg : args) {
-                if (arg instanceof EsbReq) {
-                    EsbReq esbReq = (EsbReq) arg;
-                    appCode = esbReq.getAppCode();
-                    break;
-                }
-            }
-        } catch (Throwable e) {
-            log.error("Process EsbReq fail!", e);
-            return pjp.proceed();
-        }
+        String appCode = request.getHeader(JobCommonHeaders.APP_CODE);
+        Tags tags = Tags.of("app_code", StringUtils.isNotBlank(appCode) ? appCode : "None");
 
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
         EsbApiTimed timed = method.getAnnotation(EsbApiTimed.class);
         final String metricName = timed.value();
-        Tags tags = Tags.of("app_code", StringUtils.isNotBlank(appCode) ? appCode : "None");
         return processWithTimer(pjp, timed, metricName, tags);
     }
 

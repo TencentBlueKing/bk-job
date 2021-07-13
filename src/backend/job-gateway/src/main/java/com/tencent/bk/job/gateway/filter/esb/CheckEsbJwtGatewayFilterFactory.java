@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.esb;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -38,7 +39,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * ESB JWT 校验，用于确认ESB-API调用方式来自于ESB
+ * ESB JWT 解析与校验，用于确认ESB-API调用方式来自于ESB
  */
 @Slf4j
 @Component
@@ -70,6 +71,10 @@ public class CheckEsbJwtGatewayFilterFactory
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
+
+            // set app code header
+            request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
+            request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }

@@ -64,7 +64,6 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_job_instance_global_var_value"})
     public EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
-        String lang,
         EsbGetJobInstanceGlobalVarValueRequest request) {
 
         ValidateResult checkResult = checkRequest(request);
@@ -76,7 +75,7 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
         EsbGetJobInstanceGlobalVarValueV3Request newRequest =
             convertToEsbGetJobInstanceGlobalVarValueV3Request(request);
         EsbResp<EsbJobInstanceGlobalVarValueV3DTO> esbResp =
-            proxyGetJobInstanceGlobalVarService.getJobInstanceGlobalVarValue(lang, newRequest);
+            proxyGetJobInstanceGlobalVarService.getJobInstanceGlobalVarValueUsingPost(newRequest);
 
         return EsbResp.convertData(esbResp, this::convertToEsbJobInstanceGlobalVarValueDTO);
     }
