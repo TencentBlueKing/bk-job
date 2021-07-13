@@ -32,22 +32,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public abstract class AbstractIamClient extends AbstractHttpClient {
-    private String appSecret;
-    private String appCode;
+public abstract class AbstractJobClient extends AbstractHttpClient {
+    private String jobAuthToken;
 
-    public AbstractIamClient(String iamHostUrl, String appCode, String appSecret) {
-        super(iamHostUrl);
-        this.appCode = appCode;
-        this.appSecret = appSecret;
+    public AbstractJobClient(String jobHostUrl, String jobAuthToken) {
+        super(jobHostUrl);
+        this.jobAuthToken = jobAuthToken;
     }
 
     @Override
     protected List<Header> getBasicHeaders() {
         List<Header> headerList = new ArrayList<>();
-        headerList.add(new BasicHeader("X-Bk-App-Code", appCode));
-        headerList.add(new BasicHeader("X-Bk-App-Secret", appSecret));
-        headerList.add(new BasicHeader("X-Bk-IAM-Version", "1"));
+        headerList.add(new BasicHeader("x-job-auth-token", jobAuthToken));
+        headerList.add(new BasicHeader("Content-Type", "application/json"));
         return headerList;
     }
 

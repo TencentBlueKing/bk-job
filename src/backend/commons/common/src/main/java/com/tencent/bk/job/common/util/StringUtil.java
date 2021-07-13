@@ -30,7 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,6 +50,7 @@ import java.util.stream.Collectors;
 public class StringUtil {
 
     public static String replacePathVariables(String rawStr, Object obj) {
+        if (obj == null) return rawStr;
         List<String> placeholderList = findOneRegexPatterns(rawStr, "(\\{.*?\\})");
         for (String placeholder : placeholderList) {
             String fieldName = placeholder.substring(1, placeholder.length() - 1);
