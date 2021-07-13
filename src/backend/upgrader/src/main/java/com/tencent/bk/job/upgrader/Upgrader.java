@@ -115,52 +115,18 @@ public class Upgrader {
             && CompareUtil.compareVersion(taskTargetVersion, toVersion) <= 0;
     }
 
-    public static void main(String[] args) {
-        log.info("Upgrader begin to run");
-        if (args.length < 3) {
-            usage();
-            return;
-        }
-        String fromVersion = args[0];
-        String toVersion = args[1];
-        String executeTime = args[2];
-        log.info("fromVersion={}", fromVersion);
-        log.info("toVersion={}", toVersion);
-        log.info("executeTime={}", executeTime);
-
-        Properties properties = new Properties();
-        String configFilePath = System.getProperty("config.file");
-        if (StringUtils.isNotBlank(configFilePath)) {
-            BufferedReader br=null;
-            try {
-                br = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(configFilePath), StandardCharsets.UTF_8)
-                );
-                properties.load(br);
-            } catch (IOException e) {
-                log.warn("Cannot read configFile from path:{}, exit", configFilePath, e);
-                return;
-            } finally {
-                if (br != null) {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        log.warn("Fail to close br", e);
-                    }
-                }
-            }
-        } else {
-            log.warn("Config file is empty");
-            return;
-        }
-
+    private static List<Triple<Class<? extends Object>, String, Integer>> findAndFilterUpgradeTasks(
+        String fromVersion,
+        String toVersion,
+        String executeTime
+    ) {
+        List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList = new ArrayList<>();
         // 找出所有UpgradeTask
         Reflections reflections = new Reflections(
             "com.tencent.bk.job.upgrader.task",
             new SubTypesScanner(false),
             new TypeAnnotationsScanner()
         );
-        List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList = new ArrayList<>();
         Set<Class<?>> upgradeTaskSet = reflections.getTypesAnnotatedWith(UpgradeTask.class);
 
         // 明确指定运行的任务
@@ -198,6 +164,51 @@ public class Upgrader {
                     clazz.getSimpleName(), targetVersion, targetExecuteTime);
             }
         }
+        return upgradeTaskList;
+    }
+
+    public static void main(String[] args) {
+        log.info("Upgrader begin to run");
+        if (args.length < 3) {
+            usage();
+            return;
+        }
+        String fromVersion = args[0];
+        String toVersion = args[1];
+        String executeTime = args[2];
+        log.info("fromVersion={}", fromVersion);
+        log.info("toVersion={}", toVersion);
+        log.info("executeTime={}", executeTime);
+
+        Properties properties = new Properties();
+        String configFilePath = System.getProperty("config.file");
+        if (StringUtils.isNotBlank(configFilePath)) {
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(configFilePath), StandardCharsets.UTF_8)
+                );
+                properties.load(br);
+            } catch (IOException e) {
+                log.warn("Cannot read configFile from path:{}, exit", configFilePath, e);
+                return;
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.warn("Fail to close br", e);
+                    }
+                }
+            }
+        } else {
+            log.warn("Config file is empty");
+            return;
+        }
+
+        List<Triple<Class<? extends Object>, String, Integer>> upgradeTaskList =
+            findAndFilterUpgradeTasks(fromVersion, toVersion, executeTime);
+
         // 排序
         upgradeTaskList.sort((o1, o2) -> {
             int result = CompareUtil.compareVersion(o1.getMiddle(), o2.getMiddle());
