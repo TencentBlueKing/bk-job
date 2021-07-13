@@ -437,7 +437,6 @@
              * @desc 保存作业模版
              *
              * 需要对作模版数据做逻辑验证处理
-             * - 步骤中是否使用了已经被删除的变量
              * - 步骤的基本数据是否完整
              */
             handlerSubmit () {
@@ -602,6 +601,7 @@
                             templateId: taskId,
                         },
                         query: {
+                            mode: 'create',
                             from: 'templateDetail',
                         },
                     });
