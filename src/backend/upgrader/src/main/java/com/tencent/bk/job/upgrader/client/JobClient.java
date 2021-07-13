@@ -61,7 +61,7 @@ public class JobClient extends AbstractJobClient {
     }
 
     private <T, R> R getJobRespByReq(String method, String uri, BasicHttpReq reqBody,
-                                     TypeReference<R> typeReference) throws RuntimeException {
+                                     TypeReference<R> typeReference) {
         return getJobRespByReq(method, uri, reqBody, typeReference, null);
     }
 
@@ -72,7 +72,7 @@ public class JobClient extends AbstractJobClient {
         BasicHttpReq reqBody,
         TypeReference<R> typeReference,
         AbstractHttpHelper httpHelper
-    ) throws RuntimeException {
+    ) {
         // URL模板变量替换
         uri = StringUtil.replacePathVariables(uri, reqBody);
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
