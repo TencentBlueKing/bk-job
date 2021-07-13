@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamPathItem;
 import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
@@ -96,9 +97,11 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_IAM_BASE_URL),
             (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL)
         );
+        String securityPublicKeyBase64 =
+            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
         jobManageClient = new JobClient(
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64)
+            Base64Util.decodeContentToStr(securityPublicKeyBase64)
         );
         this.appInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();
