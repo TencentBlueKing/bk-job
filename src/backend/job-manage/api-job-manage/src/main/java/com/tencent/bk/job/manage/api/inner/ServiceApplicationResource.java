@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
@@ -49,6 +50,14 @@ import java.util.List;
 @RestController
 @InternalAPI
 public interface ServiceApplicationResource {
+    /**
+     * 查询CMDB中的常规业务列表
+     *
+     * @return
+     */
+    @RequestMapping("/list/normal")
+    ServiceResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
+
     /**
      * 根据业务id查询业务
      *

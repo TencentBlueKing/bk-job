@@ -64,7 +64,12 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
 
     @Override
     public String getApplyUrl(List<ActionDTO> actionList) {
-        GetApplyUrlRequest getApplyUrlRequest = makeBaseReqByWeb(GetApplyUrlRequest.class, null, "admin", "superadmin");
+        GetApplyUrlRequest getApplyUrlRequest = makeBaseReqByWeb(
+            GetApplyUrlRequest.class,
+            null,
+            "admin",
+            "superadmin"
+        );
         getApplyUrlRequest.setSystem(SystemId.JOB);
         getApplyUrlRequest.setAction(actionList);
         String respStr = null;
@@ -136,7 +141,11 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
     }
 
     @Override
-    public EsbIamAuthedPolicy authByPath(EsbIamAction esbIamAction, EsbIamSubject esbIamSubject, List<EsbIamResource> esbIamResources) {
+    public EsbIamAuthedPolicy authByPath(
+        EsbIamAction esbIamAction,
+        EsbIamSubject esbIamSubject,
+        List<EsbIamResource> esbIamResources
+    ) {
         AuthByPathReq authByPathReq =
             makeBaseReqByWeb(AuthByPathReq.class, null, "admin", "superadmin");
         authByPathReq.setAction(esbIamAction);
@@ -150,15 +159,23 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
     }
 
     @Override
-    public List<EsbIamBatchAuthedPolicy> batchAuthByPath(List<EsbIamAction> esbIamActions, EsbIamSubject esbIamSubject, List<EsbIamBatchPathResource> esbIamBatchPathResources, Long expiredAt) {
+    public List<EsbIamBatchAuthedPolicy> batchAuthByPath(
+        List<EsbIamAction> esbIamActions,
+        EsbIamSubject esbIamSubject,
+        List<EsbIamBatchPathResource> esbIamBatchPathResources,
+        Long expiredAt
+    ) {
         BatchAuthByPathReq batchAuthByPathReq =
             makeBaseReqByWeb(BatchAuthByPathReq.class, null, "admin", "superadmin");
         batchAuthByPathReq.setActions(esbIamActions);
         batchAuthByPathReq.setSubject(esbIamSubject);
         batchAuthByPathReq.setResources(esbIamBatchPathResources);
         batchAuthByPathReq.setExpiredAt(expiredAt);
-        EsbResp<List<EsbIamBatchAuthedPolicy>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
-            API_BATCH_AUTH_BY_PATH_URL, batchAuthByPathReq, new TypeReference<EsbResp<List<EsbIamBatchAuthedPolicy>>>() {
+        EsbResp<List<EsbIamBatchAuthedPolicy>> esbResp = getEsbRespByReq(
+            HttpPost.METHOD_NAME,
+            API_BATCH_AUTH_BY_PATH_URL,
+            batchAuthByPathReq,
+            new TypeReference<EsbResp<List<EsbIamBatchAuthedPolicy>>>() {
             });
         return esbResp.getData();
     }
