@@ -547,7 +547,6 @@
              * @desc 解析 url 参数
              */
             parseUrl () {
-                console.log(this);
                 // 查看作业模板的执行方案
                 this.isViewTemplatePlanList = this.$route.name === 'viewPlan';
                 // 执行方案列表所属的作业模版
@@ -815,7 +814,7 @@
                                             id: taskInstanceId,
                                         },
                                         query: {
-                                            from: 'planList',
+                                            from: this.$route.name,
                                         },
                                     });
                                 });
@@ -831,7 +830,7 @@
                             templateId: row.templateId,
                         },
                         query: {
-                            from: 'planList',
+                            from: this.$route.name,
                         },
                     });
                 });
@@ -855,7 +854,7 @@
                         templateId: row.templateId,
                     },
                     query: {
-                        from: 'planList',
+                        from: this.$route.name,
                     },
                 });
             },
