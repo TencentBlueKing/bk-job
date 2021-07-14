@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 @UpgradeTask(
     dataStartVersion = "3.0.0.0",
     targetVersion = "3.3.5.0",
-    targetExecuteTime = ExecuteTimeEnum.AFTER_UPDATE_JOB)
+    targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
 public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
 
     private JobIamHelper jobIamHelper;
