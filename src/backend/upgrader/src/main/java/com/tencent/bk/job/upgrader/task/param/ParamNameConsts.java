@@ -11,5 +11,6 @@ public class ParamNameConsts {
     public static final String CONFIG_PROPERTY_IAM_BASE_URL = "iam.base-url";
     public static final String CONFIG_PROPERTY_ESB_SERVICE_URL = "esb.service.url";
     public static final String CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64 = "job.security.public-key-base64";
+    public static final String CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64 = "job.security.private-key-base64";
     public static final String CONFIG_PROPERTY_JOB_ENCRYPT_PASSWORD = "job.encrypt.password";
 }

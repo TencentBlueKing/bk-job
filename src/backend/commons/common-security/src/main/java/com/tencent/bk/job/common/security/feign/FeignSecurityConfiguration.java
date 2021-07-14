@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.security.feign;
 
-import com.tencent.bk.job.common.security.jwt.JwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

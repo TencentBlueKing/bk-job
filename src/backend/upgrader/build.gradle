@@ -37,6 +37,7 @@ version "${jobVersion}"
 dependencies {
     compile project(":commons:common")
     compile project(":commons:common-iam")
+    compile project(":commons:common-utils")
     compile project(":commons:esb-sdk")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

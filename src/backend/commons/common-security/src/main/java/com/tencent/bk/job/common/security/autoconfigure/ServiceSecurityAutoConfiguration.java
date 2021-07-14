@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.common.security.autoconfigure;
 
-import com.tencent.bk.job.common.security.jwt.JwtManager;
+import com.tencent.bk.job.common.security.jwt.AutoUpdateJwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,7 +45,10 @@ public class ServiceSecurityAutoConfiguration {
     @ConditionalOnMissingBean(name = "jwtManager")
     JwtManager jwtManager(@Autowired ServiceSecurityProperties securityProperties) throws IOException,
         GeneralSecurityException {
-        return new JwtManager(securityProperties.getPrivateKeyBase64(), securityProperties.getPublicKeyBase64());
+        return new AutoUpdateJwtManager(
+            securityProperties.getPrivateKeyBase64(),
+            securityProperties.getPublicKeyBase64()
+        );
     }
 
 }
