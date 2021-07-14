@@ -210,7 +210,7 @@
                             id: taskInstanceId,
                         },
                         query: {
-                            from: 'planList',
+                            from: this.$route.name,
                         },
                     });
                 })
@@ -241,7 +241,6 @@
                     name: 'cronList',
                     query: {
                         planId: this.id,
-                        form: 'planList',
                     },
                 });
                 window.open(href);
@@ -279,7 +278,7 @@
                 return TaskPlanService.planDelete({
                     id: this.id,
                     templateId: this.templateId,
-                }).then((data) => {
+                }).then(() => {
                     this.$bkMessage({
                         theme: 'success',
                         message: I18n.t('template.操作成功'),
@@ -299,6 +298,9 @@
                     params: {
                         id: this.id,
                         templateId: this.templateId,
+                    },
+                    query: {
+                        from: this.$route.name,
                     },
                 });
             },
@@ -324,6 +326,9 @@
                     params: {
                         id: this.id,
                         templateId: this.templateId,
+                    },
+                    query: {
+                        from: this.$route.name,
                     },
                 });
             },
