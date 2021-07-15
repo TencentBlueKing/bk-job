@@ -105,6 +105,7 @@
                 const variable = new GlobalVariableModel(variableData);
                 variableList.splice(index, 1, variable);
                 this.variableList = variableList;
+                window.changeAlert = true;
             },
             /**
              * @desc 删除指定索引的变量
@@ -121,6 +122,7 @@
                     variableList.splice(index, 1);
                 }
                 this.variableList = variableList;
+                window.changeAlert = true;
             },
             /**
              * @desc 在指定索引位置添加一个新变量
@@ -128,6 +130,7 @@
              */
             handleAppendVariable (index) {
                 this.variableList.splice(index + 1, 0, createVariable());
+                window.changeAlert = true;
             },
             /**
              * @desc 提交编辑
