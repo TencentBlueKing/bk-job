@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v2;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbStepInstanceStatusDTO {
     @JsonProperty("is_finished")
     private Boolean isFinished;
@@ -47,7 +45,6 @@ public class EsbStepInstanceStatusDTO {
     private List<Map<String, Object>> ayalyseResult;
 
     @Data
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepInstance {
         @JsonProperty("step_instance_id")
         private Long id;

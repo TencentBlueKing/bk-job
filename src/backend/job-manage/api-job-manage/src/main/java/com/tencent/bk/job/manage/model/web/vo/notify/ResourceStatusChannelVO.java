@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
