@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.api.op.impl;
 
 import com.tencent.bk.job.analysis.api.op.OpResource;
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.op.*;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;

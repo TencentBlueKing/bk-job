@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.task.statistics;
 
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.task.statistics.task.*;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
