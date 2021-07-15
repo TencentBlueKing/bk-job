@@ -36,11 +36,11 @@ import java.util.List;
  * 服务器定义-ESB
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbServerV3DTO {
     /**
      * 目标服务器对应的主机变量
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String variable;
 
     @JsonProperty("ip_list")

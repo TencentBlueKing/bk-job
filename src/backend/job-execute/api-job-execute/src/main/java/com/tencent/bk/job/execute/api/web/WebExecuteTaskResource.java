@@ -26,14 +26,23 @@ package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.execute.model.web.request.*;
+import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
+import com.tencent.bk.job.execute.model.web.request.WebFastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.web.request.WebFastPushFileRequest;
+import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
+import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 作业执行API-前端调用

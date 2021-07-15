@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.gse;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
@@ -32,7 +31,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbProcessInfoDTO {
     /**
      * 进程路径, 例如/usr/local/gse/sbin
@@ -87,7 +85,6 @@ public class EsbProcessInfoDTO {
     /**
      * IP对象数组
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonProperty("ip_list")
     private List<EsbIpDTO> ipList;
     /**

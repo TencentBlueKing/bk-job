@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import lombok.Data;
 
@@ -36,7 +35,6 @@ import java.util.List;
  * @since 17/11/2020 21:51
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbUserRoleInfoV3DTO {
     /**
      * 用户名列表

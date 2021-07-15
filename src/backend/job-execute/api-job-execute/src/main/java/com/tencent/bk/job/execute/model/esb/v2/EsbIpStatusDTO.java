@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.execute.model.esb.v2;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbIpStatusDTO {
     private String ip;
     @JsonProperty("bk_cloud_id")
