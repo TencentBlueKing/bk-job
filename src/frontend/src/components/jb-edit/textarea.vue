@@ -199,7 +199,7 @@
                 
                     const calcLength = () => {
                         const text = this.newVal.slice(0, realLength);
-                        $el.innerText = text;
+                        $el.innerText = `${text} 展开展开`;
                         Promise.resolve()
                             .then(() => {
                                 realHeight = $el.getBoundingClientRect().height;
@@ -213,7 +213,7 @@
                     setTimeout(() => {
                         this.renderLength = 0;
                         if (realHeight > lineHeight) {
-                            this.renderLength = realLength - 7;
+                            this.renderLength = realLength - 4;
                         }
                         this.$refs.textWraper.removeChild($el);
                     });
@@ -337,12 +337,13 @@
                 color: #3a84ff;
                 white-space: nowrap;
                 cursor: pointer;
+                user-select: none;
             }
         }
 
         .render-text-box {
             position: relative;
-            max-width: calc(100% - 25px);
+            width: 100%;
             overflow: hidden;
             line-height: 24px;
             white-space: pre-wrap;
