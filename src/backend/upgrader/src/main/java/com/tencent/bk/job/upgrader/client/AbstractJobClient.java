@@ -22,39 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v3;
+package com.tencent.bk.job.upgrader.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.job.EsbCCTopoNodeDTO;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 服务器定义-ESB
- */
-@Data
-public class EsbServerV3DTO {
-    /**
-     * 目标服务器对应的主机变量
-     */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String variable;
+@Slf4j
+public abstract class AbstractJobClient extends AbstractHttpClient {
+    private String jobAuthToken;
 
-    @JsonProperty("ip_list")
-    private List<EsbIpDTO> ips;
+    public AbstractJobClient(String jobHostUrl, String jobAuthToken) {
+        super(jobHostUrl);
+        this.jobAuthToken = jobAuthToken;
+    }
 
-    /**
-     * 动态分组ID列表
-     */
-    @JsonProperty("dynamic_group_list")
-    private List<EsbDynamicGroupDTO> dynamicGroups;
+    @Override
+    protected List<Header> getBasicHeaders() {
+        List<Header> headerList = new ArrayList<>();
+        headerList.add(new BasicHeader("x-job-auth-token", jobAuthToken));
+        headerList.add(new BasicHeader("Content-Type", "application/json"));
+        return headerList;
+    }
 
-    /**
-     * 分布式拓扑节点列表
-     */
-    @JsonProperty("topo_node_list")
-    private List<EsbCCTopoNodeDTO> topoNodes;
 }

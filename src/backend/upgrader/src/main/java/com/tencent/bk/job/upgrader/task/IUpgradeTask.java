@@ -32,6 +32,8 @@ public interface IUpgradeTask {
 
     String getTargetVersion();
 
+    void init();
+
     int getPriority();
 
     int execute(String[] args);

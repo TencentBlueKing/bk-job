@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.security.feign;
 
-import com.tencent.bk.job.common.security.jwt.JwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;

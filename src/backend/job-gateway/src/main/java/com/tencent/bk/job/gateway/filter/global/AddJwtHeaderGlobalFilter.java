@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.global;
 
-import com.tencent.bk.job.common.security.jwt.JwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
