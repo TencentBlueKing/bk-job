@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
@@ -33,7 +32,6 @@ import lombok.Data;
  * 文件任务日志
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbFileLogV3DTO {
 
     @JsonProperty("mode")

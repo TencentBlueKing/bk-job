@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -32,7 +31,6 @@ import lombok.Data;
  * 作业下发信息
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbJobExecuteV3DTO {
     /**
      * 作业实例ID

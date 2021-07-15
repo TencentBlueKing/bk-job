@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Getter;
@@ -34,7 +33,6 @@ import java.util.List;
 
 @Setter
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbTaskVariableDTO {
     /**
      * 全局变量类型
@@ -62,12 +60,10 @@ public class EsbTaskVariableDTO {
      * IP对象数组，category=2时有这个参数
      */
     @JsonProperty("ip_list")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<EsbIpDTO> ipList;
     /**
      * 配置平台上的动态分组id列表， 当category=3时有这个参数
      */
     @JsonProperty("custom_query_id")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> customQueryId;
 }

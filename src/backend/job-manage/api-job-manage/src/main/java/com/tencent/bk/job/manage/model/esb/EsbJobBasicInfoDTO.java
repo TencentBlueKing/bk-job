@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -32,7 +31,6 @@ import lombok.Data;
  * 作业执行方案基本信息
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbJobBasicInfoDTO {
     @JsonProperty("bk_job_id")
     private Long id;

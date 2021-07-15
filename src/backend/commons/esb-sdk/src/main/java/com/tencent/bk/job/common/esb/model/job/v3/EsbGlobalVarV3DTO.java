@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -32,7 +31,6 @@ import lombok.Data;
  * 全局变量
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbGlobalVarV3DTO {
     /**
      * 全局变量ID

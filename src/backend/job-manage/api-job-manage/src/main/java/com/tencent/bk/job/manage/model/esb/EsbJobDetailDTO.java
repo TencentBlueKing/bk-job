@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -86,12 +85,10 @@ public class EsbJobDetailDTO {
      * 作业的步骤
      */
     @JsonProperty("steps")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<EsbStepDTO> steps;
     /**
      * 全局变量
      */
     @JsonProperty("global_vars")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<EsbTaskVariableDTO> variables;
 }

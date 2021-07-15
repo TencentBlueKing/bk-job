@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.PageData;
 import lombok.Data;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
  */
 @NoArgsConstructor
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbPageDataV3<T> {
     private Integer start;
     @JsonProperty("length")

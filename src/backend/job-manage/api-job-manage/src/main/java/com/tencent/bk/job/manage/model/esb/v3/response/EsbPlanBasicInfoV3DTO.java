@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -34,7 +33,6 @@ import lombok.Data;
  * @since 15/10/2020 17:54
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbPlanBasicInfoV3DTO {
     /**
      * 执行方案 ID
