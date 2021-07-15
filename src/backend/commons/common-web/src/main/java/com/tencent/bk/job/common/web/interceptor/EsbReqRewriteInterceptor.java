@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
@@ -62,9 +63,11 @@ public class EsbReqRewriteInterceptor extends HandlerInterceptorAdapter {
                     }
                     // reset username and appCode
                     if (StringUtils.isNotBlank(username)) {
-                        String usernameInBody = jsonBody.get("bk_username").asText();
-                        if (StringUtils.isNotEmpty(usernameInBody) && !usernameInBody.equals(username)) {
-                            log.error("Invalid username, usernameInBody: {}, username: {}", usernameInBody, username);
+                        JsonNode bkUserNameNode = jsonBody.get("bk_username");
+                        if (bkUserNameNode != null && StringUtils.isNotBlank(bkUserNameNode.asText())
+                            && !bkUserNameNode.asText().equals(username)) {
+                            log.error("Invalid username, usernameInBody: {}, username: {}", bkUserNameNode.asText(),
+                                username);
                         }
                         jsonBody.set("bk_username", new TextNode(username));
                     } else {
@@ -72,9 +75,11 @@ public class EsbReqRewriteInterceptor extends HandlerInterceptorAdapter {
                     }
 
                     if (StringUtils.isNotBlank(appCode)) {
-                        String appCodeInBody = jsonBody.get("bk_app_code").asText();
-                        if (StringUtils.isNotEmpty(appCodeInBody) && !appCodeInBody.equals(appCode)) {
-                            log.error("Invalid appCode, appCodeInBody: {}, appCode: {}", appCodeInBody, appCode);
+                        JsonNode bkAppCodeNode = jsonBody.get("bk_app_code");
+                        if (bkAppCodeNode != null && StringUtils.isNotBlank(bkAppCodeNode.asText())
+                            && !bkAppCodeNode.asText().equals(appCode)) {
+                            log.error("Invalid appCode, appCodeInBody: {}, appCode: {}", bkAppCodeNode.asText(),
+                                appCode);
                         }
                         jsonBody.set("bk_app_code", new TextNode(appCode));
                     } else {
