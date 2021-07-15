@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;

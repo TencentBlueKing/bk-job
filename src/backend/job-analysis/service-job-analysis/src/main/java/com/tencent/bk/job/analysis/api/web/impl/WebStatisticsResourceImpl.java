@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.api.web.impl;
 
 import com.tencent.bk.job.analysis.api.web.WebStatisticsResource;
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.consts.DimensionEnum;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.ResourceEnum;

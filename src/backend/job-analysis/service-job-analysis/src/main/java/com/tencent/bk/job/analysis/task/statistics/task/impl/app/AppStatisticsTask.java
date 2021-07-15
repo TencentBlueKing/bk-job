@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.analysis.client.ExecuteMetricsClient;
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
