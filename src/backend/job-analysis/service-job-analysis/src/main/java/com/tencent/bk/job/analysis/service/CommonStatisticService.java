@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.analysis.config.listener.StatisticConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
@@ -35,12 +37,19 @@ import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
 import com.tencent.bk.job.analysis.util.calc.SimpleMomYoyCalculator;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -60,6 +69,15 @@ public class CommonStatisticService {
         this.appService = appService;
     }
 
+    public List<Long> getJoinedAppIdList(String date) {
+        StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, date);
+        List<SimpleAppInfoDTO> applicationDTOList = JsonUtils.fromJson(statisticsDTO.getValue(),
+            new TypeReference<List<SimpleAppInfoDTO>>() {
+            });
+        return applicationDTOList.parallelStream().map(SimpleAppInfoDTO::getId).collect(Collectors.toList());
+    }
 
     /**
      * @param statisticsDTO
@@ -166,7 +184,12 @@ public class CommonStatisticService {
 
     public List<PerAppStatisticVO> listByPerApp(String resource, TotalMetricEnum metric, List<Long> appIdList,
                                                 String date) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null, resource,
+        // 增加筛选范围：已接入的业务
+        List<Long> scopedAppIdList = CustomCollectionUtils.mergeList(appIdList, getJoinedAppIdList(date));
+        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+            scopedAppIdList,
+            null,
+            resource,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + metric.name(), date);
         List<PerAppStatisticVO> perAppStatisticVOList = new ArrayList<>();
