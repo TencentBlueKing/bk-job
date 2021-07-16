@@ -28,4 +28,18 @@ public interface JobCommonHeaders {
 
     String APP_CODE = "X-AppCode";
     String USERNAME = "X-Username";
+    String REQUEST_ID = "X-Bk-Job-Request-Id";
+
+    /**
+     * 蓝鲸网关-语言
+     */
+    String BK_GATEWAY_LANG = "Blueking-Language";
+    /**
+     * 蓝鲸网关-RequestId
+     */
+    String BK_GATEWAY_REQUEST_ID = "X-Bkapi-Request-Id";
+    /**
+     * 蓝鲸网关-JWT
+     */
+    String BK_GATEWAY_JWT = "X-Bkapi-JWT";
 }
