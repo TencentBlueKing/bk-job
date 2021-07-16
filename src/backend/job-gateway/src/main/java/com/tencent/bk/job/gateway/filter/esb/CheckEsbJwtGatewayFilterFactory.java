@@ -58,7 +58,7 @@ public class CheckEsbJwtGatewayFilterFactory
         return (exchange, chain) -> {
             ServerHttpResponse response = exchange.getResponse();
             ServerHttpRequest request = exchange.getRequest();
-            String token = RequestUtil.getHeaderValue(request, "X-Bkapi-JWT");
+            String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
             if (StringUtils.isEmpty(token)) {
                 log.warn("Esb token is empty!");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -67,7 +67,7 @@ public class CheckEsbJwtGatewayFilterFactory
             EsbJwtInfo authInfo = esbJwtService.extractFromJwt(token);
             if (authInfo == null) {
                 log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    "X-Bkapi-Request-Id"));
+                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
