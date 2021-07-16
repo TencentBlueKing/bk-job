@@ -22,18 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.manage.model.inner;
 
-import lombok.AllArgsConstructor;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * 业务
+ */
 @Data
-public class CompositeExpression {
-    private String op;
-    private List<Expression> content;
+@ApiModel("业务")
+public class ServiceAppBaseInfoDTO {
+
+    @ApiModelProperty("业务ID")
+    private Long id;
+
+    /**
+     * 业务名称
+     */
+    @ApiModelProperty("业务名称")
+    private String name;
 }

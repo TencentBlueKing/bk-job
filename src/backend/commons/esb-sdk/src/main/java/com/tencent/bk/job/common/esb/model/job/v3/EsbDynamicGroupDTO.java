@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
  * 动态分组
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbDynamicGroupDTO {
     /**
      * 动态分组ID

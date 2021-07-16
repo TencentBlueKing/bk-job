@@ -22,34 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.upgrader.client;
 
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletRequest;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
-public class RepeatableReadServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+public abstract class AbstractJobClient extends AbstractHttpClient {
+    private String jobAuthToken;
 
+    public AbstractJobClient(String jobHostUrl, String jobAuthToken) {
+        super(jobHostUrl);
+        this.jobAuthToken = jobAuthToken;
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        ServletRequest requestWrapper = new RepeatableReadHttpServletRequest((HttpServletRequest) request);
-        ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(requestWrapper, responseWrapper);
+    protected List<Header> getBasicHeaders() {
+        List<Header> headerList = new ArrayList<>();
+        headerList.add(new BasicHeader("x-job-auth-token", jobAuthToken));
+        headerList.add(new BasicHeader("Content-Type", "application/json"));
+        return headerList;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

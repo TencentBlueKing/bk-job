@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @Description
@@ -37,6 +38,20 @@ import java.util.List;
  * @Version 1.0
  */
 public class CustomCollectionUtils {
+
+    public static <T> List<T> mergeList(List<T> list1, List<T> list2) {
+        if (list1 == null || list1.isEmpty()) return list2;
+        if (list2 == null || list2.isEmpty()) return list1;
+        Set<T> set = new HashSet<>(list1);
+        List<T> resultList = new ArrayList<>(list1);
+        list2.forEach(it -> {
+            if (!set.contains(it)) {
+                resultList.add(it);
+                set.add(it);
+            }
+        });
+        return resultList;
+    }
 
     public static List<String> getNoDuplicateList(String rawStr, String separator) {
         if (rawStr == null || rawStr.isEmpty()) {

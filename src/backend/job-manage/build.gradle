@@ -25,6 +25,8 @@
 ext {
     if (System.getProperty("jobManageVersion")) {
         set("jobManageVersion", System.getProperty("jobManageVersion"))
+    } else if (System.getProperty("version")) {
+        set("jobManageVersion", System.getProperty("version"))
     } else {
         set("jobManageVersion", "1.0.0")
     }

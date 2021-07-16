@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.EsbFileSourceDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
@@ -35,7 +34,6 @@ import java.util.List;
 
 @Setter
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbStepDTO {
     @JsonProperty("step_id")
     private Long id;
@@ -70,11 +68,9 @@ public class EsbStepDTO {
     private String fileTargetPath;
 
     @JsonProperty("file_source")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<EsbFileSourceDTO> fileSources;
 
     @JsonProperty("ip_list")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<EsbIpDTO> ipList;
 
     @JsonProperty("custom_query_id")

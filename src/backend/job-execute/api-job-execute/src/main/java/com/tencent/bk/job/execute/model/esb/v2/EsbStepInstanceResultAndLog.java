@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.esb.v2;
 
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
@@ -36,7 +35,6 @@ import lombok.Setter;
 
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Setter
 @Getter
 public class EsbStepInstanceResultAndLog {
@@ -61,7 +59,6 @@ public class EsbStepInstanceResultAndLog {
     /**
      * 当前步骤下所有ip的日志 按tag分类或 ip的执行状态(ip_status)归类存放
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonProperty("step_results")
     private List<StepInstResultDTO> stepResults;
 
@@ -85,7 +82,6 @@ public class EsbStepInstanceResultAndLog {
          * ip 日志内容
          */
         @JsonProperty("ip_logs")
-        @JsonInclude(JsonInclude.Include.NON_EMPTY)
         private List<IpLogDTO> ipLogs;
     }
 

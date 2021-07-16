@@ -48,7 +48,7 @@
             // 可滚动容器元素
             target: {
                 type: Function,
-                default: () => document.body,
+                default: () => document.querySelector('.jb-navigation-main').querySelector('.scroll-faker-content'),
             },
             size: {
                 type: String,

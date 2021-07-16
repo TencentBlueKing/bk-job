@@ -63,7 +63,7 @@
                     type="textarea"
                     maxlength="100" />
             </jb-form-item>
-            <jb-form-item>
+            <jb-form-item style="margin-bottom: 0;">
                 <bk-checkbox v-model="formData.required" :true-value="1" :false-value="0">
                     {{ $t('template.执行时必填') }}
                 </bk-checkbox>

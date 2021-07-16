@@ -68,8 +68,7 @@ public class EsbGetStepInstanceStatusResourceImpl
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_step_instance_status"})
-    public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(String lang,
-                                                                      EsbGetStepInstanceStatusRequest request) {
+    public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(EsbGetStepInstanceStatusRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get step instance status request is illegal!");

@@ -84,7 +84,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_fast_execute_sql"})
-    public EsbResp<EsbJobExecuteDTO> fastExecuteSQL(String lang, EsbFastExecuteSQLRequest request) {
+    public EsbResp<EsbJobExecuteDTO> fastExecuteSQL(EsbFastExecuteSQLRequest request) {
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");

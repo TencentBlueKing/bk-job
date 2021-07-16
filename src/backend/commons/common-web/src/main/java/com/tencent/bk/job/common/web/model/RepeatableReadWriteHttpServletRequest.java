@@ -30,17 +30,21 @@ import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 由于HttpServletRequest的InputStream只允许读取一次，为了能够重复读取body，需要用装饰模式来包装
+ * 由于HttpServletRequest的InputStream只允许读取一次，为了能够重复读写body，需要用装饰模式来包装
  */
 @Slf4j
-public class RepeatableReadHttpServletRequest extends HttpServletRequestWrapper {
-    private final String body;
+public class RepeatableReadWriteHttpServletRequest extends HttpServletRequestWrapper {
+    private String body;
 
-    public RepeatableReadHttpServletRequest(HttpServletRequest request) {
+    public RepeatableReadWriteHttpServletRequest(HttpServletRequest request) {
         super(request);
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader br = null;
@@ -102,5 +106,9 @@ public class RepeatableReadHttpServletRequest extends HttpServletRequestWrapper 
 
     public String getBody() {
         return this.body;
+    }
+
+    public void setBody(String newBody) {
+        this.body = newBody;
     }
 }

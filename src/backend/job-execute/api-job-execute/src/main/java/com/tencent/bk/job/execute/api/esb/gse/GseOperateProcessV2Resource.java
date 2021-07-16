@@ -30,11 +30,8 @@ import com.tencent.bk.job.execute.model.esb.gse.EsbGseTaskResultDTO;
 import com.tencent.bk.job.execute.model.esb.gse.req.EsbGseOperateProcessRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
  * GSE接口-GSE进程操作-V2版本
@@ -45,9 +42,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public interface GseOperateProcessV2Resource {
 
     @PostMapping("/operate_process")
-    EsbResp<EsbGseTaskResultDTO> gseOperateProcessV2(
-        @RequestHeader(value = COMMON_LANG_HEADER, required = false) String lang,
-        @RequestBody EsbGseOperateProcessRequest request);
+    EsbResp<EsbGseTaskResultDTO> gseOperateProcessV2(@RequestBody EsbGseOperateProcessRequest request);
 
 
 }

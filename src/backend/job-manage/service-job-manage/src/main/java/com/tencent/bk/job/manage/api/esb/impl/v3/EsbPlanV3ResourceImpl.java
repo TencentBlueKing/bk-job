@@ -69,8 +69,49 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     }
 
     @Override
+    public EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanList(String username,
+                                                                     String appCode,
+                                                                     Long appId,
+                                                                     Long templateId,
+                                                                     String creator,
+                                                                     String name,
+                                                                     Long createTimeStart,
+                                                                     Long createTimeEnd,
+                                                                     String lastModifyUser,
+                                                                     Long lastModifyTimeStart,
+                                                                     Long lastModifyTimeEnd,
+                                                                     Integer start,
+                                                                     Integer length) {
+        EsbGetPlanListV3Request request = new EsbGetPlanListV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setTemplateId(templateId);
+        request.setCreator(creator);
+        request.setName(name);
+        request.setCreateTimeStart(createTimeStart);
+        request.setCreateTimeEnd(createTimeEnd);
+        request.setLastModifyUser(lastModifyUser);
+        request.setLastModifyTimeStart(lastModifyTimeStart);
+        request.setLastModifyTimeEnd(lastModifyTimeEnd);
+        request.setStart(start);
+        request.setLength(length);
+        return getPlanListUsingPost(request);
+    }
+
+    @Override
+    public EsbResp<EsbPlanInfoV3DTO> getPlanDetail(String username, String appCode, Long appId, Long planId) {
+        EsbGetPlanDetailV3Request request = new EsbGetPlanDetailV3Request();
+        request.setUserName(username);
+        request.setAppCode(appCode);
+        request.setAppId(appId);
+        request.setPlanId(planId);
+        return getPlanDetailUsingPost(request);
+    }
+
+    @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_plan_list"})
-    public EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanList(String lang, EsbGetPlanListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanListUsingPost(EsbGetPlanListV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get plan list, request is illegal!");
@@ -118,7 +159,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_plan_detail"})
-    public EsbResp<EsbPlanInfoV3DTO> getPlanDetail(String lang, EsbGetPlanDetailV3Request request) {
+    public EsbResp<EsbPlanInfoV3DTO> getPlanDetailUsingPost(EsbGetPlanDetailV3Request request) {
         ValidateResult validateResult = request.validate();
         if (validateResult.isPass()) {
             TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlanById(request.getAppId(), request.getPlanId());

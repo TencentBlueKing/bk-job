@@ -61,7 +61,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_script_detail"})
-    public EsbResp<EsbScriptDTO> getScriptDetail(String lang, EsbGetScriptDetailRequest request) {
+    public EsbResp<EsbScriptDTO> getScriptDetail(EsbGetScriptDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script detail, request is illegal!");

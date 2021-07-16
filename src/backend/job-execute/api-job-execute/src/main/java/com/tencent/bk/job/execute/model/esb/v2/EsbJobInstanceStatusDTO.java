@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v2;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
@@ -48,7 +47,6 @@ public class EsbJobInstanceStatusDTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class JobInstance {
         @JsonProperty("job_instance_id")
         private Long id;
@@ -116,7 +114,6 @@ public class EsbJobInstanceStatusDTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Block {
         /**
          * 步骤块中包含的各个步骤对象
@@ -127,7 +124,6 @@ public class EsbJobInstanceStatusDTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepInst {
         /**
          * id

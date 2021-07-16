@@ -22,25 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.consts;
+package com.tencent.bk.job.upgrader.model;
 
-/**
- * 常量定义
- */
-public final class BkConsts {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    public static final String X_CSRF_KEY = "X-CSRFToken";
-    public static final String CSRF_KEY = "csrftoken";
-    public static final String C_BK_TOKEN = "bk_token";
-    public static final String C_BK_UID = "bk_uid";
-    public static final String C_BK_TICKET = "bk_ticket";
-    public static final String SYS_LANGUAGE = "lang";
-    public static final String USER_SESSION = "user";
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AppInfo {
+    private Long id;
 
-    public static final String STATIC_VERSION = "STATIC_VERSION"; // 静态资源URL
-    public static final String APP_ID = "APP_ID";
-    public static final String SITE_URL = "SITE_URL"; //APP URL
-
-
-    public static final String TZ_ASIA_SHANGHAI = "Asia/Shanghai";
+    private String name;
 }

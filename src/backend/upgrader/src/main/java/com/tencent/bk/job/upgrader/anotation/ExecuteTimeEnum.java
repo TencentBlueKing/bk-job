@@ -28,5 +28,7 @@ public enum ExecuteTimeEnum {
     // 更新Job进程前
     BEFORE_UPDATE_JOB,
     // 更新Job进程后
-    AFTER_UPDATE_JOB
+    AFTER_UPDATE_JOB,
+    // 补偿执行的任务，仅用于某些特定环境
+    MAKE_UP
 }

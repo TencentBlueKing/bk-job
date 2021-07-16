@@ -31,9 +31,7 @@
         :class="classes">
         <div
             v-if="needRender"
-            class="server-result-wraper"
-            :class="{ loading: isLoading }"
-            v-bkloading="{ isLoading }">
+            class="server-result-wraper">
             <bk-collapse v-model="activePanel">
                 <server-host
                     v-if="hostList.length > 0 || renderWithEmpty"
@@ -41,7 +39,6 @@
                     :data="hostList"
                     :editable="editable"
                     :diff="hostDiff"
-                    @on-loading="handleLoading"
                     @on-change="handleHostChange" />
                 <server-node
                     v-if="nodeInfo.length > 0 || renderWithEmpty"
@@ -49,7 +46,6 @@
                     :data="nodeInfo"
                     :editable="editable"
                     :diff="nodeDiff"
-                    @on-loading="handleLoading"
                     @on-view="handleView"
                     @on-change="handleNodeChange" />
                 <server-group
@@ -58,7 +54,6 @@
                     :data="groupList"
                     :editable="editable"
                     :diff="groupDiff"
-                    @on-loading="handleLoading"
                     @on-view="handleView"
                     @on-change="handleGroupChange" />
             </bk-collapse>
@@ -79,18 +74,14 @@
     </div>
 </template>
 <script>
-    import {
-        encodeRegexp,
-    } from '@utils/assist';
+    import { encodeRegexp } from '@utils/assist';
     import TaskHostNodeModel from '@model/task-host-node';
     import ServerNode from './view/node';
     import ServerHost from './view/host';
     import ServerGroup from './view/group';
     import HostDetail from './view/host-detail';
     import HostSearch from './view/host-search';
-    import {
-        generateHostRealId,
-    } from './components/utils';
+    import { generateHostRealId } from './components/utils';
 
     const addCollapsePanel = (target, name) => {
         if (target.length > 0) {
@@ -165,9 +156,6 @@
             };
         },
         computed: {
-            isLoading () {
-                return this.requestQueue.length > 0;
-            },
             needRender () {
                 if (this.renderWithEmpty) {
                     return true;
@@ -185,7 +173,7 @@
         watch: {
             hostNodeInfo: {
                 handler (hostNodeInfo) {
-                    const { dynamicGroupList, ipList, topoNodeList } = this.hostNodeInfo;
+                    const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
                     this.hostList = Object.freeze(ipList);
                     if (ipList.length > 0) {
                         addCollapsePanel(this.activePanel, 'host');
@@ -380,12 +368,6 @@
 
         .server-result-wraper {
             height: 100%;
-
-            &.loading {
-                z-index: 1;
-                min-height: 84px;
-                overflow: hidden;
-            }
         }
 
         .choose-ip-host-table {

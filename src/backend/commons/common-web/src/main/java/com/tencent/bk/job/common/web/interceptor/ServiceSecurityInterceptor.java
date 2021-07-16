@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
-import com.tencent.bk.job.common.security.jwt.JwtManager;
+import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.common.web.exception.ServiceNoAuthException;
 import com.tencent.bk.job.common.web.util.ProfileUtil;
 import lombok.extern.slf4j.Slf4j;

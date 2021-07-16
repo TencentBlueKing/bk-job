@@ -41,9 +41,18 @@ import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.model.dto.task.*;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
-import com.tencent.bk.job.manage.service.*;
+import com.tencent.bk.job.manage.service.AbstractTaskStepService;
+import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
+import com.tencent.bk.job.manage.service.CronJobService;
+import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +64,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -387,7 +403,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     @Transactional
     public Boolean deleteTaskTemplate(Long appId, Long templateId) {
-        List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listPageTaskPlansBasicInfo(appId, templateId);
+        List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
             List<Long> taskPlanIdList =
                 taskPlanInfoList.parallelStream().map(TaskPlanInfoDTO::getId).collect(Collectors.toList());

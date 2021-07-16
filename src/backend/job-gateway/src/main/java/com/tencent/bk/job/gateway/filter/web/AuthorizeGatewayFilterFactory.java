@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter;
+package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.util.RequestUtil;

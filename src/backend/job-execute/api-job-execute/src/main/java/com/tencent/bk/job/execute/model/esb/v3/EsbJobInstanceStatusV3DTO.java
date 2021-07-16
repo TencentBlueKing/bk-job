@@ -46,7 +46,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class JobInstance {
         @JsonProperty("job_instance_id")
         private Long id;
@@ -89,7 +88,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepInst {
         /**
          * id
@@ -146,7 +144,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class IpResult {
         private String ip;
         @JsonProperty("bk_cloud_id")

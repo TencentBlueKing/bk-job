@@ -200,14 +200,12 @@
                             0,
                             '100%',
                         ],
-                        
                         show: false,
                     },
                     series: [
                         {
                             name: 'trend',
                             type: 'line',
-                            smooth: true,
                             symbol: 'none',
                             sampling: 'average',
                             ...styleMap[styles],

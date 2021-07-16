@@ -27,6 +27,8 @@ plugins {
 ext {
     if (System.getProperty("jobVersion")) {
         set("jobVersion", System.getProperty("jobVersion"))
+    } else if (System.getProperty("version")) {
+        set("jobVersion", System.getProperty("version"))
     } else {
         set("jobVersion", "1.0.0")
     }
@@ -35,6 +37,7 @@ version "${jobVersion}"
 dependencies {
     compile project(":commons:common")
     compile project(":commons:common-iam")
+    compile project(":commons:common-utils")
     compile project(":commons:esb-sdk")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

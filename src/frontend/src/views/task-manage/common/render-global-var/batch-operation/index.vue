@@ -42,7 +42,7 @@
             </template>
         </table>
         <div
-            v-if="variableList.length < 1"
+            v-if="isEmpty"
             class="empty-box"
             @click="handleAppendVariable(0)">
             <Icon type="add-fill" />
@@ -74,6 +74,17 @@
                 variableList: _.cloneDeep(this.variable),
             };
         },
+        computed: {
+            isEmpty () {
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.variableList.length; i++) {
+                    if (!this.variableList[i].delete) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+        },
         methods: {
             /**
              * @desc 不包含当前索引变量的变量列表
@@ -94,6 +105,7 @@
                 const variable = new GlobalVariableModel(variableData);
                 variableList.splice(index, 1, variable);
                 this.variableList = variableList;
+                window.changeAlert = true;
             },
             /**
              * @desc 删除指定索引的变量
@@ -110,6 +122,7 @@
                     variableList.splice(index, 1);
                 }
                 this.variableList = variableList;
+                window.changeAlert = true;
             },
             /**
              * @desc 在指定索引位置添加一个新变量
@@ -117,6 +130,7 @@
              */
             handleAppendVariable (index) {
                 this.variableList.splice(index + 1, 0, createVariable());
+                window.changeAlert = true;
             },
             /**
              * @desc 提交编辑

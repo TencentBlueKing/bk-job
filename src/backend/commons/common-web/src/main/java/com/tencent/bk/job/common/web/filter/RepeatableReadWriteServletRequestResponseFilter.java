@@ -22,17 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.common.web.filter;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
+import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class Expression {
-    private String field;
-    private String op;
-    private String value;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@Slf4j
+public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) {
+
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+        ServletException {
+        ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
+        ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
+        chain.doFilter(requestWrapper, responseWrapper);
+    }
+
+    @Override
+    public void destroy() {
+
+    }
 }

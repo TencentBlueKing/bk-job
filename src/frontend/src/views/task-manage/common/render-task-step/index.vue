@@ -196,7 +196,7 @@
                 operationData: {},
                 detailInfo: {},
                 dragStartIndex: -1,
-                mediaQueryMap: [900, 1000, 1100, 1200],
+                mediaQueryMap: [1000, 1100, 1200, 1300],
             };
         },
         computed: {
@@ -304,7 +304,6 @@
                         }
                     }
                     this.steps = Object.freeze([...list]);
-                    // this.parseUrl();
                 },
                 immediate: true,
             },
@@ -319,24 +318,6 @@
             clickStepByIndex (index) {
                 this.handleStepClick(index);
             },
-            /**
-             * @desc 如果url指定了步骤id，默认显示对应步骤的弹层
-             */
-            // parseUrl () {
-            //     if (this.innerChange) {
-            //         return;
-            //     }
-            //     const stepId = Number(this.$route.params.stepId);
-            //     if (!stepId) {
-            //         return;
-            //     }
-            //     const currntStepIndex = _.findIndex(this.steps, item => item.id === stepId);
-            //     if (currntStepIndex > -1) {
-            //         setTimeout(() => {
-            //             this.handleShowEdit(currntStepIndex);
-            //         }, 500);
-            //     }
-            // },
             /**
              * @desc 鼠标点击某个步骤
              * @param {Object} payload 点击的模版步骤数据

@@ -82,7 +82,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_fast_push_file"})
-    public EsbResp<EsbJobExecuteDTO> fastPushFile(String lang, EsbFastPushFileRequest request) {
+    public EsbResp<EsbJobExecuteDTO> fastPushFile(EsbFastPushFileRequest request) {
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

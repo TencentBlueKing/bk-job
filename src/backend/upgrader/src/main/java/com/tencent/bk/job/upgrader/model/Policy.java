@@ -25,6 +25,7 @@
 package com.tencent.bk.job.upgrader.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,7 +37,7 @@ public class Policy {
     private String version;
     private Long id;
     private Subject subject;
-    private CompositeExpression expression;
+    private ExpressionDTO expression;
     @JsonProperty("expired_at")
     private Long expiredAt;
 }

@@ -38,7 +38,7 @@ public class ReflectUtil {
                 field.setAccessible(true);
                 return field.get(obj);
             } catch (NoSuchFieldException e) {
-                log.info("Fail to get field {} of {}", propertyName, obj);
+                log.info("no field {} of {}", propertyName, obj);
             } catch (IllegalAccessException e) {
                 log.info("Cannot access field {} of {}", propertyName, obj);
             }

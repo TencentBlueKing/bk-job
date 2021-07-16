@@ -159,7 +159,7 @@ export default {
         '“暂时不用”': '"Later"',
         '结束本次操作并退出。': 'to end this operation and quit.',
         立即前往: 'Go now',
-        暂不使用: 'Later',
+        暂时不用: 'Later',
         脚本内容检测失败: '',
     },
 };

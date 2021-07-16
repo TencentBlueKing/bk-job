@@ -110,6 +110,7 @@
                 :is-show.sync="isShowBatchEditOfPlan"
                 :title="$t('template.编辑全局变量')"
                 :width="960"
+                :ok-text="$t('template.确定')"
                 footer-offset-target="variable-value">
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
@@ -132,12 +133,11 @@
             <jb-sideslider
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
-                v-bind="operationSideSliderInfo"
+                :title="$t('template.编辑全局变量')"
                 :media="batchOperationMediaQuery">
                 <batch-operation
                     v-if="isShowBatchOperation"
                     :variable="variable"
-                    :data="currentData"
                     @on-change="handleBatchOperationSubmit" />
             </jb-sideslider>
         </template>
@@ -358,7 +358,7 @@
                     subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
                     confirmFn: () => {
                         const currentVar = this.variable[index];
-                        if (currentVar.id) {
+                        if (currentVar.id > 0) {
                             // 删除已存在的变量——设置delete
                             currentVar.delete = 1;
                         } else {
