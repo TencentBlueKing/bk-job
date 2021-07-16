@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.esb;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.common.consts.EsbLangHeader;
@@ -55,7 +56,7 @@ public class AddEsbLangHeaderGatewayFilterFactory
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             // 从header中获取esb传过来的客户端lang，header名称：Blueking-Language
-            String esbLangHeaderValue = RequestUtil.getHeaderValue(request, "Blueking-Language");
+            String esbLangHeaderValue = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_LANG);
             String commonLang = LocaleUtils.LANG_ZH_CN;
             if (!StringUtils.isEmpty(esbLangHeaderValue)) {
                 if (esbLangHeaderValue.equalsIgnoreCase(EsbLangHeader.EN)) {

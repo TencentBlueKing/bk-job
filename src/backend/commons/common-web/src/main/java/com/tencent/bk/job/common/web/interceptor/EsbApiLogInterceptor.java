@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -43,6 +44,11 @@ import java.util.StringJoiner;
 @Component
 public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
 
+    private static final String ATTR_REQUEST_START = "request-start";
+    private static final String ATTR_API_NAME = "api-name";
+    private static final String ATTR_USERNAME = "username";
+    private static final String ATTR_APP_CODE = "app-code";
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(request instanceof RepeatableReadWriteHttpServletRequest)) {
@@ -54,13 +60,13 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         String username = "";
         String appCode = "";
         String apiName = "";
-        String lang = request.getHeader("blueking-language");
-        String requestId = request.getHeader("x-bkapi-request-id");
+        String lang = request.getHeader(JobCommonHeaders.BK_GATEWAY_LANG);
+        String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
 
         try {
-            request.setAttribute("request-start", System.currentTimeMillis());
+            request.setAttribute(ATTR_REQUEST_START, System.currentTimeMillis());
             apiName = getAPIName(wrapperRequest.getRequestURI());
-            request.setAttribute("api-name", apiName);
+            request.setAttribute(ATTR_API_NAME, apiName);
             if (request.getMethod().equals(HttpMethod.POST.name())
                 || request.getMethod().equals(HttpMethod.PUT.name())) {
                 if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
@@ -80,8 +86,8 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
                 appCode = request.getParameter("bk_app_code");
                 desensitizedQueryParams = desensitizeQueryParams(request.getQueryString());
 
-                request.setAttribute("username", username);
-                request.setAttribute("app-code", appCode);
+                request.setAttribute(ATTR_USERNAME, username);
+                request.setAttribute(ATTR_APP_CODE, appCode);
             }
         } catch (Throwable e) {
             return true;
@@ -129,11 +135,11 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         }
         RepeatableReadHttpServletResponse wrapperResponse = (RepeatableReadHttpServletResponse) response;
         try {
-            Long startTimeInMills = (Long) request.getAttribute("request-start");
-            String apiName = (String) request.getAttribute("api-name");
-            String appCode = (String) request.getAttribute("app-code");
-            String username = (String) request.getAttribute("username");
-            String requestId = request.getHeader("x-bkapi-request-id");
+            Long startTimeInMills = (Long) request.getAttribute(ATTR_REQUEST_START);
+            String apiName = (String) request.getAttribute(ATTR_API_NAME);
+            String appCode = (String) request.getAttribute(ATTR_APP_CODE);
+            String username = (String) request.getAttribute(ATTR_USERNAME);
+            String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
             log.info("request-id:{}|API:{}|uri:{}|appCode:{}|username:{}|status:{}|resp:{}|cost:{}", requestId, apiName,
