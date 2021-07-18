@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.ticket.model.web.req;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.ticket.consts.CredentialTypeEnum;
-import com.tencent.bk.job.ticket.model.credential.AccessKeySecretKey;
-import com.tencent.bk.job.ticket.model.credential.Password;
-import com.tencent.bk.job.ticket.model.credential.SecretKey;
-import com.tencent.bk.job.ticket.model.credential.UsernamePassword;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.*;
+import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.APP_ID_SECRET_KEY;
+import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.PASSWORD;
+import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.SECRET_KEY;
+import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.USERNAME_PASSWORD;
 
 @Data
-@ApiModel("凭据创建请求")
+@ApiModel("凭据创建/更新请求")
 public class CredentialCreateUpdateReq {
 
     @ApiModelProperty(value = "ID,更新凭据的时候需要传入，新建时不需要", required = false)
@@ -73,21 +72,22 @@ public class CredentialCreateUpdateReq {
     @ApiModelProperty("值3")
     private String value3;
 
-    public String getSerializedValue() {
+    public CommonCredential toCommonCredential() {
+        CommonCredential credential = new CommonCredential();
+        credential.setType(type.name());
         if (type == SECRET_KEY) {
-            SecretKey secretKey = new SecretKey(value1);
-            return JsonUtils.toJson(secretKey);
+            credential.setSecretKey(value1);
         } else if (type == PASSWORD) {
-            Password password = new Password(value1);
-            return JsonUtils.toJson(password);
+            credential.setPassword(value1);
         } else if (type == APP_ID_SECRET_KEY) {
-            AccessKeySecretKey accessKeySecretKey = new AccessKeySecretKey(value1, value2);
-            return JsonUtils.toJson(accessKeySecretKey);
+            credential.setAccessKey(value1);
+            credential.setSecretKey(value2);
         } else if (type == USERNAME_PASSWORD) {
-            UsernamePassword usernamePassword = new UsernamePassword(value1, value2);
-            return JsonUtils.toJson(usernamePassword);
+            credential.setUsername(value1);
+            credential.setPassword(value2);
         } else {
             return null;
         }
+        return credential;
     }
 }

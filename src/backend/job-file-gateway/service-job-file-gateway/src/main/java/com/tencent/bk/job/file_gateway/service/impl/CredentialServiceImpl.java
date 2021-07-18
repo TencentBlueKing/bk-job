@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
-import com.tencent.bk.job.ticket.model.credential.CommonCredentialDTO;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import com.tencent.bk.job.ticket.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public CommonCredentialDTO getCredentialById(Long appId, String id) {
+    public CommonCredential getCredentialById(Long appId, String id) {
         ServiceResponse<ServiceCredentialDTO> credentialServiceResponse = credentialService.getCredentialById(appId,
             id);
         ServiceCredentialDTO credentialDTO = credentialServiceResponse.getData();
@@ -54,11 +54,10 @@ public class CredentialServiceImpl implements CredentialService {
             return null;
         }
         try {
-            CommonCredentialDTO commonCredentialDTO = JsonUtils.fromJson(credentialDTO.getValue(),
-                CommonCredentialDTO.class);
+            CommonCredential commonCredential = credentialDTO.getCredential();
             // Type补全
-            commonCredentialDTO.setType(credentialDTO.getType());
-            return commonCredentialDTO;
+            commonCredential.setType(credentialDTO.getType());
+            return commonCredential;
         } catch (Exception e) {
             log.error("credential not valid:{}", credentialDTO);
             return null;
