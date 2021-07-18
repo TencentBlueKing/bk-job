@@ -30,7 +30,7 @@ import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
-import com.tencent.bk.job.ticket.model.credential.CommonCredentialDTO;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -55,14 +55,14 @@ public class BaseRemoteFileReqGenServiceImpl {
                                        FileSourceDTO fileSourceDTO, String url) {
         String completeUrl = getCompleteUrl(fileWorkerDTO, url);
         String credentialId = fileSourceDTO.getCredentialId();
-        CommonCredentialDTO commonCredentialDTO = null;
+        CommonCredential commonCredential = null;
         if (StringUtils.isNotBlank(credentialId)) {
-            commonCredentialDTO = credentialService.getCredentialById(fileSourceDTO.getAppId(),
+            commonCredential = credentialService.getCredentialById(fileSourceDTO.getAppId(),
                 fileSourceDTO.getCredentialId());
         }
-        if (commonCredentialDTO != null) {
-            req.setCredential(commonCredentialDTO);
-            log.debug("Credential of id {} is {}", credentialId, commonCredentialDTO);
+        if (commonCredential != null) {
+            req.setCredential(commonCredential);
+            log.debug("Credential of id {} is {}", credentialId, commonCredential);
         } else if (StringUtils.isNotBlank(credentialId)) {
             log.warn("Cannot find credential by id {}", credentialId);
         }

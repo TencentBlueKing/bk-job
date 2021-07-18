@@ -22,17 +22,64 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
-dependencies {
-    implementation project(":commons:common")
-    implementation project(":commons:common-security")
-    implementation project(":commons:common-spring-ext")
-    implementation project(":commons:esb-sdk")
-    implementation project(":commons:common-iam")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
+package com.tencent.bk.job.manage.model.esb.v3.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * 新建凭据请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbCreateOrUpdateCredentialV3Req extends EsbReq {
+    /**
+     * 业务ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
+    /**
+     * 凭据ID
+     */
+    private String id;
+
+    /**
+     * 凭据名称
+     */
+    private String name;
+
+    /**
+     * 凭据类型
+     */
+    private String type;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * AccessKey
+     */
+    @JsonProperty("access_key")
+    private String accessKey;
+
+    /**
+     * SecretKey
+     */
+    @JsonProperty("secret_key")
+    private String secretKey;
+
+    /**
+     * Username
+     */
+    private String username;
+
+    /**
+     * Password
+     */
+    private String password;
 }

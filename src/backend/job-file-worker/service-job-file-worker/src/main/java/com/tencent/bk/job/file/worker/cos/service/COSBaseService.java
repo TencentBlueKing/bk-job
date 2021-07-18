@@ -26,7 +26,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.ticket.model.credential.CommonCredentialDTO;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -37,7 +37,7 @@ public class COSBaseService {
     public JobTencentInnerCOSClient getCOSClientFromBaseReq(BaseReq req) {
         // endPointDomain
         // appId
-        CommonCredentialDTO credential = req.getCredential();
+        CommonCredential credential = req.getCredential();
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
         return new JobTencentInnerCOSClient(credential.getAccessKey(), credential.getSecretKey(),
             getEndPointDomain(req), fileSourceInfoMap.get("appId").toString());

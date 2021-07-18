@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.ticket.model.credential.CommonCredentialDTO;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 
 
 public interface CredentialService {
@@ -34,5 +34,5 @@ public interface CredentialService {
      * @param id
      * @return
      */
-    CommonCredentialDTO getCredentialById(Long appId, String id);
+    CommonCredential getCredentialById(Long appId, String id);
 }

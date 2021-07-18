@@ -22,24 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.ticket.model.credential;
+package com.tencent.bk.job.manage.api.esb.v3;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-@EqualsAndHashCode
-public class CommonCredentialDTO {
-    String accessKey;
-    String secretKey;
-    String username;
-    String password;
-    /**
-     * 类型
-     */
-    private String type;
+/**
+ * 凭据API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbCredentialV3Resource {
+
+    @PostMapping("/create_credential")
+    EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(
+        @RequestBody EsbCreateOrUpdateCredentialV3Req req);
+
+    @PostMapping("/update_credential")
+    EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(
+        @RequestBody EsbCreateOrUpdateCredentialV3Req req);
+
 }

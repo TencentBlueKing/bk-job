@@ -22,17 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
-dependencies {
-    implementation project(":commons:common")
-    implementation project(":commons:common-security")
-    implementation project(":commons:common-spring-ext")
-    implementation project(":commons:esb-sdk")
-    implementation project(":commons:common-iam")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
+package com.tencent.bk.job.manage.client;
+
+import com.tencent.bk.job.ticket.api.inner.ServiceCredentialResource;
+import org.springframework.cloud.openfeign.FeignClient;
+
+/**
+ * 凭据服务内部接口远程调用客户端
+ */
+@FeignClient(value = "job-ticket", contextId = "credential")
+public interface ServiceCredentialResourceClient extends ServiceCredentialResource {
 }
