@@ -22,16 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-i18n')
-    compile project(':commons:common-iam')
-    compile project(':commons:esb-sdk')
-    compile project(":job-logsvr:api-job-logsvr")
-    compile project(":job-file-gateway:api-job-file-gateway-worker")
-    implementation "org.springframework:spring-web"
-    implementation "javax.ws.rs:javax.ws.rs-api"
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.file_gateway.api.esb;
+
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 文件源API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbFileSourceV3Resource {
+
+    @PostMapping("/create_file_source")
+    EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(
+        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+
+    @PostMapping("/update_file_source")
+    EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(
+        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+
 }
