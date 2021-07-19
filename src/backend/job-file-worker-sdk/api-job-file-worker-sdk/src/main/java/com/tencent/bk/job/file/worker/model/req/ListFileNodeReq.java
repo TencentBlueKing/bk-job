@@ -42,4 +42,10 @@ public class ListFileNodeReq extends BaseReq {
     String name;
     Integer start;
     Integer pageSize;
+
+    public ListFileNodeReq(BaseReq req) {
+        this.setCredential(req.getCredential());
+        this.setFileSourceTypeCode(req.getFileSourceTypeCode());
+        this.setFileSourceInfoMap(req.getFileSourceInfoMap());
+    }
 }
