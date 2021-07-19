@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.model.job;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -34,12 +33,9 @@ import java.util.List;
  * 源文件定义-ESB
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbFileSourceDTO {
     /**
      * 文件源类型
-     *
-     * @see com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum
      */
     @JsonProperty("file_type")
     private Integer fileType;
@@ -63,7 +59,6 @@ public class EsbFileSourceDTO {
     /**
      * ip列表
      */
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonProperty("ip_list")
     private List<EsbIpDTO> ipList;
 
@@ -71,10 +66,8 @@ public class EsbFileSourceDTO {
      * 动态分组ID列表
      */
     @JsonProperty("custom_query_id")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> dynamicGroupIdList;
 
     @JsonProperty("target_server")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private EsbServerDTO targetServer;
 }

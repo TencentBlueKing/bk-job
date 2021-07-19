@@ -28,38 +28,58 @@ package com.tencent.bk.job.common.iam.constant;
  * @since 9/6/2020 15:38
  */
 public class ResourceId {
-    public static final String SCRIPT = "script";
-    public static final String TEMPLATE = "job_template";
-    public static final String PLAN = "job_plan";
-    public static final String CRON = "cron";
-    public static final String ACCOUNT = "account";
-    public static final String PUBLIC_SCRIPT = "public_script";
-    public static final String TAG = "tag";
-
     /**
      * 业务
      */
     public static final String APP = "biz";
     /**
-     * 模块
+     * 脚本
      */
-    public static final String MODULE = "module";
+    public static final String SCRIPT = "script";
     /**
-     * 集群
+     * 作业模板
      */
-    public static final String SET = "set";
+    public static final String TEMPLATE = "job_template";
+    /**
+     * 作业执行方案
+     */
+    public static final String PLAN = "job_plan";
+    /**
+     * 定时任务
+     */
+    public static final String CRON = "cron";
+    /**
+     * 执行账号
+     */
+    public static final String ACCOUNT = "account";
+    /**
+     * 公共脚本
+     */
+    public static final String PUBLIC_SCRIPT = "public_script";
+    /**
+     * 标签
+     */
+    public static final String TAG = "tag";
     /**
      * 主机
      */
     public static final String HOST = "host";
     /**
-     * 动态分组
-     */
-    public static final String DYNAMIC_GROUP = "biz_custom_query";
-    /**
      * 云区域
      */
     public static final String CLOUD_AREA = "sys_cloud_area";
+    /**
+     * 集群
+     */
+    public static final String SET = "set";
+    /**
+     * 模块
+     */
+    public static final String MODULE = "module";
+    /**
+     * 动态分组
+     */
+    public static final String DYNAMIC_GROUP = "biz_custom_query";
     /**
      * 运营视图
      */

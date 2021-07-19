@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.model.esb.v3.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import lombok.Data;
@@ -35,7 +34,6 @@ import java.util.List;
  * @since 26/2/2020 20:58
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbCronInfoV3Response {
 
     /**

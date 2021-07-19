@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
@@ -34,7 +33,6 @@ import lombok.Data;
  * @since 17/11/2020 20:37
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbScriptStepV3DTO {
     @JsonProperty("script_type")
     private Integer type;

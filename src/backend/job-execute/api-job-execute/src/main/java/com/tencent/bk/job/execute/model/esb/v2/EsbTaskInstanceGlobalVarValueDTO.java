@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v2;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -43,7 +42,6 @@ public class EsbTaskInstanceGlobalVarValueDTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class EsbStepInstanceGlobalVarValues {
         @JsonProperty("step_instance_id")
         private Long stepInstanceId;
@@ -54,7 +52,6 @@ public class EsbTaskInstanceGlobalVarValueDTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class GlobalVarValue {
         @JsonProperty("name")
         private String name;

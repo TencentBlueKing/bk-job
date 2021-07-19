@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config.listener;
+package com.tencent.bk.job.analysis.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +50,7 @@ public class StatisticConfig {
     @Value("${job.analysis.statistics.yoy.days:7}")
     private Integer yoyDays;
 
-    @Value("${job.analysis.statistics.tag.num.max:100}")
+    @Value("${job.analysis.statistics.tag.num.max:120}")
     private Integer maxTagNum;
 
     /**
