@@ -45,7 +45,7 @@ public class ArtifactoryBaseService {
     public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
         CommonCredential credential = req.getCredential();
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return new ArtifactoryRemoteClient((String) fileSourceInfoMap.get("baseUrl"), credential.getUsername(),
+        return new ArtifactoryRemoteClient((String) fileSourceInfoMap.get("base_url"), credential.getUsername(),
             credential.getPassword(), meterRegistry);
     }
 }
