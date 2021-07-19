@@ -22,16 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-i18n')
-    compile project(':commons:common-iam')
-    compile project(':commons:esb-sdk')
-    compile project(":job-logsvr:api-job-logsvr")
-    compile project(":job-file-gateway:api-job-file-gateway-worker")
-    implementation "org.springframework:spring-web"
-    implementation "javax.ws.rs:javax.ws.rs-api"
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.file_gateway.model.resp.esb.v3;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EsbFileSourceSimpleInfoV3DTO {
+
+    private Integer id;
+
 }
