@@ -44,7 +44,7 @@ public class VariableResolverTest {
     }
 
     @Test
-    void testResolveNonExistVar() {
+    void whenVarIsNotExistThenRemainOrigin() {
         Map<String, String> vars = new HashMap<>();
         vars.put("var1", "var1");
         String param = "${var1} ${var2}";
@@ -62,6 +62,17 @@ public class VariableResolverTest {
 
         String resolvedParam = VariableResolver.resolve(param, vars);
         assertThat(resolvedParam).isEqualTo("/tmp/");
+    }
+
+    @Test
+    void whenVarValueNullThenResolvedAsEmptyStr() {
+        Map<String, String> vars = new HashMap<>();
+        vars.put("var1", "var1");
+        vars.put("var2", null);
+        String param = "--test=${var1} --name=${var2}";
+
+        String resolvedParam = VariableResolver.resolve(param, vars);
+        assertThat(resolvedParam).isEqualTo("--test=var1 --name=");
     }
 
     @Test
