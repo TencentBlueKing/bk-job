@@ -31,6 +31,7 @@
             <div
                 ref="textWraper"
                 class="render-text-box"
+                @copy="handleCopy"
                 :style="boxStyles">
                 <slot v-bind:value="newVal">{{ renderText }}</slot>
                 <span v-if="renderLength > 0" class="text-whole" @click.stop="handleExpandAll">
@@ -68,6 +69,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import JbTextarea from '@components/jb-textarea';
 
@@ -177,6 +179,9 @@
              * settimeout 保证计算过程在组件渲染之后
              */
             calcEllTextLength () {
+                if (this.$slots.default) {
+                    return;
+                }
                 if (this.isExpand) {
                     return;
                 }
@@ -279,6 +284,26 @@
                     }
                 }
                 this.isEditing = false;
+            },
+            /**
+             * @desc 复制内容
+             * @param { Object } event 复制事件
+             *
+             * 删除内容的开头和结尾的换行符
+             */
+            handleCopy (event) {
+                const clipboardData = event.clipboardData || window.clipboardData;
+                if (!clipboardData) {
+                    return;
+                }
+                let text = window.getSelection().toString();
+                if (text && text.indexOf(this.renderText) > -1) {
+                    text = this.value;
+                }
+                if (text) {
+                    event.preventDefault();
+                    clipboardData.setData('text/plain', _.trim(text, '\n'));
+                }
             },
             /**
              * @desc 查看态的文本展开收起
