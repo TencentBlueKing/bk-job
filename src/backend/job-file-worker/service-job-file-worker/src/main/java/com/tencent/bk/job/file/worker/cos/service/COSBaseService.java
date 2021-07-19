@@ -45,6 +45,6 @@ public class COSBaseService {
 
     public String getEndPointDomain(BaseReq req) {
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return (String) (fileSourceInfoMap.get("endPointDomain"));
+        return (String) (fileSourceInfoMap.get("end_point_domain"));
     }
 }
