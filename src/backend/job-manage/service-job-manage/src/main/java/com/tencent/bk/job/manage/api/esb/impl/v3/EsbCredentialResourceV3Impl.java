@@ -73,7 +73,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
         InnerServiceResponse<ServiceBasicCredentialDTO> resp =
             credentialService.createCredential(
-                req.getUsername(),
+                req.getUserName(),
                 req.getAppId(),
                 createUpdateReq
             );
@@ -104,13 +104,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         if (SECRET_KEY.name().equals(type)) {
             createUpdateReq.setValue1(req.getSecretKey());
         } else if (PASSWORD.name().equals(type)) {
-            createUpdateReq.setValue1(req.getPassword());
+            createUpdateReq.setValue1(req.getCredentialPassword());
         } else if (APP_ID_SECRET_KEY.name().equals(type)) {
             createUpdateReq.setValue1(req.getAccessKey());
             createUpdateReq.setValue2(req.getSecretKey());
         } else if (USERNAME_PASSWORD.name().equals(type)) {
-            createUpdateReq.setValue1(req.getUsername());
-            createUpdateReq.setValue2(req.getPassword());
+            createUpdateReq.setValue1(req.getCredentialUsername());
+            createUpdateReq.setValue2(req.getCredentialPassword());
         } else {
             throw new InvalidParamException(
                 "type",

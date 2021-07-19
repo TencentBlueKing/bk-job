@@ -76,10 +76,12 @@ public class EsbCreateOrUpdateCredentialV3Req extends EsbReq {
     /**
      * Username
      */
-    private String username;
+    @JsonProperty("username")
+    private String credentialUsername;
 
     /**
      * Password
      */
-    private String password;
+    @JsonProperty("password")
+    private String credentialPassword;
 }
