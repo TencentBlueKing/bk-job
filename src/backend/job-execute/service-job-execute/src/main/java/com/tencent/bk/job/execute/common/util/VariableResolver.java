@@ -48,7 +48,11 @@ public class VariableResolver {
             String paramName = paramTemplate.substring(2, paramTemplate.length() - 1);
             int varStart = m.start();
             resolvedParam.append(param, notVarPartStart, varStart);
-            resolvedParam.append(variableMap.getOrDefault(paramName, paramTemplate));
+            if (variableMap.containsKey(paramName)) {
+                resolvedParam.append(variableMap.get(paramName) == null ? "" : variableMap.get(paramName));
+            } else {
+                resolvedParam.append(paramTemplate);
+            }
             notVarPartStart = m.end();
             hasMatched = true;
         }
@@ -58,34 +62,5 @@ public class VariableResolver {
             resolvedParam.append(param);
         }
         return resolvedParam.toString();
-    }
-
-    private static String escape(String paramValues) {
-        String escapedStr = paramValues;
-        if (paramValues.contains("$")) { // 针对替换字符串中包含了$ 但没有转义的问题，会导致m.appendReplacement方法异常
-            Pattern compile = Pattern.compile("[^\\\\]?\\$");
-            Matcher matcher = compile.matcher(paramValues);
-            StringBuffer paramValuesBuf = new StringBuffer();
-            while (matcher.find()) {
-                matcher.appendReplacement(paramValuesBuf, matcher.group().replace("$", "\\\\\\$"));
-            }
-            if (paramValuesBuf.length() > 0) {
-                matcher.appendTail(paramValuesBuf);
-                escapedStr = paramValuesBuf.toString();
-            }
-        }
-        if (paramValues.contains("\\")) { // 针对替换字符串中包含了\ 但没有转义的问题，会导致m.appendReplacement方法异常
-            Pattern compile = Pattern.compile("[^\\\\]?\\\\");
-            Matcher matcher = compile.matcher(paramValues);
-            StringBuffer paramValuesBuf = new StringBuffer();
-            while (matcher.find()) {
-                matcher.appendReplacement(paramValuesBuf, matcher.group().replace("\\", "\\\\\\\\"));
-            }
-            if (paramValuesBuf.length() > 0) {
-                matcher.appendTail(paramValuesBuf);
-                escapedStr = paramValuesBuf.toString();
-            }
-        }
-        return escapedStr;
     }
 }

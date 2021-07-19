@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.global;
 
 import brave.Tracer;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -51,7 +52,7 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
         String traceId = tracer.currentSpan().context().traceIdString();
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-        response.getHeaders().add("request-id", traceId);
+        response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
         return chain.filter(exchange.mutate().request(request).build());
     }
 

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.esb;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.RequestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ import reactor.core.publisher.Mono;
 public class RecordEsbAccessLogGatewayFilterFactory
     extends AbstractGatewayFilterFactory<RecordEsbAccessLogGatewayFilterFactory.Config> {
 
+    private static final String ATTR_START_TIME = "start_time";
+
     @Autowired
     public RecordEsbAccessLogGatewayFilterFactory() {
         super(RecordEsbAccessLogGatewayFilterFactory.Config.class);
@@ -51,15 +54,15 @@ public class RecordEsbAccessLogGatewayFilterFactory
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            String appCode = RequestUtil.getHeaderValue(request, "Bk-App-Code");
-            String username = RequestUtil.getHeaderValue(request, "Bk-Username");
+            String appCode = RequestUtil.getHeaderValue(request, JobCommonHeaders.APP_CODE);
+            String username = RequestUtil.getHeaderValue(request, JobCommonHeaders.USERNAME);
 
             String uri = exchange.getRequest().getURI().getPath();
             String apiName = getApiNameFromUri(uri);
-            exchange.getAttributes().put("start_time", System.currentTimeMillis());
+            exchange.getAttributes().put(ATTR_START_TIME, System.currentTimeMillis());
 
             return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-                Long startTime = exchange.getAttribute("start_time");
+                Long startTime = exchange.getAttribute(ATTR_START_TIME);
 
                 long costTime = 0L;
                 if (startTime != null) {
