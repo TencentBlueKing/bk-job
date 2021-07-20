@@ -1,6 +1,7 @@
 package com.tencent.bk.job.file_gateway.api.esb;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -14,6 +15,7 @@ import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfo
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,7 +40,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
-        // TODO:checkParam(req);
+        checkCreateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
         boolean registerResult = authService.registerResource("" + fileSourceId, fileSourceDTO.getAlias(),
@@ -58,10 +60,51 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
-        // TODO:checkParam(req);
+        checkUpdateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(fileSourceId));
+    }
+
+    private void checkAppId(EsbCreateOrUpdateFileSourceV3Req req) {
+        if (req.getAppId() == null) {
+            throw new InvalidParamException("bk_biz_id", "bk_biz_id cannot be null");
+        }
+    }
+
+    private void checkCreateParam(EsbCreateOrUpdateFileSourceV3Req req) {
+        checkAppId(req);
+        String code = req.getCode();
+        if (StringUtils.isBlank(code)) {
+            throw new InvalidParamException("code", "code cannot be null or blank");
+        }
+        if (fileSourceService.existsCode(code)) {
+            throw new InvalidParamException("code", String.format("code [%s] already exists", code));
+        }
+        if (StringUtils.isBlank(req.getAlias())) {
+            throw new InvalidParamException("alias", "alias cannot be null or blank");
+        }
+        if (StringUtils.isBlank(req.getType())) {
+            throw new InvalidParamException("type", "type cannot be null or blank");
+        }
+        if (StringUtils.isBlank(req.getCredentialId())) {
+            throw new InvalidParamException("credential_id", "credential_id cannot be null or blank");
+        }
+    }
+
+    private void checkUpdateParam(EsbCreateOrUpdateFileSourceV3Req req) {
+        checkAppId(req);
+        Long appId = req.getAppId();
+        Integer id = req.getId();
+        if (id == null) {
+            throw new InvalidParamException("id", "code cannot be null");
+        }
+        if (!fileSourceService.existsFileSource(appId, id)) {
+            throw new InvalidParamException(
+                "bk_biz_id/id",
+                String.format("fileSource [%s] not exists in biz [%s]", id, appId)
+            );
+        }
     }
 
     private FileSourceDTO buildFileSourceDTO(String username, Long appId,

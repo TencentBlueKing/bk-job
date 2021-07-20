@@ -183,7 +183,7 @@ public class FileSourceServiceImpl implements FileSourceService {
         FileWorkerDTO fileWorkerDTO = fileWorkerDAO.getFileWorkerById(dslContext, workerId);
         FileWorkerConfig fileWorkerConfig = JsonUtils.fromJson(fileWorkerDTO.getConfigStr(),
             new TypeReference<FileWorkerConfig>() {
-        });
+            });
         List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
         for (FileSourceMetaData fileSourceMetaData : fileSourceMetaDataList) {
             if (StringUtils.isNotBlank(fileSourceTypeCode)
@@ -207,5 +207,15 @@ public class FileSourceServiceImpl implements FileSourceService {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean existsCode(String code) {
+        return fileSourceDAO.existsCode(code);
+    }
+
+    @Override
+    public boolean existsFileSource(Long appId, Integer id) {
+        return fileSourceDAO.existsFileSource(appId, id);
     }
 }

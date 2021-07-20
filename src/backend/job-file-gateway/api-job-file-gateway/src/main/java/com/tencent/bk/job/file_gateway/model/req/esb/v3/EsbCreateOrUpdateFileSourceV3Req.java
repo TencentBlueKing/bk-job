@@ -17,22 +17,22 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbReq {
     @JsonProperty("bk_biz_id")
     private Long appId;
 
-    @ApiModelProperty(value = "ID,更新文件源的时候需要传入，新建文件源不需要", required = false)
+    @ApiModelProperty(value = "ID,更新文件源的时候需要传入，新建文件源不需要")
     private Integer id;
     /**
      * 文件源Code
      */
-    @ApiModelProperty(value = "文件源Code", required = true)
+    @ApiModelProperty(value = "文件源Code")
     private String code;
     /**
      * 文件源别名
      */
-    @ApiModelProperty(value = "文件源名称", required = true)
+    @ApiModelProperty(value = "文件源名称")
     private String alias;
     /**
      * 文件源类型
      */
-    @ApiModelProperty(value = "文件源类型", required = true)
+    @ApiModelProperty(value = "文件源类型")
     private String type;
 
     /**
@@ -44,7 +44,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbReq {
     /**
      * 文件源凭证Id
      */
-    @ApiModelProperty(value = "文件源凭证Id", required = true)
+    @ApiModelProperty(value = "文件源凭证Id")
     @JsonProperty(value = "credential_id")
     private String credentialId;
     /**
