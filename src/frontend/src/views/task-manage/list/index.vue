@@ -35,6 +35,7 @@
                 theme="primary"
                 auth="job_template/create"
                 class="w120 mr10"
+                v-test="{ type: 'button', value: 'templateCreate' }"
                 @click="handleCreate">
                 {{ $t('template.新建') }}
             </auth-button>
@@ -46,6 +47,7 @@
                 <span :tippy-tips="backupInfo.importJob.length > 0 ? $t('template.有一项导入任务正在进行中') : ''">
                     <auth-button
                         auth="job_template/create"
+                        v-test="{ type: 'button', value: 'templateImport' }"
                         @click="handleImport">
                         {{ $t('template.导入') }}
                     </auth-button>
@@ -59,6 +61,7 @@
                 <span :tippy-tips="backupInfo.exportJob.length > 0 ? $t('template.有一项导出任务正在进行中') : ''">
                     <bk-button
                         @click="handleExport"
+                        v-test="{ type: 'button', value: 'templateExport' }"
                         :disabled="isExportJobDisable">
                         {{ $t('template.导出') }}
                     </bk-button>

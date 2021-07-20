@@ -26,7 +26,11 @@
 -->
 
 <template>
-    <div ref="renderList" class="jb-render-list" v-bkloading="{ isLoading }">
+    <div
+        ref="renderList"
+        class="jb-render-list"
+        v-test="{ type: 'data', value: 'table' }"
+        v-bkloading="{ isLoading }">
         <bk-table
             v-if="isRendered"
             v-bind="$attrs"
