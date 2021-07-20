@@ -91,11 +91,16 @@
                 <bk-button
                     class="w120 mr10"
                     theme="primary"
+                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }"
                     :loading="isSubmiting"
                     @click="handleSubmit">
                     {{ $t('execution.执行') }}
                 </bk-button>
-                <bk-button @click="handleCancel">{{ $t('execution.重置') }}</bk-button>
+                <bk-button
+                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }"
+                    @click="handleCancel">
+                    {{ $t('execution.重置') }}
+                </bk-button>
             </template>
         </smart-action>
         <div v-if="historyList.length > 0" class="execution-history" :class="{ active: isShowHistory }">
