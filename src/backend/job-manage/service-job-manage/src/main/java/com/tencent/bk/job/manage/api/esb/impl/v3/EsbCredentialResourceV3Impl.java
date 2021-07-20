@@ -37,6 +37,7 @@ import com.tencent.bk.job.ticket.consts.CredentialTypeEnum;
 import com.tencent.bk.job.ticket.model.inner.resp.ServiceBasicCredentialDTO;
 import com.tencent.bk.job.ticket.model.web.req.CredentialCreateUpdateReq;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,12 +62,39 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
 
     @Override
     public EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(EsbCreateOrUpdateCredentialV3Req req) {
+        checkCreateParam(req);
         return saveCredential(req);
     }
 
     @Override
     public EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(EsbCreateOrUpdateCredentialV3Req req) {
+        checkUpdateParam(req);
         return saveCredential(req);
+    }
+
+    private void checkAppId(Long appId) {
+        if (appId == null) {
+            throw new InvalidParamException("bk_biz_id", "bk_biz_id cannot be null");
+        }
+    }
+
+    private void checkCreateParam(EsbCreateOrUpdateCredentialV3Req req) {
+        checkAppId(req.getAppId());
+        String name = req.getName();
+        String type = req.getType();
+        if (StringUtils.isBlank(name)) {
+            throw new InvalidParamException("name", "name cannot be null or blank");
+        }
+        if (StringUtils.isBlank(type)) {
+            throw new InvalidParamException("type", "type cannot be null or blank");
+        }
+    }
+
+    private void checkUpdateParam(EsbCreateOrUpdateCredentialV3Req req) {
+        checkAppId(req.getAppId());
+        if (StringUtils.isBlank(req.getId())) {
+            throw new InvalidParamException("id", "id cannot be null or blank");
+        }
     }
 
     private EsbResp<EsbCredentialSimpleInfoV3DTO> saveCredential(EsbCreateOrUpdateCredentialV3Req req) {
