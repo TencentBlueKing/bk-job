@@ -22,47 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.model.web.request;
 
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
-import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-/**
- * IP白名单服务
- */
-public interface WhiteIPService {
+@Data
+@ApiModel("IP检查请求报文")
+public class IpCheckReq {
 
-    PageData<WhiteIPRecordVO> listWhiteIPRecord(String username, String ipStr, String appIdStr, String appNameStr,
-                                                String actionScopeIdStr, String creator, String lastModifyUser,
-                                                Integer start, Integer pageSize, String orderField, Integer order);
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发", required = false)
+    ActionScopeEnum actionScope;
 
-    /**
-     * 查找对业务生效的IP信息
-     *
-     * @param appId 业务Id
-     * @return
-     */
-    List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope);
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip", required = true)
+    List<String> ipList;
 
-    Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
-
-    WhiteIPRecordVO getWhiteIPDetailById(String username, Long id);
-
-    List<CloudAreaInfoVO> listCloudAreas(String username);
-
-    List<ActionScopeVO> listActionScope(String username);
-
-    Long deleteWhiteIPById(String username, Long id);
-
-    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId);
-
-    List<ServiceWhiteIPInfo> listWhiteIPInfos();
 }
+
+
