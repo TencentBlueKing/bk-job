@@ -47,29 +47,32 @@ public class ScriptLogsCollectionLoader extends CollectionLoaderBase {
     public MongoCollection<Document> load(MongoTemplate mongoTemplate, String collectionName) {
         MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
         List<String> indexes = getIndexesNames(collection);
-        // 是否初始化collection，创建索引
-        boolean isInitialed = indexes.contains(IDX_STEP_ID_HASHED) && indexes.contains(IDX_STEP_EXECUTE_COUNT_IP);
-
-        if (!isInitialed) {
-            createIndex(collection, collectionName);
-            shardCollectionIfShardingEnable(mongoTemplate, collectionName);
-        }
+        createIndexIfUnavailable(collection, indexes, collectionName);
+        shardCollectionIfShardingEnable(mongoTemplate, collectionName);
         return collection;
     }
 
-    private void createIndex(MongoCollection<Document> collection, String collectionName) {
-        log.info("Create index stepId_hashed for collection: {}start...", collectionName);
-        IndexOptions indexOptions1 = new IndexOptions();
-        indexOptions1.background(false);
-        indexOptions1.name(IDX_STEP_ID_HASHED);
-        collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions1);
-        log.info("Create index stepId_hashed for collection: {} successfully!", collectionName);
+    private void createIndexIfUnavailable(MongoCollection<Document> collection, List<String> indexes, String collectionName) {
+        log.info("Create index for collection: {} start...", collectionName);
+        if (!indexes.contains(IDX_STEP_ID_HASHED)) {
+            log.info("Create index stepId_hashed for collection: {}start...", collectionName);
+            IndexOptions indexOptions1 = new IndexOptions();
+            indexOptions1.background(false);
+            indexOptions1.name(IDX_STEP_ID_HASHED);
+            collection.createIndex(Document.parse("{\"stepId\":\"hashed\"}"), indexOptions1);
+            log.info("Create index stepId_hashed for collection: {} successfully!", collectionName);
+        }
 
-        log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} start...", collectionName);
-        IndexOptions indexOption2 = new IndexOptions();
-        indexOption2.background(false);
-        indexOption2.name(IDX_STEP_EXECUTE_COUNT_IP);
-        collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"ip\":1}"), indexOption2);
-        log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} successfully!", collectionName);
+        if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_IP)) {
+            log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} start...", collectionName);
+            IndexOptions indexOption2 = new IndexOptions();
+            indexOption2.background(false);
+            indexOption2.name(IDX_STEP_EXECUTE_COUNT_IP);
+            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"ip\":1}"), indexOption2);
+            log.info("Create index stepId_1_executeCount_1_ip_1 for collection: {} successfully!", collectionName);
+        }
+
+        log.info("Create index for collection : {} successfully!", collectionName);
+
     }
 }
