@@ -64,24 +64,24 @@ public class EsbCreateOrUpdateCredentialV3Req extends EsbReq {
     /**
      * AccessKey
      */
-    @JsonProperty("access_key")
-    private String accessKey;
+    @JsonProperty("credential_access_key")
+    private String credentialAccessKey;
 
     /**
      * SecretKey
      */
-    @JsonProperty("secret_key")
-    private String secretKey;
+    @JsonProperty("credential_secret_key")
+    private String credentialSecretKey;
 
     /**
      * Username
      */
-    @JsonProperty("username")
+    @JsonProperty("credential_username")
     private String credentialUsername;
 
     /**
      * Password
      */
-    @JsonProperty("password")
+    @JsonProperty("credential_password")
     private String credentialPassword;
 }
