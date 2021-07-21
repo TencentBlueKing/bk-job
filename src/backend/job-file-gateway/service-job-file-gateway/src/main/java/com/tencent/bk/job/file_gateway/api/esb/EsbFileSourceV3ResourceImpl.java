@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+
 @RestController
 @Slf4j
 public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
@@ -122,7 +124,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         );
         fileSourceDTO.setFileSourceInfoMap(fileSourceCreateUpdateReq.getAccessParams());
         fileSourceDTO.setPublicFlag(false);
-        fileSourceDTO.setSharedAppIdList(null);
+        fileSourceDTO.setSharedAppIdList(Collections.emptyList());
         fileSourceDTO.setShareToAllApp(false);
         fileSourceDTO.setCredentialId(fileSourceCreateUpdateReq.getCredentialId());
         fileSourceDTO.setFilePrefix(fileSourceCreateUpdateReq.getFilePrefix());

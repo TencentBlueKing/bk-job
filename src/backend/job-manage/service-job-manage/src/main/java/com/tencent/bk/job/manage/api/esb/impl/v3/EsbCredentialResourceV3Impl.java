@@ -130,12 +130,12 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         createUpdateReq.setType(CredentialTypeEnum.valueOf(req.getType()));
         createUpdateReq.setDescription(req.getDescription());
         if (SECRET_KEY.name().equals(type)) {
-            createUpdateReq.setValue1(req.getSecretKey());
+            createUpdateReq.setValue1(req.getCredentialSecretKey());
         } else if (PASSWORD.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialPassword());
         } else if (APP_ID_SECRET_KEY.name().equals(type)) {
-            createUpdateReq.setValue1(req.getAccessKey());
-            createUpdateReq.setValue2(req.getSecretKey());
+            createUpdateReq.setValue1(req.getCredentialAccessKey());
+            createUpdateReq.setValue2(req.getCredentialSecretKey());
         } else if (USERNAME_PASSWORD.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialUsername());
             createUpdateReq.setValue2(req.getCredentialPassword());
