@@ -524,7 +524,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             conditions.add(tWhiteIPAppRel.APP_ID.in(appIds));
         }
         if (actionScopeId != null) {
-            conditions.add(tWhiteIPActionScope.ID.eq(actionScopeId));
+            conditions.add(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(actionScopeId));
         }
         val query = dslContext.select(
             tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
