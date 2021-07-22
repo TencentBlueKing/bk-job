@@ -218,4 +218,9 @@ public class FileSourceServiceImpl implements FileSourceService {
     public boolean existsFileSource(Long appId, Integer id) {
         return fileSourceDAO.existsFileSource(appId, id);
     }
+
+    @Override
+    public Integer getFileSourceIdByCode(Long appId, String code) {
+        return fileSourceDAO.getFileSourceIdByCode(appId, code);
+    }
 }
