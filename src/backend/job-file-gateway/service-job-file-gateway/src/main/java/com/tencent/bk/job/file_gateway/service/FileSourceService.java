@@ -79,4 +79,6 @@ public interface FileSourceService {
     boolean existsCode(String code);
 
     boolean existsFileSource(Long appId, Integer id);
+
+    Integer getFileSourceIdByCode(Long appId, String code);
 }

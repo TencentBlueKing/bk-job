@@ -55,6 +55,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     @Override
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
+        checkUpdateParam(req);
         Long appId = req.getAppId();
         String username = req.getUserName();
         Integer id = req.getId();
@@ -62,7 +63,6 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
-        checkUpdateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(fileSourceId));
@@ -98,9 +98,17 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         checkAppId(req);
         Long appId = req.getAppId();
         Integer id = req.getId();
-        if (id == null) {
-            throw new InvalidParamException("id", "code cannot be null");
+        String code = req.getCode();
+        if (id == null && StringUtils.isBlank(code)) {
+            throw new InvalidParamException("id/code", "id and code cannot be null/blank simultaneously");
         }
+        if (id == null) {
+            id = fileSourceService.getFileSourceIdByCode(appId, code);
+            if (id == null) {
+                throw new InvalidParamException("code", String.format("cannot find fileSource by code [%s]", code));
+            }
+        }
+        req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
             throw new InvalidParamException(
                 "bk_biz_id/id",

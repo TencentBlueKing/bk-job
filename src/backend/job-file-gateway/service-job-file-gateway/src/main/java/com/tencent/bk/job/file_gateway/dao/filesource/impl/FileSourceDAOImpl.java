@@ -432,6 +432,29 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
         return query.fetch().size() > 0;
     }
 
+    @Override
+    public Integer getFileSourceIdByCode(Long appId, String code) {
+        List<Condition> conditions = new ArrayList<>();
+        if (appId != null) {
+            conditions.add(defaultTable.APP_ID.eq(appId));
+        }
+        if (code != null) {
+            conditions.add(defaultTable.CODE.eq(code));
+        }
+        val query = defaultContext.select(
+            defaultTable.ID
+        ).from(defaultTable)
+            .where(conditions);
+        val result = query.fetch();
+        if (result.size() > 0) {
+            if (result.size() > 1) {
+                log.warn("{} records found when get id by code, use first one", result.size());
+            }
+            return result.get(0).get(defaultTable.ID);
+        }
+        return null;
+    }
+
     private List<FileSourceDTO> listFileSourceByConditions(DSLContext dslContext, Collection<Condition> conditions,
                                                            Integer start, Integer pageSize) {
         val query = dslContext.select(

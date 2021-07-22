@@ -99,12 +99,20 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
 
     private EsbResp<EsbCredentialSimpleInfoV3DTO> saveCredential(EsbCreateOrUpdateCredentialV3Req req) {
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        InnerServiceResponse<ServiceBasicCredentialDTO> resp =
-            credentialService.createCredential(
+        InnerServiceResponse<ServiceBasicCredentialDTO> resp;
+        if (req.getId() == null) {
+            resp = credentialService.createCredential(
                 req.getUserName(),
                 req.getAppId(),
                 createUpdateReq
             );
+        } else {
+            resp = credentialService.updateCredential(
+                req.getUserName(),
+                req.getAppId(),
+                createUpdateReq
+            );
+        }
         if (resp.getAuthResult() != null) {
             return authService.buildEsbAuthFailResp(
                 resp.getAuthResult().getRequiredActionResources()
