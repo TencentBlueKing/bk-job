@@ -108,7 +108,7 @@
             <jb-sideslider
                 v-if="isEditOfPlan"
                 :is-show.sync="isShowBatchEditOfPlan"
-                :title="$t('template.编辑全局变量')"
+                :title="$t('template.批量编辑变量值')"
                 :width="960"
                 :ok-text="$t('template.确定')"
                 footer-offset-target="variable-value">
