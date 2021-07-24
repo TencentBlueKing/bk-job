@@ -1,0 +1,82 @@
+# Default values for bk-job.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+##
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+
+## @param nameOverride String to partially override common.names.fullname
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain
+##
+clusterDomain: cluster.local
+
+## @section Job parameters
+
+mongodb:
+  enabled: false
+nginx-ingress-controller:
+  enabled: false
+
+## @section job-execute parameters
+job-execute:
+  ## Kubernetes 通用配置
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-execute
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50

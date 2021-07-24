@@ -1,0 +1,90 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-execute
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: job-execute
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.job-execute.autoscaling.enabled }}
+  replicas: {{ .Values.job-execute.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-execute
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: job-execute
+    spec:
+      {{- include "argocd.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.job-execute.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.job-execute.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.job-execute.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.job-execute.podAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.job-execute.podAntiAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.job-execute.nodeAffinityPreset.type "key" .Values.job-execute.nodeAffinityPreset.key "values" .Values.job-execute.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.job-execute.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.job-execute.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.job-execute.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.job-execute.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.job-execute.priorityClassName }}
+      priorityClassName: {{ .Values.job-execute.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "bk-job.serviceAccountName" . }}
+      {{- if .Values.job-execute.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.job-execute.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: job-execute
+          {{- if .Values.job-execute.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.job-execute.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-execute.image" . }}
+          imagePullPolicy: {{ .Values.job-execute.image.pullPolicy }}
+          env:
+            - name: BK_JOB_JVM_OPTION
+              value:
+            - name: BK_JOB_PROFILE
+              value: prod
+            - name: BK_JOB_JAR
+              value: job-execute.jar
+          ports:
+            - name: http
+              containerPort: 10502
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/livenessState
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readinessState
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.job-execute.resources | nindent 12 }}
+
