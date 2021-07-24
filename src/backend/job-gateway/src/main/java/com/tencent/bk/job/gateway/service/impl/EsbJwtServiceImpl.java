@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -54,23 +53,32 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class EsbJwtServiceImpl implements EsbJwtService {
-    private final PublicKey publicKey;
-    private Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
+    private final EsbJwtPublicKeyService esbJwtPublicKeyService;
+    private PublicKey publicKey;
+    private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
-    public EsbJwtServiceImpl(
-        EsbJwtPublicKeyService esbJwtPublicKeyService) throws NoSuchAlgorithmException,
-        InvalidKeySpecException, IOException {
-        String esbJwtPublicKey = esbJwtPublicKeyService.getEsbJWTPublicKey();
-        if (StringUtils.isEmpty(esbJwtPublicKey)) {
-            log.error("Esb jwt public key is not configured!");
-            throw new ServiceException("ESB public key is not available!");
-        }
-        this.publicKey = getPublicKey(esbJwtPublicKey);
+    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService){
+        this.esbJwtPublicKeyService = esbJwtPublicKeyService;
+        getAndCachePublicKey();
     }
 
-    private static PublicKey getPublicKey(String pemContent)
+    private void getAndCachePublicKey() {
+        try {
+            String esbJwtPublicKey = esbJwtPublicKeyService.getEsbJWTPublicKey();
+            if (StringUtils.isEmpty(esbJwtPublicKey)) {
+                log.error("Esb jwt public key is not configured!");
+                return;
+            }
+            this.publicKey = buildPublicKey(esbJwtPublicKey);
+        } catch (Throwable e) {
+            // Catch all exception
+            log.error("Build esb jwt public key caught error!", e);
+        }
+    }
+
+    private PublicKey buildPublicKey(String pemContent)
         throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         PemReader pemReader = new PemReader(new StringReader(pemContent));
         PemObject pemObject = pemReader.readPemObject();

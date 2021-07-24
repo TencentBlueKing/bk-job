@@ -19,17 +19,15 @@ spring:
       password: ${job.file-gateway.redis.sentinel.password:}
       master: ${job.file-gateway.redis.sentinel.master:}
       nodes: ${job.file-gateway.redis.sentinel.nodes:}
-    cluster:
-      nodes: ${job.file-gateway.redis.cluster.nodes:}
     password: ${job.file-gateway.redis.password:}
     database: ${job.file-gateway.redis.database}
     lettuce:
       pool:
-        min-idle: ${job.file-gateway.redis.lettuce.pool.min-idle}
-        max-idle: ${job.file-gateway.redis.lettuce.pool.max-idle}
-        max-active: ${job.file-gateway.redis.lettuce.pool.max-active}
-        max-wait: ${job.file-gateway.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.file-gateway.redis.lettuce.shutdown-timeout}
+        min-idle: ${job.file-gateway.redis.lettuce.pool.min-idle:5}
+        max-idle: ${job.file-gateway.redis.lettuce.pool.max-idle:10}
+        max-active: ${job.file-gateway.redis.lettuce.pool.max-idle:8}
+        max-wait: ${job.file-gateway.redis.lettuce.pool.max-wait:1ms}
+      shutdown-timeout: ${job.file-gateway.redis.lettuce.shutdown-timeout:100ms}
   servlet:
     multipart:
       max-file-size: ${job.file-gateway.upload.filesize.max:5GB}

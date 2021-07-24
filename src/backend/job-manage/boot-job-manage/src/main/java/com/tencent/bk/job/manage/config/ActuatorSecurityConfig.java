@@ -39,7 +39,7 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health").permitAll()
+            .antMatchers("/actuator/health/**").permitAll()
             .antMatchers("/actuator/info").permitAll()
             .antMatchers(HttpMethod.POST, "/actuator/loggers/**").hasRole("ENDPOINT_ADMIN")
             .antMatchers("/actuator/configprops/**").hasRole("ENDPOINT_ADMIN")

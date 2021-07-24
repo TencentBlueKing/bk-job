@@ -58,7 +58,7 @@ public class CredentialServiceImpl implements CredentialService {
             commonCredential.setType(credentialDTO.getType());
             return commonCredential;
         } catch (Exception e) {
-            log.error("credential not valid:{}", credentialDTO);
+            log.error("credential not valid:{}", credentialDTO, e);
             return null;
         }
     }

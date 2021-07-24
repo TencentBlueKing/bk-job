@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-file-gateway
+    name: ${SPRING_APPLICATION_NAME:job-file-gateway}
   profiles:
     active: prod
   cloud:

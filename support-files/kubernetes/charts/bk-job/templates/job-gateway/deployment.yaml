@@ -1,0 +1,129 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-gateway"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.gatewayConfig.autoscaling.enabled }}
+  replicas: {{ .Values.gatewayConfig.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-gateway
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-gateway"
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.gatewayConfig.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.gatewayConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.gatewayConfig.podAffinityPreset "component" "job-gateway" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.gatewayConfig.podAntiAffinityPreset "component" "job-gateway" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.gatewayConfig.nodeAffinityPreset.type "key" .Values.gatewayConfig.nodeAffinityPreset.key "values" .Values.gatewayConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.gatewayConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.gatewayConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.gatewayConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.gatewayConfig.priorityClassName }}
+      priorityClassName: {{ .Values.gatewayConfig.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.gatewayConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.gatewayConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: "job-gateway"
+          {{- if .Values.gatewayConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.gatewayConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-gateway.image" . }}
+          imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
+          env:
+            - name: BK_JOB_JVM_OPTION
+              value: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC "
+            - name: BK_JOB_PROFILE
+              value: prod
+            - name: BK_JOB_JAR
+              value: job-gateway.jar
+            - name: JOB_APPLICATION_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-gateway
+            - name: JOB_COMMON_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: {{ .Values.gatewayConfig.containerPort.http }}
+              protocol: TCP
+            - name: https
+              containerPort: {{ .Values.gatewayConfig.containerPort.https }}
+              protocol: TCP
+            - name: management
+              containerPort: {{ .Values.gatewayConfig.containerPort.management }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: management
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.gatewayConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: job-gateway-tls-certs
+              mountPath: /data/job/cert
+              readOnly: true
+            - name: job-gateway-tls-password
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: job-gateway-tls-certs
+          secret:
+            secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: job_server.keystore
+                path: job_server.p12
+              - key: job_server.truststore
+                path: job_server.truststore
+        - name: job-gateway-tls-password
+          secret:
+            secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: keystore.password
+                path: keystore.password
+              - key: truststore.password
+                path: truststore.password

@@ -24,35 +24,33 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":commons:common-spring-ext")
-    compile project(":commons:common-web")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-manage:model-job-manage")
-    compile project(":job-crontab:api-job-crontab")
-    compile project(":job-analysis:api-job-analysis")
-    compile project(":job-ticket:api-job-ticket")
-    compile project(":commons:common")
-    compile project(":commons:common-security")
-    compile project(":commons:common-redis")
-    compile project(":commons:cmdb-sdk-ext")
-    compile project(":commons:paas-sdk")
-    compile project(":commons:esb-sdk")
-    compile project(":commons:gse-sdk")
+    api project(":commons:common-web")
+    api project(":job-manage:api-job-manage")
+    api project(":job-manage:model-job-manage")
+    api project(":job-crontab:api-job-crontab")
+    api project(":job-analysis:api-job-analysis")
+    api project(":commons:common")
+    api project(":commons:common-security")
+    api project(":commons:common-redis")
+    api project(":commons:cmdb-sdk-ext")
+    api project(":commons:paas-sdk")
+    api project(":commons:esb-sdk")
+    api project(":commons:gse-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
-    implementation "org.springframework.cloud:spring-cloud-starter-consul-discovery"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"
     implementation "org.apache.commons:commons-collections4"
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation 'org.apache.httpcomponents:httpclient'
     implementation group: 'org.apache.thrift', name: 'libthrift'
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
+    implementation 'joda-time:joda-time'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
 }

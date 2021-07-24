@@ -99,7 +99,7 @@ public class BkConfig {
     @Value("${job.web.url:}")
     private String jobWebUrl;
 
-    @Value("${job.gateway.swagger.url:gateway.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
     //---------------------------- License Config ---------------------------------

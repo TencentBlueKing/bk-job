@@ -25,18 +25,13 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":commons:common-redis")
-    compile project(":job-file-gateway:service-job-file-gateway")
+    api project(":commons:common-redis")
+    api project(":job-file-gateway:service-job-file-gateway")
     implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework:spring-webmvc'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    implementation 'io.prometheus:simpleclient_pushgateway'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
     runtimeOnly('mysql:mysql-connector-java')
 }
 springBoot {

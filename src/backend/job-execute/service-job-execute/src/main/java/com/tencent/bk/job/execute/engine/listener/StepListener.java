@@ -31,14 +31,18 @@ import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.model.StepControlMessage;
-import com.tencent.bk.job.execute.engine.third.FileSourceTaskManager;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
+import com.tencent.bk.job.execute.model.NotifyDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
@@ -46,7 +50,18 @@ import org.springframework.stereotype.Component;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
-import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.*;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CLEAR;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONFIRM_CONTINUE;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONFIRM_RESTART;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONFIRM_TERMINATE;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONTINUE_FILE_PUSH;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.IGNORE_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.NEXT_STEP;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.RETRY_ALL;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.RETRY_FAIL;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.SKIP;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.START;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.STOP;
 
 /**
  * 执行引擎流程处理-步骤
@@ -57,15 +72,15 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.*;
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
     private final TaskExecuteControlMsgSender taskControlMsgSender;
-    private final FileSourceTaskManager fileSourceTaskManager;
+    private final FilePrepareService filePrepareService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
                         TaskExecuteControlMsgSender taskControlMsgSender,
-                        FileSourceTaskManager fileSourceTaskManager) {
+                        FilePrepareService filePrepareService) {
         this.taskInstanceService = taskInstanceService;
         this.taskControlMsgSender = taskControlMsgSender;
-        this.fileSourceTaskManager = fileSourceTaskManager;
+        this.filePrepareService = filePrepareService;
     }
 
     /**
@@ -227,7 +242,7 @@ public class StepListener {
             if (EXECUTE_SCRIPT.getValue() == stepType || StepExecuteTypeEnum.EXECUTE_SQL.getValue() == stepType) {
                 taskControlMsgSender.startGseStep(stepInstanceId);
             } else if (TaskStepTypeEnum.FILE.getValue() == stepType) {
-                fileSourceTaskManager.checkThirdFileAndPrepareForGseTask(stepInstanceId);
+                filePrepareService.prepareFileForGseTask(stepInstanceId);
             } else if (TaskStepTypeEnum.APPROVAL.getValue() == stepType) {
                 executeConfirmStep(stepInstance);
             } else {
@@ -288,7 +303,7 @@ public class StepListener {
      */
     private void retryStepFail(StepInstanceBaseDTO stepInstance) {
         resetStatusForRetry(stepInstance);
-        fileSourceTaskManager.retryThirdFilePulling(stepInstance.getId());
+        filePrepareService.retryPrepareFile(stepInstance.getId());
         taskControlMsgSender.retryGseStepFail(stepInstance.getId());
     }
 
@@ -297,7 +312,7 @@ public class StepListener {
      */
     private void retryStepAll(StepInstanceBaseDTO stepInstance) {
         resetStatusForRetry(stepInstance);
-        fileSourceTaskManager.retryThirdFilePulling(stepInstance.getId());
+        filePrepareService.retryPrepareFile(stepInstance.getId());
         taskControlMsgSender.retryGseStepAll(stepInstance.getId());
     }
 
@@ -308,7 +323,7 @@ public class StepListener {
         int executeType = stepInstance.getExecuteType();
         // 当前仅有文件分发类步骤需要清理中间文件
         if (TaskStepTypeEnum.FILE.getValue() == executeType) {
-            fileSourceTaskManager.clearThirdFileTask(stepInstance.getId());
+            filePrepareService.clearPreparedTmpFile(stepInstance.getId());
         }
     }
 

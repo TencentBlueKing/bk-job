@@ -69,6 +69,8 @@ public class CredentialDAOImpl implements CredentialDAO {
     public String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO) {
         String id = JobUUID.getUUID();
         String sql = null;
+        String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
+        log.debug("Save credentialStr={}", credentialStr);
         try {
             val query = dslContext.insertInto(defaultTable,
                 defaultTable.ID,
@@ -88,7 +90,7 @@ public class CredentialDAOImpl implements CredentialDAO {
                 credentialDTO.getType(),
                 credentialDTO.getDescription(),
                 AESUtils.encryptToBase64EncodedCipherText(
-                    JsonUtils.toJson(credentialDTO.getCredential()),
+                    credentialStr,
                     jobTicketConfig.getEncryptPassword()
                 ),
                 credentialDTO.getCreator(),
@@ -110,6 +112,8 @@ public class CredentialDAOImpl implements CredentialDAO {
     @Override
     public String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO) {
         String sql = null;
+        String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
+        log.debug("Update credentialStr={}", credentialStr);
         try {
             UpdateConditionStep<CredentialRecord> query = dslContext.update(defaultTable)
                 .set(defaultTable.APP_ID, credentialDTO.getAppId())
@@ -117,7 +121,7 @@ public class CredentialDAOImpl implements CredentialDAO {
                 .set(defaultTable.TYPE, credentialDTO.getType())
                 .set(defaultTable.DESCRIPTION, credentialDTO.getDescription())
                 .set(defaultTable.VALUE, AESUtils.encryptToBase64EncodedCipherText(
-                    JsonUtils.toJson(credentialDTO.getCredential()),
+                    credentialStr,
                     jobTicketConfig.getEncryptPassword()))
                 .set(defaultTable.LAST_MODIFY_USER, credentialDTO.getLastModifyUser())
                 .set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis())
@@ -280,6 +284,11 @@ public class CredentialDAOImpl implements CredentialDAO {
     private CredentialDTO convertRecordToDto(
         Record10<String, Long, String, String, String, String, String, Long, String, Long> record) {
         try {
+            String credentialStr = AESUtils.decryptToPlainText(
+                Base64Util.decodeContentToByte(record.get(defaultTable.VALUE)),
+                jobTicketConfig.getEncryptPassword()
+            );
+            log.debug("Get credential from DB:{}", credentialStr);
             return new CredentialDTO(
                 record.get(defaultTable.ID),
                 record.get(defaultTable.APP_ID),
@@ -287,9 +296,7 @@ public class CredentialDAOImpl implements CredentialDAO {
                 record.get(defaultTable.TYPE),
                 record.get(defaultTable.DESCRIPTION),
                 JsonUtils.fromJson(
-                    AESUtils.decryptToPlainText(
-                        Base64Util.decodeContentToByte(record.get(defaultTable.VALUE)),
-                        jobTicketConfig.getEncryptPassword()),
+                    credentialStr,
                     new TypeReference<CommonCredential>() {
                     }),
                 record.get(defaultTable.CREATOR),

@@ -55,7 +55,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-            .host(config.getSwaggerUrl())
+            .host(config.getSwaggerUrl() + "/job-execute")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.execute.api"))

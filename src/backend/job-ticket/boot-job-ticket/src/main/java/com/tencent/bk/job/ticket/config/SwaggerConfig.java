@@ -52,7 +52,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-            .host(jobTicketConfig.getSwaggerUrl())
+            .host(jobTicketConfig.getSwaggerUrl() + "/job-ticket")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.ticket.api"))

@@ -22,20 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
-    compile project(":commons:common")
-    compile files("libs/ee-gse-task-3.1.jar")
+    api project(':commons:common')
+    api files('libs/ee-gse-task-3.1.jar')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.apache.thrift:libthrift:0.12.0'
-    compile 'org.apache.commons:commons-lang3'
+    implementation 'org.apache.commons:commons-lang3'
     implementation 'org.apache.commons:commons-collections4'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation 'org.apache.httpcomponents:httpclient'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
