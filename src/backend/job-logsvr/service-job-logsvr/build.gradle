@@ -29,7 +29,6 @@ dependencies {
     compile project(':commons:common-web')
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-data-mongodb")
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
     compile("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation 'org.apache.commons:commons-collections4'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

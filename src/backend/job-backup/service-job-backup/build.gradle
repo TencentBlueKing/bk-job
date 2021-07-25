@@ -36,9 +36,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation "org.apache.commons:commons-collections4"
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
-    compile("org.springframework.cloud:spring-cloud-starter-sleuth")
-    implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"

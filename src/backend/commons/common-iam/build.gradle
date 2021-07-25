@@ -22,7 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
     compile(files("libs/iam-sdk-1.0.0.jar"))
     implementation(group: 'org.springframework', name: 'spring-context')

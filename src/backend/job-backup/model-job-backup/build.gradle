@@ -27,5 +27,4 @@ dependencies {
     implementation "org.jooq:jooq-codegen"
     implementation "org.jooq:jooq-meta"
 }
-apply plugin: 'java'
 apply from: "task_gen_jooq.gradle"

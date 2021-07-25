@@ -28,6 +28,7 @@ dependencies {
     compile project(':commons:esb-sdk')
     compile project(':commons:common-iam')
     compile project(":job-execute:api-job-execute")
+    api(project(":commons:common-api"))
 
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

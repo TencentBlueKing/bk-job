@@ -56,7 +56,7 @@ buildscript {
 }
 
 plugins {
-    id "java"
+    id "java-library"
     id "io.spring.dependency-management" version '1.0.8.RELEASE' apply false
     id 'org.springframework.boot' version '2.3.5.RELEASE' apply false
     id "idea"
@@ -126,7 +126,8 @@ allprojects {
 
     apply plugin: "idea"
     apply plugin: "eclipse"
-    apply plugin: "java"
+    apply plugin: "java-library"
+    apply plugin: "io.spring.dependency-management"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -155,8 +156,9 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "idea"
+    apply plugin: "eclipse"
     apply plugin: "io.spring.dependency-management"
 
     tasks.withType(org.gradle.api.tasks.compile.JavaCompile) {

@@ -22,7 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
     implementation project(":commons:common")
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'

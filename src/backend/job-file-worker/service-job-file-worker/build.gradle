@@ -27,6 +27,7 @@ dependencies {
     compile project(":job-file-worker:api-job-file-worker")
     compile project(":job-file-worker-sdk:api-job-file-worker-sdk")
     compile project(":job-file-worker-sdk:service-job-file-worker-sdk")
+    implementation(project(":commons:common-service"))
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"

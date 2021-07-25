@@ -22,7 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
     compile project(":commons:common-utils")
     implementation 'io.jsonwebtoken:jjwt'

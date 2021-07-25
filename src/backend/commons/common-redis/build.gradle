@@ -22,7 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     compile(group: 'org.springframework.boot', name: 'spring-boot-configuration-processor')
