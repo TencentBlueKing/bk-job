@@ -9,31 +9,28 @@ PROGRAM=$(basename "$0")
 EXITCODE=0
 
 ALL=1
-GATEWAY=0
+FRONTEND=0
 BACKEND=0
-INIT=0
 VERSION=latest
 PUSH=0
 REGISTRY=docker.io
 USERNAME=
 PASSWORD=
-BACKENDS=(repository auth generic docker helm npm pypi)
+BACKENDS=(job-gateway job-manage job-execute job-crontab job-logsvr job-analysis job-backup)
 
 cd $(dirname $0)
 WORKING_DIR=$(pwd)
 ROOT_DIR=${WORKING_DIR%/*/*/*}
 BACKEND_DIR=$ROOT_DIR/src/backend
 FRONTEND_DIR=$ROOT_DIR/src/frontend
-GATEWAY_DIR=$ROOT_DIR/src/gateway
 
 usage () {
     cat <<EOF
 用法: 
     $PROGRAM [OPTIONS]... 
 
-            [ --gateway             [可选] 打包gateway镜像 ]
+            [ --frontend            [可选] 打包frontend镜像 ]
             [ --backend             [可选] 打包backend镜像 ]
-            [ --init                [可选] 打包init镜像 ]
             [ -v, --version         [可选] 镜像版本tag, 默认latest ]
             [ -p, --push            [可选] 推送镜像到docker远程仓库，默认不推送 ]
             [ -r, --registry        [可选] docker仓库地址, 默认docker.io ]
@@ -66,17 +63,13 @@ warning () {
 (( $# == 0 )) && usage_and_exit 1
 while (( $# > 0 )); do 
     case "$1" in
-        --gateway )
+        --frontend )
             ALL=0
-            GATEWAY=1
+            FRONTEND=1
             ;;
         --backend )
             ALL=0
             BACKEND=1
-            ;;
-        --init )
-            ALL=0
-            INIT=1
             ;;
         -v | --version )
             shift
@@ -101,7 +94,7 @@ while (( $# > 0 )); do
             usage_and_exit 0
             ;;
         -*)
-            error "不可识别的参数: $1"
+            error "Invalid Param: $1"
             ;;
         *) 
             break
@@ -112,7 +105,7 @@ done
 
 if [[ $PUSH -eq 1 && -n "$USERNAME" ]] ; then
     docker login --username $USERNAME --password $PASSWORD $REGISTRY
-    log "docker login成功"
+    log "docker login successfully"
 fi
 
 # 创建临时目录
@@ -122,22 +115,18 @@ tmp_dir=$WORKING_DIR/tmp
 trap 'rm -rf $tmp_dir' EXIT TERM
 
 # 编译frontend
-if [[ $ALL -eq 1 || $GATEWAY -eq 1 ]] ; then
-    log "编译frontend..."
-    yarn --cwd $FRONTEND_DIR install
-    yarn --cwd $FRONTEND_DIR run public
-
-    # 打包gateway镜像
-    log "构建gateway镜像..."
+if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
+    # 打包frontend镜像
+    log "Building frontend image..."
+    cd $FRONTEND_DIR || exit 1
+    npm i
+    npm run build
     rm -rf tmp/*
-    cp -rf $FRONTEND_DIR/frontend tmp/
-    cp -rf $GATEWAY_DIR tmp/gateway
-    cp -rf gateway/startup.sh tmp/
-    cp -rf $ROOT_DIR/scripts/render_tpl tmp/
-    cp -rf $ROOT_DIR/support-files/templates tmp/
-    docker build -f gateway/gateway.Dockerfile -t $REGISTRY/bkrepo/bkrepo-gateway:$VERSION tmp --network=host
+    cp -rf dist/ tmp/
+
+    docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
-        docker push $REGISTRY/bkrepo/bkrepo-gateway:$VERSION
+        docker push $REGISTRY/job-frontend:$VERSION
     fi
 fi
 
@@ -145,27 +134,16 @@ fi
 if [[ $ALL -eq 1 || $BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
-        log "构建${SERVICE}镜像..."
-        $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -PassemblyMode=k8s -x test
+        log "Building ${SERVICE} image..."
+        $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -PassemblyMode=k8s
         rm -rf tmp/*
         cp backend/startup.sh tmp/
-        cp $BACKEND_DIR/release/boot-$SERVICE-*.jar tmp/app.jar
-        docker build -f backend/backend.Dockerfile -t $REGISTRY/bkrepo/bkrepo-$SERVICE:$VERSION tmp --network=host
+        cp $BACKEND_DIR/release/$SERVICE-*.jar tmp/
+        docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
         if [[ $PUSH -eq 1 ]] ; then
-            docker push $REGISTRY/bkrepo/bkrepo-$SERVICE:$VERSION
+            docker push $REGISTRY/$SERVICE:$VERSION
         fi
     done
 fi
 
-# 构建init镜像
-if [[ $ALL -eq 1 || $INIT -eq 1 ]] ; then
-    log "构建init镜像..."
-    rm -rf tmp/*
-    cp -rf init/init-mongodb.sh tmp/
-    cp -rf $ROOT_DIR/support-files/sql/init-data.js tmp/
-    docker build -f init/init.Dockerfile -t $REGISTRY/bkrepo/bkrepo-init:$VERSION tmp --no-cache --network=host
-    if [[ $PUSH -eq 1 ]] ; then
-        docker push $REGISTRY/bkrepo/bkrepo-init:$VERSION
-    fi
-fi
 echo "BUILD SUCCESSFUL!"
