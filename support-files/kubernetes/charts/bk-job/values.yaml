@@ -33,6 +33,16 @@ commonAnnotations: {}
 ## @param clusterDomain Kubernetes cluster domain
 ##
 clusterDomain: cluster.local
+## Specifies whether a ServiceAccount should be created
+serviceAccount:
+  create: true
+  ## The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  ##
+  name:
+
+ingress:
+  enabled: false
 
 ## @section Job parameters
 
@@ -41,9 +51,95 @@ mongodb:
 nginx-ingress-controller:
   enabled: false
 
+## @section job-gateway parameters
+gateway:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-gateway
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+
+## @section job-manage parameters
+manage:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-manage
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+
+
 ## @section job-execute parameters
-job-execute:
-  ## Kubernetes 通用配置
+execute:
   image:
     registry: mirrors.tencent.com
     repository: bkrepo/job-execute
@@ -80,3 +176,180 @@ job-execute:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+    port: 80
+
+## @section job-crontab parameters
+crontab:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-crontab
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+
+## @section job-logsvr parameters
+logsvr:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-logsvr
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+
+## @section job-backup parameters
+backup:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-backup
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP
+
+## @section job-analysis parameters
+analysis:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkrepo/job-analysis
+    tag: 3.4.0
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  serviceAccount:
+   craete: true
+  service:
+    type: ClusterIP

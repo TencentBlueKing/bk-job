@@ -4,7 +4,7 @@ metadata:
   name: {{ include "common.names.fullname" . }}-execute
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: job-execute
+    app.kubernetes.io/component: "job-execute"
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -12,8 +12,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.job-execute.autoscaling.enabled }}
-  replicas: {{ .Values.job-execute.replicaCount }}
+  {{- if not .Values.execute.autoscaling.enabled }}
+  replicas: {{ .Values.execute.replicaCount }}
   {{- end }}
   selector:
     matchLabels: 
@@ -23,39 +23,38 @@ spec:
     metadata:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
-        app.kubernetes.io/component: job-execute
+        app.kubernetes.io/component: "job-execute"
     spec:
-      {{- include "argocd.imagePullSecrets" . | nindent 6 }}
-      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.job-execute.hostAliases "context" $) | nindent 8 }}
-      {{- end }}
-      {{- if .Values.job-execute.affinity }}
-      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.job-execute.affinity "context" $) | nindent 8 }}
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.execute.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.execute.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.execute.affinity "context" $) | nindent 8 }}
       {{- else }}
       affinity:
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.job-execute.podAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.job-execute.podAntiAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
-        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.job-execute.nodeAffinityPreset.type "key" .Values.job-execute.nodeAffinityPreset.key "values" .Values.job-execute.nodeAffinityPreset.values) | nindent 10 }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.execute.podAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.execute.podAntiAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.execute.nodeAffinityPreset.type "key" .Values.execute.nodeAffinityPreset.key "values" .Values.execute.nodeAffinityPreset.values) | nindent 10 }}
       {{- end }}
-      {{- if .Values.job-execute.nodeSelector }}
-      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.job-execute.nodeSelector "context" $) | nindent 8 }}
+      {{- if .Values.execute.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.execute.nodeSelector "context" $) | nindent 8 }}
       {{- end }}
-      {{- if .Values.job-execute.tolerations }}
-      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.job-execute.tolerations "context" .) | nindent 8 }}
+      {{- if .Values.execute.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.execute.tolerations "context" .) | nindent 8 }}
       {{- end }}
-      {{- if .Values.job-execute.priorityClassName }}
-      priorityClassName: {{ .Values.job-execute.priorityClassName | quote }}
+      {{- if .Values.execute.priorityClassName }}
+      priorityClassName: {{ .Values.execute.priorityClassName | quote }}
       {{- end }}
-      serviceAccountName: {{ include "bk-job.serviceAccountName" . }}
-      {{- if .Values.job-execute.podSecurityContext.enabled }}
-      securityContext: {{- omit .Values.job-execute.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      serviceAccountName: {{ include "job-execute.serviceAccountName" . }}
+      {{- if .Values.execute.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.execute.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       containers:
-        - name: job-execute
-          {{- if .Values.job-execute.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.job-execute.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+        - name: "job-execute"
+          {{- if .Values.execute.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.execute.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           image: {{ include "job-execute.image" . }}
-          imagePullPolicy: {{ .Values.job-execute.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.execute.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
               value:
@@ -86,5 +85,5 @@ spec:
             failureThreshold: 6
             successThreshold: 1
           resources:
-            {{- toYaml .Values.job-execute.resources | nindent 12 }}
+            {{- toYaml .Values.execute.resources | nindent 12 }}
 

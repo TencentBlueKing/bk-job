@@ -1,10 +1,10 @@
-{{- if .Values.job-execute.autoscaling.enabled }}
+{{- if .Values.execute.autoscaling.enabled }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: job-execute
+  name: "job-execute"
   labels: {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: job-execute
+    app.kubernetes.io/component: "job-execute"
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -15,20 +15,20 @@ spec:
   scaleTargetRef:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
     kind: Deployment
-    name: job-execute
-  minReplicas: {{ .Values.job-execute.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.job-execute.autoscaling.maxReplicas }}
+    name: "job-execute"
+  minReplicas: {{ .Values.execute.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.execute.autoscaling.maxReplicas }}
   metrics:
-    {{- if .Values.job-execute.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.execute.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.job-execute.autoscaling.targetCPUUtilizationPercentage }}
+        targetAverageUtilization: {{ .Values.execute.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.job-execute.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.execute.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
-        targetAverageUtilization: {{ .Values.job-execute.autoscaling.targetMemoryUtilizationPercentage }}
+        targetAverageUtilization: {{ .Values.execute.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
