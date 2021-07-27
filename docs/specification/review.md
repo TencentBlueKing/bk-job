@@ -1,5 +1,7 @@
 # Reviewing for BK-JOB
 
+[English](review.en.md) | 简体中文
+
 我们坚信code review所带来的价值：code review不仅可以提高质量、代码的可读性，同时也能不断提高开发者的水平，
 促进开发者的编码能力，做出更好的设计。
 
