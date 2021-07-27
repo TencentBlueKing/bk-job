@@ -165,7 +165,9 @@
                     ipList.push(realId);
                     ipMap[realId] = Object.assign({ realId }, currentHost);
                 });
-                AppManageService.fetchHostOfHost(ipList)
+                AppManageService.fetchHostOfHost({
+                    ipList,
+                })
                     .then((data) => {
                         const list = [];
                         this.invalidList = [];
