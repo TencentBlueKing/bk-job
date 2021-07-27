@@ -270,7 +270,14 @@
                 
                 this.isSubmiting = true;
 
-                AppManageService.fetchHostOfHost(IPList)
+                const params = {
+                    ipList: IPList,
+                };
+                if (window.IPInputScope) {
+                    params.actionScope = window.IPInputScope;
+                }
+
+                AppManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
                         const hostList = [];
