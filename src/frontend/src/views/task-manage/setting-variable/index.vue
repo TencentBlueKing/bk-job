@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="setting-variable-page" v-bkloading="{ isLoading }">
+    <div class="setting-variable-page">
         <smart-action offset-target="variable-value">
             <global-variable-layout>
                 <global-variable
@@ -50,6 +50,7 @@
                         {{ $t('template.取消') }}
                     </bk-button>
                     <bk-button
+                        v-if="hasHostVariable"
                         class="remove-all"
                         @click="handleRemoveAllInvalidHost">
                         {{ $t('template.移除无效主机') }}
@@ -64,6 +65,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import TaskPlanService from '@service/task-plan';
@@ -82,6 +84,7 @@
             return {
                 isLoading: true,
                 isSubmiting: false,
+                hasHostVariable: false,
                 variableList: [],
                 planName: '',
             };
@@ -111,11 +114,19 @@
                 }, {
                     permission: 'page',
                 }).then((plan) => {
-                    this.planName = plan.name;
-                    this.variableList = Object.freeze(plan.variableList);
+                    const {
+                        name,
+                        variableList,
+                    } = plan;
+                    this.planName = name;
+                    this.variableList = Object.freeze(variableList);
+                    this.hasHostVariable = _.findIndex(variableList, variable => variable.isHost) > -1;
                 })
                     .catch((error) => {
-                        if ([1243009, 400].includes(error.code)) {
+                        if ([
+                            1243009,
+                            400,
+                        ].includes(error.code)) {
                             setTimeout(() => {
                                 this.$router.push({
                                     name: 'taskList',
@@ -138,7 +149,13 @@
                 Promise.all(this.$refs.variable.map(item => item.validate()))
                     .then(taskVariables => TaskExecuteService.taskExecution({
                         taskId: this.taskId,
-                        taskVariables: taskVariables.map(({ id, name, type, value, targetValue }) => ({
+                        taskVariables: taskVariables.map(({
+                            id,
+                            name,
+                            type,
+                            value,
+                            targetValue,
+                        }) => ({
                             id,
                             name,
                             type,

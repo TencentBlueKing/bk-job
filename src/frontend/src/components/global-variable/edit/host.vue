@@ -29,11 +29,20 @@
     <div class="variable-type-host" :class="{ 'variable-value-error': isError }">
         <div>
             <div>
-                <bk-button class="mr10" :disabled="readonly" @click="handleChooseIp" v-bk-tooltips="descPopover">
+                <bk-button
+                    class="mr10"
+                    :disabled="readonly"
+                    @click="handleChooseIp"
+                    v-bk-tooltips="descPopover">
                     <Icon type="plus" />
                     {{ $t('添加服务器') }}
                 </bk-button>
-                <bk-button v-show="isNotEmpty" :disabled="readonly" @click="handleClear">{{ $t('清空') }}</bk-button>
+                <bk-button
+                    v-show="isNotEmpty"
+                    :disabled="readonly"
+                    @click="handleClear">
+                    {{ $t('清空') }}
+                </bk-button>
             </div>
             <server-panel
                 v-show="isNotEmpty"
@@ -46,7 +55,6 @@
             <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
         </div>
         <choose-ip
-            
             v-model="isShowChooseIp"
             :host-node-info="hostNodeInfo"
             @on-change="handleChange" />
@@ -175,9 +183,6 @@
 </script>
 <style lang='postcss' scoped>
     .variable-type-host {
-        width: 100%;
-        max-width: 960px;
-
         .host-value-panel {
             margin-top: 10px;
         }
