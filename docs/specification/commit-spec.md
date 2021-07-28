@@ -1,5 +1,7 @@
 # 代码提交规范
 
+[English](commit-spec.en.md) | 简体中文
+
 ## 代码检查建议
 BK-JOB工程一共涉及 JavaScript/Java/Python 等多种语言，我们开发团队默认使用如下工具进行代码检查，为了提高Merge效率，请提交前自行检测。
 - ESLint

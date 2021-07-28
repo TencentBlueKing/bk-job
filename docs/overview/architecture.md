@@ -1,5 +1,7 @@
 # 蓝鲸作业平台(BK-JOB)架构设计
 
+[English](architecture.en.md) | 简体中文
+
 ![Architecture](../resource/img/architecture.png)
 
 蓝鲸作业平台(简称**bk-job** )是基于 java/js/html/python/shell/gradle等多种语言编写实现的，采用完全前后端分离，具备高可用可扩展的服务架构设计：

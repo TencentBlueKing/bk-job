@@ -1,4 +1,7 @@
 # 后端微服务部署  
+
+[English](backend.en.md) | 简体中文
+
 bk-job后端共有10个微服务和一个文件源接入点（job-file-worker），编译产物如下表所示：
 
 |包名称 | 描述 |
