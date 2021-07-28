@@ -198,10 +198,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         );
     }
 
-    @Override
-    public Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        LOG.infoWithRequestId("Input(" + username + "," + createUpdateReq.toString() + ")");
-        //1.参数校验、预处理
+    private List<String> checkReqAndGetIpList(WhiteIPRecordCreateUpdateReq createUpdateReq) {
         String appIdStr = createUpdateReq.getAppIdStr();
         if (null == appIdStr || appIdStr.isEmpty()) {
             throw new InvalidParamException("appIdStr", "appIdStr cannot be null or empty");
@@ -235,6 +232,16 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                     throw new InvalidParamException("ipStr", "not a valid ip format");
             });
         }
+        return ipList;
+    }
+
+    @Override
+    public Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
+        LOG.infoWithRequestId("Input(" + username + "," + createUpdateReq.toString() + ")");
+        //1.参数校验、预处理
+        List<String> ipList = checkReqAndGetIpList(createUpdateReq);
+        List<Long> appIdList = Arrays.stream(createUpdateReq.getAppIdStr().split(","))
+            .map(Long::parseLong).collect(Collectors.toList());
         List<Long> actionScopeIdList = createUpdateReq.getActionScopeIdList();
         val ipDtoList = ipList.stream().map(ip -> new WhiteIPIPDTO(
             null,
