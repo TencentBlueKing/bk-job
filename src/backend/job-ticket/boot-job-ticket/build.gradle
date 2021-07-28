@@ -25,7 +25,7 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-ticket:service-job-ticket")
+    api project(":job-ticket:service-job-ticket")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     runtimeOnly('mysql:mysql-connector-java')

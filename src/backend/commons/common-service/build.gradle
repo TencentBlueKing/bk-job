@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software', to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -26,29 +26,29 @@ def k8s = assemblyMode == "k8s"
 println("assembly mode: $assemblyMode")
 
 dependencies {
-    api(project(":commons:common"))
-    api(project(":commons:common-security"))
-    api("org.hibernate.validator:hibernate-validator")
-    api("jakarta.validation:jakarta.validation-api")
-    api("org.springframework.boot:spring-boot-starter-actuator")
-    api("org.springframework.cloud:spring-cloud-starter-openfeign")
-    api("org.springframework.cloud:spring-cloud-starter-sleuth")
+    api project(':commons:common')
+    api project(':commons:common-security')
+    api 'org.hibernate.validator:hibernate-validator'
+    api 'jakarta.validation:jakarta.validation-api'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    api 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    api 'org.springframework.cloud:spring-cloud-starter-sleuth'
     if (k8s) {
-        api("org.springframework.cloud:spring-cloud-starter-kubernetes-all")
-        api("org.springframework.cloud:spring-cloud-starter-kubernetes-ribbon")
+        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-all'
+        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-ribbon'
     } else {
-        api("org.springframework.cloud:spring-cloud-starter-config")
-        api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+        api 'org.springframework.cloud:spring-cloud-starter-config'
+        api 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     }
-    api("ch.qos.logback:logback-core")
-    api("ch.qos.logback:logback-classic")
-    api("io.springfox:springfox-swagger2")
-    api("io.springfox:springfox-swagger-ui")
-    api("com.fasterxml.jackson.core:jackson-core")
-    api("com.fasterxml.jackson.core:jackson-databind")
-    api("com.fasterxml.jackson.core:jackson-annotations")
-    api("io.jsonwebtoken:jjwt")
-    api("io.prometheus:simpleclient_pushgateway")
-    api("io.micrometer:micrometer-registry-prometheus")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    api 'ch.qos.logback:logback-core'
+    api 'ch.qos.logback:logback-classic'
+    api 'io.springfox:springfox-swagger2'
+    api 'io.springfox:springfox-swagger-ui'
+    api 'com.fasterxml.jackson.core:jackson-core'
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.core:jackson-annotations'
+    api 'io.jsonwebtoken:jjwt'
+    api 'io.prometheus:simpleclient_pushgateway'
+    api 'io.micrometer:micrometer-registry-prometheus'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

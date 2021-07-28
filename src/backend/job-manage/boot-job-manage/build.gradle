@@ -25,9 +25,9 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-manage:service-job-manage")
-    compile project(":commons:common-redis")
-    compile project(":commons:common-i18n")
+    api project(":job-manage:service-job-manage")
+    api project(":commons:common-redis")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'

@@ -35,11 +35,11 @@ version "${jobBackupVersion}"
 subprojects {
     version "${jobBackupVersion}"
     dependencies {
-        compile("org.springframework.boot:spring-boot-autoconfigure")
+        api 'org.springframework.boot:spring-boot-autoconfigure'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation "org.junit.jupiter:junit-jupiter"
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 }
 

@@ -33,9 +33,9 @@ ext {
 }
 version "${jobConfigVersion}"
 dependencies {
-    compile project(':commons:common')
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-spring-ext")
+    api project(':commons:common')
+    api project(":commons:common-i18n")
+    api project(":commons:common-spring-ext")
     implementation 'io.springfox:springfox-swagger2'
     implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -51,8 +51,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 apply plugin: 'org.springframework.boot'
