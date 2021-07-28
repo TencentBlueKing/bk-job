@@ -25,7 +25,6 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.ticket.model.credential.CommonCredential;
