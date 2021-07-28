@@ -242,7 +242,7 @@
                     return;
                 }
                 const IPReg = /(((\d+:)?)(?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))/;
-                const IPList = [];
+                const ipList = [];
                 // 无法解析出 IP 的内容
                 const errorIPList = [];
                 this.inputItemList.forEach((IPText) => {
@@ -255,7 +255,7 @@
                             errorIPList.push(IPText);
                         } else {
                             // 提取识别成功的 IP
-                            IPList.push(IPStr);
+                            ipList.push(IPStr);
                             // 将剩下的内容作为错误 IP 处理
                             const errorText = IPText.replace(new RegExp(`(${encodeRegexp(IPStr)})|(\\s)`, 'g'), '');
                             if (errorText) {
@@ -270,7 +270,14 @@
                 
                 this.isSubmiting = true;
 
-                AppManageService.fetchHostOfHost(IPList)
+                const params = {
+                    ipList,
+                };
+                if (window.IPInputScope) {
+                    params.actionScope = window.IPInputScope;
+                }
+
+                AppManageService.fetchHostOfHost(params)
                     .then((data) => {
                         // 输入的有效 IP
                         const hostList = [];
@@ -299,7 +306,7 @@
                             });
                         }
                         // 正确的 IP 输入，但是 IP 不存于当前业务下
-                        this.invalidIPList = IPList.reduce((result, IPItem) => {
+                        this.invalidIPList = ipList.reduce((result, IPItem) => {
                             if (!hostIPMap[IPItem]) {
                                 result.push(IPItem);
                             }

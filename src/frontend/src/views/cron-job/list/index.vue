@@ -238,7 +238,7 @@
         <jb-sideslider :is-show.sync="showDetail" :title="$t('cron.定时任务详情')" :width="960">
             <task-detail :data="cronJobDetailInfo" />
             <template #footer>
-                <bk-button theme="primary" @click="handleTriggerEdit">{{ $t('cron.编辑') }}</bk-button>
+                <bk-button theme="primary" @click="handleToggelEdit">{{ $t('cron.编辑') }}</bk-button>
             </template>
         </jb-sideslider>
         <jb-sideslider
@@ -435,12 +435,26 @@
             this.initParseURL();
         },
         methods: {
+            /**
+             * @desc 获取列表数据
+             */
             fetchData () {
                 this.$refs.list.$emit('onFetch', this.searchParams);
             },
+            /**
+             * @desc 解析 URL 参数
+             */
             initParseURL () {
                 // 在列表通过url指定查看定时任务详情
-                const { name, cronJobId, mode } = this.$route.query;
+                const {
+                    name,
+                    cronJobId,
+                    // mode 表示 url 访问的场景，
+                    // create: 展示新建定时任务弹框
+                    // detail: 展示定时任务详情弹框
+                    // edit: 展示编辑定时任务弹框
+                    mode,
+                } = this.$route.query;
                 if (mode === 'create') {
                     this.handleCreate();
                     return;
@@ -474,6 +488,12 @@
                     }
                 });
             },
+            /**
+             * @desc 表格表头渲染
+             * @param { Function } h
+             * @param { Object } data 表格配置信息
+             * @returns { vNode }
+             */
             renderHeader (h, data) {
                 return (
                 <span>
@@ -494,6 +514,10 @@
                 </span>
                 );
             },
+            /**
+             * @desc 表格列自定义
+             * @param { Object } 列信息
+             */
             handleSettingChange ({ fields, size }) {
                 this.selectedTableColumn = Object.freeze(fields);
                 this.tableSize = size;
@@ -502,51 +526,88 @@
                     size,
                 });
             },
-            handleSearch (payload) {
-                this.searchParams = payload;
+            /**
+             * @desc 搜索
+             * @param { Object } searchParams
+             */
+            handleSearch (searchParams) {
+                this.searchParams = searchParams;
                 this.fetchData();
             },
-            handleHistoryRecord (payload, showFailed = false) {
-                this.cronJobDetailInfo = payload;
+            /**
+             * @desc 查看执行记录
+             * @param { Object } crontabData 定时任务信息
+             * @param { Boolean } showFailed 显示失败记录
+             */
+            handleHistoryRecord (crontabData, showFailed = false) {
+                this.cronJobDetailInfo = crontabData;
                 this.showHistoryFailedRecord = showFailed;
-                this.historyRecordDialogTitle = `定时执行记录${payload.name}`;
+                this.historyRecordDialogTitle = `定时执行记录${crontabData.name}`;
                 this.showHistoryRecord = true;
             },
-            handleViewDetail (payload) {
-                this.cronJobDetailInfo = payload;
+            /**
+             * @desc 定时任务详情
+             * @param { Object } crontabData 定时任务信息
+             */
+            handleViewDetail (crontabData) {
+                this.cronJobDetailInfo = crontabData;
                 this.showDetail = true;
             },
+            /**
+             * @desc 新建定时任务
+             */
             handleCreate () {
                 this.cronJobDetailInfo = {};
                 this.showOperation = true;
             },
-            handleEdit (payload) {
-                this.cronJobDetailInfo = payload;
+            /**
+             * @desc 编辑定时任务
+             * @param { Object } crontabData 定时任务信息
+             */
+            handleEdit (crontabData) {
+                this.cronJobDetailInfo = crontabData;
                 this.showOperation = true;
             },
-            handleTriggerEdit () {
+            /**
+             * @desc 从详情切换为编辑状态
+             */
+            handleToggelEdit () {
                 this.showDetail = false;
                 this.showOperation = true;
             },
-            handleCronChange (payload) {
+            /**
+             * @desc 定时任务有更新刷新列表数据
+             */
+            handleCronChange () {
                 this.fetchData();
             },
-            handleStatusChange (value, payload) {
-                const enableMemo = payload.enable;
-                payload.enable = value;
+            /**
+             * @desc 切换定时任务状态
+             * @param { Boolean } enable 开启状态
+             * @param { Object } crontabData 定时任务信息
+             */
+            handleStatusChange (enable, crontabData) {
+                const enableMemo = crontabData.enable;
+                crontabData.enable = enable;
                 TimeTaskService.timeTaskStatusUpdate({
-                    id: payload.id,
-                    enable: value,
+                    id: crontabData.id,
+                    enable,
                 }).then(() => {
-                    this.messageSuccess(value ? I18n.t('cron.开启成功') : I18n.t('cron.关闭成功'));
+                    this.messageSuccess(enable ? I18n.t('cron.开启成功') : I18n.t('cron.关闭成功'));
                 })
                     .catch(() => {
-                        payload.enable = enableMemo;
+                        crontabData.enable = enableMemo;
                     });
             },
-            handleDelete (payload) {
+            /**
+             * @desc 删除定时任务
+             * @param { Object } crontabData 定时任务信息
+             *
+             * 删除成功后刷新列表数据
+             */
+            handleDelete (crontabData) {
                 return TimeTaskService.timeTaskDelete({
-                    id: payload.id,
+                    id: crontabData.id,
                 }).then(() => {
                     this.messageSuccess(I18n.t('cron.删除定时任务成功'));
                     this.fetchData();
