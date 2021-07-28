@@ -22,17 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
-dependencies {
-    implementation project(":commons:common")
-    implementation project(":commons:common-security")
-    implementation project(":commons:common-spring-ext")
-    implementation project(":commons:esb-sdk")
-    implementation project(":commons:common-iam")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
+package com.tencent.bk.job.manage.api.esb.v3;
+
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 凭据API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbCredentialV3Resource {
+
+    @PostMapping("/create_credential")
+    EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(
+        @RequestBody EsbCreateOrUpdateCredentialV3Req req);
+
+    @PostMapping("/update_credential")
+    EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(
+        @RequestBody EsbCreateOrUpdateCredentialV3Req req);
+
 }

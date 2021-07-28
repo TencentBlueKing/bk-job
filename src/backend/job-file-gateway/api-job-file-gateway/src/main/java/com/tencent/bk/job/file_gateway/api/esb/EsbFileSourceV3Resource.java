@@ -22,17 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
-dependencies {
-    implementation project(":commons:common")
-    implementation project(":commons:common-security")
-    implementation project(":commons:common-spring-ext")
-    implementation project(":commons:esb-sdk")
-    implementation project(":commons:common-iam")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
+package com.tencent.bk.job.file_gateway.api.esb;
+
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 文件源API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbFileSourceV3Resource {
+
+    @PostMapping("/create_file_source")
+    EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(
+        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+
+    @PostMapping("/update_file_source")
+    EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(
+        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+
 }

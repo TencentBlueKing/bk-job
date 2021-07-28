@@ -8,14 +8,14 @@
       "iconPath": "tencent_cloud.png",
       "staticParamList": [
         {
-          "name": "endPointDomain",
+          "name": "end_point_domain",
           "label": "EndPoint",
           "required": true,
           "type": "TextInput",
           "default": ""
         },
         {
-          "name": "appId",
+          "name": "app_id",
           "label": "APPID",
           "required": true,
           "type": "TextInput",
@@ -170,7 +170,7 @@
       "iconPath": "bk_artifactory.png",
       "staticParamList": [
         {
-          "name": "baseUrl",
+          "name": "base_url",
           "label": "制品库根地址",
           "required": true,
           "type": "TextInput",

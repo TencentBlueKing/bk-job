@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file.worker.cos.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.ServiceResponse;
@@ -32,7 +31,6 @@ import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.api.IFileResource;
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.cos.consts.COSActionCodeEnum;
@@ -48,7 +46,6 @@ import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileTreeNodeDef;
-import com.tencent.bk.job.file_gateway.model.resp.common.FileVO;
 import com.tencent.cos.model.Bucket;
 import com.tencent.cos.model.COSObjectSummary;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -207,6 +204,21 @@ public class COSFileResourceImpl implements IFileResource {
         return new COSRemoteClient(jobTencentInnerCOSClient);
     }
 
+    @Override
+    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+        try {
+            ListFileNodeReq listFileNodeReq = new ListFileNodeReq(req);
+            listFileNodeReq.setPath("");
+            listFileNodeReq.setName("");
+            listFileNodeReq.setStart(0);
+            listFileNodeReq.setPageSize(1);
+            listBucket(listFileNodeReq);
+            return ServiceResponse.buildSuccessResp(true);
+        } catch (Throwable t) {
+            return ServiceResponse.buildSuccessResp(false);
+        }
+    }
+
     private String getTypeFromFileName(String fileName) {
         if (StringUtils.isBlank(fileName)) {
             return "UNKNOWN";
@@ -231,39 +243,6 @@ public class COSFileResourceImpl implements IFileResource {
             return true;
         }
         return fileName.endsWith("/");
-    }
-
-    private List<FileVO> parseBucketFileList(String bucketName, String path, String respStr) {
-        ServiceResponse<List<FileDTO>> resp = null;
-        if (path == null) {
-            path = "";
-        }
-        try {
-            resp = JsonUtils.fromJson(respStr, new TypeReference<ServiceResponse<List<FileDTO>>>() {
-            });
-        } catch (Exception e) {
-            log.error("Fail to parse bucket file from response={}", respStr, e);
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_OBJECTS, resp.getErrorMsg());
-        }
-        if (resp.isSuccess()) {
-            List<FileVO> fileVOList = new ArrayList<>();
-            List<FileDTO> fileDTOList = resp.getData();
-            for (FileDTO fileDTO : fileDTOList) {
-                FileVO fileVO = new FileVO();
-                fileVO.setName(fileDTO.getKey());
-                fileVO.setCompletePath(bucketName + "/" + path + fileDTO.getKey());
-                fileVO.setSize(fileDTO.getSize());
-                fileVO.setDir(isDir(fileDTO.getKey()));
-                fileVO.setType(getTypeFromFileName(fileDTO.getKey()));
-                fileVO.setDownloadUrl(fileDTO.getDownloadUrl());
-                fileVO.setLastModifyTime(fileDTO.getLastModified());
-                fileVOList.add(fileVO);
-            }
-            return fileVOList;
-        } else {
-            log.error("get failed bucket file response={}", respStr);
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
-        }
     }
 
     private int getSlashNum(String str) {
@@ -342,7 +321,7 @@ public class COSFileResourceImpl implements IFileResource {
             Map<String, Object> map = new HashMap<>();
             String fileName = fileDTO.getKey();
             map.put("name", fileName);
-            map.put("type", "文本文件");
+            map.put("type", getTypeFromFileName(fileName));
             map.put("updateTime", DateUtils.formatUnixTimestamp(fileDTO.getLastModified(), ChronoUnit.MILLIS));
             map.put("completePath", PathUtil.joinFilePath(req.getPath(), fileName));
             map.put("dir", isDir(fileName));

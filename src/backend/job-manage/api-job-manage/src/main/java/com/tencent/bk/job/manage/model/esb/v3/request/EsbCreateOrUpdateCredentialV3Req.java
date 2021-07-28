@@ -22,24 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.ticket.model.credential;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * 新建凭据请求
+ */
+@EqualsAndHashCode(callSuper = true)
 @Data
-@EqualsAndHashCode
-public class CommonCredentialDTO {
-    String accessKey;
-    String secretKey;
-    String username;
-    String password;
+public class EsbCreateOrUpdateCredentialV3Req extends EsbReq {
     /**
-     * 类型
+     * 业务ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
+    /**
+     * 凭据ID
+     */
+    private String id;
+
+    /**
+     * 凭据名称
+     */
+    private String name;
+
+    /**
+     * 凭据类型
      */
     private String type;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * AccessKey
+     */
+    @JsonProperty("credential_access_key")
+    private String credentialAccessKey;
+
+    /**
+     * SecretKey
+     */
+    @JsonProperty("credential_secret_key")
+    private String credentialSecretKey;
+
+    /**
+     * Username
+     */
+    @JsonProperty("credential_username")
+    private String credentialUsername;
+
+    /**
+     * Password
+     */
+    @JsonProperty("credential_password")
+    private String credentialPassword;
 }
