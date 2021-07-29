@@ -1715,19 +1715,19 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void setAgentStatus(List<IpDTO> ips) {
-//        if (ips == null || ips.isEmpty()) {
-//            return;
-//        }
-//        List<String> ipList = new ArrayList<>(ips.size());
-//        for (IpDTO ip : ips) {
-//            String fullIp = ip.convertToStrIp();
-//            ipList.add(fullIp);
-//        }
-//        Map<String, QueryAgentStatusClient.AgentStatus> statusMap = queryAgentStatusClient.batchGetAgentStatus(ipList);
-//        for (IpDTO ip : ips) {
-//            String fullIp = ip.convertToStrIp();
-//            ip.setAlive(statusMap.get(fullIp) == null ? 0 : statusMap.get(fullIp).status);
-//        }
+        if (ips == null || ips.isEmpty()) {
+            return;
+        }
+        List<String> ipList = new ArrayList<>(ips.size());
+        for (IpDTO ip : ips) {
+            String fullIp = ip.convertToStrIp();
+            ipList.add(fullIp);
+        }
+        Map<String, QueryAgentStatusClient.AgentStatus> statusMap = queryAgentStatusClient.batchGetAgentStatus(ipList);
+        for (IpDTO ip : ips) {
+            String fullIp = ip.convertToStrIp();
+            ip.setAlive(statusMap.get(fullIp) == null ? 0 : statusMap.get(fullIp).status);
+        }
     }
 
     @Override

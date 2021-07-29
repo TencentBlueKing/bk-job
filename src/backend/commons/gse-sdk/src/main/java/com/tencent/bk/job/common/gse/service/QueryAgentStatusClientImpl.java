@@ -101,25 +101,6 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
         return resultMap;
     }
 
-//    private Map<String, AgentStatus> batchGetAgentStatusDefault(List<String> ips) {
-//        Map<String, AgentStatus> resultMap = new HashMap<>();
-//        if (CollectionUtils.isNotEmpty(ips)) {
-//            ips.forEach(ip -> {
-//                AgentStatus status = new QueryAgentStatusClient.AgentStatus();
-//                String[] ipInfo = ip.split(":");
-//                if (ipInfo.length != 2) {
-//                    log.warn("Request ip format error! IP: {}", ip);
-//                    return;
-//                }
-//                status.(Integer.parseInt(ipInfo[0]));
-//
-//            });
-//        }
-//
-//    }
-
-
-
     public Map<String, AgentStatus> batchGetAgentStatusWithoutLimit(Collection<String> ips) {
         Map<String, AgentStatus> resultMap = new HashMap<>();
         GseCacheClient gseClient = gseCacheClientFactory.getClient();
