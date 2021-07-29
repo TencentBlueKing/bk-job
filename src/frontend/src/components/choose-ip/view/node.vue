@@ -202,6 +202,10 @@
                         this.nodeMap = {};
                         const list = [];
                         data.forEach((pathStack) => {
+                            // 无效节点对应的拓扑路径信息为 null
+                            if (!pathStack) {
+                                return;
+                            }
                             const wholePath = pathStack.map(({ instanceName }) => instanceName).join(' / ');
                             const currentNode = _.last(pathStack);
                             const {
