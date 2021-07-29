@@ -333,13 +333,24 @@
                 window.open(router.href);
             },
             routerBack () {
-                if (this.$route.query.from === 'plan') {
+                const { from } = this.$route.query;
+                if (from === 'viewPlan') {
                     this.$router.push({
                         name: 'viewPlan',
                         params: {
                             templateId: this.formData.taskExecution.templateId,
                         },
                         query: {
+                            viewPlanId: this.formData.taskExecution.taskId,
+                        },
+                    });
+                    return;
+                }
+                if (from === 'planList') {
+                    this.$router.push({
+                        name: 'planList',
+                        query: {
+                            viewTemplateId: this.formData.taskExecution.templateId,
                             viewPlanId: this.formData.taskExecution.taskId,
                         },
                     });

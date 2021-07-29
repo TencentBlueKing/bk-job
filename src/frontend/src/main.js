@@ -53,6 +53,13 @@ console.log(process.env.JOB_WELCOME);
 window.changeAlert = false;
 
 /**
+ * @desc 因为 IP 有白名单功能，生效范围需要更新场景区分
+ * - '' 所有
+ * - SCRIPT_EXECUTE 生效范围脚本执行
+ * - FILE_DISTRIBUTION 生效范围文件分发
+ */
+window.IPInputScope = '';
+/**
  * @desc 开启路由回溯
  */
 window.routerFlashBack = false;

@@ -142,21 +142,6 @@
         } else {
             paramsArr = params;
         }
-        const total = paramsArr.reduce((result, item) => {
-            if (item.seriesType === 'bar') {
-                return result + item.value;
-            }
-            return result;
-        }, 0);
-        // 指标数据大于一个时tooltip需要显示总素
-        if (paramsArr.length > 1) {
-            paramsArr.splice(paramsArr.length - 1, 0, {
-                seriesType: 'line',
-                seriesName: I18n.t('dashboard.执行次数'),
-                value: total,
-                color: '#FFD695',
-            });
-        }
         
         return `<table>${paramsArr.map(generatorHtml).join('')}</table>`;
     };
@@ -216,6 +201,7 @@
                 const cronList = [];
                 const apiList = [];
                 const failList = [];
+                const totalList = [];
                 data.forEach((item) => {
                     const {
                         date,
@@ -233,6 +219,7 @@
                     cronList.push(CRON);
                     normalList.push(NORMAL);
                     failList.push(failCount);
+                    totalList.push(API + CRON + NORMAL);
                 });
 
                 this.myChart.clear();
@@ -243,6 +230,14 @@
                             I18n.t('dashboard.页面执行'),
                             I18n.t('dashboard.API 调用'),
                             I18n.t('dashboard.定时执行'),
+                            {
+                                name: I18n.t('dashboard.执行次数'),
+                                icon: 'circle',
+                            },
+                            {
+                                name: I18n.t('dashboard.执行失败次数'),
+                                icon: 'circle',
+                            },
                         ],
                         bottom: '0',
                         icon: 'rect',
@@ -327,6 +322,7 @@
                             name: I18n.t('dashboard.API 调用'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: apiList,
                             itemStyle: {
                                 color: '#85CCA8',
@@ -336,9 +332,18 @@
                             name: I18n.t('dashboard.定时执行'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: cronList,
                             itemStyle: {
                                 color: '#3786AD',
+                            },
+                        },
+                        {
+                            name: I18n.t('dashboard.执行次数'),
+                            type: 'line',
+                            data: totalList,
+                            itemStyle: {
+                                color: '#FFD695',
                             },
                         },
                         {
@@ -389,6 +394,10 @@
                             I18n.t('dashboard.快速执行脚本'),
                             I18n.t('dashboard.快速分发文件'),
                             I18n.t('dashboard.作业执行'),
+                            {
+                                name: I18n.t('dashboard.执行失败次数'),
+                                icon: 'circle',
+                            },
                         ],
                         bottom: '0',
                         icon: 'rect',
@@ -467,6 +476,7 @@
                             name: I18n.t('dashboard.快速分发文件'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: fastPushFileList,
                             itemStyle: {
                                 color: '#85CCA8',
@@ -477,6 +487,7 @@
                             name: I18n.t('dashboard.作业执行'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: executeTaskList,
                             itemStyle: {
                                 color: '#3786AD',
@@ -530,6 +541,10 @@
                             I18n.t('dashboard.≥ 10分钟'),
                             I18n.t('dashboard.1~10分钟以内（包含10分钟）'),
                             I18n.t('dashboard.1分钟以内（包含1分钟）'),
+                            {
+                                name: I18n.t('dashboard.执行失败次数'),
+                                icon: 'circle',
+                            },
                         ],
                         bottom: '0',
                         icon: 'rect',
@@ -614,6 +629,7 @@
                             name: I18n.t('dashboard.1~10分钟以内（包含10分钟）'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: oneMinToTenMinList,
                             itemStyle: {
                                 color: '#85CCA8',
@@ -623,6 +639,7 @@
                             name: I18n.t('dashboard.1分钟以内（包含1分钟）'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: lessThanOneMinList,
                             itemStyle: {
                                 color: '#3786AD',
@@ -690,6 +707,10 @@
                             'Shell',
                             'PowerShell',
                             'SQL',
+                            {
+                                name: I18n.t('dashboard.执行失败次数'),
+                                icon: 'circle',
+                            },
                         ],
                         bottom: '0',
                         icon: 'rect',
@@ -774,6 +795,7 @@
                             name: 'Perl',
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: PerlList,
                             itemStyle: {
                                 color: '#366FA8',
@@ -783,6 +805,7 @@
                             name: 'Python',
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: PythonList,
                             itemStyle: {
                                 color: '#5EADAD',
@@ -802,6 +825,7 @@
                             name: 'PowerShell',
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: PowerShellList,
                             itemStyle: {
                                 color: '#BCEBBC',
@@ -811,6 +835,7 @@
                             name: 'SQL',
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: SQLList,
                             itemStyle: {
                                 color: '#E7F5D7',
@@ -861,6 +886,10 @@
                         data: [
                             I18n.t('dashboard.强制模式'),
                             I18n.t('dashboard.严谨模式'),
+                            {
+                                name: I18n.t('dashboard.执行失败次数'),
+                                icon: 'circle',
+                            },
                         ],
                         bottom: '0',
                         icon: 'rect',
@@ -945,6 +974,7 @@
                             name: I18n.t('dashboard.严谨模式'),
                             type: 'bar',
                             stack: 'bar',
+                            barWidth: 20,
                             data: strictList,
                             itemStyle: {
                                 color: '#85CCA8',

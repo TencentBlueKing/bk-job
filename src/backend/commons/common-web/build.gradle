@@ -29,6 +29,7 @@ dependencies {
     implementation project(":commons:common-spring-ext")
     implementation project(":commons:esb-sdk")
     implementation project(":commons:common-iam")
+    implementation 'io.springfox:springfox-swagger2'
     implementation "org.hibernate.validator:hibernate-validator"
     implementation('jakarta.validation:jakarta.validation-api')
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"

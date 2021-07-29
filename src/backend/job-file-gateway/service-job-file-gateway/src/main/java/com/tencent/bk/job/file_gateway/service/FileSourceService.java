@@ -75,4 +75,10 @@ public interface FileSourceService {
     List<FileSourceStaticParam> getFileSourceParams(Long appId, String fileSourceTypeCode);
 
     Boolean checkFileSourceAlias(Long appId, String alias, Integer fileSourceId);
+
+    boolean existsCode(String code);
+
+    boolean existsFileSource(Long appId, Integer id);
+
+    Integer getFileSourceIdByCode(Long appId, String code);
 }

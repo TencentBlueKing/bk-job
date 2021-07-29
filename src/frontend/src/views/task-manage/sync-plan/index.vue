@@ -148,12 +148,23 @@
             },
 
             routerBack () {
+                const { from } = this.$route.query;
+                if (from === 'viewPlan') {
+                    this.$router.push({
+                        name: 'viewPlan',
+                        params: {
+                            templateId: this.templateId,
+                        },
+                        query: {
+                            viewPlanId: this.id,
+                        },
+                    });
+                    return;
+                }
                 this.$router.push({
-                    name: 'viewPlan',
-                    params: {
-                        templateId: this.templateId,
-                    },
+                    name: 'planList',
                     query: {
+                        viewTemplateId: this.templateId,
                         viewPlanId: this.id,
                     },
                 });

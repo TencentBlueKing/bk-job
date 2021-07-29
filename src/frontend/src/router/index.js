@@ -168,8 +168,8 @@ export default ({ appList, isAdmin, appId }) => {
     const routerReplace = router.replace;
 
     // window.routerFlashBack === true 时查找路由缓存参数
-    const routerFlaskBack = (params) => {
-    /* eslint-disable no-param-reassign */
+    const routerFlaskBack = (params, currentRoute) => {
+        /* eslint-disable no-param-reassign */
         params = _.cloneDeep(params);
         if (window.routerFlashBack) {
             // 路由回退
@@ -186,20 +186,22 @@ export default ({ appList, isAdmin, appId }) => {
         lastRouterHrefCache = router.resolve(params).href;
         return params;
     };
+    const leaveConfirmHandler = (currentRoute) => {
+        if (Object.prototype.hasOwnProperty.call(currentRoute, 'meta')
+            && Object.prototype.hasOwnProperty.call(currentRoute.meta, 'leavaConfirm')
+            && typeof currentRoute.meta.leavaConfirm === 'function') {
+            return currentRoute.meta.leavaConfirm();
+        }
+        return leaveConfirm();
+    };
     // 路由切换时
     // 检测页面数据的编辑状态——弹出确认框提示用户确认
     // 如果需要路由回溯（window.routerFlashBack === true）查找缓存是否有跳转目标的路由缓存数据
     router.push = (params, callback = () => {}) => {
-    // 检测当前路由自定义离开确认交互
-        let leaveConfirmHandler = leaveConfirm;
         const { currentRoute } = router;
-        if (Object.prototype.hasOwnProperty.call(currentRoute, 'meta')
-            && Object.prototype.hasOwnProperty.call(currentRoute.meta, 'leavaConfirm')
-            && typeof currentRoute.meta.leavaConfirm === 'function') {
-            leaveConfirmHandler = currentRoute.meta.leavaConfirm;
-        }
-        leaveConfirmHandler().then(() => {
-            routerPush.call(router, routerFlaskBack(params));
+        // 检测当前路由自定义离开确认交互
+        leaveConfirmHandler(currentRoute).then(() => {
+            routerPush.call(router, routerFlaskBack(params, currentRoute));
             window.routerFlashBack = false;
         }, () => {
             callback();
@@ -210,15 +212,9 @@ export default ({ appList, isAdmin, appId }) => {
     // 如果需要路由回溯（window.routerFlashBack === true）查找缓存是否有跳转目标的路由缓存数据
     router.replace = (params, callback = () => {}) => {
     // 检测当前路由自定义离开确认交互
-        let leaveConfirmHandler = leaveConfirm;
         const { currentRoute } = router;
-        if (Object.prototype.hasOwnProperty.call(currentRoute, 'meta')
-            && Object.prototype.hasOwnProperty.call(currentRoute.meta, 'leavaConfirm')
-            && typeof currentRoute.meta.leavaConfirm === 'function') {
-            leaveConfirmHandler = currentRoute.meta.leavaConfirm;
-        }
-        leaveConfirmHandler().then(() => {
-            routerReplace.call(router, routerFlaskBack(params));
+        leaveConfirmHandler(currentRoute).then(() => {
+            routerReplace.call(router, routerFlaskBack(params, currentRoute));
             window.routerFlashBack = false;
         }, () => {
             callback();

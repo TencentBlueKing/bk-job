@@ -185,6 +185,10 @@
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
             });
+            window.IPInputScope = 'FILE_DISTRIBUTION';
+            this.$once('hook:beforeDestroy', () => {
+                window.IPInputScope = '';
+            });
         },
         methods: {
             /**

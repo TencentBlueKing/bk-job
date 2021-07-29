@@ -30,7 +30,7 @@
         <div class="variable-name" ref="varName">
             <span class="name-text">{{ data.name }}</span>
         </div>
-        <div class="variable-value" ref="varValue" :style="valueStyles">
+        <div class="variable-value" ref="varValue">
             <component
                 ref="target"
                 :is="typeCom"
@@ -54,10 +54,6 @@
             type: {
                 type: Number,
                 required: true,
-            },
-            valueWidth: {
-                type: String,
-                default: '600px',
             },
             data: {
                 type: Object,
@@ -98,16 +94,6 @@
                     classes.vertical = true;
                 }
                 return classes;
-            },
-            valueStyles () {
-                if (this.type === VariableModel.TYPE_HOST) {
-                    return {};
-                }
-                return {
-                    width: this.valueWidth,
-                    maxWidth: this.valueWidth,
-                    minWidth: this.valueWidth,
-                };
             },
         },
         mounted () {
@@ -186,6 +172,7 @@
 
         .variable-value {
             flex: 1;
+            max-width: 960px;
         }
 
         .variable-value-error {

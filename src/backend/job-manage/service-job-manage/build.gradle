@@ -30,6 +30,7 @@ dependencies {
     compile project(":job-manage:model-job-manage")
     compile project(":job-crontab:api-job-crontab")
     compile project(":job-analysis:api-job-analysis")
+    compile project(":job-ticket:api-job-ticket")
     compile project(":commons:common")
     compile project(":commons:common-security")
     compile project(":commons:common-redis")
