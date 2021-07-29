@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.result.ha;
 
-import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -58,20 +56,20 @@ public class NotAliveResultHandleTaskDetector {
 
     @Scheduled(cron = "0/10 * * * * ?")
     public void detectAndResumeNotAliveTasks() {
-        try {
-            if (LockUtils.tryGetDistributedLock("not:alive:task:detect:lock", requestId, 5000L)) {
-                log.info("Detect not alive tasks start ...");
-                Set<String> notAliveTaskIds = resultHandleTaskKeepaliveManager.getNotAliveTaskIds();
-                if (CollectionUtils.isEmpty(notAliveTaskIds)) {
-                    return;
-                }
-                log.info("Found not alive tasks, notAliveTaskIds : {}", notAliveTaskIds);
-                executeMonitor.getNotAliveTasksCounter().increment(notAliveTaskIds.size());
-                resumeTasks(notAliveTaskIds);
-            }
-        } catch (Throwable e) {
-            log.error("Detect not alive tasks caught exception", e);
-        }
+//        try {
+//            if (LockUtils.tryGetDistributedLock("not:alive:task:detect:lock", requestId, 5000L)) {
+//                log.info("Detect not alive tasks start ...");
+//                Set<String> notAliveTaskIds = resultHandleTaskKeepaliveManager.getNotAliveTaskIds();
+//                if (CollectionUtils.isEmpty(notAliveTaskIds)) {
+//                    return;
+//                }
+//                log.info("Found not alive tasks, notAliveTaskIds : {}", notAliveTaskIds);
+//                executeMonitor.getNotAliveTasksCounter().increment(notAliveTaskIds.size());
+//                resumeTasks(notAliveTaskIds);
+//            }
+//        } catch (Throwable e) {
+//            log.error("Detect not alive tasks caught exception", e);
+//        }
     }
 
     private void resumeTasks(Set<String> notAliveTaskIds) {
