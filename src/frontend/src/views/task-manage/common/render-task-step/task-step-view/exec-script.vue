@@ -81,7 +81,6 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import ScriptService from '@service/script-manage';
     import AccountManageService from '@service/account-manage';
     import AceEditor from '@components/ace-editor';

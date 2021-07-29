@@ -25,6 +25,7 @@ body {
 }
 
 ul,
+ol,
 li {
     padding: 0;
     margin: 0;
@@ -35,6 +36,7 @@ dl,
 dt,
 dd,
 p,
+pre,
 button,
 h1,
 h2,
