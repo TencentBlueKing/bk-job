@@ -39,7 +39,12 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
@@ -95,6 +100,25 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
         }
         return resultMap;
     }
+
+//    private Map<String, AgentStatus> batchGetAgentStatusDefault(List<String> ips) {
+//        Map<String, AgentStatus> resultMap = new HashMap<>();
+//        if (CollectionUtils.isNotEmpty(ips)) {
+//            ips.forEach(ip -> {
+//                AgentStatus status = new QueryAgentStatusClient.AgentStatus();
+//                String[] ipInfo = ip.split(":");
+//                if (ipInfo.length != 2) {
+//                    log.warn("Request ip format error! IP: {}", ip);
+//                    return;
+//                }
+//                status.(Integer.parseInt(ipInfo[0]));
+//
+//            });
+//        }
+//
+//    }
+
+
 
     public Map<String, AgentStatus> batchGetAgentStatusWithoutLimit(Collection<String> ips) {
         Map<String, AgentStatus> resultMap = new HashMap<>();
