@@ -133,7 +133,7 @@
             <jb-sideslider
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
-                :title="$t('template.编辑全局变量')"
+                :title="$t('template.批量编辑变量')"
                 :media="batchOperationMediaQuery">
                 <batch-operation
                     v-if="isShowBatchOperation"
