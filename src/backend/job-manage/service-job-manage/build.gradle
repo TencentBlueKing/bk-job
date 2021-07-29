@@ -52,6 +52,7 @@ dependencies {
     implementation group: 'org.apache.thrift', name: 'libthrift'
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
+    implementation 'joda-time:joda-time'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
 }

@@ -34,8 +34,16 @@ import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.service.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record1;
+import org.jooq.Record14;
+import org.jooq.Result;
+import org.jooq.SelectJoinStep;
+import org.jooq.TableField;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.TaskTemplate;
 import org.jooq.generated.tables.records.TaskTemplateRecord;
 import org.jooq.types.UByte;
@@ -44,7 +52,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**

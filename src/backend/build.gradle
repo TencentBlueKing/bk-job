@@ -26,8 +26,8 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 
 buildscript {
     ext {
-        set('springDependencyManagePluginVersion', "1.0.8.RELEASE")
-        set("springBootVersion", "2.3.5.RELEASE")
+        set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
+        set("springBootVersion", "2.5.3")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -57,20 +57,20 @@ buildscript {
 
 plugins {
     id "java-library"
-    id "io.spring.dependency-management" version '1.0.8.RELEASE' apply false
-    id 'org.springframework.boot' version '2.3.5.RELEASE' apply false
+    id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
+    id 'org.springframework.boot' version '2.5.3' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
 
 ext {
     // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
-    set("springVersion", "5.2.9.RELEASE")
+    set("springVersion", "5.3.9")
     set("springAmqpVersion", "2.2.6.RELEASE")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.3.5.RELEASE")
+    set("springBootVersion", "2.5.3")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springCloudVersion', "2020.0.3")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
