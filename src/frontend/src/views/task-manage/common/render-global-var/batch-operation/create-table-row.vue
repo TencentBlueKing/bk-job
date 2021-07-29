@@ -99,7 +99,7 @@
             JbEditHost,
         },
         props: {
-            list: {
+            variableNameList: {
                 type: Array,
             },
             data: {
@@ -185,7 +185,7 @@
                 if (!globalVariableNameRule.validator(this.formData.name)) {
                     this.errorNameText = globalVariableNameRule.message;
                 }
-                if (this.list.some(item => item.name && item.name === this.formData.name)) {
+                if (this.variableNameList.includes(this.formData.name)) {
                     this.errorNameText = I18n.t('template.变量名称已存在，请重新输入');
                 }
                 if (this.errorNameText) {

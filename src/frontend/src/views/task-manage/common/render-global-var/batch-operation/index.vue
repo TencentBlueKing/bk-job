@@ -24,7 +24,7 @@
                 <render-table-row
                     v-if="variableItem.id > 0 && variableItem.delete !== 1"
                     ref="variableEdit"
-                    :list="calcExcludeList(index)"
+                    :variable-name-list="calcExcludeNameList(variableItem)"
                     :data="variableItem"
                     :key="variableItem.id"
                     @on-change="value => handleChange(index, value)"
@@ -34,7 +34,7 @@
                     v-else-if="variableItem.id < 0"
                     ref="variableCreate"
                     :key="variableItem.id"
-                    :list="calcExcludeList(index)"
+                    :variable-name-list="calcExcludeNameList(variableItem)"
                     :data="variableItem"
                     @on-change="value => handleChange(index, value)"
                     @on-delete="handleDelete(index)"
@@ -87,13 +87,21 @@
         },
         methods: {
             /**
-             * @desc 不包含当前索引变量的变量列表
+             * @desc 不包含当前索引变量的变量名列表
+             * @param { Object } variableData 变量数据
              * @returns { Array }
+             *
+             * 不包含变量名为空和已删除的变量
              */
-            calcExcludeList (index) {
-                const list = [...this.variableList];
-                list.splice(index, 1);
-                return list;
+            calcExcludeNameList (variableData) {
+                return this.variableList.reduce((result, item) => {
+                    if (variableData.id !== item.id
+                        && item.name
+                        && item.delete !== 1) {
+                        result.push(item.name);
+                    }
+                    return result;
+                }, []);
             },
             /**
              * @desc 更新变量信息

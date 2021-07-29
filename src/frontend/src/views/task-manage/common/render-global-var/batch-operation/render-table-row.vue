@@ -74,7 +74,7 @@
                 type: Object,
                 required: true,
             },
-            list: {
+            variableNameList: {
                 type: Array,
             },
         },
@@ -105,7 +105,7 @@
                         trigger: 'blur',
                     },
                     {
-                        validator: val => !this.list.some(item => item.name && item.name === val),
+                        validator: val => !this.variableNameList.includes(val),
                         message: I18n.t('template.变量名称已存在，请重新输入'),
                         trigger: 'blur',
                     },
@@ -123,7 +123,7 @@
                     this.errorNameText = I18n.t('template.变量名称必填');
                 } else if (!globalVariableNameRule.validator(this.data.name)) {
                     this.errorNameText = globalVariableNameRule.message;
-                } else if (this.list.some(item => item.name === this.data.name)) {
+                } else if (this.variableNameList.includes(this.data.name)) {
                     this.errorNameText = I18n.t('template.变量名称已存在，请重新输入');
                 }
                 if (this.errorNameText) {
