@@ -113,6 +113,7 @@
 <script>
     import _ from 'lodash';
     import { mapMutations } from 'vuex';
+    import TaskHostNodeModel from '@model/task-host-node';
     import SourceFileVO from '@domain/variable-object/source-file';
     import { findParent } from '@utils/vdom';
     import ChooseIp from '@components/choose-ip';
@@ -185,6 +186,7 @@
              */
             handleSourceFileTypeChange (type) {
                 this.sourceFileType = type;
+                this.serverFile.host = new TaskHostNodeModel({});
                 const formItem = findParent(this, 'JbFormItem');
                 if (formItem) {
                     setTimeout(() => {
