@@ -220,6 +220,7 @@ public class ErrorCode {
     public static final int DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION = 1244019;
     // 作业执行历史查询时间范围必须小于30天
     public static final int TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS = 1244020;
+    public static final int FILE_TASKS_EXCEEDS_LIMIT = 1244021;
     // 作业执行 end
 
     // 定时作业 start

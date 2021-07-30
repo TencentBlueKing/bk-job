@@ -150,6 +150,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ExecuteAuthService executeAuthService;
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
+    private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
     public TaskExecuteServiceImpl(ApplicationService applicationService,
@@ -184,6 +185,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
+        this.jobExecuteConfig = jobExecuteConfig;
     }
 
     private static List<IpDTO> getHostsContainsNotAllowedAction(Map<IpDTO, Set<String>> hostBindActions,
@@ -223,6 +225,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             //检查ip
             watch.start("checkHosts");
             checkHosts(stepInstance, shouldIgnoreInvalidHost(taskInstance));
+            watch.stop();
+
+            // 检查步骤约束
+            watch.start("checkStepInstanceConstraint");
+            checkStepInstanceConstraint(Collections.singletonList(stepInstance));
             watch.stop();
 
             watch.start("authFastExecute");
@@ -556,7 +563,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
             List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
             for (FileSourceDTO fileSource : fileSources) {
-                Integer fileSourceId = fileSource.getFileSourceId();
                 ServersDTO servers = fileSource.getServers();
                 if (servers != null && !fileSource.isLocalUpload()) {
                     // 服务器文件的处理
@@ -815,6 +821,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return notInAppHosts;
     }
 
+    private void checkStepInstanceConstraint(List<StepInstanceDTO> stepInstanceList) {
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (stepInstance.isFileStep()) {
+                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                int totalSourceFileSize = 0;
+                for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
+                    int sourceServerSize = 1;
+                    if (fileSource.getServers() != null) {
+                        sourceServerSize = CollectionUtils.size(fileSource.getServers().getIpList());
+                    }
+                    int sourceFileSize = CollectionUtils.size(fileSource.getFiles());
+                    totalSourceFileSize += sourceServerSize * sourceFileSize;
+                }
+                int totalFileTaskSize = totalSourceFileSize * targetServerSize;
+                if (totalFileTaskSize > jobExecuteConfig.getFileTasksMax()) {
+                    log.warn("Too much file tasks, stepInstanceId: {}, size: {}, maxAllowedSize: {}",
+                        stepInstance.getId(), totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
+                    throw new ServiceException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
+                }
+            }
+        }
+    }
+
     @Override
     public Long createTaskInstanceForFastTaskRedo(TaskInstanceDTO taskInstance,
                                                   StepInstanceDTO stepInstance) throws ServiceException {
@@ -858,6 +887,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 检查主机合法性
             watch.start("checkHost");
             checkHosts(stepInstanceList, shouldIgnoreInvalidHost(taskInstance));
+            watch.stop();
+
+            // 检查步骤约束
+            watch.start("checkStepInstanceConstraint");
+            checkStepInstanceConstraint(stepInstanceList);
             watch.stop();
 
             if (!executeParam.isSkipAuth()) {
@@ -1198,6 +1232,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 检查主机合法性
         checkHosts(stepInstanceList, shouldIgnoreInvalidHost(taskInstance));
+
+        // 检查步骤约束
+        checkStepInstanceConstraint(stepInstanceList);
 
         authRedoJob(operator, appId, originTaskInstance);
 
