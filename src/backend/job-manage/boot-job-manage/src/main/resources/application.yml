@@ -4,6 +4,11 @@ spring:
   cloud:
     refresh:
       extra-refreshable: javax.sql.DataSource
+    kubernetes:
+      config:
+        sources:
+          - namespace: ${job.k8s.namespace}
+            name: ${spring.application.name}
   datasource:
     job-manage:
       driver-class-name: com.mysql.cj.jdbc.Driver
