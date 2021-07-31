@@ -17,6 +17,10 @@ REGISTRY=docker.io
 USERNAME=
 PASSWORD=
 BACKENDS=(job-gateway job-manage job-execute job-crontab job-logsvr job-analysis job-backup)
+MYSQL_URL=
+MYSQL_USER=
+MYSQL_PASSWORD=
+MAVEN_REPO_URL=
 
 cd $(dirname $0)
 WORKING_DIR=$(pwd)
@@ -36,6 +40,10 @@ usage () {
             [ -r, --registry        [可选] docker仓库地址, 默认docker.io ]
             [ --username            [可选] docker仓库用户名 ]
             [ --password            [可选] docker仓库密码 ]
+            [ --mysql_url           [可选] 后端编译使用的 MySQL url, 例如127.0.0.1:3306 ]
+            [ --mysql_username      [可选] 后端编译使用的 MySQL 用户名 ]
+            [ --mysql_password      [可选] 后端编译使用的 MySQL 密码 ]
+            [ --maven_repo_url      [可选] 后端编译使用的 maven 仓库地址 ]
             [ -h, --help            [可选] 查看脚本帮助 ]
 EOF
 }
@@ -90,6 +98,22 @@ while (( $# > 0 )); do
             shift
             PASSWORD=$1
             ;;
+        --mysql_url )
+            shift
+            MYSQL_URL=$1
+            ;;
+        --mysql_username )
+            shift
+            MYSQL_USERNAME=$1
+            ;;
+        --mysql_password )
+            shift
+            MYSQL_PASSWORD=$1
+            ;;
+        --maven_repo_url )
+            shift
+            MAVEN_REPO_URL=$1
+            ;;
         --help | -h | '-?' )
             usage_and_exit 0
             ;;
@@ -121,8 +145,10 @@ if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
     cd $FRONTEND_DIR || exit 1
     npm i
     npm run build
+    cd $WORKING_DIR || exit 1
+
     rm -rf tmp/*
-    cp -rf dist/ tmp/
+    cp -rf $FRONTEND_DIR/dist/ tmp/
 
     docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
@@ -135,7 +161,14 @@ if [[ $ALL -eq 1 || $BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
         log "Building ${SERVICE} image..."
-        $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -PassemblyMode=k8s
+        log "$MYSQL_URL"
+        log "$MYSQL_USERNAME"
+        log "$MYSQL_PASSWORD"
+        if [[ ${SERVICE} == "job-gateway" ]] ; then
+          $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+        else
+          $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+        fi
         rm -rf tmp/*
         cp backend/startup.sh tmp/
         cp $BACKEND_DIR/release/$SERVICE-*.jar tmp/
