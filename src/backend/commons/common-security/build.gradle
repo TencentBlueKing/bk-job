@@ -23,12 +23,12 @@
  */
 
 dependencies {
-    compile project(":commons:common-utils")
+    api project(':commons:common-utils')
     implementation 'io.jsonwebtoken:jjwt'
     implementation 'com.google.guava:guava'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    compile(group: 'org.springframework.boot', name: 'spring-boot')
-    compile(group: 'org.springframework.boot', name: 'spring-boot-autoconfigure')
     implementation 'org.springframework:spring-context'
-    compile(group: 'org.springframework.boot', name: 'spring-boot-configuration-processor')
+    api 'org.springframework.boot:spring-boot'
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    api 'org.springframework.boot:spring-boot-configuration-processor'
 }

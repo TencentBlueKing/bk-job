@@ -52,13 +52,27 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.*;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.*;
-import com.tencent.bk.job.manage.model.web.vo.notify.*;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRuleVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
+import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +84,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -653,7 +675,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public String getDocCenterBaseUrl() {
         String url = "";
-        if (org.apache.commons.lang.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkDocRoot());
         } else {
             String jobEdition = jobManageConfig.getJobEdition();

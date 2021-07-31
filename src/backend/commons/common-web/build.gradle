@@ -23,10 +23,10 @@
  */
 
 dependencies {
-    api(project(":commons:common-service"))
-    api(project(":commons:common-spring-ext"))
-    api(project(":commons:esb-sdk"))
-    api(project(":commons:common-iam"))
-    api("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    api project(':commons:common-service')
+    api project(':commons:common-spring-ext')
+    api project(':commons:esb-sdk')
+    api project(':commons:common-iam')
+    api 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

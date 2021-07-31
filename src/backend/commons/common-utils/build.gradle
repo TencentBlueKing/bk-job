@@ -26,14 +26,14 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation "net.sf.dozer:dozer"
+    implementation 'net.sf.dozer:dozer'
     implementation 'org.apache.commons:commons-collections4'
     implementation 'commons-codec:commons-codec'
     implementation 'com.google.guava:guava'
     implementation 'io.jsonwebtoken:jjwt'
-    compile 'org.apache.commons:commons-lang3'
+    implementation 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

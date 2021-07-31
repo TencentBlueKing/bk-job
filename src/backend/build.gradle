@@ -26,8 +26,8 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 
 buildscript {
     ext {
-        set('springDependencyManagePluginVersion', "1.0.8.RELEASE")
-        set("springBootVersion", "2.3.5.RELEASE")
+        set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
+        set("springBootVersion", "2.4.6")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -57,20 +57,19 @@ buildscript {
 
 plugins {
     id "java-library"
-    id "io.spring.dependency-management" version '1.0.8.RELEASE' apply false
-    id 'org.springframework.boot' version '2.3.5.RELEASE' apply false
+    id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
+    id 'org.springframework.boot' version '2.4.6' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
 
 ext {
     // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
-    set("springVersion", "5.2.9.RELEASE")
-    set("springAmqpVersion", "2.2.6.RELEASE")
+    set("springVersion", "5.3.9")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.3.5.RELEASE")
+    set("springBootVersion", "2.4.6")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springCloudVersion', "2020.0.3")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
@@ -132,7 +131,7 @@ allprojects {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 
-    tasks.withType(org.gradle.api.tasks.compile.JavaCompile) {
+    tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
     }
 
@@ -161,7 +160,7 @@ subprojects {
     apply plugin: "eclipse"
     apply plugin: "io.spring.dependency-management"
 
-    tasks.withType(org.gradle.api.tasks.compile.JavaCompile) {
+    tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
     }
     tasks.withType(Javadoc) {
@@ -204,7 +203,6 @@ subprojects {
             dependency "org.springframework.boot:spring-boot-starter-validation:$springBootVersion"
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
-            dependency "org.springframework.amqp:spring-rabbit:$springAmqpVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"
             dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"

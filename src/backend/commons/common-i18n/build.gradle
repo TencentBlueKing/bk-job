@@ -23,11 +23,11 @@
  */
 
 dependencies {
-    implementation "org.springframework:spring-context"
-    implementation "org.springframework:spring-core"
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    compile 'org.apache.commons:commons-lang3'
+    api 'org.springframework:spring-context'
+    api 'org.springframework:spring-core'
+    implementation 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

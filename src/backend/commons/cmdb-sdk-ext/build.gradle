@@ -23,6 +23,6 @@
  */
 
 dependencies {
-    compile project(":commons:cmdb-sdk")
-    compile project(":commons:common-redis")
+    api project(':commons:cmdb-sdk')
+    api project(':commons:common-redis')
 }

@@ -39,6 +39,6 @@ subprojects {
         compileOnly 'ch.qos.logback:logback-classic:1.1.11'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        testImplementation "org.junit.jupiter:junit-jupiter"
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 }

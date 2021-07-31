@@ -25,9 +25,10 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-logsvr:service-job-logsvr")
-    compile project(":commons:common-i18n")
+    api project(":job-logsvr:service-job-logsvr")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 }

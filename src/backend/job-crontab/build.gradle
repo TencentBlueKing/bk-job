@@ -35,12 +35,12 @@ version "${jobCrontabVersion}"
 subprojects {
     version "${jobCrontabVersion}"
     dependencies {
-        compile("org.springframework.boot:spring-boot-autoconfigure")
+        api 'org.springframework.boot:spring-boot-autoconfigure'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         implementation(group: 'org.apache.commons', name: 'commons-pool2')
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation "org.junit.jupiter:junit-jupiter"
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 }
 group 'com.tencent.bk.job'
