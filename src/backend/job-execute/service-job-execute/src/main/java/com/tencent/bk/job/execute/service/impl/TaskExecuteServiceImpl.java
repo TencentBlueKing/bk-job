@@ -828,7 +828,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 int totalSourceFileSize = 0;
                 for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
                     int sourceServerSize = 1;
-                    if (fileSource.getServers() != null) {
+                    Integer fileType = fileSource.getFileType();
+                    if (fileType == TaskFileTypeEnum.SERVER.getType() && fileSource.getServers() != null) {
                         sourceServerSize = CollectionUtils.size(fileSource.getServers().getIpList());
                     }
                     int sourceFileSize = CollectionUtils.size(fileSource.getFiles());
