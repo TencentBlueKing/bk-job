@@ -29,6 +29,7 @@ dependencies {
     implementation project(":job-file-worker-sdk:boot-job-file-worker-sdk")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 }
 springBoot {
     mainClassName = "com.tencent.bk.job.file.worker.JobFileWorkerBootApplication"

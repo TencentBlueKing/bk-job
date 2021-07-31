@@ -28,6 +28,7 @@ dependencies {
     api project(":job-ticket:service-job-ticket")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     runtimeOnly('mysql:mysql-connector-java')
 }
 springBoot {
