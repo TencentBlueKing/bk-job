@@ -34,8 +34,7 @@ dependencies {
     api 'org.springframework.cloud:spring-cloud-starter-openfeign'
     api 'org.springframework.cloud:spring-cloud-starter-sleuth'
     if (k8s) {
-        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-all'
-        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-ribbon'
+        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
     } else {
         api 'org.springframework.cloud:spring-cloud-starter-config'
         api 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
