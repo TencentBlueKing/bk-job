@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(locations = "classpath:test.properties")
 @Sql(value = {"/init_dangerous_rule_data.sql"})
 @SqlConfig(encoding = "utf-8")
-class DangerousRuleDAOImplTest {
+class DangerousRuleDAOImplIntegrationTest {
 
     @Autowired
     private DangerousRuleDAO dangerousRuleDAO;

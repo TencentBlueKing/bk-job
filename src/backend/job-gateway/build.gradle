@@ -46,6 +46,7 @@ dependencies {
     implementation 'commons-io:commons-io'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'joda-time:joda-time'
+    implementation 'org.apache.httpcomponents:httpclient'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation("org.springframework.boot:spring-boot-starter-test")
