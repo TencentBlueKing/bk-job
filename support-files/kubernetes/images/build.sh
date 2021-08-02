@@ -7,9 +7,10 @@ set -euo pipefail
 PROGRAM=$(basename "$0")
 EXITCODE=0
 
-ALL=1
-FRONTEND=0
-BACKEND=0
+BUILD_ALL=1
+BUILD_FRONTEND=0
+BUILD_BACKEND=0
+BUILD_MODULES=()
 VERSION=latest
 PUSH=0
 REGISTRY=docker.io
@@ -17,7 +18,7 @@ USERNAME=
 PASSWORD=
 BACKENDS=(job-gateway job-manage job-execute job-crontab job-logsvr job-analysis job-backup)
 MYSQL_URL=
-MYSQL_USER=
+MYSQL_USERNAME=
 MYSQL_PASSWORD=
 MAVEN_REPO_URL=
 
@@ -32,8 +33,10 @@ usage () {
 Usage:
     $PROGRAM [OPTIONS]... 
 
-            [ --frontend            [Optional] Package the frontend image ]
-            [ --backend             [Optional] Package the backend image ]
+            [ --frontend            [Optional] Build frontend image ]
+            [ --backend             [Optional] Build backend image ]
+			[ --modules              [Optional] Build specified module images, modules are separated by commas.
+ values:job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-frontend. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
             [ -r, --registry        [Optional] docker repository, default docker.io ]
@@ -66,17 +69,30 @@ warning () {
     EXITCODE=$((EXITCODE + 1))
 }
 
+warning () {
+    echo "$@" 1>&2
+    EXITCODE=$((EXITCODE + 1))
+}
+
 # Parse command line
 (( $# == 0 )) && usage_and_exit 1
 while (( $# > 0 )); do 
     case "$1" in
         --frontend )
-            ALL=0
-            FRONTEND=1
+            BUILD_ALL=0
+            BUILD_FRONTEND=1
             ;;
         --backend )
-            ALL=0
-            BACKEND=1
+            BUILD_ALL=0
+            BUILD_BACKEND=1
+            ;;
+        --modules )
+		    shift
+            BUILD_ALL=0
+			BUILD_FRONTEND=0
+            BUILD_BACKEND=0
+			modules_str=$1
+			BUILD_MODULES=(${modules_str//,/ })
             ;;
         -v | --version )
             shift
@@ -135,11 +151,11 @@ fi
 mkdir -p $WORKING_DIR/tmp
 tmp_dir=$WORKING_DIR/tmp
 # Automatically clean up the tmp directory when executing exit
-trap 'rm -rf $tmp_dir' EXIT TERM
+#trap 'rm -rf $tmp_dir' EXIT TERM
 
 # Build frontend image
-if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
-    # Build frontend image
+build_frontend_module () {
+# Build frontend image
     log "Building frontend image..."
     cd $FRONTEND_DIR || exit 1
     npm i
@@ -153,29 +169,48 @@ if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-frontend:$VERSION
     fi
+}
+if [[ $BUILD_ALL -eq 1 || $BUILD_FRONTEND -eq 1 ]] ; then
+    build_frontend_module
 fi
 
 # Build backend image
-if [[ $ALL -eq 1 || $BACKEND -eq 1 ]] ; then
+build_backend_module () {
+    SERVICE=$1
+    log "Building ${SERVICE} image..."
+    log "$MYSQL_URL"
+    log "$MYSQL_USERNAME"
+    log "$MYSQL_PASSWORD"
+    if [[ ${SERVICE} == "job-gateway" ]] ; then
+      $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+    else
+      $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+    fi
+    rm -rf tmp/*
+    cp backend/startup.sh tmp/
+    cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
+    docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
+    if [[ $PUSH -eq 1 ]] ; then
+        docker push $REGISTRY/$SERVICE:$VERSION
+    fi
+}
+if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
-        log "Building ${SERVICE} image..."
-        log "$MYSQL_URL"
-        log "$MYSQL_USERNAME"
-        log "$MYSQL_PASSWORD"
-        if [[ ${SERVICE} == "job-gateway" ]] ; then
-          $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
-        else
-          $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
-        fi
-        rm -rf tmp/*
-        cp backend/startup.sh tmp/
-        cp $BACKEND_DIR/release/$SERVICE-*.jar tmp/
-        docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
-        if [[ $PUSH -eq 1 ]] ; then
-            docker push $REGISTRY/$SERVICE:$VERSION
-        fi
+        build_backend_module $SERVICE
     done
+fi
+
+if [[ ${#BUILD_MODULES} -ne 0 ]]; then
+    for SERVICE in ${BUILD_MODULES[@]};
+	do
+	    log "$SERVICE"
+	    if [[ $SERVICE -eq "job-frontend" ]]; then
+		    build_frontend_module
+		else
+		    build_backend_module $SERVICE
+		fi
+	done
 fi
 
 echo "BUILD SUCCESSFUL!"
