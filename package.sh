@@ -106,12 +106,12 @@ for m in "${PACKAGE_MODULES[@]}"; do
 		[ "$BACKEND_MODULE" == "$m" ] && packageJarAndScript $m
 	done
 	# Package Upgrader
-	if [[ ! -d "release/job/backend" ]]; then
-	  mkdir -p release/job/backend
+  if [[ ! -d "release/job/backend" ]]; then
+    mkdir -p release/job/backend
   fi
   if [[ -f "src/backend/release/upgrader-${JOB_VERSION}.jar" ]]; then
-	  cp src/backend/release/upgrader-${JOB_VERSION}.jar release/job/backend/upgrader-${JOB_VERSION}.jar
-	fi
+    cp src/backend/release/upgrader-${JOB_VERSION}.jar release/job/backend/upgrader-${JOB_VERSION}.jar
+  fi
 done
 
 # Package versionLogs
