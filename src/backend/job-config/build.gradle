@@ -25,8 +25,8 @@
 ext {
     if (System.getProperty("jobConfigVersion")) {
         set("jobConfigVersion", System.getProperty("jobConfigVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobConfigVersion", System.getProperty("version"))
+    } else if (System.getProperty("bkjobVersion")) {
+        set("jobConfigVersion", System.getProperty("bkjobVersion"))
     } else {
         set("jobConfigVersion", "1.0.0")
     }
