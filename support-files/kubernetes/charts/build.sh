@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# 用途：构建并推送charts包
+# Description: build and push charts package
 
-# 安全模式
+# Safe mode
 set -euo pipefail 
 
-# 通用脚本框架变量
 PROGRAM=$(basename "$0")
 EXITCODE=0
 
@@ -20,16 +19,16 @@ WORKING_DIR=$(pwd)
 
 usage () {
     cat <<EOF
-用法: 
+Usage:
     $PROGRAM [OPTIONS]... 
 
-            [ -v, --version         [可选] charts版本, 默认1.0.0 ]
-            [ -a, --app-version     [可选] app版本, 默认latest ]
-            [ -p, --push            [可选] 推送charts包到helm远程仓库，默认不推送 ]
-            [ -r, --registry        [可选] helm chars仓库地址, 默认http://localhost/helm ]
-            [ --username            [可选] helm chars仓库用户名 ]
-            [ --password            [可选] helm chars仓库密码 ]
-            [ -h, --help            [可选] 查看脚本帮助 ]
+            [ -v, --version         [Optional] charts version, default: 1.0.0 ]
+            [ -a, --app-version     [Optional] app version, default: latest ]
+            [ -p, --push            [Optional] Push chart package to helm remote repository. Default: Not push ]
+            [ -r, --registry        [Optional] helm chars repository, default: http://localhost/helm ]
+            [ --username            [Optional] helm chars repository username ]
+            [ --password            [Optional] helm chars repository password ]
+            [ -h, --help            [Optional] Show help ]
 EOF
 }
 
@@ -52,7 +51,7 @@ warning () {
     EXITCODE=$((EXITCODE + 1))
 }
 
-# 解析命令行参数，长短混合模式
+# Parse command line parameters
 (( $# == 0 )) && usage_and_exit 1
 while (( $# > 0 )); do 
     case "$1" in
@@ -83,7 +82,7 @@ while (( $# > 0 )); do
             usage_and_exit 0
             ;;
         -*)
-            error "不可识别的参数: $1"
+            error "Invalid param: $1"
             ;;
         *) 
             break

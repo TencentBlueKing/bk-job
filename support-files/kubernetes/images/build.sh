@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# 用途：构建并推送docker镜像
+# Description: build and push docker image
 
-# 安全模式
+# Safe mode
 set -euo pipefail 
 
-# 通用脚本框架变量
 PROGRAM=$(basename "$0")
 EXITCODE=0
 
@@ -30,21 +29,21 @@ FRONTEND_DIR=$ROOT_DIR/src/frontend
 
 usage () {
     cat <<EOF
-用法: 
+Usage:
     $PROGRAM [OPTIONS]... 
 
-            [ --frontend            [可选] 打包frontend镜像 ]
-            [ --backend             [可选] 打包backend镜像 ]
-            [ -v, --version         [可选] 镜像版本tag, 默认latest ]
-            [ -p, --push            [可选] 推送镜像到docker远程仓库，默认不推送 ]
-            [ -r, --registry        [可选] docker仓库地址, 默认docker.io ]
-            [ --username            [可选] docker仓库用户名 ]
-            [ --password            [可选] docker仓库密码 ]
-            [ --mysql_url           [可选] 后端编译使用的 MySQL url, 例如127.0.0.1:3306 ]
-            [ --mysql_username      [可选] 后端编译使用的 MySQL 用户名 ]
-            [ --mysql_password      [可选] 后端编译使用的 MySQL 密码 ]
-            [ --maven_repo_url      [可选] 后端编译使用的 maven 仓库地址 ]
-            [ -h, --help            [可选] 查看脚本帮助 ]
+            [ --frontend            [Optional] Package the frontend image ]
+            [ --backend             [Optional] Package the backend image ]
+            [ -v, --version         [Optional] Image tag, default latest ]
+            [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
+            [ -r, --registry        [Optional] docker repository, default docker.io ]
+            [ --username            [Optional] docker repository username ]
+            [ --password            [Optional] docker repository password ]
+            [ --mysql_url           [Optional] MySQL url used for backend compilation, for example 127.0.0.1:3306 ]
+            [ --mysql_username      [Optional] MySQL username used for backend compilation ]
+            [ --mysql_password      [Optional] MySQL password used for backend compilation ]
+            [ --maven_repo_url      [Optional] Maven repository url used for backend compilation, example: https://repo.maven.apache.org/maven2/ ]
+            [ -h, --help            [Optional] Show help ]
 EOF
 }
 
@@ -67,7 +66,7 @@ warning () {
     EXITCODE=$((EXITCODE + 1))
 }
 
-# 解析命令行参数，长短混合模式
+# Parse command line
 (( $# == 0 )) && usage_and_exit 1
 while (( $# > 0 )); do 
     case "$1" in
@@ -132,15 +131,15 @@ if [[ $PUSH -eq 1 && -n "$USERNAME" ]] ; then
     log "docker login successfully"
 fi
 
-# 创建临时目录
+# Create tmp dir
 mkdir -p $WORKING_DIR/tmp
 tmp_dir=$WORKING_DIR/tmp
-# 执行退出时自动清理tmp目录
+# Automatically clean up the tmp directory when executing exit
 trap 'rm -rf $tmp_dir' EXIT TERM
 
-# 编译frontend
+# Build frontend image
 if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
-    # 打包frontend镜像
+    # Build frontend image
     log "Building frontend image..."
     cd $FRONTEND_DIR || exit 1
     npm i
@@ -156,7 +155,7 @@ if [[ $ALL -eq 1 || $FRONTEND -eq 1 ]] ; then
     fi
 fi
 
-# 构建backend镜像
+# Build backend image
 if [[ $ALL -eq 1 || $BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
