@@ -171,9 +171,12 @@ rabbitmq:
     ## @param rabbitmq.auth.username RabbitMQ application username
     ##
     username: job
-    ## @param rabbitmq.auth.password Password for the RabbitMQ
+    ## @param rabbitmq.auth.password RabbitMQ application password
     ##
     password: "job"
+    ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
+    ##
+    erlangCookie: "job"
 
 ## External RabbitMQ configuration
 ##
@@ -303,7 +306,7 @@ manage:
 executeConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-execute
+    repository: tyleryuwang/job-execute
     tag: 3.4.0
     pullPolicy: IfNotPresent
     pullSecrets: []

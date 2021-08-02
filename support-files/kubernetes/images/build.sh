@@ -151,7 +151,7 @@ fi
 mkdir -p $WORKING_DIR/tmp
 tmp_dir=$WORKING_DIR/tmp
 # Automatically clean up the tmp directory when executing exit
-#trap 'rm -rf $tmp_dir' EXIT TERM
+trap 'rm -rf $tmp_dir' EXIT TERM
 
 # Build frontend image
 build_frontend_module () {
@@ -177,14 +177,11 @@ fi
 # Build backend image
 build_backend_module () {
     SERVICE=$1
-    log "Building ${SERVICE} image..."
-    log "$MYSQL_URL"
-    log "$MYSQL_USERNAME"
-    log "$MYSQL_PASSWORD"
+    log "Building ${SERVICE} image, version: ${VERSION}..."
     if [[ ${SERVICE} == "job-gateway" ]] ; then
-      $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     else
-      $BACKEND_DIR/gradlew -p $BACKEND_DIR :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL
+      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     fi
     rm -rf tmp/*
     cp backend/startup.sh tmp/
@@ -201,11 +198,13 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
     done
 fi
 
+
 if [[ ${#BUILD_MODULES} -ne 0 ]]; then
+    log "Build ${BUILD_MODULES[@]}"
     for SERVICE in ${BUILD_MODULES[@]};
 	do
 	    log "$SERVICE"
-	    if [[ $SERVICE -eq "job-frontend" ]]; then
+	    if [[ "$SERVICE" == "job-frontend" ]]; then
 		    build_frontend_module
 		else
 		    build_backend_module $SERVICE
