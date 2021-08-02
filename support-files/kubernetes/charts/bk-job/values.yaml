@@ -44,10 +44,171 @@ serviceAccount:
 ingress:
   enabled: false
 
-## @section Job parameters
+## @section Job common component parameters
+##
 
+## MariaDB chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/mariadb/values.yaml
+##
+mariadb:
+  ## @param mariadb.enabled Whether to deploy a mariadb server to satisfy the applications database requirements
+  ## To use an external database set this to false and configure the externalDatabase parameters
+  ##
+  enabled: true
+  ## @param mariadb.architecture MariaDB architecture. Allowed values: `standalone` or `replication`
+  ##
+  architecture: standalone
+  ## MariaDB Authentication parameters
+  ##
+  auth:
+    ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
+    ##
+    rootPassword: "job"
+    ## @param mariadb.auth.database Database name to create
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
+    ##
+    database: job
+    ## @param mariadb.auth.username Database user to create
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+    ##
+    username: job
+    ## @param mariadb.auth.password Password for the database
+    ##
+    password: "job"
+  primary:
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      ## @param mariadb.primary.persistence.enabled Enable database persistence using PVC
+      ##
+      enabled: true
+      ## @param mariadb.primary.persistence.storageClass MariaDB primary persistent volume storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      storageClass: ""
+      ## @param mariadb.primary.persistence.accessModes Database Persistent Volume Access Modes
+      ##
+      accessModes:
+        - ReadWriteOnce
+      ## @param mariadb.primary.persistence.size Database Persistent Volume Size
+      ##
+      size: 8Gi
+      ## @param mariadb.primary.persistence.hostPath Set path in case you want to use local host path volumes (not recommended in production)
+      ##
+      hostPath: ""
+      ## @param mariadb.primary.persistence.existingClaim Name of an existing `PersistentVolumeClaim` for MariaDB primary replicas
+      ##
+      existingClaim: ""
+## External MariaDB configuration
+##
+externalMariaDB:
+  ## @param externalMariaDB.host Host of the existing database
+  ##
+  host: ""
+  ## @param externalMariaDB.port Port of the existing database
+  ##
+  port: 3306
+  ## @param externalMariaDB.user Existing username in the existing database
+  ##
+  user: job
+  ## @param externalMariaDB.password Password for the above username
+  ##
+  password: "job"
+
+
+## Redis chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
+##
+redis:
+  ## @param redis.enabled Whether to deploy a redis
+  ## To use an external redis set this to false and configure the externalRedis parameters
+  ##
+  enabled: true
+  ## @param redis.architecture Redis architecture. Allowed values: standalone or replication
+  ##
+  architecture: standalone
+  ## Redis Authentication parameters
+  ##
+  auth:
+    ## @param redis.auth.enabled Enable password authentication
+    ##
+    enabled: true
+    ## @param redis.auth.password Password for the database
+    ##
+    password: "job"
+
+## External Redis configuration
+##
+externalRedis:
+  ## @param externalRedis.host Host of the existing redis
+  ##
+  host: ""
+  ## @param externalRedis.port Port of the existing redis
+  ##
+  port: 6379
+  ## @param externalRedis.password Password
+  ##
+  password: "job"
+
+
+## RabbitMQ chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml
+##
+rabbitmq:
+  ## @param rabbitmq.enabled Whether to deploy a RabbitMQ
+  ## To use an external RabbitMQ set this to false and configure the externalRabbitMQ parameters
+  ##
+  enabled: true
+  ## RabbitMQ Authentication parameters
+  ##
+  auth:
+    ## @param rabbitmq.auth.username RabbitMQ application username
+    ##
+    username: job
+    ## @param rabbitmq.auth.password Password for the RabbitMQ
+    ##
+    password: "job"
+
+## External RabbitMQ configuration
+##
+externalRabbitMQ:
+  ## @param externalRabbitMQ.host Host of the existing RabbitMQ
+  ##
+  host: ""
+  ## @param externalRabbitMQ.port Port of the existing RabbitMQ
+  ##
+  port: 5672
+  ## @param externalRabbitMQ.username Username
+  ##
+  username: "job"
+  ## @param externalRabbitMQ.password Password
+  ##
+  password: "job"
+
+
+## mongodb charts Config
+## ref: https://github.com/bitnami/charts/tree/master/bitnami/mongodb
 mongodb:
-  enabled: false
+  # Whether to deploy mongodb
+  # If you need to use an external database, set it to false and configure externalMongodb
+  enabled: true
+  auth:
+    enabled: true
+    database: joblog
+    username: job
+    password: job
+
+## If mongodb.enabled is false, use externalMongodb.uri
+externalMongodb:
+  ## mongodb uri,example: mongodb://job:job@localhost:27017/joblog
+  uri: ""
+
 nginx-ingress-controller:
   enabled: false
 
