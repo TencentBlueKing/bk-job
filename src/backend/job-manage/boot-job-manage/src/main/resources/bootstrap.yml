@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-manage
+    name: ${BK_JOB_APPLICATION_NAME:job-manage}
   profiles:
     active: prod
   cloud:

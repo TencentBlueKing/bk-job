@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-logsvr
+    name: ${BK_JOB_APPLICATION_NAME:job-logsvr}
   profiles:
     active: prod
   cloud:

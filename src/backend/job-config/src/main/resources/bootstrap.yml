@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-config
+    name: ${BK_JOB_APPLICATION_NAME:job-config}
   profiles:
     active: prod,native
 management:

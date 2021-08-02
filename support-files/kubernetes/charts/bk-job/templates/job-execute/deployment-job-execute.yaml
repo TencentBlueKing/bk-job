@@ -12,8 +12,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.execute.autoscaling.enabled }}
-  replicas: {{ .Values.execute.replicaCount }}
+  {{- if not .Values.executeConfig.autoscaling.enabled }}
+  replicas: {{ .Values.executeConfig.replicaCount }}
   {{- end }}
   selector:
     matchLabels: 
@@ -26,35 +26,35 @@ spec:
         app.kubernetes.io/component: "job-execute"
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
-      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.execute.hostAliases "context" $) | nindent 8 }}
-      {{- if .Values.execute.affinity }}
-      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.execute.affinity "context" $) | nindent 8 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.executeConfig.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.executeConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.executeConfig.affinity "context" $) | nindent 8 }}
       {{- else }}
       affinity:
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.execute.podAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.execute.podAntiAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
-        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.execute.nodeAffinityPreset.type "key" .Values.execute.nodeAffinityPreset.key "values" .Values.execute.nodeAffinityPreset.values) | nindent 10 }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.executeConfig.podAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.executeConfig.podAntiAffinityPreset "component" "job-execute" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.executeConfig.nodeAffinityPreset.type "key" .Values.executeConfig.nodeAffinityPreset.key "values" .Values.executeConfig.nodeAffinityPreset.values) | nindent 10 }}
       {{- end }}
-      {{- if .Values.execute.nodeSelector }}
-      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.execute.nodeSelector "context" $) | nindent 8 }}
+      {{- if .Values.executeConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.executeConfig.nodeSelector "context" $) | nindent 8 }}
       {{- end }}
-      {{- if .Values.execute.tolerations }}
-      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.execute.tolerations "context" .) | nindent 8 }}
+      {{- if .Values.executeConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.executeConfig.tolerations "context" .) | nindent 8 }}
       {{- end }}
-      {{- if .Values.execute.priorityClassName }}
-      priorityClassName: {{ .Values.execute.priorityClassName | quote }}
+      {{- if .Values.executeConfig.priorityClassName }}
+      priorityClassName: {{ .Values.executeConfig.priorityClassName | quote }}
       {{- end }}
       serviceAccountName: {{ include "job-execute.serviceAccountName" . }}
-      {{- if .Values.execute.podSecurityContext.enabled }}
-      securityContext: {{- omit .Values.execute.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- if .Values.executeConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.executeConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       containers:
         - name: "job-execute"
-          {{- if .Values.execute.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.execute.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- if .Values.executeConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.executeConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           image: {{ include "job-execute.image" . }}
-          imagePullPolicy: {{ .Values.execute.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
               value:
@@ -62,6 +62,8 @@ spec:
               value: prod
             - name: BK_JOB_JAR
               value: job-execute.jar
+            - name: BK_JOB_APPLICATION_NAME
+              value: {{ include "common.names.fullname" . }}-exeucte
           ports:
             - name: http
               containerPort: 10502
@@ -85,5 +87,5 @@ spec:
             failureThreshold: 6
             successThreshold: 1
           resources:
-            {{- toYaml .Values.execute.resources | nindent 12 }}
+            {{- toYaml .Values.executeConfig.resources | nindent 12 }}
 

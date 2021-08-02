@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: job-manage
   cloud:
     refresh:
       extra-refreshable: javax.sql.DataSource

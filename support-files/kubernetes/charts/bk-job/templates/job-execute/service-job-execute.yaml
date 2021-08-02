@@ -11,9 +11,9 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  type: {{ .Values.execute.service.type }}
+  type: {{ .Values.executeConfig.service.type }}
   ports:
-    - port: {{ .Values.execute.service.port }}
+    - port: {{ .Values.executeConfig.service.port }}
       targetPort: http
       protocol: TCP
       name: http

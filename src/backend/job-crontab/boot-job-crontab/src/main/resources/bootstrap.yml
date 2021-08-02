@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-crontab
+    name: ${BK_JOB_APPLICATION_NAME:job-crontab}
   profiles:
     active: prod
   cloud:

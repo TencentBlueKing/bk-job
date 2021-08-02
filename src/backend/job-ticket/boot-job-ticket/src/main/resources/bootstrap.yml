@@ -1,6 +1,6 @@
 spring:
   application:
-    name: job-ticket
+    name: ${BK_JOB_APPLICATION_NAME:job-ticket}
   profiles:
     active: prod
   cloud:

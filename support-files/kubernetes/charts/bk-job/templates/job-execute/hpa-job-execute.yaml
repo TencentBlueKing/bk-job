@@ -1,4 +1,4 @@
-{{- if .Values.execute.autoscaling.enabled }}
+{{- if .Values.executeConfig.autoscaling.enabled }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,19 +16,19 @@ spec:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
     kind: Deployment
     name: "job-execute"
-  minReplicas: {{ .Values.execute.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.execute.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.executeConfig.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.executeConfig.autoscaling.maxReplicas }}
   metrics:
-    {{- if .Values.execute.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.executeConfig.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.execute.autoscaling.targetCPUUtilizationPercentage }}
+        targetAverageUtilization: {{ .Values.executeConfig.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
-    {{- if .Values.execute.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.executeConfig.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
-        targetAverageUtilization: {{ .Values.execute.autoscaling.targetMemoryUtilizationPercentage }}
+        targetAverageUtilization: {{ .Values.executeConfig.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
