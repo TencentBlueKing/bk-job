@@ -109,7 +109,9 @@ for m in "${PACKAGE_MODULES[@]}"; do
 	if [[ ! -d "release/job/backend" ]]; then
 	  mkdir -p release/job/backend
   fi
-	cp src/backend/release/upgrader-${JOB_VERSION}.jar release/job/backend/upgrader-${JOB_VERSION}.jar
+  if [[ -f "src/backend/release/upgrader-${JOB_VERSION}.jar" ]]; then
+	  cp src/backend/release/upgrader-${JOB_VERSION}.jar release/job/backend/upgrader-${JOB_VERSION}.jar
+	fi
 done
 
 # Package versionLogs
