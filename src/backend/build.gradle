@@ -111,8 +111,10 @@ ext {
     set('reflectionsVersion', "0.9.12")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
+        println "bkjobVersoin:" + bkjobVersion
     } else {
         set('bkjobVersion', "1.0.0")
+        println "bkjobVersoin:" + bkjobVersion
     }
 }
 
