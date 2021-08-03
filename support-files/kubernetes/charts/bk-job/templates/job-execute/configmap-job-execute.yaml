@@ -4,14 +4,14 @@ kind: ConfigMap
 metadata:
   name: {{ include "common.names.fullname" . }}-execute
   labels:
-    { { - include "common.labels.standard" . | nindent 4 } }
+    {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-execute"
-    { { - if .Values.commonLabels } }
-    { { - include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 } }
-    { { - end } }
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
 data:
   {{- if .Values.executeConfig }}
   application.yml: |-
-    {{- toYaml .Values.executeConfig | nindent 2 }}
+    {{- toYaml .Values.executeConfig | nindent 4 }}
   {{- end}}
 {{- end}}
