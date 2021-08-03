@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.FavorAppReq;
+import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
@@ -190,7 +191,7 @@ public interface WebAppResource {
     ServiceResponse<List<HostInfoVO>> listHostByIp(
         @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "用户输入的 IP 列表", required = true) @RequestBody List<String> checkIpList);
+        @ApiParam(value = "用户输入的 IP 列表", required = true) @RequestBody IpCheckReq req);
 
     @ApiOperation(value = "查询主机统计信息")
     @PostMapping("/{appId}/host/statistics")

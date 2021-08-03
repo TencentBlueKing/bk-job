@@ -22,24 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.ticket.model.credential;
+package com.tencent.bk.job.manage.model.web.request;
 
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.List;
+
 @Data
-@EqualsAndHashCode
-public class CommonCredentialDTO {
-    String accessKey;
-    String secretKey;
-    String username;
-    String password;
-    /**
-     * 类型
-     */
-    private String type;
+@ApiModel("IP检查请求报文")
+public class IpCheckReq {
+
+    @ApiModelProperty(value = "应用场景：脚本执行/文件分发", required = false)
+    ActionScopeEnum actionScope;
+
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip", required = true)
+    List<String> ipList;
+
 }
+
+

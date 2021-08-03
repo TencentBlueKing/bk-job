@@ -35,6 +35,8 @@ public interface IFileResource {
 
     RemoteClient getRemoteClient(BaseReq req);
 
+    ServiceResponse<Boolean> isFileAvailable(BaseReq req);
+
     ServiceResponse<FileNodesDTO> listFileNode(ListFileNodeReq req);
 
     ServiceResponse<Boolean> executeAction(ExecuteActionReq req);

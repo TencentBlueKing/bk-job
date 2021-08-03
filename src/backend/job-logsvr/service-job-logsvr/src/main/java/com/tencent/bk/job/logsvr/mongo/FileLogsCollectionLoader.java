@@ -49,11 +49,7 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
         MongoCollection<Document> collection = mongoTemplate.getCollection(collectionName);
         List<String> indexes = getIndexesNames(collection);
         createIndexIfUnavailable(collection, indexes, collectionName);
-
-        if (!indexes.contains(IDX_STEP_COUNT_MODE_IP) || !indexes.contains(IDX_STEP_COUNT_TASK_ID)
-            || !indexes.contains(IDX_STEP_ID_HASHED)) {
-            shardCollectionIfShardingEnable(mongoTemplate, collectionName);
-        }
+        shardCollectionIfShardingEnable(mongoTemplate, collectionName);
         return collection;
     }
 

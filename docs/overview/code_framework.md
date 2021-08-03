@@ -1,4 +1,7 @@
 # 蓝鲸作业平台(BK-JOB)的代码结构
+
+[English](code_framework.en.md) | 简体中文
+
 ```shell script
 |- bk-job
   |- docs
