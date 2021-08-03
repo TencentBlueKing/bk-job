@@ -62,17 +62,14 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
     <springProfile name="local">
-        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>${LOG_PATTERN}</pattern>
-                <charset>utf8</charset>
-            </encoder>
-        </appender>
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
@@ -82,7 +79,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
-    <springProfile name="dev">
+    <springProfile name="dev &amp; !kubernetes">
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
             <appender-ref ref="ticket-appender"/>
         </logger>
@@ -100,7 +97,7 @@
             <appender-ref ref="error-appender"/>
         </root>
     </springProfile>
-    <springProfile name="prod">
+    <springProfile name="prod &amp; !kubernetes">
         <logger name="com.tencent.bk.job" level="INFO" additivity="false">
             <appender-ref ref="ticket-appender"/>
         </logger>
@@ -116,6 +113,34 @@
         <root level="ERROR">
             <appender-ref ref="ticket-appender"/>
             <appender-ref ref="error-appender"/>
+        </root>
+    </springProfile>
+    <springProfile name="dev &amp; kubernetes">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    <springProfile name="prod &amp; kubernetes">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="org" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <root level="ERROR">
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 </configuration>
