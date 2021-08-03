@@ -1,4 +1,4 @@
-{{- if or .Values.executeConfig }}
+{{- if .Values.executeConfig }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
