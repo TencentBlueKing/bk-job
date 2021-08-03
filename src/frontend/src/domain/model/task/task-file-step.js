@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import I18n from '@/i18n';
-// import HostNode from '@model/host-node'
 import TaskHostNodeModel from '@model/task-host-node';
 
 const transferModeMap = {
@@ -35,6 +34,9 @@ const transferModeMap = {
 };
 
 export default class TaskFileStep {
+    static TYPE_SERVER = 1
+    static TYPE_LOCAL = 2
+    static TYPE_SOURCE = 3
     constructor (payload = {}) {
         this.timeout = payload.timeout;
         this.uploadSpeedLimit = payload.uploadSpeedLimit || 0;
