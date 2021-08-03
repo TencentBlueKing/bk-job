@@ -24,12 +24,8 @@
 
 package com.tencent.bk.job.ticket.model.dto;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.ticket.consts.CredentialTypeEnum;
-import com.tencent.bk.job.ticket.model.credential.AccessKeySecretKey;
-import com.tencent.bk.job.ticket.model.credential.Password;
-import com.tencent.bk.job.ticket.model.credential.SecretKey;
-import com.tencent.bk.job.ticket.model.credential.UsernamePassword;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import com.tencent.bk.job.ticket.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.ticket.model.web.resp.CredentialVO;
 import lombok.AllArgsConstructor;
@@ -63,7 +59,7 @@ public class CredentialDTO {
     /**
      * 值JSON串
      */
-    private String value;
+    private CommonCredential credential;
     /**
      * 创建人
      */
@@ -91,11 +87,9 @@ public class CredentialDTO {
         credentialVO.setValue2("******");
         credentialVO.setValue3("******");
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
-            UsernamePassword usernamePassword = JsonUtils.fromJson(value, UsernamePassword.class);
-            credentialVO.setValue1(usernamePassword.getUsername());
+            credentialVO.setValue1(credential.getUsername());
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {
-            AccessKeySecretKey accessKeySecretKey = JsonUtils.fromJson(value, AccessKeySecretKey.class);
-            credentialVO.setValue1(accessKeySecretKey.getAccessKey());
+            credentialVO.setValue1(credential.getAccessKey());
         }
         credentialVO.setCreator(creator);
         credentialVO.setCreateTime(createTime);
@@ -110,23 +104,19 @@ public class CredentialDTO {
         serviceCredentialDTO.setAppId(appId);
         serviceCredentialDTO.setName(name);
         serviceCredentialDTO.setType(type);
-        serviceCredentialDTO.setValue(value);
+        serviceCredentialDTO.setCredential(credential);
         return serviceCredentialDTO;
     }
 
     public String getFirstValue() {
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
-            UsernamePassword usernamePassword = JsonUtils.fromJson(this.value, UsernamePassword.class);
-            return usernamePassword.getUsername();
+            return credential.getUsername();
         } else if (type.equals(CredentialTypeEnum.PASSWORD.name())) {
-            Password password = JsonUtils.fromJson(this.value, Password.class);
-            return password.getPassword();
+            return credential.getPassword();
         } else if (type.equals(CredentialTypeEnum.SECRET_KEY.name())) {
-            SecretKey secretKey = JsonUtils.fromJson(this.value, SecretKey.class);
-            return secretKey.getSecretKey();
+            return credential.getSecretKey();
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {
-            AccessKeySecretKey accessKeySecretKey = JsonUtils.fromJson(this.value, AccessKeySecretKey.class);
-            return accessKeySecretKey.getAccessKey();
+            return credential.getAccessKey();
         } else {
             throw new RuntimeException("Not support type:" + type);
         }
@@ -134,21 +124,13 @@ public class CredentialDTO {
 
     public void setFirstValue(String val) {
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
-            UsernamePassword usernamePassword = JsonUtils.fromJson(this.value, UsernamePassword.class);
-            usernamePassword.setUsername(val);
-            this.value = JsonUtils.toJson(usernamePassword);
+            this.credential.setUsername(val);
         } else if (type.equals(CredentialTypeEnum.PASSWORD.name())) {
-            Password password = JsonUtils.fromJson(this.value, Password.class);
-            password.setPassword(val);
-            this.value = JsonUtils.toJson(password);
+            this.credential.setPassword(val);
         } else if (type.equals(CredentialTypeEnum.SECRET_KEY.name())) {
-            SecretKey secretKey = JsonUtils.fromJson(this.value, SecretKey.class);
-            secretKey.setSecretKey(val);
-            this.value = JsonUtils.toJson(secretKey);
+            this.credential.setSecretKey(val);
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {
-            AccessKeySecretKey accessKeySecretKey = JsonUtils.fromJson(this.value, AccessKeySecretKey.class);
-            accessKeySecretKey.setAccessKey(val);
-            this.value = JsonUtils.toJson(accessKeySecretKey);
+            this.credential.setAccessKey(val);
         } else {
             throw new RuntimeException("Not support type:" + type);
         }
@@ -156,15 +138,13 @@ public class CredentialDTO {
 
     public String getSecondValue() {
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
-            UsernamePassword usernamePassword = JsonUtils.fromJson(this.value, UsernamePassword.class);
-            return usernamePassword.getPassword();
+            return credential.getPassword();
         } else if (type.equals(CredentialTypeEnum.PASSWORD.name())) {
             return null;
         } else if (type.equals(CredentialTypeEnum.SECRET_KEY.name())) {
             return null;
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {
-            AccessKeySecretKey accessKeySecretKey = JsonUtils.fromJson(this.value, AccessKeySecretKey.class);
-            return accessKeySecretKey.getSecretKey();
+            return credential.getSecretKey();
         } else {
             throw new RuntimeException("Not support type:" + type);
         }
@@ -172,13 +152,9 @@ public class CredentialDTO {
 
     public void setSecondValue(String val) {
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
-            UsernamePassword usernamePassword = JsonUtils.fromJson(this.value, UsernamePassword.class);
-            usernamePassword.setPassword(val);
-            this.value = JsonUtils.toJson(usernamePassword);
+            this.credential.setPassword(val);
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {
-            AccessKeySecretKey accessKeySecretKey = JsonUtils.fromJson(this.value, AccessKeySecretKey.class);
-            accessKeySecretKey.setSecretKey(val);
-            this.value = JsonUtils.toJson(accessKeySecretKey);
+            this.credential.setSecretKey(val);
         } else if (type.equals(CredentialTypeEnum.PASSWORD.name())) {
         } else if (type.equals(CredentialTypeEnum.SECRET_KEY.name())) {
         } else {

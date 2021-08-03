@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
@@ -49,7 +50,7 @@ public interface WhiteIPService {
      * @param appId 业务Id
      * @return
      */
-    List<CloudIPDTO> listWhiteIPByAppId(Long appId);
+    List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope);
 
     Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq);
 

@@ -206,7 +206,9 @@
                             id: this.templateId,
                         },
                     });
-                } else {
+                    return;
+                }
+                if (from === 'viewPlan') {
                     this.$router.push({
                         name: 'viewPlan',
                         params: {
@@ -216,7 +218,15 @@
                             viewPlanId: this.taskId,
                         },
                     });
+                    return;
                 }
+                this.$router.push({
+                    name: 'planList',
+                    query: {
+                        viewTemplateId: this.templateId,
+                        viewPlanId: this.taskId,
+                    },
+                });
             },
         },
     };

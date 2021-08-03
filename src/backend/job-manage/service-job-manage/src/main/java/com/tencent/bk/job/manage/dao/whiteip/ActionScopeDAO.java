@@ -35,11 +35,13 @@ public interface ActionScopeDAO {
 
     int deleteActionScopeById(DSLContext dslContext, Long id);
 
-    ActionScopeDTO getActionScopeById(DSLContext dslContext, Long id);
+    ActionScopeDTO getActionScopeById(Long id);
 
-    ActionScopeVO getActionScopeVOById(DSLContext dslContext, Long id);
+    ActionScopeDTO getActionScopeByCode(String code);
 
-    List<ActionScopeDTO> listActionScopeDTO(DSLContext dslContext);
+    ActionScopeVO getActionScopeVOById(Long id);
+
+    List<ActionScopeDTO> listActionScopeDTO();
 
     int updateActionScopeById(DSLContext dslContext, ActionScopeDTO actionScopeDTO);
 }

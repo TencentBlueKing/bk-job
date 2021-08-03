@@ -28,7 +28,11 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
-import com.tencent.bk.job.manage.dao.whiteip.*;
+import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
+import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
+import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
+import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
+import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
@@ -39,9 +43,20 @@ import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.*;
+import org.jooq.generated.tables.ActionScope;
+import org.jooq.generated.tables.Application;
+import org.jooq.generated.tables.WhiteIpActionScope;
+import org.jooq.generated.tables.WhiteIpAppRel;
+import org.jooq.generated.tables.WhiteIpIp;
+import org.jooq.generated.tables.WhiteIpRecord;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
@@ -56,7 +71,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.*;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_ID_LIST;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_NAME;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_TYPE;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CLOUD_AREA_ID;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATE_TIME;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATOR;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ID;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP_LIST;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_TIME;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_USER;
+import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_REMARK;
 
 @Slf4j
 @Repository
@@ -333,7 +360,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val actionScopeIdListStr = (String) record.get(KEY_ACTION_SCOPE_ID_LIST);
                 List<String> actionScopeIdList = CustomCollectionUtils.getNoDuplicateList(actionScopeIdListStr, ",");
                 List<ActionScopeVO> actionScopeVOList = actionScopeIdList.stream().map(actionScopeId ->
-                    actionScopeDAO.getActionScopeVOById(dslContext, Long.parseLong(actionScopeId))
+                    actionScopeDAO.getActionScopeVOById(Long.parseLong(actionScopeId))
                 ).collect(Collectors.toList());
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
                 List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
@@ -488,18 +515,27 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @Override
-    public List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds) {
+    public List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds, Long actionScopeId) {
         val tWhiteIPIP = WhiteIpIp.WHITE_IP_IP.as("tWhiteIPIP");
         val tWhiteIPAppRel = WhiteIpAppRel.WHITE_IP_APP_REL.as("tWhiteIPAppRel");
+        val tWhiteIPActionScope = WhiteIpActionScope.WHITE_IP_ACTION_SCOPE.as("tWhiteIPActionScope");
+        Collection<Condition> conditions = new ArrayList<>();
+        if (appIds != null) {
+            conditions.add(tWhiteIPAppRel.APP_ID.in(appIds));
+        }
+        if (actionScopeId != null) {
+            conditions.add(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(actionScopeId));
+        }
         val query = dslContext.select(
             tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
             tWhiteIPIP.IP.as(KEY_IP)
         ).from(tWhiteIPAppRel)
             .join(tWhiteIPIP).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPIP.RECORD_ID))
-            .where(tWhiteIPAppRel.APP_ID.in(appIds));
+            .join(tWhiteIPActionScope).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPActionScope.RECORD_ID))
+            .where(conditions);
         try {
             val records = query.fetch();
-            if (records != null && records.size() > 0) {
+            if (records.size() > 0) {
                 return records.map(record -> {
                     val cloudId = (Long) record.get(KEY_CLOUD_AREA_ID);
                     val ip = (String) record.get(KEY_IP);

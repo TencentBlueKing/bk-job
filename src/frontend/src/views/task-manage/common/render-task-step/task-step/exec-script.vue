@@ -176,6 +176,12 @@
                 immediate: true,
             },
         },
+        mounted () {
+            window.IPInputScope = 'SCRIPT_EXECUTE';
+            this.$once('hook:beforeDestroy', () => {
+                window.IPInputScope = '';
+            });
+        },
         methods: {
             handleChange (field, value) {
                 this.formData[field] = value;

@@ -1,4 +1,7 @@
 # bk-job 编译说明
+
+[English](source_compile.en.md) | 简体中文
+
 ## Frontend前端代码编译
 
 ## 系统要求

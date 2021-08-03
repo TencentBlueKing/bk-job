@@ -59,7 +59,7 @@
                 :options="languageOption"
                 readonly />
         </detail-item>
-        <div @copy="handleCopyParam">
+        <div>
             <detail-item :label="$t('template.脚本参数：')">
                 <jb-edit-textarea field="scriptParam" :value="stepInfo.scriptParam" readonly />
             </detail-item>
@@ -81,7 +81,6 @@
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import ScriptService from '@service/script-manage';
     import AccountManageService from '@service/account-manage';
     import AceEditor from '@components/ace-editor';
@@ -144,6 +143,9 @@
             this.fetchAccount();
         },
         methods: {
+            /**
+             * @desc 更新脚本版本获取版本详情
+             */
             fetchScriptDetail () {
                 this.requestQueue.push(true);
                 ScriptService.versionDetail({
@@ -157,6 +159,9 @@
                         this.requestQueue.pop();
                     });
             },
+            /**
+             * @desc 获取完整的账号列表
+             */
             fetchAccount () {
                 this.requestQueue.push(true);
                 AccountManageService.fetchAccountWhole()
@@ -173,19 +178,8 @@
                     });
             },
             /**
-             * @desc 复制页面内容时删除内容的开头和结尾的换行符
+             * @desc 新开窗口跳转脚本版本列表
              */
-            handleCopyParam (event) {
-                const clipboardData = event.clipboardData || window.clipboardData;
-                if (!clipboardData) {
-                    return;
-                }
-                const text = window.getSelection().toString();
-                if (text) {
-                    event.preventDefault();
-                    clipboardData.setData('text/plain', _.trim(text, '\n'));
-                }
-            },
             handleGoScriptDetail () {
                 const routerName = this.scriptInfo.publicScript ? 'publicScriptVersion' : 'scriptVersion';
 
@@ -200,6 +194,9 @@
                 });
                 window.open(router.href);
             },
+            /**
+             * @desc 脚本版本对比
+             */
             handleGoScriptVersion () {
                 const routerName = this.isReferPublicScript ? 'publicScriptVersion' : 'scriptVersion';
                 const { href } = this.$router.resolve({
@@ -210,6 +207,9 @@
                 });
                 window.open(href);
             },
+            /**
+             * @desc 编辑作业模板，更新步骤引用的脚本版本
+             */
             handleUpdateScript () {
                 this.$router.push({
                     name: 'templateEdit',

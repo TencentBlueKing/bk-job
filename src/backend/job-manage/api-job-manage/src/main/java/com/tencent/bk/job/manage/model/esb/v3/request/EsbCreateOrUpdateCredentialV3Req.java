@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,37 +20,68 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-export const transformVariableCronToTemplate = (target) => {
-    const { value, servers } = target;
-    const defaultTargetValue = {
-        hostNodeList: {
-            nodeInfo: [],
-            dynamicGroupId: [],
-            hostList: [],
-        },
-    };
-    if (servers) {
-        const nodeInfo = servers.topoNodes || [];
-        const dynamicGroupId = servers.dynamicGroupIds || [];
-        const hostList = servers.ips || [];
-        defaultTargetValue.hostNodeList = {
-            nodeInfo: nodeInfo.map(({ id, nodeType }) => ({
-                id,
-                type: nodeType,
-            })),
-            dynamicGroupId,
-            hostList: hostList.map(({ ip, cloudAreaId }) => ({
-                ip,
-                cloudAreaInfo: {
-                    id: cloudAreaId,
-                },
-            })),
-        };
-    }
-    return Object.freeze({
-        defaultValue: value,
-        defaultTargetValue,
-    });
-};
+package com.tencent.bk.job.manage.model.esb.v3.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * 新建凭据请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbCreateOrUpdateCredentialV3Req extends EsbReq {
+    /**
+     * 业务ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
+    /**
+     * 凭据ID
+     */
+    private String id;
+
+    /**
+     * 凭据名称
+     */
+    private String name;
+
+    /**
+     * 凭据类型
+     */
+    private String type;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * AccessKey
+     */
+    @JsonProperty("credential_access_key")
+    private String credentialAccessKey;
+
+    /**
+     * SecretKey
+     */
+    @JsonProperty("credential_secret_key")
+    private String credentialSecretKey;
+
+    /**
+     * Username
+     */
+    @JsonProperty("credential_username")
+    private String credentialUsername;
+
+    /**
+     * Password
+     */
+    @JsonProperty("credential_password")
+    private String credentialPassword;
+}

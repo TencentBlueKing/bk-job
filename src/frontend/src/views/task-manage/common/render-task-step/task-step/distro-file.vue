@@ -197,6 +197,12 @@
                 immediate: true,
             },
         },
+        mounted () {
+            window.IPInputScope = 'FILE_DISTRIBUTION';
+            this.$once('hook:beforeDestroy', () => {
+                window.IPInputScope = '';
+            });
+        },
         methods: {
             /**
              * @desc 表单字段更新

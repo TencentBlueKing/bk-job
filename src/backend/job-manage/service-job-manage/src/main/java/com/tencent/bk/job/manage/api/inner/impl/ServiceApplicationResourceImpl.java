@@ -179,7 +179,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     public ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
                                                                          ServiceGetHostStatusByIpReq req) {
         List<String> ipList = req.getIpList();
-        List<HostInfoVO> hostInfoVOList = applicationService.getHostsByIp(username, appId, ipList);
+        List<HostInfoVO> hostInfoVOList = applicationService.getHostsByIp(username, appId, null, ipList);
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         hostInfoVOList.forEach(hostInfoVO -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
