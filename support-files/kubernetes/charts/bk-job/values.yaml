@@ -308,7 +308,7 @@ executeConfig:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-execute
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
