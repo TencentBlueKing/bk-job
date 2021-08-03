@@ -68,6 +68,6 @@ public class JobExecuteConfig {
     @Value("${job.encrypt.password}")
     private String encryptPassword;
 
-    @Value("${job.execute.file-tasks-max:100000}")
+    @Value("${job.execute.file-tasks-max:1000000}")
     private Integer fileTasksMax;
 }
