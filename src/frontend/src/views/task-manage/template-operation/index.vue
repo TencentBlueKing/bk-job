@@ -471,7 +471,7 @@
                             if (this.isEdit) {
                                 this.editSuccessCallback(taskId, planSync, isPlanEmpty);
                             } else {
-                                this.createSuccessCallback(taskId, planSync, isPlanEmpty);
+                                this.createSuccessCallback(taskId);
                             }
                         });
                     }))
