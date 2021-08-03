@@ -22,20 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.dto;
+package com.tencent.bk.job.common.artifactory.model.req;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.util.Map;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class RepoConfiguration {
-    // 不同类型仓库分别对应local、remote、virtual、composite(小写)，用于反序列化，创建和修改时需要提供该字段
-    private String type;
-    // 不同类型仓库可以通过该字段进行差异化配置
-    private Map<String, Object> settings;
+public class DeleteNodeReq extends ArtifactoryReq {
+    // 必传，项目Id
+    String projectId;
+    // 必传，仓库名称
+    String repoName;
+    // 必传，完整路径
+    String fullPath;
 }

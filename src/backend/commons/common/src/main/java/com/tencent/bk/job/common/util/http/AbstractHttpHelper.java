@@ -33,6 +33,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
@@ -207,6 +208,24 @@ public abstract class AbstractHttpHelper {
             get.setHeaders(header);
         }
         return getHttpClient().execute(get);
+    }
+
+    public String put(String url, HttpEntity requestEntity, Header... headers) throws Exception {
+        HttpPut put = new HttpPut(url);
+        // 设置为长连接，服务端判断有此参数就不关闭连接。
+        put.setHeader("Connection", "Keep-Alive");
+        put.setHeaders(headers);
+        put.setEntity(requestEntity);
+        try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                String message = httpResponse.getStatusLine().getReasonPhrase();
+                log.info("Put request fail, statusCode={}, errorReason={}", statusCode, message);
+                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            }
+            HttpEntity entity = httpResponse.getEntity();
+            return new String(EntityUtils.toByteArray(entity), CHARSET);
+        }
     }
 
     public String delete(String url, String content, Header... headers) throws Exception {

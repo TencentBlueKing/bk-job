@@ -22,32 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.globalsetting;
+package com.tencent.bk.job.common.artifactory.model.req;
 
-/**
- * @Description
- * @Date 2020/2/28
- * @Version 1.0
- */
-public class GlobalSettingKeys {
-    //执行历史保存时间
-    public static final String KEY_HISTORY_EXPIRE_DAYS = "HISTORY_EXPIRE_DAYS";
-    //默认命名规则中文
-    public static final String KEY_DEFAULT_NAME_RULES = "DEFAULT_NAME_RULES";
-    //默认命名规则英文
-    public static final String KEY_DEFAULT_NAME_RULES_EN = "DEFAULT_NAME_RULES_EN";
-    //当前命名规则中文
-    public static final String KEY_CURRENT_NAME_RULES = "CURRENT_NAME_RULES";
-    //当前命名规则英文
-    public static final String KEY_CURRENT_NAME_RULES_EN = "CURRENT_NAME_RULES_EN";
-    //最大上传文件大小配置
-    public static final String KEY_FILE_UPLOAD_MAX_SIZE = "FILE_UPLOAD_MAX_SIZE";
-    //Title与Footer配置
-    public static final String KEY_TITLE_FOOTER = "TITLE_FOOTER";
-    //全局可用消息通知渠道是否已配置
-    public static final String KEY_NOTIFY_CHANNEL_CONFIGED = "NOTIFY_CHANNEL_CONFIGED";
-    //是否启用文件管理特性
-    public static final String KEY_ENABLE_FEATURE_FILE_MANAGE = "ENABLE_FEATURE_FILE_MANAGE";
-    //是否上传本地文件到制品库
-    public static final String KEY_ENABLE_UPLOAD_TO_ARTIFACTORY = "ENABLE_UPLOAD_TO_ARTIFACTORY";
+import com.tencent.bk.job.common.util.http.BasicHttpReq;
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
+public class ArtifactoryReq extends BasicHttpReq {
+
 }

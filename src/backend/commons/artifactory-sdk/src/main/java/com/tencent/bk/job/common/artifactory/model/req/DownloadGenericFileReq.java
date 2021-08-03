@@ -22,10 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.req;
+package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
 
 @Data
-public class ListProjectReq extends ArtifactoryReq {
+public class DownloadGenericFileReq extends ArtifactoryReq {
+    // 必传，项目Id
+    String project;
+    // 必传，仓库名称
+    String repo;
+    // 必传，完整路径
+    String path;
 }

@@ -22,28 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.req;
+package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class ListNodePageReq extends ArtifactoryReq {
+@EqualsAndHashCode(callSuper = true)
+public class QueryNodeDetailReq extends ArtifactoryReq {
     // 必传，项目Id
     String projectId;
     // 必传，仓库名称
     String repoName;
     // 必传，完整路径
     String fullPath;
-    // 非必传，页码
-    int pageNumber = 1;
-    // 非必传，页面大小
-    int pageSize = 20;
-    // 非必传，是否包含目录
-    Boolean includeFolder = true;
-    // 非必传，是否包含元数据
-    Boolean includeMetadata = false;
-    // 非必传，是否查询子目录节点
-    Boolean deep = false;
-    // 非必传，是否排序输出结果
-    Boolean sort = true;
 }

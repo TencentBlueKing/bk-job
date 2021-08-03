@@ -35,6 +35,7 @@ dependencies {
     compile project(":commons:common-security")
     compile project(":commons:common-redis")
     compile project(":commons:cmdb-sdk-ext")
+    compile project(":commons:artifactory-sdk")
     compile project(":commons:paas-sdk")
     compile project(":commons:esb-sdk")
     compile project(":commons:gse-sdk")

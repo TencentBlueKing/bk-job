@@ -25,32 +25,56 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.collect.Lists;
+import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.Utils;
+import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
+import com.tencent.bk.job.manage.config.ArtifactoryConfigForManage;
 import com.tencent.bk.job.manage.config.StorageSystemConfig;
+import com.tencent.bk.job.manage.model.web.request.GenUploadTargetReq;
 import com.tencent.bk.job.manage.model.web.vo.UploadLocalFileResultVO;
+import com.tencent.bk.job.manage.model.web.vo.UploadTargetVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
 @Slf4j
 public class WebFileUploadResourceImpl implements WebFileUploadResource {
     private final StorageSystemConfig storageSystemConfig;
+    private final ArtifactoryConfigForManage artifactoryConfig;
+    private final ArtifactoryClient artifactoryClient;
 
-    public WebFileUploadResourceImpl(StorageSystemConfig storageSystemConfig) {
+    @Autowired
+    public WebFileUploadResourceImpl(
+        StorageSystemConfig storageSystemConfig,
+        ArtifactoryConfigForManage artifactoryConfig,
+        ArtifactoryClient artifactoryClient
+    ) {
         this.storageSystemConfig = storageSystemConfig;
+        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryClient = artifactoryClient;
     }
 
-    @Override
-    public ServiceResponse<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
-                                                                          MultipartFile[] uploadFiles) {
-        log.info("Handle upload file!");
+    /**
+     * 将上传的文件保存至本机挂载的NFS
+     *
+     * @param username
+     * @param uploadFiles
+     * @return
+     */
+    private List<UploadLocalFileResultVO> saveFileToLocal(String username, MultipartFile[] uploadFiles) {
         String uploadPath = storageSystemConfig.getJobStorageRootPath() + "/localupload/";
         List<UploadLocalFileResultVO> fileUploadResults = Lists.newArrayListWithCapacity(uploadFiles.length);
 
@@ -110,7 +134,62 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                 fileUploadResults.add(result);
             }
         }
+        return fileUploadResults;
+    }
+
+    /**
+     * 将上传的文件保存至蓝鲸制品库
+     *
+     * @param username
+     * @param uploadFiles
+     * @return
+     */
+    private List<UploadLocalFileResultVO> saveFileToArtifactory(String username, MultipartFile[] uploadFiles) {
+        List<UploadLocalFileResultVO> fileUploadResults = Lists.newArrayListWithCapacity(uploadFiles.length);
+        for (MultipartFile file : uploadFiles) {
+            String filePath = Utils.getUUID() +
+                File.separatorChar + username + File.separatorChar +
+                file.getOriginalFilename();
+            String fullFilePath = PathUtil.joinFilePath(artifactoryConfig.getJobLocalUploadRootPath(), filePath);
+            String fileName = PathUtil.getFileNameByPath(fullFilePath);
+            log.debug("fullFilePath={}", fullFilePath);
+            UploadLocalFileResultVO fileResultVO = new UploadLocalFileResultVO();
+            fileResultVO.setFileName(fileName);
+            fileResultVO.setFilePath(filePath);
+            try {
+                NodeDTO nodeDTO = artifactoryClient.uploadGenericFile(fullFilePath, file.getInputStream());
+                fileResultVO.setFileSize(nodeDTO.getSize());
+                fileResultVO.setMd5(nodeDTO.getMd5());
+                fileResultVO.setStatus(0);
+            } catch (IOException e) {
+                String errMsg = String.format("Fail to upload file %s to artifactory", fullFilePath);
+                fileResultVO.setStatus(-1);
+                log.error(errMsg, e);
+                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, errMsg);
+            } finally {
+                fileUploadResults.add(fileResultVO);
+            }
+        }
+        return fileUploadResults;
+    }
+
+    @Override
+    public ServiceResponse<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
+                                                                          MultipartFile[] uploadFiles) {
+        log.info("Handle upload file!");
+        List<UploadLocalFileResultVO> fileUploadResults = null;
+        if (artifactoryConfig.isEnable()) {
+            fileUploadResults = saveFileToArtifactory(username, uploadFiles);
+
+        } else {
+            fileUploadResults = saveFileToLocal(username, uploadFiles);
+        }
         return ServiceResponse.buildSuccessResp(fileUploadResults);
+    }
+
+    @Override
+    public ServiceResponse<UploadTargetVO> genUploadTarget(String username, GenUploadTargetReq req) {
+        return ServiceResponse.buildSuccessResp(new UploadTargetVO(Collections.singletonList("http://xxx.com?token=xxx")));
     }
 
     private String getFileMd5(MultipartFile file) {

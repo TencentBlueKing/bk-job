@@ -22,28 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.dto;
+package com.tencent.bk.job.manage.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
-public class ProjectDTO {
-    // 名称
-    private String name;
-    // 用于显示的名称
-    private String displayName;
-    // 描述
-    private String description;
-    // 创建者
-    private String createdBy;
-    // 创建时间
-    private String createdDate;
-    // 最后更新者
-    private String lastModifiedBy;
-    // 最后更新时间
-    private String lastModifiedDate;
+@Configuration
+public class ArtifactoryClientAutoConfig {
+    @Bean
+    public ArtifactoryClient artifactoryClient(
+        @Autowired ArtifactoryConfigForManage artifactoryConfig,
+        @Autowired MeterRegistry meterRegistry
+    ) {
+        return new ArtifactoryClient(
+            artifactoryConfig.getBaseUrl(),
+            artifactoryConfig.getJobUsername(),
+            artifactoryConfig.getJobPassword(),
+            meterRegistry
+        );
+    }
 }

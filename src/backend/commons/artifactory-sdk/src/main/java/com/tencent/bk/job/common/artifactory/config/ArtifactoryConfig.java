@@ -22,16 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.req;
+package com.tencent.bk.job.common.artifactory.config;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Data
-public class DeleteRepoReq extends ArtifactoryReq {
-    // 必传，项目Id
-    String projectId;
-    // 必传，仓库名称
-    String repoName;
-    // 非必传，是否强制删除，如果为false，当仓库中存在文件时，将无法删除仓库
-    Boolean forced = false;
+@Component
+public class ArtifactoryConfig {
+
+    @Value("${artifactory.base.url:}")
+    private String baseUrl;
+
+    @Value("${artifactory.job.username:}")
+    private String jobUsername;
+
+    @Value("${artifactory.job.password:}")
+    private String jobPassword;
 }

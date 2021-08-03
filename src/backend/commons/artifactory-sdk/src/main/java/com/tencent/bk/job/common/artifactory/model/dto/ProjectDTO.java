@@ -22,21 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.dto;
+package com.tencent.bk.job.common.artifactory.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PageData<T> {
-    private long totalRecords;
-    private int pageNumber;
-    private int pageSize;
-    private long totalPages;
-    private List<T> records;
+public class ProjectDTO {
+    // 名称
+    private String name;
+    // 用于显示的名称
+    private String displayName;
+    // 描述
+    private String description;
+    // 创建者
+    private String createdBy;
+    // 创建时间
+    private String createdDate;
+    // 最后更新者
+    private String lastModifiedBy;
+    // 最后更新时间
+    private String lastModifiedDate;
 }

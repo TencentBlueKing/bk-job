@@ -22,28 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.req;
+package com.tencent.bk.job.common.artifactory.constants;
 
-import lombok.Data;
-
-@Data
-public class ListRepoPageReq extends ArtifactoryReq {
-    // 必传，项目Id
-    String projectId;
-    // 必传，页码
-    int pageNumber = 1;
-    // 必传，页面大小
-    int pageSize = 20;
-    // 非必传，名称，支持前缀匹配
-    String name;
-    // 非必传，仓库类型，枚举值
-    // GENERIC	通用二进制文件仓库
-    // DOCKER	Docker仓库
-    // MAVEN	Maven仓库
-    // PYPI	    Pypi仓库
-    // NPM	    Npm仓库
-    // HELM	    Helm仓库
-    // COMPOSER	Composer仓库
-    // RPM	    Rpm仓库
-    String type = "GENERIC";
+/**
+ * 制品库接口相关常量
+ */
+public class ArtifactoryInterfaceConsts {
+    public static final int RESULT_CODE_OK = 0;
+    public static final String AUTH_HEADER_KEY = "Authorization";
 }

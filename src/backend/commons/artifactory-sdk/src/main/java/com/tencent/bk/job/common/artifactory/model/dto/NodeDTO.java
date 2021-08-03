@@ -22,12 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.consts;
+package com.tencent.bk.job.common.artifactory.model.dto;
 
-/**
- * 制品库接口相关常量
- */
-public class ArtifactoryInterfaceConsts {
-    public static final int RESULT_CODE_OK = 0;
-    public static final String AUTH_HEADER_KEY = "Authorization";
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class NodeDTO {
+    // 项目Id
+    private String projectId;
+    // 节点所属仓库
+    private String repoName;
+    // 节点目录
+    private String path;
+    // 节点名称
+    private String name;
+    // 节点完整路径
+    private String fullPath;
+    // 是否为文件夹
+    private Boolean folder;
+    // 节点大小
+    private Long size;
+    // 节点sha256
+    private String sha256;
+    // 节点md5
+    private String md5;
+    // 晋级状态标签，includeMetadata=false将返回空
+    private String stageTag;
+    // 节点元数据，key-value键值对，includeMetadata=false将返回空
+    private Map<String, Object> metadata;
+    // 创建者
+    private String createdBy;
+    // 创建时间
+    private String createdDate;
+    // 上次修改者
+    private String lastModifiedBy;
+    // 上次修改时间
+    private String lastModifiedDate;
 }

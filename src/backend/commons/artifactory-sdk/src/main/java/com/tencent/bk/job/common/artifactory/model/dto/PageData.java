@@ -22,16 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.model.req;
+package com.tencent.bk.job.common.artifactory.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class DownloadGenericFileReq extends ArtifactoryReq {
-    // 必传，项目Id
-    String project;
-    // 必传，仓库名称
-    String repo;
-    // 必传，完整路径
-    String path;
+public class PageData<T> {
+    private long totalRecords;
+    private int pageNumber;
+    private int pageSize;
+    private long totalPages;
+    private List<T> records;
 }
