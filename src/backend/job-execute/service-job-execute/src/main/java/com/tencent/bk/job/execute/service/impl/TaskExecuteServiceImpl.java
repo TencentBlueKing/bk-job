@@ -836,9 +836,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     totalSourceFileSize += sourceServerSize * sourceFileSize;
                 }
                 int totalFileTaskSize = totalSourceFileSize * targetServerSize;
+                if (totalFileTaskSize > 10000) {
+                    log.warn("Step contains a large number of file tasks, size: {}, step: {}",
+                        totalFileTaskSize, stepInstance);
+                }
                 if (totalFileTaskSize > jobExecuteConfig.getFileTasksMax()) {
-                    log.warn("Too much file tasks, step: {}, size: {}, maxAllowedSize: {}",
-                        JsonUtils.toJson(stepInstance), totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
+                    log.warn("Too much file tasks, reject the task. step: {}, size: {}, maxAllowedSize: {}",
+                        stepInstance, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
                     throw new ServiceException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
                 }
             }
