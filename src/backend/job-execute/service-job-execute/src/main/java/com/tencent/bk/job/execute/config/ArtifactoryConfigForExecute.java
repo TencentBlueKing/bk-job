@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.config;
+package com.tencent.bk.job.execute.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +30,10 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class ArtifactoryConfig {
+public class ArtifactoryConfigForExecute {
+
+    @Value("${artifactory.enable:false}")
+    private boolean enable;
 
     @Value("${artifactory.base.url:}")
     private String baseUrl;
@@ -40,4 +43,7 @@ public class ArtifactoryConfig {
 
     @Value("${artifactory.job.password:}")
     private String jobPassword;
+
+    @Value("${artifactory.job.local-upload.root-path:bkjob/localupload}")
+    private String jobLocalUploadRootPath;
 }

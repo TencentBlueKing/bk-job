@@ -230,6 +230,7 @@ public class ThirdFilePullingBatchResultHandleTask implements ContinuousSchedule
                 resultList.forEach(result -> {
                     map.put(result.getTaskId(), result);
                 });
+                //TODO:添加本地文件的下载信息
                 //添加服务器文件信息
                 for (FileSourceDTO fileSourceDTO : fileSourceList) {
                     String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();

@@ -31,9 +31,14 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.prepare.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.third.ThirdFilePullingBatchResultHandleTask;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -61,6 +66,7 @@ import java.util.stream.Collectors;
 public class FileSourceBatchTaskManagerImpl implements FileSourceTaskManager {
     private final ResultHandleManager resultHandleManager;
     private final FileSourceTaskResourceClient fileSourceTaskResource;
+    private final LocalFilePrepareService localFilePrepareService;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
@@ -70,11 +76,12 @@ public class FileSourceBatchTaskManagerImpl implements FileSourceTaskManager {
     @Autowired
     public FileSourceBatchTaskManagerImpl(ResultHandleManager resultHandleManager,
                                           FileSourceTaskResourceClient fileSourceTaskResource,
-                                          TaskInstanceService taskInstanceService,
+                                          LocalFilePrepareService localFilePrepareService, TaskInstanceService taskInstanceService,
                                           FileSourceTaskLogDAO fileSourceTaskLogDAO, AccountService accountService,
                                           LogService logService, TaskExecuteControlMsgSender taskControlMsgSender) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
+        this.localFilePrepareService = localFilePrepareService;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.accountService = accountService;
@@ -197,6 +204,8 @@ public class FileSourceBatchTaskManagerImpl implements FileSourceTaskManager {
             taskControlMsgSender.startGseStep(stepInstance.getId());
             return;
         }
+        // 准备本地文件
+        localFilePrepareService.prepareLocalFiles(fileSourceList);
         Pair<List<FileSourceDTO>, List<FileSourceTaskContent>> thirdFileSource = parseThirdFileSource(fileSourceList);
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();

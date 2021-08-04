@@ -34,6 +34,7 @@ dependencies {
     compile project(':commons:common-security')
     compile project(':commons:common-redis')
     compile project(":commons:cmdb-sdk-ext")
+    compile project(":commons:artifactory-sdk")
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-jdbc")
     compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")

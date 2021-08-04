@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
-import com.tencent.bk.job.file.worker.utils.FileUtil;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
 
