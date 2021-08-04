@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -46,8 +47,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -189,7 +191,23 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
 
     @Override
     public ServiceResponse<UploadTargetVO> genUploadTarget(String username, GenUploadTargetReq req) {
-        return ServiceResponse.buildSuccessResp(new UploadTargetVO(Collections.singletonList("http://xxx.com?token=xxx")));
+        List<String> fileNameList = req.getFileNameList();
+        List<String> filePathList = new ArrayList<>();
+        fileNameList.forEach(fileName -> {
+            String filePath = Utils.getUUID() +
+                File.separatorChar + username + File.separatorChar + fileName;
+            String fullFilePath = PathUtil.joinFilePath(artifactoryConfig.getJobLocalUploadRootPath(), filePath);
+            filePathList.add(fullFilePath);
+        });
+        List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(filePathList);
+        return ServiceResponse.buildSuccessResp(
+            new UploadTargetVO(
+                urlInfoList
+                    .parallelStream()
+                    .map(TempUrlInfo::getUrl)
+                    .collect(Collectors.toList())
+            )
+        );
     }
 
     private String getFileMd5(MultipartFile file) {

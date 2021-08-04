@@ -31,7 +31,9 @@ import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.model.req.ArtifactoryReq;
+import com.tencent.bk.job.common.artifactory.model.req.CreateTempUrlReq;
 import com.tencent.bk.job.common.artifactory.model.req.DeleteNodeReq;
 import com.tencent.bk.job.common.artifactory.model.req.DeleteRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.DownloadGenericFileReq;
@@ -81,6 +83,7 @@ public class ArtifactoryClient {
     public static final String URL_DOWNLOAD_GENERIC_FILE = "/generic/{project}/{repo}/{path}";
     public static final String URL_UPLOAD_GENERIC_FILE = "/generic/{project}/{repo}/{path}";
     public static final String URL_QUERY_NODE_DETAIL = "/repository/api/node/detail/{projectId}/{repoName}/{fullPath}";
+    public static final String URL_CREATE_TEMP_ACCESS_URL = "/generic/temporary/url/create";
     AbstractHttpHelper httpHelper = new DefaultHttpHelper();
     AbstractHttpHelper longHttpHelper = new LongRetryableHttpHelper();
     private String baseUrl;
@@ -375,6 +378,30 @@ public class ArtifactoryClient {
             throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{e.getMessage()});
         }
+    }
+
+    public List<TempUrlInfo> createTempUrls(List<String> filePathList) {
+        CreateTempUrlReq req = new CreateTempUrlReq();
+        List<String> fullPathSet = new ArrayList<>();
+        filePathList.forEach(filePath -> {
+            List<String> pathList = parsePath(filePath);
+            req.setProjectId(pathList.get(0));
+            req.setRepoName(pathList.get(1));
+            fullPathSet.add(pathList.get(2));
+        });
+        req.setExpireSeconds(30 * 60L);
+        req.setPermits(1);
+        req.setType("UPLOAD");
+        req.setFullPathSet(fullPathSet);
+        ArtifactoryResp<List<TempUrlInfo>> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_CREATE_TEMP_ACCESS_URL,
+            req,
+            new TypeReference<ArtifactoryResp<List<TempUrlInfo>>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
     }
 
     public void shutdown() {

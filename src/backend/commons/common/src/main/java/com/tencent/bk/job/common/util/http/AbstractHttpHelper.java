@@ -116,6 +116,7 @@ public abstract class AbstractHttpHelper {
      * @return
      */
     public String post(String url, String charset, String content, Header... headers) throws Exception {
+        log.debug("post:url={},charset={},content={},headers={}", url, charset, content, headers);
         byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
         if (null == resp) {
             return null;
@@ -158,7 +159,13 @@ public abstract class AbstractHttpHelper {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Post request fail, statusCode={}, errorReason={}", statusCode, message);
+                log.info(
+                    "Post request fail, statusCode={}, errorReason={}, url={}, headers={}",
+                    statusCode,
+                    message,
+                    url,
+                    headers
+                );
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
