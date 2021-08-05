@@ -3,15 +3,75 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "common.names.fullname" . }}-execute
+  namespace: {{ .Release.Namespace }}
   labels:
-    { { - include "common.labels.standard" . | nindent 4 } }
+    {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-execute"
-    { { - if .Values.commonLabels } }
-    { { - include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 } }
-    { { - end } }
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
 data:
-  {{- if .Values.executeConfig }}
-  application.yml: |-
-    {{- toYaml .Values.executeConfig | nindent 2 }}
-  {{- end}}
+  application-execute.yaml: |-
+    app:
+      code: {{ .Values.app.code }}
+      secret: {{ .Values.app.secret }}
+    esb:
+      service:
+        url: {{ .Values.esb.service.url }}
+    gse:
+      cache:
+        apiserver:
+          host: {{ .Values.gse.cacheApiServer.host }}
+          port: {{ .Values.gse.cacheApiServer.port }}
+      ssl:
+        keystore:
+          password: {{ .Values.gse.ssl.keystore.password }}
+          path: {{ .Values.gse.ssl.keystore.path }}
+        truststore:
+          manager-type: SunX509
+          password: {{ .Values.gse.ssl.truststore.password }}
+          path: {{ .Values.gse.ssl.truststore.path }}
+          store-type: JKS
+      taskserver:
+        host: {{ .Values.gse.taskserver.host }}
+        port: {{ .Values.gse.taskserver.port }}
+    iam:
+      base-url: {{ .Values.iam.baseUrl }}
+      system-id: bk_job
+    job:
+      execute:
+        db:
+          url: jdbc:mysql://{{- include job.mariadb.host . }}:{{- include job.mariadb.port . }}/job_execute?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+          username: {{- include job.mariadb.username . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+        rabbitmq:
+          host: {{- include job.rabbitmq.host . }}
+          port: {{- include job.rabbitmq.port . }}
+          username: {{- include job.rabbitmq.username . }}
+          {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+          password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${rabbitmq-password}
+          {{- end }}
+          vhost: {{- include job.rabbitmq.vhost . }}
+        redis:
+          mode: standalone
+          host: {{- include job.redis.host . }}
+          port: {{- include job.redis.port . }}
+          {{ if .Values.externalRedis.existingPasswordSecret }}
+          password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${redis-password}
+          {{- end }}
+      security:
+        private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
+        public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+      storage:
+        root-path: /data/nfs/job
+      web:
+        url: {{ .Values.job.web.url }}
 {{- end}}

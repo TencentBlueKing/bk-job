@@ -2,6 +2,7 @@ apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ include "common.names.fullname" . }}-execute
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-execute"
@@ -64,6 +65,8 @@ spec:
               value: job-execute.jar
             - name: BK_JOB_APPLICATION_NAME
               value: {{ include "common.names.fullname" . }}-exeucte
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
           ports:
             - name: http
               containerPort: 10502
@@ -88,4 +91,23 @@ spec:
             successThreshold: 1
           resources:
             {{- toYaml .Values.executeConfig.resources | nindent 12 }}
-
+          volumeMounts:
+            - name: mariadb
+              mountPath: /etc/secrets/mariadb
+              readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+            - name: redis
+              mountPath: /etc/secrets/redis
+              readOnly: true
+      volumes:
+        - name: mariadb
+          secret:
+            secretName: {{ include "job.mariadb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+        - name: redis
+          secret:
+            secretName: {{ include "job.redis.secretName" . }}
