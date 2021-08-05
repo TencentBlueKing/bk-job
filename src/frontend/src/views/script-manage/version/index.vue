@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="script-manage-version-page" v-bkloading="{ isLoading }">
+    <div class="script-manage-version-page">
         <script-basic />
         <div class="version-list-wraper">
             <list-action-layout>
@@ -96,13 +96,18 @@
                             align="left"
                             width="150">
                             <template slot-scope="{ row }">
-                                <a :tippy-tips="$t('script.作业模版引用')" @click="handleShowRelated('template', row)">
-                                    {{ row.relatedTaskTemplateNum }}
-                                </a>
-                                <span> / </span>
-                                <a :tippy-tips="$t('script.执行方案引用')" @click="handleShowRelated('plan', row)">
-                                    {{ row.relatedTaskPlanNum }}
-                                </a>
+                                <span
+                                    v-bk-tooltips.right.allowHtml="`
+                                    <div>${$t('script.作业模版引用')}: ${row.relatedTaskTemplateNum}</div>
+                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`">
+                                    <a @click="handleShowRelated('template', row)">
+                                        {{ row.relatedTaskTemplateNum }}
+                                    </a>
+                                    <span> / </span>
+                                    <a @click="handleShowRelated('plan', row)">
+                                        {{ row.relatedTaskPlanNum }}
+                                    </a>
+                                </span>
                             </template>
                         </bk-table-column>
                         <bk-table-column
