@@ -145,17 +145,15 @@ spring:
       password: ${job.execute.redis.sentinel.password:}
       master: ${job.execute.redis.sentinel.master:}
       nodes: ${job.execute.redis.sentinel.nodes:}
-    cluster:
-      nodes: ${job.execute.redis.cluster.nodes:}
     password: ${job.execute.redis.password:}
     database: ${job.execute.redis.database}
     lettuce:
       pool:
-        min-idle: ${job.execute.redis.lettuce.pool.min-idle}
-        max-idle: ${job.execute.redis.lettuce.pool.max-idle}
-        max-active: ${job.execute.redis.lettuce.pool.max-active}
-        max-wait: ${job.execute.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.execute.redis.lettuce.shutdown-timeout}
+        min-idle: ${job.execute.redis.lettuce.pool.min-idle:5}
+        max-idle: ${job.execute.redis.lettuce.pool.max-idle:10}
+        max-active: ${job.execute.redis.lettuce.pool.max-idle:8}
+        max-wait: ${job.execute.redis.lettuce.pool.max-wait:1ms}
+      shutdown-timeout: ${job.execute.redis.lettuce.shutdown-timeout:100ms}
   security:
     user:
       name: ${job.security.actuator.user.name}

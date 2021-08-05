@@ -23,17 +23,15 @@ spring:
       password: ${job.analysis.redis.sentinel.password:}
       master: ${job.analysis.redis.sentinel.master:}
       nodes: ${job.analysis.redis.sentinel.nodes:}
-    cluster:
-      nodes: ${job.analysis.redis.cluster.nodes:}
     password: ${job.analysis.redis.password:}
     database: ${job.analysis.redis.database}
     lettuce:
       pool:
-        min-idle: ${job.analysis.redis.lettuce.pool.min-idle}
-        max-idle: ${job.analysis.redis.lettuce.pool.max-idle}
-        max-active: ${job.analysis.redis.lettuce.pool.max-active}
-        max-wait: ${job.analysis.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.analysis.redis.lettuce.shutdown-timeout}
+        min-idle: ${job.analysis.redis.lettuce.pool.min-idle:5}
+        max-idle: ${job.analysis.redis.lettuce.pool.max-idle:10}
+        max-active: ${job.analysis.redis.lettuce.pool.max-idle:8}
+        max-wait: ${job.analysis.redis.lettuce.pool.max-wait:1ms}
+      shutdown-timeout: ${job.analysis.redis.lettuce.shutdown-timeout:100ms}
   rabbitmq:
     host: ${job.analysis.rabbitmq.host}
     port: ${job.analysis.rabbitmq.port}
