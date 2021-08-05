@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    kubernetes:
+      config:
+        name: ${spring.application.name}
+        namespace: ${KUBERNETES_NAMESPACE}
+        sources:
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${SPRING_CLOUD_KUBERNETES_CONFIGMAP_NAME}

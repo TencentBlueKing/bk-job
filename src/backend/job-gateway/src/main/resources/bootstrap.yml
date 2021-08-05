@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ${BK_JOB_APPLICATION_NAME:job-gateway}
+    name: ${SPRING_APPLICATION_NAME:job-gateway}
   profiles:
     active: default
   cloud:

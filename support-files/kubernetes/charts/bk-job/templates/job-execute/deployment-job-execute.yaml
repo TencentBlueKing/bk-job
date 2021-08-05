@@ -63,10 +63,17 @@ spec:
               value: prod
             - name: BK_JOB_JAR
               value: job-execute.jar
-            - name: BK_JOB_APPLICATION_NAME
+            - name: SPRING_APPLICATION_NAME
+              value: {{ include "common.names.fullname" . }}-exeucte
+            - name: SPRING_CLOUD_KUBERNETES_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-exeucte
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
           ports:
             - name: http
               containerPort: 10502
