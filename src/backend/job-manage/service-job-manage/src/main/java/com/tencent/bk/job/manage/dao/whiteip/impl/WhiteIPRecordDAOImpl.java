@@ -360,7 +360,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val actionScopeIdListStr = (String) record.get(KEY_ACTION_SCOPE_ID_LIST);
                 List<String> actionScopeIdList = CustomCollectionUtils.getNoDuplicateList(actionScopeIdListStr, ",");
                 List<ActionScopeVO> actionScopeVOList = actionScopeIdList.stream().map(actionScopeId ->
-                    actionScopeDAO.getActionScopeVOById(dslContext, Long.parseLong(actionScopeId))
+                    actionScopeDAO.getActionScopeVOById(Long.parseLong(actionScopeId))
                 ).collect(Collectors.toList());
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
                 List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
@@ -515,18 +515,27 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @Override
-    public List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds) {
+    public List<CloudIPDTO> listWhiteIPByAppIds(DSLContext dslContext, Collection<Long> appIds, Long actionScopeId) {
         val tWhiteIPIP = WhiteIpIp.WHITE_IP_IP.as("tWhiteIPIP");
         val tWhiteIPAppRel = WhiteIpAppRel.WHITE_IP_APP_REL.as("tWhiteIPAppRel");
+        val tWhiteIPActionScope = WhiteIpActionScope.WHITE_IP_ACTION_SCOPE.as("tWhiteIPActionScope");
+        Collection<Condition> conditions = new ArrayList<>();
+        if (appIds != null) {
+            conditions.add(tWhiteIPAppRel.APP_ID.in(appIds));
+        }
+        if (actionScopeId != null) {
+            conditions.add(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(actionScopeId));
+        }
         val query = dslContext.select(
             tWhiteIPIP.CLOUD_AREA_ID.as(KEY_CLOUD_AREA_ID),
             tWhiteIPIP.IP.as(KEY_IP)
         ).from(tWhiteIPAppRel)
             .join(tWhiteIPIP).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPIP.RECORD_ID))
-            .where(tWhiteIPAppRel.APP_ID.in(appIds));
+            .join(tWhiteIPActionScope).on(tWhiteIPAppRel.RECORD_ID.eq(tWhiteIPActionScope.RECORD_ID))
+            .where(conditions);
         try {
             val records = query.fetch();
-            if (records != null && records.size() > 0) {
+            if (records.size() > 0) {
                 return records.map(record -> {
                     val cloudId = (Long) record.get(KEY_CLOUD_AREA_ID);
                     val ip = (String) record.get(KEY_IP);

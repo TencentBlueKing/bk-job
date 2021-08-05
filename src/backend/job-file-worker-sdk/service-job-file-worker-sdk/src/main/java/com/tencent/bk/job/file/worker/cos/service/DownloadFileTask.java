@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
-import com.tencent.bk.job.file.worker.utils.FileUtil;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,18 +86,6 @@ class DownloadFileTask extends Thread {
         AtomicInteger speed,
         AtomicInteger process
     ) throws ServiceException {
-        File file = new File(targetPath);
-        File parentFile = file.getParentFile();
-        if (!parentFile.exists()) {
-            try {
-                boolean flag = parentFile.mkdirs();
-            } catch (Exception e) {
-                //创建目录失败
-                String msg = String.format("Fail to create dir:%s", parentFile.getAbsolutePath());
-                log.error(msg, e);
-                throw new RuntimeException(msg, e);
-            }
-        }
         InputStream ins = null;
         try {
             String fileMd5 = "";

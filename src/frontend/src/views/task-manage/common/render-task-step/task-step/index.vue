@@ -27,37 +27,55 @@
 
 <template>
     <div class="task-step-operation-wraper">
-        <jb-form fixed :label-width="formMarginLeftWidth">
-            <bk-form-item :label="$t('template.步骤类型')" required>
-                <bk-select
-                    v-model="taskStepType"
-                    :clearable="false"
-                    :disabled="isStepDisabled"
-                    style="width: 495px;">
-                    <bk-option id="1" :name="$t('template.执行脚本')">{{ $t('template.执行脚本') }}</bk-option>
-                    <bk-option id="2" :name="$t('template.分发文件')">{{ $t('template.分发文件') }}</bk-option>
-                    <bk-option id="3" :name="$t('template.人工确认')">{{ $t('template.人工确认') }}</bk-option>
-                </bk-select>
-            </bk-form-item>
-        </jb-form>
-        <component
-            ref="handler"
-            :is="stepCom"
-            :data="stepData"
-            v-bind="$attrs"
-            v-on="$listeners" />
+        <div class="left" :style="leftStyles">
+            <scroll-faker>
+                <div class="container">
+                    <jb-form fixed :label-width="formMarginLeftWidth">
+                        <bk-form-item :label="$t('template.步骤类型')" required>
+                            <bk-select
+                                v-model="taskStepType"
+                                :clearable="false"
+                                :disabled="isStepTypeReadOnly"
+                                class="form-item-content">
+                                <bk-option id="1" :name="$t('template.执行脚本')" />
+                                <bk-option id="2" :name="$t('template.分发文件')" />
+                                <bk-option id="3" :name="$t('template.人工确认')" />
+                            </bk-select>
+                        </bk-form-item>
+                    </jb-form>
+                    <component
+                        ref="handler"
+                        :is="stepCom"
+                        :data="stepData"
+                        v-bind="$attrs"
+                        v-on="$listeners" />
+                </div>
+            </scroll-faker>
+            <bk-button
+                text
+                class="variable-guide-btn"
+                @click="handleShowVariableGuide">
+                <Icon type="book" />
+                变量使用指引
+            </bk-button>
+        </div>
+        <div v-if="isShowVariableGuide" class="right">
+            <variable-use-guide @on-close="handleHideVariableGuide" />
+        </div>
     </div>
 </template>
 <script>
     import StepDistroFile from './distro-file';
     import StepExecScript from './exec-script';
     import StepArificial from './artificial';
+    import VariableUseGuide from './variable-use-guide.vue';
 
     export default {
         components: {
             StepDistroFile,
             StepExecScript,
             StepArificial,
+            VariableUseGuide,
         },
         inheritAttrs: false,
         props: {
@@ -69,9 +87,14 @@
         data () {
             return {
                 taskStepType: '',
+                isShowVariableGuide: false,
             };
         },
         computed: {
+            /**
+             * @desc 步骤渲染组件
+             * @returns { Object }
+             */
             stepCom () {
                 const taskStepMap = {
                     1: StepExecScript,
@@ -83,6 +106,10 @@
                 }
                 return taskStepMap[this.taskStepType];
             },
+            /**
+             * @desc 步骤数据
+             * @returns { Object }
+             */
             stepData () {
                 const stepDataMap = {
                     1: 'scriptStepInfo',
@@ -101,8 +128,21 @@
                     ...this.data[currentKey],
                 };
             },
-            isStepDisabled () {
+            /**
+             * @desc 步骤类型不可编辑
+             * @returns { Boolean }
+             */
+            isStepTypeReadOnly () {
                 return !!Object.keys(this.data).length;
+            },
+            leftStyles () {
+                const styles = {
+                    width: '100%',
+                };
+                if (this.isShowVariableGuide) {
+                    styles.width = 'calc(100% - 366px)';
+                }
+                return styles;
             },
             formMarginLeftWidth () {
                 return this.$i18n.locale === 'en-US' && this.taskStepType === 2 ? 140 : 110;
@@ -120,10 +160,36 @@
                 immediate: true,
             },
         },
+        created () {
+            this.originWraperWidth = 0;
+        },
         mounted () {
-            document.querySelector('#taskStepOperationSideslider').querySelector('.jb-sideslider-footer').style.paddingLeft = `${this.formMarginLeftWidth + 30}px`;
+            const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
+            $targetSideslider.querySelector('.jb-sideslider-footer').style.paddingLeft = `${this.formMarginLeftWidth + 30}px`;
         },
         methods: {
+            handleShowVariableGuide () {
+                if (this.isShowVariableGuide) {
+                    return;
+                }
+                const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
+                const $wraper = $targetSideslider.querySelector('.bk-sideslider-wrapper');
+                $wraper.style.transition = 'width 0.1s';
+                setTimeout(() => {
+                    const {
+                        width,
+                    } = $wraper.getBoundingClientRect();
+                    this.originWraperWidth = width;
+                    $wraper.style.width = `${width + 366}px`;
+                    this.isShowVariableGuide = true;
+                });
+            },
+            handleHideVariableGuide () {
+                const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
+                const $wraper = $targetSideslider.querySelector('.bk-sideslider-wrapper');
+                $wraper.style.width = `${this.originWraperWidth}px`;
+                this.isShowVariableGuide = false;
+            },
             submit () {
                 return this.$refs.handler.submit && this.$refs.handler.submit();
             },
@@ -131,18 +197,41 @@
                 this.taskStepType = '';
                 return this.$refs.handler.reset && this.$refs.handler.reset();
             },
-            handleGetValue (payload) {
-                this.$emit('on-change', payload);
-            },
         },
     };
 </script>
 <style lang="postcss">
     .task-step-operation-wraper {
-        padding-bottom: 4px;
+        max-height: calc(100vh - 155px);
+        margin-right: -30px;
 
-        .form-item-content {
-            width: 495px;
+        .left {
+            position: relative;
+            z-index: 0;
+
+            .container {
+                padding-right: 30px;
+            }
+
+            .form-item-content {
+                width: 495px;
+            }
+
+            .variable-guide-btn {
+                position: absolute;
+                top: -10px;
+                right: 30px;
+            }
+        }
+
+        .right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 0;
+            width: 366px;
+            height: calc(100% - 56px);
+            border-left: 1px solid #dcdee5;
         }
     }
 </style>

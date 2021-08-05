@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.ticket.model.inner.resp;
 
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -52,8 +53,8 @@ public class ServiceCredentialDTO {
     @ApiModelProperty("类型")
     private String type;
     /**
-     * 值
+     * 凭据
      */
-    @ApiModelProperty("值")
-    private String value;
+    @ApiModelProperty("凭据")
+    private CommonCredential credential;
 }

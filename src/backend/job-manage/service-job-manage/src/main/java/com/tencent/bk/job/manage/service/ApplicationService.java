@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
@@ -130,7 +131,7 @@ public interface ApplicationService {
      * @param checkIpList 待查询的 IP 列表
      * @return 主机信息列表
      */
-    List<HostInfoVO> getHostsByIp(String username, Long appId, List<String> checkIpList);
+    List<HostInfoVO> getHostsByIp(String username, Long appId, ActionScopeEnum actionScope, List<String> checkIpList);
 
     List<ApplicationInfoDTO> listAllAppsFromLocalDB();
 

@@ -25,7 +25,6 @@
 dependencies {
     api project(":commons:common-i18n")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    implementation(project(":commons:common-service"))
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"

@@ -2,6 +2,7 @@
 ---
 [![license](https://img.shields.io/badge/license-mit-brightgreen.svg?style=flat)](https://github.com/Tencent/bk-job/blob/master/LICENSE.txt) [![Release Version](https://img.shields.io/github/v/release/Tencent/bk-job?include_prereleases)](https://github.com/Tencent/bk-job/releases)
 
+[English](README.en.md) | 简体中文
 
 > **重要提示**: `master` 分支在开发过程中可能处于 *不稳定或者不可用状态* 。
 请通过[releases](https://github.com/tencent/bk-job/releases) 而非 `master` 去获取稳定的二进制文件。

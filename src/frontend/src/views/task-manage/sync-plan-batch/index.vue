@@ -720,6 +720,10 @@
                             templateId: this.lastOnePlanTemplateId,
                         },
                     });
+                } else if (from === 'planList') {
+                    this.$router.push({
+                        name: 'planList',
+                    });
                 } else if (from === 'templateDetail') {
                     this.$router.push({
                         name: 'templateDetail',

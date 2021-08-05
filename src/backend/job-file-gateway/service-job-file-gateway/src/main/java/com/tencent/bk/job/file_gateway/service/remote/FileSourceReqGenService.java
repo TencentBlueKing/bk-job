@@ -34,15 +34,21 @@ import java.util.Map;
  * 远程文件源请求生成
  */
 public interface FileSourceReqGenService {
+
     /**
-     * 生成ListBucket请求
-     *
-     * @param fileWorkerDTO
-     * @return
+     * 生成FileAvailable请求
+     */
+    HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO);
+
+    /**
+     * 生成ListFileNode请求
      */
     HttpReq genListFileNodeReq(Long appId, String path, String name, Integer start, Integer pageSize,
                                FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO);
 
+    /**
+     * 生成ExecuteAction请求
+     */
     HttpReq genExecuteActionReq(Long appId, String actionCode, Map<String, Object> actionParams,
                                 FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO);
 
