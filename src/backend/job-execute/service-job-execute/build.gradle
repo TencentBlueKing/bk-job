@@ -36,7 +36,6 @@ dependencies {
     api project(":commons:cmdb-sdk-ext")
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-jdbc")
-    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
     api "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"

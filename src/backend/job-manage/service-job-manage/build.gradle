@@ -24,7 +24,6 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    api project(":commons:common-spring-ext")
     api project(":commons:common-web")
     api project(":job-manage:api-job-manage")
     api project(":job-manage:model-job-manage")
@@ -41,7 +40,6 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
-    implementation "org.springframework.cloud:spring-cloud-starter-consul-discovery"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
     implementation "ch.qos.logback:logback-core"

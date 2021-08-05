@@ -37,7 +37,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-quartz')
     implementation "org.apache.commons:commons-collections4"
-    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
     api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
     implementation "ch.qos.logback:logback-core"

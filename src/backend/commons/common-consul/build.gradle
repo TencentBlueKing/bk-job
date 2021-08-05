@@ -23,8 +23,8 @@
  */
 
 dependencies {
-    implementation project(':commons:common')
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    api project(':commons:common')
+    api 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    api 'org.springframework.boot:spring-boot-starter-web'
 }
