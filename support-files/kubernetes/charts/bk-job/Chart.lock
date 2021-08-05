@@ -7,7 +7,7 @@ dependencies:
   version: 7.6.17
 - name: mariadb
   repository: https://charts.bitnami.com/bitnami
-  version: 9.4.0
+  version: 9.4.1
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 14.8.7
@@ -17,5 +17,5 @@ dependencies:
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 8.19.1
-digest: sha256:a365cd6edb9460ef44b2e67a6198ec8412c9c9d66f803a8325844137b8383baa
-generated: "2021-08-02T17:12:57.310964683+08:00"
+digest: sha256:0f98c0f24b1f55feb4712285d11bab2939050c631239fe72f412b950b0a29a2b
+generated: "2021-08-05T15:42:56.734084053+08:00"

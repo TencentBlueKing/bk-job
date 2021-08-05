@@ -14,7 +14,7 @@ dependencies:
   repository: https://charts.bitnami.com/bitnami
   condition: nginx-ingress-controller.enabled
 - name: mariadb
-  version: 9.4.0
+  version: 9.4.1
   repository: https://charts.bitnami.com/bitnami
   condition: mariadb.enabled
 - name: redis
