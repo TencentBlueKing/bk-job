@@ -34,8 +34,19 @@ import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
 import com.tencent.bk.job.common.util.http.LongRetryableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryInterfaceConsts;
-import com.tencent.bk.job.file.worker.artifactory.model.dto.*;
-import com.tencent.bk.job.file.worker.artifactory.model.req.*;
+import com.tencent.bk.job.file.worker.artifactory.model.dto.ArtifactoryResp;
+import com.tencent.bk.job.file.worker.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.file.worker.artifactory.model.dto.PageData;
+import com.tencent.bk.job.file.worker.artifactory.model.dto.ProjectDTO;
+import com.tencent.bk.job.file.worker.artifactory.model.dto.RepoDTO;
+import com.tencent.bk.job.file.worker.artifactory.model.req.ArtifactoryReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.DeleteNodeReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.DeleteRepoReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.DownloadGenericFileReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.ListNodePageReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.ListProjectReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.ListRepoPageReq;
+import com.tencent.bk.job.file.worker.artifactory.model.req.QueryNodeDetailReq;
 import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -52,11 +63,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ArtifactoryRemoteClient implements RemoteClient {
 
+    public static final String URL_ACTUATOR_INFO = "/repository/actuator/info";
     public static final String URL_LIST_PROJECT = "/repository/api/project/list";
     public static final String URL_LIST_REPO_PAGE = "/repository/api/repo/page/{projectId}/{pageNumber}/{pageSize}";
     public static final String URL_LIST_NODE_PAGE = "/repository/api/node/page/{projectId}/{repoName}/{fullPath}";
@@ -154,34 +167,36 @@ public class ArtifactoryRemoteClient implements RemoteClient {
                 log.debug("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
-            ArtifactoryResp artifactoryResp = (ArtifactoryResp) result;
-            if (artifactoryResp == null) {
-                log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
-                    url, reqStr, respStr);
-                status = "error";
-                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
-            } else if (artifactoryResp.getCode() != ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
-                log.error(
-                    "fail:artifactoryResp code!={}|artifactoryResp.requestId={}|artifactoryResp" +
-                        ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
-                    , ArtifactoryInterfaceConsts.RESULT_CODE_OK
-                    , artifactoryResp.getTraceId()
-                    , artifactoryResp.getCode()
-                    , artifactoryResp.getMessage()
-                    , method, url, reqStr, respStr
-                );
-                status = "error";
-                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
-            }
-            if (artifactoryResp.getData() == null) {
-                log.warn(
-                    "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
-                        ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
-                    , artifactoryResp.getTraceId()
-                    , artifactoryResp.getCode()
-                    , artifactoryResp.getMessage()
-                    , method, url, reqStr, respStr
-                );
+            if (result instanceof ArtifactoryResp) {
+                ArtifactoryResp artifactoryResp = (ArtifactoryResp) result;
+                if (artifactoryResp == null) {
+                    log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
+                        url, reqStr, respStr);
+                    status = "error";
+                    throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
+                } else if (artifactoryResp.getCode() != ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
+                    log.error(
+                        "fail:artifactoryResp code!={}|artifactoryResp.requestId={}|artifactoryResp" +
+                            ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
+                        , ArtifactoryInterfaceConsts.RESULT_CODE_OK
+                        , artifactoryResp.getTraceId()
+                        , artifactoryResp.getCode()
+                        , artifactoryResp.getMessage()
+                        , method, url, reqStr, respStr
+                    );
+                    status = "error";
+                    throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
+                }
+                if (artifactoryResp.getData() == null) {
+                    log.warn(
+                        "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
+                            ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
+                        , artifactoryResp.getTraceId()
+                        , artifactoryResp.getCode()
+                        , artifactoryResp.getMessage()
+                        , method, url, reqStr, respStr
+                    );
+                }
             }
             status = "ok";
             return result;
@@ -198,10 +213,21 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         }
     }
 
+    public boolean isAvailable() {
+        try {
+            getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_ACTUATOR_INFO,
+                new ArtifactoryReq(), new TypeReference<Map<Object, Object>>() {
+                }, httpHelper);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     public List<ProjectDTO> listProject() {
         ArtifactoryResp<List<ProjectDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_PROJECT,
             new ListProjectReq(), new TypeReference<ArtifactoryResp<List<ProjectDTO>>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -213,7 +239,7 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         req.setPageSize(pageSize);
         ArtifactoryResp<PageData<RepoDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_REPO_PAGE,
             req, new TypeReference<ArtifactoryResp<PageData<RepoDTO>>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -227,7 +253,7 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         req.setPageSize(pageSize);
         ArtifactoryResp<PageData<NodeDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_NODE_PAGE,
             req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -238,7 +264,7 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         req.setFullPath(fullPath);
         ArtifactoryResp<NodeDTO> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_QUERY_NODE_DETAIL, req,
             new TypeReference<ArtifactoryResp<NodeDTO>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -253,7 +279,7 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         req.setForced(forced);
         ArtifactoryResp<Object> resp = getArtifactoryRespByReq(HttpDelete.METHOD_NAME, URL_DELETE_REPO, req,
             new TypeReference<ArtifactoryResp<Object>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getCode() == 0;
     }
 
@@ -264,7 +290,7 @@ public class ArtifactoryRemoteClient implements RemoteClient {
         req.setFullPath(fullPath);
         ArtifactoryResp<Object> resp = getArtifactoryRespByReq(HttpDelete.METHOD_NAME, URL_DELETE_NODE, req,
             new TypeReference<ArtifactoryResp<Object>>() {
-        }, httpHelper);
+            }, httpHelper);
         return resp.getCode() == 0;
     }
 

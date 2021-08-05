@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -43,6 +44,13 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     @Autowired
     public FileSourceReqGenServiceImpl(CredentialService credentialService) {
         super(credentialService);
+    }
+
+    @Override
+    public HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
+        BaseReq req = new BaseReq();
+        String url = fillBaseReqGetUrl(req, appId, fileWorkerDTO, fileSourceDTO, "/file/available");
+        return genRemoteFileReq(url, req);
     }
 
     @Override

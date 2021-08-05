@@ -153,7 +153,7 @@ public class CredentialServiceImpl implements CredentialService {
         credentialDTO.setName(createUpdateReq.getName());
         credentialDTO.setType(createUpdateReq.getType().name());
         credentialDTO.setDescription(createUpdateReq.getDescription());
-        credentialDTO.setValue(createUpdateReq.getSerializedValue());
+        credentialDTO.setCredential(createUpdateReq.toCommonCredential());
         credentialDTO.setLastModifyUser(username);
         credentialDTO.setLastModifyTime(System.currentTimeMillis());
         return credentialDTO;

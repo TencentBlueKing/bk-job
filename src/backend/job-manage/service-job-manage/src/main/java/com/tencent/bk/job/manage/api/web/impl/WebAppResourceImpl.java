@@ -45,9 +45,14 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.FavorAppReq;
+import com.tencent.bk.job.manage.model.web.request.IpCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
-import com.tencent.bk.job.manage.model.web.vo.*;
+import com.tencent.bk.job.manage.model.web.vo.AppVO;
+import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
@@ -272,12 +277,12 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
         JobContextUtil.setAppId(appId);
         List<AppTopologyTreeNode> treeNodeList = applicationService.getAppTopologyTreeNodeDetail(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-            it.getType(),
-            "",
-            it.getId(),
-            "",
-            null
-        )).collect(Collectors.toList()));
+                it.getType(),
+                "",
+                it.getId(),
+                "",
+                null
+            )).collect(Collectors.toList()));
         return ServiceResponse.buildSuccessResp(treeNodeList);
     }
 
@@ -286,11 +291,11 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
                                                                         List<TargetNodeVO> targetNodeVOList) {
         List<List<InstanceTopologyDTO>> pathList = applicationService.queryNodePaths(username, appId,
             targetNodeVOList.stream().map(it -> {
-            InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-            instanceTopologyDTO.setObjectId(it.getType());
-            instanceTopologyDTO.setInstanceId(it.getId());
-            return instanceTopologyDTO;
-        }).collect(Collectors.toList()));
+                InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
+                instanceTopologyDTO.setObjectId(it.getType());
+                instanceTopologyDTO.setInstanceId(it.getId());
+                return instanceTopologyDTO;
+            }).collect(Collectors.toList()));
         List<List<CcTopologyNodeVO>> resultList = new ArrayList<>();
         for (List<InstanceTopologyDTO> instanceTopologyDTOS : pathList) {
             if (instanceTopologyDTOS == null) {
@@ -315,12 +320,12 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
         JobContextUtil.setAppId(appId);
         List<NodeInfoVO> moduleHostInfoList = applicationService.getHostsByNode(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
-            it.getType(),
-            "",
-            it.getId(),
-            "",
-            null
-        )).collect(Collectors.toList()));
+                it.getType(),
+                "",
+                it.getId(),
+                "",
+                null
+            )).collect(Collectors.toList()));
         return ServiceResponse.buildSuccessResp(moduleHostInfoList);
     }
 
@@ -364,8 +369,13 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
     }
 
     @Override
-    public ServiceResponse<List<HostInfoVO>> listHostByIp(String username, Long appId, List<String> checkIpList) {
-        return ServiceResponse.buildSuccessResp(applicationService.getHostsByIp(username, appId, checkIpList));
+    public ServiceResponse<List<HostInfoVO>> listHostByIp(String username, Long appId, IpCheckReq req) {
+        return ServiceResponse.buildSuccessResp(applicationService.getHostsByIp(
+            username,
+            appId,
+            req.getActionScope(),
+            req.getIpList())
+        );
     }
 
     @Override

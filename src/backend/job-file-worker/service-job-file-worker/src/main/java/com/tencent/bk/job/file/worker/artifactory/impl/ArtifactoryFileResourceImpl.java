@@ -75,6 +75,12 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         return baseService.getArtifactoryClientFromBaseReq(req);
     }
 
+    @Override
+    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+        ArtifactoryRemoteClient client = baseService.getArtifactoryClientFromBaseReq(req);
+        return ServiceResponse.buildSuccessResp(client.isAvailable());
+    }
+
     private String parseParentNodeTypeByPath(String path) {
         if (StringUtils.isBlank(path)) return ArtifactoryNodeTypeEnum.FILE_SOURCE.name();
         path = StringUtil.removePrefix(path, "/");

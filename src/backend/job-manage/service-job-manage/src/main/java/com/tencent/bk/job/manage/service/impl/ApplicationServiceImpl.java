@@ -24,7 +24,11 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.cc.model.*;
+import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.sdk.CcClient;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
@@ -47,6 +51,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
+import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -70,7 +75,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -777,14 +789,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         return hostInfoList;
     }
 
-    @Override
-    public List<HostInfoVO> getHostsByIp(String username, Long appId, List<String> checkIpList) {
-        log.info("Input=({},{},{})", username, appId, checkIpList);
-        if (checkIpList == null || checkIpList.isEmpty()) {
-            return Collections.emptyList();
-        }
-        checkIpList = checkIpList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
+    private List<CloudIPDTO> parseInputCloudIPList(List<String> checkIpList) {
         List<CloudIPDTO> inputCloudIPList = new ArrayList<>();
+        checkIpList = checkIpList.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
         for (int i = 0; i < checkIpList.size(); i++) {
             String ip = checkIpList.get(i);
             if (!StringUtils.isBlank(ip)) {
@@ -804,26 +811,16 @@ public class ApplicationServiceImpl implements ApplicationService {
                 }
             }
         }
-        //1.先查IP白名单中是否存在该IP
-        List<CloudIPDTO> appWhiteIPList = whiteIPService.listWhiteIPByAppId(appId);
-        //生成IP为索引的Map
-        Map<String, List<CloudIPDTO>> whiteIPMap = new HashMap<>();
-        appWhiteIPList.forEach(cloudIPDTO -> {
-            String ip = cloudIPDTO.getIp();
-            if (whiteIPMap.containsKey(ip)) {
-                List<CloudIPDTO> list = whiteIPMap.get(ip);
-                list.add(cloudIPDTO);
-                whiteIPMap.put(ip, list);
-            } else {
-                List<CloudIPDTO> list = new ArrayList<>();
-                list.add(cloudIPDTO);
-                whiteIPMap.put(ip, list);
-            }
-        });
+        return inputCloudIPList;
+    }
+
+    private void separateWhiteIP(
+        List<CloudIPDTO> inputCloudIPList,
+        List<CloudIPDTO> inputWhiteIPList,
+        List<CloudIPDTO> inputNotWhiteIPList,
+        Map<String, List<CloudIPDTO>> whiteIPMap
+    ) {
         Set<String> whiteIPSet = whiteIPMap.keySet();
-        //找出输入IP中的白名单IP
-        List<CloudIPDTO> inputWhiteIPList = new ArrayList<>();
-        List<CloudIPDTO> inputNotWhiteIPList = new ArrayList<>();
         inputCloudIPList.forEach(cloudIPDTO -> {
             String ip = cloudIPDTO.getIp();
             Long cloudId = cloudIPDTO.getCloudAreaId();
@@ -847,6 +844,41 @@ public class ApplicationServiceImpl implements ApplicationService {
                 inputNotWhiteIPList.add(cloudIPDTO);
             }
         });
+    }
+
+    @Override
+    public List<HostInfoVO> getHostsByIp(
+        String username,
+        Long appId,
+        ActionScopeEnum actionScope,
+        List<String> checkIpList
+    ) {
+        log.info("Input=({},{},{})", username, appId, checkIpList);
+        if (checkIpList == null || checkIpList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<CloudIPDTO> inputCloudIPList = parseInputCloudIPList(checkIpList);
+        //1.先查IP白名单中是否存在该IP
+        List<CloudIPDTO> appWhiteIPList = whiteIPService.listWhiteIP(appId, actionScope);
+        //生成IP为索引的Map
+        Map<String, List<CloudIPDTO>> whiteIPMap = new HashMap<>();
+        appWhiteIPList.forEach(cloudIPDTO -> {
+            String ip = cloudIPDTO.getIp();
+            if (whiteIPMap.containsKey(ip)) {
+                List<CloudIPDTO> list = whiteIPMap.get(ip);
+                list.add(cloudIPDTO);
+                whiteIPMap.put(ip, list);
+            } else {
+                List<CloudIPDTO> list = new ArrayList<>();
+                list.add(cloudIPDTO);
+                whiteIPMap.put(ip, list);
+            }
+        });
+
+        //找出输入IP中的白名单IP
+        List<CloudIPDTO> inputWhiteIPList = new ArrayList<>();
+        List<CloudIPDTO> inputNotWhiteIPList = new ArrayList<>();
+        separateWhiteIP(inputCloudIPList,inputWhiteIPList,inputNotWhiteIPList,whiteIPMap);
         //使用不带业务信息接口查询白名单IP对应的主机详情
         //仅根据IP查询，查出后再根据指定云区域过滤
         //根据IP查主机（缺少业务信息）本地
@@ -1099,7 +1131,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     public AgentStatistics getAgentStatistics(String username, Long appId, AgentStatisticsReq agentStatisticsReq) {
         log.info("Input=({},{},{})", username, appId, JsonUtils.toJson(agentStatisticsReq));
         ApplicationInfoDTO applicationInfoDTO = getAppInfoById(appId);
-        List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, agentStatisticsReq.getIpList());
+        List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, agentStatisticsReq.getIpList());
         log.debug("hostsByIp={}", hostsByIp);
         Set<HostInfoVO> allHostsSet = new HashSet<>();
         allHostsSet.addAll(hostsByIp);
