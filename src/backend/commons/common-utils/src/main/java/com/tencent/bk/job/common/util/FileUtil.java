@@ -35,6 +35,18 @@ public class FileUtil {
 
     public static String writeInsToFile(InputStream ins, String targetPath, Long fileSize, AtomicInteger speed,
                                         AtomicInteger process) throws InterruptedException {
+        File file = new File(targetPath);
+        File parentFile = file.getParentFile();
+        if (!parentFile.exists()) {
+            try {
+                boolean flag = parentFile.mkdirs();
+            } catch (Exception e) {
+                //创建目录失败
+                String msg = String.format("Fail to create dir:%s", parentFile.getAbsolutePath());
+                log.error(msg, e);
+                throw new RuntimeException(msg, e);
+            }
+        }
         FileOutputStream fos = null;
         FileInputStream fis = null;
         try {

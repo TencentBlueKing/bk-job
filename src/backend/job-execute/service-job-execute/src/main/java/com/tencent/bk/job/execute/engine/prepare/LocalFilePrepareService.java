@@ -37,6 +37,10 @@ public class LocalFilePrepareService {
     }
 
     public void prepareLocalFiles(List<FileSourceDTO> fileSourceList) {
+        if (!artifactoryConfig.isEnable()) {
+            log.info("artifactory is not enable, not need to prepare local file");
+            return;
+        }
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             if (fileSourceDTO == null) {
                 log.warn("fileSourceDTO is null");
@@ -51,7 +55,8 @@ public class LocalFilePrepareService {
                     NodeDTO nodeDTO = artifactoryClient.getFileNode(fullFilePath);
                     InputStream ins = artifactoryClient.getFileInputStream(fullFilePath);
                     // 本地存储路径
-                    String localPath = PathUtil.joinFilePath(storageSystemConfig.getJobStorageRootPath(), filePath);
+                    String localPath = PathUtil.joinFilePath(storageSystemConfig.getJobStorageRootPath(), "localupload");
+                    localPath = PathUtil.joinFilePath(localPath, filePath);
                     // 保存到本地临时目录
                     AtomicInteger speed = new AtomicInteger(0);
                     AtomicInteger process = new AtomicInteger(0);
