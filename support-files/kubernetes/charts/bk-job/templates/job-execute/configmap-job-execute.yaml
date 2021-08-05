@@ -11,7 +11,7 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
 data:
-  application-execute.yaml: |-
+  application.yaml: |-
     app:
       code: {{ .Values.app.code }}
       secret: {{ .Values.app.secret }}
@@ -42,26 +42,26 @@ data:
       execute:
         db:
           url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
-          username: {{- include "job.mariadb.username" . }}
+          username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
           {{- else -}}
           password: ${mariadb-password}
           {{- end }}
         rabbitmq:
-          host: {{- include "job.rabbitmq.host" . }}
-          port: {{- include "job.rabbitmq.port" . }}
-          username: {{- include "job.rabbitmq.username" . }}
+          host: {{ include "job.rabbitmq.host" . }}
+          port: {{ include "job.rabbitmq.port" . }}
+          username: {{ include "job.rabbitmq.username" . }}
           {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
           password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
           {{- else -}}
           password: ${rabbitmq-password}
           {{- end }}
-          vhost: {{- include "job.rabbitmq.vhost" . }}
+          vhost: {{ include "job.rabbitmq.vhost" . }}
         redis:
           mode: standalone
-          host: {{- include "job.redis.host" . }}
-          port: {{- include "job.redis.port" . }}
+          host: {{ include "job.redis.host" . }}
+          port: {{ include "job.redis.port" . }}
           {{ if .Values.externalRedis.existingPasswordSecret }}
           password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
           {{- else -}}

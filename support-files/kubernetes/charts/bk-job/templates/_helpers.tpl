@@ -157,9 +157,9 @@ Return the Redis port
 */}}
 {{- define "job.redis.port" -}}
 {{- if .Values.redis.enabled }}
-    {{- printf "6379" | quote -}}
+    {{- printf "6379" -}}
 {{- else -}}
-    {{- .Values.externalRedis.port | quote -}}
+    {{- printf "%d" (.Values.externalRedis.port | int ) -}}
 {{- end -}}
 {{- end -}}
 
