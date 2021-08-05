@@ -24,19 +24,13 @@
 
 package com.tencent.bk.job.common.util;
 
-import lombok.val;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @Description
- * @Date 2019/12/24
- * @Version 1.0
- */
 public class CustomCollectionUtils {
 
     public static <T> List<T> mergeList(List<T> list1, List<T> list2) {
@@ -57,16 +51,12 @@ public class CustomCollectionUtils {
         if (rawStr == null || rawStr.isEmpty()) {
             return new ArrayList<>();
         }
-        val set = new HashSet<String>();
-        val arr = rawStr.split(separator);
-        for (int i = 0; i < arr.length; i++) {
-            set.add(arr[i]);
-        }
-        List<String> list = new ArrayList<>(set);
-        return list;
+        String[] arr = rawStr.split(separator);
+        Set<String> set = new HashSet<String>(Arrays.asList(arr));
+        return new ArrayList<>(set);
     }
 
-    public static boolean isEmptyCollection(Collection collection) {
+    public static <T> boolean isEmptyCollection(Collection<T> collection) {
         return collection == null || collection.isEmpty();
     }
 }

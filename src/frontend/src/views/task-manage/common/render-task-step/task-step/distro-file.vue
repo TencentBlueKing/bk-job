@@ -97,14 +97,15 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import {
-        mapState,
-    } from 'vuex';
+    import { mapState } from 'vuex';
+    import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import CardLayout from '@components/task-step/file/card-layout';
     import ItemFactory from '@components/task-step/file/item-factory';
     import {
         getScriptName,
+        compareHost,
+        detectionSourceFileDupLocation,
     } from '@utils/assist';
 
     const getDefaultData = () => ({
@@ -232,87 +233,71 @@
                             okText: I18n.t('template.继续提交'),
                             cancelText: I18n.t('template.去保存'),
                             confirmFn: () => {
-                                setTimeout(() => {
-                                    resolve();
-                                }, 300);
+                                resolve();
                             },
                             cancelFn: () => {
-                                setTimeout(() => {
-                                    reject(new Error('save'));
-                                }, 300);
+                                reject(new Error('save'));
                             },
                         });
                     }))
-                    // 检测源文件的同名文件和目录
+                    // 检测服务器源文件的主机和执行目标服务器主机相同
                     .then(() => new Promise((resolve, reject) => {
-                        const fileLocationMap = {};
-                        const pathReg = /([^/]+\/?)\*?$/;
-                        let isDouble = false;
-                        // 路径中以 * 结尾表示分发所有文件，可能和分发具体文件冲突
-                        let hasDirAllFile = false;
-                        let hasFile = false;
+                        let sameHost = false;
                         // eslint-disable-next-line no-plusplus
                         for (let i = 0; i < this.formData.fileSourceList.length; i++) {
                             const currentFileSource = this.formData.fileSourceList[i];
-                            // eslint-disable-next-line no-plusplus
-                            for (let j = 0; j < currentFileSource.fileLocation.length; j++) {
-                                const currentFileLocation = currentFileSource.fileLocation[j];
-                                // 分发所有文件
-                                if (/\*$/.test(currentFileLocation)) {
-                                    hasDirAllFile = true;
-                                    if (hasFile) {
-                                        isDouble = true;
-                                        break;
-                                    }
-                                    continue;
-                                }
-                                // 分发具体的文件
-                                if (!/(\/|(\/\*))$/.test(currentFileLocation)) {
-                                    hasFile = true;
-                                    if (hasDirAllFile) {
-                                        isDouble = true;
-                                        break;
-                                    }
-                                }
-                                const pathMatch = currentFileLocation.match(pathReg);
-                                if (pathMatch) {
-                                    if (fileLocationMap[pathMatch[1]]) {
-                                        isDouble = true;
-                                        break;
-                                    } else {
-                                        fileLocationMap[pathMatch[1]] = 1;
-                                    }
+                            // 服务器源文件
+                            if (currentFileSource.fileType === TaskStepModel.fileStep.TYPE_SERVER) {
+                                if (compareHost(this.formData.server, currentFileSource.host)) {
+                                    sameHost = true;
+                                    break;
                                 }
                             }
                         }
-                            
-                        if (!isDouble) {
+                        if (sameHost) {
+                            this.$bkInfo({
+                                title: I18n.t('template.源和目标服务器相同'),
+                                subTitle: I18n.t('template.检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？'),
+                                width: 500,
+                                okText: I18n.t('template.好的，我调整一下'),
+                                cancelText: I18n.t('template.是的，确定无误'),
+                                confirmFn: () => {
+                                    reject(new Error('save'));
+                                },
+                                cancelFn: () => {
+                                    resolve();
+                                },
+                            });
+                        } else {
                             resolve();
-                            return;
                         }
-                        // 有重名目录和文件
-                        this.$bkInfo({
-                            title: I18n.t('template.源文件可能出现同名'),
-                            subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。'),
-                            okText: I18n.t('template.好的，我调整一下'),
-                            cancelText: I18n.t('template.已知悉，确定执行'),
-                            closeIcon: false,
-                            width: 500,
-                            confirmFn: () => {
-                                setTimeout(() => {
+                    }))
+                    // 检测源文件的同名文件和目录
+                    .then(() => new Promise((resolve, reject) => {
+                        if (detectionSourceFileDupLocation(this.formData.fileSourceList)) {
+                            // 有重名目录和文件
+                            this.$bkInfo({
+                                title: I18n.t('template.源文件可能出现同名'),
+                                subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。'),
+                                okText: I18n.t('template.好的，我调整一下'),
+                                cancelText: I18n.t('template.已知悉，确定执行'),
+                                closeIcon: false,
+                                width: 500,
+                                confirmFn: () => {
                                     // 聚焦到目标路径输入框
                                     this.$refs.targetPath.$el.scrollIntoView();
                                     this.$refs.targetPath.$el.querySelector('.bk-form-input').focus();
                                     reject(new Error('transferMode change'));
-                                }, 300);
-                            },
-                            cancelFn: () => {
-                                setTimeout(() => {
+                                },
+                                cancelFn: () => {
                                     resolve();
-                                }, 300);
-                            },
-                        });
+                                },
+                            });
+                        } else {
+                            resolve();
+                        }
                     }))
+                    // 提交步骤
                     .then(() => {
                         const {
                             id,
