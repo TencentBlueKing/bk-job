@@ -7,13 +7,13 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
-Create the name of the service account for job-execute
+Create the name of the service account for job
 */}}
-{{- define "job-execute.serviceAccountName" -}}
-{{- if .Values.executeConfig.serviceAccount.create }}
-{{- default (printf "%s-execute" (include "common.names.fullname" .)) .Values.executeConfig.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- define "job.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (printf "%s" (include "common.names.fullname" .)) .Values.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- default "default" .Values.executeConfig.serviceAccount.name }}
+{{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
 

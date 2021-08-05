@@ -40,6 +40,8 @@ serviceAccount:
   ## If not set and create is true, a name is generated using the fullname template
   ##
   name:
+rbac:
+  create: true
 
 ingress:
   enabled: false
@@ -320,8 +322,6 @@ gateway:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
 
@@ -363,8 +363,6 @@ manage:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
 
@@ -407,8 +405,6 @@ executeConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-    create: true
   service:
     type: ClusterIP
     port: 80
@@ -452,8 +448,6 @@ crontab:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
 
@@ -495,8 +489,6 @@ logsvr:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
 
@@ -538,8 +530,6 @@ backup:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
 
@@ -581,7 +571,5 @@ analysis:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
-  serviceAccount:
-   create: true
   service:
     type: ClusterIP
