@@ -191,11 +191,26 @@ rabbitmq:
     ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
     ##
     erlangCookie: "job"
-  extraConfiguration: |-
-    default_vhost = job
-    default_permissions.configure = .*
-    default_permissions.read = .*
-    default_permissions.write = .*
+#  extraConfiguration: |-
+#    default_vhost = job
+#    default_permissions.configure = .*
+#    default_permissions.read = .*
+#    default_permissions.write = .*
+  extraSecrets:
+    load-definition:
+      load_definition.json: |
+        {
+          "vhosts": [
+            {
+              "name": "job"
+            }
+          ]
+        }
+  loadDefinition:
+    enabled: true
+    secretName: load-definition
+  extraConfiguration: |
+    management.load_definitions = /app/load_definition.json
 
 ## External RabbitMQ configuration
 ##
