@@ -46,7 +46,7 @@ data:
       system-id: bk_job
     job:
       encrypt:
-        password: {{ .Values.job.encrypt.password . }}
+        password: {{ .Values.job.encrypt.password }}
       execute:
         db:
           url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
