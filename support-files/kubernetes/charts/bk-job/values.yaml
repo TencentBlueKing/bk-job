@@ -64,7 +64,7 @@ mariadb:
     ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
     ##
-    rootPassword: "job"
+    rootPassword: ""
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
@@ -108,6 +108,12 @@ mariadb:
 ## External MariaDB configuration
 ##
 externalMariaDB:
+  ## @param externalMariaDB.existingPasswordSecret: Existing secret with MariaDB
+  ##
+  existingPasswordSecret: ""
+  ## @param externalMariaDB.existingPasswordKey: Key in existingPasswordSecret, defaults to "mariadb-password"
+  ##
+  existingPasswordKey: ""
   ## @param externalMariaDB.host Host of the existing database
   ##
   host: ""
@@ -116,10 +122,10 @@ externalMariaDB:
   port: 3306
   ## @param externalMariaDB.user Existing username in the existing database
   ##
-  user: job
+  username: job
   ## @param externalMariaDB.password Password for the above username
   ##
-  password: "job"
+  password: ""
 
 
 ## Redis chart configuration
@@ -146,6 +152,12 @@ redis:
 ## External Redis configuration
 ##
 externalRedis:
+  ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
+  ##
+  existingPasswordSecret: ""
+  ## @param externalRedis.existingPasswordKey: Key in existingPasswordSecret, defaults to "redis-password"
+  ##
+  existingPasswordKey: ""
   ## @param externalRedis.host Host of the existing redis
   ##
   host: ""
@@ -181,6 +193,12 @@ rabbitmq:
 ## External RabbitMQ configuration
 ##
 externalRabbitMQ:
+  ## @param externalRabbitMQ.existingPasswordSecret: Existing secret with RabbitMQ
+  ##
+  existingPasswordSecret: ""
+  ## @param externalRabbitMQ.existingPasswordKey: Key in existingPasswordSecret, defaults to "rabbitmq-password"
+  ##
+  existingPasswordKey: ""
   ## @param externalRabbitMQ.host Host of the existing RabbitMQ
   ##
   host: ""
@@ -199,7 +217,7 @@ externalRabbitMQ:
 ## ref: https://github.com/bitnami/charts/tree/master/bitnami/mongodb
 mongodb:
   # Whether to deploy mongodb
-  # If you need to use an external database, set it to false and configure externalMongodb
+  # If you need to use an external database, set it to false and configure externalMongoDB
   enabled: true
   auth:
     enabled: true
@@ -207,13 +225,62 @@ mongodb:
     username: job
     password: job
 
-## If mongodb.enabled is false, use externalMongodb.uri
-externalMongodb:
-  ## mongodb uri,example: mongodb://job:job@localhost:27017/joblog
-  uri: ""
+## If mongodb.enabled is false, use externalMongoDB
+externalMongoDB:
+  ## @param externalMongoDB.existingPasswordSecret: Existing secret with MongoDB
+  ##
+  existingPasswordSecret: ""
+  ## @param externalMongoDB.existingPasswordKey: Key in existingPasswordSecret, defaults to "mongodb-password"
+  ##
+  existingPasswordKey: ""
+  host: ""
+  database: joblog
+  username: ""
+  password: ""
 
 nginx-ingress-controller:
   enabled: false
+
+## @section job application common parameters
+##
+app:
+  ## job app_code. Fixed Value
+  code: bk_job
+  ## job app_secret
+  secret: ""
+## Blueking ESB Config
+esb:
+  service:
+    ## ESB Service URL
+    url: ""
+## Blueking GSE Config
+gse:
+  cacheApiServer:
+    host: ""
+    port: 59313
+  ssl:
+    keystore:
+      password: ""
+      path: /data/bkce/cert/gse_job_api_client.keystore
+    truststore:
+      password: ""
+      path: /data/bkce/cert/gse_job_api_client.truststore
+  taskserver:
+    host: ""
+    port: 48673
+## Blueking IAM Config
+iam:
+  baseUrl: ""
+  ## The system ID of Job in the IAM. Fixed Value
+  systemId: bk_job
+## Job Common Config
+job:
+  security:
+    privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV1d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktVd2dnU2hBZ0VBQW9JQkFRQ3N5ekRPSEFFUk0wby8zeEtraUNRUng3dzdsZzltZGsva1pTWmhCZG9mQVptSDArdW5qV1hMK3FhTDNPclExTUh6aXVMRkYyK3RKYmluNEZIM3d4T3dXTmVJaEJvK29UdEJINkszdUU1US9sRXNDZ21xS2oreDU5TWU5V3BTWVd2NWRLeEU0MlRNMlhOTlNKYi9STXh3YlRsWWNyRTBYUDFyUytMUGs0dzdFMTVMeU1wVnNUNGZUSThvRm9aRWJRWmpucElvOHFiRzRQTDJTU3RRb1VpK3V0WkY4ZStqbVg0dVU2dllGNFU2b2FrZC9LWVNMSjJWT3BleDZXS1ZyaXJVbldlbGdQclJ5c2R4VkJiQzhYOEY0ajZENnBVREp6ZGxtRmZFZUhsd3V0K1g3T1BZcVU4QU41SDk4cWVXcVA3VUFHZmFGT0ZSdTluZ0c3Rks2VTJSQWdNQkFBRUNnZ0VBZlkvZGREaUhVZjlxV2dWNG41VEtXUjFDSEM2TUhGR205bm5HTE1TNjNzTWoxTDdiUkZNTWdQQXY2L3hwcWJ5Zy81K1I3OVI2ODJBdzBkVEEyNENuSXdNOEE5aXkxWVlGNytuVUxSckIxanNuc3cvTVBCb2RWT0wzMkV4UHFYTmZxZEx0aDlXUm53WDRzbFVvWEhDYStxdHorMkRFZ2g5OGkyYUdkMzVwYlZjT2p0czlWc3FtZE5uQTdLNFVQWkd4aVFheG1rLzBOVEVNY2RqMUl4bWNlZjNqL1RUVkFiR05IdWVtYTJKeUdZdk52N09BZUN3VGJSdW5TNW1PSmptRHlFSmp4dndaVWZwanZoM0w0SkZzMGRJUm5wZ2VtTkY3NytqUmFTTy9WUVlqc1FLelB0SnEwcHFneHUwd0RoQUVBeXpjYWI2NW8wSm1hZzNJUjZNQzdRS0JnUUR1MThHNFRVaTlSVk8yZS9YdWtDSUNiOVZISHlMeVFIUDh4NDhBVFZmVENtSVBEMUduTWp5TlFmSnhsUlNma3UyUjJIM1IyRC81YUNpNUYwTi9USG51OWVqYlMvS1NoYjFxMFl5TWF1TDkxQlZjMkEyeDZlRzRPNFFpT2daT0gzaE0raUVSREJxOExNQ1dILzVtYVJDeDhVRmRQTnpHMUtXVVNwTEJXM3l2ZXdLQmdRQzVOTS9yN09Wc3F6OGlDUjBXa2JramN2eWU4MkJNcGFsZVkyRHNWQVMwRHNMNlMvZlAzY2VUdEJQVmdJL244Sk16b1ZNZE5OK3htbXM4Wi9rMGM5OGlLTzRUeE0zN2daYkIwUE8rWGRyeUZkRFhTRDZXTm1heWpYUG5MUndBZmRwbFlWdFNqVGxWMWJzWWIySnhXNXY2RUVSaVlLYnNnRGNpWTA5ZnYva0RZd0ovUnVmR212QldwOW50QUQvTXd3WUhFcklnbnZ5ZlkwdS9JMHdiSi92T0Z0aitRM3BJdzFvbW44ajBNTVFSVzA1RE9Ra01VVC9odmlrdDdjVDZSTkJ2WW9HZW4zdnNoNU1zcUltTk1DS0xRTSsxaDlxY05qVTR6WGpkd1V0NGs3akQvaFpEdXN2ZEpBQWxMR3hUR2hRVzRMeStxdTltbTZDRmg0Q2NFTXNZT1FLQmdCa0pEWTRyd0x1V3pucndWbkZGazR3NkwvSGdua1RlSSszeGF4bW5KZGVkSXpnb2FzQTdqNDNreXNXU2ttRmRBTmo2MXJ4YytGd09ycTVFczhnbVhhUkZlaUZMK2pna1JWZS93aU1hbHMwZ3E5RmVINis0Zk50b0NhSFhWREN3MG9QZnpETjFpYW1Uc2EzVTZLN0FIbTZJSW1aV0FGcDUzbm9VaUpjOTRSQlhBb0dCQUxMcmQrbnljNzVEbjZ0ZWdVT0JQRy9HR3FYWkZGdmd6emJRRnR0SmR0NTlMZ0NBanUxMjJMRExsRjZreTB6Q0JsK0h6Q0kyUXJXVEp4cXUxSTZvbndaZDlOMllKVlNWQlFOV285NTJUamRkOHcvSkExYlNqK3JpTU1WQ0txT1BNRHNiOENEaGlEbVM3RlBEM0trTVlmcUxJOVhNRTVvNVUvNFJzcEZUZWozRQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0t"
+    publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyTXN3emh3QkVUTktQOThTcElna0VjZThPNVlQWm5aUDVHVW1ZUVhhSHdHWmg5UHJwNDFseS9xbWk5enEwTlRCODRyaXhSZHZyU1c0cCtCUjk4TVRzRmpYaUlRYVBxRTdRUitpdDdoT1VQNVJMQW9KcWlvL3NlZlRIdlZxVW1GcitYU3NST05rek5selRVaVcvMFRNY0cwNVdIS3hORno5YTB2aXo1T01PeE5lUzhqS1ZiRStIMHlQS0JhR1JHMEdZNTZTS1BLbXh1RHk5a2tyVUtGSXZycldSZkh2bzVsK0xsT3IyQmVGT3FHcEhmeW1FaXlkbFRxWHNlbGlsYTRxMUoxbnBZRDYwY3JIY1ZRV3d2Ri9CZUkrZytxVkF5YzNaWmhYeEhoNWNMcmZsK3pqMktsUEFEZVIvZktubHFqKzFBQm4yaFRoVWJ2WjRCdXhTdWxOa1FJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+  web:
+    url: ""
+
 
 ## @section job-gateway parameters
 gateway:
@@ -221,7 +288,7 @@ gateway:
     registry: mirrors.tencent.com
     repository: bkrepo/job-gateway
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -254,7 +321,7 @@ gateway:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
 
@@ -264,7 +331,7 @@ manage:
     registry: mirrors.tencent.com
     repository: bkrepo/job-manage
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -297,7 +364,7 @@ manage:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
 
@@ -308,7 +375,7 @@ executeConfig:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-execute
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -341,61 +408,10 @@ executeConfig:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+    create: true
   service:
     type: ClusterIP
     port: 80
-  ## job-execute application config
-  app:
-    code: bk_job
-    secret: af8490ce-0f8e-11eb-bb9a-5254008f778b
-  esb:
-    service:
-      url: http://paas.ingress-nginx:80
-  gse:
-    cacheApiServer:
-      host: gse-api.gse.svc.cluster.local
-      port: 59313
-    ssl:
-      keystore:
-        password: 2y#8VI2B4Sm9Dk^J
-        path: /data/bkee/cert/gse_job_api_client.keystore
-      truststore:
-        password: 2y#8VI2B4Sm9Dk^J
-        path: /data/bkee/cert/gse_job_api_client.truststore
-    taskserver:
-      host: gse-task.gse.svc.cluster.local
-      port: 48673
-  iam:
-    baseUrl: http://web-iam.paas:80/
-    systemId: bk_job
-  job:
-    execute:
-      server:
-        port: 19804
-      mysql:
-        password: Bcs_2020
-        host: 10.0.1.6
-        port: 3306
-        username: root
-      rabbitmq:
-        host: 10.0.1.6
-        password: admin
-        port: 5672
-        username: admin
-        vhost: job
-      redis:
-        host: 10.0.1.3
-        mode: standalone
-        password: Bcs_2020
-        port: 6379
-    security:
-      privateKeyBase64: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV1d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktVd2dnU2hBZ0VBQW9JQkFRQ3N5ekRPSEFFUk0wby8zeEtraUNRUng3dzdsZzltZGsva1pTWmhCZG9mQVptSDArdW5qV1hMK3FhTDNPclExTUh6aXVMRkYyK3RKYmluNEZIM3d4T3dXTmVJaEJvK29UdEJINkszdUU1US9sRXNDZ21xS2oreDU5TWU5V3BTWVd2NWRLeEU0MlRNMlhOTlNKYi9STXh3YlRsWWNyRTBYUDFyUytMUGs0dzdFMTVMeU1wVnNUNGZUSThvRm9aRWJRWmpucElvOHFiRzRQTDJTU3RRb1VpK3V0WkY4ZStqbVg0dVU2dllGNFU2b2FrZC9LWVNMSjJWT3BleDZXS1ZyaXJVbldlbGdQclJ5c2R4VkJiQzhYOEY0ajZENnBVREp6ZGxtRmZFZUhsd3V0K1g3T1BZcVU4QU41SDk4cWVXcVA3VUFHZmFGT0ZSdTluZ0c3Rks2VTJSQWdNQkFBRUNnZ0VBZlkvZGREaUhVZjlxV2dWNG41VEtXUjFDSEM2TUhGR205bm5HTE1TNjNzTWoxTDdiUkZNTWdQQXY2L3hwcWJ5Zy81K1I3OVI2ODJBdzBkVEEyNENuSXdNOEE5aXkxWVlGNytuVUxSckIxanNuc3cvTVBCb2RWT0wzMkV4UHFYTmZxZEx0aDlXUm53WDRzbFVvWEhDYStxdHorMkRFZ2g5OGkyYUdkMzVwYlZjT2p0czlWc3FtZE5uQTdLNFVQWkd4aVFheG1rLzBOVEVNY2RqMUl4bWNlZjNqL1RUVkFiR05IdWVtYTJKeUdZdk52N09BZUN3VGJSdW5TNW1PSmptRHlFSmp4dndaVWZwanZoM0w0SkZzMGRJUm5wZ2VtTkY3NytqUmFTTy9WUVlqc1FLelB0SnEwcHFneHUwd0RoQUVBeXpjYWI2NW8wSm1hZzNJUjZNQzdRS0JnUUR1MThHNFRVaTlSVk8yZS9YdWtDSUNiOVZISHlMeVFIUDh4NDhBVFZmVENtSVBEMUduTWp5TlFmSnhsUlNma3UyUjJIM1IyRC81YUNpNUYwTi9USG51OWVqYlMvS1NoYjFxMFl5TWF1TDkxQlZjMkEyeDZlRzRPNFFpT2daT0gzaE0raUVSREJxOExNQ1dILzVtYVJDeDhVRmRQTnpHMUtXVVNwTEJXM3l2ZXdLQmdRQzVOTS9yN09Wc3F6OGlDUjBXa2JramN2eWU4MkJNcGFsZVkyRHNWQVMwRHNMNlMvZlAzY2VUdEJQVmdJL244Sk16b1ZNZE5OK3htbXM4Wi9rMGM5OGlLTzRUeE0zN2daYkIwUE8rWGRyeUZkRFhTRDZXTm1heWpYUG5MUndBZmRwbFlWdFNqVGxWMWJzWWIySnhXNXY2RUVSaVlLYnNnRGNpWTA5ZnYva0RZd0ovUnVmR212QldwOW50QUQvTXd3WUhFcklnbnZ5ZlkwdS9JMHdiSi92T0Z0aitRM3BJdzFvbW44ajBNTVFSVzA1RE9Ra01VVC9odmlrdDdjVDZSTkJ2WW9HZW4zdnNoNU1zcUltTk1DS0xRTSsxaDlxY05qVTR6WGpkd1V0NGs3akQvaFpEdXN2ZEpBQWxMR3hUR2hRVzRMeStxdTltbTZDRmg0Q2NFTXNZT1FLQmdCa0pEWTRyd0x1V3pucndWbkZGazR3NkwvSGdua1RlSSszeGF4bW5KZGVkSXpnb2FzQTdqNDNreXNXU2ttRmRBTmo2MXJ4YytGd09ycTVFczhnbVhhUkZlaUZMK2pna1JWZS93aU1hbHMwZ3E5RmVINis0Zk50b0NhSFhWREN3MG9QZnpETjFpYW1Uc2EzVTZLN0FIbTZJSW1aV0FGcDUzbm9VaUpjOTRSQlhBb0dCQUxMcmQrbnljNzVEbjZ0ZWdVT0JQRy9HR3FYWkZGdmd6emJRRnR0SmR0NTlMZ0NBanUxMjJMRExsRjZreTB6Q0JsK0h6Q0kyUXJXVEp4cXUxSTZvbndaZDlOMllKVlNWQlFOV285NTJUamRkOHcvSkExYlNqK3JpTU1WQ0txT1BNRHNiOENEaGlEbVM3RlBEM0trTVlmcUxJOVhNRTVvNVUvNFJzcEZUZWozRQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0t
-      publicKeyBase64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyTXN3emh3QkVUTktQOThTcElna0VjZThPNVlQWm5aUDVHVW1ZUVhhSHdHWmg5UHJwNDFseS9xbWk5enEwTlRCODRyaXhSZHZyU1c0cCtCUjk4TVRzRmpYaUlRYVBxRTdRUitpdDdoT1VQNVJMQW9KcWlvL3NlZlRIdlZxVW1GcitYU3NST05rek5selRVaVcvMFRNY0cwNVdIS3hORno5YTB2aXo1T01PeE5lUzhqS1ZiRStIMHlQS0JhR1JHMEdZNTZTS1BLbXh1RHk5a2tyVUtGSXZycldSZkh2bzVsK0xsT3IyQmVGT3FHcEhmeW1FaXlkbFRxWHNlbGlsYTRxMUoxbnBZRDYwY3JIY1ZRV3d2Ri9CZUkrZytxVkF5YzNaWmhYeEhoNWNMcmZsK3pqMktsUEFEZVIvZktubHFqKzFBQm4yaFRoVWJ2WjRCdXhTdWxOa1FJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t
-    storage:
-      rootPath: /data/nfs/job
-    web:
-      url: http://jobce-k8s.bk.tencent.com
 
 
 ## @section job-crontab parameters
@@ -404,7 +420,7 @@ crontab:
     registry: mirrors.tencent.com
     repository: bkrepo/job-crontab
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -437,7 +453,7 @@ crontab:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
 
@@ -447,7 +463,7 @@ logsvr:
     registry: mirrors.tencent.com
     repository: bkrepo/job-logsvr
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -480,7 +496,7 @@ logsvr:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
 
@@ -490,7 +506,7 @@ backup:
     registry: mirrors.tencent.com
     repository: bkrepo/job-backup
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -523,7 +539,7 @@ backup:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
 
@@ -533,7 +549,7 @@ analysis:
     registry: mirrors.tencent.com
     repository: bkrepo/job-analysis
     tag: 3.4.0
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -566,6 +582,6 @@ analysis:
     targetCPU: 50
     targetMemory: 50
   serviceAccount:
-   craete: true
+   create: true
   service:
     type: ClusterIP
