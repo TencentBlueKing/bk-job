@@ -35,6 +35,12 @@ data:
       taskserver:
         host: {{ .Values.gse.taskserver.host }}
         port: {{ .Values.gse.taskserver.port }}
+      server:
+        discovery:
+          type: {{ .Values.gse.server.discovery.type }}
+        zookeeper:
+          connect:
+            string: {{ .Values.gse.server.zookeeper.connect.string }}
     iam:
       base-url: {{ .Values.iam.baseUrl }}
       system-id: bk_job
@@ -71,6 +77,10 @@ data:
       security:
         private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
         public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+        actuator:
+          user:
+            name: {{ .Values.job.security.actuator.user.name }}
+            password: {{ .Values.job.security.actuator.user.password }}
       storage:
         root-path: /data/nfs/job
       web:

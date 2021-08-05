@@ -57,12 +57,6 @@ public class JobExecuteConfig {
     private String jobWebUrl;
 
     /**
-     * 对接的监控系统
-     */
-    @Value("${monitoring.system.integrated:}")
-    private String monitorSystem;
-
-    /**
      * Symmetric encryption password
      */
     @Value("${job.encrypt.password}")
