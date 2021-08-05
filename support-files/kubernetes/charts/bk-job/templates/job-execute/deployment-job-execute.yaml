@@ -45,7 +45,7 @@ spec:
       {{- if .Values.executeConfig.priorityClassName }}
       priorityClassName: {{ .Values.executeConfig.priorityClassName | quote }}
       {{- end }}
-      serviceAccountName: {{ include "job-execute.serviceAccountName" . }}
+      serviceAccountName: {{ include "job-execute.serviceAccountName" . | quote }}
       {{- if .Values.executeConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.executeConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}

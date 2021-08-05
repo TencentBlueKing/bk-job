@@ -11,7 +11,7 @@ Create the name of the service account for job-execute
 */}}
 {{- define "job-execute.serviceAccountName" -}}
 {{- if .Values.executeConfig.serviceAccount.create }}
-{{ default (printf "%s-execute" (include "common.names.fullname" .)) .Values.executeConfig.serviceAccount.name | trunc 63 | trimSuffix "-" }}
+{{- default (printf "%s-execute" (include "common.names.fullname" .)) .Values.executeConfig.serviceAccount.name | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- default "default" .Values.executeConfig.serviceAccount.name }}
 {{- end }}
