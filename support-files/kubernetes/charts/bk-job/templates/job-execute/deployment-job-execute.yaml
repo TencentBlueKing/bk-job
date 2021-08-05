@@ -64,9 +64,9 @@ spec:
             - name: BK_JOB_JAR
               value: job-execute.jar
             - name: SPRING_APPLICATION_NAME
-              value: {{ include "common.names.fullname" . }}-exeucte
+              value: {{ include "common.names.fullname" . }}-execute
             - name: SPRING_CLOUD_KUBERNETES_CONFIGMAP_NAME
-              value: {{ include "common.names.fullname" . }}-exeucte
+              value: {{ include "common.names.fullname" . }}-execute
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
             - name: KUBERNETES_NAMESPACE
