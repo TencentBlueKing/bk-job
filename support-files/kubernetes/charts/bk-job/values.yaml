@@ -208,7 +208,7 @@ rabbitmq:
         }
   loadDefinition:
     enabled: true
-    secretName: load-definition
+    existingSecret: load-definition
   extraConfiguration: |
     management.load_definitions = /app/load_definition.json
 
