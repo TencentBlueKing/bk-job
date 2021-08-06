@@ -663,11 +663,10 @@ frontendConfig:
   ingress:
     enabled: true
     hostname: "bk-job.com"
+    pathType: ImplementationSpecific
+    path: "/"
     annotations:
       kubernetes.io/ingress.class: nginx
-    hosts:
-      - host: bk-job.com
-        paths: ["/"]
     extraHosts: []
     tls: []
     extraTls: []

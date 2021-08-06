@@ -44,7 +44,7 @@ spec:
             {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
     {{- end }}
-  {{- if or .Values.frontendConfig.ingress.tls .Values.frontendConfig.ingress.extraTls .Values.frontendConfig.ingress.hosts }}
+  {{- if or .Values.frontendConfig.ingress.tls .Values.frontendConfig.ingress.extraTls }}
   tls:
     {{- if .Values.frontendConfig.ingress.tls }}
     - hosts:
