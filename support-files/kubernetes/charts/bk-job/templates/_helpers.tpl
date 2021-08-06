@@ -77,7 +77,7 @@ Return the proper job-analysis image name
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
-{{ include "common.images.pullSecrets" (dict "images" (list .Values.gateway.image .Values.manage.image .Values.executeConfig.image .Values.crontab.image .Values.logsvr.image .Values.backup.image .Values.analysis.image) "global" .Values.global) }}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.gatewayConfig.image .Values.manageConfig.image .Values.executeConfig.image .Values.crontabConfig.image .Values.logsvrConfig.image .Values.backupConfig.image .Values.analysisConfig.image) "global" .Values.global) }}
 {{- end -}}
 
 
