@@ -86,5 +86,5 @@ data:
       storage:
         root-path: /data/nfs/job
       web:
-        url: {{ .Values.job.web.url }}
+        url: {{ printf "%s:%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
 {{- end}}
