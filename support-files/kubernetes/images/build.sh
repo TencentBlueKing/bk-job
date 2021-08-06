@@ -199,7 +199,7 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
 fi
 
 
-if [[ ${#BUILD_MODULES} -ne 0 ]]; then
+if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
     for SERVICE in ${BUILD_MODULES[@]};
 	do
