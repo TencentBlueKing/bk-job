@@ -21,21 +21,21 @@ Create the name of the service account for job
 Return the proper job-frontend image name
 */}}
 {{- define "job-frontend.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.frontend.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.frontendConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-gateway image name
 */}}
 {{- define "job-gateway.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.gateway.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.gatewayConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-manage image name
 */}}
 {{- define "job-manage.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.manage.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.manageConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
@@ -49,28 +49,28 @@ Return the proper job-execute image name
 Return the proper job-crontab image name
 */}}
 {{- define "job-crontab.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.crontab.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.crontabConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-logsvr image name
 */}}
 {{- define "job-logsvr.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.logsvr.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.logsvrConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-backup image name
 */}}
 {{- define "job-backup.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.backup.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.backupConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-analysis image name
 */}}
 {{- define "job-analysis.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.analysis.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.analysisConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
