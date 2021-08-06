@@ -26,87 +26,101 @@
 -->
 
 <template>
-    <div ref="wraper" class="script-detail-wraper" v-bkloading="{ isLoading }">
-        <div v-if="data.id" class="detail-row">
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.脚本名称：') }}</div>
-                <div class="item-value">
-                    <auth-component
-                        auth="script/edit"
-                        :resource-id="data.id">
-                        <jb-edit-input
-                            style="width: 100%;"
-                            field="scriptName"
-                            :value="data.name"
-                            :remote-hander="val => handleUpdateScript('scriptName', val)" />
-                        <div slot="forbid">{{ data.name }}</div>
-                    </auth-component>
+    <div
+        ref="wraper"
+        class="script-version-basic-box"
+        v-bkloading="{ isLoading }">
+        <template v-if="data.id">
+            <div class="script-type-flag">
+                <img :src="`/static/images/script/${data.typeName}.svg`">
+            </div>
+            <div class="detail-column" style="width: 270px;">
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.脚本名：') }}</div>
+                    <div class="item-value">
+                        <auth-component
+                            auth="script/edit"
+                            :resource-id="data.id">
+                            <jb-edit-input
+                                style="width: 100%;"
+                                field="scriptName"
+                                :value="data.name"
+                                :remote-hander="val => handleUpdateScript('scriptName', val)" />
+                            <div slot="forbid">{{ data.name }}</div>
+                        </auth-component>
+                    </div>
+                </div>
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.更新人：') }}</div>
+                    <div class="item-value">
+                        <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyUser }}</div>
+                    </div>
+                </div>
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.创建人：') }}</div>
+                    <div class="item-value">
+                        <div class="text-box" v-bk-overflow-tips>{{ data.creator }}</div>
+                    </div>
                 </div>
             </div>
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.场景标签：') }}</div>
-                <div class="item-value">
-                    <auth-component
-                        auth="script/edit"
-                        :resource-id="data.id">
-                        <jb-edit-tag
-                            class="input"
-                            field="scriptTags"
+            <div class="detail-column" style="width: 282px;">
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.脚本语言：') }}</div>
+                    <div class="item-value">
+                        <div class="text-box">{{ data.typeName }}</div>
+                    </div>
+                </div>
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.更新时间：') }}</div>
+                    <div class="item-value">
+                        <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyTime }}</div>
+                    </div>
+                </div>
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.创建时间：') }}</div>
+                    <div class="item-value" v-bk-overflow-tips>
+                        <div class="text-box">{{ data.createTime }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-column last">
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.场景标签：') }}</div>
+                    <div class="item-value">
+                        <auth-component
+                            auth="script/edit"
+                            :resource-id="data.id">
+                            <jb-edit-tag
+                                class="input"
+                                field="scriptTags"
+                                :rows="1"
+                                :value="data.tags"
+                                :remote-hander="val => handleUpdateScript('scriptTags', val)" />
+                            <div slot="forbid">{{ data.tagText }}</div>
+                        </auth-component>
+                    </div>
+                </div>
+                <div class="detail-col">
+                    <div class="item-label">{{ $t('script.脚本描述：') }}</div>
+                    <div class="item-value">
+                        <jb-edit-textarea
+                            field="scriptDesc"
+                            single-row-render
+                            :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
+                            :maxlength="500"
                             :rows="1"
-                            :value="data.tags"
-                            :remote-hander="val => handleUpdateScript('scriptTags', val)" />
-                        <div slot="forbid">{{ data.tagText }}</div>
-                    </auth-component>
+                            :value="data.description"
+                            :remote-hander="val => handleUpdateScript('scriptDesc', val)" />
+                    </div>
                 </div>
             </div>
-            <div class="detail-col col2">
-                <div class="item-label">{{ $t('script.描述：') }}</div>
-                <div class="item-value">
-                    <jb-edit-textarea
-                        field="scriptDesc"
-                        single-row-render
-                        :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
-                        :maxlength="500"
-                        :rows="1"
-                        :value="data.description"
-                        :remote-hander="val => handleUpdateScript('scriptDesc', val)" />
-                </div>
-            </div>
-        </div>
-        <div class="detail-row">
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.更新人：') }}</div>
-                <div class="item-value">
-                    <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyUser }}</div>
-                </div>
-            </div>
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.更新时间：') }}</div>
-                <div class="item-value">
-                    <div class="text-box" v-bk-overflow-tips>{{ data.lastModifyTime }}</div>
-                </div>
-            </div>
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.创建人：') }}</div>
-                <div class="item-value">
-                    <div class="text-box" v-bk-overflow-tips>{{ data.creator }}</div>
-                </div>
-            </div>
-            <div class="detail-col">
-                <div class="item-label">{{ $t('script.创建时间：') }}</div>
-                <div class="item-value" v-bk-overflow-tips>
-                    <div class="text-box">{{ data.createTime }}</div>
-                </div>
-            </div>
-        </div>
+        </template>
     </div>
 </template>
 <script>
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
-    import {
-        checkPublicScript,
-    } from '@utils/assist';
+    import { checkPublicScript } from '@utils/assist';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
     import JbEditTextarea from '@components/jb-edit/textarea';
@@ -140,26 +154,26 @@
                     id: this.scriptId,
                 }).then((data) => {
                     this.data = Object.freeze(data);
+                    this.calcLableWidth();
                 })
                     .finally(() => {
                         this.isLoading = false;
-                        this.$nextTick(() => {
-                            this.calcLableWidth();
-                        });
                     });
             },
             /**
              * @desc 计算脚本lable的宽度
              */
             calcLableWidth () {
-                const $lableEles = this.$refs.wraper.querySelectorAll('.item-label');
-                let maxWidth = 0;
-                $lableEles.forEach((ele) => {
-                    const { width } = ele.getBoundingClientRect();
-                    maxWidth = Math.max(maxWidth, width);
-                });
-                $lableEles.forEach((ele) => {
-                    ele.style.width = `${maxWidth + 2}px`;
+                this.$refs.wraper.querySelectorAll('.detail-column').forEach((columnEl) => {
+                    const $lableEles = columnEl.querySelectorAll('.item-label');
+                    let maxWidth = 0;
+                    $lableEles.forEach((ele) => {
+                        const { width } = ele.getBoundingClientRect();
+                        maxWidth = Math.max(maxWidth, width);
+                    });
+                    $lableEles.forEach((ele) => {
+                        ele.style.width = `${maxWidth + 2}px`;
+                    });
                 });
             },
             /**
@@ -178,26 +192,31 @@
     };
 </script>
 <style lang='postcss'>
-    .script-detail-wraper {
-        height: 80px;
-        padding: 8px 24px;
+    .script-version-basic-box {
+        position: relative;
+        display: flex;
+        height: 128px;
+        padding: 16px 24px;
         background: #fff;
-        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.16);
 
-        .detail-row {
-            display: flex;
+        .script-type-flag {
+            flex: 0 0  auto;
+            margin-right: 20px;
+
+            img {
+                width: 100%;
+                height: 100%;
+            }
         }
 
-        .detail-col {
+        .detail-column {
             display: flex;
-            flex: 0 0 25%;
-            width: 0;
-            padding-right: 20px;
-            font-size: 12px;
-            line-height: 32px;
+            line-height: 30px;
+            flex-direction: column;
 
-            &.col2 {
-                flex-basis: 50%;
+            &.last {
+                flex: 1;
             }
 
             .item-label {
@@ -218,6 +237,10 @@
                     white-space: nowrap;
                 }
             }
+        }
+
+        .detail-col {
+            display: flex;
         }
     }
 </style>

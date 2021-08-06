@@ -38,6 +38,10 @@ export default class ScriptRelated extends BaseModel {
         this.taskPlanName = payload.taskPlanName;
     }
 
+    /**
+     * @desc 同步状态 ICON
+     * @returns { HTMLElement }
+     */
     get statusHtml () {
         let styles = 'display: inline-block; padding: 0 8px; line-height: 18px; font-size: 12px; border-radius: 2px;';
 
@@ -46,7 +50,7 @@ export default class ScriptRelated extends BaseModel {
                 styles += 'background: #F4E3C7; color: #FF9C01';
                 break;
             case ScriptRelated.STATUS_ONLINE:
-                styles += 'background: #E5F6EA; color: #3FC06D';
+                styles += 'background: #DAEBDE; color: #3FC06D';
                 break;
             default:
                 styles += 'background: #F0F1F5; color: #979BA5';

@@ -929,10 +929,8 @@
 </script>
 <style lang='postcss'>
     .script-manage-version-page {
-        margin: -20px -24px 0;
-
         .version-list-wraper {
-            padding: 20px 24px 0;
+            margin-top: 12px;
         }
 
         .script-version-list {
