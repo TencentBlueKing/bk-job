@@ -73,10 +73,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-
           ports:
             - name: http
-              containerPort: 10502
+              containerPort: {{ .Values.executeConfig.server.port }}
               protocol: TCP
           livenessProbe:
             httpGet:

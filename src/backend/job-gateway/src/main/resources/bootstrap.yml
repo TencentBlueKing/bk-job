@@ -16,7 +16,7 @@ ribbon:
 
 management:
   server:
-    port: 19876
+    port: ${job.actuator.management.server.port:19876}
     ssl:
       enabled: false
   endpoints:

@@ -64,7 +64,7 @@ spec:
               nginx
           env:
             - name: JOB_API_GATEWAY_URL
-              value: {{ printf "%s:%s" .Values.frontendConfig.backend.apiGateway.scheme .Values.frontendConfig.backend.apiGateway.domain }}
+              value: {{ printf "%s://%s" .Values.frontendConfig.backend.apiGateway.scheme .Values.frontendConfig.backend.apiGateway.domain }}
           volumeMounts:
             - name: web-nginx-config
               mountPath: /etc/nginx/

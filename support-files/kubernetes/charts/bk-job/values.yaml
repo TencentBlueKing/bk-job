@@ -270,6 +270,7 @@ esb:
   service:
     ## ESB Service URL
     url: ""
+  publicKeyBase64: ""
 ## Blueking GSE Config
 gse:
   cacheApiServer:
@@ -313,7 +314,7 @@ job:
 gateway:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-gateway
+    repository: tyleryuwang/job-gateway
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -347,26 +348,37 @@ gateway:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort:
+    https: 19802
+    http: 9802
+    management: 19876
   service:
     type: ClusterIP
+    port:
+      https: 443
+      http: 80
   ingress:
     enabled: true
     hostname: "api.bk-job.com"
+    path: "/"
     annotations:
       kubernetes.io/ingress.class: nginx
-    hosts:
-      - host: api.bk-job.com
-        paths: ["/"]
     extraHosts: []
     tls: []
     extraTls: []
     secrets: []
+  server:
+    ssl:
+      keystore:
+        password: ""
+      truststore:
+        password: ""
 
 ## @section job-manage parameters
 manage:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-manage
+    repository: tyleryuwang/job-manage
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -400,6 +412,7 @@ manage:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19803
   service:
     type: ClusterIP
 
@@ -442,6 +455,7 @@ executeConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19804
   service:
     type: ClusterIP
     port: 80
@@ -451,7 +465,7 @@ executeConfig:
 crontab:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-crontab
+    repository: tyleryuwang/job-crontab
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -485,6 +499,7 @@ crontab:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19805
   service:
     type: ClusterIP
 
@@ -492,7 +507,7 @@ crontab:
 logsvr:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-logsvr
+    repository: tyleryuwang/job-logsvr
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -526,6 +541,7 @@ logsvr:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19806
   service:
     type: ClusterIP
 
@@ -533,7 +549,7 @@ logsvr:
 backup:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-backup
+    repository: tyleryuwang/job-backup
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -567,6 +583,7 @@ backup:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19808
   service:
     type: ClusterIP
 
@@ -574,7 +591,7 @@ backup:
 analysis:
   image:
     registry: mirrors.tencent.com
-    repository: bkrepo/job-analysis
+    repository: tyleryuwang/job-analysis
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -608,6 +625,7 @@ analysis:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  containerPort: 19807
   service:
     type: ClusterIP
 

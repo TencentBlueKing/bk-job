@@ -13,7 +13,7 @@ java -server \
      -XX:+PrintGCDetails \
      -XX:+PrintGCDateStamps \
      -XX:+HeapDumpOnOutOfMemoryError \
-     -XX:HeapDumpPath=oom.hprof \
+     -XX:HeapDumpPath=heap.hprof \
      -XX:ErrorFile=$BK_JOB_LOGS_DIR/error_sys.log \
      -Dspring.profiles.active=$BK_JOB_PROFILE \
      $BK_JOB_JVM_OPTION \
