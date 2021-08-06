@@ -18,6 +18,13 @@ Create the name of the service account for job
 {{- end }}
 
 {{/*
+Return the proper job-frontend image name
+*/}}
+{{- define "job-frontend.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.frontend.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper job-gateway image name
 */}}
 {{- define "job-gateway.image" -}}

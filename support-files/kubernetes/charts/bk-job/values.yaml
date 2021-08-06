@@ -191,11 +191,6 @@ rabbitmq:
     ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
     ##
     erlangCookie: "job"
-#  extraConfiguration: |-
-#    default_vhost = job
-#    default_permissions.configure = .*
-#    default_permissions.read = .*
-#    default_permissions.write = .*
   extraSecrets:
     load-definition:
       load_definition.json: |
@@ -311,9 +306,7 @@ job:
         name: actuator-admin
         password: actuator@123
   encrypt:
-    password: "jobtest"
-  web:
-    url: "http://bk-job.com"
+    password: "job2021"
 
 
 ## @section job-gateway parameters
@@ -356,6 +349,18 @@ gateway:
     targetMemory: 50
   service:
     type: ClusterIP
+  ingress:
+    enabled: true
+    hostname: "api.bk-job.com"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - host: api.bk-job.com
+        paths: ["/"]
+    extraHosts: []
+    tls: []
+    extraTls: []
+    secrets: []
 
 ## @section job-manage parameters
 manage:
@@ -605,3 +610,65 @@ analysis:
     targetMemory: 50
   service:
     type: ClusterIP
+
+
+## @section job-frontend parameters
+frontendConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: tyleryuwang/job-frontend
+    tag: 3.4.0
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  service:
+    type: ClusterIP
+    port: 80
+  web:
+    scheme: "http"
+    domain: "bk-job.com"
+  backend:
+    apiGateway:
+      scheme: "http"
+      domain: "api.bk-job.com"
+  ingress:
+    enabled: true
+    hostname: "bk-job.com"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    hosts:
+      - host: bk-job.com
+        paths: ["/"]
+    extraHosts: []
+    tls: []
+    extraTls: []
+    secrets: []
