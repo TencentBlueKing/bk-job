@@ -8,4 +8,4 @@ COPY dist/static/ /data/job/job-frontend/static
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
-    mkdir -p /data/job/logs/frontend/nginx
+    mkdir -p /data/job/logs/job-frontend/nginx
