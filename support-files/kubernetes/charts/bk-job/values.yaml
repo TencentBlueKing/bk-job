@@ -311,7 +311,7 @@ job:
 
 
 ## @section job-gateway parameters
-gateway:
+gatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-gateway
@@ -375,7 +375,7 @@ gateway:
         password: ""
 
 ## @section job-manage parameters
-manage:
+manageConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-manage
@@ -462,7 +462,7 @@ executeConfig:
 
 
 ## @section job-crontab parameters
-crontab:
+crontabConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-crontab
@@ -504,7 +504,7 @@ crontab:
     type: ClusterIP
 
 ## @section job-logsvr parameters
-logsvr:
+logsvrConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-logsvr
@@ -546,7 +546,7 @@ logsvr:
     type: ClusterIP
 
 ## @section job-backup parameters
-backup:
+backupConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-backup
@@ -588,7 +588,7 @@ backup:
     type: ClusterIP
 
 ## @section job-analysis parameters
-analysis:
+analysisConfig:
   image:
     registry: mirrors.tencent.com
     repository: tyleryuwang/job-analysis
