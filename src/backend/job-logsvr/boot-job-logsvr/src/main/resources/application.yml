@@ -1,4 +1,15 @@
 spring:
+  application:
+    name: job-logsvr
+  profiles:
+    active: prod
+  cloud:
+    consul:
+      discovery:
+        service-name: 'job-logsvr'
+        instance-id: job-logsvr-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
   data:
     mongodb:
       uri: ${job.logsvr.mongodb.uri}
@@ -12,3 +23,49 @@ job:
     service:
       private-key-base64: ${job.security.private-key-base64}
       public-key-base64: ${job.security.public-key-base64}
+
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: 19806
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  shutdown: graceful
+

@@ -1,7 +1,18 @@
 spring:
+  application:
+    name: job-gateway
   main:
     allow-bean-definition-overriding: true
+  profiles:
+    active: default
   cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-gateway
+        instance-id: job-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     ssl:
       useInsecureTrustManager: true
     gateway:
@@ -201,22 +212,46 @@ spring:
       password: ${job.security.actuator.user.password}
       roles: ENDPOINT_ADMIN
 server:
-  http:
-    enabled: ${job.gateway.server.http.enabled:true}
-    port: ${job.gateway.server.http.port:9802}
-  port: ${job.gateway.server.port:19802}
   shutdown: graceful
-  ssl:
-    enabled: true
-    key-store-type: ${job.gateway.server.ssl.keystore.type}
-    key-store: ${job.gateway.server.ssl.keystore.path}
-    key-store-password: ${job.gateway.server.ssl.keystore.password}
-    key-alias: ${job.gateway.server.ssl.key.alias}
-    trust-store: ${job.gateway.server.ssl.truststore.path}
-    trust-store-password: ${job.gateway.server.ssl.truststore.password}
-job:
-  security:
-    service:
-      private-key-base64: ${job.security.private-key-base64}
-      public-key-base64: ${job.security.public-key-base64}
-  edition: ce
+
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  server:
+    port: 19876
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+

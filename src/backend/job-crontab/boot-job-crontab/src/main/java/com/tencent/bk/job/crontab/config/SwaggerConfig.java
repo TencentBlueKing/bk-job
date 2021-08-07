@@ -55,7 +55,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-            .host(bkConfig.getSwaggerUrl())
+            .host(bkConfig.getSwaggerUrl() + "/job-crontab")
             .protocols(new HashSet<>(Arrays.asList("http", "https"))).select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.crontab.api"))
             .paths(PathSelectors.any())

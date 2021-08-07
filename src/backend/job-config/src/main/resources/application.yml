@@ -1,16 +1,55 @@
 spring:
+  application:
+    name: job-config
+  profiles:
+    active: prod,native
   cloud:
     consul:
-      host: localhost
-      port: 8500
       discovery:
-        prefer-ip-address: true
-        service-name: 'job-config'
         instance-id: job-config-${machine.ip}-${server.port}
-        scheme: http
-      scheme: http
-  security:
-    user:
-      name: ${job.security.actuator.user.name}
-      password: ${job.security.actuator.user.password}
-      roles: ENDPOINT_ADMIN
+    config:
+      server:
+        native:
+          search-locations: file:///${BK_JOB_CONFIG_DIR}/job-common,file:///${BK_JOB_CONFIG_DIR}/job-gateway,file:///${BK_JOB_CONFIG_DIR}/job-manage,file:///${BK_JOB_CONFIG_DIR}/job-execute,file:///${BK_JOB_CONFIG_DIR}/job-logsvr,file:///${BK_JOB_CONFIG_DIR}/job-crontab,file:///${BK_JOB_CONFIG_DIR}/job-backup,file:///${BK_JOB_CONFIG_DIR}/job-file-gateway,file:///${BK_JOB_CONFIG_DIR}/job-ticket,file:///${BK_JOB_CONFIG_DIR}/job-analysis
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: 19801
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+

@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JobTicketConfig {
 
-    @Value("${job.ticket.swagger.url:ticket.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
     @Value("${job.encrypt.password}")

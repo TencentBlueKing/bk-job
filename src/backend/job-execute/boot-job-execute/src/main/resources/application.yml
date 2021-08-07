@@ -1,179 +1,51 @@
 spring:
-  cloud:
-    stream:
-      bindings:
-        taskInput:
-          destination: task
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        taskOutput:
-          destination: task
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        stepInput:
-          destination: step
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        stepOutput:
-          destination: step
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        gseTaskInput:
-          destination: gse.task
-          group: service.job.execute
-          consumer:
-            concurrency: 10
-        gseTaskOutput:
-          destination: gse.task
-          group: service.job.execute
-          consumer:
-            concurrency: 10
-        taskResultHandleResumeInput:
-          destination: result.handle.task.resume
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        taskResultHandleResumeOutput:
-          destination: result.handle.task.resume
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        notifyMsgInput:
-          destination: notify.msg
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        notifyMsgOutput:
-          destination: notify.msg
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        callbackInput:
-          destination: task.callback
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        callbackOutput:
-          destination: task.callback
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        taskStatisticsInput:
-          destination: statistics.task
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-        taskStatisticsOutput:
-          destination: statistics.task
-          group: service.job.execute
-          consumer:
-            concurrency: 5
-      rabbit:
-        bindings:
-          taskInput:
-            consumer:
-              maxConcurrency: 10
-          taskOutput:
-            consumer:
-              maxConcurrency: 10
-          stepInput:
-            consumer:
-              maxConcurrency: 10
-          stepOutput:
-            consumer:
-              maxConcurrency: 10
-          gseTaskInput:
-            consumer:
-              maxConcurrency: 20
-          gseTaskOutput:
-            consumer:
-              maxConcurrency: 20
-          taskResultHandleResumeInput:
-            consumer:
-              maxConcurrency: 10
-          taskResultHandleResumeOutput:
-            consumer:
-              maxConcurrency: 10
-          notifyMsgInput:
-            consumer:
-              maxConcurrency: 10
-          notifyMsgOutput:
-            consumer:
-              maxConcurrency: 10
-          callbackInput:
-            consumer:
-              maxConcurrency: 10
-          callbackOutput:
-            consumer:
-              maxConcurrency: 10
-          taskStatisticsInput:
-            consumer:
-              maxConcurrency: 10
-          taskStatisticsOutput:
-            consumer:
-              maxConcurrency: 10
-    refresh:
-      extra-refreshable: javax.sql.DataSource
-  datasource:
-    job-execute:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: ${job.execute.db.url}
-      username: ${job.execute.db.username}
-      password: ${job.execute.db.password}
-      maximum-pool-size: 100
-      minimum-idle: 20
-      idle-timeout: 600000
-      poolName: "job-execute"
-      validationTimeout: 5000
+  application:
+    name: job-execute
+  profiles:
+    active: prod
 
-  rabbitmq:
-    host: ${job.execute.rabbitmq.host}
-    port: ${job.execute.rabbitmq.port}
-    username: ${job.execute.rabbitmq.username}
-    password: ${job.execute.rabbitmq.password}
-    virtual-host: ${job.execute.rabbitmq.vhost:job}
-  redis:
-    mode: ${job.execute.redis.mode:sentinel}
-    host: ${job.execute.redis.host:}
-    port: ${job.execute.redis.port:6379}
-    sentinel:
-      password: ${job.execute.redis.sentinel.password:}
-      master: ${job.execute.redis.sentinel.master:}
-      nodes: ${job.execute.redis.sentinel.nodes:}
-    password: ${job.execute.redis.password:}
-    database: ${job.execute.redis.database}
-    lettuce:
-      pool:
-        min-idle: ${job.execute.redis.lettuce.pool.min-idle:5}
-        max-idle: ${job.execute.redis.lettuce.pool.max-idle:10}
-        max-active: ${job.execute.redis.lettuce.pool.max-idle:8}
-        max-wait: ${job.execute.redis.lettuce.pool.max-wait:1ms}
-      shutdown-timeout: ${job.execute.redis.lettuce.shutdown-timeout:100ms}
-  security:
-    user:
-      name: ${job.security.actuator.user.name}
-      password: ${job.security.actuator.user.password}
-      roles: ENDPOINT_ADMIN
+ribbon:
+  ServerListRefreshInterval: 3000
 
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 5000
-      sync:
-        connectTimeout: 5000
-        readTimeout: 30000
-      log:
-        connectTimeout: 5000
-        readTimeout: 30000
-job:
-  security:
-    service:
-      private-key-base64: ${job.security.private-key-base64}
-      public-key-base64: ${job.security.public-key-base64}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+
+server:
+  port: 19804
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  shutdown: graceful

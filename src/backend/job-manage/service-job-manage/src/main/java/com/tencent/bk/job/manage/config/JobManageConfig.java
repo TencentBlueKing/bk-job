@@ -77,7 +77,7 @@ public class JobManageConfig {
     @Value("${job.manage.sync.resource.watch.enable:true}")
     private boolean enableResourceWatch;
 
-    @Value("${job.manage.swagger.url:manage.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
     //---------------------------- Cmdb Config ---------------------------------

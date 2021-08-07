@@ -36,7 +36,7 @@ import java.util.List;
 @Component
 public class WorkerConfig {
 
-    @Value("${job.file.worker.swagger.url:file-worker.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
     @Value("${job.file.worker.version:0.0.1}")

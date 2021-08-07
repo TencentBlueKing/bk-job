@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class JobExecuteConfig {
 
-    @Value("${job.execute.swagger.url:execute.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
     /**
