@@ -51,7 +51,7 @@ public class LogCollectionFactory {
 
 
     private final LoadingCache<String, MongoCollection<Document>> collectionCache =
-        CacheBuilder.newBuilder().maximumSize(365).expireAfterAccess(2, TimeUnit.HOURS).build(new CacheLoader<String,
+        CacheBuilder.newBuilder().maximumSize(30).expireAfterAccess(2, TimeUnit.HOURS).build(new CacheLoader<String,
             MongoCollection<Document>>() {
         @Override
         public MongoCollection<Document> load(String collectionName) {

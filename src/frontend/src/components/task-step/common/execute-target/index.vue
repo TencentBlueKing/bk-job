@@ -93,8 +93,9 @@
                     </bk-button>
                 </template>
                 <bk-input
-                    v-if="isShowHostSearch"
+                    v-if="isShowHostSearchInput"
                     class="ip-search"
+                    :value="searchText"
                     :placeholder="$t('筛选主机')"
                     right-icon="bk-icon icon-search"
                     @change="handleHostSearch" />
@@ -105,7 +106,7 @@
                     ref="serverPanel"
                     class="view-server-panel"
                     :host-node-info="localHost"
-                    :search-mode="isSearchMode"
+                    :search-mode="Boolean(searchText)"
                     :search-data="searchData"
                     editable
                     @on-change="handleHostChange" />
@@ -118,6 +119,7 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
     import TaskHostNodeModel from '@model/task-host-node';
     import I18n from '@/i18n';
     import { execCopy } from '@utils/assist';
@@ -152,6 +154,7 @@
         data () {
             return {
                 isShowChooseIp: false,
+                searchText: '',
                 isSearchMode: false,
                 searchData: [],
                 targetType: 'variable', // variable：主机变量；hostNodeInfo：手动添加
@@ -198,7 +201,7 @@
              * @desc 选择的主机才显示主机搜索框
              * @returns {Boolean}
              */
-            isShowHostSearch () {
+            isShowHostSearchInput () {
                 if (this.isGolbalVariableType) {
                     return false;
                 }
@@ -299,6 +302,7 @@
              */
             handleShowChooseIp () {
                 this.isShowChooseIp = true;
+                this.searchText = '';
             },
             /**
              * @desc 选择全局变量
@@ -360,7 +364,7 @@
              * @param {String} search 筛选值
              */
             handleHostSearch (search) {
-                this.isSearchMode = !!search;
+                this.searchText = _.trim(search);
                 this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
             },
         },

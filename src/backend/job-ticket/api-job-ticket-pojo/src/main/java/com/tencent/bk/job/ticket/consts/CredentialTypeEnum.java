@@ -31,10 +31,22 @@ public enum CredentialTypeEnum {
     SECRET_KEY(4, "单一SecretKey");
 
     private final Integer value;
-    private final String name;
+    private final String description;
 
-    CredentialTypeEnum(Integer type, String name) {
+    public static String getAllNameStr() {
+        StringBuilder sb = new StringBuilder();
+        CredentialTypeEnum[] values = CredentialTypeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            sb.append(values[i].name());
+            if (i < values.length - 1) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
+
+    CredentialTypeEnum(Integer type, String description) {
         this.value = type;
-        this.name = name;
+        this.description = description;
     }
 }

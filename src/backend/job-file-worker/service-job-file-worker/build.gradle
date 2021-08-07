@@ -24,10 +24,10 @@
 
 dependencies {
     api(files("libs/innercos-java-sdk-5.6.9.jar"))
+    api project(":commons:artifactory-sdk")
     api project(":job-file-worker:api-job-file-worker")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
     api project(":job-file-worker-sdk:service-job-file-worker-sdk")
-    implementation(project(":commons:common-service"))
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
@@ -41,6 +41,7 @@ dependencies {
     implementation 'io.springfox:springfox-swagger-ui'
     implementation 'joda-time:joda-time'
     implementation 'org.bouncycastle:bcprov-jdk15on'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
 }

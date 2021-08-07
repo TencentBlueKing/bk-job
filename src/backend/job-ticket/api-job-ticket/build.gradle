@@ -25,6 +25,7 @@
 dependencies {
     api project(':commons:common')
     api project(':commons:common-iam')
+    api project(':commons:common-web')
     api project(':job-ticket:api-job-ticket-pojo')
     api(project(":commons:common-api"))
     implementation "org.springframework:spring-web"

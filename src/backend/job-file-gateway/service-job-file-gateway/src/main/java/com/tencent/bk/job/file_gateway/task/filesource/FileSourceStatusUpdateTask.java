@@ -57,7 +57,13 @@ public class FileSourceStatusUpdateTask {
         int start = 0;
         int pageSize = 20;
         do {
-            fileSourceDTOList = fileSourceService.listWorkTableFileSource(null, null, null, start, pageSize);
+            fileSourceDTOList = fileSourceService.listWorkTableFileSource(
+                null,
+                null,
+                null,
+                start,
+                pageSize
+            );
             for (FileSourceDTO fileSourceDTO : fileSourceDTOList) {
                 FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
                 int status;
@@ -70,9 +76,12 @@ public class FileSourceStatusUpdateTask {
                     } else {
                         // 通过Worker调用listFileNode接口，OK的才算正常
                         try {
-                            fileService.listFileNode(fileSourceDTO.getCreator(), fileSourceDTO.getAppId(),
-                                fileSourceDTO.getId(), null, null, 0, 1);
-                            status = 1;
+                            if (fileService.isFileAvailable(fileSourceDTO.getCreator(), fileSourceDTO.getAppId(),
+                                fileSourceDTO.getId())) {
+                                status = 1;
+                            } else {
+                                status = 0;
+                            }
                         } catch (Throwable t) {
                             status = 0;
                         }

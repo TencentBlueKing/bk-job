@@ -35,9 +35,9 @@ import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.file.worker.api.IFileResource;
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryActionCodeEnum;
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryNodeTypeEnum;
-import com.tencent.bk.job.file.worker.artifactory.model.dto.NodeDTO;
-import com.tencent.bk.job.file.worker.artifactory.model.dto.ProjectDTO;
-import com.tencent.bk.job.file.worker.artifactory.model.dto.RepoDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryBaseService;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryRemoteClient;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
@@ -73,6 +73,12 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
     @Override
     public RemoteClient getRemoteClient(BaseReq req) {
         return baseService.getArtifactoryClientFromBaseReq(req);
+    }
+
+    @Override
+    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+        ArtifactoryRemoteClient client = baseService.getArtifactoryClientFromBaseReq(req);
+        return ServiceResponse.buildSuccessResp(client.isAvailable());
     }
 
     private String parseParentNodeTypeByPath(String path) {
@@ -147,7 +153,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         }
         String projectId = path;
         // TODO:搜索优化，当前只支持原生前缀搜索
-        com.tencent.bk.job.file.worker.artifactory.model.dto.PageData<RepoDTO> pageData = null;
+        com.tencent.bk.job.common.artifactory.model.dto.PageData<RepoDTO> pageData = null;
         Integer start = req.getStart();
         Integer pageSize = req.getPageSize();
         if (pageSize <= 0) {
@@ -201,7 +207,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         String repoName = pathArr[1];
         String fullPath = path.substring(projectId.length() + repoName.length() + 1);
         // TODO:搜索优化
-        com.tencent.bk.job.file.worker.artifactory.model.dto.PageData<NodeDTO> pageData = null;
+        com.tencent.bk.job.common.artifactory.model.dto.PageData<NodeDTO> pageData = null;
         Integer start = req.getStart();
         Integer pageSize = req.getPageSize();
         if (pageSize <= 0) {

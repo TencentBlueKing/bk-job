@@ -159,6 +159,16 @@ spring:
             - RecordEsbAccessLog
             - AddEsbLangHeader
 
+        - id: job-file-gateway-esb-v3
+          uri: lb://job-file-gateway
+          predicates:
+            - JobEsbV2Path=/api/job/v3/job-file-gateway/{api_name}
+          filters:
+            - CheckEsbJwt
+            - SetPath=/esb/api/v3/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
         - id: job-file-gateway-iam
           uri: lb://job-file-gateway
           predicates:

@@ -75,9 +75,9 @@
         <component
             ref="handler"
             :is="globalVarCom"
-            :variable="variable"
             :data="formData"
-            @on-change="handleGetValue" />
+            v-bind="$attrs"
+            v-on="$listeners" />
     </jb-form>
 </template>
 <script>
@@ -99,12 +99,6 @@
             VarArray,
         },
         props: {
-            variable: {
-                type: Array,
-                default () {
-                    return [];
-                },
-            },
             data: {
                 type: Object,
                 default () {
@@ -138,12 +132,13 @@
         },
         watch: {
             data: {
-                handler  (data) {
+                handler (data) {
                     if (data.name) {
                         // 编辑变量
                         this.formData = data;
                     } else {
                         // 新建变量
+                        // 初始化默认值
                         this.formData = createVariable();
                     }
                     this.globalType = this.formData.typeDescription;
@@ -166,9 +161,6 @@
                 return this.$refs.handler.reset && this.$refs.handler.reset().then(() => {
                     this.globalType = '';
                 });
-            },
-            handleGetValue (payload) {
-                this.$emit('on-change', payload);
             },
         },
     };

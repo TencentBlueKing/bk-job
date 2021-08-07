@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.RelatedUrlKeys;
 import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
+import com.tencent.bk.job.manage.config.ArtifactoryConfigForManage;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
@@ -115,6 +116,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private NotifyTemplateDAO notifyTemplateDAO;
     private MessageI18nService i18nService;
     private JobManageConfig jobManageConfig;
+    private ArtifactoryConfigForManage artifactoryConfig;
     private NotifyTemplateConverter notifyTemplateConverter;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
@@ -129,7 +131,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , NotifyService notifyService
         , GlobalSettingDAO globalSettingDAO
         , NotifyTemplateDAO notifyTemplateDAO, MessageI18nService i18nService, JobManageConfig jobManageConfig,
-        NotifyTemplateConverter notifyTemplateConverter) {
+        ArtifactoryConfigForManage artifactoryConfig, NotifyTemplateConverter notifyTemplateConverter) {
         this.dslContext = dslContext;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
@@ -138,6 +140,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyTemplateDAO = notifyTemplateDAO;
         this.i18nService = i18nService;
         this.jobManageConfig = jobManageConfig;
+        this.artifactoryConfig = artifactoryConfig;
         this.notifyTemplateConverter = notifyTemplateConverter;
     }
 
@@ -734,11 +737,16 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE, enableFeatureFileManage);
     }
 
+    private void addEnableUploadToArtifactoryConfig(String username, Map<String, Object> configMap) {
+        configMap.put(GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY, artifactoryConfig.isEnable());
+    }
+
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
         addFileUploadMaxSizeConfig(username, configMap);
         addEnableFeatureFileManageConfig(username, configMap);
+        addEnableUploadToArtifactoryConfig(username, configMap);
         return configMap;
     }
 }

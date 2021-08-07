@@ -48,4 +48,6 @@ public class GlobalSettingKeys {
     public static final String KEY_NOTIFY_CHANNEL_CONFIGED = "NOTIFY_CHANNEL_CONFIGED";
     //是否启用文件管理特性
     public static final String KEY_ENABLE_FEATURE_FILE_MANAGE = "ENABLE_FEATURE_FILE_MANAGE";
+    //是否上传本地文件到制品库
+    public static final String KEY_ENABLE_UPLOAD_TO_ARTIFACTORY = "ENABLE_UPLOAD_TO_ARTIFACTORY";
 }

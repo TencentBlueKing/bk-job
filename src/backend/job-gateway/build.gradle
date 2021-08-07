@@ -63,3 +63,11 @@ test {
     useJUnitPlatform()
 }
 apply from: "$rootDir/task_job_package.gradle"
+task copyToLatestJar(type: Copy) {
+    group = "local"
+    from('build/libs')
+    include "job-gateway-${version}.jar"
+    destinationDir file('build/libs/')
+    rename "job-gateway-${version}.jar", "job-gateway.jar"
+}
+copyToLatestJar.dependsOn assemble

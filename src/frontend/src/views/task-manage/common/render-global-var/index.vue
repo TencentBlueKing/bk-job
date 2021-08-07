@@ -133,7 +133,7 @@
             <jb-sideslider
                 v-if="isOperation"
                 :is-show.sync="isShowBatchOperation"
-                :title="$t('template.编辑全局变量')"
+                :title="$t('template.批量编辑变量')"
                 :media="batchOperationMediaQuery">
                 <batch-operation
                     v-if="isShowBatchOperation"
@@ -359,10 +359,12 @@
                     confirmFn: () => {
                         const currentVar = this.variable[index];
                         if (currentVar.id > 0) {
-                            // 删除已存在的变量——设置delete
+                            // 删除已存在的变量
+                            //  —设置delete
                             currentVar.delete = 1;
                         } else {
-                            // 删除新建的变量——直接删除
+                            // 删除新建的变量
+                            //  —直接删除
                             this.variable.splice(index, 1);
                         }
                         this.triggerChange();

@@ -70,6 +70,33 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public boolean isFileAvailable(String username, Long appId, Integer fileSourceId) {
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
+        if (fileWorkerDTO == null) {
+            throw new ServiceException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+        }
+        log.info("choose file worker:" + fileWorkerDTO);
+        // 访问文件Worker接口，拿到available状态信息
+        HttpReq fileAvailableReq = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
+        String respStr = null;
+        log.info(String.format("url=%s,body=%s,headers=%s", fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
+            JsonUtils.toJson(fileAvailableReq.getHeaders())));
+        try {
+            respStr = fileWorkerHttpHelper.post(fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
+                fileAvailableReq.getHeaders());
+            log.info(String.format("respStr=%s", respStr));
+            ServiceResponse<Boolean> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<ServiceResponse<Boolean>>() {
+                });
+            return resp.getData();
+        } catch (Exception e) {
+            log.error("Fail to request remote worker:", e);
+            return false;
+        }
+    }
+
+    @Override
     public FileNodesVO listFileNode(String username, Long appId, Integer fileSourceId, String path, String name,
                                     Integer start, Integer pageSize) {
         if (name == null) name = "";
@@ -91,7 +118,7 @@ public class FileServiceImpl implements FileService {
                 listFileNodeReq.getHeaders());
         } catch (Exception e) {
             log.error("Fail to request remote worker:", e);
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_BUCKET, new String[]{e.getMessage()});
+            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, new String[]{e.getMessage()});
         }
         log.info(String.format("respStr=%s", respStr));
         FileNodesDTO fileNodesDTO = parseFileNodesDTO(respStr);
@@ -127,7 +154,7 @@ public class FileServiceImpl implements FileService {
                 throw (ServiceException) e;
             } else {
                 log.error("Fail to request remote worker:", e);
-                throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_DELETE_BUCKET,
+                throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_EXECUTE_ACTION,
                     new String[]{e.getMessage()});
             }
         }
@@ -140,7 +167,7 @@ public class FileServiceImpl implements FileService {
             });
         } catch (Exception e) {
             log.error("Fail to parse bucket from response={}", respStr, e);
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_BUCKET, e.getMessage());
+            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, e.getMessage());
         }
         if (resp.isSuccess()) {
             return resp.getData();

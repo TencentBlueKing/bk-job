@@ -465,6 +465,7 @@ export default {
         '确定立即批量更新？': 'Are you sure want to update now ?',
         '请注意！变量值填框留空，即代表设置目标变量为空值。': 'Caution! If the input is blank, means the variable value is also empty.',
         批量编辑变量值: 'Multi-Edit',
+        批量编辑变量: 'Multi-Edit',
         请选择要编辑的执行方案: 'Please specifi job plan first',
         已选结果中有执行方案中没有权限编辑: 'Some you do not have permission in the selected results',
         原始值: 'OLD VALUE',
@@ -482,5 +483,8 @@ export default {
         更新预览: 'Preview',
         移除无效主机: '',
         批量编辑: 'Multi-Edit',
+        源和目标服务器相同: '',
+        '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': '',
+        '是的，确定无误': '',
     },
 };

@@ -26,6 +26,7 @@ package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
@@ -43,6 +44,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @InternalAPI
 public interface FileResource {
+
+    @ApiOperation(value = "测试文件源是否可用", produces = "application/json")
+    @PostMapping("/available")
+    ServiceResponse<Boolean> isFileAvailable(
+        @ApiParam(value = "文件源是否可用", required = true) @RequestBody BaseReq req);
 
     @ApiOperation(value = "获取文件源/FileNode下的子FileNode列表", produces = "application/json")
     @PostMapping("/listFileNode")

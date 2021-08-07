@@ -35,6 +35,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -44,6 +46,8 @@ public class CollectionLoaderBase implements CollectionLoader {
 
     @Value("${job.logsvr.mongodb.shard.enabled:false}")
     protected boolean enableSharding;
+
+    private Map<String, Boolean> collectionShardStatusMap = new ConcurrentHashMap<>();
 
     @Override
     public MongoCollection<Document> load(MongoTemplate mongoTemplate, String collectionName) {
@@ -63,6 +67,12 @@ public class CollectionLoaderBase implements CollectionLoader {
 
     protected void shardCollectionIfShardingEnable(MongoTemplate mongoTemplate, String collectionName) {
         if (enableSharding) {
+            Boolean isCollectionSharded = collectionShardStatusMap.get(collectionName);
+            if (isCollectionSharded != null && isCollectionSharded) {
+                log.info("Collection: {} is already sharded!", collectionName);
+                return;
+            }
+
             log.info("Shard collection {} start...", collectionName);
             MongoDatabase adminDB = mongoTemplate.getMongoDbFactory().getMongoDatabase("admin");
             String collection = logDb + "." + collectionName;
@@ -70,6 +80,8 @@ public class CollectionLoaderBase implements CollectionLoader {
             Document shardCmd = new Document("shardCollection", collection)
                 .append("key", new Document("stepId", "hashed"));
             adminDB.runCommand(shardCmd);
+
+            collectionShardStatusMap.put(collectionName, true);
             log.info("Shard collection successfully, collectionName: {}", collectionName);
         }
     }

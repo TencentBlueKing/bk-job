@@ -308,9 +308,6 @@
                 immediate: true,
             },
         },
-        created () {
-            this.innerChange = false;
-        },
         methods: {
             /**
              * @desc 外部调用——点击指定 index 的步骤
@@ -409,8 +406,12 @@
 
                         const currentStep = steps[index];
                         if (currentStep.id) {
+                            // 删除已存在的步骤
+                            //  —设置delete
                             currentStep.delete = 1;
                         } else {
+                            // 删除新建的步骤
+                            //  —直接删除
                             steps.splice(index, 1);
                         }
 
@@ -425,7 +426,6 @@
              * @param {Boolean} localValidator 表单验证结果
              */
             handleTaskStepSubmit (payload, localValidator) {
-                this.innerChange = true;
                 const operationStep = new TaskStepModel(payload);
                 const steps = [...this.steps];
 
