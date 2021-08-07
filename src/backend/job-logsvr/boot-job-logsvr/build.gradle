@@ -27,6 +27,7 @@ apply plugin: 'io.spring.dependency-management'
 dependencies {
     api project(":job-logsvr:service-job-logsvr")
     api project(":commons:common-i18n")
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'

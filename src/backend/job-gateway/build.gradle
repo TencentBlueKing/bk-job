@@ -40,6 +40,7 @@ dependencies {
     api project(":commons:common-service")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework:spring-webflux'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
     implementation 'redis.clients:jedis'
     implementation 'commons-io:commons-io'

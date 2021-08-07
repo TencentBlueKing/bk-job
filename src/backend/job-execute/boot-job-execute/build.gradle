@@ -29,6 +29,7 @@ dependencies {
     api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
     runtimeOnly 'mysql:mysql-connector-java'
 
