@@ -133,7 +133,7 @@
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger name="org" level="INFO" additivity="false">
+        <logger name="org" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="ERROR">

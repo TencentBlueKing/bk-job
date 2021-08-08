@@ -60,7 +60,7 @@ spec:
             - name: BK_JOB_JVM_OPTION
               value: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC "
             - name: BK_JOB_PROFILE
-              value: prod,native
+              value: prod
             - name: BK_JOB_JAR
               value: job-gateway.jar
             - name: JOB_APPLICATION_CONFIGMAP_NAME
