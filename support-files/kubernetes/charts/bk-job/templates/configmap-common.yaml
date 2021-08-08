@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-common
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-common"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    spring:
+      security:
+        user:
+          name: {{ .Values.job.security.actuator.user.name }}
+          password: {{ .Values.job.security.actuator.user.password }}
+          roles: ENDPOINT_ADMIN
+    app:
+      code: {{ .Values.app.code }}
+      secret: {{ .Values.app.secret }}
+    esb:
+      service:
+        url: {{ .Values.esb.service.url }}
+    gse:
+      cache:
+        apiserver:
+          host: {{ .Values.gse.cacheApiServer.host }}
+          port: {{ .Values.gse.cacheApiServer.port }}
+      ssl:
+        keystore:
+          password: {{ .Values.gse.ssl.keystore.password }}
+          path: {{ .Values.gse.ssl.keystore.path }}
+        truststore:
+          manager-type: SunX509
+          password: {{ .Values.gse.ssl.truststore.password }}
+          path: {{ .Values.gse.ssl.truststore.path }}
+          store-type: JKS
+      taskserver:
+        host: {{ .Values.gse.taskserver.host }}
+        port: {{ .Values.gse.taskserver.port }}
+      server:
+        discovery:
+          type: {{ .Values.gse.server.discovery.type }}
+        zookeeper:
+          connect:
+            string: {{ .Values.gse.server.zookeeper.connect.string }}
+      query:
+        threads:
+          num: 5
+        batchSize: 5000
+    iam:
+      base-url: {{ .Values.iam.baseUrl }}
+      system-id: bk_job
+    license:
+      file: {{ .Values.license.file }}
+      service:
+        url: {{ .Values.license.service.url }}
+    paas:
+      login:
+        url: {{ .Values.paas.login.url }}
+    job:
+      security:
+        service:
+          private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
+          public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+      edition: {{ .Values.job.edition }}
+      encrypt:
+        password: {{ .Values.job.encrypt.password }}
+      web:
+        url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
+      feature:
+        file-manage:
+          enable: {{ .Values.job.feature.toogle.file-manage.enabled }}
+      storage:
+        root-path: {{ .Values.job.storage.root-path }}
+    cmdb:
+     app:
+       index:
+         path: /#/business/{appId}/index
+     interface:
+       briefCacheTopo:
+         enable: false
+       findHostRelation:
+         longTerm:
+           concurrency: 11
+       flowControl:
+         default:
+           limit: 10
+         enable: true
+         precision: 1
+         resources: search_biz_inst_topo:2,get_biz_brief_cache_topo:2,find_module_host_relation:2,search_dynamic_group:2,execute_dynamic_group:2
+       retry:
+         enable: true
+     query:
+       threads:
+         num: 50
+     server:
+       url: http://cmdbee-test.woa.com:80
+    nodeman:
+      server:
+        url: ""
+    artifactory:
+      enable: true
+      base.url: ""
+      job:
+        username: ""
+        password: ""
+        local-upload:
+          root-path: ""
+    swagger:
+      url: {{ .Values.swagger.url }}

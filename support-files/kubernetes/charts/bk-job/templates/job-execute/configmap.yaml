@@ -12,81 +12,187 @@ metadata:
     {{- end }}
 data:
   application.yaml: |-
-    app:
-      code: {{ .Values.app.code }}
-      secret: {{ .Values.app.secret }}
-    esb:
-      service:
-        url: {{ .Values.esb.service.url }}
-    gse:
-      cache:
-        apiserver:
-          host: {{ .Values.gse.cacheApiServer.host }}
-          port: {{ .Values.gse.cacheApiServer.port }}
-      ssl:
-        keystore:
-          password: {{ .Values.gse.ssl.keystore.password }}
-          path: {{ .Values.gse.ssl.keystore.path }}
-        truststore:
-          manager-type: SunX509
-          password: {{ .Values.gse.ssl.truststore.password }}
-          path: {{ .Values.gse.ssl.truststore.path }}
-          store-type: JKS
-      taskserver:
-        host: {{ .Values.gse.taskserver.host }}
-        port: {{ .Values.gse.taskserver.port }}
-      server:
-        discovery:
-          type: {{ .Values.gse.server.discovery.type }}
-        zookeeper:
-          connect:
-            string: {{ .Values.gse.server.zookeeper.connect.string }}
-    iam:
-      base-url: {{ .Values.iam.baseUrl }}
-      system-id: bk_job
-    job:
-      encrypt:
-        password: {{ .Values.job.encrypt.password }}
-      execute:
-        db:
-          url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useSSL=false&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=UTC
+    spring:
+      application:
+        name: {{ include "common.names.fullname" . }}-execute
+      cloud:
+        stream:
+          bindings:
+            taskInput:
+              destination: task
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            taskOutput:
+              destination: task
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            stepInput:
+              destination: step
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            stepOutput:
+              destination: step
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            gseTaskInput:
+              destination: gse.task
+              group: service.job.execute
+              consumer:
+                concurrency: 10
+            gseTaskOutput:
+              destination: gse.task
+              group: service.job.execute
+              consumer:
+                concurrency: 10
+            taskResultHandleResumeInput:
+              destination: result.handle.task.resume
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            taskResultHandleResumeOutput:
+              destination: result.handle.task.resume
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            notifyMsgInput:
+              destination: notify.msg
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            notifyMsgOutput:
+              destination: notify.msg
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            callbackInput:
+              destination: task.callback
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            callbackOutput:
+              destination: task.callback
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            taskStatisticsInput:
+              destination: statistics.task
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+            taskStatisticsOutput:
+              destination: statistics.task
+              group: service.job.execute
+              consumer:
+                concurrency: 5
+          rabbit:
+            bindings:
+              taskInput:
+                consumer:
+                  maxConcurrency: 10
+              taskOutput:
+                consumer:
+                  maxConcurrency: 10
+              stepInput:
+                consumer:
+                  maxConcurrency: 10
+              stepOutput:
+                consumer:
+                  maxConcurrency: 10
+              gseTaskInput:
+                consumer:
+                  maxConcurrency: 20
+              gseTaskOutput:
+                consumer:
+                  maxConcurrency: 20
+              taskResultHandleResumeInput:
+                consumer:
+                  maxConcurrency: 10
+              taskResultHandleResumeOutput:
+                consumer:
+                  maxConcurrency: 10
+              notifyMsgInput:
+                consumer:
+                  maxConcurrency: 10
+              notifyMsgOutput:
+                consumer:
+                  maxConcurrency: 10
+              callbackInput:
+                consumer:
+                  maxConcurrency: 10
+              callbackOutput:
+                consumer:
+                  maxConcurrency: 10
+              taskStatisticsInput:
+                consumer:
+                  maxConcurrency: 10
+              taskStatisticsOutput:
+                consumer:
+                  maxConcurrency: 10
+        refresh:
+          extra-refreshable: javax.sql.DataSource
+      datasource:
+        job-execute:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
           {{- else -}}
           password: ${mariadb-password}
           {{- end }}
-        rabbitmq:
-          host: {{ include "job.rabbitmq.host" . }}
-          port: {{ include "job.rabbitmq.port" . }}
-          username: {{ include "job.rabbitmq.username" . }}
-          {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-          password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-          {{- else -}}
-          password: ${rabbitmq-password}
-          {{- end }}
-          vhost: {{ include "job.rabbitmq.vhost" . }}
-        redis:
-          mode: standalone
-          host: {{ include "job.redis.host" . }}
-          port: {{ include "job.redis.port" . }}
-          {{ if .Values.externalRedis.existingPasswordSecret }}
-          password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-          {{- else -}}
-          password: ${redis-password}
-          {{- end }}
-          database: 0
-        server:
-          port: {{ .Values.executeConfig.containerPort }}
-      security:
-        private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
-        public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
-        actuator:
-          user:
-            name: {{ .Values.job.security.actuator.user.name }}
-            password: {{ .Values.job.security.actuator.user.password }}
-      storage:
-        root-path: /data/nfs/job
-      web:
-        url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
-{{- end}}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-execute"
+          validationTimeout: 5000
+      rabbitmq:
+        host: {{ include "job.rabbitmq.host" . }}
+        port: {{ include "job.rabbitmq.port" . }}
+        username: {{ include "job.rabbitmq.username" . }}
+        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${rabbitmq-password}
+        {{- end }}
+        virtual-host: {{ include "job.rabbitmq.vhost" . }}
+      redis:
+        mode: standalone
+        host: {{ include "job.redis.host" . }}
+        port: {{ include "job.redis.port" . }}
+        #sentinel:
+          #password:
+          #master:
+          #nodes:
+        {{ if .Values.externalRedis.existingPasswordSecret }}
+        password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${redis-password}
+        {{- end }}
+        database: 0
+        lettuce:
+          pool:
+            min-idle: 5
+            max-idle: 10
+            max-active: 8
+            max-wait: 1ms
+          shutdown-timeout: 100ms
+    server:
+      port: {{ .Values.executeConfig.containerPort }}
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+          sync:
+            connectTimeout: 5000
+            readTimeout: 30000
+          log:
+            connectTimeout: 5000
+            readTimeout: 30000
+  {{- end}}

@@ -58,15 +58,15 @@ spec:
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value:
+              value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
             - name: BK_JOB_PROFILE
               value: prod
             - name: BK_JOB_JAR
               value: job-execute.jar
-            - name: SPRING_APPLICATION_NAME
+            - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-execute
-            - name: SPRING_CLOUD_KUBERNETES_CONFIGMAP_NAME
-              value: {{ include "common.names.fullname" . }}-execute
+            - name: JOB_COMMON_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
             - name: KUBERNETES_NAMESPACE
