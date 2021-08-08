@@ -72,9 +72,9 @@ data:
         url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
       feature:
         file-manage:
-          enable: {{ .Values.job.feature.toogle.file-manage.enabled }}
+          enable: {{ .Values.job.feature.toggle.fileManage.enabled }}
       storage:
-        root-path: {{ .Values.job.storage.root-path }}
+        root-path: {{ .Values.job.storage.rootPath }}
     cmdb:
      app:
        index:

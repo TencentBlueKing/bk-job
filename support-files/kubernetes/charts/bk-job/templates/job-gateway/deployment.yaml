@@ -122,6 +122,7 @@ spec:
         - name: job-gateway-tls-password
           secret:
             secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
               - key: keystore.password
                 path: keystore.password
               - key: truststore.password
