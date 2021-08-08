@@ -367,10 +367,10 @@ job:
     password: "job#2021"
   feature:
     toggle:
-      file-manage:
+      fileManage:
         enabled: true
   storage:
-    root-path: /data/job/nfs
+    rootPath: /data/job/nfs
 
 
 ## @section job-gateway parameters
