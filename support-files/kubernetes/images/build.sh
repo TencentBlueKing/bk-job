@@ -179,7 +179,7 @@ build_backend_module () {
     SERVICE=$1
     log "Building ${SERVICE} image, version: ${VERSION}..."
     if [[ ${SERVICE} == "job-gateway" ]] ; then
-      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USER -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
+      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     else
       $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     fi
