@@ -291,11 +291,11 @@ gse:
     port: 59313
   ssl:
     keystore:
-      password: ""
-      path: /data/bkce/cert/gse_job_api_client.keystore
+      password: "V6QZ#tmz*SN1O34J"
+      path: /data/job/cert/gse_job_api_client.keystore
     truststore:
-      password: ""
-      path: /data/bkce/cert/gse_job_api_client.truststore
+      password: "V6QZ#tmz*SN1O34J"
+      path: /data/job/cert/gse_job_api_client.truststore
   taskserver:
     host: ""
     port: 48673
@@ -434,9 +434,9 @@ gatewayConfig:
   server:
     ssl:
       keystore:
-        password: ""
+        password: "AwFHNviw@KAItzb6"
       truststore:
-        password: ""
+        password: "AwFHNviw@KAItzb6"
 
 ## @section job-manage parameters
 manageConfig:
