@@ -424,6 +424,7 @@ gatewayConfig:
     enabled: true
     hostname: "api.bk-job.com"
     path: "/"
+    pathType: ImplementationSpecific
     annotations:
       kubernetes.io/ingress.class: nginx
     extraHosts: []
