@@ -24,22 +24,17 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.QueryParams;
-import com.ecwid.consul.v1.Response;
-import com.ecwid.consul.v1.health.model.Check;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.CompareUtil;
-import com.tencent.bk.job.common.web.consts.JobConsulConsts;
+import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
 import com.tencent.bk.job.common.web.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
 import com.tencent.bk.job.manage.service.ServiceInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.consul.discovery.ConsulDiscoveryClient;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -47,9 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.ecwid.consul.v1.health.model.Check.CheckStatus.CRITICAL;
-import static org.springframework.boot.actuate.health.Status.*;
 
 @Slf4j
 @Service
@@ -64,9 +56,12 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
         statusMap.put(Status.UNKNOWN.getCode(), (byte) -1);
     }
 
-    private ConsulDiscoveryClient consulDiscoveryClient;
-    private ConsulClient consulClient;
-    private boolean consulInited = false;
+    private DiscoveryClient discoveryClient;
+
+    @Autowired
+    public ServiceInfoServiceImpl(DiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
+    }
 
     private static ServiceInstanceInfoVO convert(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
         if (serviceInstanceInfoDTO == null) return null;
@@ -80,70 +75,28 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
         return serviceInstanceInfoVO;
     }
 
-    public void initConsul() {
-        this.consulDiscoveryClient = ApplicationContextRegister.getBean(ConsulDiscoveryClient.class);
-        this.consulClient = ApplicationContextRegister.getBean(ConsulClient.class);
-        consulInited = true;
-    }
-
     private boolean checkNodeStatus(String nodeName) {
-        Response<List<Check>> response = consulClient.getHealthChecksForNode(nodeName, QueryParams.DEFAULT);
-        List<Check> checks = response.getValue();
-        for (Check check : checks) {
-            if (StringUtils.isBlank(check.getServiceId())
-                && (check.getCheckId().contains("maintenance")
-                || check.getName().toLowerCase().contains("maintenance")
-                || check.getStatus() == CRITICAL)) {
-                return false;
-            }
-        }
         return true;
     }
 
     private void fillVersionAndStatus(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
-        Response<List<Check>> response =
-            consulClient.getHealthChecksForService(serviceInstanceInfoDTO.getServiceName(), QueryParams.DEFAULT);
-        List<Check> checks = response.getValue();
-        Check targetCheck = null;
-        for (Check check : checks) {
-            if (check.getServiceId().equals(serviceInstanceInfoDTO.getName())) {
-                targetCheck = check;
-                break;
-            }
-        }
-        if (targetCheck == null) {
-            serviceInstanceInfoDTO.setStatusCode(UNKNOWN.getCode());
-            return;
-        } else if (targetCheck.getName().toLowerCase().contains("maintenance")) {
-            serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
-            serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
-        } else {
-            if (checkNodeStatus(targetCheck.getNode())) {
-                serviceInstanceInfoDTO.setStatusCode(UP.getCode());
-                serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
-            } else {
-                serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
-                serviceInstanceInfoDTO.setStatusMessage("Node " + targetCheck.getNode() + " not healthy");
-            }
-        }
-        List<String> tagList = targetCheck.getServiceTags();
-        for (String tag : tagList) {
-            if (tag.startsWith("version=")) {
-                serviceInstanceInfoDTO.setVersion(StringUtils.removeStart(tag, "version="));
-            }
-        }
+        serviceInstanceInfoDTO.setVersion("not implemented");
     }
 
     private List<ServiceInstanceInfoDTO> listServiceInstanceInfoDTO() {
-        List<ServiceInstance> serviceInstanceList = consulDiscoveryClient.getAllInstances();
+        List<String> serviceIdList = discoveryClient.getServices();
+        List<ServiceInstance> serviceInstanceList = new ArrayList<>();
+        for (String serviceId : serviceIdList) {
+            serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
+        }
         return serviceInstanceList.parallelStream().filter(serviceInstance -> {
             if (serviceInstance.getServiceId().equals("job-gateway-management")) {
                 return false;
             } else {
                 Map<String, String> tagMap = serviceInstance.getMetadata();
-                return tagMap.containsKey(JobConsulConsts.TAG_KEY_TYPE)
-                    && JobConsulConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE
-                    .equals(tagMap.get(JobConsulConsts.TAG_KEY_TYPE))
+                return tagMap.containsKey(JobDiscoveryConsts.TAG_KEY_TYPE)
+                    && JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE
+                    .equals(tagMap.get(JobDiscoveryConsts.TAG_KEY_TYPE))
                     && serviceInstance.getServiceId().startsWith("job");
             }
         }).map(serviceInstance -> {
@@ -159,7 +112,6 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
 
     @Override
     public List<ServiceInfoVO> listServiceInfo() {
-        if (!consulInited) initConsul();
         List<ServiceInstanceInfoDTO> serviceInstanceInfoDTOList = listServiceInstanceInfoDTO();
         // groupBy serviceName
         Map<String, List<ServiceInstanceInfoVO>> map = new HashMap<>();

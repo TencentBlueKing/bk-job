@@ -22,9 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.consts;
+package com.tencent.bk.job.common.constant;
 
-public class JobConsulConsts {
+public class JobDiscoveryConsts {
     public static final String TAG_KEY_VERSION = "version";
     public static final String TAG_KEY_TYPE = "type";
     public static final String TAG_VALUE_TYPE_JOB_BACKEND_SERVICE = "job-backend-service";

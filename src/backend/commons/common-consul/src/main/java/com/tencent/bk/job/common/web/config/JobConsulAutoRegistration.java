@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.ecwid.consul.v1.agent.model.NewService;
-import com.tencent.bk.job.common.web.consts.JobConsulConsts;
+import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationProperties;
 import org.springframework.cloud.consul.discovery.ConsulDiscoveryProperties;
@@ -57,10 +57,10 @@ public class JobConsulAutoRegistration extends ConsulAutoRegistration {
         ConsulAutoRegistration registration = ConsulAutoRegistration.registration(autoServiceRegistrationProperties,
             properties, context, registrationCustomizers, managementRegistrationCustomizers, heartbeatProperties);
         // 将版本号写入Tag中
-        registration.getService().getTags().add(JobConsulConsts.TAG_KEY_VERSION + "=" + buildProperties.getVersion());
+        registration.getService().getTags().add(JobDiscoveryConsts.TAG_KEY_VERSION + "=" + buildProperties.getVersion());
         // 区分Job后台服务与组件（Redis、MQ等）
         registration.getService().getTags()
-            .add(JobConsulConsts.TAG_KEY_TYPE + "=" + JobConsulConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE);
+            .add(JobDiscoveryConsts.TAG_KEY_TYPE + "=" + JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE);
         return registration;
     }
 }
