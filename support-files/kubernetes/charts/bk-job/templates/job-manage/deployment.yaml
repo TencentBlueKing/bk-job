@@ -1,0 +1,142 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-manage
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-manage"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.manageConfig.autoscaling.enabled }}
+  replicas: {{ .Values.manageConfig.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-manage
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-manage"
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.manageConfig.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.manageConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.manageConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.manageConfig.podAffinityPreset "component" "job-manage" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.manageConfig.podAntiAffinityPreset "component" "job-manage" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.manageConfig.nodeAffinityPreset.type "key" .Values.manageConfig.nodeAffinityPreset.key "values" .Values.manageConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.manageConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.manageConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manageConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.manageConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manageConfig.priorityClassName }}
+      priorityClassName: {{ .Values.manageConfig.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.manageConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.manageConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: "job-manage"
+          {{- if .Values.manageConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.manageConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-manage.image" . }}
+          imagePullPolicy: {{ .Values.manageConfig.image.pullPolicy }}
+          env:
+            - name: BK_JOB_JVM_OPTION
+              value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
+            - name: BK_JOB_PROFILE
+              value: prod
+            - name: BK_JOB_JAR
+              value: job-manage.jar
+            - name: JOB_APPLICATION_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-manage
+            - name: JOB_COMMON_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: {{ .Values.manageConfig.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.manageConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: mariadb
+              mountPath: /etc/secrets/mariadb
+              readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+            - name: redis
+              mountPath: /etc/secrets/redis
+              readOnly: true
+            - name: job-gse-tls-certs
+              mountPath: /data/job/cert
+              readOnly: true
+            - name: job-gse-tls-password
+              mountPath: /etc/secrets
+              readOnly: true
+      volumes:
+        - name: mariadb
+          secret:
+            secretName: {{ include "job.mariadb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+        - name: redis
+          secret:
+            secretName: {{ include "job.redis.secretName" . }}
+        - name: job-gse-tls-certs
+          secret:
+            secretName: {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: gse.keystore
+                path: gse_job_api_client.keystore
+              - key: gse.truststore
+                path: gse_job_api_client.truststore
+        - name: job-gse-tls-password
+          secret:
+            secretName: {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
+            items:
+              - key: gse.keystore.password
+                path: gse.keystore.password
+              - key: gse.truststore.password
+                path: gse.truststore.password
+
