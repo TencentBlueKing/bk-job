@@ -479,6 +479,7 @@ manageConfig:
     targetMemory: 50
   containerPort: 19803
   service:
+    port: 80
     type: ClusterIP
 
 
@@ -566,6 +567,7 @@ crontabConfig:
     targetMemory: 50
   containerPort: 19805
   service:
+    port: 80
     type: ClusterIP
 
 ## @section job-logsvr parameters
@@ -608,6 +610,7 @@ logsvrConfig:
     targetMemory: 50
   containerPort: 19806
   service:
+    port: 80
     type: ClusterIP
 
 ## @section job-backup parameters
@@ -650,6 +653,7 @@ backupConfig:
     targetMemory: 50
   containerPort: 19808
   service:
+    port: 80
     type: ClusterIP
 
 ## @section job-analysis parameters
@@ -692,6 +696,7 @@ analysisConfig:
     targetMemory: 50
   containerPort: 19807
   service:
+    port: 80
     type: ClusterIP
 
 ## @section job-file-gateway parameters
@@ -734,6 +739,7 @@ fileGatewayConfig:
     targetMemory: 50
   containerPort: 19809
   service:
+    port: 80
     type: ClusterIP
 
 ## @section job-analysis parameters
@@ -776,6 +782,7 @@ fileWorkerConfig:
     targetMemory: 50
   containerPort: 19810
   service:
+    port: 80
     type: ClusterIP
   fileGateway:
     api:
