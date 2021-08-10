@@ -1,0 +1,120 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-crontab
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-crontab"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.crontabConfig.autoscaling.enabled }}
+  replicas: {{ .Values.crontabConfig.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-crontab
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-crontab"
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.crontabConfig.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.crontabConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.crontabConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.crontabConfig.podAffinityPreset "component" "job-crontab" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.crontabConfig.podAntiAffinityPreset "component" "job-crontab" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.crontabConfig.nodeAffinityPreset.type "key" .Values.crontabConfig.nodeAffinityPreset.key "values" .Values.crontabConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.crontabConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.crontabConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.crontabConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.crontabConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.crontabConfig.priorityClassName }}
+      priorityClassName: {{ .Values.crontabConfig.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.crontabConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.crontabConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: "job-crontab"
+          {{- if .Values.crontabConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.crontabConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-crontab.image" . }}
+          imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
+          env:
+            - name: BK_JOB_JVM_OPTION
+              value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
+            - name: BK_JOB_PROFILE
+              value: prod
+            - name: BK_JOB_JAR
+              value: job-crontab.jar
+            - name: JOB_APPLICATION_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-crontab
+            - name: JOB_COMMON_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: {{ .Values.crontabConfig.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: mariadb
+              mountPath: /etc/secrets/mariadb
+              readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+            - name: redis
+              mountPath: /etc/secrets/redis
+              readOnly: true
+      volumes:
+        - name: mariadb
+          secret:
+            secretName: {{ include "job.mariadb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+        - name: redis
+          secret:
+            secretName: {{ include "job.redis.secretName" . }}
+

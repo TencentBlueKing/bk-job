@@ -264,6 +264,7 @@ externalMongoDB:
   ##
   existingPasswordKey: ""
   host: ""
+  port: 27017
   database: joblog
   username: ""
   password: ""
@@ -693,6 +694,105 @@ analysisConfig:
   service:
     type: ClusterIP
 
+## @section job-file-gateway parameters
+fileGatewayConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: user/job-analysis
+    tag: 3.4.0
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19809
+  service:
+    type: ClusterIP
+
+## @section job-analysis parameters
+fileWorkerConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: tyleryuwang/job-analysis
+    tag: 3.4.0
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19810
+  service:
+    type: ClusterIP
+  fileGateway:
+    api:
+      rootUrl: ""
+  swaggerUrl: ""
+  instanceName: job-file-worker-public-1
+  version: 0.0.1
+  id: 17
+  token: ""
+  appId: 2
+  abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
+  access:
+    port: 19810
+  cloudAreaId: 0
+  downloadFile:
+    dir: /tmp/job
+    expireDays: 7
 
 ## @section job-frontend parameters
 frontendConfig:

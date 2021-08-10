@@ -254,4 +254,68 @@ Return the RabbitMQ vhost
 {{- end -}}
 {{- end -}}
 
+{{/*
+Fully qualified app name for MongoDB
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "job.mongodb.fullname" -}}
+{{- printf "%s-%s" .Release.Name "mongodb" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB host
+*/}}
+{{- define "job.mongodb.host" -}}
+{{- if .Values.mongodb.enabled }}
+    {{- printf "%s" (include "job.mongodb.fullname" .) -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalMongoDB.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB Port
+*/}}
+{{- define "job.mongodb.port" -}}
+{{- if .Values.mongodb.enabled }}
+    {{- printf "27017" -}}
+{{- else -}}
+    {{- printf "%d" (.Values.externalMongoDB.port | int ) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB database
+*/}}
+{{- define "job.mongodb.database" -}}
+{{- if .Values.mongodb.enabled }}
+    {{- printf "%s" .Values.mongodb.auth.database -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalMongoDB.database -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB username
+*/}}
+{{- define "job.mongodb.username" -}}
+{{- if .Values.mongodb.enabled }}
+    {{- printf "%s" .Values.mongodb.auth.username -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalMongoDB.username -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB secret name
+*/}}
+{{- define "job.mongodb.secretName" -}}
+{{- if .Values.externalMongoDB.existingPasswordSecret -}}
+    {{- printf "%s" .Values.externalMongoDB.existingPasswordSecret -}}
+{{- else if .Values.mongodb.enabled }}
+    {{- printf "%s" (include "job.mongodb.fullname" .) -}}
+{{- else -}}
+    {{- printf "%s-%s" (include "job.fullname" .) "externalMongoDB" -}}
+{{- end -}}
+{{- end -}}
 
