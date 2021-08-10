@@ -84,7 +84,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 30
             successThreshold: 1
           readinessProbe:
             httpGet:
@@ -93,7 +93,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 30
             successThreshold: 1
           resources:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
