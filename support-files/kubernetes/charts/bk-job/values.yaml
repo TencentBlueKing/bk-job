@@ -703,7 +703,7 @@ analysisConfig:
 fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
-    repository: user/job-analysis
+    repository: user/job-file-gateway
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
@@ -746,7 +746,7 @@ fileGatewayConfig:
 fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
-    repository: tyleryuwang/job-analysis
+    repository: tyleryuwang/job-file-worker
     tag: 3.4.0
     pullPolicy: Always
     pullSecrets: []
