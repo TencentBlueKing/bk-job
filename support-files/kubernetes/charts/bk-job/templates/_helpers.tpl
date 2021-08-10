@@ -74,6 +74,20 @@ Return the proper job-analysis image name
 {{- end -}}
 
 {{/*
+Return the proper job-file-gateway image name
+*/}}
+{{- define "job-file-gateway.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.fileGatewayConfig.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper job-file-worker image name
+*/}}
+{{- define "job-file-worker.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.fileWorkerConfig.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
