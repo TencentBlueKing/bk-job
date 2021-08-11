@@ -1,46 +1,11 @@
 spring:
-  application:
-    name: ${SPRING_APPLICATION_NAME:job-file-worker}
-  profiles:
-    active: prod
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
-      base-path: /actuator
-    enabled-by-default: false
-  endpoint:
-    health:
-      enabled: true
-    configprops:
-      enabled: true
-    env:
-      enabled: true
-    beans:
-      enabled: true
-    conditions:
-      enabled: true
-    loggers:
-      enabled: true
-    metrics:
-      enabled: true
-    mappings:
-      enabled: true
-    prometheus:
-      enabled: true
-    scheduledtasks:
-      enabled: true
-    info:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.cloud.consul.discovery.service-name}
-server:
-  port: ${job.file.worker.server.port:19810}
-  shutdown: graceful
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
+  cloud:
+    kubernetes:
+      config:
+        name: ${spring.application.name}
+        namespace: ${KUBERNETES_NAMESPACE}
+        sources:
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${JOB_APPLICATION_CONFIGMAP_NAME}
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${JOB_COMMON_CONFIGMAP_NAME}
