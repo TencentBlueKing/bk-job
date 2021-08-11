@@ -156,8 +156,11 @@ export default class Script extends BaseModel {
             default:
                 styles += 'background: #F0F1F5; color: #979BA5';
         }
-        
-        return `<span style="${styles}">${Script.STATUS_TEXT_MAP[this.status]}</span>`;
+        return [
+            `<span style="${styles}" data-script-status="${this.status}">`,
+            Script.STATUS_TEXT_MAP[this.status],
+            '</span>',
+        ].join('');
     }
 
     /**

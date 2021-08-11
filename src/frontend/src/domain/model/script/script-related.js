@@ -55,7 +55,10 @@ export default class ScriptRelated extends BaseModel {
             default:
                 styles += 'background: #F0F1F5; color: #979BA5';
         }
-        
-        return `<span style="${styles}">${ScriptRelated.STATUS_TEXT_MAP[this.scriptStatus]}</span>`;
+        return [
+            `<span style="${styles}" data-script-status="${this.status}">`,
+            ScriptRelated.STATUS_TEXT_MAP[this.scriptStatus],
+            '</span>',
+        ].join('');
     }
 }

@@ -26,43 +26,74 @@
 -->
 
 <template>
-    <layout :title="$t('script.新建脚本')" class="copy-create-script-box" offset-target="bk-form-content" v-bind="$attrs">
-        <jb-form ref="form" class="create-script-form" :model="formData" :rules="rules">
-            <jb-form-item :label="$t('script.版本号.label')" required property="version">
-                <div class="script-version input">
-                    <jb-input
-                        :value="formData.version"
-                        :placeholder="$t('script.输入版本号')"
-                        :maxlength="30"
-                        property="version"
-                        @change="handleVersionChange" />
-                    <Icon type="new" class="new-flag" />
-                </div>
-            </jb-form-item>
-            <jb-form-item :label="$t('script.版本日志')">
-                <bk-input class="input" v-model="formData.versionDesc" type="textarea" :maxlength="100" />
-            </jb-form-item>
-            <jb-form-item :label="$t('script.脚本内容')" required property="content" style="margin-bottom: 0;">
-                <div ref="content">
-                    <ace-editor
-                        v-if="contentHeight > 0"
-                        v-model="formData.content"
-                        :lang="formData.typeName"
-                        :height="contentHeight"
-                        :options="[formData.typeName]"
-                        @on-mode-change="handleTypeChange" />
-                </div>
-            </jb-form-item>
-        </jb-form>
+    <layout class="script-manage-copy-create-box">
+        <div slot="title">{{ $t('script.新建脚本') }}</div>
+        <template slot="sub-header">
+            <Icon
+                type="upload"
+                @click="handleUploadScript"
+                v-bk-tooltips="$t('上传脚本')" />
+            <Icon
+                type="history"
+                @click.stop="handleShowHistory"
+                v-bk-tooltips="$t('历史缓存')" />
+            <Icon
+                type="full-screen"
+                v-bk-tooltips="$t('全屏')"
+                @click="handleFullScreen" />
+        </template>
+        <div slot="left">
+            <jb-form
+                ref="form"
+                :model="formData"
+                form-type="vertical"
+                :rules="rules">
+                <jb-form-item
+                    :label="$t('script.版本号.label')"
+                    required
+                    property="version">
+                    <div class="script-version">
+                        <jb-input
+                            :value="formData.version"
+                            :placeholder="$t('script.输入版本号')"
+                            :maxlength="30"
+                            property="version"
+                            @change="handleVersionChange" />
+                        <Icon type="new-dark" svg class="new-flag" />
+                    </div>
+                </jb-form-item>
+                <jb-form-item :label="$t('script.版本日志')">
+                    <bk-input
+                        v-model="formData.versionDesc"
+                        type="textarea"
+                        :maxlength="100"
+                        :rows="5" />
+                </jb-form-item>
+            </jb-form>
+        </div>
+        <div ref="content">
+            <ace-editor
+                v-if="contentHeight > 0"
+                ref="aceEditor"
+                v-model="formData.content"
+                :lang="formData.typeName"
+                :height="contentHeight"
+                :options="formData.typeName"
+                @on-mode-change="handleTypeChange" />
+        </div>
         <template #footer>
             <bk-button
                 class="w120 mr10"
                 :loading="isSubmiting"
                 theme="primary"
-                @click.stop.prevent="handleSubmit">
+                @click="handleSubmit">
                 {{ $t('script.提交') }}
             </bk-button>
-            <bk-button class="mr10" @click="handleDebugScript">调试</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleDebugScript">
+                调试
+            </bk-button>
             <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
         </template>
     </layout>
@@ -70,8 +101,8 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
+    import ScriptManageService from '@service/script-manage';
+    import PublicScriptManageService from '@service/public-script-manage';
     import JbInput from '@components/jb-input';
     import AceEditor from '@components/ace-editor';
     import {
@@ -82,13 +113,9 @@
         leaveConfirm,
         scriptErrorAlert,
     } from '@utils/assist';
-    import {
-        debugScriptCache,
-    } from '@utils/cache-helper';
-    import {
-        scriptVersionRule,
-    } from '@utils/validator';
-    import Layout from './layout';
+    import { debugScriptCache } from '@utils/cache-helper';
+    import { scriptVersionRule } from '@utils/validator';
+    import Layout from './components/layout';
 
     const genDefaultFormData = () => ({
         id: '',
@@ -106,6 +133,7 @@
             AceEditor,
             Layout,
         },
+        inheritAttrs: false,
         props: {
             scriptInfo: {
                 type: Object,
@@ -114,9 +142,6 @@
             scriptVersionList: {
                 type: Array,
                 default: () => [],
-            },
-            scriptVersionId: {
-                type: Number,
             },
         },
         data () {
@@ -144,7 +169,14 @@
                     if (!scriptInfo.id) {
                         return;
                     }
-                    const { content, id, name, versionDesc, type, typeName } = scriptInfo;
+                    const {
+                        content,
+                        id,
+                        name,
+                        versionDesc,
+                        type,
+                        typeName,
+                    } = scriptInfo;
                     this.formData = {
                         ...genDefaultFormData(),
                         id,
@@ -160,7 +192,7 @@
         },
         created () {
             this.publicScript = checkPublicScript(this.$route);
-            this.scriptServiceHandler = this.publicScript ? PublicScriptService : ScriptService;
+            this.scriptManageServiceHandler = this.publicScript ? PublicScriptManageService : ScriptManageService;
             this.rules = {
                 version: [
                     {
@@ -186,7 +218,7 @@
                         trigger: 'change',
                     },
                     {
-                        validator: value => ScriptService.getScriptValidation({
+                        validator: value => ScriptManageService.getScriptValidation({
                             content: value,
                             scriptType: this.formData.type,
                         }).then((data) => {
@@ -201,20 +233,29 @@
             };
         },
         mounted () {
-            this.init();
-            window.addEventListener('resize', this.init);
+            this.calcContentHeight();
+            const handleResize = _.throttle(this.calcContentHeight, 60);
+            window.addEventListener('resize', handleResize);
             this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.init);
+                window.removeEventListener('resize', handleResize);
             });
         },
         methods: {
             /**
              * @desc 计算内容去高度
              */
-            init () {
+            calcContentHeight () {
                 const contentOffsetTop = getOffset(this.$refs.content).top;
-                const contentHeight = window.innerHeight - contentOffsetTop - 100;
-                this.contentHeight = contentHeight < 480 ? 480 : contentHeight;
+                this.contentHeight = window.innerHeight - contentOffsetTop - 66;
+            },
+            handleUploadScript () {
+                this.$refs.aceEditor.handleUploadScript();
+            },
+            handleShowHistory () {
+                this.$refs.aceEditor.handleShowHistory();
+            },
+            handleFullScreen () {
+                this.$refs.aceEditor.handleFullScreen();
             },
             /**
              * @desc 脚本版本修改
@@ -237,23 +278,38 @@
              * @desc 保存脚本
              */
             handleSubmit () {
+                if (!this.formData.content) {
+                    this.messageError(I18n.t('script.脚本内容不能为空'));
+                    return;
+                }
                 this.isSubmiting = true;
-                this.$refs.form.validate()
-                    .then(() => {
-                        if (this.$store.state.scriptCheckError) {
-                            scriptErrorAlert();
-                            return;
-                        }
-                        return this.scriptServiceHandler.scriptUpdate({
-                            ...this.formData,
-                        }).then((data) => {
-                            this.$emit('on-create', {
-                                scriptVersionId: data.scriptVersionId,
-                            });
-                            window.changeAlert = false;
-                            this.messageSuccess(I18n.t('script.操作成功'));
+                Promise.all([
+                    // 验证表单
+                    this.$refs.form.validate(),
+                    // 脚本高危语句检测
+                    ScriptManageService.getScriptValidation({
+                        content: this.formData.content,
+                        scriptType: this.formData.type,
+                    }).then((data) => {
+                        // 高危语句报错状态需要全局保存
+                        this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                        return true;
+                    }),
+                ]).then(() => {
+                    if (this.$store.state.scriptCheckError) {
+                        scriptErrorAlert();
+                        return;
+                    }
+                    this.scriptManageServiceHandler.scriptUpdate({
+                        ...this.formData,
+                    }).then((data) => {
+                        this.$emit('on-create', {
+                            scriptVersionId: data.scriptVersionId,
                         });
-                    })
+                        window.changeAlert = false;
+                        this.messageSuccess(I18n.t('script.操作成功'));
+                    });
+                })
                     .finally(() => {
                         this.isSubmiting = false;
                     });
@@ -284,23 +340,17 @@
     };
 </script>
 <style lang='postcss'>
-    .copy-create-script-box {
+    .script-manage-copy-create-box {
         .script-version {
             position: relative;
 
             .new-flag {
                 position: absolute;
-                top: 50%;
-                right: 0;
-                margin-right: -10px;
-                color: #ff9c01;
-                transform: translateY(-50%) translateX(100%);
+                top: -32px;
+                left: 55px;
+                font-size: 32px;
+                color: #7d6b50;
             }
-        }
-
-        .input {
-            width: 510px;
-            background: #fff;
         }
     }
 </style>

@@ -52,6 +52,7 @@ import ElementTeleport from '@components/element-teleport';
 import Request from '@components/request';
 import Cursor from '@components/cursor';
 import TippyTips from '@components/tippy-tips';
+import ResizeableBox from '@components/resizeable-box';
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
 Vue.use(bkMagicVue);
@@ -92,6 +93,7 @@ Vue.component('JbBreadcrumbItem', JbBreadcrumbItem);
 Vue.component('ScrollFaker', ScrollFaker);
 Vue.component('SmartAction', SmartAction);
 Vue.component('ElementTeleport', ElementTeleport);
+Vue.component('ResizeableBox', ResizeableBox);
 Vue.use(Cursor);
 Vue.use(Request);
 Vue.use(TippyTips);

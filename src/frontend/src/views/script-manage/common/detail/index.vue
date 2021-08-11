@@ -26,33 +26,48 @@
 -->
 
 <template>
-    <layout class="script-manage-detail-box" offset-target="content-dispaly" v-bind="$attrs">
-        <div class="script-detail">
-            <div class="script-version">{{ scriptInfo.version }}</div>
-            <div class="script-status" v-html="scriptInfo.statusHtml" />
-            <div class="script-lastModifyUser">
-                <span class="label">{{ $t('script.更新人：') }}</span>
-                <span class="value">{{ scriptInfo.lastModifyUser }}</span>
+    <layout class="script-manage-detail-box">
+        <div slot="title">
+            <span>{{ scriptInfo.version }}</span>
+            <span class="script-status" v-html="scriptInfo.statusHtml" />
+        </div>
+        <template slot="sub-header">
+            <span style="font-size: 12px; color: #63656e;">
+                <span>{{ scriptInfo.lastModifyUser }}</span>
+                <span>|</span>
+                <span>{{ scriptInfo.lastModifyTime }}</span>
+            </span>
+            <Icon
+                v-if="contentTab === 'content'"
+                type="full-screen"
+                v-bk-tooltips="$t('全屏')"
+                @click="handleFullScreen" />
+        </template>
+        <div class="content-tab">
+            <div
+                class="content-tab-item"
+                :class="{ active: contentTab === 'content' }"
+                @click="handleChangeDispaly('content')">
+                {{ $t('script.脚本内容') }}
             </div>
-            <div class="script-lastModifyTime">
-                <span class="label">{{ $t('script.更新时间：') }}</span>
-                <span class="value">{{ scriptInfo.lastModifyTime }}</span>
+            <div
+                class="content-tab-item"
+                :class="{ active: contentTab === 'log' }"
+                @click="handleChangeDispaly('log')">
+                {{ $t('script.版本日志') }}
             </div>
         </div>
         <div class="version-content">
-            <div class="content-tab">
-                <div class="content-tab-item" :class="{ active: contentTab === 'content' }" @click="handleChangeDispaly('content')">{{ $t('script.脚本内容') }}</div>
-                <div class="content-tab-item" :class="{ active: contentTab === 'log' }" @click="handleChangeDispaly('log')">{{ $t('script.版本日志') }}</div>
-            </div>
             <div ref="content" class="content-dispaly" :style="contentStyles">
                 <keep-alive v-if="contentHeight > 0">
                     <component
+                        ref="aceEditor"
                         :is="contentCom"
                         readonly
                         :height="contentHeight"
                         :value="scriptInfo.content"
                         :lang="scriptInfo.typeName"
-                        :options="[scriptInfo.typeName]"
+                        :options="scriptInfo.typeName"
                         :version-desc="scriptInfo.versionDesc" />
                 </keep-alive>
             </div>
@@ -99,7 +114,6 @@
                 {{ $t('script.复制并新建') }}
             </auth-button>
             <bk-button class="mr10" @click="handleDebugScript">调试</bk-button>
-            
             <auth-button
                 v-if="scriptInfo.isOnline"
                 key="sync"
@@ -153,6 +167,7 @@
     </layout>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
@@ -160,14 +175,12 @@
         checkPublicScript,
         getOffset,
     } from '@utils/assist';
-    import {
-        debugScriptCache,
-    } from '@utils/cache-helper';
+    import { debugScriptCache } from '@utils/cache-helper';
     import AceEditor from '@components/ace-editor';
     import DetailLayout from '@components/detail-layout';
     import DetailItem from '@components/detail-layout/item';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
-    import Layout from '../layout';
+    import Layout from '../components/layout';
     import RenderLog from './components/render-log';
 
     export default {
@@ -227,16 +240,25 @@
             });
         },
         mounted () {
-            this.init();
+            this.calcContentHeight();
+            const handleResize = _.throttle(this.calcContentHeight, 60);
+            window.addEventListener('resize', handleResize);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('resize', handleResize);
+            });
         },
         methods: {
             /**
              * @desc 计算内容区高度
              */
-            init () {
+            calcContentHeight () {
                 const contentOffsetTop = getOffset(this.$refs.content).top;
-                const contentHeight = window.innerHeight - contentOffsetTop - 101;
-                this.contentHeight = contentHeight < 480 ? 480 : contentHeight;
+                this.contentHeight = window.innerHeight - contentOffsetTop - 20;
+            },
+            handleFullScreen () {
+                if (this.contentTab === 'content') {
+                    this.$refs.aceEditor.handleFullScreen();
+                }
             },
             /**
              * @desc 脚本内容和脚本版本日志切换
@@ -355,81 +377,48 @@
 
     %tab-item {
         display: flex;
+        width: 94px;
+        height: 35px;
+        font-size: 13px;
+        color: #979ba5;
         align-items: center;
-        height: 43px;
-        padding-left: 20px;
-        font-size: 12px;
     }
 
     .script-manage-detail-box {
-        .script-detail {
+        .content-tab {
+            position: absolute;
+            left: 50%;
+            z-index: 0;
             display: flex;
-            align-items: center;
-            height: 25px;
-            margin-bottom: 28px;
-            font-size: 14px;
+            width: 250px;
+            margin-top: -35px;
+            transform: translateX(-50%);
+            align-content: center;
+            justify-content: center;
 
-            .script-version {
-                font-size: 18px;
-                color: #000;
+            .content-tab-item {
+                @extend %tab-item;
+
+                padding-left: 0;
+                cursor: pointer;
+                transition: all 0.1s;
+                flex: 0 0 120px;
+                align-items: center;
+                justify-content: center;
+
+                &.active {
+                    color: #dcdee5;
+                    background: #242424;
+                    border-top-right-radius: 6px;
+                    border-top-left-radius: 6px;
+                }
             }
-
-            .script-status {
-                margin-right: auto;
-                margin-left: 10px;
-            }
-
-            .script-lastModifyTime {
-                margin-left: 10px;
-            }
-
-            .label {
-                color: #b2b5bd;
-            }
-
-            .value {
-                color: #63656e;
-            }
-        }
-
-        .render-script-version {
-            display: flex;
         }
 
         .version-content {
             display: flex;
             flex-direction: column;
             flex: 1;
-            border: 1px solid #dcdee5;
-
-            .content-tab {
-                display: flex;
-                background-color: #f0f1f5;
-                border-bottom: 1px solid #dcdee5;
-            }
-
-            .content-tab-item {
-                @extend %tab-item;
-
-                padding-left: 0;
-                font-size: 14px;
-                color: #313238;
-                cursor: pointer;
-                border-right: 1px solid #dcdee5;
-                flex: 0 0 120px;
-                align-items: center;
-                justify-content: center;
-
-                &.active {
-                    color: #3a84ff;
-                    background: #fff;
-                    border-top: 2px solid #3a84ff;
-                }
-            }
-
-            .content-dispaly {
-                background: #fff;
-            }
         }
 
         .render-version-log {

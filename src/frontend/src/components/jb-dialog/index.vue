@@ -57,9 +57,7 @@
 </template>
 <script>
     import I18n from '@/i18n';
-    import {
-        leaveConfirm,
-    } from '@utils/assist';
+    import { leaveConfirm } from '@utils/assist';
 
     export default {
         name: 'JbDialog',

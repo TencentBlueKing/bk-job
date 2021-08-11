@@ -43,7 +43,11 @@
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
-                    <bk-button text @click="handleGoPlanDetail(row)">{{ row.taskPlanName }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleGoPlanDetail(row)">
+                        {{ row.taskPlanName }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <!-- 作业模版引用 -->
@@ -53,7 +57,11 @@
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
-                    <bk-button text @click="handleGoTemplateDetail(row)">{{ row.taskTemplateName }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleGoTemplateDetail(row)">
+                        {{ row.taskTemplateName }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column

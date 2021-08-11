@@ -31,7 +31,6 @@
         <div class="version-list-wraper">
             <list-action-layout>
                 <bk-button
-                    theme="primary"
                     :disabled="disableDiff"
                     @click="handlShowDiff">
                     {{ $t('script.版本对比') }}
@@ -334,6 +333,7 @@
             return {
                 isLoading: false,
                 isListFlod: false,
+                isShowSelectVersion: false,
                 showDiff: false,
                 data: [],
                 dataAppendList: [],
@@ -552,6 +552,7 @@
                         ...data,
                     ]);
                     this.data = Object.freeze(data);
+
                     if (isFirst) {
                         this.parseUrl();
                     }
@@ -939,12 +940,11 @@
                     background: #eff5ff;
                 }
             }
-        }
 
-        .select-flag {
-            margin-left: 10px;
-            color: #a3c5fd;
+            .select-flag {
+                margin-left: 10px;
+                color: #a3c5fd;
+            }
         }
     }
-
 </style>

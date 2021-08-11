@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Shell</title>
+    <title>shell</title>
     <defs>
         <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
             <stop stop-color="#F7F8FA" offset="0%"></stop>
@@ -10,63 +10,32 @@
             <stop stop-color="#BEBFC2" offset="0%"></stop>
             <stop stop-color="#D7D8DB" offset="100%"></stop>
         </linearGradient>
-        <path d="M16.3846154,11.5 L41.1958325,11.5 L41.1958325,11.5 L49.6153846,19.9818495 L49.6153846,51.5 C49.6153846,52.6045695 48.7199541,53.5 47.6153846,53.5 L16.3846154,53.5 C15.2800459,53.5 14.3846154,52.6045695 14.3846154,51.5 L14.3846154,13.5 C14.3846154,12.3954305 15.2800459,11.5 16.3846154,11.5 Z" id="path-3"></path>
-        <filter x="-19.9%" y="-21.4%" width="139.7%" height="133.3%" filterUnits="objectBoundingBox" id="filter-4">
-            <feOffset dx="0" dy="-2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+        <path d="M1.28,0 L30.72,0 C31.42692,0 32,0.57308 32,1.28 L32,30.72 C32,31.42692 31.42692,32 30.72,32 L1.28,32 C0.57308,32 0,31.42692 0,30.72 L0,1.28 C0,0.57308 0.57308,0 1.28,0 Z" id="path-3"></path>
+        <filter x="-20.3%" y="-17.2%" width="140.6%" height="140.6%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
             <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
             <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
         </filter>
-        <polygon id="path-5" points="2.49312077 0 0 9 1.50731601 9 4 0"></polygon>
-        <linearGradient x1="50%" y1="98.4074519%" x2="50%" y2="1.74278846%" id="linearGradient-7">
-            <stop stop-color="#FFFFFF" offset="0%"></stop>
-            <stop stop-color="#F1F1F1" offset="100%"></stop>
-        </linearGradient>
-        <path d="M1.59118357,0 L0.197463768,0 C0.0881642512,0 0,0.0741835484 0,0.165020546 L0,0.165020546 L0,1.33177132 L0,5.66822868 L0,6.83497945 C0,6.92581645 0.0881642512,7 0.197463768,7 L0.197463768,7 L1.59118357,7 L3.8031401,7 C3.91183575,7 4,6.92581645 4,6.83497945 L4,6.83497945 L4,5.83324923 C4,5.74190758 3.91183575,5.66822868 3.8031401,5.66822868 L3.8031401,5.66822868 L1.59118357,5.66822868 L1.59118357,1.33177132 L3.8031401,1.33177132 C3.91183575,1.33177132 4,1.25809242 4,1.16675077 L4,1.16675077 L4,0.165020546 C4,0.0741835484 3.91183575,0 3.8031401,0 L3.8031401,0 L1.59118357,0 Z" id="path-8"></path>
-        <linearGradient x1="50%" y1="98.4074519%" x2="50%" y2="1.74278846%" id="linearGradient-10">
-            <stop stop-color="#FFFFFF" offset="0%"></stop>
-            <stop stop-color="#F1F1F1" offset="100%"></stop>
-        </linearGradient>
-        <path d="M2.40845283,0 L0.196830189,0 C0.0875471698,0 0,0.0741835484 0,0.165020546 L0,0.165020546 L0,1.16675077 C0,1.25809242 0.0875471698,1.33177132 0.196830189,1.33177132 L0.196830189,1.33177132 L2.40845283,1.33177132 L2.40845283,5.66822868 L0.196830189,5.66822868 C0.0875471698,5.66822868 0,5.74190758 0,5.83324923 L0,5.83324923 L0,6.83497945 C0,6.92581645 0.0875471698,7 0.196830189,7 L0.196830189,7 L2.40845283,7 L3.80256604,7 C3.91184906,7 4,6.92581645 4,6.83497945 L4,6.83497945 L4,5.83324923 L4,1.16675077 L4,0.165020546 C4,0.0741835484 3.91184906,0 3.80256604,0 L3.80256604,0 L2.40845283,0 Z" id="path-11"></path>
-        <linearGradient x1="50%" y1="98.4074519%" x2="50%" y2="1.74278846%" id="linearGradient-13">
-            <stop stop-color="#FFFFFF" offset="0%"></stop>
-            <stop stop-color="#F1F1F1" offset="100%"></stop>
-        </linearGradient>
+        <filter x="-18.8%" y="-15.6%" width="137.5%" height="137.5%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="1.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.16 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
     </defs>
     <g id="🦶-脚本" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="附加说明" transform="translate(-29.000000, -38.000000)">
-            <g id="Shell" transform="translate(29.000000, 38.000000)">
+        <g id="LOGO" transform="translate(-131.000000, -125.000000)">
+            <g id="shell" transform="translate(131.000000, 125.000000)">
                 <circle id="椭圆形" fill="url(#linearGradient-1)" cx="32" cy="32" r="32"></circle>
-                <g id="矩形">
-                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
-                    <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                <g id="shell-(1)" transform="translate(16.000000, 16.000000)">
+                    <g id="形状">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                        <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                        <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-3"></use>
+                    </g>
+                    <path d="M5.75998333,8.4496 L5.75998333,11.3468 C5.75894061,11.4558385 5.8084186,11.5592253 5.894,11.6268 L10.9636,15.88 L5.894,20.1348 C5.81075249,20.2042151 5.76183796,20.3064246 5.75998333,20.4148 L5.75998333,23.312 C5.7602636,23.4552378 5.84361698,23.5853078 5.97364615,23.6453873 C6.10367531,23.7054667 6.25675096,23.6846379 6.366,23.592 L15.228,16.1616 C15.3116736,16.090994 15.3599533,15.9870827 15.3599533,15.8776 C15.3599533,15.7681173 15.3116736,15.664206 15.228,15.5936 L6.366,8.1696 C6.25675096,8.07696213 6.10367531,8.05613325 5.97364615,8.11621274 C5.84361698,8.17629222 5.7602636,8.30636223 5.75998333,8.4496 L5.75998333,8.4496 Z" id="路径" fill="#F3F5F7" fill-rule="nonzero"></path>
+                    <path d="M16.3828,20.48 C16.1669489,20.4854594 15.9959732,20.6641174 15.9999303,20.88 L15.9999303,23.28 C15.9959732,23.4958826 16.1669489,23.6745406 16.3828,23.68 L25.8572,23.68 C26.0730511,23.6745406 26.2440268,23.4958826 26.2400697,23.28 L26.2400697,20.88 C26.2440268,20.6641174 26.0730511,20.4854594 25.8572,20.48 L16.3828,20.48 L16.3828,20.48 Z" id="路径" fill="#F3F5F7" fill-rule="nonzero"></path>
                 </g>
-                <path d="M41.3076923,11.5 L41.3207486,18.265542 C41.3207486,19.1172481 42.0222065,19.8076923 42.8874986,19.8076923 L49.6153846,19.8076923" id="路径" fill="#ACAEB0" fill-rule="nonzero"></path>
-                <g id="编组-3" transform="translate(33.000000, 42.000000)">
-                    <g id="编组" transform="translate(5.000000, 0.000000)">
-                        <mask id="mask-6" fill="white">
-                            <use xlink:href="#path-5"></use>
-                        </mask>
-                        <g id="Clip-114"></g>
-                        <polygon id="Fill-113" fill="url(#linearGradient-7)" mask="url(#mask-6)" points="-0.0742520201 9.08522727 4.07425202 9.08522727 4.07425202 -0.0852272727 -0.0742520201 -0.0852272727"></polygon>
-                    </g>
-                    <g id="编组" transform="translate(0.000000, 1.000000)">
-                        <mask id="mask-9" fill="white">
-                            <use xlink:href="#path-8"></use>
-                        </mask>
-                        <g id="Clip-116"></g>
-                        <polygon id="Fill-115" fill="url(#linearGradient-10)" mask="url(#mask-9)" points="-0.102657005 7.0857905 4.102657 7.0857905 4.102657 -0.0852858482 -0.102657005 -0.0852858482"></polygon>
-                    </g>
-                    <g id="编组" transform="translate(10.000000, 1.000000)">
-                        <mask id="mask-12" fill="white">
-                            <use xlink:href="#path-11"></use>
-                        </mask>
-                        <g id="Clip-118"></g>
-                        <polygon id="Fill-117" fill="url(#linearGradient-13)" mask="url(#mask-12)" points="-0.102641509 7.0857905 4.10203774 7.0857905 4.10203774 -0.0852858482 -0.102641509 -0.0852858482"></polygon>
-                    </g>
-                </g>
-                <text font-family="MicrosoftYaHei-Bold, Microsoft YaHei" font-size="10" font-weight="bold" fill="#FFFFFF">
-                    <tspan x="20" y="35">Shell</tspan>
-                </text>
             </g>
         </g>
     </g>

@@ -43,7 +43,10 @@
             row-class-name="template-script-record"
             @selection-change="handleSelectionChange">
             <bk-table-column type="selection" width="60" />
-            <bk-table-column :label="$t('script.作业模板名称')" prop="name" sortable>
+            <bk-table-column
+                :label="$t('script.作业模板名称')"
+                prop="name"
+                sortable>
                 <template slot-scope="{ row }">
                     <bk-button
                         text
@@ -54,8 +57,12 @@
                     </bk-button>
                 </template>
             </bk-table-column>
-            <bk-table-column :label="$t('script.步骤名称')" prop="stepName" />
-            <bk-table-column :label="$t('script.引用的版本号')" prop="version">
+            <bk-table-column
+                :label="$t('script.步骤名称')"
+                prop="stepName" />
+            <bk-table-column
+                :label="$t('script.引用的版本号')"
+                prop="version">
                 <template slot-scope="{ row }">
                     <bk-button
                         text
@@ -74,14 +81,24 @@
                     <span v-html="row.statusHtml" />
                 </template>
             </bk-table-column>
-            <bk-table-column :label="$t('script.操作')" width="150">
+            <bk-table-column
+                :label="$t('script.操作')"
+                width="150">
                 <template slot-scope="{ row }">
-                    <bk-button text @click="handleComparison(row)">{{ $t('script.版本对比') }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleComparison(row)">
+                        {{ $t('script.版本对比') }}
+                    </bk-button>
                 </template>
             </bk-table-column>
         </bk-table>
-        <action-bar>
-            <bk-button class="mr10" @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+        <div class="footer-action">
+            <bk-button
+                class="mr10"
+                @click="handleCancel">
+                {{ $t('script.取消') }}
+            </bk-button>
             <bk-button
                 class="w120"
                 theme="primary"
@@ -89,12 +106,14 @@
                 @click="handleSync">
                 {{ $t('script.立即同步') }}
             </bk-button>
-        </action-bar>
+        </div>
         <element-teleport v-if="lastVersionScriptInfo.version">
             <span> - {{ $t('script.同步至') }}</span>
             <span>{{ lastVersionScriptInfo.version }}</span>
         </element-teleport>
-        <script-detail :is-show.sync="showSideslider" :script-version-id="selectScriptVersionId" />
+        <script-detail
+            :is-show.sync="showSideslider"
+            :script-version-id="selectScriptVersionId" />
         <jb-diff
             v-if="showDiff"
             :title="$t('script.版本对比')"
@@ -108,16 +127,13 @@
     import _ from 'lodash';
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
-    
     import PublicScriptService from '@service/public-script-manage';
     import { checkPublicScript } from '@utils/assist';
     import JbDiff from '@components/jb-diff';
-    import ActionBar from '../common/action-bar';
     import ScriptDetail from './components/script-detail';
 
     export default {
         components: {
-            ActionBar,
             ScriptDetail,
             JbDiff,
         },
@@ -332,6 +348,20 @@
         .status-online {
             color: #45c272;
             background-color: #e5f6ea;
+        }
+
+        .footer-action {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            width: 100%;
+            height: 52px;
+            padding-right: 24px;
+            background: #fff;
+            border-top: 1px solid #e2e2e2;
+            align-items: center;
+            justify-content: flex-end;
         }
     }
 </style>
