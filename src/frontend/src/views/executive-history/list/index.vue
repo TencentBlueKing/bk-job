@@ -97,7 +97,7 @@
                 :label="$t('history.任务状态.colHead')"
                 prop="statusDesc"
                 key="statusDesc"
-                width="130"
+                width="140"
                 align="left">
                 <template slot-scope="{ row }">
                     <Icon
