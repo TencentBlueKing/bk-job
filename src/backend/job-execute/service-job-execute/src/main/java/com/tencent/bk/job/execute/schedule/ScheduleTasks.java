@@ -57,7 +57,7 @@ public class ScheduleTasks {
         syncAppHostAndRefreshCacheTask.execute();
     }
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void syncAndRefreshApp() {
         if (!LockUtils.tryGetDistributedLock("job-execute-sync-app", "sync-app", 30_000)) {
             log.info("Fail to get sync app lock!Skip sync.");

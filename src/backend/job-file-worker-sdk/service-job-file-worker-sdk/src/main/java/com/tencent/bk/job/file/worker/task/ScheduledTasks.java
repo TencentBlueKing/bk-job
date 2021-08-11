@@ -51,7 +51,7 @@ public class ScheduledTasks {
     /**
      * 清理：1天/次，每天早上8点清理过期文件
      */
-    @Scheduled(cron = "0 0 8 0/1 * *")
+    @Scheduled(cron = "0 0 8 * * *")
     public void clearExpiredFile() {
         logger.info(Thread.currentThread().getId() + ":clearExpiredFile start");
         try {
