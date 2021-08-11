@@ -792,7 +792,7 @@ fileWorkerConfig:
   instanceName: job-file-worker-public-1
   version: 0.0.1
   id: 17
-  token: ""
+  token: "testToken"
   appId: 2
   abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
   access:
