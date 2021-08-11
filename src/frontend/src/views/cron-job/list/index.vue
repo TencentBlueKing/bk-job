@@ -66,7 +66,10 @@
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
-                    <auth-component :permission="row.canManage" :resource-id="row.id" auth="cron/view">
+                    <auth-component
+                        :permission="row.canManage"
+                        :resource-id="row.id"
+                        auth="cron/view">
                         <span class="time-task-name" @click="handleViewDetail(row)">
                             {{ row.name }}
                         </span>
@@ -145,7 +148,10 @@
                 key="lastExecuteStatus"
                 align="left">
                 <template slot-scope="{ row }">
-                    <Icon svg :type="row.statusIconType" style="font-size: 16px; vertical-align: middle;" />
+                    <Icon
+                        svg
+                        :type="row.statusIconType"
+                        style="font-size: 16px; vertical-align: middle;" />
                     <span style="vertical-align: middle;">{{ row.statusText }}</span>
                 </template>
             </bk-table-column>
@@ -228,17 +234,27 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
-        <jb-sideslider :is-show.sync="showOperation" v-bind="operationSidesliderInfo" :width="960">
+        <jb-sideslider
+            :is-show.sync="showOperation"
+            v-bind="operationSidesliderInfo"
+            :width="960">
             <task-operation
                 v-if="showOperation"
                 :id="editTaskId"
                 :data="cronJobDetailInfo"
                 @on-change="handleCronChange" />
         </jb-sideslider>
-        <jb-sideslider :is-show.sync="showDetail" :title="$t('cron.定时任务详情')" :width="960">
+        <jb-sideslider
+            :is-show.sync="showDetail"
+            :title="$t('cron.定时任务详情')"
+            :width="960">
             <task-detail :data="cronJobDetailInfo" />
             <template #footer>
-                <bk-button theme="primary" @click="handleToggelEdit">{{ $t('cron.编辑') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    @click="handleToggelEdit">
+                    {{ $t('cron.编辑') }}
+                </bk-button>
             </template>
         </jb-sideslider>
         <jb-sideslider
