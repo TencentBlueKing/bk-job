@@ -21,10 +21,17 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+def assemblyMode = System.getProperty("assemblyMode")
+def k8s = assemblyMode == "k8s"
+println("assembly mode: $assemblyMode")
 
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
+    if (k8s) {
+        println("Compile with kubernetes mode")
+        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
+    }
     implementation project(":job-file-worker:service-job-file-worker")
     implementation project(":job-file-worker-sdk:boot-job-file-worker-sdk")
     implementation 'org.springframework.boot:spring-boot-starter'
