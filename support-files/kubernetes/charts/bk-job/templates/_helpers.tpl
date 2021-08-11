@@ -333,3 +333,10 @@ Return the MongoDB secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the Job Profile
+*/}}
+{{- define "job.profile" -}}
+    {{- printf "%s" .Values.job.profile -}}
+{{- end -}}
+

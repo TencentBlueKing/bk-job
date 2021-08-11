@@ -60,7 +60,7 @@ spec:
             - name: BK_JOB_JVM_OPTION
               value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
             - name: BK_JOB_PROFILE
-              value: prod
+              value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-file-worker.jar
             - name: JOB_APPLICATION_CONFIGMAP_NAME
