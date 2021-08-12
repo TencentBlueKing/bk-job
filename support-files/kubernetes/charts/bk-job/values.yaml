@@ -861,3 +861,10 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+
+migration:
+  image:
+    registry: ""
+    repository: ""
+    tag: latest
+    pullPolicy: Always

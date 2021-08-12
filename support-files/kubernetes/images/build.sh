@@ -10,6 +10,7 @@ EXITCODE=0
 BUILD_ALL=1
 BUILD_FRONTEND=0
 BUILD_BACKEND=0
+BUILD_MIGRATION=0
 BUILD_MODULES=()
 VERSION=latest
 PUSH=0
@@ -27,6 +28,7 @@ WORKING_DIR=$(pwd)
 ROOT_DIR=${WORKING_DIR%/*/*/*}
 BACKEND_DIR=$ROOT_DIR/src/backend
 FRONTEND_DIR=$ROOT_DIR/src/frontend
+SUPPORT_FILES_DIR=$ROOT_DIR/support-files
 
 usage () {
     cat <<EOF
@@ -35,7 +37,8 @@ Usage:
 
             [ --frontend            [Optional] Build frontend image ]
             [ --backend             [Optional] Build backend image ]
-			[ --modules              [Optional] Build specified module images, modules are separated by commas.
+            [ --migration           [Optional] Build migration image ]
+			      [ --modules             [Optional] Build specified module images, modules are separated by commas.
  values:job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-frontend. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
@@ -86,10 +89,14 @@ while (( $# > 0 )); do
             BUILD_ALL=0
             BUILD_BACKEND=1
             ;;
-        --modules )
-		    shift
+        --migration )
             BUILD_ALL=0
-			BUILD_FRONTEND=0
+            BUILD_MIGRATION=1
+            ;;
+        --modules )
+		        shift
+            BUILD_ALL=0
+			      BUILD_FRONTEND=0
             BUILD_BACKEND=0
 			modules_str=$1
 			BUILD_MODULES=(${modules_str//,/ })
@@ -191,6 +198,22 @@ build_backend_module () {
         docker push $REGISTRY/$SERVICE:$VERSION
     fi
 }
+
+# Build migration image
+build_migration_image(){
+    log "Building migration image, version: ${VERSION}..."
+    rm -rf tmp/*
+    cp migration/startup.sh tmp/
+    cp -r $SUPPORT_FILES_DIR/sql tmp/
+    docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp --network=host
+    if [[ $PUSH -eq 1 ]] ; then
+        docker push $REGISTRY/job-migration:$VERSION
+    fi
+}
+if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
+    build_migration_image
+fi
+
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
