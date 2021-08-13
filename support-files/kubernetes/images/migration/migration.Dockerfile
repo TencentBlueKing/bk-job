@@ -6,7 +6,6 @@ ENV BK_JOB_HOME=/data/job \
     BK_JOB_LOGS_DIR=/data/job/logs
 
 COPY ./ /data/job/
-COPY ../../../sql /data/job/
 
 RUN yum install mysql
 
