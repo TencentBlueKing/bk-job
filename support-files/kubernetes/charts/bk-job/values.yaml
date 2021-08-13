@@ -70,7 +70,7 @@ mariadb:
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
-    database: job
+    database: job_crontab
     ## @param mariadb.auth.username Database user to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
     ##
@@ -107,6 +107,16 @@ mariadb:
       ## @param mariadb.primary.persistence.existingClaim Name of an existing `PersistentVolumeClaim` for MariaDB primary replicas
       ##
       existingClaim: ""
+  initdbScripts:
+    my_init_script.sh: |
+      #!/bin/sh
+      if [[ $(hostname) == *primary* ]]; then
+          echo "Primary node"
+          mysql -P 3306 -uroot -pjob -e "grant all privileges on *.* to 'root'@'%' identified by 'job';flush privileges;";
+      else
+          echo "No primary node"
+      fi
+
 ## External MariaDB configuration
 ##
 externalMariaDB:
