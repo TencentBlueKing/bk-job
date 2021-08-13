@@ -26,9 +26,9 @@ spec:
           args: ["/data/job/startup.sh"]
           env:
             - name: BK_JOB_MYSQL_HOST
-              value: {{ include "job.mariadb.host" . }}
+              value: {{ include "job.mariadb.host" . | quote }}
             - name: BK_JOB_MYSQL_PORT
-              value: {{ include "job.mariadb.port" . }}
+              value: {{ include "job.mariadb.port" . | quote }}
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mariadb.auth.rootPassword }}
+              value: {{ .Values.mariadb.auth.rootPassword | quote }}
       restartPolicy: Never
