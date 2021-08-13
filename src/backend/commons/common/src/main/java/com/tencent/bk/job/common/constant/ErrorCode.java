@@ -220,6 +220,7 @@ public class ErrorCode {
     public static final int DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION = 1244019;
     // 作业执行历史查询时间范围必须小于30天
     public static final int TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS = 1244020;
+    public static final int FILE_TASKS_EXCEEDS_LIMIT = 1244021;
     // 作业执行 end
 
     // 定时作业 start
@@ -251,14 +252,12 @@ public class ErrorCode {
     // 文件网关 start
     // 文件源不存在:{0}
     public static final int FILE_SOURCE_NOT_EXIST = 1260001;
-    // 接入点响应异常：ListBucket，详情：{0}
-    public static final int FAIL_TO_REQUEST_FILE_WORKER_LIST_BUCKET = 1260002;
-    // 接入点响应异常：ListObjects，详情：{0}
-    public static final int FAIL_TO_REQUEST_FILE_WORKER_LIST_OBJECTS = 1260003;
-    // 接入点响应异常：DeleteBucket，详情：{0}
-    public static final int FAIL_TO_REQUEST_FILE_WORKER_DELETE_BUCKET = 1260008;
-    // 接入点响应异常：DeleteBucketFile，详情：{0}
-    public static final int FAIL_TO_REQUEST_FILE_WORKER_DELETE_BUCKET_FILE = 1260009;
+    // 接入点响应异常：ListFileNode，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE = 1260002;
+    // 接入点响应异常：FileAvailable，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_FILE_AVAILABLE = 1260003;
+    // 接入点响应异常：ExecuteAction，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_EXECUTE_ACTION = 1260008;
 
     // 文件源别名已存在：{0}
     public static final int FILE_SOURCE_ALIAS_ALREADY_EXISTS = 1260004;

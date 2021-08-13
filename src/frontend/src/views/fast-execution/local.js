@@ -48,5 +48,8 @@ export default {
         '多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。': 'Files may have the risk of overwriting with the same name in multi-file source, using built-in variable like [FILESRCIP] in the Dst. path to avoid risks as much as possible.',
         '好的，我调整一下': 'Oops... Adjust Now',
         '已知悉，确定执行': 'I\'m Sure, Keep Going',
+        源和目标服务器相同: '',
+        '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': '',
+        '是的，确定无误': '',
     },
 };

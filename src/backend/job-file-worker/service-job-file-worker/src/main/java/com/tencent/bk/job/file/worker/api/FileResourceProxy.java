@@ -70,6 +70,11 @@ public class FileResourceProxy implements IFileResource {
     }
 
     @Override
+    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+        return chooseFileResource(req).isFileAvailable(req);
+    }
+
+    @Override
     public ServiceResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
         return chooseFileResource(req).listFileNode(req);
     }

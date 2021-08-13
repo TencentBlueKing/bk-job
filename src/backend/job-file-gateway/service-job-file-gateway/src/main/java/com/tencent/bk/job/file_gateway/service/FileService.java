@@ -29,6 +29,8 @@ import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
 
 public interface FileService {
 
+    boolean isFileAvailable(String username, Long appId, Integer fileSourceId);
+
     FileNodesVO listFileNode(String username, Long appId, Integer fileSourceId, String path, String name,
                              Integer start, Integer pageSize);
 

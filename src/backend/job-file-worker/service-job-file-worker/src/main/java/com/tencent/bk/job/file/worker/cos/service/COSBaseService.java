@@ -26,25 +26,28 @@ package com.tencent.bk.job.file.worker.cos.service;
 
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.ticket.model.credential.CommonCredentialDTO;
+import com.tencent.bk.job.ticket.model.credential.CommonCredential;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 public class COSBaseService {
 
     public JobTencentInnerCOSClient getCOSClientFromBaseReq(BaseReq req) {
         // endPointDomain
         // appId
-        CommonCredentialDTO credential = req.getCredential();
+        CommonCredential credential = req.getCredential();
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
+        log.debug("req={}", req);
         return new JobTencentInnerCOSClient(credential.getAccessKey(), credential.getSecretKey(),
-            getEndPointDomain(req), fileSourceInfoMap.get("appId").toString());
+            getEndPointDomain(req), fileSourceInfoMap.get("app_id").toString());
     }
 
     public String getEndPointDomain(BaseReq req) {
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return (String) (fileSourceInfoMap.get("endPointDomain"));
+        return (String) (fileSourceInfoMap.get("end_point_domain"));
     }
 }
