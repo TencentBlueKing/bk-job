@@ -22,6 +22,6 @@ spec:
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
-          command: ["echo"]
-          args: ["Hello", "World"]
+          command: ["bash"]
+          args: ["/data/job/startup.sh"]
       restartPolicy: Never
