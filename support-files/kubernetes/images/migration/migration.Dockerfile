@@ -7,7 +7,7 @@ ENV BK_JOB_HOME=/data/job \
 
 COPY ./ /data/job/
 
-RUN yum install mysql
+RUN yum -y install mysql
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
