@@ -28,7 +28,11 @@
 <template>
     <div class="exec-script-page" v-bkloading="{ isLoading }">
         <smart-action offset-target="bk-form-content">
-            <jb-form class="fast-execution-script-form" ref="execScriptForm" :model="formData">
+            <jb-form
+                class="fast-execution-script-form"
+                ref="execScriptForm"
+                v-test="{ type: 'form', value: 'executeScript' }"
+                :model="formData">
                 <item-factory
                     name="scriptName"
                     field="name"

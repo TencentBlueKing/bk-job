@@ -27,7 +27,11 @@
 
 <template>
     <smart-action class="create-script-page" offset-target="bk-form-content">
-        <jb-form :model="formData" :rules="rules" ref="form">
+        <jb-form
+            :model="formData"
+            :rules="rules"
+            v-test="{ type: 'form', value: 'create_script' }"
+            ref="form">
             <jb-form-item :label="$t('script.脚本名称.label')" required property="name">
                 <div class="script-name input">
                     <jb-input

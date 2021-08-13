@@ -28,7 +28,11 @@
 <template>
     <div class="distro-file-page" v-bkloading="{ isLoading }">
         <smart-action offset-target="bk-form-content">
-            <jb-form class="push-file-form" ref="pushFileForm" :model="formData">
+            <jb-form
+                class="push-file-form"
+                ref="pushFileForm"
+                v-test="{ type: 'form', value: 'pushFile' }"
+                :model="formData">
                 <card-layout :title="$t('execution.基本信息')" class="block">
                     <item-factory
                         name="stepName"
