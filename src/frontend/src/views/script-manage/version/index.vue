@@ -95,18 +95,20 @@
                             align="left"
                             width="150">
                             <template slot-scope="{ row }">
-                                <span
-                                    v-bk-tooltips.right.allowHtml="`
+                                <bk-button
+                                    text
+                                    v-bk-tooltips.allowHtml="`
                                     <div>${$t('script.作业模版引用')}: ${row.relatedTaskTemplateNum}</div>
-                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`">
-                                    <a @click="handleShowRelated('template', row)">
+                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                                    @click="handleShowRelated(row)">
+                                    <span>
                                         {{ row.relatedTaskTemplateNum }}
-                                    </a>
+                                    </span>
                                     <span> / </span>
-                                    <a @click="handleShowRelated('plan', row)">
+                                    <span>
                                         {{ row.relatedTaskPlanNum }}
-                                    </a>
-                                </span>
+                                    </span>
+                                </bk-button>
                             </template>
                         </bk-table-column>
                         <bk-table-column
@@ -270,12 +272,11 @@
             :is-show.sync="showRelated"
             :show-footer="false"
             quick-close
-            v-bind="relatedScriptDialogInfo"
+            :title="$t('script.被引用.label')"
             :width="695">
-            <related-script
+            <script-related-info
                 :info="relatedScriptInfo"
-                :mode="showRelateMode"
-                from="scriptVersionList" />
+                mode="scriptVersionList" />
         </jb-sideslider>
         <Diff
             v-if="showDiff"
@@ -297,7 +298,6 @@
     import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
-    import Diff from './components/diff';
     import {
         checkPublicScript,
         leaveConfirm,
@@ -306,12 +306,13 @@
         encodeRegexp,
     } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
-    import RelatedScript from '../common/related-script';
+    import ScriptRelatedInfo from '../common/script-related-info';
     import DetailScript from '../common/detail/index';
     import Edit from '../common/edit';
     import CopyCreate from '../common/copy-create';
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
+    import Diff from './components/diff';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 
@@ -321,7 +322,7 @@
             ListActionLayout,
             JbPopoverConfirm,
             JbSearchSelect,
-            RelatedScript,
+            ScriptRelatedInfo,
             Diff,
             Layout,
             DetailScript,
@@ -343,7 +344,6 @@
                 selectVersionId: '',
                 choosedMap: {},
                 showRelated: false,
-                showRelateMode: '',
                 relatedScriptInfo: [],
                 displayCom: '',
                 tableSize: 'small',
@@ -371,19 +371,6 @@
                     copyCreate: CopyCreate,
                 };
                 return comMap[this.displayCom];
-            },
-            /**
-             * @desc 脚本引用弹窗的信息
-             * @returns { Object }
-             */
-            relatedScriptDialogInfo () {
-                const info = {
-                    title: I18n.t('script.引用脚本的作业模版'),
-                };
-                if (this.showRelateMode === 'plan') {
-                    info.title = I18n.t('script.引用脚本的执行方案');
-                }
-                return info;
             },
             /**
              * @desc 选中的脚本版本
@@ -641,7 +628,6 @@
                 }
                 this.selectVersionId = '';
             },
-
             /**
              * @desc 选中一行
              * @param {Object} payload 脚本数据
@@ -655,7 +641,6 @@
                 }
                 this.choosedMap = { ...this.choosedMap };
             },
-
             /**
              * @desc 点击版本名查看详情
              * @param {Object} row 脚本数据
@@ -762,9 +747,8 @@
              * @param {String} mode 引用的模版、执行方案
              * @param {Object} payload 脚本数据
              */
-            handleShowRelated (mode, payload) {
+            handleShowRelated (payload) {
                 this.showRelated = true;
-                this.showRelateMode = mode;
                 this.relatedScriptInfo = payload;
             },
             /**
@@ -938,6 +922,17 @@
             .bk-table-row {
                 &.active {
                     background: #eff5ff;
+                }
+
+                &.active,
+                &.hover-row {
+                    span[data-script-status] {
+                        background: #e6e7eb !important;
+                    }
+
+                    span[data-script-status="1"] {
+                        background: #daebde !important;
+                    }
                 }
             }
 

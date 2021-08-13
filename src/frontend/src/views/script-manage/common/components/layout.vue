@@ -174,6 +174,10 @@
                 background: #333 !important;
                 border-color: #424242 !important;
             }
+
+            &::placeholder {
+                color: #63656e;
+            }
         }
 
         .bk-button {
@@ -186,6 +190,11 @@
                 &:hover {
                     color: #b1b6c2;
                     border-color: #878b94;
+                }
+
+                &.is-disabled {
+                    color: #63656e;
+                    border-color: #36373d;
                 }
             }
         }
