@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <detail-layout mode="see" class="detail-layout-wrapper" v-bkloading="{ isLoading }">
+    <detail-layout
+        mode="see"
+        class="detail-layout-wrapper"
+        v-bkloading="{ isLoading }">
         <detail-item :label="$t('cron.任务名称：')">
             {{ data.name }}
         </detail-item>
@@ -34,7 +37,11 @@
             {{ data.executeStrategyText }}
         </detail-item>
         <detail-item :label="$t('cron.执行时间：')">
-            {{ data.policeText }}
+            <span
+                class="tips"
+                v-bk-tooltips.right="data.executeTimeTips">
+                {{ data.policeText }}
+            </span>
         </detail-item>
         <detail-item v-if="data.endTime" :label="$t('cron.结束时间：')">
             {{ data.endTime }}
@@ -118,6 +125,7 @@
                 currentPlanVariableList: [],
             };
         },
+        
         created () {
             Promise.all([
                 this.fetchData(),
