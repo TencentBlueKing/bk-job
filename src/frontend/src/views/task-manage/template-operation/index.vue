@@ -28,7 +28,11 @@
 <template>
     <div class="template-operation">
         <smart-action offset-target="bk-form-content">
-            <jb-form :model="formData" :rules="rules" ref="templateOperateRef">
+            <jb-form
+                :model="formData"
+                :rules="rules"
+                v-test="{ type: 'form', value: 'template' }"
+                ref="templateOperateRef">
                 <bk-alert class="info" :title="$t('template.对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。')" />
                 <jb-form-item :label="$t('template.模板名称')" required property="name">
                     <jb-input
