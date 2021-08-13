@@ -193,6 +193,11 @@
 .tippy-tooltip {
     z-index: 1;
 
+    .tippy-arrow {
+        width: 0;
+        height: 0;
+    }
+
     .tippy-content {
         padding: 0;
     }

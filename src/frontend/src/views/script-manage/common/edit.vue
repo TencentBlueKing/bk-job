@@ -26,26 +26,52 @@
 -->
 
 <template>
-    <layout :title="$t('script.编辑脚本')" class="edit-script-box" offset-target="bk-form-content" v-bind="$attrs">
-        <jb-form ref="form" :model="formData" :rules="rules" class="edit-script-form">
-            <jb-form-item :label="$t('script.版本号.label')" required>
-                <bk-input class="input" :value="formData.version" readonly />
-            </jb-form-item>
-            <jb-form-item :label="$t('script.版本日志')">
-                <bk-input class="input" v-model="formData.versionDesc" type="textarea" :maxlength="100" />
-            </jb-form-item>
-            <jb-form-item :label="$t('script.脚本内容')" required property="content" style="margin-bottom: 0;">
-                <div ref="content">
-                    <ace-editor
-                        v-if="contentHeight > 0"
-                        v-model="formData.content"
-                        :lang="formData.typeName"
-                        :height="contentHeight"
-                        :readonly="!scriptInfo.isDraft"
-                        :options="[formData.typeName]" />
-                </div>
-            </jb-form-item>
-        </jb-form>
+    <layout>
+        <div slot="title">{{ $t('script.编辑脚本') }}</div>
+        <template slot="sub-header">
+            <Icon
+                type="upload"
+                @click="handleUploadScript"
+                v-bk-tooltips="$t('上传脚本')" />
+            <Icon
+                type="history"
+                @click.stop="handleShowHistory"
+                v-bk-tooltips="$t('历史缓存')" />
+            <Icon
+                type="full-screen"
+                v-bk-tooltips="$t('全屏')"
+                @click="handleFullScreen" />
+        </template>
+        <div slot="left">
+            <jb-form
+                ref="form"
+                :model="formData"
+                :rules="rules"
+                form-type="vertical"
+                class="edit-script-form">
+                <jb-form-item
+                    :label="$t('script.版本号.label')"
+                    required>
+                    <bk-input :value="formData.version" readonly />
+                </jb-form-item>
+                <jb-form-item :label="$t('script.版本日志')">
+                    <bk-input
+                        v-model="formData.versionDesc"
+                        type="textarea"
+                        :rows="5"
+                        :maxlength="100" />
+                </jb-form-item>
+            </jb-form>
+        </div>
+        <div ref="content">
+            <ace-editor
+                ref="aceEditor"
+                v-model="formData.content"
+                :lang="formData.typeName"
+                :height="contentHeight"
+                :readonly="!scriptInfo.isDraft"
+                :options="formData.typeName" />
+        </div>
         <template #footer>
             <bk-button
                 theme="primary"
@@ -54,15 +80,20 @@
                 class="w120 mr10">
                 {{ $t('script.提交') }}
             </bk-button>
-            <bk-button class="mr10" @click="handleDebugScript">调试</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleDebugScript">
+                调试
+            </bk-button>
             <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
         </template>
     </layout>
 </template>
 <script>
+    import _ from 'lodash';
     import I18n from '@/i18n';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
+    import ScriptManageService from '@service/script-manage';
+    import PublicScriptManageService from '@service/public-script-manage';
     import AceEditor from '@components/ace-editor';
     import {
         checkPublicScript,
@@ -70,10 +101,8 @@
         getOffset,
         scriptErrorAlert,
     } from '@utils/assist';
-    import {
-        debugScriptCache,
-    } from '@utils/cache-helper';
-    import Layout from './layout';
+    import { debugScriptCache } from '@utils/cache-helper';
+    import Layout from './components/layout';
 
     const genDefaultFormData = () => ({
         id: '',
@@ -140,7 +169,7 @@
         },
         created () {
             this.publicScript = checkPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+            this.serviceHandler = this.publicScript ? PublicScriptManageService : ScriptManageService;
 
             this.rules = {
                 content: [
@@ -150,7 +179,7 @@
                         trigger: 'change',
                     },
                     {
-                        validator: value => ScriptService.getScriptValidation({
+                        validator: value => ScriptManageService.getScriptValidation({
                             content: value,
                             scriptType: this.formData.type,
                         }).then((data) => {
@@ -170,39 +199,67 @@
             });
         },
         mounted () {
-            this.init();
+            this.calcContentHeight();
+            const handleResize = _.throttle(this.calcContentHeight, 60);
+            window.addEventListener('resize', handleResize);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('resize', handleResize);
+            });
         },
         methods: {
             /**
              * @desc 计算内容区高度
              */
-            init () {
+            calcContentHeight () {
                 const contentOffsetTop = getOffset(this.$refs.content).top;
-                const contentHeight = window.innerHeight - contentOffsetTop - 100;
-                this.contentHeight = contentHeight < 480 ? 480 : contentHeight;
+                this.contentHeight = window.innerHeight - contentOffsetTop - 26;
+            },
+            handleUploadScript () {
+                this.$refs.aceEditor.handleUploadScript();
+            },
+            handleShowHistory () {
+                this.$refs.aceEditor.handleShowHistory();
+            },
+            handleFullScreen () {
+                this.$refs.aceEditor.handleFullScreen();
             },
             /**
              * @desc 保存脚本
              */
             handleSubmit () {
+                if (!this.formData.content) {
+                    this.messageError(I18n.t('script.脚本内容不能为空'));
+                    return;
+                }
                 this.isSubmiting = true;
-                this.$refs.form.validate()
-                    .then(() => {
-                        if (this.$store.state.scriptCheckError) {
-                            scriptErrorAlert();
-                            return;
-                        }
-                        return this.serviceHandler.scriptUpdate({
-                            ...this.formData,
+                Promise.all([
+                    // 验证表单
+                    this.$refs.form.validate(),
+                    // 脚本高危语句检测
+                    ScriptManageService.getScriptValidation({
+                        content: this.formData.content,
+                        scriptType: this.formData.type,
+                    }).then((data) => {
+                        // 高危语句报错状态需要全局保存
+                        this.$store.commit('setScriptCheckError', data.some(_ => _.isDangerous));
+                        return true;
+                    }),
+                ]).then(() => {
+                    if (this.$store.state.scriptCheckError) {
+                        scriptErrorAlert();
+                        return;
+                    }
+                    this.serviceHandler.scriptUpdate({
+                        ...this.formData,
+                        scriptVersionId: this.scriptInfo.scriptVersionId,
+                    }).then(() => {
+                        window.changeAlert = false;
+                        this.$emit('on-edit', {
                             scriptVersionId: this.scriptInfo.scriptVersionId,
-                        }).then(() => {
-                            window.changeAlert = false;
-                            this.$emit('on-edit', {
-                                scriptVersionId: this.scriptInfo.scriptVersionId,
-                            });
-                            this.messageSuccess(I18n.t('script.操作成功'));
                         });
-                    })
+                        this.messageSuccess(I18n.t('script.操作成功'));
+                    });
+                })
                     .finally(() => {
                         this.isSubmiting = false;
                     });
@@ -234,11 +291,3 @@
         },
     };
 </script>
-<style lang='postcss'>
-    .edit-script-box {
-        .input {
-            width: 510px;
-            background: #fff;
-        }
-    }
-</style>

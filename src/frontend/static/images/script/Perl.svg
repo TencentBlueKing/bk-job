@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Perl</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#F7F8FA" offset="0%"></stop>
+            <stop stop-color="#F0F2F5" offset="99.9416965%"></stop>
+        </linearGradient>
+        <linearGradient x1="50.8618335%" y1="0.861833479%" x2="50.8618335%" y2="99.1381665%" id="linearGradient-2">
+            <stop stop-color="#BEBFC2" offset="0%"></stop>
+            <stop stop-color="#D7D8DB" offset="100%"></stop>
+        </linearGradient>
+        <path d="M27.0053391,0.315119846 C25.8527775,0.2115188 24.7002158,0.103601045 23.5519709,0 C16.8912871,4.13972509 15.4408724,7.83482904 10.6752244,13.5026695 C8.73702147,10.1960695 13.511303,4.51096217 8.16289901,1.88208565 C6.14267863,1.19141202 3.39293423,2.90082926 0.941042826,3.45336817 C0.625922981,4.07929115 0.310803135,4.70953084 0,5.33977053 C0.777007838,6.18152902 1.34249688,6.39304782 2.82744519,6.5959332 C3.75553788,11.2666137 0.781324548,24.6786323 11.305464,21.6698853 C13.3774849,25.3002386 12.88538,34.8013177 11.305464,38 L13.1918664,38 C14.1329092,33.0789504 15.0782688,28.1579007 16.0193116,23.2411678 C16.7531523,23.1375667 17.4869931,23.029649 18.2165171,22.9260479 C18.3201181,23.13325 18.4280359,23.3447688 18.5316369,23.5562876 C18.1129161,25.7534931 17.6941952,27.9550153 17.2754743,30.1522208 C18.738839,31.7235034 20.2065205,33.2947859 21.674202,34.8617517 C21.0094286,36.1394979 20.9274111,36.5064183 19.4769965,37.0589572 C19.3733954,37.374077 19.2654777,37.6891969 19.1618766,38 C22.8181302,37.9525162 22.4900602,37.5942292 25.1275701,38 L25.44269,38 C25.904578,35.781211 24.816767,35.4790412 24.1865273,33.6012723 C26.1765307,30.0529365 27.2211746,25.4383733 28.585255,20.7245257 C28.7924571,20.6209247 29.0039759,20.5130069 29.2154947,20.4094059 C32.0170396,23.5044871 33.7264569,32.2717255 31.7278201,37.0546405 L31.7278201,37.9956833 L33.9250256,37.9956833 C33.1652846,31.6155856 33.1480177,24.1865273 34.2401454,16.9560377 L34.5552653,16.9560377 C36.1610814,18.8208565 35.2545723,21.8468704 34.5552653,23.8670908 L34.5552653,24.1822106 C34.7624673,24.2858117 34.9739861,24.3937294 35.1855049,24.4973305 C39.6792003,17.9359309 31.1839146,4.25627627 27.0053391,0.315119846 Z M23.5519709,32.6602295 C23.2368511,32.8674316 22.9217312,33.0789504 22.6109281,33.2904692 C21.2727479,32.5350449 20.6468249,32.0472566 20.0986027,30.463024 C19.8396001,28.7838237 22.6670453,24.6786323 23.5519709,22.2958082 C26.008179,24.4627968 24.385096,30.3421561 23.5519709,32.6602295 Z" id="path-3"></path>
+        <filter x="-17.8%" y="-14.5%" width="135.7%" height="134.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <filter x="-16.5%" y="-13.2%" width="132.9%" height="131.6%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="1.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.16 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="🦶-脚本" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="LOGO" transform="translate(-131.000000, -27.000000)">
+            <g id="Perl" transform="translate(131.000000, 27.000000)">
+                <circle id="椭圆形" fill="url(#linearGradient-1)" cx="32" cy="32" r="32"></circle>
+                <g id="形状" transform="translate(14.000000, 13.000000)">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                    <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-3"></use>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

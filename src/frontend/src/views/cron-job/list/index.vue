@@ -111,7 +111,15 @@
                 :label="$t('cron.执行策略.colHead')"
                 prop="policeText"
                 key="policeText"
-                align="left" />
+                align="left">
+                <template slot-scope="{ row }">
+                    <span
+                        class="tips"
+                        v-bk-tooltips.right="row.executeTimeTips">
+                        {{ row.policeText }}
+                    </span>
+                </template>
+            </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
                 :label="$t('cron.创建人')"
@@ -223,7 +231,11 @@
                             {{ $t('cron.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
-                    <bk-button text @click="handleHistoryRecord(row)">{{ $t('cron.执行记录') }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleHistoryRecord(row)">
+                        {{ $t('cron.执行记录') }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column type="setting">
@@ -279,9 +291,7 @@
     import I18n from '@/i18n';
     import TimeTaskService from '@service/time-task';
     import NotifyService from '@service/notify';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { listColumnsCache } from '@utils/cache-helper';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';

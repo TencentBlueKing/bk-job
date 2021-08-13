@@ -63,53 +63,86 @@ export default class Script extends BaseModel {
         this.canView = payload.canView;
     }
 
+    /**
+     * @desc 脚本版本显示文本
+     * @returns { String }
+     */
     get versionText () {
         return this.getDefaultValue(this.version);
     }
 
-    // 已上线
+    /**
+     * @desc 已上线
+     * @returns { Boolean }
+     */
     get isOnline () {
         return this.status === Script.STATUS_ONLINE;
     }
 
-    // 未上线
+    /**
+     * @desc 未上线
+     * @returns { Boolean }
+     */
     get isDraft () {
         return this.status === Script.STATUS_DRAFT;
     }
 
-    // 禁用
+    /**
+     * @desc 禁用
+     * @returns { Boolean }
+     */
     get isDisabled () {
         return this.status === Script.STATUS_DISABLED;
     }
 
-    // 无法执行上线操作
+    /**
+     * @desc 无法执行上线操作
+     * @returns { Boolean }
+     */
     get isDisabledOnline () {
         return [
             Script.STATUS_ONLINE, Script.STATUS_DISABLED,
         ].includes(this.status);
     }
 
-    // 脚本是否可以被删除
+    /**
+     * @desc 脚本是否可以被删除
+     * @returns { Boolean }
+     */
     get isEnableRemove () {
         return this.relatedTaskPlanNum < 1 && this.relatedTaskTemplateNum < 1;
     }
 
-    // 脚本版本是否可以本删除
+    /**
+     * @desc 脚本版本是否可以本删除
+     * @returns { Boolean }
+     */
     get isVersionEnableRemove () {
         return ![
             Script.STATUS_ONLINE, Script.STATUS_OFFLINE,
         ].includes(this.status);
     }
 
-    // 是否可以执行
+    /**
+     * @desc 是否可以执行
+     * @returns { Boolean }
+     */
     get isExecuteDisable () {
         return !this.version;
     }
 
+    /**
+     * @desc tag 显示文本
+     * @returns { String }
+     */
     get tagsText () {
         return this.getDefaultValue(this.tags.map(tag => tag.name).join('，'));
     }
 
+    /**
+     * @desc 脚本状态 TAG
+     * @returns { HTMLElement }
+     */
     get statusHtml () {
         let styles = 'display: inline-block; padding: 0 8px; line-height: 18px; font-size: 12px; border-radius: 2px;';
 
@@ -118,15 +151,23 @@ export default class Script extends BaseModel {
                 styles += 'background: #F4E3C7; color: #FF9C01';
                 break;
             case Script.STATUS_ONLINE:
-                styles += 'background: #E5F6EA; color: #3FC06D';
+                styles += 'background: #DAEBDE; color: #3FC06D';
                 break;
             default:
                 styles += 'background: #F0F1F5; color: #979BA5';
         }
-        
-        return `<span style="${styles}">${Script.STATUS_TEXT_MAP[this.status]}</span>`;
+        return [
+            `<span style="${styles}" data-script-status="${this.status}">`,
+            Script.STATUS_TEXT_MAP[this.status],
+            '</span>',
+        ].join('');
     }
 
+    /**
+     * @desc 处理脚本 TAG 数据
+     * @param { Array } tags
+     * @returns { Array }
+     */
     initTag (tags) {
         if (!tags) {
             return [];
@@ -134,6 +175,11 @@ export default class Script extends BaseModel {
         return tags.map(item => new TagModel(item));
     }
 
+    /**
+     * @desc 处理脚本版本数据
+     * @param { Array } versions
+     * @returns { Array }
+     */
     initScriptVersion (versions) {
         if (!versions) {
             return [];

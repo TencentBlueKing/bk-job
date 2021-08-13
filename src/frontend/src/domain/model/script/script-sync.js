@@ -65,10 +65,18 @@ export default class ScriptSync extends Model {
         this.syncStatus = payload.syncStatus;
     }
 
+    /**
+     * @desc 同步失败
+     * @returns { Boolean }
+     */
     get isSyncFailed () {
         return this.syncStatus === SYNC_STATUS_FAILED;
     }
-    
+
+    /**
+     * @desc 脚本状态 tag
+     * @returns { HTMLElement }
+     */
     get statusHtml () {
         let styles = 'display: inline-block; padding: 0 6px; line-height: 18px; font-size: 12px; border-radius: 2px;';
         if (this.scriptStatus === STATUS_ONLINE) {
@@ -79,12 +87,18 @@ export default class ScriptSync extends Model {
         return `<span style="${styles}">${this.scriptStatusDesc}</span>`;
     }
 
-    // 同步状态icon展示
+    /**
+     * @desc 同步状态icon展示
+     * @returns { String }
+     */
     get syncIcon () {
         return ScriptSync.SYNC_STATUS_ICON_MAP[this.syncStatus];
     }
 
-    // 同步状态
+    /**
+     * @desc 同步状态
+     * @returns { String }
+     */
     get syncStatusMsg () {
         if (this.syncStatus === 1) {
             return I18n.t('同步成功');
@@ -95,7 +109,10 @@ export default class ScriptSync extends Model {
         return I18n.t('正在同步');
     }
 
-    // 同步失败重试按钮展示
+    /**
+     * @desc 同步失败重试按钮展示
+     * @returns { String }
+     */
     get syncTry () {
         return [
             this.syncStatus === 2 ? 'try-show' : 'try-hide',
