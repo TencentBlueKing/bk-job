@@ -22,6 +22,8 @@ spec:
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
+          command: ["bash"]
+          args: ["/data/job/startup.sh"]
           env:
             - name: BK_JOB_MYSQL_HOST
               value: {{ include "job.mariadb.host" . }}
@@ -29,6 +31,4 @@ spec:
               value: {{ include "job.mariadb.port" . }}
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
               value: {{ .Values.mariadb.auth.rootPassword }}
-          command: ["bash"]
-          args: ["/data/job/startup.sh"]
       restartPolicy: Never
