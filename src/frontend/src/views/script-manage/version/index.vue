@@ -933,6 +933,10 @@
                     span[data-script-status="1"] {
                         background: #daebde !important;
                     }
+
+                    span[data-script-status="-1"] {
+                        background: #ffe8c3 !important;
+                    }
                 }
             }
 

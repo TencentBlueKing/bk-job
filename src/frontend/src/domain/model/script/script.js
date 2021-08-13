@@ -148,10 +148,10 @@ export default class Script extends BaseModel {
 
         switch (this.status) {
             case Script.STATUS_INVALID:
-                styles += 'background: #F4E3C7; color: #FF9C01';
+                styles += 'background: #FFE8C3; color: #FF9C01';
                 break;
             case Script.STATUS_ONLINE:
-                styles += 'background: #DAEBDE; color: #3FC06D';
+                styles += 'background: #E5F6EA; color: #3FC06D';
                 break;
             default:
                 styles += 'background: #F0F1F5; color: #979BA5';
