@@ -22,6 +22,7 @@ spec:
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
           command: ["bash"]
           args: ["/data/job/startup.sh"]
           env:
