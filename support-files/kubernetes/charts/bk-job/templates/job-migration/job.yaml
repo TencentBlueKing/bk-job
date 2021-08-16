@@ -33,8 +33,7 @@ spec:
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
               value: {{ .Values.mariadb.auth.rootPassword | quote }}
       initContainers:
-        - name: init-myservice
+        - name: wait-mariadb
           image: busybox:1.28
           command: ['sh', '-c', "until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done"]
-        - name: init-mydb
       restartPolicy: Never
