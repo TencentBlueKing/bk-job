@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-migration-{{ .Release.Revision }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-migration"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.commonAnnotations }}
+    annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-migration"
+    spec:
+      containers:
+        - name: "job-migration"
+          image: {{ include "job-migration.image" . }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          command: ["bash"]
+          args: ["/data/job/startup.sh"]
+          env:
+            - name: BK_JOB_MYSQL_HOST
+              value: {{ include "job.mariadb.host" . | quote }}
+            - name: BK_JOB_MYSQL_PORT
+              value: {{ include "job.mariadb.port" . | quote }}
+            - name: BK_JOB_MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mariadb.auth.rootPassword | quote }}
+      restartPolicy: Never
