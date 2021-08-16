@@ -182,9 +182,9 @@
         },
         methods: {
             /**
-             * @desc 获取选中模版的信息
+             * @desc 获取选中模板的信息
              *
-             * 如果模版关联的执行方案为空，初始化执行方案的 name 为作业模版的 name
+             * 如果模板关联的执行方案为空，初始化执行方案的 name 为作业模板的 name
              */
             fetchData () {
                 TaskManageService.taskDetail({
@@ -197,7 +197,7 @@
                     // 新建执行方案默认值处理
                     let planName = getScriptName(I18n.t('template.执行方案.label'));
                     if (this.firstPlan) {
-                        // 第一个执行方案名默认和模版名相同
+                        // 第一个执行方案名默认和模板名相同
                         planName = name;
                     }
                     this.generatorFormData = () => ({

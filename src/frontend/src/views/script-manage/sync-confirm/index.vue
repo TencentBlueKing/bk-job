@@ -176,7 +176,7 @@
         },
         methods: {
             /**
-             * @desc 获取引用脚本的模版
+             * @desc 获取引用脚本的模板
              */
             fetchData () {
                 this.isLoading = true;
@@ -207,8 +207,8 @@
                 this.filterData = this.data.filter(item => item.templateName.includes(this.value));
             }, 300),
             /**
-             * @desc 跳转模版详情
-             * @param {Number} id 模版ID
+             * @desc 跳转模板详情
+             * @param {Number} id 模板ID
              */
             handleGoTemplateDetail (id) {
                 const routerUrl = this.$router.resolve({

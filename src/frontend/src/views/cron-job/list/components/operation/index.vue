@@ -291,7 +291,7 @@
                 ],
             });
             
-            // 作业模版列表
+            // 作业模板列表
             this.fetchTemplateList();
 
             if (this.data.id) {
@@ -306,7 +306,7 @@
             } else {
                 // 新建(指定指定执行方案)
 
-                // 通过url指定作业模版和执行方案的定时任务任务
+                // 通过url指定作业模板和执行方案的定时任务任务
                 // 执行方案id 必须是 templateId 同时存在时才有效
                 const { templateId, planId } = this.$route.query;
                 if (parseInt(templateId, 10) > 0) {
@@ -410,7 +410,7 @@
                     });
             },
             /**
-             * @desc 所有的作业模版列表
+             * @desc 所有的作业模板列表
              */
             fetchTemplateList () {
                 this.isTemplateLoading = true;
@@ -425,7 +425,7 @@
                     });
             },
             /**
-             * @desc 指定作业模版关联的执行方案列白哦
+             * @desc 指定作业模板关联的执行方案列白哦
              */
             fetchTemplatePlanList () {
                 this.isPlanLoading = true;
@@ -495,10 +495,10 @@
                 };
             },
             /**
-             * @desc 作业模版更新
-             * @param {Id} templateId 作业模版id
+             * @desc 作业模板更新
+             * @param {Id} templateId 作业模板id
              *
-             * 作业模版改变时重新获取执行方案列表
+             * 作业模板改变时重新获取执行方案列表
              */
             handleTemplateChange (templateId) {
                 this.formData.taskPlanId = '';

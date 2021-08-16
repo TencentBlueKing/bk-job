@@ -316,7 +316,7 @@ export const composeList = (template, plan) => {
             delete planRealIdCollect[curPlan.realId];
         } else {
             if (templateRealIdCollect[curTemplate.realId]) {
-                // 在模版中存在
+                // 在模板中存在
                 templateStack.push(curTemplate);
                 
                 if (planRealIdCollect[curTemplate.realId]) {
@@ -334,11 +334,11 @@ export const composeList = (template, plan) => {
                 planStask.push(curPlan);
                 
                 if (templateRealIdCollect[curPlan.realId]) {
-                    // 同样存在与模版
+                    // 同样存在与模板
                     templateStack.push(templateRealIdCollect[curPlan.realId]);
                     delete templateRealIdCollect[curPlan.realId];
                 } else {
-                    // 在作业模版中不存（已经被删除）——将执行方案中的数据复制一份到模版中
+                    // 在作业模板中不存（已经被删除）——将执行方案中的数据复制一份到模板中
                     templateStack.push(planRealIdCollect[curPlan.realId]);
                 }
                 delete planRealIdCollect[curPlan.realId];

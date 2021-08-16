@@ -35,7 +35,7 @@
                 <span class="number strong">{{ planList.length }}</span>
                 <span>{{ $t('template.个执行方案，') }}{{ $t('template.来自') }}</span>
                 <span class="number strong">{{ relatedTemplateNums }}</span>
-                <span>{{ $t('template.个作业模版') }}</span>
+                <span>{{ $t('template.个作业模板') }}</span>
             </span>
         </div>
         <div class="action-target-info" style="margin-top: 10px;">

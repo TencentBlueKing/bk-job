@@ -150,14 +150,14 @@
                     id: this.data.id,
                 }).then(({ name, variableValue }) => {
                     this.info.name = name;
-                    // 作业模版中没有变量
+                    // 作业模板中没有变量
                     if (this.variableList.length < 1) {
                         this.isEmpty = true;
                         this.$emit('on-change', []);
                         return;
                     }
-                    // 同步作业模版中变量到定时任务
-                    // 作业模版和定时任务相同的变量——保留定时任务中的变量值
+                    // 同步作业模板中变量到定时任务
+                    // 作业模板和定时任务相同的变量——保留定时任务中的变量值
                     const crontabVariableMap = variableValue.reduce((result, item) => {
                         result[item.id] = item;
                         return result;

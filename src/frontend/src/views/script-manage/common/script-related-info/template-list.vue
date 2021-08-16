@@ -8,7 +8,7 @@
             style="width: 100%; margin-bottom: 20px;" />
         <div v-bkloading="{ isLoading }">
             <bk-table :data="renderList">
-                <!-- 作业模版引用 -->
+                <!-- 作业模板引用 -->
                 <bk-table-column
                     :label="$t('script.作业模板')"
                     align="left"
@@ -116,7 +116,7 @@
                 this.renderList = Object.freeze(list);
             },
             /**
-             * @desc 查看引用脚本的作业模版详情
+             * @desc 查看引用脚本的作业模板详情
              * @param {Object} payload 应用字段数据
              *
              * 需要解析资源的appid

@@ -163,7 +163,7 @@
                 <template v-if="routerGroup === 'personal'">
                     <jb-item index="scriptTemplate">
                         <Icon type="dashboard" />
-                        {{ $t('脚本模版') }}
+                        {{ $t('脚本模板') }}
                     </jb-item>
                 </template>
                 <template v-if="routerGroup === 'manage'">

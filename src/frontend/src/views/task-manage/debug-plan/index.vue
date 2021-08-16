@@ -261,8 +261,8 @@
                 });
             },
             /**
-             * @desc 选择模版步骤
-             * @param {String} payload 模版步骤
+             * @desc 选择模板步骤
+             * @param {String} payload 模板步骤
              */
             handleSelectStep (payload) {
                 const index = this.formData.enableSteps.findIndex(item => item === payload.id);
@@ -273,13 +273,13 @@
                 }
             },
             /**
-             * @desc 选择模版的所有步骤
+             * @desc 选择模板的所有步骤
              */
             handleSelectAll () {
                 this.formData.enableSteps = this.taskStepList.map(item => item.id);
             },
             /**
-             * @desc 情况模版步骤选择
+             * @desc 情况模板步骤选择
              */
             handleDeselectAll () {
                 this.formData.enableSteps = [];

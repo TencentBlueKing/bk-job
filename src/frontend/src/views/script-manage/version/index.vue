@@ -98,7 +98,7 @@
                                 <bk-button
                                     text
                                     v-bk-tooltips.allowHtml="`
-                                    <div>${$t('script.作业模版引用')}: ${row.relatedTaskTemplateNum}</div>
+                                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
                                     <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
                                     @click="handleShowRelated(row)">
                                     <span>
@@ -744,7 +744,7 @@
             },
             /**
              * @desc 显示脚本引用列表
-             * @param {String} mode 引用的模版、执行方案
+             * @param {String} mode 引用的模板、执行方案
              * @param {Object} payload 脚本数据
              */
             handleShowRelated (payload) {

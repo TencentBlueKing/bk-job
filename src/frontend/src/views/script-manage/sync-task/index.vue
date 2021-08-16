@@ -31,7 +31,7 @@
             <bk-button :disabled="isRetryAllDisable" @click="handleAllRetry">{{ $t('script.全部重试') }}</bk-button>
         </div>
         <div class="table-top">
-            {{ $t('script.同步作业模版') }}
+            {{ $t('script.同步作业模板') }}
             <span class="version-sum">
                 （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个.result') }}）
             </span>
@@ -156,7 +156,7 @@
             this.scriptVersionId = this.$route.params.scriptVersionId;
             this.stepList = JSON.parse(localStorage.getItem('SYNC_TEMPLATE_STEP_SCRIPT'));
             if (this.stepList.length < 1) {
-                this.messageError(I18n.t('script.请先选择作业模版步骤'));
+                this.messageError(I18n.t('script.请先选择作业模板步骤'));
                 return;
             }
             this.fetchData();

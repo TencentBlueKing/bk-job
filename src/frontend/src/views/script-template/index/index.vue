@@ -127,7 +127,7 @@
             },
         },
         created () {
-            // 已经存储的脚本模版
+            // 已经存储的脚本模板
             this.templateMap = Object.assign({}, builtInScript);
             this.fetchOriginalTemplate();
         },
@@ -140,7 +140,7 @@
         },
         methods: {
             /**
-             * @desc 获取用户自定义模版
+             * @desc 获取用户自定义模板
              */
             fetchOriginalTemplate () {
                 this.isLoading = true;
@@ -149,7 +149,7 @@
                         data.forEach((item) => {
                             this.templateMap[formatScriptTypeValue(item.scriptLanguage)] = item.scriptContent;
                         });
-                        // 如果有自定义脚本模版，通过编辑器 setValue 方法设置值
+                        // 如果有自定义脚本模板，通过编辑器 setValue 方法设置值
                         if (_.has(this.templateMap, this.scriptLanguage)) {
                             this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
                         }
@@ -178,7 +178,7 @@
                 return leaveConfirm();
             },
             /**
-             * @desc 切换脚本模版语言
+             * @desc 切换脚本模板语言
              * @param {String} scriptLanguage 脚本语言
              */
             handleLangChange (scriptLanguage) {
@@ -190,7 +190,7 @@
                 });
             },
             /**
-             * @desc 编辑脚本模版内容
+             * @desc 编辑脚本模板内容
              * @param {String} content 脚本语言
              */
             handleContentChange (content) {
@@ -220,7 +220,7 @@
                 this.$refs.editor.resize();
             },
             /**
-             * @desc 保存用户自定义模版
+             * @desc 保存用户自定义模板
              */
             handleSave () {
                 this.isSubmiting = true;
@@ -243,7 +243,7 @@
                 this.messageSuccess(I18n.t('scriptTemplate.重置成功'));
             },
             /**
-             * @desc 还原脚本模版为默认脚本
+             * @desc 还原脚本模板为默认脚本
              */
             handleUseDefault () {
                 this.$refs.editor.resetValue();

@@ -76,7 +76,7 @@
                     </bk-button>
                 </template>
             </bk-table-column>
-            <!-- 作业模版引用 -->
+            <!-- 作业模板引用 -->
             <bk-table-column
                 v-if="!isPlanRelated"
                 :label="$t('script.作业模板')"
@@ -247,7 +247,7 @@
                 window.open(href.replace(/^\/\d+/, `/${payload.appId}`));
             },
             /**
-             * @desc 查看引用脚本的作业模版详情
+             * @desc 查看引用脚本的作业模板详情
              * @param {Object} payload 应用字段数据
              *
              * 需要解析资源的appid

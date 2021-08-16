@@ -38,6 +38,8 @@ const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 // const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const figlet = require('figlet');
+const marked = require('marked');
+const renderer = new marked.Renderer();
 
 const resolve = dir => path.join(__dirname, dir);
 const genUrlLoaderOptions = dir => ({
@@ -178,6 +180,26 @@ module.exports = function (env) {
                             },
                         },
                     ].filter(_ => _),
+                },
+                {
+                    test: /\.md$/,
+                    use: [
+                        {
+                            loader: 'html-loader',
+                        },
+                        {
+                            loader: 'markdown-loader',
+                            options: {
+                                renderer,
+                                highlight (code, lang) {
+                                    const hljs = require('highlight.js');
+                                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                                    return hljs.highlight(code, { language }).value;
+                                },
+                                headerIds: false,
+                            },
+                        },
+                    ],
                 },
                 {
                     test: /\.(css|scss|postcss)$/,

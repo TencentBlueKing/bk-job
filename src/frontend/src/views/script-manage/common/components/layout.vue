@@ -182,7 +182,7 @@
 
         .bk-button {
             &.bk-default {
-                color: #5c5e66;
+                color: #979ba5;
                 background: transparent;
                 border-color: #5c5e66;
                 transition: all 0.15s;

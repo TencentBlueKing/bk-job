@@ -24,7 +24,7 @@
 */
 
 /**
- * @desc 作业模版
+ * @desc 作业模板
 */
 
 import _ from 'lodash';
@@ -59,7 +59,7 @@ export default class Task {
         this.tags = this.initTag(payload.tags);
         this.variables = this.initVariable(payload.variableList, missId);
 
-        // 作业模版权限
+        // 作业模板权限
         this.canDebug = payload.canDebug;
         this.canDelete = payload.canDelete;
         this.canEdit = payload.canEdit;
@@ -68,7 +68,7 @@ export default class Task {
     }
 
     /**
-     * @desc 作业模版 tag 展示文本
+     * @desc 作业模板 tag 展示文本
      * @returns { String }
      */
     get tagText () {
