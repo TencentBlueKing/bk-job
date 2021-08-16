@@ -50,7 +50,7 @@ management:
     tags:
       application: ${spring.cloud.consul.discovery.service-name}
 server:
-  port: ${job.ticket.server.port:19809}
+  port: 19809
   shutdown: graceful
   servlet:
     encoding:

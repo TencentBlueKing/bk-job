@@ -1,0 +1,89 @@
+spring:
+  security:
+    user:
+      name: __BK_JOB_ACTUATOR_USERNAME__
+      password: __BK_JOB_ACTUATOR_PASSWORD__
+      roles: ENDPOINT_ADMIN
+app:
+  code: __BK_JOB_APP_CODE__
+  secret: __BK_JOB_APP_SECRET__
+esb:
+  service:
+    url: __BK_PAAS_PRIVATE_URL__
+gse:
+  cache:
+    apiserver:
+      host: __BK_GSE_CACHE_APISERVER_HOST__
+      port: __BK_GSE_CACHE_APISERVER_PORT__
+  ssl:
+    keystore:
+      password: __BK_GSE_SSL_KEYSTORE_PASSWORD__
+      path: __BK_CERT_PATH__/gse_job_api_client.keystore
+    truststore:
+      manager-type: SunX509
+      password: __BK_GSE_SSL_TRUSTSTORE_PASSWORD__
+      path: __BK_CERT_PATH__/gse_job_api_client.truststore
+      store-type: JKS
+  taskserver:
+    host: __BK_GSE_TASKSERVER_HOST__
+    port: __BK_GSE_TASKSERVER_PORT__
+  query:
+    threads:
+      num: 5
+    batchSize: 5000
+iam:
+  base-url: __BK_IAM_PRIVATE_URL__
+  system-id: bk_job
+license:
+  file: __BK_CERT_PATH__/platform.cert
+  service:
+    url: __BK_LICENSE_PRIVATE_URL__/certificate
+paas:
+  login:
+    url: __BK_PAAS_PUBLIC_URL__/login/
+job:
+  security:
+    service:
+      private-key-base64: __BK_JOB_SECURITY_PRIVATE_KEY_BASE64__
+      public-key-base64: __BK_JOB_SECURITY_PUBLIC_KEY_BASE64__
+  edition: ce
+  encrypt:
+    password: __BK_JOB_ENCRYPT_PASSWORD__
+  web:
+    url: __BK_JOB_PUBLIC_URL__
+  feature:
+    file-manage:
+      enable: false
+  storage:
+    root-path: __BK_HOME__/public/job
+# 制品库相关配置
+artifactory:
+  enable: true
+  base.url: __BK_REPO_PUBLIC_URL__
+  job:
+    username: __BK_REPO_JOB_USERNAME__
+    password: __BK_REPO_JOB_PASSWORD__
+    local-upload:
+      root-path: __BK_REPO_JOB_PROJECT__/localupload
+# cmdb 配置
+cmdb:
+  app:
+    index:
+      path: /#/business/{appId}/index
+  interface:
+    briefCacheTopo:
+      enable: false
+    findHostRelation:
+      longTerm:
+        concurrency: 10
+    retry:
+      enable: true
+  query:
+    threads:
+      num: 50
+  server:
+    url: __BK_CMDB_PUBLIC_URL__
+
+swagger:
+  url: swagger.job.com
+

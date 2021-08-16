@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: job-manage
+  cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-manage
+        instance-id: job-manage-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-manage:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:mysql://__BK_JOB_MANAGE_MYSQL_HOST__:__BK_JOB_MANAGE_MYSQL_PORT__/job_manage?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MANAGE_MYSQL_USERNAME__
+      password: __BK_JOB_MANAGE_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-manage"
+      validationTimeout: 5000
+
+  rabbitmq:
+    host: __BK_JOB_MANAGE_RABBITMQ_HOST__
+    port: __BK_JOB_MANAGE_RABBITMQ_PORT__
+    username: __BK_JOB_MANAGE_RABBITMQ_USERNAME__
+    password: __BK_JOB_MANAGE_RABBITMQ_PASSWORD__
+    virtual-host: __BK_JOB_MANAGE_RABBITMQ_VHOST__
+  redis:
+    mode: __BK_JOB_MANAGE_REDIS_MODE__
+    host: __BK_JOB_MANAGE_REDIS_HOST__
+    port: __BK_JOB_MANAGE_REDIS_PORT__
+    sentinel:
+      password: __BK_JOB_MANAGE_REDIS_SENTINEL_PASSWORD__
+      master: __BK_JOB_MANAGE_REDIS_SENTINEL_MASTER__
+      nodes: __BK_JOB_MANAGE_REDIS_SENTINEL_NODES__
+    password: __BK_JOB_MANAGE_REDIS_PASSWORD__
+    database: 0
+    lettuce:
+      pool:
+        min-idle: 5
+        max-idle: 10
+        max-active: 8
+        max-wait: 1ms
+      shutdown-timeout: 100ms
+  servlet:
+    multipart:
+      max-file-size: 5GB
+      max-request-size: 5GB
+
+bk:
+  doc:
+    # 首页右上角产品文档根地址
+    root: https://bk.tencent.com
+  feedback:
+    # 首页右上角问题反馈链接
+    root:
+  helper:
+    # 首页底部联系BK助手的跳转URL（可为企业微信URL）
+    url: wxwork://message?uin=8444252571319680
+job:
+  manage:
+    sync:
+      app:
+        enable: true
+      host:
+        enable: true
+      resource:
+        watch:
+          enable: true
+notify:
+  default:
+    channels:
+      available: mail
+
+server:
+  port: __BK_JOB_MANAGE_SERVER_PORT__
