@@ -53,13 +53,13 @@ job:
     url: __BK_JOB_PUBLIC_URL__
   feature:
     file-manage:
-      enable: false
+      enable: true
   storage:
     root-path: __BK_HOME__/public/job
 # 制品库相关配置
 artifactory:
   enable: true
-  base.url: __BK_REPO_PUBLIC_URL__
+  base-url: __BK_REPO_PUBLIC_URL__
   job:
     username: __BK_REPO_JOB_USERNAME__
     password: __BK_REPO_JOB_PASSWORD__
