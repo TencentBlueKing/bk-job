@@ -15,7 +15,7 @@ mysql --version
 ALL_SQL=($(echo ./sql/*/*.sql))
 echo "ALL_SQL=$ALL_SQL"
 
-function isMysqlOk(){
+function checkMysql(){
   c=$(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD -e "select 1"|grep 1|wc -l)
   echo "c=$c"
   if [[ "$c" == "2" ]];then
@@ -24,9 +24,12 @@ function isMysqlOk(){
   return 1
 }
 
-until [ "$(isMysqlOk)" -eq "0" ]; do
+isMysqlOK=1
+until [ "${isMysqlOK}" -eq "0" ]; do
   echo "wait for mysql to be available"
   sleep 1
+  checkMysql
+  isMysqlOK=$?
 done
 
 for sql in "${ALL_SQL[@]}"; do
