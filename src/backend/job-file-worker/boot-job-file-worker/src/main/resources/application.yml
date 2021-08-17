@@ -43,7 +43,6 @@ management:
       application: ${spring.application.name}
 
 server:
-  port: 19810
   shutdown: graceful
   servlet:
     encoding:

@@ -3,7 +3,7 @@ spring:
     job-ticket:
       driver-class-name: com.mysql.cj.jdbc.Driver
       type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc\:mysql\://__BK_JOB_TICKET_MYSQL_HOST__\:__BK_JOB_TICKET_MYSQL_PORT__/job_ticket?useUnicode\=true&characterEncoding\=UTF-8&zeroDateTimeBehavior\=convertToNull
+      jdbc-url: jdbc:mysql://__BK_JOB_TICKET_MYSQL_HOST__:__BK_JOB_TICKET_MYSQL_PORT__/job_ticket?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_TICKET_MYSQL_USERNAME__
       password: __BK_JOB_TICKET_MYSQL_PASSWORD__
       maximum-pool-size: 20
