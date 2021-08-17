@@ -29,7 +29,7 @@
     <div class="sync-plan-side-anchor">
         <scroll-faker ref="scroll">
             <div class="anchor-wraper" ref="anchor">
-                <div class="item-title">{{ $t('template.全局变量') }}</div>
+                <div class="item-title">{{ $t('template.全局变量.label') }}</div>
                 <div
                     v-for="item in variable"
                     class="item"

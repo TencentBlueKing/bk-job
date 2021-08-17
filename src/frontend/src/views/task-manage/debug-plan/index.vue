@@ -29,7 +29,7 @@
     <div>
         <smart-action class="edit-execute-plan" offset-target="detail-content">
             <detail-layout mode="see">
-                <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
+                <detail-item :label="$t('template.全局变量.label：')" class="gloval-var-item">
                     <render-global-var
                         :list="variableList"
                         :select-value="selectedVariable"

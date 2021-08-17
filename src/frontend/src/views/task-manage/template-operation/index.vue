@@ -53,7 +53,7 @@
                             :placeholder="$t('template.填写该模板的功能介绍等详细描述...')" />
                     </jb-form-item>
                 </toggle-display>
-                <jb-form-item :label="$t('template.全局变量')" style="margin-bottom: 30px;">
+                <jb-form-item :label="$t('template.全局变量.label')" style="margin-bottom: 30px;">
                     <render-global-var
                         :list="formData.variables"
                         mode="operate"

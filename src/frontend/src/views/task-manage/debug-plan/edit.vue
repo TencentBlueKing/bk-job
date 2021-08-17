@@ -30,7 +30,7 @@
         <bk-alert class="info" :title="$t('template.调试方案的特殊性：不可删除、始终与作业模板同步、不能被API调用、只能在作业平台使用')" />
         <smart-action offset-target="bk-form-content">
             <jb-form ref="editPlanForm" :model="formData" :rules="rules">
-                <jb-form-item :label="$t('template.全局变量')">
+                <jb-form-item :label="$t('template.全局变量.label')">
                     <render-global-var
                         :list="variableList"
                         :select-value="selectedVariable"

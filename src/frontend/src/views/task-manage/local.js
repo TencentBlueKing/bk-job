@@ -82,7 +82,10 @@ export default {
         分发文件: 'File Transfer',
         人工确认: 'Confirmation',
         关闭: 'Close',
-        全局变量: 'Global Variables',
+        全局变量: {
+            label: 'Global Variables',
+            tab: 'Global Var.',
+        },
         已选择: 'Seleted',
         个本地文件: 'Local file',
         个服务器文件: 'Remote file',
@@ -485,7 +488,7 @@ export default {
         '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': '',
         '是的，确定无误': 'I\'m Sure, Keep Going',
         变量使用指引: 'How to use Global Var',
-        魔法变量: 'Magic Variables',
+        魔法变量: 'Magic Var.',
         使用指引: 'User Guide',
     },
 };
