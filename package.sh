@@ -169,17 +169,7 @@ if [[ -d "support-files/templates" ]]; then
     fi
     simpleName=${m:4}
     # Copy yml templates
-    ymlFilePath="support-files/templates/#etc#job#application-${simpleName}.yml"
-    if [[ -f "${ymlFilePath}" ]]; then
-      cp "${ymlFilePath}" release/job/support-files/templates
-    else
-      if [[ "${simpleName}" != "config" && "${simpleName}" != "file-worker" ]];then
-        echo "cannot find yml template of job-${simpleName}"
-        exit 1
-      fi
-    fi
-    # Copy properties templates
-    propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.properties"
+    propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.yml"
     if [[ -f "${propertiesFilePath}" ]]; then
       cp "${propertiesFilePath}" release/job/support-files/templates
     else
