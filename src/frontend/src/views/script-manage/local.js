@@ -163,5 +163,10 @@ export default {
         暂时不用: 'Later',
         脚本内容检测失败: 'Script content detection failed',
         新建版本: 'New',
+        确定: 'Commit',
+        '当前已有 [未上线] 版本，': '「Stand-by」version is exists',
+        返回列表: 'go back to list',
+        前往编辑: 'edit now',
+        选择载入版本: 'Choose version to load',
     },
 };

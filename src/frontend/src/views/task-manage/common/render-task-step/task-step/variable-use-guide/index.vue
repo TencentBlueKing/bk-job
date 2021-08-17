@@ -153,7 +153,7 @@
 
             h1 {
                 margin-top: 24px;
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: bold;
             }
 

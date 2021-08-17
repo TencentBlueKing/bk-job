@@ -30,6 +30,9 @@
         <script-basic />
         <div class="version-list-wraper">
             <list-action-layout>
+                <bk-button @click="handlNewVersion">
+                    {{ $t('script.新建版本') }}
+                </bk-button>
                 <bk-button
                     :disabled="disableDiff"
                     @click="handlShowDiff">
@@ -278,6 +281,19 @@
                 :info="relatedScriptInfo"
                 mode="scriptVersionList" />
         </jb-sideslider>
+        <jb-dialog
+            v-model="isShowNewVersion"
+            header-position="left"
+            :title="$t('script.新建版本')"
+            :ok-text="$t('script.确定')"
+            :mask-close="false"
+            :width="480">
+            <new-version
+                :version-list="data"
+                @on-close="handleNewVersionClose"
+                @on-edit="handleEdit"
+                @on-create="handleToggleCopyCreate" />
+        </jb-dialog>
         <Diff
             v-if="showDiff"
             :title="$t('script.版本对比')"
@@ -313,6 +329,7 @@
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
     import Diff from './components/diff';
+    import NewVersion from './components/new-version';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 
@@ -329,12 +346,13 @@
             Edit,
             CopyCreate,
             ScriptBasic,
+            NewVersion,
         },
         data () {
             return {
                 isLoading: false,
                 isListFlod: false,
-                isShowSelectVersion: false,
+                isShowNewVersion: false,
                 showDiff: false,
                 data: [],
                 dataAppendList: [],
@@ -573,7 +591,16 @@
             rowClassName ({ row }) {
                 return row.scriptVersionId === this.selectVersionId ? 'active' : '';
             },
-            
+            /**
+             * @desc 新建脚本版本
+             * @returns { Boolean }
+             */
+            handlNewVersion () {
+                this.isShowNewVersion = true;
+            },
+            handleNewVersionClose () {
+                this.isShowNewVersion = false;
+            },
             /**
              * @desc 列表搜索
              * @param {Object} payload 搜索字段
@@ -741,6 +768,7 @@
                 this.selectVersionId = payload.scriptVersionId;
                 this.displayCom = 'edit';
                 this.isListFlod = true;
+                this.isShowNewVersion = false;
             },
             /**
              * @desc 显示脚本引用列表
@@ -787,7 +815,7 @@
                 this.fetchData();
             },
             /**
-             * @desc 切换到复制并新建
+             * @desc 切换到复制并新建状态
              */
             handleToggleCopyCreate ({ scriptVersionId }) {
                 this.selectVersionId = scriptVersionId;
@@ -864,6 +892,7 @@
             handleEditCancel () {
                 this.displayCom = 'detail';
             },
+            
             /**
              * @desc 判断是否可以选中
              * @param {Object} row 脚本数据
