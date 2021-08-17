@@ -16,7 +16,7 @@ ALL_SQL=($(echo ./sql/*/*.sql))
 echo "ALL_SQL=$ALL_SQL"
 
 function isMysqlOk(){
-  c = $(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD -e "select 1"|grep 1|wc -l)
+  c=$(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD -e "select 1"|grep 1|wc -l)
   echo "c=$c"
   if [[ "$c" == "2" ]];then
     return 0
