@@ -16,7 +16,7 @@ data:
       gateway:
         login-exemption:
           enable: {{ .Values.gatewayConfig.loginExemption.enable | default false }}
-          default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default admin }}
+          default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}
       http:
