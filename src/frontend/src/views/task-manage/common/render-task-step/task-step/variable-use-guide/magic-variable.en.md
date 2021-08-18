@@ -3,9 +3,11 @@ Magic Variable is a special variable that built-in specific to the JOB platform,
 
 # How to
 
-  Must declare before use: `# job_import {{VarName}}`
+  Must declare before use it:
+  `# job_import {{VarName}}`
 
-  After that, using `$` and `{}`, e.g.: `${VarName}`
+  After that, using `$` and `{}`,
+  e.g.: `${VarName}`
 
 # Where to
 
@@ -27,7 +29,7 @@ Magic Variable is a special variable that built-in specific to the JOB platform,
     0:10.1.1.100,1:20.2.2.200
     ```
 
-    The result output format is "Cloud Area + : + inner IP addr", multiple IPs are separated by commas(,)
+    The result output format is `Cloud Area + : + inner IP addr`, multiple IPs are separated by commas(,)
 
   - To get value of last step host list
 

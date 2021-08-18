@@ -165,6 +165,7 @@
                 padding: 0 4px;
                 font-size: 12px;
                 color: #ea3636;
+                white-space: nowrap;
                 background: #fffafa;
                 border: 1px solid #ffecec;
                 border-radius: 2px;
