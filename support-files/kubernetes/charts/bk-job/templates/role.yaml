@@ -11,6 +11,7 @@ metadata:
 rules:
   - apiGroups:
       - ""
+      - "batch"
     resources:
       - jobs
       - secrets
