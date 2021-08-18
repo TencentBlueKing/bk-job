@@ -381,6 +381,9 @@ job:
 
 ## @section job-gateway parameters
 gatewayConfig:
+  loginExemption:
+    enable: true
+    defaultUser: admin
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-gateway

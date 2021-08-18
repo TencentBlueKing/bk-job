@@ -12,13 +12,11 @@ metadata:
     {{- end }}
 data:
   application.yaml: |-
-    app:
-      code: {{ .Values.app.code }}
-      secret: {{ .Values.app.secret }}
-    esb:
-      service:
-        url: {{ .Values.esb.service.url }}
-      public-key-base64: {{ .Values.esb.publicKeyBase64 }}
+    job:
+      gateway:
+        login-exemption:
+          enable: {{ .Values.gatewayConfig.loginExemption.enable | default false }}
+          default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default admin }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}
       http:

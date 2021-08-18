@@ -268,3 +268,8 @@ management:
     tags:
       application: ${spring.cloud.consul.discovery.service-name}
 
+job:
+  gateway:
+    login-exemption:
+      enable: false
+      default-user: admin
