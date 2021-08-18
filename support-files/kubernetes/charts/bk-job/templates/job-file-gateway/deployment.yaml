@@ -49,6 +49,8 @@ spec:
       {{- if .Values.fileGatewayConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.fileGatewayConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
       containers:
         - name: "job-file-gateway"
           {{- if .Values.fileGatewayConfig.containerSecurityContext.enabled }}

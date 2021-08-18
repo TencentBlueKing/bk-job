@@ -49,6 +49,8 @@ spec:
       {{- if .Values.analysisConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.analysisConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
       containers:
         - name: "job-analysis"
           {{- if .Values.analysisConfig.containerSecurityContext.enabled }}

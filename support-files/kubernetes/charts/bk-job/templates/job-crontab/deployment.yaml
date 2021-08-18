@@ -49,6 +49,8 @@ spec:
       {{- if .Values.crontabConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.crontabConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
       containers:
         - name: "job-crontab"
           {{- if .Values.crontabConfig.containerSecurityContext.enabled }}

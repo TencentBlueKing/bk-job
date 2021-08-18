@@ -49,6 +49,8 @@ spec:
       {{- if .Values.backupConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.backupConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
       containers:
         - name: "job-backup"
           {{- if .Values.backupConfig.containerSecurityContext.enabled }}

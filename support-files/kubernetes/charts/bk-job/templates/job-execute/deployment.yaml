@@ -49,6 +49,8 @@ spec:
       {{- if .Values.executeConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.executeConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
       containers:
         - name: "job-execute"
           {{- if .Values.executeConfig.containerSecurityContext.enabled }}
