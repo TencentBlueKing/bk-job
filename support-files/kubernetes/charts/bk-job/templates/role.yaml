@@ -12,6 +12,7 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - jobs
       - secrets
       - configmaps
       - services
