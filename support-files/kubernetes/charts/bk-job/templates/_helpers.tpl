@@ -347,3 +347,14 @@ Return the Job Profile
     {{- printf "%s" .Values.job.profile -}}
 {{- end -}}
 
+{{/*
+Return the Job InitContainer WaitForMigration Content
+*/}}
+{{- define "job.initContainer.waitForMigration" -}}
+- name: "migration-init"
+    image: "groundnuty/k8s-wait-for:1.3"
+    imagePullPolicy: IfNotPresent
+    args:
+    - "job"
+    - {{- printf "%s-migration-%s" (include "common.names.fullname" .) .Release.Revision | quote }}
+{{- end -}}

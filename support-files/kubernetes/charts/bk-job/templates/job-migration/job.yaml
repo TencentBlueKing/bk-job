@@ -19,6 +19,10 @@ spec:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-migration"
     spec:
+      initContainers:
+        - name: wait-mariadb
+          image: busybox:1.28
+          command: ['sh', '-c', "until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done"]
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
@@ -32,8 +36,4 @@ spec:
               value: {{ include "job.mariadb.port" . | quote }}
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
               value: {{ .Values.mariadb.auth.rootPassword | quote }}
-      initContainers:
-        - name: wait-mariadb
-          image: busybox:1.28
-          command: ['sh', '-c', "until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done"]
       restartPolicy: Never
