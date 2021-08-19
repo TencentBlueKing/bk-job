@@ -91,3 +91,4 @@ CREATE TABLE IF NOT EXISTS `statistics`  (
   INDEX `idx_date`(`date`(22)) USING BTREE,
   INDEX `idx_lastModifyTime`(`last_modify_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 ;
+
