@@ -3,7 +3,7 @@ name: "bk-job"
 description: A Helm Chart for Blueking Job
 type: application
 version: 0.1.1
-appVersion: "3.4.0.1"
+appVersion: "3.4.0-alpha"
 
 dependencies:
 - name: common
