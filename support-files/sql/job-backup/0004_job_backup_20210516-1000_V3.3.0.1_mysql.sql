@@ -2,7 +2,7 @@ USE `job_backup`;
 
 SET NAMES utf8mb4;
 
-CREATE TABLE `archive_progress` (
+CREATE TABLE IF NOT EXISTS `archive_progress` (
   `row_create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `row_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `table_name` varchar(256) NOT NULL,
