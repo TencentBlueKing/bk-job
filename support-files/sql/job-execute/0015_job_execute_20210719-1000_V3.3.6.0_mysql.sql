@@ -2,10 +2,6 @@ use job_execute;
 
 SET NAMES utf8mb4;
 
-use job_execute;
-
-SET NAMES utf8mb4;
-
 DROP PROCEDURE IF EXISTS job_schema_update;
 
 DELIMITER <JOB_UBF>
