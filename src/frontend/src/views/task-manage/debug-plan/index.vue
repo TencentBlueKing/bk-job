@@ -46,7 +46,12 @@
                                 @click="handleDeselectAll">
                                 {{ $t('template.取消全选') }}
                             </bk-button>
-                            <bk-button v-else text @click="handleSelectAll">{{ $t('template.全选') }}</bk-button>
+                            <bk-button
+                                v-else
+                                text
+                                @click="handleSelectAll">
+                                {{ $t('template.全选') }}
+                            </bk-button>
                         </div>
                     </div>
                     <render-task-step
