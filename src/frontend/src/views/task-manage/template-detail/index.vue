@@ -67,7 +67,7 @@
                     <div slot="forbid">{{ formData.description || '--' }}</div>
                 </auth-component>
             </detail-item>
-            <detail-item :label="$t('template.全局变量.label：')" class="gloval-var-item">
+            <detail-item :label="$t('template.全局变量：')" class="gloval-var-item">
                 <render-global-var :list="formData.variables" />
             </detail-item>
             <detail-item :label="$t('template.作业步骤：')" class="task-step-item">
