@@ -338,8 +338,8 @@ module.exports = function (env) {
             ]),
         ].filter(_ => _),
         devServer: {
-            host: '127.0.0.1',
-            port: 8080,
+            host: '0.0.0.0',
+            port: 8081,
             clientLogLevel: 'none',
             disableHostCheck: true,
             historyApiFallback: true,
