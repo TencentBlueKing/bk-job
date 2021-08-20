@@ -181,6 +181,7 @@
                     line-height: 22px;
                     color: #6a9a7b;
                     text-align: left;
+                    white-space: pre;
                     background: #f5f6fa;
                     border: none;
                 }
