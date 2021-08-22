@@ -14,7 +14,7 @@ BEGIN
     SELECT DATABASE() INTO db;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'export_job'
                     AND COLUMN_NAME = 'is_cleaned') THEN
@@ -22,14 +22,14 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'import_job'
                     AND COLUMN_NAME = 'is_cleaned') THEN
         ALTER TABLE `job_backup`.`import_job` ADD COLUMN `is_cleaned` tinyint(1) UNSIGNED NOT NULL DEFAULT 0;
     END IF;
 
-    COMMIT;
+COMMIT;
 END <JOB_UBF>
 DELIMITER ;
 CALL job_schema_update();

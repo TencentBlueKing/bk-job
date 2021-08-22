@@ -12,7 +12,7 @@ BEGIN
     SELECT DATABASE() INTO db;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'export_job'
                     AND COLUMN_NAME = 'locale') THEN
@@ -20,7 +20,7 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'import_job'
                     AND COLUMN_NAME = 'locale') THEN

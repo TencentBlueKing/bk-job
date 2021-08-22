@@ -13,7 +13,7 @@ BEGIN
     SELECT DATABASE() INTO db;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'cron_job_history'
                     AND COLUMN_NAME = 'executor') THEN
@@ -21,7 +21,7 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'cron_job_history'
                     AND COLUMN_NAME = 'error_code') THEN
@@ -29,7 +29,7 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
+                  FROM information_schema.COLUMNS
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'cron_job_history'
                     AND COLUMN_NAME = 'error_message') THEN
