@@ -32,21 +32,21 @@ class TaskManage extends ModuleBase {
         this.module = '/job-manage/web';
     }
 
-    // 获取模版列表
+    // 获取模板列表
     getAll (params) {
         return Request.get(`${this.path}/task/template/`, {
             params,
         });
     }
 
-    // 根据模版id获取模版信息
+    // 根据模板id获取模板信息
     getDataById ({ id }, payload) {
         return Request.get(`${this.path}/task/template/${id}`, {
             payload,
         });
     }
 
-    // 更新模版
+    // 更新模板
     update (payload = {}) {
         const params = { ...payload };
         delete params.id;
@@ -55,12 +55,12 @@ class TaskManage extends ModuleBase {
         });
     }
 
-    // 删除模版
+    // 删除模板
     deleteById ({ id }) {
         return Request.delete(`${this.path}/task/template/${id}`);
     }
 
-    // 更新模版元数据
+    // 更新模板元数据
     updateBasic (payload = {}) {
         const params = { ...payload };
         return Request.put(`${this.path}/task/template/${params.id}/basic`, {

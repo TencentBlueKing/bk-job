@@ -40,7 +40,7 @@
                     v-model="formData.name"
                     :maxlength="60" />
             </jb-form-item>
-            <jb-form-item :label="$t('template.全局变量')">
+            <jb-form-item :label="$t('template.全局变量.label')">
                 <render-global-var
                     :key="id"
                     :list="globalVariableList"

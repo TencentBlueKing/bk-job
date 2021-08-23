@@ -38,6 +38,8 @@ const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 // const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const figlet = require('figlet');
+const marked = require('marked');
+const renderer = new marked.Renderer();
 
 const resolve = dir => path.join(__dirname, dir);
 const genUrlLoaderOptions = dir => ({
@@ -70,6 +72,9 @@ module.exports = function (env) {
             };
         }
     };
+    if (env.development) {
+        require('dotenv').config({ path: path.resolve(__dirname, '.env.local') });
+    }
     return {
         mode: env.development ? 'development' : 'production',
         devtool: env.development ? 'eval-source-map' : 'none',
@@ -180,6 +185,26 @@ module.exports = function (env) {
                     ].filter(_ => _),
                 },
                 {
+                    test: /\.md$/,
+                    use: [
+                        {
+                            loader: 'html-loader',
+                        },
+                        {
+                            loader: 'markdown-loader',
+                            options: {
+                                renderer,
+                                highlight (code, lang) {
+                                    const hljs = require('highlight.js');
+                                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                                    return hljs.highlight(code, { language }).value;
+                                },
+                                headerIds: false,
+                            },
+                        },
+                    ],
+                },
+                {
                     test: /\.(css|scss|postcss)$/,
                     use: [
                         'vue-style-loader',
@@ -270,6 +295,9 @@ module.exports = function (env) {
                     filename: 'index.html',
                     template: 'index-dev.html',
                     inject: true,
+                    templateParameters: {
+                        AJAX_URL_PREFIX: process.env.AJAX_URL_PREFIX,
+                    },
                 }
                 : {
                     filename: 'index.html',
@@ -316,8 +344,8 @@ module.exports = function (env) {
             ]),
         ].filter(_ => _),
         devServer: {
-            host: '127.0.0.1',
-            port: 8080,
+            host: '0.0.0.0',
+            port: 8081,
             clientLogLevel: 'none',
             disableHostCheck: true,
             historyApiFallback: true,

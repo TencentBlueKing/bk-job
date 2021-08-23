@@ -30,20 +30,20 @@
         <div class="header">
             <bk-steps :steps="steps" :cur-step.sync="currentStep" />
         </div>
-        <scroll-faker class="content">
-            <component
-                :is="pageCom"
-                @on-change="handleStepChange"
-                @on-cancle="handleCancle" />
-        </scroll-faker>
+        <div class="content">
+            <scroll-faker>
+                <component
+                    :is="pageCom"
+                    @on-change="handleStepChange"
+                    @on-cancle="handleCancle" />
+            </scroll-faker>
+        </div>
     </div>
 </template>
 <script>
     import I18n from '@/i18n';
     import BackupService from '@service/backup';
-    import {
-        taskImport,
-    } from '@utils/cache-helper';
+    import { taskImport } from '@utils/cache-helper';
     import Step1 from './pages/step1';
     import Step2 from './pages/step2';
     import Step3 from './pages/step3';
@@ -147,7 +147,7 @@
         }
 
         .content {
-            min-height: calc(100vh - 152px);
+            height: calc(100vh - 205px);
         }
     }
 </style>

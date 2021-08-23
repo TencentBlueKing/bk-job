@@ -100,7 +100,7 @@
                                     </td>
                                     <td>
                                         <render-server-agent
-                                            :title="`${$t('template.全局变量')} - ${row.host.variable}`"
+                                            :title="`${$t('template.全局变量.label')} - ${row.host.variable}`"
                                             :host-node-info="findVariableValue(row.host.variable)" />
                                     </td>
                                 </template>

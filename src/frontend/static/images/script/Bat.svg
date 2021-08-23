@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>bat</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#F7F8FA" offset="0%"></stop>
+            <stop stop-color="#F0F2F5" offset="99.9416965%"></stop>
+        </linearGradient>
+        <linearGradient x1="50.8618335%" y1="0.861833479%" x2="50.8618335%" y2="99.1381665%" id="linearGradient-2">
+            <stop stop-color="#BEBFC2" offset="0%"></stop>
+            <stop stop-color="#D7D8DB" offset="100%"></stop>
+        </linearGradient>
+        <path d="M1.30562228e-13,7.26560062 L1.30562228e-13,16.8702393 L10.5229867,16.4766615 L10.5229867,5.0793175 L1.30562228e-13,7.26538413 L1.30562228e-13,7.26560062 Z M13.0590517,3.85506997 L13.0590517,16.2583103 L31.6274338,15.5732946 L31.6274338,0 L13.0590517,3.85511327 L13.0590517,3.85506997 Z M0,19.1296741 L0,28.7343128 L10.5229867,30.9205959 L10.5229867,19.5232086 L0,19.1296741 Z M13.0590517,19.7416464 L13.0590517,32.1448867 L31.6274338,36 L31.6274338,20.4267054 L13.0590517,19.7416464 L13.0590517,19.7416464 Z" id="path-3"></path>
+        <filter x="-20.6%" y="-15.3%" width="141.1%" height="136.1%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <filter x="-19.0%" y="-13.9%" width="137.9%" height="133.3%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="1.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.16 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="🦶-脚本" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="LOGO" transform="translate(-303.000000, -27.000000)">
+            <g id="bat" transform="translate(303.000000, 27.000000)">
+                <circle id="椭圆形" fill="url(#linearGradient-1)" cx="32" cy="32" r="32"></circle>
+                <g id="形状" transform="translate(16.000000, 14.000000)">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                    <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-3"></use>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

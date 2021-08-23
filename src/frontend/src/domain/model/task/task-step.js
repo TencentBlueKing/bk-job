@@ -24,7 +24,7 @@
 */
 
 /**
- * @desc 作业模版步骤模型
+ * @desc 作业模板步骤模型
  *
 */
 import _ from 'lodash';

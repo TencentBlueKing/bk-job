@@ -33,7 +33,6 @@
     </div>
 </template>
 <script>
-// import _ from 'lodash';
     import Task from './task';
     import Step from './step';
 
@@ -72,12 +71,6 @@
                 return comMap[this.type];
             },
         },
-        // created () {
-        //     window.addEventListener('resize', this.handleReize);
-        //     this.$once('hook:beforeDestroy', () => {
-        //         window.removeEventListener('resize', this.handleReize);
-        //     });
-        // },
         mounted () {
             const $container = document.querySelector('#sitePageTitle');
             const containerWidth = $container.getBoundingClientRect().width;
@@ -101,14 +94,6 @@
                 } catch {}
             });
         },
-    // methods: {
-    //     handleReize: _.throttle(function () {
-    //         const $container = document.querySelector('#sitePageTitle');
-    //         const containerWidth = $container.getBoundingClientRect().width;
-    //         const titleMaxWidth = containerWidth - this.initialStatusWidth - 40;
-    //         this.titleMaxWidth = titleMaxWidth < 100 ? 100 : titleMaxWidth;
-    //     }, 50),
-    // },
     };
 </script>
 <style lang='postcss'>
@@ -164,12 +149,13 @@
         .status-box {
             position: absolute;
             top: 0;
-            right: 0;
             bottom: 0;
-            left: 0;
+            left: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 500px;
+            transform: translateX(-50%);
         }
 
         .status {

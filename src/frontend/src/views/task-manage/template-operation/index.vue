@@ -53,7 +53,7 @@
                             :placeholder="$t('template.填写该模板的功能介绍等详细描述...')" />
                     </jb-form-item>
                 </toggle-display>
-                <jb-form-item :label="$t('template.全局变量')" style="margin-bottom: 30px;">
+                <jb-form-item :label="$t('template.全局变量.label')" style="margin-bottom: 30px;">
                     <render-global-var
                         :list="formData.variables"
                         mode="operate"
@@ -143,11 +143,11 @@
             // 是否默认显示步骤编辑框
             this.initShowStepId = Number(this.$route.params.stepId);
 
-            // 编辑和克隆作业模版时需要获取模版数据
+            // 编辑和克隆作业模板时需要获取模板数据
             if (this.$route.name !== 'templateCreate') {
                 this.fetchData(true);
             }
-            // 编辑作业模版需要获取模版对应的执行方案列表
+            // 编辑作业模板需要获取模板对应的执行方案列表
             if (this.isEdit) {
                 this.fetchPlanList();
             }
@@ -181,7 +181,7 @@
         },
         methods: {
             /**
-             * @desc 获取模版详情
+             * @desc 获取模板详情
              * @param {Boolean} isFirst 是否是第一次执行
              */
             fetchData (isFirst = false) {
@@ -211,7 +211,7 @@
                         });
                     }
                     // 再次编辑
-                    // 拉取模版最新数据
+                    // 拉取模板最新数据
                     if (!isFirst) {
                         setTimeout(() => {
                             window.changeAlert = false;
@@ -235,7 +235,7 @@
                     });
             },
             /**
-             * @desc 获取模版关联的执行方案
+             * @desc 获取模板关联的执行方案
              */
             fetchPlanList () {
                 this.isPlanListLoading = true;
@@ -249,8 +249,8 @@
                     });
             },
             /**
-             * @desc 验证作业模版的名
-             * @param {String} name 作业模版名
+             * @desc 验证作业模板的名
+             * @param {String} name 作业模板名
              *
              */
             checkName (name) {
@@ -260,7 +260,7 @@
                 });
             },
             /**
-             * @desc 克隆作业模版时提示密文变量
+             * @desc 克隆作业模板时提示密文变量
              */
             searchCiphertextVariable () {
                 const stack = [];
@@ -432,9 +432,9 @@
                 this.$refs.templateOperateRef.clearError();
             },
             /**
-             * @desc 保存作业模版
+             * @desc 保存作业模板
              *
-             * 需要对作模版数据做逻辑验证处理
+             * 需要对作模板数据做逻辑验证处理
              * - 步骤的基本数据是否完整
              */
             handlerSubmit () {
@@ -446,8 +446,8 @@
                     }
                 }
 
-                // 提交作业模版
-                // 再主动拉取作业模版对应的执行方案列表，判断执行方案是否为空和是否需要同步
+                // 提交作业模板
+                // 再主动拉取作业模板对应的执行方案列表，判断执行方案是否为空和是否需要同步
                 this.isSubmiting = true;
                 this.$refs.templateOperateRef.validate()
                     .then(() => TaskService.taskUpdate({
@@ -480,7 +480,7 @@
                     });
             },
             /**
-             * @desc 创建作业模版成功
+             * @desc 创建作业模板成功
              * @param {Number} taskId 作业模板id
              */
             createSuccessCallback (taskId) {
@@ -566,7 +566,7 @@
                 });
             },
             /**
-             * @desc 编辑作业模版成功
+             * @desc 编辑作业模板成功
              * @param {Number} taskId 作业模板id
              * @param {Boolean} planSync 执行方案是否需要同步
              * @param {Boolean} isPlanEmpty 作业模板关联的执行方案是否为空

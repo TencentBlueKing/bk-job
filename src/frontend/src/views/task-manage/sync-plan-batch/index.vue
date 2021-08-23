@@ -87,7 +87,7 @@
                     </template>
                 </bk-table-column>
                 <bk-table-column
-                    :label="$t('template.所属作业模版')"
+                    :label="$t('template.所属作业模板')"
                     prop="templateName"
                     key="templateName"
                     align="left">
@@ -278,7 +278,7 @@
         created () {
             const { planIds = '' } = this.$route.query;
             this.planIds = planIds;
-            // 如果是从作业模版的执行方案列表过来同步的
+            // 如果是从作业模板的执行方案列表过来同步的
             // 所有执行方案的templateId相同，保留下来，路由回退时需要
             this.lastOnePlanTemplateId = '';
             this.fetchData();
@@ -420,7 +420,7 @@
                         template,
                         cronJobList,
                     ]) => {
-                        // 作业模版中的变量
+                        // 作业模板中的变量
                         const currentTemplateVariableList = template.variables;
 
                         // 必填变量没有赋值
@@ -428,9 +428,9 @@
                         let isPermissionError = false;
 
                         // 确认定时任务的变量值
-                        // 1，将模版中的变量同步到定时任务中
-                        // 2，作业模版和定时任务同名的变量保留定时任务中的变量值
-                        // 3，作业模版中新增的变量为必填但值为空则同步失败
+                        // 1，将模板中的变量同步到定时任务中
+                        // 2，作业模板和定时任务同名的变量保留定时任务中的变量值
+                        // 3，作业模板中新增的变量为必填但值为空则同步失败
                         const cronJobInfoList = [];
                         // eslint-disable-next-line no-plusplus
                         for (let i = 0; i < cronJobList.length; i++) {
@@ -455,8 +455,8 @@
                                 continue;
                             }
 
-                            // 同步作业模版中变量到定时任务
-                            // 作业模版和定时任务同名的变量——保留定时任务中的变量值
+                            // 同步作业模板中变量到定时任务
+                            // 作业模板和定时任务同名的变量——保留定时任务中的变量值
                             const currentCronJobVariableMap = currentCronJob.variableValue.reduce((result, item) => {
                                 result[item.id] = item;
                                 return result;

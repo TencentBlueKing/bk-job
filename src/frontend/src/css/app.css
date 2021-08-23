@@ -58,6 +58,10 @@
     animation: rotate-loading 1s linear infinite;
 }
 
+.tips {
+    border-bottom: 1px dashed #c4c6cc;
+}
+
 .__cov-progress {
     z-index: 1000 !important;
 }

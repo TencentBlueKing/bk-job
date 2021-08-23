@@ -117,9 +117,7 @@
 <script>
     import I18n from '@/i18n';
     import BackupService from '@service/backup';
-    import {
-        taskImport,
-    } from '@utils/cache-helper';
+    import { taskImport } from '@utils/cache-helper';
     import Empty from '@components/empty';
     import ActionBar from '../components/action-bar';
 
@@ -260,7 +258,7 @@
 
         .layout-left,
         .layout-right {
-            height: calc(100vh - 152px);
+            height: calc(100vh - 205px);
         }
 
         .layout-left {

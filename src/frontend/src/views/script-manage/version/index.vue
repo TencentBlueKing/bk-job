@@ -26,12 +26,14 @@
 -->
 
 <template>
-    <div class="script-manage-version-page" v-bkloading="{ isLoading }">
+    <div class="script-manage-version-page">
         <script-basic />
         <div class="version-list-wraper">
             <list-action-layout>
+                <bk-button @click="handlNewVersion">
+                    {{ $t('script.新建版本') }}
+                </bk-button>
                 <bk-button
-                    theme="primary"
                     :disabled="disableDiff"
                     @click="handlShowDiff">
                     {{ $t('script.版本对比') }}
@@ -96,13 +98,20 @@
                             align="left"
                             width="150">
                             <template slot-scope="{ row }">
-                                <a :tippy-tips="$t('script.作业模版引用')" @click="handleShowRelated('template', row)">
-                                    {{ row.relatedTaskTemplateNum }}
-                                </a>
-                                <span> / </span>
-                                <a :tippy-tips="$t('script.执行方案引用')" @click="handleShowRelated('plan', row)">
-                                    {{ row.relatedTaskPlanNum }}
-                                </a>
+                                <bk-button
+                                    text
+                                    v-bk-tooltips.allowHtml="`
+                                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
+                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                                    @click="handleShowRelated(row)">
+                                    <span>
+                                        {{ row.relatedTaskTemplateNum }}
+                                    </span>
+                                    <span> / </span>
+                                    <span>
+                                        {{ row.relatedTaskPlanNum }}
+                                    </span>
+                                </bk-button>
                             </template>
                         </bk-table-column>
                         <bk-table-column
@@ -266,13 +275,25 @@
             :is-show.sync="showRelated"
             :show-footer="false"
             quick-close
-            v-bind="relatedScriptDialogInfo"
+            :title="$t('script.被引用.label')"
             :width="695">
-            <related-script
+            <script-related-info
                 :info="relatedScriptInfo"
-                :mode="showRelateMode"
-                from="scriptVersionList" />
+                mode="scriptVersionList" />
         </jb-sideslider>
+        <jb-dialog
+            v-model="isShowNewVersion"
+            header-position="left"
+            :title="$t('script.新建版本')"
+            :ok-text="$t('script.确定')"
+            :mask-close="false"
+            :width="480">
+            <new-version
+                :version-list="data"
+                @on-close="handleNewVersionClose"
+                @on-edit="handleEdit"
+                @on-create="handleToggleCopyCreate" />
+        </jb-dialog>
         <Diff
             v-if="showDiff"
             :title="$t('script.版本对比')"
@@ -293,7 +314,6 @@
     import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
-    import Diff from './components/diff';
     import {
         checkPublicScript,
         leaveConfirm,
@@ -302,12 +322,14 @@
         encodeRegexp,
     } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
-    import RelatedScript from '../common/related-script';
+    import ScriptRelatedInfo from '../common/script-related-info';
     import DetailScript from '../common/detail/index';
     import Edit from '../common/edit';
     import CopyCreate from '../common/copy-create';
     import Layout from './components/layout';
     import ScriptBasic from './components/script-basic';
+    import Diff from './components/diff';
+    import NewVersion from './components/new-version';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 
@@ -317,18 +339,20 @@
             ListActionLayout,
             JbPopoverConfirm,
             JbSearchSelect,
-            RelatedScript,
+            ScriptRelatedInfo,
             Diff,
             Layout,
             DetailScript,
             Edit,
             CopyCreate,
             ScriptBasic,
+            NewVersion,
         },
         data () {
             return {
                 isLoading: false,
                 isListFlod: false,
+                isShowNewVersion: false,
                 showDiff: false,
                 data: [],
                 dataAppendList: [],
@@ -338,7 +362,6 @@
                 selectVersionId: '',
                 choosedMap: {},
                 showRelated: false,
-                showRelateMode: '',
                 relatedScriptInfo: [],
                 displayCom: '',
                 tableSize: 'small',
@@ -366,19 +389,6 @@
                     copyCreate: CopyCreate,
                 };
                 return comMap[this.displayCom];
-            },
-            /**
-             * @desc 脚本引用弹窗的信息
-             * @returns { Object }
-             */
-            relatedScriptDialogInfo () {
-                const info = {
-                    title: I18n.t('script.引用脚本的作业模版'),
-                };
-                if (this.showRelateMode === 'plan') {
-                    info.title = I18n.t('script.引用脚本的执行方案');
-                }
-                return info;
             },
             /**
              * @desc 选中的脚本版本
@@ -547,6 +557,7 @@
                         ...data,
                     ]);
                     this.data = Object.freeze(data);
+
                     if (isFirst) {
                         this.parseUrl();
                     }
@@ -580,7 +591,16 @@
             rowClassName ({ row }) {
                 return row.scriptVersionId === this.selectVersionId ? 'active' : '';
             },
-            
+            /**
+             * @desc 新建脚本版本
+             * @returns { Boolean }
+             */
+            handlNewVersion () {
+                this.isShowNewVersion = true;
+            },
+            handleNewVersionClose () {
+                this.isShowNewVersion = false;
+            },
             /**
              * @desc 列表搜索
              * @param {Object} payload 搜索字段
@@ -635,7 +655,6 @@
                 }
                 this.selectVersionId = '';
             },
-
             /**
              * @desc 选中一行
              * @param {Object} payload 脚本数据
@@ -649,7 +668,6 @@
                 }
                 this.choosedMap = { ...this.choosedMap };
             },
-
             /**
              * @desc 点击版本名查看详情
              * @param {Object} row 脚本数据
@@ -750,15 +768,15 @@
                 this.selectVersionId = payload.scriptVersionId;
                 this.displayCom = 'edit';
                 this.isListFlod = true;
+                this.isShowNewVersion = false;
             },
             /**
              * @desc 显示脚本引用列表
-             * @param {String} mode 引用的模版、执行方案
+             * @param {String} mode 引用的模板、执行方案
              * @param {Object} payload 脚本数据
              */
-            handleShowRelated (mode, payload) {
+            handleShowRelated (payload) {
                 this.showRelated = true;
-                this.showRelateMode = mode;
                 this.relatedScriptInfo = payload;
             },
             /**
@@ -797,7 +815,7 @@
                 this.fetchData();
             },
             /**
-             * @desc 切换到复制并新建
+             * @desc 切换到复制并新建状态
              */
             handleToggleCopyCreate ({ scriptVersionId }) {
                 this.selectVersionId = scriptVersionId;
@@ -874,6 +892,7 @@
             handleEditCancel () {
                 this.displayCom = 'detail';
             },
+            
             /**
              * @desc 判断是否可以选中
              * @param {Object} row 脚本数据
@@ -924,10 +943,8 @@
 </script>
 <style lang='postcss'>
     .script-manage-version-page {
-        margin: -20px -24px 0;
-
         .version-list-wraper {
-            padding: 20px 24px 0;
+            margin-top: 12px;
         }
 
         .script-version-list {
@@ -935,13 +952,27 @@
                 &.active {
                     background: #eff5ff;
                 }
+
+                &.active,
+                &.hover-row {
+                    span[data-script-status] {
+                        background: #e6e7eb !important;
+                    }
+
+                    span[data-script-status="1"] {
+                        background: #daebde !important;
+                    }
+
+                    span[data-script-status="-1"] {
+                        background: #ffe8c3 !important;
+                    }
+                }
+            }
+
+            .select-flag {
+                margin-left: 10px;
+                color: #a3c5fd;
             }
         }
-
-        .select-flag {
-            margin-left: 10px;
-            color: #a3c5fd;
-        }
     }
-
 </style>

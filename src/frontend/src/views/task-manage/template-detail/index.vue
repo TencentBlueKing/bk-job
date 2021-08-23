@@ -201,10 +201,10 @@
              */
             notNeedUpdateTips () {
                 if (this.planList.length < 1) {
-                    return I18n.t('template.该模版下面没有执行方案');
+                    return I18n.t('template.该模板下面没有执行方案');
                 }
                 if (this.planList.every(_ => !_.needUpdate)) {
-                    return I18n.t('template.该模版下面的所有执行方案已是最新版');
+                    return I18n.t('template.该模板下面的所有执行方案已是最新版');
                 }
                 return '';
             },
@@ -240,7 +240,7 @@
         },
         methods: {
             /**
-             * @desc 获取作业模版详情
+             * @desc 获取作业模板详情
              * @param {Boolean} refresh 更新元数据重新获取
              */
             fetchData (refresh = false) {
@@ -290,7 +290,7 @@
                     });
             },
             /**
-             * @desc 获取作业模版关联的执行方案列表
+             * @desc 获取作业模板关联的执行方案列表
              */
             fetchPlanList () {
                 this.isPlanListLoading = true;
@@ -304,7 +304,7 @@
                     });
             },
             /**
-             * @desc 检测作业模版名是否存在
+             * @desc 检测作业模板名是否存在
              */
             checkName (name) {
                 return TaskManageService.taskCheckName({
@@ -313,7 +313,7 @@
                 });
             },
             /**
-             * @desc 更新作业模版元数据
+             * @desc 更新作业模板元数据
              * @param {Object} payload 将要更新的字段名和值
              */
             handleUpdateTemplate (payload) {
@@ -369,7 +369,7 @@
                 });
             },
             /**
-             * @desc 编辑作业模版
+             * @desc 编辑作业模板
              */
             handleGoEdit () {
                 this.$router.push({
@@ -383,7 +383,7 @@
                 });
             },
             /**
-             * @desc 删除作业模版，然后路由回退
+             * @desc 删除作业模板，然后路由回退
              */
             handleDelete () {
                 return TaskManageService.taskDelete({

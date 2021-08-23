@@ -368,7 +368,6 @@
 
         .render-text-box {
             position: relative;
-            width: 100%;
             overflow: hidden;
             line-height: 24px;
             white-space: pre-wrap;

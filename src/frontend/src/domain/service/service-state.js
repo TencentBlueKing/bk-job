@@ -30,9 +30,6 @@ import ServiceStateModel from '@model/service-state';
 export default {
     serviceList (params) {
         return serviceState.getList(params)
-            .then((data) => {
-                data.data = data.data.map(service => new ServiceStateModel(service));
-                return data;
-            });
+            .then(({ data }) => data.map(service => new ServiceStateModel(service)));
     },
 };

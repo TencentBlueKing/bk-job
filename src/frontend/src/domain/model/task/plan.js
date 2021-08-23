@@ -54,12 +54,12 @@ export default class Plan {
         this.canView = payload.canView;
     }
 
-    // 执行方案中使用到的模版步骤
+    // 执行方案中使用到的模板步骤
     get enableStepList () {
         return _.filter(this.stepList, item => item.enable);
     }
 
-    // 所有使用到来模版步骤的id
+    // 所有使用到来模板步骤的id
     get enableStepId () {
         return this.stepList.reduce((result, step) => {
             if (step.enable) {
@@ -69,12 +69,12 @@ export default class Plan {
         }, []);
     }
 
-    // 关联作业模版中的步骤数
+    // 关联作业模板中的步骤数
     get templateStepNums () {
         return this.stepList.length;
     }
 
-    // 执行方案中使用的到模版步骤数
+    // 执行方案中使用的到模板步骤数
     get enableStepNums () {
         const stepList = _.filter(this.stepList, item => item.enable);
         return stepList.length;

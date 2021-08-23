@@ -46,7 +46,7 @@
             class="empty-box"
             @click="handleAppendVariable(0)">
             <Icon type="add-fill" />
-            <span>{{ $t('template.全局变量') }}</span>
+            <span>{{ $t('template.全局变量.label') }}</span>
         </div>
     </div>
 </template>

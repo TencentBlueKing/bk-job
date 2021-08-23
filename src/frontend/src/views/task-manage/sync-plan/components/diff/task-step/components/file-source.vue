@@ -179,7 +179,7 @@
 
                 // 不同类型文件个数
                 // 同步前展示执行方案中数量
-                // 同步后展示作业模版中的数量
+                // 同步后展示作业模板中的数量
                 const stepParent = findParent(this, 'DiffTaskStep');
                 if (stepParent.type === 'sync-after') {
                     this.localFileCount = templateLocalFileList.length;
@@ -213,7 +213,7 @@
                     return result;
                 };
                 // diff 本地文件
-                // 作业模版中的本地文件和执行方案中的本地文件对比
+                // 作业模板中的本地文件和执行方案中的本地文件对比
                 // 处理本地文件（文件名唯一）
                 const localFileDiff = {};
                 const localFileList = [];
@@ -249,7 +249,7 @@
                 }
 
                 // diff 服务器文件
-                // 作业模版中的服务器文件和执行方案中的服务器文件对比
+                // 作业模板中的服务器文件和执行方案中的服务器文件对比
                 // 处理服务器文件（relaId会重复）
                 const serverFileCacheByKey = {};
                 const serverFileDiff = {};
@@ -353,7 +353,7 @@
                 // eslint-disable-next-line no-plusplus
                 for (let i = 0; i < serverFileList.length; i++) {
                     const currentFile = serverFileList[i];
-                    // 文件是作业模版中新添加的，添加一个空白占位符
+                    // 文件是作业模板中新添加的，添加一个空白占位符
                     if (serverFileDiff[currentFile.sameFileKey] && serverFileDiff[currentFile.sameFileKey].type === 'new') {
                         preServerFileList.push({});
                         continue;

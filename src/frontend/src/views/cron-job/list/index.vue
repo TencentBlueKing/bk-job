@@ -66,7 +66,10 @@
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
-                    <auth-component :permission="row.canManage" :resource-id="row.id" auth="cron/view">
+                    <auth-component
+                        :permission="row.canManage"
+                        :resource-id="row.id"
+                        auth="cron/view">
                         <span class="time-task-name" @click="handleViewDetail(row)">
                             {{ row.name }}
                         </span>
@@ -108,7 +111,15 @@
                 :label="$t('cron.执行策略.colHead')"
                 prop="policeText"
                 key="policeText"
-                align="left" />
+                align="left">
+                <template slot-scope="{ row }">
+                    <span
+                        class="tips"
+                        v-bk-tooltips.right="row.executeTimeTips">
+                        {{ row.policeText }}
+                    </span>
+                </template>
+            </bk-table-column>
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
                 :label="$t('cron.创建人')"
@@ -145,7 +156,10 @@
                 key="lastExecuteStatus"
                 align="left">
                 <template slot-scope="{ row }">
-                    <Icon svg :type="row.statusIconType" style="font-size: 16px; vertical-align: middle;" />
+                    <Icon
+                        svg
+                        :type="row.statusIconType"
+                        style="font-size: 16px; vertical-align: middle;" />
                     <span style="vertical-align: middle;">{{ row.statusText }}</span>
                 </template>
             </bk-table-column>
@@ -217,7 +231,11 @@
                             {{ $t('cron.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
-                    <bk-button text @click="handleHistoryRecord(row)">{{ $t('cron.执行记录') }}</bk-button>
+                    <bk-button
+                        text
+                        @click="handleHistoryRecord(row)">
+                        {{ $t('cron.执行记录') }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column type="setting">
@@ -228,17 +246,27 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
-        <jb-sideslider :is-show.sync="showOperation" v-bind="operationSidesliderInfo" :width="960">
+        <jb-sideslider
+            :is-show.sync="showOperation"
+            v-bind="operationSidesliderInfo"
+            :width="960">
             <task-operation
                 v-if="showOperation"
                 :id="editTaskId"
                 :data="cronJobDetailInfo"
                 @on-change="handleCronChange" />
         </jb-sideslider>
-        <jb-sideslider :is-show.sync="showDetail" :title="$t('cron.定时任务详情')" :width="960">
+        <jb-sideslider
+            :is-show.sync="showDetail"
+            :title="$t('cron.定时任务详情')"
+            :width="960">
             <task-detail :data="cronJobDetailInfo" />
             <template #footer>
-                <bk-button theme="primary" @click="handleToggelEdit">{{ $t('cron.编辑') }}</bk-button>
+                <bk-button
+                    theme="primary"
+                    @click="handleToggelEdit">
+                    {{ $t('cron.编辑') }}
+                </bk-button>
             </template>
         </jb-sideslider>
         <jb-sideslider
@@ -263,9 +291,7 @@
     import I18n from '@/i18n';
     import TimeTaskService from '@service/time-task';
     import NotifyService from '@service/notify';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { listColumnsCache } from '@utils/cache-helper';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';
