@@ -72,6 +72,9 @@ module.exports = function (env) {
             };
         }
     };
+    if (env.development) {
+        require('dotenv').config({ path: path.resolve(__dirname, '.env.local') });
+    }
     return {
         mode: env.development ? 'development' : 'production',
         devtool: env.development ? 'eval-source-map' : 'none',
@@ -292,6 +295,9 @@ module.exports = function (env) {
                     filename: 'index.html',
                     template: 'index-dev.html',
                     inject: true,
+                    templateParameters: {
+                        AJAX_URL_PREFIX: process.env.AJAX_URL_PREFIX,
+                    },
                 }
                 : {
                     filename: 'index.html',
