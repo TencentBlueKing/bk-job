@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service.impl;
 
 import brave.Tracing;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -1868,10 +1867,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
-                                     String operator) throws ServiceException {
+                                  String operator) throws ServiceException {
         // 人工确认步骤，需要判断操作者
         if (CollectionUtils.isNotEmpty(stepInstance.getConfirmUsers())
-                && stepInstance.getConfirmUsers().contains(operator)) {
+            && stepInstance.getConfirmUsers().contains(operator)) {
             return;
         }
 
@@ -1884,7 +1883,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 // JOB_RESOURCE_TRIGGER_USER should remove
                 roles.remove(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name());
                 ServiceResponse<Set<String>> resp = userResource.getUsersByRoles(stepInstance.getAppId(), operator,
-                        ResourceTypeEnum.JOB.getType(), String.valueOf(taskInstance.getTaskId()), roles);
+                    ResourceTypeEnum.JOB.getType(), String.valueOf(taskInstance.getTaskId()), roles);
                 if (resp.isSuccess() && resp.getData() != null) {
                     confirmUsers.addAll(resp.getData());
                 }
