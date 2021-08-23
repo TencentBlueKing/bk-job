@@ -121,7 +121,7 @@ spec:
             secretName: {{ include "job.mariadb.secretName" . }}
         - name: rabbitmq
           secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
+            secretName: {{ include "job.rabbitmq.secretName" . }}-map
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
