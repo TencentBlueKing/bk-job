@@ -27,7 +27,7 @@ spec:
         app.kubernetes.io/component: "job-manage"
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
-      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.manageConfig.hostAliases "context" $) | nindent 8 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       {{- if .Values.manageConfig.affinity }}
       affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.manageConfig.affinity "context" $) | nindent 8 }}
       {{- else }}
@@ -62,7 +62,7 @@ spec:
             - name: BK_JOB_JVM_OPTION
               value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
             - name: BK_JOB_PROFILE
-              value: prod
+              value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-manage.jar
             - name: JOB_APPLICATION_CONFIGMAP_NAME

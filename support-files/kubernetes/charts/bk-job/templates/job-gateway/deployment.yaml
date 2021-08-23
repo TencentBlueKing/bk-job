@@ -27,7 +27,7 @@ spec:
         app.kubernetes.io/component: "job-gateway"
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
-      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.gatewayConfig.hostAliases "context" $) | nindent 8 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       {{- if .Values.gatewayConfig.affinity }}
       affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.affinity "context" $) | nindent 8 }}
       {{- else }}
@@ -60,7 +60,7 @@ spec:
             - name: BK_JOB_JVM_OPTION
               value: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC "
             - name: BK_JOB_PROFILE
-              value: prod
+              value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-gateway.jar
             - name: JOB_APPLICATION_CONFIGMAP_NAME

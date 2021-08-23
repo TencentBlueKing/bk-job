@@ -110,6 +110,7 @@ mariadb:
   initdbScripts:
     init_root_privileges.sql: |
       grant all privileges on *.* to 'root'@'%' identified by 'job';
+      grant all privileges on *.* to 'job'@'%' identified by 'job';
       flush privileges;
 
 ## External MariaDB configuration

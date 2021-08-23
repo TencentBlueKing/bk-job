@@ -12,6 +12,209 @@ metadata:
     {{- end }}
 data:
   application.yaml: |-
+    spring:
+      cloud:
+        gateway:
+          discovery:
+            locator:
+              enabled: false
+              lower-case-service-id: true
+          routes:
+            - id: job-logout
+              uri: lb://{{ include "common.names.fullname" . }}-gateway
+              predicates:
+                - Path= /logout
+              filters:
+                - Logout
+            - id: job-manage-web
+              uri: lb://{{ include "common.names.fullname" . }}-manage
+              predicates:
+                - Path= /job-manage/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-crontab-web
+              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              predicates:
+                - Path= /job-crontab/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-execute-web
+              uri: lb://{{ include "common.names.fullname" . }}-execute
+              predicates:
+                - Path= /job-execute/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-backup-web
+              uri: lb://{{ include "common.names.fullname" . }}-backup
+              predicates:
+                - Path= /job-backup/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-file-gateway-web
+              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              predicates:
+                - Path= /job-file-gateway/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-ticket-web
+              uri: lb://{{ include "common.names.fullname" . }}-ticket
+              predicates:
+                - Path= /job-ticket/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+            - id: job-analysis-web
+              uri: lb://{{ include "common.names.fullname" . }}-analysis
+              predicates:
+                - Path= /job-analysis/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+
+            - id: job-file-gateway-remote
+              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              predicates:
+                - Path= /job-file-gateway/remote/**
+              filters:
+                - AuthorizeRemote
+                - StripPrefix=1
+
+            - id: job-manage-esb
+              uri: lb://{{ include "common.names.fullname" . }}-manage
+              predicates:
+                - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v2/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-manage-esb-v3
+              uri: lb://{{ include "common.names.fullname" . }}-manage
+              predicates:
+                - Path=/api/job/v3/job-manage/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-crontab-esb
+              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              predicates:
+                - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v2/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-crontab-esb-v3
+              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              predicates:
+                - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-execute-esb
+              uri: lb://{{ include "common.names.fullname" . }}-execute
+              predicates:
+                - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v2/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-execute-esb-v3
+              uri: lb://{{ include "common.names.fullname" . }}-execute
+              predicates:
+                - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-file-gateway-esb-v3
+              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              predicates:
+                - JobEsbV2Path=/api/job/v3/job-file-gateway/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-file-gateway-iam
+              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              predicates:
+                - Path=/iam/api/v1/resources/file_source
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+
+            - id: job-ticket-iam
+              uri: lb://{{ include "common.names.fullname" . }}-ticket
+              predicates:
+                - Path=/iam/api/v1/resources/ticket
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+
+            - id: job-analysis-iam
+              uri: lb://{{ include "common.names.fullname" . }}-analysis
+              predicates:
+                - Path=/iam/api/v1/resources/dashboard_view
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+
+            - id: job-manage-iam
+              uri: lb://{{ include "common.names.fullname" . }}-manage
+              predicates:
+                - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+
+            - id: job-crontab-iam
+              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              predicates:
+                - Path=/iam/api/v1/resources/cron/job
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+
+            - id: job-execute-iam
+              uri: lb://{{ include "common.names.fullname" . }}-execute
+              predicates:
+                - Path=/iam/api/v1/resources/execute/record
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
     job:
       gateway:
         login-exemption:

@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
+import com.tencent.bk.job.common.util.CompareUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
@@ -88,6 +89,9 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
         List<ServiceInstance> serviceInstanceList = new ArrayList<>();
         for (String serviceId : serviceIdList) {
             serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
+        }
+        for (ServiceInstance serviceInstance : serviceInstanceList) {
+            log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
         }
         return serviceInstanceList.parallelStream().filter(serviceInstance -> {
             if (serviceInstance.getServiceId().equals("job-gateway-management")) {
