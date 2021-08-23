@@ -55,6 +55,7 @@
     </div>
 </template>
 <script>
+    import 'highlight.js/styles/googlecode.css';
     import globalVariable from './global-variable.md';
     import globalVariableEN from './global-variable.en.md';
     import magicVariable from './magic-variable.md';

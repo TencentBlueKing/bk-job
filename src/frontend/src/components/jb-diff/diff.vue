@@ -46,7 +46,7 @@
     import perl from 'highlight.js/lib/languages/perl';
     import powershell from 'highlight.js/lib/languages/powershell';
     import diff from 'highlight.js/lib/languages/diff';
-    import 'highlight.js/styles/vs.css';
+    import 'highlight.js/styles/googlecode.css';
 
     const languageList = [
         { lang: 'javascript', mod: javascript },
