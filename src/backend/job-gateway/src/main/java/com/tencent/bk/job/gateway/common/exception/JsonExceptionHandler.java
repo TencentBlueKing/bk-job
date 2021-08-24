@@ -113,7 +113,7 @@ public class JsonExceptionHandler implements ErrorWebExceptionHandler {
         result.put("body", JsonUtils.toJson(serviceResponse));
         //错误记录
         ServerHttpRequest request = exchange.getRequest();
-        log.error("[Global exception handle]uri:{},exception:{}", request.getPath(), ex.getMessage());
+        log.error("[Global exception handle]uri:{},exception:{}", request.getPath(), ex.getMessage(), ex);
 
         if (exchange.getResponse().isCommitted()) {
             return Mono.error(ex);
