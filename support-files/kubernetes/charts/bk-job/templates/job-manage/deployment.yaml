@@ -70,7 +70,7 @@ spec:
             - name: BK_JOB_LOG_BASE_DIR
               value: /data/bk{{ .Values.job.edition }}/logs/job
             - name: BK_JOB_LOG_DIR
-              value: ${BK_JOB_LOG_BASE_DIR}/job-manage
+              value: /data/bk{{ .Values.job.edition }}/logs/job/job-manage
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-manage
             - name: JOB_COMMON_CONFIGMAP_NAME

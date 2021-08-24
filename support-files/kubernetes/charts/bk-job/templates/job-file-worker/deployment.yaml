@@ -63,6 +63,10 @@ spec:
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-file-worker.jar
+            - name: BK_JOB_LOG_BASE_DIR
+              value: /data/bk{{ .Values.job.edition }}/logs/job
+            - name: BK_JOB_LOG_DIR
+              value: /data/bk{{ .Values.job.edition }}/logs/job/job-file-worker
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
             - name: JOB_COMMON_CONFIGMAP_NAME

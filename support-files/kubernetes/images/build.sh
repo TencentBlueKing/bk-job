@@ -29,6 +29,7 @@ ROOT_DIR=${WORKING_DIR%/*/*/*}
 BACKEND_DIR=$ROOT_DIR/src/backend
 FRONTEND_DIR=$ROOT_DIR/src/frontend
 SUPPORT_FILES_DIR=$ROOT_DIR/support-files
+VERSION_LOGS_DIR=$ROOT_DIR/versionLogs
 
 usage () {
     cat <<EOF
@@ -171,6 +172,11 @@ build_frontend_module () {
 
     rm -rf tmp/*
     cp -rf $FRONTEND_DIR/dist tmp/
+    log "Building version logs"
+    cd $VERSION_LOGS_DIR || exit 1
+    python genBundledVersionLog.py
+    cd $ROOT_DIR || exit 1
+    cp versionLogs/bundledVersionLog*.json tmp/dist/static
 
     docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
