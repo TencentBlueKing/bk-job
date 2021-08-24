@@ -246,6 +246,7 @@ mongodb:
   # If you need to use an external database, set it to false and configure externalMongoDB
   enabled: true
   auth:
+    rootPassword: job
     enabled: true
     database: joblog
     username: job
