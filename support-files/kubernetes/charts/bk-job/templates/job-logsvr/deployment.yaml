@@ -102,23 +102,11 @@ spec:
           resources:
             {{- toYaml .Values.logsvrConfig.resources | nindent 12 }}
           volumeMounts:
-            - name: mariadb
-              mountPath: /etc/secrets/mariadb
-              readOnly: true
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
-            - name: redis
-              mountPath: /etc/secrets/redis
+            - name: mongodb
+              mountPath: /etc/secrets/mongodb
               readOnly: true
       volumes:
-        - name: mariadb
+        - name: mongodb
           secret:
-            secretName: {{ include "job.mariadb.secretName" . }}
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}-map
-        - name: redis
-          secret:
-            secretName: {{ include "job.redis.secretName" . }}
+            secretName: {{ include "job.mongodb.secretName" . }}
 
