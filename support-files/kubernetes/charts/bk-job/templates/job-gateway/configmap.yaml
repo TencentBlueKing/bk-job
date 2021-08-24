@@ -21,13 +21,13 @@ data:
               lower-case-service-id: true
           routes:
             - id: job-logout
-              uri: lb://{{ include "common.names.fullname" . }}-gateway
+              uri: lb://job-gateway
               predicates:
                 - Path= /logout
               filters:
                 - Logout
             - id: job-manage-web
-              uri: lb://{{ include "common.names.fullname" . }}-manage
+              uri: lb://job-manage
               predicates:
                 - Path= /job-manage/web/**
               filters:
@@ -36,7 +36,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-crontab-web
-              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              uri: lb://job-crontab
               predicates:
                 - Path= /job-crontab/web/**
               filters:
@@ -45,7 +45,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-execute-web
-              uri: lb://{{ include "common.names.fullname" . }}-execute
+              uri: lb://job-execute
               predicates:
                 - Path= /job-execute/web/**
               filters:
@@ -54,7 +54,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-backup-web
-              uri: lb://{{ include "common.names.fullname" . }}-backup
+              uri: lb://job-backup
               predicates:
                 - Path= /job-backup/web/**
               filters:
@@ -63,7 +63,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-file-gateway-web
-              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              uri: lb://job-file-gateway
               predicates:
                 - Path= /job-file-gateway/web/**
               filters:
@@ -72,7 +72,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-ticket-web
-              uri: lb://{{ include "common.names.fullname" . }}-ticket
+              uri: lb://job-ticket
               predicates:
                 - Path= /job-ticket/web/**
               filters:
@@ -81,7 +81,7 @@ data:
                 - StripPrefix=1
                 - AddWebLangHeader
             - id: job-analysis-web
-              uri: lb://{{ include "common.names.fullname" . }}-analysis
+              uri: lb://job-analysis
               predicates:
                 - Path= /job-analysis/web/**
               filters:
@@ -91,7 +91,7 @@ data:
                 - AddWebLangHeader
 
             - id: job-file-gateway-remote
-              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              uri: lb://job-file-gateway
               predicates:
                 - Path= /job-file-gateway/remote/**
               filters:
@@ -99,7 +99,7 @@ data:
                 - StripPrefix=1
 
             - id: job-manage-esb
-              uri: lb://{{ include "common.names.fullname" . }}-manage
+              uri: lb://job-manage
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
               filters:
@@ -109,7 +109,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-manage-esb-v3
-              uri: lb://{{ include "common.names.fullname" . }}-manage
+              uri: lb://job-manage
               predicates:
                 - Path=/api/job/v3/job-manage/{api_name}
               filters:
@@ -119,7 +119,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-crontab-esb
-              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              uri: lb://job-crontab
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
               filters:
@@ -129,7 +129,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-crontab-esb-v3
-              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              uri: lb://job-crontab
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
               filters:
@@ -139,7 +139,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-execute-esb
-              uri: lb://{{ include "common.names.fullname" . }}-execute
+              uri: lb://job-execute
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
               filters:
@@ -149,7 +149,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-execute-esb-v3
-              uri: lb://{{ include "common.names.fullname" . }}-execute
+              uri: lb://job-execute
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
               filters:
@@ -159,7 +159,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-file-gateway-esb-v3
-              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              uri: lb://job-file-gateway
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-file-gateway/{api_name}
               filters:
@@ -169,7 +169,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-file-gateway-iam
-              uri: lb://{{ include "common.names.fullname" . }}-file-gateway
+              uri: lb://job-file-gateway
               predicates:
                 - Path=/iam/api/v1/resources/file_source
               filters:
@@ -177,7 +177,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-ticket-iam
-              uri: lb://{{ include "common.names.fullname" . }}-ticket
+              uri: lb://job-ticket
               predicates:
                 - Path=/iam/api/v1/resources/ticket
               filters:
@@ -185,7 +185,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-analysis-iam
-              uri: lb://{{ include "common.names.fullname" . }}-analysis
+              uri: lb://job-analysis
               predicates:
                 - Path=/iam/api/v1/resources/dashboard_view
               filters:
@@ -193,7 +193,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-manage-iam
-              uri: lb://{{ include "common.names.fullname" . }}-manage
+              uri: lb://job-manage
               predicates:
                 - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag
               filters:
@@ -201,7 +201,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-crontab-iam
-              uri: lb://{{ include "common.names.fullname" . }}-crontab
+              uri: lb://job-crontab
               predicates:
                 - Path=/iam/api/v1/resources/cron/job
               filters:
@@ -209,7 +209,7 @@ data:
                 - AddEsbLangHeader
 
             - id: job-execute-iam
-              uri: lb://{{ include "common.names.fullname" . }}-execute
+              uri: lb://job-execute
               predicates:
                 - Path=/iam/api/v1/resources/execute/record
               filters:
