@@ -59,6 +59,14 @@ spec:
           image: {{ include "job-execute.image" . }}
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
+            - name: KUBE_HOST_NAME_VALUE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
+            - name: KUBE_HOST_IP_VALUE
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: BK_JOB_JVM_OPTION
               value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
             - name: BK_JOB_PROFILE
