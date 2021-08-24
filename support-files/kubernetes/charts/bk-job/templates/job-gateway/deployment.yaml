@@ -64,9 +64,9 @@ spec:
             - name: BK_JOB_JAR
               value: job-gateway.jar
             - name: BK_JOB_LOG_BASE_DIR
-              value: /data/bk{{ .Values.job.edition }}/logs/job
+              value: /data/logs/job
             - name: BK_JOB_LOG_DIR
-              value: /data/bk{{ .Values.job.edition }}/logs/job/job-gateway
+              value: /data/logs/job/job-gateway
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-gateway
             - name: JOB_COMMON_CONFIGMAP_NAME

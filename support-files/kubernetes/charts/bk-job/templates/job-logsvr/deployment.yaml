@@ -64,9 +64,9 @@ spec:
             - name: BK_JOB_JAR
               value: job-logsvr.jar
             - name: BK_JOB_LOG_BASE_DIR
-              value: /data/bk{{ .Values.job.edition }}/logs/job
+              value: /data/logs/job
             - name: BK_JOB_LOG_DIR
-              value: /data/bk{{ .Values.job.edition }}/logs/job/job-logsvr
+              value: /data/logs/job/job-logsvr
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-logsvr
             - name: JOB_COMMON_CONFIGMAP_NAME
