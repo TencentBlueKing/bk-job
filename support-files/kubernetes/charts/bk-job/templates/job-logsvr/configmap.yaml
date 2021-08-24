@@ -18,9 +18,9 @@ data:
       data:
         mongodb:
           {{ if .Values.externalMongoDB.existingPasswordSecret }}
-          uri: mongodb://{{ include "job.mongodb.username" . }}:{{- .Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" }}@{{- include "job.mongodb.host" . }}:{{- include "job.mongodb.port" . }}/{{- include "job.mongodb.database" . }}?authSource=admin
+          uri: mongodb://{{ include "job.mongodb.username" . }}:{{- .Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" }}@{{- include "job.mongodb.host" . }}:{{- include "job.mongodb.port" . }}/{{- include "job.mongodb.database" . }}
           {{- else -}}
-          uri: mongodb://{{ include "job.mongodb.username" . }}:${mongodb-password}@{{- include "job.mongodb.host" . }}:{{- include "job.mongodb.port" . }}/{{- include "job.mongodb.database" . }}?authSource=admin
+          uri: mongodb://{{ include "job.mongodb.username" . }}:${mongodb-password}@{{- include "job.mongodb.host" . }}:{{- include "job.mongodb.port" . }}/{{- include "job.mongodb.database" . }}
           {{- end }}
     job:
       logsvr:
