@@ -175,8 +175,8 @@ build_frontend_module () {
     log "Building version logs"
     cd $VERSION_LOGS_DIR || exit 1
     python genBundledVersionLog.py
-    cd $ROOT_DIR || exit 1
-    cp versionLogs/bundledVersionLog*.json tmp/dist/static
+    cd $WORKING_DIR || exit 1
+    cp $VERSION_LOGS_DIR/bundledVersionLog*.json tmp/dist/static
 
     docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
