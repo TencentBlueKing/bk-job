@@ -12,7 +12,7 @@ ls $BK_JOB_LOG_BASE_DIR;
 
 java -server \
      -Dfile.encoding=UTF-8 \
-     -Djob.log.dir=$BK_JOB_LOG_BASE_DIR
+     -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \
      -XX:+UseGCLogFileRotation \
      -XX:NumberOfGCLogFiles=12 \
