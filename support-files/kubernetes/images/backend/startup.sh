@@ -1,14 +1,14 @@
 #! /bin/sh
 
-echo "BK_JOB_LOG_BASE_DIR=$BK_JOB_LOG_BASE_DIR|"
-mkdir -p "$BK_JOB_LOG_BASE_DIR"
-chmod 777 "$BK_JOB_LOG_BASE_DIR"
+echo "BK_JOB_LOG_BASE_DIR=$BK_JOB_LOG_BASE_DIR|";
+mkdir -p "$BK_JOB_LOG_BASE_DIR";
+chmod 777 "$BK_JOB_LOG_BASE_DIR";
 
-echo "BK_JOB_LOG_DIR=$BK_JOB_LOG_DIR|"
-mkdir -p "$BK_JOB_LOG_DIR"
-chmod 777 "$BK_JOB_LOG_DIR"
+echo "BK_JOB_LOG_DIR=$BK_JOB_LOG_DIR|";
+mkdir -p "$BK_JOB_LOG_DIR";
+chmod 777 "$BK_JOB_LOG_DIR";
 
-ls $BK_JOB_LOG_BASE_DIR
+ls $BK_JOB_LOG_BASE_DIR;
 
 java -server \
      -Dfile.encoding=UTF-8 \
