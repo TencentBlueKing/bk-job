@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.gateway.config.BkConfig;
-import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +46,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class LoginServiceImpl implements LoginService {
     private final BkConfig bkConfig;
-    private final LoginExemptionConfig loginExemptionConfig;
     private final String tokenName;
     private final String loginUrl;
     private final ILoginClient loginClient;
@@ -67,9 +65,8 @@ public class LoginServiceImpl implements LoginService {
         );
 
     @Autowired
-    public LoginServiceImpl(BkConfig bkConfig, LoginExemptionConfig loginExemptionConfig, ILoginClient loginClient) {
+    public LoginServiceImpl(BkConfig bkConfig, ILoginClient loginClient) {
         this.bkConfig = bkConfig;
-        this.loginExemptionConfig = loginExemptionConfig;
         this.loginClient = loginClient;
         this.loginUrl = getLoginUrlProp();
         this.tokenName = bkConfig.isCustomPaasLoginEnabled() ? bkConfig.getCustomLoginToken() : "bk_token";
@@ -103,20 +100,9 @@ public class LoginServiceImpl implements LoginService {
         }
     }
 
-    private BkUserDTO getLoginExemptUser() {
-        BkUserDTO bkUserDTO = new BkUserDTO();
-        bkUserDTO.setId(1L);
-        bkUserDTO.setUsername(loginExemptionConfig.getDefaultUser());
-        bkUserDTO.setDisplayName(loginExemptionConfig.getDefaultUser());
-        bkUserDTO.setUid(loginExemptionConfig.getDefaultUser());
-        return bkUserDTO;
-    }
 
     @Override
     public BkUserDTO getUser(String bkToken) {
-        if (loginExemptionConfig.isEnableLoginExemption()) {
-            return getLoginExemptUser();
-        }
         if (StringUtils.isBlank(bkToken)) {
             return null;
         }
