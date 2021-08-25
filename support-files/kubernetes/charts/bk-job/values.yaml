@@ -378,7 +378,7 @@ gatewayConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-gateway
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -443,7 +443,7 @@ manageConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-manage
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -487,7 +487,7 @@ executeConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-execute
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -531,7 +531,7 @@ crontabConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-crontab
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -574,7 +574,7 @@ logsvrConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-logsvr
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -617,7 +617,7 @@ backupConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-backup
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -660,7 +660,7 @@ analysisConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-analysis
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -703,7 +703,7 @@ fileGatewayConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-file-gateway
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -746,7 +746,7 @@ fileWorkerConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-file-worker
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -802,7 +802,7 @@ frontendConfig:
     registry: mirrors.tencent.com
     repository: bkce/job-frontend
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
@@ -861,4 +861,4 @@ migration:
     registry: "mirrors.tencent.com"
     repository: "bkce/job-migration"
     tag: 3.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
