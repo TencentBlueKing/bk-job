@@ -67,6 +67,8 @@ spec:
               value: /data/logs/job
             - name: BK_JOB_LOG_DIR
               value: /data/logs/job/job-file-worker
+            - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
+              value: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
             - name: JOB_COMMON_CONFIGMAP_NAME

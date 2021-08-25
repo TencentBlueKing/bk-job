@@ -784,9 +784,6 @@ fileWorkerConfig:
   service:
     port: 80
     type: ClusterIP
-  fileGateway:
-    api:
-      rootUrl: ""
   swaggerUrl: ""
   instanceName: job-file-worker-public-1
   version: 0.0.1

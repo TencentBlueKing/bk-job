@@ -197,9 +197,14 @@ build_backend_module () {
       $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     fi
     rm -rf tmp/*
-    cp backend/startup.sh tmp/
     cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
-    docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
+    if [[ ${SERVICE} == "job-file-worker" ]] ; then
+      cp file-worker/startup.sh tmp/
+      docker build -f file-worker/fileWorker.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
+    else
+      cp backend/startup.sh tmp/
+      docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
+    fi
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/$SERVICE:$VERSION
     fi
