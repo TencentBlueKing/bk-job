@@ -73,7 +73,7 @@ spring:
             - StripPrefix=1
             - AddWebLangHeader
         - id: job-ticket-web
-          uri: lb://job-ticket
+          uri: lb://job-manage
           predicates:
             - Path= /job-ticket/web/**
           filters:
@@ -178,7 +178,7 @@ spring:
             - AddEsbLangHeader
 
         - id: job-ticket-iam
-          uri: lb://job-ticket
+          uri: lb://job-manage
           predicates:
             - Path=/iam/api/v1/resources/ticket
           filters:
