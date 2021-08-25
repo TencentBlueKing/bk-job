@@ -212,9 +212,7 @@ rabbitmq:
     erlangCookie: "job"
   loadDefinition:
     enabled: true
-    existingSecret: rabbitmq-load-definition
-  extraConfiguration: |
-    management.load_definitions = /app/load_definition.json
+    existingSecret: job-rabbitmq-load-definition
 
 ## External RabbitMQ configuration
 ##
