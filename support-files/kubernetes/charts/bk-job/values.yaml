@@ -70,7 +70,7 @@ mariadb:
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
-    database: job_crontab
+    database: ""
     ## @param mariadb.auth.username Database user to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
     ##
