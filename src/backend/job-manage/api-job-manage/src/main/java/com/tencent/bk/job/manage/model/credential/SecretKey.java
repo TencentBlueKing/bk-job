@@ -22,14 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.client;
+package com.tencent.bk.job.manage.model.credential;
 
-import com.tencent.bk.job.ticket.api.inner.ServiceCredentialResource;
-import org.springframework.cloud.openfeign.FeignClient;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 凭据服务内部接口远程调用客户端
- */
-@FeignClient(value = "job-ticket", contextId = "credential")
-public interface ServiceCredentialResourceClient extends ServiceCredentialResource {
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class SecretKey {
+    String secretKey;
 }

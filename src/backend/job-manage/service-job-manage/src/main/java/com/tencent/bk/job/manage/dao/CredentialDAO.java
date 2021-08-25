@@ -22,16 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-iam')
-    api 'org.hibernate.validator:hibernate-validator'
-    api 'jakarta.validation:jakarta.validation-api'
-    api 'ch.qos.logback:logback-core'
-    api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.dao;
+
+import com.tencent.bk.job.manage.model.dto.CredentialDTO;
+import org.jooq.DSLContext;
+
+import java.util.List;
+
+public interface CredentialDAO {
+    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
+
+    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
+
+    int deleteCredentialById(DSLContext dslContext, String id);
+
+    CredentialDTO getCredentialById(DSLContext dslContext, String id);
+
+    List<CredentialDTO> listCredentials(DSLContext dslContext, Long appId, String id, String name, String description
+        , String creator, String lastModifyUser, Integer start, Integer pageSize);
+
+    List<CredentialDTO> listCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList,
+                                        Integer start, Integer pageSize);
+
+    Integer countCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList);
+
+    Integer countCredentials(DSLContext dslContext, Long appId, String id, String name, String description,
+                             String creator, String lastModifyUser);
+
+    Integer countCredentialByAppId(DSLContext dslContext, Long appId);
 }

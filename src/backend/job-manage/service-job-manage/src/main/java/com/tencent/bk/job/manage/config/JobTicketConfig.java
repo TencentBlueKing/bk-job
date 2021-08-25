@@ -22,16 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-iam')
-    api 'org.hibernate.validator:hibernate-validator'
-    api 'jakarta.validation:jakarta.validation-api'
-    api 'ch.qos.logback:logback-core'
-    api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.config;
+
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+@Getter
+@Configuration
+public class JobTicketConfig {
+
+    @Value("${job.encrypt.password}")
+    private String encryptPassword;
+
 }

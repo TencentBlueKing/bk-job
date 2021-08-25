@@ -22,16 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-iam')
-    api 'org.hibernate.validator:hibernate-validator'
-    api 'jakarta.validation:jakarta.validation-api'
-    api 'ch.qos.logback:logback-core'
-    api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.api.iam;
+
+import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 权限中心回调 - 凭证
+ */
+@RequestMapping("/iam/api/v1/resources/ticket")
+public interface IamTicketCallbackResource {
+
+    @PostMapping
+    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
 }

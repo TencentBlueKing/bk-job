@@ -22,16 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-iam')
-    api 'org.hibernate.validator:hibernate-validator'
-    api 'jakarta.validation:jakarta.validation-api'
-    api 'ch.qos.logback:logback-core'
-    api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.model.inner.resp;
+
+import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+@ApiModel("凭据")
+@Data
+public class ServiceCredentialDTO {
+    /**
+     * 主键Id
+     */
+    @ApiModelProperty("主键Id")
+    private String id;
+    /**
+     * 业务Id
+     */
+    @ApiModelProperty("业务Id")
+    private Long appId;
+    /**
+     * 名称
+     */
+    @ApiModelProperty("名称")
+    private String name;
+    /**
+     * 类型
+     */
+    @ApiModelProperty("类型")
+    private String type;
+    /**
+     * 凭据
+     */
+    @ApiModelProperty("凭据")
+    private CommonCredential credential;
 }

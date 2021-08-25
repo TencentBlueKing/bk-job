@@ -22,16 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-iam')
-    api 'org.hibernate.validator:hibernate-validator'
-    api 'jakarta.validation:jakarta.validation-api'
-    api 'ch.qos.logback:logback-core'
-    api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.common.consts;
+
+public enum CredentialTypeEnum {
+    APP_ID_SECRET_KEY(1, "AccessKey+SecretKey"),
+    PASSWORD(2, "单一密码"),
+    USERNAME_PASSWORD(3, "用户名+密码"),
+    SECRET_KEY(4, "单一SecretKey");
+
+    private final Integer value;
+    private final String description;
+
+    public static String getAllNameStr() {
+        StringBuilder sb = new StringBuilder();
+        CredentialTypeEnum[] values = CredentialTypeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            sb.append(values[i].name());
+            if (i < values.length - 1) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
+
+    CredentialTypeEnum(Integer type, String description) {
+        this.value = type;
+        this.description = description;
+    }
 }
