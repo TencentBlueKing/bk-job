@@ -25,7 +25,6 @@
 dependencies {
     api project(":commons:common-web")
     api project(":commons:common-redis")
-    api project(":job-ticket:api-job-ticket")
     api project(":job-manage:api-job-manage")
     api project(":job-execute:api-job-execute")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")

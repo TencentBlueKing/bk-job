@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 echo 'Begin to package job'
-BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis)
+BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis)
 FRONTEND_MODULES=(job-frontend)
-ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis job-frontend)
+ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis job-frontend)
 JOB_EDITION=ce
 
 if [[ ! -d "release" ]]; then
