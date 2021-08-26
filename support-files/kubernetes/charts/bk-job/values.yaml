@@ -387,7 +387,7 @@ job:
       fileManage:
         enabled: true
   storage:
-    rootPath: /data/job/nfs
+    rootPath: /data/job/local
 
 ## @section job-gateway parameters
 gatewayConfig:

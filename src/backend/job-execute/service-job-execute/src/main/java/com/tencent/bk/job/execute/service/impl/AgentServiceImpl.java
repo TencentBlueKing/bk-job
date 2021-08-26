@@ -65,13 +65,20 @@ public class AgentServiceImpl implements AgentService {
             if (StringUtils.isNotBlank(agentBindIp)) {
                 return agentBindIp;
             }
-            Map<String, String> networkIps = getMachineIP();
-            StringJoiner sj = new StringJoiner(",");
-            for (String ip : networkIps.values()) {
-                sj.add(ip);
+            String physicalMachineMultiIp;
+            String nodeIP = System.getenv("BK_JOB_NODE_IP");
+            if (StringUtils.isNotBlank(nodeIP)) {
+                log.info("working in container, get nodeIP:{}", nodeIP);
+                physicalMachineMultiIp = nodeIP;
+            } else {
+                Map<String, String> networkIps = getMachineIP();
+                StringJoiner sj = new StringJoiner(",");
+                for (String ip : networkIps.values()) {
+                    sj.add(ip);
+                }
+                physicalMachineMultiIp = sj.toString();
             }
-            String multiIp = sj.toString();
-            agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(multiIp, Consts.DEFAULT_CLOUD_ID);
+            agentBindIp = queryAgentStatusClient.getHostIpByAgentStatus(physicalMachineMultiIp, Consts.DEFAULT_CLOUD_ID);
             log.info("Local agent bind ip is {}", agentBindIp);
             return agentBindIp;
         }

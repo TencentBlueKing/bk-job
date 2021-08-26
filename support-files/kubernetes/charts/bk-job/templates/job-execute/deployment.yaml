@@ -65,10 +65,16 @@ spec:
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-execute.jar
+            - name: BK_JOB_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: BK_JOB_LOG_BASE_DIR
               value: /data/logs/job
             - name: BK_JOB_LOG_DIR
               value: /data/logs/job/job-execute
+            - name: BK_JOB_STORAGE_ROOT_PATH
+              value: {{ .Values.job.storage.rootPath }}
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-execute
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -79,6 +85,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+          command: ["mkdir"]
+          args: ["-p","${BK_JOB_STORAGE_ROOT_PATH}"]
           ports:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
@@ -104,6 +112,8 @@ spec:
           resources:
             {{- toYaml .Values.executeConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: local-file-dir
+              mountPath: {{ .Values.job.storage.rootPath }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -120,6 +130,9 @@ spec:
               mountPath: /etc/secrets
               readOnly: true
       volumes:
+        - name: local-file-dir
+          hostPath:
+            path: {{ .Values.job.storage.rootPath }}
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
