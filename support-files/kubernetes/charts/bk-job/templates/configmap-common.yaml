@@ -48,11 +48,11 @@ data:
             string: {{ .Values.gse.server.zookeeper.connect.string }}
       query:
         threads:
-          num: 5
-        batchSize: 5000
+          num: {{ .Values.gse.query.threads.num }}
+        batchSize: {{ .Values.gse.query.batchSize }}
     iam:
       base-url: {{ .Values.iam.baseUrl }}
-      system-id: bk_job
+      system-id: {{ .Values.iam.systemId }}
     license:
       file: {{ .Values.license.file }}
       service:
@@ -78,36 +78,34 @@ data:
     cmdb:
      app:
        index:
-         path: /#/business/{appId}/index
+         path: {{ .Values.cmdb.app.index.path }}
      interface:
        briefCacheTopo:
-         enable: false
+         enable: {{ .Values.cmdb.interface.briefCacheTopo.enable }}
        findHostRelation:
          longTerm:
-           concurrency: 11
+           concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
        flowControl:
          default:
-           limit: 10
-         enable: true
-         precision: 1
-         resources: search_biz_inst_topo:2,get_biz_brief_cache_topo:2,find_module_host_relation:2,search_dynamic_group:2,execute_dynamic_group:2
+           limit: {{ .Values.cmdb.interface.default.limit }}
+         enable: {{ .Values.cmdb.interface.flowControl.enable }}
        retry:
-         enable: true
+         enable: {{ .Values.cmdb.interface.retry.enable }}
      query:
        threads:
-         num: 50
+         num: {{ .Values.cmdb.query.threads }}
      server:
-       url: http://cmdbee-test.woa.com:80
+       url: {{ .Values.cmdb.server.url }}
     nodeman:
       server:
-        url: ""
+        url: {{ .Values.nodeman.server.url }}
     artifactory:
-      enable: true
-      base.url: ""
+      enable: {{ .Values.artifactory.enable }}
+      base-url: {{ .Values.artifactory.base-url }}
       job:
-        username: ""
-        password: ""
+        username: {{ .Values.artifactory.job.username }}
+        password: {{ .Values.artifactory.job.password }}
         local-upload:
-          root-path: ""
+          root-path: {{ .Values.artifactory.job.local-upload.root-path }}
     swagger:
       url: {{ .Values.swagger.url }}

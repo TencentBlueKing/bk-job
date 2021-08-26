@@ -35,7 +35,7 @@ public class ArtifactoryConfigForManage {
     @Value("${artifactory.enable:false}")
     private boolean enable;
 
-    @Value("${artifactory.base.url:}")
+    @Value("${artifactory.base-url:}")
     private String baseUrl;
 
     @Value("${artifactory.job.username:}")

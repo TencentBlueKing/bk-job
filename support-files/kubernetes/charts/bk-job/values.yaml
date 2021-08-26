@@ -276,13 +276,15 @@ app:
   code: bk_job
   ## job app_secret
   secret: ""
-## Blueking ESB Config
+
+## BlueKing ESB Config
 esb:
   service:
     ## ESB Service URL
     url: "http://paas.service.consul:80"
   publicKeyBase64: ""
-## Blueking GSE Config
+  
+## BlueKing GSE Config
 gse:
   cacheApiServer:
     host: "gse-api.service.consul"
@@ -303,54 +305,70 @@ gse:
     zookeeper:
       connect:
         string: "zk.service.consul:2181"
-## Blueking IAM Config
+  query:
+    threads:
+      num: 5
+    batchSize: 5000
+
+## BlueKing IAM Config
 iam:
   baseUrl: "http://bkiam.service.consul:5001"
   ## The system ID of Job in the IAM. Fixed Value
   systemId: bk_job
+
+## License Server Config
 license:
   file: /data/job/cert/platform.cert
   service:
     url: ""
+
+## BlueKing PaaS Config
 paas:
   login:
     url: "http://paas.com/login"
-## CMDB Config
+
+## BlueKing CMDB Config
 cmdb:
   app:
     index:
       path: /#/business/{appId}/index
   interface:
     briefCacheTopo:
-      enable: false
+      enable: true
     findHostRelation:
       longTerm:
-        concurrency: 11
+        concurrency: 10
     flowControl:
       default:
-        limit: 500
-      enable: true
-      precision: 1
-      resources: get_biz_brief_cache_topo:1500
+        limit: 50
+      enable: false
     retry:
       enable: true
   query:
     threads:
-      num: 50
+      num: 20
   server:
-    url: ""
-## Artifactory Config
+    url: http://cmdb.example.com
+
+## BlueKing NodeMan Config
+nodeman:
+  server:
+    url: http://nodeman.example.com
+
+## BlueKing Artifactory Config
 artifactory:
   enable: true
-  base.url: ""
+  base-url: http://bkrepo.example.com
   job:
-    username: ""
-    password: ""
+    username: job
+    password: job
     local-upload:
-      root-path: ""
+      root-path: bkjob/localupload
+
 ## Swagger Doc
 swagger:
-  url: ""
+  url: "swagger.job.com"
+
 ## Job Common Config
 job:
   profile: prod
