@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  proxy-body-size: "5120m"
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
