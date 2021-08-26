@@ -72,7 +72,6 @@ spec:
             - name: BK_JOB_NODE_IP
               valueFrom:
                 fieldRef:
-                  apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
                   fieldPath: status.hostIP
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
