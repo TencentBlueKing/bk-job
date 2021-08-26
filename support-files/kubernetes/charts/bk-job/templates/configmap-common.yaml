@@ -93,7 +93,7 @@ data:
          enable: {{ .Values.cmdb.interface.retry.enable }}
      query:
        threads:
-         num: {{ .Values.cmdb.query.threads }}
+         num: {{ .Values.cmdb.query.threads.num }}
      server:
        url: {{ .Values.cmdb.server.url }}
     nodeman:
