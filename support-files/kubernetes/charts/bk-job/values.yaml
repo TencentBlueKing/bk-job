@@ -372,7 +372,7 @@ job:
 ## @section job-gateway parameters
 gatewayConfig:
   loginExemption:
-    enable: true
+    enable: false
     defaultUser: admin
   image:
     registry: mirrors.tencent.com
