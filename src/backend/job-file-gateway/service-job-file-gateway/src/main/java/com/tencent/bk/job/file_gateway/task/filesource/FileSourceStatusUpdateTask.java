@@ -68,6 +68,11 @@ public class FileSourceStatusUpdateTask {
                 FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
                 int status;
                 if (fileWorkerDTO == null) {
+                    log.info(
+                        "cannot find available file worker for fileSource {}:{}",
+                        fileSourceDTO.getId(),
+                        fileSourceDTO.getAlias()
+                    );
                     status = FileSourceStatusEnum.NO_WORKER.getStatus().intValue();
                 } else {
                     int onlineStatus = fileWorkerDTO.getOnlineStatus().intValue();
