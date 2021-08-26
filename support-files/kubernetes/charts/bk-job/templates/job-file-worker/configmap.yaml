@@ -24,7 +24,7 @@ data:
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:
           host: job-file-worker
-          port: {{ .Values.fileWorkerConfig.access.port }}
+          port: 80
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
           dir: {{ .Values.fileWorkerConfig.downloadFile.dir }}
