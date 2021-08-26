@@ -446,6 +446,7 @@ gatewayConfig:
     pathType: ImplementationSpecific
     annotations:
       kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
     extraHosts: []
     tls: []
     extraTls: []
@@ -871,6 +872,7 @@ frontendConfig:
     path: "/"
     annotations:
       kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
     extraHosts: []
     tls: []
     extraTls: []
