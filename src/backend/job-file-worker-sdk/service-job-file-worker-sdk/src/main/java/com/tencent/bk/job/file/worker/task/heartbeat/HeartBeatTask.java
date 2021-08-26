@@ -80,8 +80,8 @@ public class HeartBeatTask {
         }
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
-        String nodeIP = System.getProperty("BK_JOB_NODE_IP");
-        log.debug("nodeIP={}", nodeIP);
+        String nodeIP = System.getProperty("job.node.ip");
+        log.info("nodeIP={}", nodeIP);
         if (StringUtils.isBlank(workerConfig.getInnerIp())) {
             if (!StringUtils.isBlank(nodeIP)) {
                 heartBeatReq.setInnerIp(nodeIP);
