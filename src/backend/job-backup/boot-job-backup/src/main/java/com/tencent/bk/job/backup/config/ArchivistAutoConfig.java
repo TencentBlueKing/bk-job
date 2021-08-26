@@ -47,12 +47,14 @@ public class ArchivistAutoConfig {
     @Bean(name = "execute-read-dao")
     @ConditionalOnExpression("${job.execute.archive.enabled:false} || ${job.execute.archive.delete.enabled:false}")
     public JobExecuteDAO executeReadDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
+        log.info("Init JobExecuteDAO");
         return new JobExecuteDAOImpl(context);
     }
 
     @Bean(name = "execute-archive-dao")
     @ConditionalOnExpression("${job.execute.archive.enabled:false}")
     public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+        log.info("Init ExecuteArchiveDAO");
         return new ExecuteArchiveDAOImpl(context);
     }
 
@@ -62,6 +64,7 @@ public class ArchivistAutoConfig {
                                                              @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
                                                              ArchiveProgressService archiveProgressService,
                                                              ArchiveConfig archiveConfig) {
+        log.info("Init JobExecuteArchiveManage");
         return new JobExecuteArchiveManage(jobExecuteDAO, executeArchiveDAO, archiveProgressService, archiveConfig);
     }
 }
