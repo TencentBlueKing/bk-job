@@ -87,7 +87,7 @@ data:
            concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
        flowControl:
          default:
-           limit: {{ .Values.cmdb.interface.default.limit }}
+           limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
          enable: {{ .Values.cmdb.interface.flowControl.enable }}
        retry:
          enable: {{ .Values.cmdb.interface.retry.enable }}
