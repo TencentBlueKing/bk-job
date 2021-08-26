@@ -67,20 +67,27 @@ public class HeartBeatTask {
     }
 
     private HeartBeatReq getWorkerInfo() {
-        String innerIp = IpUtils.getFirstMachineIP();
+        String podIp = IpUtils.getFirstMachineIP();
+        log.debug("podIp={}", podIp);
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setId(workerConfig.getId());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
         if (StringUtils.isBlank(workerConfig.getAccessHost())) {
-            heartBeatReq.setAccessHost(innerIp);
+            heartBeatReq.setAccessHost(podIp);
         } else {
             heartBeatReq.setAccessHost(workerConfig.getAccessHost());
         }
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
+        String nodeIP = System.getProperty("BK_JOB_NODE_IP");
+        log.debug("nodeIP={}", nodeIP);
         if (StringUtils.isBlank(workerConfig.getInnerIp())) {
-            heartBeatReq.setInnerIp(innerIp);
+            if (!StringUtils.isBlank(nodeIP)) {
+                heartBeatReq.setInnerIp(nodeIP);
+            } else {
+                heartBeatReq.setInnerIp(podIp);
+            }
         } else {
             heartBeatReq.setInnerIp(workerConfig.getInnerIp());
         }

@@ -69,6 +69,11 @@ spec:
               value: /data/logs/job/job-file-worker
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
               value: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
+            - name: BK_JOB_NODE_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+                  fieldPath: status.hostIP
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -113,6 +118,8 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
+            - name: workspace
+              mountPath: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
       volumes:
         - name: mariadb
           secret:
@@ -123,4 +130,6 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-
+        - name: workspace
+          hostPath:
+            path: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
