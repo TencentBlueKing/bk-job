@@ -19,7 +19,6 @@ ls $BK_JOB_LOG_BASE_DIR
 java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
-     -Djob.node.ip=$BK_JOB_NODE_IP \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \
      -XX:+UseGCLogFileRotation \
      -XX:NumberOfGCLogFiles=12 \

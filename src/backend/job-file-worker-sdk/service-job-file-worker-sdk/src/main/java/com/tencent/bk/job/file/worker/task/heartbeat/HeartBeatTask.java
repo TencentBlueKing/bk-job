@@ -71,6 +71,7 @@ public class HeartBeatTask {
         log.debug("podIp={}", podIp);
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setId(workerConfig.getId());
+        heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
         if (StringUtils.isBlank(workerConfig.getAccessHost())) {
@@ -80,7 +81,7 @@ public class HeartBeatTask {
         }
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
-        String nodeIP = System.getProperty("job.node.ip");
+        String nodeIP = System.getenv("BK_JOB_NODE_IP");
         log.info("nodeIP={}", nodeIP);
         if (StringUtils.isBlank(workerConfig.getInnerIp())) {
             if (!StringUtils.isBlank(nodeIP)) {

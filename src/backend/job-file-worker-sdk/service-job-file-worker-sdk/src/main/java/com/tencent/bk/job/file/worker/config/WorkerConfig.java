@@ -45,6 +45,9 @@ public class WorkerConfig {
     @Value("${job.file-worker.id:-1}")
     private Long id;
 
+    @Value("${job.file-worker.name:anon}")
+    private String name;
+
     @Value("${job.file-worker.token}")
     private String token;
 

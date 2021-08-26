@@ -38,6 +38,8 @@ import java.util.List;
 public class HeartBeatReq {
     @ApiModelProperty(value = "ID")
     Long id;
+    @ApiModelProperty(value = "名称")
+    String name;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
     @ApiModelProperty(value = "密钥", required = true)

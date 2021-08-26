@@ -151,6 +151,7 @@ public class FileWorkerDTO {
     public static FileWorkerDTO fromReq(HeartBeatReq heartBeatReq) {
         FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
         fileWorkerDTO.setId(heartBeatReq.getId());
+        fileWorkerDTO.setName(heartBeatReq.getName());
         fileWorkerDTO.setAppId(heartBeatReq.getAppId());
         fileWorkerDTO.setToken(heartBeatReq.getToken());
         fileWorkerDTO.setAccessHost(heartBeatReq.getAccessHost());
