@@ -85,8 +85,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          command: ["mkdir"]
-          args: ["-p","${BK_JOB_STORAGE_ROOT_PATH}"]
           ports:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
