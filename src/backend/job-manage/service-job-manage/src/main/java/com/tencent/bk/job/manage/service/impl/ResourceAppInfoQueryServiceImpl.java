@@ -67,13 +67,14 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
     public ResourceAppInfoQueryServiceImpl(ApplicationService applicationService, ScriptService scriptService,
                                            TaskTemplateService templateService, TaskPlanService planService,
                                            AccountService accountService, TagService tagService,
-                                           AuthService authService) {
+                                           AuthService authService, CredentialService credentialService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
         this.planService = planService;
         this.accountService = accountService;
         this.tagService = tagService;
+        this.credentialService = credentialService;
         authService.setResourceAppInfoQueryService(this);
     }
 
