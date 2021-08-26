@@ -358,12 +358,12 @@ nodeman:
 ## BlueKing Artifactory Config
 artifactory:
   enable: true
-  base-url: http://bkrepo.example.com
+  baseUrl: http://bkrepo.example.com
   job:
     username: job
     password: job
-    local-upload:
-      root-path: bkjob/localupload
+    localUpload:
+      rootPath: bkjob/localupload
 
 ## Swagger Doc
 swagger:

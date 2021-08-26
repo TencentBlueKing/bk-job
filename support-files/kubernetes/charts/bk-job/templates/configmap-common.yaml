@@ -101,11 +101,11 @@ data:
         url: {{ .Values.nodeman.server.url }}
     artifactory:
       enable: {{ .Values.artifactory.enable }}
-      base-url: {{ .Values.artifactory.base-url }}
+      base-url: {{ .Values.artifactory.baseUrl }}
       job:
         username: {{ .Values.artifactory.job.username }}
         password: {{ .Values.artifactory.job.password }}
         local-upload:
-          root-path: {{ .Values.artifactory.job.local-upload.root-path }}
+          root-path: {{ .Values.artifactory.job.localUpload.rootPath }}
     swagger:
       url: {{ .Values.swagger.url }}
