@@ -213,8 +213,8 @@ rabbitmq:
   loadDefinition:
     enabled: true
     existingSecret: job-rabbitmq-load-definition
-    extraConfiguration: |
-      management.load_definitions = /app/load_definition.json
+  extraConfiguration: |
+    management.load_definitions = /app/load_definition.json
 
 ## External RabbitMQ configuration
 ##
