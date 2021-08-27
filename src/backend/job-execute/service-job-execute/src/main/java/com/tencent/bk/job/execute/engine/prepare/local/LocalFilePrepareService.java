@@ -4,7 +4,6 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.execute.config.ArtifactoryConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,23 +20,21 @@ public class LocalFilePrepareService {
     private final StorageSystemConfig storageSystemConfig;
     private final ArtifactoryConfigForExecute artifactoryConfig;
     private final ArtifactoryClient artifactoryClient;
-    private final TaskInstanceService taskInstanceService;
     private final Map<Long, LocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
     public LocalFilePrepareService(
         StorageSystemConfig storageSystemConfig,
         ArtifactoryConfigForExecute artifactoryConfig,
-        ArtifactoryClient artifactoryClient,
-        TaskInstanceService taskInstanceService) {
+        ArtifactoryClient artifactoryClient
+    ) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.artifactoryClient = artifactoryClient;
-        this.taskInstanceService = taskInstanceService;
     }
 
     @PostConstruct
-    private void init(){
+    private void init() {
         LocalFilePrepareTask.init(artifactoryConfig.getDownloadConcurrency());
     }
 
@@ -64,7 +61,8 @@ public class LocalFilePrepareService {
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
             artifactoryClient,
-            artifactoryConfig.getJobLocalUploadRootPath(),
+            artifactoryConfig.getJobProject()
+                + "/" + artifactoryConfig.getJobLocalUploadRepo(),
             storageSystemConfig.getJobStorageRootPath()
         );
         taskMap.put(stepInstanceId, task);

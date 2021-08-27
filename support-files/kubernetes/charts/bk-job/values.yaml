@@ -359,11 +359,17 @@ nodeman:
 artifactory:
   enable: true
   baseUrl: http://bkrepo.example.com
+  download:
+    concurrency: 10
+  admin:
+    username: admin
+    password: blueking
   job:
-    username: job
-    password: job
-    localUpload:
-      rootPath: bkjob/localupload
+    username: bkjob
+    password: bkjob
+    project: bkjob
+    repo:
+      localUpload: localupload
 
 ## Swagger Doc
 swagger:

@@ -38,14 +38,17 @@ public class ArtifactoryConfigForExecute {
     @Value("${artifactory.base-url:}")
     private String baseUrl;
 
-    @Value("${artifactory.job.username:}")
+    @Value("${artifactory.job.username:bkjob}")
     private String jobUsername;
 
-    @Value("${artifactory.job.password:}")
+    @Value("${artifactory.job.password:bkjob}")
     private String jobPassword;
 
-    @Value("${artifactory.job.local-upload.root-path:bkjob/localupload}")
-    private String jobLocalUploadRootPath;
+    @Value("${artifactory.job.project:bkjob}")
+    private String jobProject;
+
+    @Value("${artifactory.job.repo.local-upload:localupload}")
+    private String jobLocalUploadRepo;
 
     @Value("${artifactory.download.concurrency:10}")
     private Integer downloadConcurrency;

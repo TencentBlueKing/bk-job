@@ -102,10 +102,16 @@ data:
     artifactory:
       enable: {{ .Values.artifactory.enable }}
       base-url: {{ .Values.artifactory.baseUrl }}
+      download:
+        concurrency: {{ .Values.artifactory.download.concurrency }}
+      admin:
+        username: {{ .Values.artifactory.admin.username }}
+        password: {{ .Values.artifactory.admin.password }}
       job:
         username: {{ .Values.artifactory.job.username }}
         password: {{ .Values.artifactory.job.password }}
-        local-upload:
-          root-path: {{ .Values.artifactory.job.localUpload.rootPath }}
+        project: {{ .Values.artifactory.job.project }}
+        repo:
+          local-upload: {{ .Values.artifactory.job.repo.localUpload }}
     swagger:
       url: {{ .Values.swagger.url }}

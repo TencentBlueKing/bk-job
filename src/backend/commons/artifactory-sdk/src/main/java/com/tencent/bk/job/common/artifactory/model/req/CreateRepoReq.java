@@ -22,37 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.artifactory.model.req;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Data
-@Component
-public class ArtifactoryConfigForManage {
-
-    @Value("${artifactory.enable:false}")
-    private boolean enable;
-
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String adminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String adminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
-
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
+public class CreateRepoReq extends ArtifactoryReq {
+    // 必传，项目名
+    String projectId;
+    // 必传，仓库名称
+    String name;
+    // 必传，仓库类型
+    String type = "GENERIC";
+    // 非必传，仓库类别
+    String category = "COMPOSITE";
+    // 非必传，仓库类型
+    @JsonProperty("public")
+    boolean publicFlag = false;
+    // 非必传，仓库描述
+    String description;
+    // 非必传，仓库配置，暂未用到，需要时参考源接口文档
+    Object configuration = null;
+    // 非必传，存储凭证key，暂未用到
+    Object storageCredentialsKey = null;
+    // 非必传，仓库配额，暂未用到
+    Object quota = null;
 }

@@ -60,11 +60,17 @@ job:
 artifactory:
   enable: true
   base-url: __BK_REPO_PUBLIC_URL__
+  download:
+    concurrency: 10
+  admin:
+    username: __BK_REPO_ADMIN_USERNAME__
+    password: __BK_REPO_ADMIN_PASSWORD__
   job:
     username: __BK_REPO_JOB_USERNAME__
     password: __BK_REPO_JOB_PASSWORD__
-    local-upload:
-      root-path: __BK_REPO_JOB_PROJECT__/localupload
+    project: __BK_REPO_JOB_PROJECT__
+    repo:
+      local-upload: localupload
 # cmdb 配置
 cmdb:
   app:

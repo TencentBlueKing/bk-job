@@ -22,37 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Data
-@Component
-public class ArtifactoryConfigForManage {
-
-    @Value("${artifactory.enable:false}")
-    private boolean enable;
-
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String adminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String adminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
-
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
+public class CreateProjectReq extends ArtifactoryReq {
+    // 必传，项目名
+    String name;
+    // 必传，项目显示名称
+    String displayName;
+    // 必传，项目描述
+    String description;
 }

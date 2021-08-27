@@ -22,37 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Data
-@Component
-public class ArtifactoryConfigForManage {
-
-    @Value("${artifactory.enable:false}")
-    private boolean enable;
-
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String adminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String adminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
-
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
+public class CreateUserToProjectReq extends ArtifactoryReq {
+    // 必传，用户名
+    String name;
+    // 必传，用户密码
+    String pwd;
+    // 必传，用户Id
+    String userId;
+    // 必传，关联到的项目Id
+    String projectId;
+    // 非必传，是否管理员
+    boolean admin = true;
+    // 非必传，是否群组账号
+    boolean group = false;
+    // 非必传，关联用户
+    List<String> asstUsers = null;
 }

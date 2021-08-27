@@ -32,8 +32,13 @@ import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
+import com.tencent.bk.job.common.artifactory.model.dto.UserDetail;
 import com.tencent.bk.job.common.artifactory.model.req.ArtifactoryReq;
+import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
+import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
+import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateTempUrlReq;
+import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.DeleteNodeReq;
 import com.tencent.bk.job.common.artifactory.model.req.DeleteRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.DownloadGenericFileReq;
@@ -42,6 +47,7 @@ import com.tencent.bk.job.common.artifactory.model.req.ListProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.ListRepoPageReq;
 import com.tencent.bk.job.common.artifactory.model.req.QueryNodeDetailReq;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
+import com.tencent.bk.job.common.artifactory.model.req.UserDetailReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -84,6 +90,12 @@ public class ArtifactoryClient {
     public static final String URL_UPLOAD_GENERIC_FILE = "/generic/{project}/{repo}/{path}";
     public static final String URL_QUERY_NODE_DETAIL = "/repository/api/node/detail/{projectId}/{repoName}/{fullPath}";
     public static final String URL_CREATE_TEMP_ACCESS_URL = "/generic/temporary/url/create";
+    public static final String URL_CREATE_USER = "/auth/api/user/create";
+    public static final String URL_CREATE_USER_TO_PROJECT = "/auth/api/user/create/project";
+    public static final String URL_USER_DETAIL = "/auth/api/user/detail/{userId}";
+    public static final String URL_CREATE_PROJECT = "/repository/api/project/create";
+    public static final String URL_CREATE_REPO = "/repository/api/repo/create";
+    public static final String URL_CHECK_REPO_EXIST = "/repository/api/repo/exist/{projectId}/{repoName}";
     AbstractHttpHelper httpHelper = new DefaultHttpHelper();
     AbstractHttpHelper longHttpHelper = new LongRetryableHttpHelper();
     private String baseUrl;
@@ -398,6 +410,66 @@ public class ArtifactoryClient {
             URL_CREATE_TEMP_ACCESS_URL,
             req,
             new TypeReference<ArtifactoryResp<List<TempUrlInfo>>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
+    }
+
+    public UserDetail userDetail(UserDetailReq req) {
+        ArtifactoryResp<UserDetail> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_USER_DETAIL,
+            req,
+            new TypeReference<ArtifactoryResp<UserDetail>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
+    }
+
+    public boolean createProject(CreateProjectReq req) {
+        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_CREATE_PROJECT,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
+    }
+
+    public boolean checkRepoExist(CheckRepoExistReq req) {
+        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_CHECK_REPO_EXIST,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
+    }
+
+    public boolean createRepo(CreateRepoReq req) {
+        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_CREATE_REPO,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
+        );
+        return resp.getData();
+    }
+
+    public boolean createUserToProject(CreateUserToProjectReq req) {
+        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+            HttpPost.METHOD_NAME,
+            URL_CREATE_USER_TO_PROJECT,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
             },
             httpHelper
         );
