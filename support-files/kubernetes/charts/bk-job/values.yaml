@@ -312,7 +312,7 @@ gse:
 
 ## BlueKing IAM Config
 iam:
-  baseUrl: "http://bkiam.service.consul:5001"
+  baseUrl: "http://bkiam-web"
   ## The system ID of Job in the IAM. Fixed Value
   systemId: bk_job
 
@@ -325,7 +325,7 @@ license:
 ## BlueKing PaaS Config
 paas:
   login:
-    url: "http://paas.com/login"
+    url: "http://paas.example.com/login"
 
 ## BlueKing CMDB Config
 cmdb:
@@ -447,7 +447,7 @@ gatewayConfig:
       http: 80
   ingress:
     enabled: true
-    hostname: "api.bk-job.com"
+    hostname: "api.job.example.com"
     path: "/"
     pathType: ImplementationSpecific
     annotations:
@@ -866,14 +866,14 @@ frontendConfig:
     port: 80
   web:
     scheme: "http"
-    domain: "bk-job.com"
+    domain: "job.example.com"
   backend:
     apiGateway:
       scheme: "http"
-      domain: "api.bk-job.com"
+      domain: "api.job.example.com"
   ingress:
     enabled: true
-    hostname: "bk-job.com"
+    hostname: "job.example.com"
     pathType: ImplementationSpecific
     path: "/"
     annotations:
