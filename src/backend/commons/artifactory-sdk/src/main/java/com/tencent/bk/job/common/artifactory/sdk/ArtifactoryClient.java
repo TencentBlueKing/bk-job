@@ -418,7 +418,7 @@ public class ArtifactoryClient {
 
     public UserDetail userDetail(UserDetailReq req) {
         ArtifactoryResp<UserDetail> resp = getArtifactoryRespByReq(
-            HttpPost.METHOD_NAME,
+            HttpGet.METHOD_NAME,
             URL_USER_DETAIL,
             req,
             new TypeReference<ArtifactoryResp<UserDetail>>() {
@@ -429,20 +429,21 @@ public class ArtifactoryClient {
     }
 
     public boolean createProject(CreateProjectReq req) {
-        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+        ArtifactoryResp<Object> resp = getArtifactoryRespByReq(
             HttpPost.METHOD_NAME,
             URL_CREATE_PROJECT,
             req,
-            new TypeReference<ArtifactoryResp<Boolean>>() {
+            new TypeReference<ArtifactoryResp<Object>>() {
             },
             httpHelper
         );
-        return resp.getData();
+        // 该接口正常创建情况下data字段返回也为null，用code判断
+        return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
     }
 
     public boolean checkRepoExist(CheckRepoExistReq req) {
         ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
-            HttpPost.METHOD_NAME,
+            HttpGet.METHOD_NAME,
             URL_CHECK_REPO_EXIST,
             req,
             new TypeReference<ArtifactoryResp<Boolean>>() {

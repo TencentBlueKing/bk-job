@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.common.artifactory.model.req;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateUserToProjectReq extends ArtifactoryReq {
     // 必传，用户名
     String name;
