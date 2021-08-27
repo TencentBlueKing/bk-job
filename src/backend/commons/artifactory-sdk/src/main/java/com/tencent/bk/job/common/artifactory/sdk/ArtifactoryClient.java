@@ -462,7 +462,8 @@ public class ArtifactoryClient {
             },
             httpHelper
         );
-        return resp.getData();
+        // 该接口正常创建情况下data字段返回也为null，用code判断
+        return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
     }
 
     public boolean createUserToProject(CreateUserToProjectReq req) {
