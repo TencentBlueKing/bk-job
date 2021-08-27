@@ -2,12 +2,10 @@ package com.tencent.bk.job.manage.runner;
 
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
-import com.tencent.bk.job.common.artifactory.model.dto.UserDetail;
 import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
-import com.tencent.bk.job.common.artifactory.model.req.UserDetailReq;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.manage.config.ArtifactoryConfigForManage;
 import lombok.extern.slf4j.Slf4j;
@@ -141,23 +139,11 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
         return projectCreated;
     }
 
-    private boolean checkUserExist(ArtifactoryClient adminClient, String userId) {
-        UserDetailReq req = new UserDetailReq();
-        req.setUserId(userId);
-        UserDetail userDetail = null;
-        try {
-            userDetail = adminClient.userDetail(req);
-        } catch (Exception ignore) {
-        }
-        return userDetail != null;
-    }
-
     private boolean createUserToProjectIfNotExist(ArtifactoryClient adminClient, CreateUserToProjectReq req) {
         boolean projectUserCreated = false;
         int retryCount = 0;
         do {
             try {
-                if (checkUserExist(adminClient, req.getUserId())) return true;
                 projectUserCreated = adminClient.createUserToProject(req);
             } catch (Exception e) {
                 log.warn(
