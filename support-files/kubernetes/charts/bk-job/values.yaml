@@ -245,6 +245,8 @@ mongodb:
   # Whether to deploy mongodb
   # If you need to use an external database, set it to false and configure externalMongoDB
   enabled: true
+  architecture: "standalone"
+  useStatefulSet: true
   auth:
     rootPassword: job
     enabled: true
