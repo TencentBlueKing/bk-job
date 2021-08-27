@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "app": {
+      "type": "object",
+      "title": "ESB访问配置",
+      "description": "ESB访问app_code/app_secret配置",
+      "form": true,
+      "properties": {
+        "code": {
+          "type": "string",
+          "title": "app_code",
+          "form": true
+        },
+        "secret": {
+          "type": "string",
+          "title": "app_secret",
+          "form": true
+        }
+      }
+    },
+    "gse": {
+      "type": "object",
+      "title": "GSE访问配置",
+      "description": "GSE访问keystore/truststore配置",
+      "properties": {
+        "ssl": {
+          "type": "object",
+          "properties": {
+            "keystore": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "title": "keystore密码",
+                  "form": true
+                }
+              }
+            },
+            "truststore": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "title": "truststore密码",
+                  "form": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "iam": {
+      "type": "object",
+      "title": "权限中心访问配置",
+      "description": "权限中心访问地址配置",
+      "form": true,
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "title": "根地址",
+          "form": true
+        }
+      }
+    },
+    "paas": {
+      "type": "object",
+      "title": "PaaS平台访问配置",
+      "description": "登录地址",
+      "form": true,
+      "properties": {
+        "login": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "title": "PaaS登录地址",
+              "form": true
+            }
+          }
+        }
+      }
+    },
+    "job": {
+      "type": "object",
+      "properties": {
+        "security": {
+          "type": "object",
+          "properties": {
+            "privateKeyBase64": {
+              "type": "string",
+              "title": "base64编码后的服务间调用私钥",
+              "form": true
+            },
+            "publicKeyBase64": {
+              "type": "string",
+              "title": "base64编码后的服务间调用公钥",
+              "form": true
+            }
+          }
+        },
+        "encrypt": {
+          "type": "object",
+          "properties": {
+            "password": {
+              "type": "string",
+              "title": "用于加密用户凭据与DB账号密码的密钥",
+              "form": true
+            }
+          }
+        }
+      }
+    },
+    "artifactory": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "title": "蓝鲸制品库访问地址",
+          "form": true
+        }
+      }
+    },
+    "gatewayConfig": {
+      "type": "object",
+      "properties": {
+        "loginExemption": {
+          "type": "object",
+          "properties": {
+            "enable": {
+              "type": "boolean",
+              "title": "是否开启登录豁免",
+              "form": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

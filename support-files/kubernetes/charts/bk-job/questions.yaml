@@ -2,26 +2,39 @@ questions:
   - variable: paas.login.url
     label: "对接的蓝鲸PaaS登录地址"
     type: string
-    default: "http://paas.com/login"
+    default: "http://paas.example.com/login"
     description: "对接的蓝鲸PaaS登录地址"
     group: "蓝鲸公共组件配置"
-  - variable: gse.ssl.keystore.path
-    label: "GSE SSL KeyStore 路径"
+  - variable: app.code
+    label: "app_code"
     type: string
-    default: "/data/job/cert/gse_job_api_client.keystore"
-    description: "GSE SSL KeyStore 路径"
-    group: "GSE安全凭据配置"
+    default: "bk_job"
+    description: "调用ESB接口使用的app_code"
+    group: "蓝鲸公共组件配置"
+  - variable: app.secret
+    label: "调用ESB接口使用的app_secret"
+    type: string
+    default: ""
+    description: "调用ESB接口使用的app_secret"
+    group: "蓝鲸公共组件配置"
+  - variable: iam.baseUrl
+    label: "对接的蓝鲸权限中心地址"
+    type: string
+    default: "http://bkiam.example.com"
+    description: "对接的蓝鲸权限中心地址"
+    group: "蓝鲸公共组件配置"
+  - variable: artifactory.baseUrl
+    label: "对接的蓝鲸制品库地址"
+    type: string
+    default: "http://bkrepo.example.com"
+    description: "对接的蓝鲸制品库地址"
+    group: "蓝鲸公共组件配置"
+
   - variable: gse.ssl.keystore.password
     label: "GSE SSL KeyStore 密码"
     type: string
     default: ""
     description: "GSE SSL KeyStore 密码"
-    group: "GSE安全凭据配置"
-  - variable: gse.ssl.truststore.path
-    label: "GSE SSL TrustStore 路径"
-    type: string
-    default: ""
-    description: "GSE SSL TrustStore 路径"
     group: "GSE安全凭据配置"
   - variable: gse.ssl.truststore.password
     label: "GSE SSL TrustStore 密码"
@@ -29,6 +42,14 @@ questions:
     default: "/data/job/cert/gse_job_api_client.truststore"
     description: "GSE SSL TrustStore 密码"
     group: "GSE安全凭据配置"
+
+  - variable: gatewayConfig.loginExemption.enable
+    label: "是否开启登录豁免"
+    type: boolean
+    default: false
+    description: "是否开启登录豁免（默认使用admin身份）"
+    group: "Job登录配置"
+
   - variable: job.security.privateKeyBase64
     label: "Job服务间通信密钥-私钥的Base64串"
     type: string
