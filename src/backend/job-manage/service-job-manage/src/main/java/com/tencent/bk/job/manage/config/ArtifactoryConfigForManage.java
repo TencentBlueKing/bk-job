@@ -55,4 +55,8 @@ public class ArtifactoryConfigForManage {
 
     @Value("${artifactory.job.repo.local-upload:localupload}")
     private String jobLocalUploadRepo;
+
+    public String getJobLocalUploadRootPath() {
+        return jobProject + "/" + jobLocalUploadRepo;
+    }
 }
