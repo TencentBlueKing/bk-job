@@ -35,3 +35,9 @@ done
 for sql in "${ALL_SQL[@]}"; do
   mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD < $sql
 done
+
+echo "begin to migrate iam model"
+ALL_IAM_MODEL=($(echo ./bkiam/*.json))
+for iam_model in "${ALL_IAM_MODEL[@]}"; do
+  python ./bkiam/do_migrate.py -t $BK_IAM_URL -a $BK_JOB_APP_CODE -s $BK_JOB_APP_SECRET -f  $iam_model
+done

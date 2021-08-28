@@ -166,6 +166,8 @@ build_frontend_module () {
 # Build frontend image
     log "Building frontend image..."
     cd $FRONTEND_DIR || exit 1
+    export JOB_VERSION=$VERSION
+    echo "JOB_VERSION=${JOB_VERSION}"
     npm i
     npm run build
     cd $WORKING_DIR || exit 1
@@ -215,6 +217,7 @@ build_migration_image(){
     log "Building migration image, version: ${VERSION}..."
     rm -rf tmp/*
     cp migration/startup.sh tmp/
+    cp -r $SUPPORT_FILES_DIR/bkiam tmp/
     cp -r $SUPPORT_FILES_DIR/sql tmp/
     docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp --network=host
     if [[ $PUSH -eq 1 ]] ; then
