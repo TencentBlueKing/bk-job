@@ -22,6 +22,7 @@ spec:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-migration"
     spec:
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       initContainers:
         - name: wait-mariadb
           image: busybox:1.28
