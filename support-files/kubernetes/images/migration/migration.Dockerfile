@@ -8,6 +8,9 @@ ENV BK_JOB_HOME=/data/job \
 COPY ./ /data/job/
 
 RUN yum -y install mysql
+RUN yum install -y epel-release
+RUN yum install -y python-pip
+RUN pip install requests
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
