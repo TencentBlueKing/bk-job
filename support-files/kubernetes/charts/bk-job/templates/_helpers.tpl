@@ -156,7 +156,7 @@ Return the MariaDB secret name
 {{- else if .Values.mariadb.enabled }}
     {{- printf "%s" (include "job.mariadb.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s-%s" (include "job.fullname" .) "externalMariaDB" -}}
+    {{- printf "%s-%s" (include "job.fullname" .) "external-mariadb" -}}
 {{- end -}}
 {{- end -}}
 
@@ -200,7 +200,7 @@ Return the Redis secret name
 {{- else if .Values.redis.enabled }}
     {{- printf "%s" (include "job.redis.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s-%s" (include "job.fullname" .) "externalRedis" -}}
+    {{- printf "%s-%s" (include "job.fullname" .) "external-redis" -}}
 {{- end -}}
 {{- end -}}
 
@@ -260,7 +260,7 @@ Return the RabbitMQ secret name
 {{- else if .Values.rabbitmq.enabled }}
     {{- printf "%s" (include "job.rabbitmq.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s-%s" (include "job.fullname" .) "externalRabbitMQ" -}}
+    {{- printf "%s-%s" (include "job.fullname" .) "external-rabbitmq" -}}
 {{- end -}}
 {{- end -}}
 
@@ -336,7 +336,7 @@ Return the MongoDB secret name
 {{- else if .Values.mongodb.enabled }}
     {{- printf "%s" (include "job.mongodb.fullname" .) -}}
 {{- else -}}
-    {{- printf "%s-%s" (include "job.fullname" .) "externalMongoDB" -}}
+    {{- printf "%s-%s" (include "job.fullname" .) "external-mongodb" -}}
 {{- end -}}
 {{- end -}}
 
