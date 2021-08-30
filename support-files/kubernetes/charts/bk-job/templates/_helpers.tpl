@@ -271,7 +271,7 @@ Return the RabbitMQ vhost
 {{- if .Values.rabbitmq.enabled }}
     {{- printf "job" -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalRabbitMQ.vhost -}}
+    {{- default "job" (printf "%s" .Values.externalRabbitMQ.vhost) -}}
 {{- end -}}
 {{- end -}}
 
