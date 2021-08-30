@@ -258,7 +258,7 @@ Return the RabbitMQ secret name
 {{- if .Values.externalRabbitMQ.existingPasswordSecret -}}
     {{- printf "%s" .Values.externalRabbitMQ.existingPasswordSecret -}}
 {{- else if .Values.rabbitmq.enabled }}
-    {{- printf "%s" (include "job.rabbitmq.fullname" .) -}}
+    {{- printf "%s-%s" (include "job.rabbitmq.fullname" .) "extra" -}}
 {{- else -}}
     {{- printf "%s-%s" (include "job.fullname" .) "external-rabbitmq" -}}
 {{- end -}}
