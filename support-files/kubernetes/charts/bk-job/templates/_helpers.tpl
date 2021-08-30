@@ -268,11 +268,7 @@ Return the RabbitMQ secret name
 Return the RabbitMQ vhost
 */}}
 {{- define "job.rabbitmq.vhost" -}}
-{{- if .Values.rabbitmq.enabled }}
     {{- printf "job" -}}
-{{- else -}}
-    {{- default "job" (printf "%s" .Values.externalRabbitMQ.vhost) -}}
-{{- end -}}
 {{- end -}}
 
 {{/*
