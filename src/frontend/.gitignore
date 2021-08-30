@@ -77,5 +77,6 @@ test/unit/coverage
 *.sln
 dist
 *.local
+.history
 
 !build
