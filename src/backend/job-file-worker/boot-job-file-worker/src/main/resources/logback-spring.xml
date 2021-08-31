@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
     <property name="LOG_PATTERN"
-              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{X-B3-TraceId}|%X{X-B3-SpanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{traceId}|%X{spanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
     <property name="BK_LOG_DIR_FILE_WORKER" value="${BK_LOG_DIR}/${job.file.worker.instance-name:-job-file-worker}"/>
     <property name="FILE_WORKER_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/worker.log"/>
