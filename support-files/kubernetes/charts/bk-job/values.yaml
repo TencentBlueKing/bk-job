@@ -284,8 +284,7 @@ esb:
   service:
     ## ESB Service URL
     url: "http://paas.example.com"
-  publicKeyBase64: ""
-  
+
 ## BlueKing GSE Config
 gse:
   cacheApiServer:
@@ -322,7 +321,7 @@ iam:
 license:
   file: /data/job/cert/platform.cert
   service:
-    url: ""
+    url: "http://license.example.com"
 
 ## BlueKing PaaS Config
 paas:
