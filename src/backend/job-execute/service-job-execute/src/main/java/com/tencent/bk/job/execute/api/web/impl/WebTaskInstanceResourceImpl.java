@@ -460,6 +460,11 @@ public class WebTaskInstanceResourceImpl extends AbstractJobController implement
         if (taskInstance == null) {
             return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
         }
+        AuthResultVO authResultVO = webAuthService.auth(true, username, ActionId.LIST_BUSINESS,
+            ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildSuccessResp(null);
+        }
         return ServiceResponse.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
             i18nService));
     }
