@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.engine.prepare.local;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.execute.config.ArtifactoryConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ public class LocalFilePrepareService {
     private final StorageSystemConfig storageSystemConfig;
     private final ArtifactoryConfigForExecute artifactoryConfig;
     private final ArtifactoryClient artifactoryClient;
-    private final Map<Long, LocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
+    private final Map<Long, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
     public LocalFilePrepareService(
@@ -35,13 +36,13 @@ public class LocalFilePrepareService {
 
     @PostConstruct
     private void init() {
-        LocalFilePrepareTask.init(artifactoryConfig.getDownloadConcurrency());
+        ArtifactoryLocalFilePrepareTask.init(artifactoryConfig.getDownloadConcurrency());
     }
 
     public void stopPrepareLocalFilesAsync(
         long stepInstanceId
     ) {
-        LocalFilePrepareTask task = taskMap.get(stepInstanceId);
+        ArtifactoryLocalFilePrepareTask task = taskMap.get(stepInstanceId);
         if (task != null) {
             task.stop();
         }
@@ -54,9 +55,10 @@ public class LocalFilePrepareService {
     ) {
         if (!artifactoryConfig.isEnable()) {
             log.info("artifactory is not enable, not need to prepare local file");
+            resultHandler.onSuccess(new NFSLocalFilePrepareTask(false));
             return;
         }
-        LocalFilePrepareTask task = new LocalFilePrepareTask(
+        ArtifactoryLocalFilePrepareTask task = new ArtifactoryLocalFilePrepareTask(
             false,
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
@@ -83,21 +85,21 @@ public class LocalFilePrepareService {
         }
 
         @Override
-        public void onSuccess(LocalFilePrepareTask prepareTask) {
+        public void onSuccess(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onSuccess(prepareTask);
+            resultHandler.onSuccess(taskContext);
         }
 
         @Override
-        public void onStopped(LocalFilePrepareTask prepareTask) {
+        public void onStopped(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onStopped(prepareTask);
+            resultHandler.onStopped(taskContext);
         }
 
         @Override
-        public void onFailed(LocalFilePrepareTask prepareTask) {
+        public void onFailed(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onFailed(prepareTask);
+            resultHandler.onFailed(taskContext);
         }
     }
 }

@@ -1,12 +1,14 @@
 package com.tencent.bk.job.execute.engine.prepare.local;
 
 
+import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
+
 public interface LocalFilePrepareTaskResultHandler {
 
-    void onSuccess(LocalFilePrepareTask prepareTask);
+    void onSuccess(JobTaskContext taskContext);
 
-    void onStopped(LocalFilePrepareTask prepareTask);
+    void onStopped(JobTaskContext taskContext);
 
-    void onFailed(LocalFilePrepareTask prepareTask);
+    void onFailed(JobTaskContext taskContext);
 
 }

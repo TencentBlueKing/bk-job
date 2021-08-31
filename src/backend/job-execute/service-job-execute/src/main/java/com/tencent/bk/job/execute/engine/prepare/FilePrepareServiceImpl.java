@@ -27,10 +27,8 @@ package com.tencent.bk.job.execute.engine.prepare;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
-import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTask;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
-import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareTask;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -131,23 +129,23 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                 fileSourceList,
                 new LocalFilePrepareTaskResultHandler() {
                     @Override
-                    public void onSuccess(LocalFilePrepareTask prepareTask) {
+                    public void onSuccess(JobTaskContext taskContext) {
                         log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
                         latch.countDown();
                     }
 
                     @Override
-                    public void onStopped(LocalFilePrepareTask prepareTask) {
+                    public void onStopped(JobTaskContext taskContext) {
                         log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
                         latch.countDown();
                     }
 
                     @Override
-                    public void onFailed(LocalFilePrepareTask prepareTask) {
+                    public void onFailed(JobTaskContext taskContext) {
                         log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
                         latch.countDown();
                     }
                 });
@@ -159,23 +157,23 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                 new ThirdFilePrepareTaskResultHandler() {
 
                     @Override
-                    public void onSuccess(ThirdFilePrepareTask prepareTask) {
+                    public void onSuccess(JobTaskContext taskContext) {
                         log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
                         latch.countDown();
                     }
 
                     @Override
-                    public void onStopped(ThirdFilePrepareTask prepareTask) {
+                    public void onStopped(JobTaskContext taskContext) {
                         log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
                         latch.countDown();
                     }
 
                     @Override
-                    public void onFailed(ThirdFilePrepareTask prepareTask) {
+                    public void onFailed(JobTaskContext taskContext) {
                         log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, prepareTask));
+                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
                         latch.countDown();
                     }
                 }

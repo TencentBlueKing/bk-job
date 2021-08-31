@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -324,21 +325,21 @@ public class ThirdFilePrepareService {
         }
 
         @Override
-        public void onSuccess(ThirdFilePrepareTask prepareTask) {
+        public void onSuccess(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onSuccess(prepareTask);
+            resultHandler.onSuccess(taskContext);
         }
 
         @Override
-        public void onStopped(ThirdFilePrepareTask prepareTask) {
+        public void onStopped(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onStopped(prepareTask);
+            resultHandler.onStopped(taskContext);
         }
 
         @Override
-        public void onFailed(ThirdFilePrepareTask prepareTask) {
+        public void onFailed(JobTaskContext taskContext) {
             taskMap.remove(stepInstanceId);
-            resultHandler.onFailed(prepareTask);
+            resultHandler.onFailed(taskContext);
         }
     }
 }

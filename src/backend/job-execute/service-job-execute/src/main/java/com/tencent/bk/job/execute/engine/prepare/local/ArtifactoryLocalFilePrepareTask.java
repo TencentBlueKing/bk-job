@@ -33,7 +33,6 @@ import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 本地文件下载进度拉取任务调度
  */
 @Slf4j
-public class LocalFilePrepareTask implements JobTaskContext {
+public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
 
     private final boolean isForRetry;
     private final List<FileSourceDTO> fileSourceList;
@@ -91,7 +90,7 @@ public class LocalFilePrepareTask implements JobTaskContext {
         }
     }
 
-    public LocalFilePrepareTask(
+    public ArtifactoryLocalFilePrepareTask(
         boolean isForRetry,
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler,
@@ -155,16 +154,16 @@ public class LocalFilePrepareTask implements JobTaskContext {
 
     class FinalResultHandler extends Thread {
 
-        LocalFilePrepareTask localFilePrepareTask;
+        ArtifactoryLocalFilePrepareTask artifactoryLocalFilePrepareTask;
         List<Future<Void>> futureList;
         LocalFilePrepareTaskResultHandler resultHandler;
 
         public FinalResultHandler(
-            LocalFilePrepareTask localFilePrepareTask,
+            ArtifactoryLocalFilePrepareTask artifactoryLocalFilePrepareTask,
             List<Future<Void>> futureList,
             LocalFilePrepareTaskResultHandler resultHandler
         ) {
-            this.localFilePrepareTask = localFilePrepareTask;
+            this.artifactoryLocalFilePrepareTask = artifactoryLocalFilePrepareTask;
             this.futureList = futureList;
             this.resultHandler = resultHandler;
         }
@@ -176,20 +175,20 @@ public class LocalFilePrepareTask implements JobTaskContext {
                     future.get(30, TimeUnit.MINUTES);
                 } catch (InterruptedException e) {
                     log.info("task stopped");
-                    resultHandler.onStopped(localFilePrepareTask);
+                    resultHandler.onStopped(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (ExecutionException e) {
                     log.info("task download failed");
-                    resultHandler.onFailed(localFilePrepareTask);
+                    resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (TimeoutException e) {
                     log.info("task download timeout");
-                    resultHandler.onFailed(localFilePrepareTask);
+                    resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 }
             }
             log.info("all task success");
-            resultHandler.onSuccess(localFilePrepareTask);
+            resultHandler.onSuccess(artifactoryLocalFilePrepareTask);
         }
     }
 
