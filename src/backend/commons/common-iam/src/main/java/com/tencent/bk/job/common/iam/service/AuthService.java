@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
+import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.List;
 
@@ -184,4 +185,12 @@ public interface AuthService {
      * @return 是否注册成功
      */
     boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors);
+
+    /**
+     * 根据方法调用参数鉴业务访问权限
+     * @param pjp 执行切点
+     * @return
+     * @throws Throwable
+     */
+    Object execAfterAuthAppInMethodParams(ProceedingJoinPoint pjp) throws Throwable;
 }

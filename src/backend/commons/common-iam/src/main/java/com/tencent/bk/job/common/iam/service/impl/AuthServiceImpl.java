@@ -58,6 +58,10 @@ import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -525,6 +529,42 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors) {
         return iamClient.registerResource(id, name, type, creator, ancestors);
+    }
+
+
+    private Pair<String, Long> findUserAndAppIdFromArgs(ProceedingJoinPoint pjp) {
+        Signature sig = pjp.getSignature();
+        MethodSignature msig = (MethodSignature) sig;
+        String[] parameterNames = msig.getParameterNames();
+        String username = null;
+        Long appId = null;
+        for (int i = 0; i < parameterNames.length; i++) {
+            if ("username".equals(parameterNames[i])) {
+                username = (String) pjp.getArgs()[i];
+            } else if ("appId".equals(parameterNames[i])) {
+                appId = (Long) pjp.getArgs()[i];
+            }
+            if (username != null && appId != null) {
+                return Pair.of(username, appId);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object execAfterAuthAppInMethodParams(ProceedingJoinPoint pjp) throws Throwable {
+        Pair<String, Long> userAppIdPair = findUserAndAppIdFromArgs(pjp);
+        if (userAppIdPair != null) {
+            String username = userAppIdPair.getLeft();
+            Long appId = userAppIdPair.getRight();
+            log.info("auth {} access_business {}", username, appId);
+            AuthResult authResult = auth(true, username, ActionId.LIST_BUSINESS,
+                ResourceTypeEnum.BUSINESS, appId.toString(), null);
+            if (!authResult.isPass()) {
+                throw new InSufficientPermissionException(authResult);
+            }
+        }
+        return pjp.proceed();
     }
 
     private InstanceDTO buildInstance(ResourceTypeEnum resourceType, String resourceId, PathInfoDTO path) {
