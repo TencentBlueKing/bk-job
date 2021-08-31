@@ -11,6 +11,10 @@ spring:
       discovery:
         enabled: false
       enabled: false
-
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: job
+    database: 0
 server:
   port: 19803

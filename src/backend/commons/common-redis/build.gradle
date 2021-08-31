@@ -26,6 +26,7 @@ dependencies {
     api project(':commons:common-utils')
     api project(':commons:common')
     api 'org.springframework.boot:spring-boot-starter-data-redis'
+    api 'org.springframework.data:spring-data-redis'
     api 'org.springframework.boot:spring-boot-configuration-processor'
     api 'org.apache.commons:commons-pool2'
 }

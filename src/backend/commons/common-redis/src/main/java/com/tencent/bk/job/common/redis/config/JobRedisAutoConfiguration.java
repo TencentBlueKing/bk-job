@@ -22,25 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.common.redis.config;
 
-import com.tencent.bk.job.common.redis.util.RedisUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
-@Configuration
-public class RedisConfig {
+@AutoConfigureAfter(RedisAutoConfiguration.class)
+@Import({RedisAutoConfiguration.class})
+public class JobRedisAutoConfiguration {
 
-    //还是使用springboot默认配置的RedisConnectionFactory
-    @Autowired
-    private RedisConnectionFactory redisConnectionFactory;
+    @Bean("jsonRedisTemplate")
+    @Primary
+    public RedisTemplate<Object, Object> jsonRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
 
-    @Bean
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public RedisTemplate<Object, Object> redisTemplate() {
-        return RedisUtil.getJacksonRedisTplByConnFactory(redisConnectionFactory);
+        RedisSerializer<Object> jsonRedisSerializer = RedisSerializer.json();
+        RedisSerializer<String> stringRedisSerializer = RedisSerializer.string();
+        redisTemplate.setKeySerializer(stringRedisSerializer);
+        redisTemplate.setValueSerializer(jsonRedisSerializer);
+        redisTemplate.setHashKeySerializer(stringRedisSerializer);
+        redisTemplate.setHashValueSerializer(jsonRedisSerializer);
+        redisTemplate.setEnableDefaultSerializer(true);
+        redisTemplate.setDefaultSerializer(jsonRedisSerializer);
+
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
     }
 }

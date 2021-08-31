@@ -17,6 +17,11 @@ spring:
       idle-timeout: 600000
       poolName: "job-execute"
       validationTimeout: 5000
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: job
+    database: 0
   cloud:
     config:
       enabled: false

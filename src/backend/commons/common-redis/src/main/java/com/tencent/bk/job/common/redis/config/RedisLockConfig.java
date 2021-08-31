@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.redis.autoconfigure;
+package com.tencent.bk.job.common.redis.config;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
-/**
- * @since 20/1/2020 10:54
- */
 @Configuration
 public class RedisLockConfig {
 
@@ -40,8 +37,7 @@ public class RedisLockConfig {
         "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
     final StringRedisTemplate redisTemplate;
 
-    @Autowired
-    public RedisLockConfig(StringRedisTemplate redisTemplate) {
+    public RedisLockConfig(@Autowired StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
         LockUtils.init(redisTemplate, RedisScript.of(UNLOCK_SCRIPT, Long.class));
     }
