@@ -129,7 +129,7 @@
         "loginExemption": {
           "type": "object",
           "properties": {
-            "enable": {
+            "enabled": {
               "type": "boolean",
               "title": "是否开启登录豁免",
               "form": true

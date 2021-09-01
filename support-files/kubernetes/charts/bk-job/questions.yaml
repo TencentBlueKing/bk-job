@@ -43,7 +43,7 @@ questions:
     description: "GSE SSL TrustStore 密码"
     group: "GSE安全凭据配置"
 
-  - variable: gatewayConfig.loginExemption.enable
+  - variable: gatewayConfig.loginExemption.enabled
     label: "是否开启登录豁免"
     type: boolean
     default: false
