@@ -236,7 +236,7 @@
             width: 680px;
             max-height: calc(100vh - 460px);
             padding: 12px 16px;
-            overflow-y: scroll;
+            overflow-y: auto;
             font-size: 12px;
             line-height: 20px;
             color: #979ba5;

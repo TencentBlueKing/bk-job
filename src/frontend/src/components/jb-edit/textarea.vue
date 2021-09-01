@@ -27,10 +27,13 @@
 
 <template>
     <div class="jb-edit-textarea" :class="mode">
-        <div v-if="!isEditing" class="render-value-box" @click.stop="handleBlockShowEdit">
+        <div
+            v-if="!isEditing"
+            class="render-value-box"
+            @click.stop="handleBlockShowEdit">
             <div
-                ref="textWraper"
                 class="render-text-box"
+                ref="valueTextBox"
                 @copy="handleCopy"
                 :style="boxStyles">
                 <slot v-bind:value="newVal">{{ renderText }}</slot>
@@ -188,13 +191,9 @@
                 setTimeout(() => {
                     const valLength = this.newVal.length;
                     const $el = document.createElement('div');
-                    $el.style.position = 'absolute';
-                    $el.style.top = 0;
-                    $el.style.right = 0;
-                    $el.style.width = '100%';
                     $el.style.opacity = 0;
                     $el.style.zIndex = '-1';
-                    this.$refs.textWraper.appendChild($el);
+                    this.$refs.valueTextBox.appendChild($el);
 
                     const lineHeight = 26;
                     const maxLine = 3;
@@ -220,7 +219,7 @@
                         if (realHeight > lineHeight) {
                             this.renderLength = realLength - 4;
                         }
-                        this.$refs.textWraper.removeChild($el);
+                        this.$refs.valueTextBox.removeChild($el);
                     });
                 });
             },
@@ -371,7 +370,6 @@
             overflow: hidden;
             line-height: 24px;
             white-space: pre-wrap;
-            flex: 0 0 auto;
         }
 
         .edit-action-box {

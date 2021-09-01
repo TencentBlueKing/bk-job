@@ -52,8 +52,8 @@ public interface ServiceAppSetResource {
     ServiceResponse<List<ServiceApplicationDTO>> listAppSet();
 
 
-//    @DeleteMapping("/{appId}")
-//    ServiceResponse<Boolean> deleteAppSet(@PathVariable("appId") Long appId);
+    @DeleteMapping("/{appId}")
+    ServiceResponse<Boolean> deleteAppSet(@PathVariable("appId") Long appId);
 
     @PutMapping
     ServiceResponse<ServiceApplicationDTO> addAppSet(@RequestBody ServiceAddAppSetRequest request);
