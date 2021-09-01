@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -89,6 +90,10 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         }
         if (allAppSetList != null && !allAppSetList.isEmpty()) {
             results.addAll(allAppSetList);
+        }
+        if (!results.isEmpty()) {
+            results = results.stream().sorted((Comparator.comparing(ApplicationInfoDTO::getId)))
+                .collect(Collectors.toList());
         }
         return ServiceResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
             .collect(Collectors.toList()));
