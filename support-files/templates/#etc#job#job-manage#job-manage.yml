@@ -66,12 +66,12 @@ job:
   manage:
     sync:
       app:
-        enable: true
+        enabled: true
       host:
-        enable: true
+        enabled: true
       resource:
         watch:
-          enable: true
+          enabled: true
 notify:
   default:
     channels:

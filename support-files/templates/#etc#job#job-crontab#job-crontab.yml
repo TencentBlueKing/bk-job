@@ -81,8 +81,6 @@ server:
   port: __BK_JOB_CRONTAB_SERVER_PORT__
 job:
   crontab:
-    quartz:
-      enable: true
     db:
       url: jdbc:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_CRONTAB_MYSQL_USERNAME__

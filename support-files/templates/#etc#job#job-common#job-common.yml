@@ -53,12 +53,12 @@ job:
     url: __BK_JOB_PUBLIC_URL__
   feature:
     file-manage:
-      enable: true
+      enabled: true
   storage:
     root-path: __BK_HOME__/public/job
 # 制品库相关配置
 artifactory:
-  enable: true
+  enabled: true
   base-url: __BK_REPO_PUBLIC_URL__
   download:
     concurrency: 10
@@ -78,12 +78,12 @@ cmdb:
       path: /#/business/{appId}/index
   interface:
     briefCacheTopo:
-      enable: false
+      enabled: false
     findHostRelation:
       longTerm:
         concurrency: 10
     retry:
-      enable: true
+      enabled: true
   query:
     threads:
       num: 50
