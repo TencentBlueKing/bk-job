@@ -71,7 +71,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     /**
      * 下发到gse的脚本文件根目录
      */
-    private final String scriptFilePath;
+    protected final String scriptFilePath;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
