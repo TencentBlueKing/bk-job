@@ -99,8 +99,6 @@ data:
         enabled: false
     job:
       crontab:
-        quartz:
-          enable: true
         db:
           url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
           username: {{ include "job.mariadb.username" . }}

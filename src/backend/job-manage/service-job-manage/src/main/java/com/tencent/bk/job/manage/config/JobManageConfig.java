@@ -65,16 +65,16 @@ public class JobManageConfig {
     @Value("${bk.ce.root:https://bk.tencent.com}")
     private String bkCERoot;
 
-    @Value("${job.manage.sync.app.enable:true}")
+    @Value("${job.manage.sync.app.enabled:true}")
     private boolean enableSyncApp;
 
-    @Value("${job.manage.sync.host.enable:true}")
+    @Value("${job.manage.sync.host.enabled:true}")
     private boolean enableSyncHost;
 
-    @Value("${job.manage.sync.agentStatus.enable:true}")
+    @Value("${job.manage.sync.agentStatus.enabled:true}")
     private boolean enableSyncAgentStatus;
 
-    @Value("${job.manage.sync.resource.watch.enable:true}")
+    @Value("${job.manage.sync.resource.watch.enabled:true}")
     private boolean enableResourceWatch;
 
     @Value("${swagger.url:swagger.job.com}")

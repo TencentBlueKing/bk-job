@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class StatisticConfig {
 
-    @Value("${job.execute.statistics.expire.enable:true}")
+    @Value("${job.execute.statistics.expire.enabled:true}")
     private Boolean enableExpire;
 
     @Value("${job.execute.statistics.expire.days:30}")

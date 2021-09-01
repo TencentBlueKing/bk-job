@@ -271,5 +271,5 @@ management:
 job:
   gateway:
     login-exemption:
-      enable: false
+      enabled: false
       default-user: admin

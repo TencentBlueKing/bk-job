@@ -120,7 +120,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private NotifyTemplateConverter notifyTemplateConverter;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
-    @Value("${job.feature.file-manage.enable:false}")
+    @Value("${job.feature.file-manage.enabled:false}")
     private Boolean enableFeatureFileManage;
 
     @Autowired

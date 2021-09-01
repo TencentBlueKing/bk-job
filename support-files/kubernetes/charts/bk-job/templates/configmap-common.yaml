@@ -72,7 +72,7 @@ data:
         url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
       feature:
         file-manage:
-          enable: {{ .Values.job.feature.toggle.fileManage.enabled }}
+          enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
       storage:
         root-path: {{ .Values.job.storage.rootPath }}
     cmdb:
@@ -81,16 +81,16 @@ data:
          path: {{ .Values.cmdb.app.index.path }}
      interface:
        briefCacheTopo:
-         enable: {{ .Values.cmdb.interface.briefCacheTopo.enable }}
+         enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
        findHostRelation:
          longTerm:
            concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
        flowControl:
          default:
            limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
-         enable: {{ .Values.cmdb.interface.flowControl.enable }}
+         enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
        retry:
-         enable: {{ .Values.cmdb.interface.retry.enable }}
+         enabled: {{ .Values.cmdb.interface.retry.enabled }}
      query:
        threads:
          num: {{ .Values.cmdb.query.threads.num }}
@@ -100,7 +100,7 @@ data:
       server:
         url: {{ .Values.nodeman.server.url }}
     artifactory:
-      enable: {{ .Values.artifactory.enable }}
+      enabled: {{ .Values.artifactory.enabled }}
       base-url: {{ .Values.artifactory.baseUrl }}
       download:
         concurrency: {{ .Values.artifactory.download.concurrency }}

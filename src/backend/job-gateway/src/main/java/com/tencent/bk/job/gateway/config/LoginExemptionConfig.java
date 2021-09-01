@@ -12,7 +12,7 @@ public class LoginExemptionConfig {
     /**
      * 是否开启登录豁免
      */
-    @Value("${job.gateway.login-exemption.enable:false}")
+    @Value("${job.gateway.login-exemption.enabled:false}")
     private boolean enableLoginExemption;
     /**
      * 开启登录豁免后的默认用户名

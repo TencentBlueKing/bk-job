@@ -335,16 +335,16 @@ cmdb:
       path: /#/business/{appId}/index
   interface:
     briefCacheTopo:
-      enable: true
+      enabled: true
     findHostRelation:
       longTerm:
         concurrency: 10
     flowControl:
       default:
         limit: 50
-      enable: false
+      enabled: false
     retry:
-      enable: true
+      enabled: true
   query:
     threads:
       num: 20
@@ -358,7 +358,7 @@ nodeman:
 
 ## BlueKing Artifactory Config
 artifactory:
-  enable: true
+  enabled: true
   baseUrl: http://bkrepo.example.com
   download:
     concurrency: 10
@@ -399,7 +399,7 @@ job:
 ## @section job-gateway parameters
 gatewayConfig:
   loginExemption:
-    enable: false
+    enabled: false
     defaultUser: admin
   image:
     registry: mirrors.tencent.com

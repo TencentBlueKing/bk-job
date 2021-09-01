@@ -218,7 +218,7 @@ data:
     job:
       gateway:
         login-exemption:
-          enable: {{ .Values.gatewayConfig.loginExemption.enable | default false }}
+          enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}

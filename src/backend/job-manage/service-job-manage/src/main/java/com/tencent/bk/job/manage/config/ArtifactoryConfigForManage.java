@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ArtifactoryConfigForManage {
 
-    @Value("${artifactory.enable:false}")
+    @Value("${artifactory.enabled:false}")
     private boolean enable;
 
     @Value("${artifactory.base-url:}")
