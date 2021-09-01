@@ -37,7 +37,9 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -53,13 +55,17 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private final ApplicationInfoDAO applicationDAO;
     private final ApplicationService applicationService;
     private final EsbUserInfoDAO userDAO;
+    private final DSLContext dslContext;
 
     @Autowired
-    public ServiceAppSetResourceImpl(ApplicationInfoDAO applicationDAO, ApplicationService applicationService,
-                                     EsbUserInfoDAO userDAO) {
+    public ServiceAppSetResourceImpl(ApplicationInfoDAO applicationDAO,
+                                     ApplicationService applicationService,
+                                     EsbUserInfoDAO userDAO,
+                                     @Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.applicationDAO = applicationDAO;
         this.applicationService = applicationService;
         this.userDAO = userDAO;
+        this.dslContext = dslContext;
     }
 
 
@@ -75,11 +81,36 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     @Override
     public ServiceResponse<List<ServiceApplicationDTO>> listAppSet() {
         List<ApplicationInfoDTO> appSetList = applicationDAO.listAppInfoByType(AppTypeEnum.APP_SET);
-        if (appSetList == null || appSetList.isEmpty()) {
-            return ServiceResponse.buildSuccessResp(null);
+        List<ApplicationInfoDTO> allAppSetList = applicationDAO.listAppInfoByType(AppTypeEnum.ALL_APP);
+
+        List<ApplicationInfoDTO> results = new ArrayList<>();
+        if (appSetList != null && !appSetList.isEmpty()) {
+            results.addAll(appSetList);
         }
-        return ServiceResponse.buildSuccessResp(appSetList.stream().map(this::convertToServiceApp)
+        if (allAppSetList != null && !allAppSetList.isEmpty()) {
+            results.addAll(allAppSetList);
+        }
+        return ServiceResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
             .collect(Collectors.toList()));
+    }
+
+    @Override
+    public ServiceResponse<Boolean> deleteAppSet(Long appId) {
+        checkAppSetId(appId);
+        ApplicationInfoDTO app = applicationDAO.getAppInfoById(appId);
+        if (app == null) {
+            log.warn("App-set is not exist!");
+            return ServiceResponse.buildCommonFailResp("App-Set is not exist");
+        }
+        applicationDAO.deleteAppInfoById(dslContext, appId);
+        return ServiceResponse.buildSuccessResp(null);
+    }
+
+    private void checkAppSetId(Long appId) {
+        // appSet id should between 8000000 and 9999999
+        if (appId == null || appId < 8000000 || appId > 9999999) {
+            throw new ServiceException("Invalid appId");
+        }
     }
 
     private ServiceApplicationDTO getAppSet(Long appId) {
@@ -120,7 +151,6 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         appInfo.setBkSupplierAccount("tencent");
         appInfo.setAppType(AppTypeEnum.APP_SET);
         appInfo.setMaintainers(request.getMaintainers());
-        appInfo.setOperateDeptId(request.getDeptId());
         if (request.isDynamicAppSet()) {
             appInfo.setOperateDeptId(request.getDeptId());
         } else {
