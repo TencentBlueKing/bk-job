@@ -35,10 +35,12 @@ data:
           {{- else -}}
           password: ${gse.keystore.password}
           {{- end }}
+          path: "/data/job/cert/gse_job_api_client.keystore"
         truststore:
           manager-type: SunX509
           password: {{ .Values.gse.existingTlsSecret | default "gse.truststore.password" | printf "${%s}" }}
           store-type: JKS
+          path: "/data/job/cert/gse_job_api_client.truststore"
       taskserver:
         host: {{ .Values.gse.taskserver.host }}
         port: {{ .Values.gse.taskserver.port }}
