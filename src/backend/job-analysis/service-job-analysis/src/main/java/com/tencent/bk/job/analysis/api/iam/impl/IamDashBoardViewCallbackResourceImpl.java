@@ -28,7 +28,15 @@ import com.tencent.bk.job.analysis.api.iam.IamDashBoardViewCallbackResource;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
-import com.tencent.bk.sdk.iam.dto.callback.response.*;
+import com.tencent.bk.sdk.iam.dto.callback.response.BaseDataResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,30 +52,55 @@ public class IamDashBoardViewCallbackResourceImpl implements IamDashBoardViewCal
     public IamDashBoardViewCallbackResourceImpl() {
     }
 
+    private ListInstanceResponseDTO listInstanceResp() {
+        List<InstanceInfoDTO> instanceInfoList = new ArrayList<>();
+        // TODO:当前只有全局视图，待后续视图功能开发后更新这里
+        InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
+        tmpInstanceInfo.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
+        tmpInstanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
+        instanceInfoList.add(tmpInstanceInfo);
+
+        ListInstanceResponseDTO instanceResponse = new ListInstanceResponseDTO();
+        instanceResponse.setCode(0L);
+        BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
+        baseDataResponse.setResult(instanceInfoList);
+        baseDataResponse.setCount(1L);
+        instanceResponse.setData(baseDataResponse);
+        return instanceResponse;
+    }
+
+    private SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+        SearchInstanceResponseDTO instanceResponse = new SearchInstanceResponseDTO();
+        String keyword = callbackRequest.getFilter().getKeyword();
+        if (AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME.contains(keyword)) {
+            List<InstanceInfoDTO> instanceInfoList = new ArrayList<>();
+            InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
+            tmpInstanceInfo.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
+            tmpInstanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
+            instanceInfoList.add(tmpInstanceInfo);
+
+            instanceResponse.setCode(0L);
+            BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
+            baseDataResponse.setResult(instanceInfoList);
+            baseDataResponse.setCount(1L);
+            instanceResponse.setData(baseDataResponse);
+        } else {
+            instanceResponse.setCode(0L);
+            BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
+            baseDataResponse.setResult(new ArrayList<>());
+            baseDataResponse.setCount(0L);
+            instanceResponse.setData(baseDataResponse);
+        }
+        return instanceResponse;
+    }
+
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        log.debug("Receive iam callback|{}", callbackRequest);
         CallbackBaseResponseDTO response;
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
-                log.debug("List instance request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
-
-                List<InstanceInfoDTO> instanceInfoList = new ArrayList<>();
-                // TODO:当前只有全局视图，待后续视图功能开发后更新这里
-                InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
-                tmpInstanceInfo.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
-                tmpInstanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
-                instanceInfoList.add(tmpInstanceInfo);
-
-                ListInstanceResponseDTO instanceResponse = new ListInstanceResponseDTO();
-                instanceResponse.setCode(0L);
-                BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
-                baseDataResponse.setResult(instanceInfoList);
-                baseDataResponse.setCount(1L);
-                instanceResponse.setData(baseDataResponse);
-                response = instanceResponse;
+                response = listInstanceResp();
                 break;
             case FETCH_INSTANCE_INFO:
                 log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
@@ -113,6 +146,9 @@ public class IamDashBoardViewCallbackResourceImpl implements IamDashBoardViewCal
                     callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListInstanceByPolicyResponseDTO();
                 response.setCode(0L);
+                break;
+            case SEARCH_INSTANCE:
+                response = searchInstanceResp(callbackRequest);
                 break;
             default:
                 log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),

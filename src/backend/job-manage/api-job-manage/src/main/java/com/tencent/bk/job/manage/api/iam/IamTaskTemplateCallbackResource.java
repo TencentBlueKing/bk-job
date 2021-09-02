@@ -30,14 +30,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * @since 15/6/2020 15:40
- */
-@RequestMapping("/iam/api/v1/resources/task")
-public interface IamTaskCallbackResource {
-    @PostMapping("/template")
-    CallbackBaseResponseDTO templateCallback(@RequestBody CallbackRequestDTO callbackRequest);
-
-    @PostMapping("/plan")
-    CallbackBaseResponseDTO planCallback(@RequestBody CallbackRequestDTO callbackRequest);
+@RequestMapping("/iam/api/v1/resources/task/template")
+public interface IamTaskTemplateCallbackResource {
+    @PostMapping
+    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
 }

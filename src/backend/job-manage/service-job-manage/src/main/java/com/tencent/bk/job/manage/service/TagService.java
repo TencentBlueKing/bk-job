@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
 import java.util.List;
@@ -126,4 +128,13 @@ public interface TagService {
      * @return
      */
     List<TagDTO> listTags(Long appId, String tagNameKeyword);
+
+    /**
+     * 标签通用分页查询
+     *
+     * @param tagCondition
+     * @param baseSearchCondition
+     * @return
+     */
+    PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition);
 }

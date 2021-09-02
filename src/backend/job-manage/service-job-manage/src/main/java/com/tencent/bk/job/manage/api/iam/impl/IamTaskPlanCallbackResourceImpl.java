@@ -27,9 +27,10 @@ package com.tencent.bk.job.manage.api.iam.impl;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.api.iam.IamTagCallbackResource;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.manage.api.iam.IamTaskPlanCallbackResource;
+import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -48,96 +49,92 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
 @Slf4j
-public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
-    private final TagService tagService;
+@RestController
+public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResource {
+
+    private final TaskPlanService planService;
 
     @Autowired
-    public IamTagCallbackResourceImpl(TagService tagService) {
-        this.tagService = tagService;
+    public IamTaskPlanCallbackResourceImpl(TaskPlanService planService) {
+        this.planService = planService;
     }
 
-    private Pair<TagDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+    private InstanceInfoDTO convert(TaskPlanInfoDTO planInfoDTO) {
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(String.valueOf(planInfoDTO.getId()));
+        instanceInfo.setDisplayName(planInfoDTO.getName());
+        return instanceInfo;
+    }
+
+    private Pair<TaskPlanQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
-        TagDTO tagQuery = new TagDTO();
-        tagQuery.setAppId(searchCondition.getAppIdList().get(0));
-        return Pair.of(tagQuery, baseSearchCondition);
+        TaskPlanQueryDTO planQuery = new TaskPlanQueryDTO();
+        planQuery.setAppId(searchCondition.getAppIdList().get(0));
+        return Pair.of(planQuery, baseSearchCondition);
     }
 
-    private InstanceInfoDTO convert(TagDTO tagDTO) {
-        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-        instanceInfo.setId(String.valueOf(tagDTO.getId()));
-        instanceInfo.setDisplayName(tagDTO.getName());
-        return instanceInfo;
+    public ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+        Pair<TaskPlanQueryDTO, BaseSearchCondition> basicQueryCond =
+            getBasicQueryCondition(callbackRequest);
+
+        TaskPlanQueryDTO planQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
+        PageData<TaskPlanInfoDTO> planDTOPageData = planService.listPageTaskPlansBasicInfo(planQuery,
+            baseSearchCondition, null);
+
+        return IamRespUtil.getListInstanceRespFromPageData(planDTOPageData, this::convert);
     }
 
-    private SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+    public SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+        Pair<TaskPlanQueryDTO, BaseSearchCondition> basicQueryCond =
+            getBasicQueryCondition(callbackRequest);
 
-        TagDTO tagQuery = basicQueryCond.getLeft();
+        TaskPlanQueryDTO planQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
-        tagQuery.setName(callbackRequest.getFilter().getKeyword());
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
+        planQuery.setName(callbackRequest.getFilter().getKeyword());
+        PageData<TaskPlanInfoDTO> planDTOPageData = planService.listPageTaskPlansBasicInfo(planQuery,
+            baseSearchCondition, null);
 
-        return IamRespUtil.getSearchInstanceRespFromPageData(tagDTOPageData, this::convert);
-    }
-
-    private ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
-
-        TagDTO tagQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
-
-        return IamRespUtil.getListInstanceRespFromPageData(tagDTOPageData, this::convert);
-    }
-
-    private FetchInstanceInfoResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
-        log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-            callbackRequest.getFilter(), callbackRequest.getPage());
-
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        List<Object> instanceAttributeInfoList = new ArrayList<>();
-        for (String instanceId : searchCondition.getIdList()) {
-            try {
-                Long tagId = Long.parseLong(instanceId);
-                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                TagDTO tagDTO = tagService.getTagInfoById(tagId);
-                if (tagDTO != null) {
-                    instanceInfo.setDisplayName(tagDTO.getName());
-                } else {
-                    instanceInfo.setDisplayName("Unknown(may be deleted)");
-                    log.warn("Unexpected tagId:{} passed by iam", instanceId);
-                }
-                instanceAttributeInfoList.add(instanceInfo);
-            } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
-            }
-        }
-
-        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-        fetchInstanceInfoResponse.setCode(0L);
-        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-        return fetchInstanceInfoResponse;
+        return IamRespUtil.getSearchInstanceRespFromPageData(planDTOPageData, this::convert);
     }
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
         log.debug("Receive iam callback|{}", callbackRequest);
         CallbackBaseResponseDTO response;
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
                 response = listInstanceResp(callbackRequest);
                 break;
             case FETCH_INSTANCE_INFO:
-                response = fetchInstanceResp(callbackRequest);
+                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
+                    callbackRequest.getFilter(), callbackRequest.getPage());
+
+                List<Object> instanceAttributeInfoList = new ArrayList<>();
+                for (String instanceId : searchCondition.getIdList()) {
+                    try {
+                        long id = Long.parseLong(instanceId);
+                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                        instanceInfo.setId(instanceId);
+                        instanceInfo.setDisplayName(planService.getPlanName(id));
+                        instanceAttributeInfoList.add(instanceInfo);
+                    } catch (NumberFormatException e) {
+                        log.error("Parse object id failed!|{}", instanceId, e);
+                    }
+                }
+
+                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+                fetchInstanceInfoResponse.setCode(0L);
+                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+
+                response = fetchInstanceInfoResponse;
                 break;
             case LIST_ATTRIBUTE:
                 log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
