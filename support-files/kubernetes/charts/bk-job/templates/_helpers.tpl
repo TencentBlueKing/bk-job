@@ -354,3 +354,14 @@ Return the Job InitContainer WaitForMigration Content
   - "job"
   - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Release.Revision | quote }}
 {{- end -}}
+
+{{/*
+Return the gse secret
+*/}}
+{{- define "gse.secretName" -}}
+{{- if .Values.gse.existingTlsSecret -}}
+    {{- printf "%s" .Values.gse.existingTlsSecret -}}
+{{- else -}}
+    {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
+{{- end -}}
+{{- end -}}

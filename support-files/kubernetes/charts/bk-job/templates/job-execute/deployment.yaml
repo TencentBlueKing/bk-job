@@ -142,7 +142,7 @@ spec:
             secretName: {{ include "job.redis.secretName" . }}
         - name: job-gse-tls-certs
           secret:
-            secretName: {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
+            secretName: {{ include "gse.secretName" . | quote }}
             items:
               - key: gse.keystore
                 path: gse_job_api_client.keystore
@@ -150,7 +150,7 @@ spec:
                 path: gse_job_api_client.truststore
         - name: job-gse-tls-password
           secret:
-            secretName: {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
+            secretName: {{ include "gse.secretName" . | quote }}
             items:
               - key: gse.keystore.password
                 path: gse.keystore.password

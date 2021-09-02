@@ -287,16 +287,21 @@ esb:
 
 ## BlueKing GSE Config
 gse:
+  ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
+  ##
+  existingTlsSecret: "",
   cacheApiServer:
     host: "gse-api.example.com"
     port: 59313
   ssl:
     keystore:
+      ## @param gse.ssl.keystore.password: Password for gse keystore. Task effect when gse.existingTlsSecret is not set.
+      ##
       password: ""
-      path: /data/job/cert/gse_job_api_client.keystore
     truststore:
+      ## @param gse.ssl.truststore.password: Password for gse truststore. Task effect when gse.existingTlsSecret is not set.
+      ##
       password: ""
-      path: /data/job/cert/gse_job_api_client.truststore
   taskserver:
     host: "gse-task.example.com"
     port: 48673
