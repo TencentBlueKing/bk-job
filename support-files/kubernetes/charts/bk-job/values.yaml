@@ -289,7 +289,7 @@ esb:
 gse:
   ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
   ##
-  existingTlsSecret: "",
+  existingTlsSecret: ""
   cacheApiServer:
     host: "gse-api.example.com"
     port: 59313
