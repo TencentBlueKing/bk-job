@@ -42,8 +42,8 @@ export default class Task {
     static STATUS_SCRIPT_DISABLED = STATUS_SCRIPT_DISABLED
     static STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE = STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE
     
-    constructor (payload, missId = false) {
-        this.id = missId ? 0 : payload.id || 0;
+    constructor (payload, isClone = false) {
+        this.id = isClone ? -payload.id : payload.id;
         this.name = payload.name;
         this.description = payload.description || '';
         this.favored = Boolean(payload.favored);
@@ -55,9 +55,9 @@ export default class Task {
         this.lastModifyTime = payload.lastModifyTime;
         this.lastModifyUser = payload.lastModifyUser;
         
-        this.stepList = this.initStepList(payload.stepList, missId);
+        this.stepList = this.initStepList(payload.stepList, isClone);
         this.tags = this.initTag(payload.tags);
-        this.variables = this.initVariable(payload.variableList, missId);
+        this.variables = this.initVariable(payload.variableList, isClone);
 
         // 作业模板权限
         this.canDebug = payload.canDebug;
@@ -108,13 +108,24 @@ export default class Task {
         this.favored = !this.favored;
     }
 
-    initStepList (payload, missId = false) {
+    /**
+     * @desc 初始化模板步骤数据
+     * @param { Array } payload
+     * @param { Boolean } isClone
+     * @returns { Array}
+     */
+    initStepList (payload, isClone) {
         if (!_.isArray(payload)) {
             return [];
         }
-        return payload.map(item => new TaskStepModel(item, missId));
+        return payload.map(item => new TaskStepModel(item, isClone));
     }
 
+    /**
+     * @desc 初始化模板 TAG 数据
+     * @param { Array } payload
+     * @returns { Array }
+     */
     initTag (payload) {
         if (!_.isArray(payload)) {
             return [];
@@ -122,10 +133,16 @@ export default class Task {
         return payload.map(item => Object.freeze(new TagModel(item)));
     }
 
-    initVariable (payload, missId = false) {
+    /**
+     * @desc 初始化模板全局变量数据
+     * @param { Array } payload
+     * @param { Boolean } isClone
+     * @returns { Array }
+     */
+    initVariable (payload, isClone) {
         if (!_.isArray(payload)) {
             return [];
         }
-        return payload.map(item => new GlobalVariableModel(item, missId));
+        return payload.map(item => new GlobalVariableModel(item, isClone));
     }
 }
