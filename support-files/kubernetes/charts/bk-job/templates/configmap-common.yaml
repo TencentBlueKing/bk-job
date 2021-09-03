@@ -30,15 +30,11 @@ data:
           port: {{ .Values.gse.cacheApiServer.port }}
       ssl:
         keystore:
-          {{ if .Values.gse.existingTlsSecret }}
-          password: {{ .Values.gse.existingTlsSecret | default "gse.keystore.password" | printf "${%s}" }}
-          {{- else -}}
           password: ${gse.keystore.password}
-          {{- end }}
           path: "/data/job/cert/gse_job_api_client.keystore"
         truststore:
           manager-type: SunX509
-          password: {{ .Values.gse.existingTlsSecret | default "gse.truststore.password" | printf "${%s}" }}
+          password: ${gse.truststore.password}
           store-type: JKS
           path: "/data/job/cert/gse_job_api_client.truststore"
       taskserver:
