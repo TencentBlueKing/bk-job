@@ -41,6 +41,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponse
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,6 +62,17 @@ public class IamCallbackControllerImpl implements IamCallbackController {
         this.cronJobService = cronJobService;
     }
 
+    private Pair<CronJobInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(searchCondition.getStart().intValue());
+        baseSearchCondition.setLength(searchCondition.getLength().intValue());
+
+        CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
+        cronJobQuery.setAppId(searchCondition.getAppIdList().get(0));
+        return Pair.of(cronJobQuery, baseSearchCondition);
+    }
+
     private InstanceInfoDTO convert(CronJobInfoDTO cronJobInfo) {
         InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
         instanceInfo.setId(String.valueOf(cronJobInfo.getId()));
@@ -71,25 +83,13 @@ public class IamCallbackControllerImpl implements IamCallbackController {
     private SearchInstanceResponseDTO searchInstanceResp(
         CallbackRequestDTO callbackRequest
     ) {
-        log.info(
-            "{}|{}|{}|{}",
-            callbackRequest.getMethod().getMethod(),
-            callbackRequest.getType(),
-            callbackRequest.getFilter(),
-            callbackRequest.getPage()
-        );
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        CronJobInfoDTO condition = new CronJobInfoDTO();
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        PageData<CronJobInfoDTO> cronJobInfoPageData;
-        condition.setAppId(searchCondition.getAppIdList().get(0));
-        condition.setName(callbackRequest.getFilter().getKeyword());
+        Pair<CronJobInfoDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+        CronJobInfoDTO cronJobQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
-        baseSearchCondition.setStart(searchCondition.getStart().intValue());
-        baseSearchCondition.setLength(searchCondition.getLength().intValue());
-
-        cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(condition, baseSearchCondition);
+        cronJobQuery.setName(callbackRequest.getFilter().getKeyword());
+        PageData<CronJobInfoDTO> cronJobInfoPageData =
+            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
@@ -97,38 +97,24 @@ public class IamCallbackControllerImpl implements IamCallbackController {
     private ListInstanceResponseDTO listInstanceResp(
         CallbackRequestDTO callbackRequest
     ) {
-        log.info(
-            "{}|{}|{}|{}",
-            callbackRequest.getMethod().getMethod(),
-            callbackRequest.getType(),
-            callbackRequest.getFilter(),
-            callbackRequest.getPage()
-        );
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        CronJobInfoDTO condition = new CronJobInfoDTO();
-        condition.setAppId(searchCondition.getAppIdList().get(0));
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(searchCondition.getStart().intValue());
-        baseSearchCondition.setLength(searchCondition.getLength().intValue());
+        Pair<CronJobInfoDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+        CronJobInfoDTO cronJobQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(condition, baseSearchCondition);
+            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getListInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
 
     @Override
-    public CallbackBaseResponseDTO cronJobCallback(CallbackRequestDTO callbackRequest) {
-        log.debug("Receive iam callback|{}", callbackRequest);
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
                 response = listInstanceResp(callbackRequest);
                 break;
             case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
                 IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
                 List<Object> instanceAttributeInfoList = new ArrayList<>();
                 for (String instanceId : searchCondition.getIdList()) {
@@ -150,20 +136,14 @@ public class IamCallbackControllerImpl implements IamCallbackController {
                 response = fetchInstanceInfoResponse;
                 break;
             case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
                 response = new ListAttributeResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListAttributeValueResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListInstanceByPolicyResponseDTO();
                 response.setCode(0L);
                 break;

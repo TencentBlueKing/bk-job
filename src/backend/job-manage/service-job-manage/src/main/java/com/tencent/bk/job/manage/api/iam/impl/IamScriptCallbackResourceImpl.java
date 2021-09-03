@@ -59,6 +59,6 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return scriptCallbackHelper.callback(callbackRequest);
+        return scriptCallbackHelper.doCallback(callbackRequest);
     }
 }

@@ -53,16 +53,6 @@ import java.util.List;
 public class IamAccountCallbackResourceImpl implements IamAccountCallbackResource {
     private final AccountService accountService;
 
-    private void logRequest(CallbackRequestDTO callbackRequest) {
-        log.info(
-            "{}|{}|{}|{}",
-            callbackRequest.getMethod().getMethod(),
-            callbackRequest.getType(),
-            callbackRequest.getFilter(),
-            callbackRequest.getPage()
-        );
-    }
-
     private Pair<AccountDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
@@ -112,16 +102,12 @@ public class IamAccountCallbackResourceImpl implements IamAccountCallbackResourc
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        logRequest(callbackRequest);
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
                 response = listInstanceResp(callbackRequest);
                 break;
             case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
                 IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
                 List<Object> instanceAttributeInfoList = new ArrayList<>();
                 for (String instanceId : searchCondition.getIdList()) {
@@ -149,20 +135,14 @@ public class IamAccountCallbackResourceImpl implements IamAccountCallbackResourc
                 response = fetchInstanceInfoResponse;
                 break;
             case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
                 response = new ListAttributeResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListAttributeValueResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListInstanceByPolicyResponseDTO();
                 response.setCode(0L);
                 break;

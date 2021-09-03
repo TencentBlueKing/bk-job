@@ -54,12 +54,11 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
 
         ScriptQueryDTO scriptQuery = new ScriptQueryDTO();
         scriptQuery.setPublicScript(true);
-        scriptQuery.setAppId(searchCondition.getAppIdList().get(0));
         return Pair.of(scriptQuery, baseSearchCondition);
     }
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return scriptCallbackHelper.callback(callbackRequest);
+        return scriptCallbackHelper.doCallback(callbackRequest);
     }
 }

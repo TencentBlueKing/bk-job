@@ -99,9 +99,6 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
     }
 
     private FetchInstanceInfoResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
-        log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-            callbackRequest.getFilter(), callbackRequest.getPage());
-
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
@@ -130,7 +127,6 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        log.debug("Receive iam callback|{}", callbackRequest);
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
@@ -140,20 +136,14 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
                 response = fetchInstanceResp(callbackRequest);
                 break;
             case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
                 response = new ListAttributeResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListAttributeValueResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListInstanceByPolicyResponseDTO();
                 response.setCode(0L);
                 break;

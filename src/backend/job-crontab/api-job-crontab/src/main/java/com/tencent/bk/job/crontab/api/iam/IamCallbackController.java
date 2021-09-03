@@ -43,5 +43,5 @@ public interface IamCallbackController {
      * @return 权限中心回调响应
      */
     @PostMapping("/job")
-    CallbackBaseResponseDTO cronJobCallback(@RequestBody CallbackRequestDTO callbackRequest);
+    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
 }

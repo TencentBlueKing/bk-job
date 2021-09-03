@@ -73,8 +73,7 @@ public class ScriptCallbackHelper {
         return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest){
-        log.debug("Receive iam callback|{}", callbackRequest);
+    public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest){
         CallbackBaseResponseDTO response;
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         switch (callbackRequest.getMethod()) {

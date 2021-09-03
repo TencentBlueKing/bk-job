@@ -74,7 +74,7 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         TaskPlanQueryDTO planQuery = new TaskPlanQueryDTO();
-        planQuery.setAppId(searchCondition.getAppIdList().get(0));
+        planQuery.setTemplateId(Long.parseLong(callbackRequest.getFilter().getParent().getId()));
         return Pair.of(planQuery, baseSearchCondition);
     }
 
@@ -106,7 +106,6 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        log.debug("Receive iam callback|{}", callbackRequest);
         CallbackBaseResponseDTO response;
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         switch (callbackRequest.getMethod()) {
@@ -114,9 +113,6 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
                 response = listInstanceResp(callbackRequest);
                 break;
             case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
                 List<Object> instanceAttributeInfoList = new ArrayList<>();
                 for (String instanceId : searchCondition.getIdList()) {
                     try {
@@ -137,20 +133,14 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
                 response = fetchInstanceInfoResponse;
                 break;
             case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
                 response = new ListAttributeResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListAttributeValueResponseDTO();
                 response.setCode(0L);
                 break;
             case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
                 response = new ListInstanceByPolicyResponseDTO();
                 response.setCode(0L);
                 break;
