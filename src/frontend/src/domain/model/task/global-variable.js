@@ -58,8 +58,8 @@ export default class GlobalVariable {
         [TYPE_INDEX_ARRAY]: I18n.t('数组'),
     }
     
-    constructor (payload, missId = false) {
-        this.id = missId ? 0 : payload.id || 0;
+    constructor (payload, isClone = false) {
+        this.id = isClone ? -payload.id : payload.id;
         this.name = payload.name || '';
         this.type = payload.type || TYPE_STRING;
         this.defaultValue = payload.defaultValue || '';
@@ -72,17 +72,26 @@ export default class GlobalVariable {
         this.targetValue = new TaskHostNodeModel(payload.targetValue || {});
     }
 
-    // 主机变量
+    /**
+     * @desc 主机变量
+     * @returns { Boolean }
+     */
     get isHost () {
         return this.type === TYPE_HOST;
     }
 
-    // 密文变量
+    /**
+     * @desc 密文变量
+     * @returns { Boolean }
+     */
     get isPassword () {
         return this.type === TYPE_PASSWORD;
     }
 
-    // 变量值是否为空
+    /**
+     * @desc 变量值是否为空
+     * @returns { Boolean }
+     */
     get isEmpty () {
         if (this.type === TYPE_HOST) {
             return this.defaultTargetValue.isEmpty;
@@ -90,22 +99,34 @@ export default class GlobalVariable {
         return !this.defaultValue;
     }
 
-    // 变量值是否必填
+    /**
+     * @desc 变量值是否必填
+     * @returns { Boolean }
+     */
     get isRequired () {
         return !!this.required;
     }
 
-    // 变量的icon
+    /**
+     * @desc 变量的icon
+     * @returns { String }
+     */
     get icon () {
         return GlobalVariable.iconMap[this.type];
     }
 
-    // 类型的文本展示
+    /**
+     * @desc 类型的文本展示
+     * @returns { String }
+     */
     get typeText () {
         return GlobalVariable.typeTextMap[this.type];
     }
 
-    // 类型的分类描述
+    /**
+     * @desc 类型的分类描述
+     * @returns { String }
+     */
     get typeDescription () {
         const descriptionMap = {
             [TYPE_STRING]: 'string',
@@ -118,17 +139,26 @@ export default class GlobalVariable {
         return descriptionMap[this.type];
     }
     
-    // 可变的文本描述
+    /**
+     * @desc 可变的文本描述
+     * @returns { String }
+     */
     get changeableText () {
         return this.changeable ? I18n.t('是') : I18n.t('否');
     }
 
-    // 必填的问题描述
+    /**
+     * @desc 必填的问题描述
+     * @returns { String }
+     */
     get requiredText () {
         return this.required ? I18n.t('是') : I18n.t('否');
     }
 
-    // 展示的值
+    /**
+     * @desc 展示的值
+     * @returns { String }
+     */
     get valueText () {
         if ([
             TYPE_HOST,
@@ -143,7 +173,10 @@ export default class GlobalVariable {
         return this.defaultValue || '--';
     }
 
-    // 鼠标hover的title展示
+    /**
+     * @desc 鼠标hover的title展示
+     * @returns { String }
+     */
     get title () {
         if (this.type === TYPE_PASSWORD) {
             return '';
