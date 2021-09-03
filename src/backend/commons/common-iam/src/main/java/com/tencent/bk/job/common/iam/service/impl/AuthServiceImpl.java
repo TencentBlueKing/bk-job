@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
@@ -38,7 +39,11 @@ import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
-import com.tencent.bk.job.common.iam.model.*;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -65,7 +70,11 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -557,11 +566,15 @@ public class AuthServiceImpl implements AuthService {
         if (userAppIdPair != null) {
             String username = userAppIdPair.getLeft();
             Long appId = userAppIdPair.getRight();
-            log.info("auth {} access_business {}", username, appId);
-            AuthResult authResult = auth(true, username, ActionId.LIST_BUSINESS,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null);
-            if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+            if (appId != JobConstants.PUBLIC_APP_ID && appId > 0) {
+                log.info("auth {} access_business {}", username, appId);
+                AuthResult authResult = auth(true, username, ActionId.LIST_BUSINESS,
+                    ResourceTypeEnum.BUSINESS, appId.toString(), null);
+                if (!authResult.isPass()) {
+                    throw new InSufficientPermissionException(authResult);
+                }
+            } else {
+                log.info("ignore auth {} access_business public app {}", username, appId);
             }
         }
         return pjp.proceed();

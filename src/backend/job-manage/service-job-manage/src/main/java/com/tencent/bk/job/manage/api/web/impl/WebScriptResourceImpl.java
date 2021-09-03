@@ -80,7 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.manage.common.constants.JobManageConstants.PUBLIC_APP_ID;
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 @RestController
 @Slf4j

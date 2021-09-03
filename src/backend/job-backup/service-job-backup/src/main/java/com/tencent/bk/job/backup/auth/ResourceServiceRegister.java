@@ -22,47 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner.impl;
+package com.tencent.bk.job.backup.auth;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
-import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
-import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@RestController
 @Slf4j
-public class ServiceTagResourceImpl implements ServiceTagResource {
-    private final TagService tagService;
+@Component
+@Lazy(false)
+public class ResourceServiceRegister implements InitializingBean {
+
+    private final ResourceAppInfoQueryService resourceAppInfoQueryService;
+    private final AuthService authService;
 
     @Autowired
-    public ServiceTagResourceImpl(TagService tagService) {
-        this.tagService = tagService;
-    }
-
-    private ServiceTagDTO convert(TagDTO tagDTO) {
-        ServiceTagDTO serviceTagDTO = new ServiceTagDTO();
-        serviceTagDTO.setId(tagDTO.getId());
-        serviceTagDTO.setName(tagDTO.getName());
-        return serviceTagDTO;
+    public ResourceServiceRegister(ResourceAppInfoQueryService resourceAppInfoQueryService,
+                                   AuthService authService) {
+        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
+        this.authService = authService;
     }
 
     @Override
-    public ServiceResponse<List<ServiceTagDTO>> listTags(Long appId) {
-        List<TagDTO> tags = tagService.listTags(appId, null);
-        return ServiceResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
-    }
-
-    @Override
-    public ServiceResponse<List<ServiceTagDTO>> listPublicTags() {
-        List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, null);
-        return ServiceResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
+    public void afterPropertiesSet() {
+        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 }
