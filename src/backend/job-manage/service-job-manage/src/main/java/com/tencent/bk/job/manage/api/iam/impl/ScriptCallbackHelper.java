@@ -14,9 +14,6 @@ import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -89,7 +86,7 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 ScriptDTO scriptDTO = scriptService.getScriptByScriptId(instanceId);
-                if (scriptDTO == null) {
+                if (scriptDTO == null || scriptDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
                     return getNotFoundRespById(instanceId);
                 }
                 // 拓扑路径构建
