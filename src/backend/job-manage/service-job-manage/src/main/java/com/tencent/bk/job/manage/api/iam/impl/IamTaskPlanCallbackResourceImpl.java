@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -31,6 +33,7 @@ import com.tencent.bk.job.manage.api.iam.IamTaskPlanCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -51,7 +54,8 @@ import java.util.List;
 
 @Slf4j
 @RestController
-public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResource {
+public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
+    implements IamTaskPlanCallbackResource {
 
     private final TaskPlanService planService;
 
@@ -78,7 +82,8 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
         return Pair.of(planQuery, baseSearchCondition);
     }
 
-    public ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TaskPlanQueryDTO, BaseSearchCondition> basicQueryCond =
             getBasicQueryCondition(callbackRequest);
 
@@ -90,7 +95,8 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
         return IamRespUtil.getListInstanceRespFromPageData(planDTOPageData, this::convert);
     }
 
-    public SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TaskPlanQueryDTO, BaseSearchCondition> basicQueryCond =
             getBasicQueryCondition(callbackRequest);
 
@@ -105,53 +111,51 @@ public class IamTaskPlanCallbackResourceImpl implements IamTaskPlanCallbackResou
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        long id = Long.parseLong(instanceId);
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        instanceInfo.setDisplayName(planService.getPlanName(id));
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                TaskPlanInfoDTO planInfoDTO = planService.getTaskPlanById(id);
+                if (planInfoDTO == null) {
+                    return getNotFoundRespById(instanceId);
                 }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.APP);
+                rootNode.setId(planInfoDTO.getAppId().toString());
+                PathInfoDTO templateNode = new PathInfoDTO();
+                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setId(planInfoDTO.getTemplateId().toString());
+                rootNode.setChild(templateNode);
+                PathInfoDTO planNode = new PathInfoDTO();
+                planNode.setType(ResourceId.PLAN);
+                planNode.setId(planInfoDTO.getId().toString());
+                templateNode.setChild(planNode);
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(planInfoDTO.getName());
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+
+        return fetchInstanceInfoResponse;
+    }
+
+    @Override
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

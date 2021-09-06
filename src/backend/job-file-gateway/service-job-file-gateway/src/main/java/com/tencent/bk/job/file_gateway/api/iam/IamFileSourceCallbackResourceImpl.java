@@ -24,18 +24,18 @@
 
 package com.tencent.bk.job.file_gateway.api.iam;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.Data;
@@ -49,7 +49,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class IamFileSourceCallbackResourceImpl implements IamFileSourceCallbackResource {
+public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
+    implements IamFileSourceCallbackResource {
 
     private final FileSourceService fileSourceService;
 
@@ -103,7 +104,15 @@ public class IamFileSourceCallbackResourceImpl implements IamFileSourceCallbackR
         );
     }
 
-    private ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+    private InstanceInfoDTO convert(FileSourceDTO fileSourceDTO) {
+        InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
+        tmpInstanceInfo.setId(fileSourceDTO.getId().toString());
+        tmpInstanceInfo.setDisplayName(fileSourceDTO.getAlias());
+        return tmpInstanceInfo;
+    }
+
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         FileSourceSearchCondition searchCondition = getSearchCondition(callbackRequest);
 
         List<FileSourceDTO> fileSourceDTOList = fileSourceService.listWorkTableFileSource(
@@ -124,14 +133,8 @@ public class IamFileSourceCallbackResourceImpl implements IamFileSourceCallbackR
         return IamRespUtil.getListInstanceRespFromPageData(fileSourceDTOPageData, this::convert);
     }
 
-    private InstanceInfoDTO convert(FileSourceDTO fileSourceDTO) {
-        InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
-        tmpInstanceInfo.setId(fileSourceDTO.getId().toString());
-        tmpInstanceInfo.setDisplayName(fileSourceDTO.getAlias());
-        return tmpInstanceInfo;
-    }
-
-    private SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
         FileSourceSearchCondition searchCondition = getSearchCondition(callbackRequest);
 
         List<FileSourceDTO> fileSourceDTOList = fileSourceService.listWorkTableFileSource(
@@ -155,59 +158,47 @@ public class IamFileSourceCallbackResourceImpl implements IamFileSourceCallbackR
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        // 文件源详情查询实现
-                        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(Integer.parseInt(instanceId));
-                        if (fileSourceDTO == null) {
-                            instanceInfo.setDisplayName("Unknown(may be deleted)");
-                            log.warn("Unexpected fileSourceId:{} passed by iam", instanceId);
-                        } else {
-                            instanceInfo.setDisplayName(fileSourceDTO.getAlias());
-                        }
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                // 文件源详情查询实现
+                FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(Integer.parseInt(instanceId));
+                if (fileSourceDTO == null) {
+                    return getNotFoundRespById(instanceId);
                 }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.APP);
+                rootNode.setId(fileSourceDTO.getAppId().toString());
+                PathInfoDTO fileSourceNode = new PathInfoDTO();
+                fileSourceNode.setType(ResourceId.FILE_SOURCE);
+                fileSourceNode.setId(fileSourceDTO.getId().toString());
+                rootNode.setChild(fileSourceNode);
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(fileSourceDTO.getAlias());
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
+    @Override
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

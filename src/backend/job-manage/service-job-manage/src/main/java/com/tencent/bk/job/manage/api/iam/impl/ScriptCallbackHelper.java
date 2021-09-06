@@ -1,11 +1,14 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
 import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -23,20 +26,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ScriptCallbackHelper {
+public class ScriptCallbackHelper extends BaseIamCallbackService {
     private ScriptService scriptService;
-    private IGetBasicQueryCondition basicQueryInterface;
+    private IGetBasicInfo basicInfoInterface;
 
     public ScriptCallbackHelper(
         ScriptService scriptService,
-        IGetBasicQueryCondition basicQueryInterface
+        IGetBasicInfo basicInfoInterface
     ) {
         this.scriptService = scriptService;
-        this.basicQueryInterface = basicQueryInterface;
+        this.basicInfoInterface = basicInfoInterface;
     }
 
-    public interface IGetBasicQueryCondition {
+    public interface IGetBasicInfo {
         Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest);
+
+        boolean isPublicScript();
     }
 
 
@@ -47,9 +52,10 @@ public class ScriptCallbackHelper {
         return instanceInfo;
     }
 
-    public ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<ScriptQueryDTO, BaseSearchCondition> basicQueryCond =
-            basicQueryInterface.getBasicQueryCondition(callbackRequest);
+            basicInfoInterface.getBasicQueryCondition(callbackRequest);
 
         ScriptQueryDTO scriptQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
@@ -59,10 +65,11 @@ public class ScriptCallbackHelper {
         return IamRespUtil.getListInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
-    public SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
 
         Pair<ScriptQueryDTO, BaseSearchCondition> basicQueryCond =
-            basicQueryInterface.getBasicQueryCondition(callbackRequest);
+            basicInfoInterface.getBasicQueryCondition(callbackRequest);
         ScriptQueryDTO scriptQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
@@ -73,67 +80,53 @@ public class ScriptCallbackHelper {
         return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
-    public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest){
-        CallbackBaseResponseDTO response;
+    @Override
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        ScriptDTO scriptDTO = scriptService.getScriptByScriptId(instanceId);
-                        if (scriptDTO != null) {
-                            instanceInfo.setDisplayName(scriptDTO.getName());
-                        } else {
-                            instanceInfo.setDisplayName("Unknown(may be deleted)");
-                            log.warn("Unexpected scriptId:{} passed by iam", instanceId);
-                        }
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                ScriptDTO scriptDTO = scriptService.getScriptByScriptId(instanceId);
+                if (scriptDTO == null) {
+                    return getNotFoundRespById(instanceId);
                 }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                if (basicInfoInterface.isPublicScript()) {
+                    // 公共脚本
+                    rootNode.setType(ResourceId.PUBLIC_SCRIPT);
+                    rootNode.setId(scriptDTO.getId());
+                } else {
+                    // 业务脚本
+                    rootNode.setType(ResourceId.APP);
+                    rootNode.setId(scriptDTO.getAppId().toString());
+                    PathInfoDTO scriptNode = new PathInfoDTO();
+                    scriptNode.setType(ResourceId.SCRIPT);
+                    scriptNode.setId(scriptDTO.getId());
+                    rootNode.setChild(scriptNode);
+                }
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(scriptDTO.getName());
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
+    public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

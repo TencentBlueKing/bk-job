@@ -24,20 +24,20 @@
 
 package com.tencent.bk.job.crontab.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.crontab.api.iam.IamCallbackController;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +47,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/**
- * @since 23/3/2020 11:20
- */
 @Slf4j
 @RestController
-public class IamCallbackControllerImpl implements IamCallbackController {
+public class IamCallbackControllerImpl extends BaseIamCallbackService implements IamCallbackController {
 
     private final CronJobService cronJobService;
 
@@ -80,7 +78,8 @@ public class IamCallbackControllerImpl implements IamCallbackController {
         return instanceInfo;
     }
 
-    private SearchInstanceResponseDTO searchInstanceResp(
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(
         CallbackRequestDTO callbackRequest
     ) {
         Pair<CronJobInfoDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
@@ -94,7 +93,8 @@ public class IamCallbackControllerImpl implements IamCallbackController {
         return IamRespUtil.getSearchInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
 
-    private ListInstanceResponseDTO listInstanceResp(
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(
         CallbackRequestDTO callbackRequest
     ) {
         Pair<CronJobInfoDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
@@ -108,53 +108,52 @@ public class IamCallbackControllerImpl implements IamCallbackController {
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        long id = Long.parseLong(instanceId);
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        instanceInfo.setDisplayName(cronJobService.getCronJobNameById(id));
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
-                }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<Long> cronJobIdList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                cronJobIdList.add(id);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+        Map<Long, CronJobInfoDTO> cronJobInfoMap = cronJobService.getCronJobInfoMapByIds(cronJobIdList);
+        for (Long id : cronJobIdList) {
+            CronJobInfoDTO cronJobInfoDTO = cronJobInfoMap.get(id);
+            if (cronJobInfoDTO == null) {
+                return getNotFoundRespById(id.toString());
+            }
+            // 拓扑路径构建
+            List<PathInfoDTO> path = new ArrayList<>();
+            PathInfoDTO rootNode = new PathInfoDTO();
+            rootNode.setType(ResourceId.APP);
+            rootNode.setId(cronJobInfoDTO.getAppId().toString());
+            PathInfoDTO cronJobNode = new PathInfoDTO();
+            cronJobNode.setType(ResourceId.CRON);
+            cronJobNode.setId(cronJobInfoDTO.getId().toString());
+            rootNode.setChild(cronJobNode);
+            path.add(rootNode);
+            // 实例组装
+            InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+            instanceInfo.setId(id.toString());
+            instanceInfo.setDisplayName(cronJobInfoDTO.getName());
+            instanceInfo.setPath(path);
+            instanceAttributeInfoList.add(instanceInfo);
+        }
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
+    @Override
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

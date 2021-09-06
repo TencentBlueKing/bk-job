@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -50,7 +53,8 @@ import java.util.List;
 
 @Slf4j
 @RestController
-public class IamTaskTemplateCallbackResourceImpl implements IamTaskTemplateCallbackResource {
+public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
+    implements IamTaskTemplateCallbackResource {
 
     private final TaskTemplateService templateService;
 
@@ -77,19 +81,24 @@ public class IamTaskTemplateCallbackResourceImpl implements IamTaskTemplateCallb
         return Pair.of(templateQuery, baseSearchCondition);
     }
 
-    public ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
             getBasicQueryCondition(callbackRequest);
 
         TaskTemplateInfoDTO templateQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(templateQuery,
-            baseSearchCondition, null);
+        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(
+            templateQuery,
+            baseSearchCondition,
+            null
+        );
 
         return IamRespUtil.getListInstanceRespFromPageData(templateDTOPageData, this::convert);
     }
 
-    public SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
             getBasicQueryCondition(callbackRequest);
 
@@ -104,53 +113,47 @@ public class IamTaskTemplateCallbackResourceImpl implements IamTaskTemplateCallb
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        long id = Long.parseLong(instanceId);
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        instanceInfo.setDisplayName(templateService.getTemplateName(id));
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                TaskTemplateInfoDTO templateInfoDTO = templateService.getTaskTemplateBasicInfoById(id);
+                if (templateInfoDTO == null) {
+                    return getNotFoundRespById(instanceId);
                 }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.APP);
+                rootNode.setId(templateInfoDTO.getAppId().toString());
+                PathInfoDTO templateNode = new PathInfoDTO();
+                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setId(templateInfoDTO.getId().toString());
+                rootNode.setChild(templateNode);
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(templateInfoDTO.getName());
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
+    @Override
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

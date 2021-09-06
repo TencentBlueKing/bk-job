@@ -33,9 +33,18 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.SelectSeekStep1;
+import org.jooq.SortField;
+import org.jooq.UpdateSetMoreStep;
+import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.GseTaskIpLog;
 import org.jooq.generated.tables.StepInstance;
 import org.jooq.generated.tables.TaskInstance;
@@ -52,6 +61,7 @@ import java.util.List;
 /**
  * 作业执行实例DAO
  */
+@Slf4j
 @Repository
 public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
@@ -363,6 +373,9 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .from(TABLE.useIndex("idx_app_cron"))
             .where(conditions)
             .orderBy(TABLE.CREATE_TIME.desc());
+        if(log.isDebugEnabled()) {
+            log.debug("SQL=", select.getSQL(ParamType.INLINED));
+        }
         Result result;
         if (limit != null && limit > 0) {
             result = select.limit(0, limit.intValue()).fetch();

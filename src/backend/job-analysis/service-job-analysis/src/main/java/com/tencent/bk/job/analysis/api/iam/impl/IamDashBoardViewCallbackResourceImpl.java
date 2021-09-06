@@ -26,15 +26,15 @@ package com.tencent.bk.job.analysis.api.iam.impl;
 
 import com.tencent.bk.job.analysis.api.iam.IamDashBoardViewCallbackResource;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.BaseDataResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -46,13 +46,15 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class IamDashBoardViewCallbackResourceImpl implements IamDashBoardViewCallbackResource {
+public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
+    implements IamDashBoardViewCallbackResource {
 
     @Autowired
     public IamDashBoardViewCallbackResourceImpl() {
     }
 
-    private ListInstanceResponseDTO listInstanceResp() {
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         List<InstanceInfoDTO> instanceInfoList = new ArrayList<>();
         // TODO:当前只有全局视图，待后续视图功能开发后更新这里
         InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
@@ -69,10 +71,11 @@ public class IamDashBoardViewCallbackResourceImpl implements IamDashBoardViewCal
         return instanceResponse;
     }
 
-    private SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
         SearchInstanceResponseDTO instanceResponse = new SearchInstanceResponseDTO();
         String keyword = callbackRequest.getFilter().getKeyword();
-        if (AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME.contains(keyword)) {
+        if (keyword == null || AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME.contains(keyword)) {
             List<InstanceInfoDTO> instanceInfoList = new ArrayList<>();
             InstanceInfoDTO tmpInstanceInfo = new InstanceInfoDTO();
             tmpInstanceInfo.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
@@ -95,66 +98,41 @@ public class IamDashBoardViewCallbackResourceImpl implements IamDashBoardViewCal
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp();
-                break;
-            case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        if (AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID.equals(instanceId)) {
-                            instanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
-                        } else {
-                            instanceInfo.setDisplayName("Unknown(may be deleted)");
-                            log.warn("Unexpected dashBoardViewId:{} passed by iam", instanceId);
-                        }
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                if (!AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID.equals(instanceId)) {
+                    return getNotFoundRespById(instanceId);
                 }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.DASHBOARD_VIEW);
+                rootNode.setId(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(AnalysisConsts.GLOBAL_DASHBOARD_VIEW_NAME);
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
         }
-        return response;
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
+    @Override
+    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
+        return baseCallback(callbackRequest);
     }
 }

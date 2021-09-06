@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamTagCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -50,7 +53,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
+public class IamTagCallbackResourceImpl extends BaseIamCallbackService implements IamTagCallbackResource {
     private final TagService tagService;
 
     @Autowired
@@ -76,7 +79,8 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
         return instanceInfo;
     }
 
-    private SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
 
         TagDTO tagQuery = basicQueryCond.getLeft();
@@ -88,7 +92,8 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
         return IamRespUtil.getSearchInstanceRespFromPageData(tagDTOPageData, this::convert);
     }
 
-    private ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
         Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
 
         TagDTO tagQuery = basicQueryCond.getLeft();
@@ -98,21 +103,32 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
         return IamRespUtil.getListInstanceRespFromPageData(tagDTOPageData, this::convert);
     }
 
-    private FetchInstanceInfoResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
+    @Override
+    protected CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 Long tagId = Long.parseLong(instanceId);
+                TagDTO tagDTO = tagService.getTagInfoById(tagId);
+                if (tagDTO == null) {
+                    return getNotFoundRespById(instanceId);
+                }
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.APP);
+                rootNode.setId(tagDTO.getAppId().toString());
+                PathInfoDTO tagNode = new PathInfoDTO();
+                tagNode.setType(ResourceId.TAG);
+                tagNode.setId(tagDTO.getId().toString());
+                rootNode.setChild(tagNode);
+                path.add(rootNode);
+                // 实例组装
                 InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
                 instanceInfo.setId(instanceId);
-                TagDTO tagDTO = tagService.getTagInfoById(tagId);
-                if (tagDTO != null) {
-                    instanceInfo.setDisplayName(tagDTO.getName());
-                } else {
-                    instanceInfo.setDisplayName("Unknown(may be deleted)");
-                    log.warn("Unexpected tagId:{} passed by iam", instanceId);
-                }
+                instanceInfo.setDisplayName(tagDTO.getName());
+                instanceInfo.setPath(path);
                 instanceAttributeInfoList.add(instanceInfo);
             } catch (NumberFormatException e) {
                 log.error("Parse object id failed!|{}", instanceId, e);
@@ -127,34 +143,6 @@ public class IamTagCallbackResourceImpl implements IamTagCallbackResource {
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        CallbackBaseResponseDTO response;
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                response = listInstanceResp(callbackRequest);
-                break;
-            case FETCH_INSTANCE_INFO:
-                response = fetchInstanceResp(callbackRequest);
-                break;
-            case LIST_ATTRIBUTE:
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            case SEARCH_INSTANCE:
-                response = searchInstanceResp(callbackRequest);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
-        }
-        return response;
+        return baseCallback(callbackRequest);
     }
 }

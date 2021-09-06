@@ -43,10 +43,20 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
 
     @Autowired
     public IamPublicScriptCallbackResourceImpl(ScriptService scriptService) {
-        this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, this::getBasicQueryCondition);
+        this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
+            @Override
+            public Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+                return getBasicQueryConditionImpl(callbackRequest);
+            }
+
+            @Override
+            public boolean isPublicScript() {
+                return true;
+            }
+        });
     }
 
-    private Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+    private Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
