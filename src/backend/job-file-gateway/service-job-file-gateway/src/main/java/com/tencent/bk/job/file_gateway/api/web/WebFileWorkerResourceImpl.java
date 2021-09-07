@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
@@ -40,12 +42,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
+public class WebFileWorkerResourceImpl extends AbstractJobController implements WebFileWorkerResource {
 
     private final FileWorkerService fileWorkerService;
 
     @Autowired
-    public WebFileWorkerResourceImpl(FileWorkerService fileWorkerService) {
+    public WebFileWorkerResourceImpl(
+        FileWorkerService fileWorkerService,
+        AuthService authService
+    ) {
+        super(authService);
         this.fileWorkerService = fileWorkerService;
     }
 

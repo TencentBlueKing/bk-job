@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.controller.AbstractJobController;
@@ -63,7 +64,9 @@ public class WebTaskLogResourceImpl extends AbstractJobController implements Web
 
     @Autowired
     public WebTaskLogResourceImpl(MessageI18nService i18nService, TaskInstanceService taskInstanceService,
-                                  StorageSystemConfig storageSystemConfig, LogExportService logExportService) {
+                                  StorageSystemConfig storageSystemConfig, LogExportService logExportService,
+                                  AuthService authService) {
+        super(authService);
         this.i18nService = i18nService;
         this.taskInstanceService = taskInstanceService;
         this.logExportService = logExportService;

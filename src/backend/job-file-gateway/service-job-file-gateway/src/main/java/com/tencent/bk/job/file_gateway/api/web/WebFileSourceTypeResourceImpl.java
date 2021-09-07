@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceTypeVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
@@ -38,12 +40,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class WebFileSourceTypeResourceImpl implements WebFileSourceTypeResource {
+public class WebFileSourceTypeResourceImpl extends AbstractJobController implements WebFileSourceTypeResource {
 
     private final FileSourceService fileSourceService;
 
     @Autowired
-    public WebFileSourceTypeResourceImpl(FileSourceService fileSourceService) {
+    public WebFileSourceTypeResourceImpl(
+        FileSourceService fileSourceService,
+        AuthService authService
+    ) {
+        super(authService);
         this.fileSourceService = fileSourceService;
     }
 

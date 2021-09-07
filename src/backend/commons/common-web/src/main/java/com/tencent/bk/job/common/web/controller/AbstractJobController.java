@@ -24,8 +24,16 @@
 
 package com.tencent.bk.job.common.web.controller;
 
+import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,8 +49,45 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 public abstract class AbstractJobController {
 
+    AuthService authService;
+
+    public AbstractJobController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    private Pair<String, Long> findUserAndAppId() {
+        String username = JobContextUtil.getUsername();
+        Long appId = JobContextUtil.getAppId();
+        if (username != null && appId != null) {
+            return Pair.of(username, appId);
+        }
+        return null;
+    }
+
+    private String getUrlFromRequest(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
+
     public boolean preService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        log.debug("Default pre service for |{}", handler);
+        String url = getUrlFromRequest(request);
+        log.debug("Default pre service for {} |{}", url, handler);
+        Pair<String, Long> userAppIdPair = findUserAndAppId();
+        if (userAppIdPair != null) {
+            String username = userAppIdPair.getLeft();
+            Long appId = userAppIdPair.getRight();
+            if (appId != JobConstants.PUBLIC_APP_ID && appId > 0) {
+                log.info("auth {} access_business {}", username, appId);
+                AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+                    ResourceTypeEnum.BUSINESS, appId.toString(), null);
+                if (!authResult.isPass()) {
+                    throw new InSufficientPermissionException(authResult);
+                }
+            } else {
+                log.info("ignore auth {} access_business public app {}", username, appId);
+            }
+        } else {
+            log.info("can not find username/appId for url:{}", url);
+        }
         return true;
     }
 
@@ -52,7 +97,10 @@ public abstract class AbstractJobController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ServiceResponse messageNotReadable(HttpMessageNotReadableException exception, HttpServletResponse response) {
+    public ServiceResponse messageNotReadable(
+        HttpMessageNotReadableException exception,
+        HttpServletResponse response
+    ) {
         log.error("请求参数不匹配", exception);
         return ServiceResponse.buildCommonFailResp(exception.getMessage());
     }

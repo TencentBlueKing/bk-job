@@ -76,6 +76,7 @@ public class WebTaskInstanceResourceImpl extends AbstractJobController implement
                                        ServerService serverService, TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService, ExecuteAuthService executeAuthService,
                                        WebAuthService webAuthService) {
+        super(webAuthService.getAuthService());
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.serverService = serverService;

@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.api.web.impl;
 import com.tencent.bk.job.analysis.api.web.WebIndexResource;
 import com.tencent.bk.job.analysis.model.web.AnalysisResultVO;
 import com.tencent.bk.job.analysis.service.IndexService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,8 @@ public class WebIndexResourceImpl extends AbstractJobController implements WebIn
     private final IndexService indexService;
 
     @Autowired
-    public WebIndexResourceImpl(IndexService indexService) {
+    public WebIndexResourceImpl(IndexService indexService, AuthService authService) {
+        super(authService);
         this.indexService = indexService;
     }
 

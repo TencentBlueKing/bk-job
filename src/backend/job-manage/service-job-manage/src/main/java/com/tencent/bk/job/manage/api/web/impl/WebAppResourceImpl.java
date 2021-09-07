@@ -80,6 +80,7 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
         ApplicationFavorService applicationFavorService,
         AuthService authService
     ) {
+        super(authService);
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.authService = authService;

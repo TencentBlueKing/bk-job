@@ -26,8 +26,10 @@ package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
@@ -43,7 +45,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-public class WebFileResourceImpl implements WebFileResource {
+public class WebFileResourceImpl extends AbstractJobController implements WebFileResource {
 
     private final WebFileSourceResourceImpl webFileSourceResource;
     private final FileService fileService;
@@ -51,7 +53,8 @@ public class WebFileResourceImpl implements WebFileResource {
 
     @Autowired
     public WebFileResourceImpl(WebFileSourceResourceImpl webFileSourceResource, FileService fileService,
-                               DispatchService dispatchService) {
+                               DispatchService dispatchService, AuthService authService) {
+        super(authService);
         this.webFileSourceResource = webFileSourceResource;
         this.fileService = fileService;
         this.dispatchService = dispatchService;

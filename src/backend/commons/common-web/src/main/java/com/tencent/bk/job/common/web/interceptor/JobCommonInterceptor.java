@@ -84,25 +84,24 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        long appId = parseAppId(request.getRequestURI());
-        JobContextUtil.setAppId(appId);
+        Long appId = parseAppId(request.getRequestURI());
+        if (appId != null) {
+            JobContextUtil.setAppId(appId);
+        }
         return preService(request, response, handler);
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         // 只拦截web/service/esb的API请求
-        if (uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/")) {
-            return true;
-        }
-        return false;
+        return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private long parseAppId(String requestURI) {
+    private Long parseAppId(String requestURI) {
         Matcher matcher = APP_ID_PATTERN.matcher(requestURI);
         if (matcher.find()) {
             String appIdStr = matcher.group(1);
-            long appId = 0;
+            Long appId = null;
             try {
                 appId = Long.parseLong(appIdStr);
             } catch (NumberFormatException e) {
@@ -110,7 +109,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             }
             return appId;
         }
-        return 0;
+        return null;
     }
 
     @Override
@@ -183,5 +182,4 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             log.error("Error while calling post service method!", e);
         }
     }
-
 }

@@ -83,6 +83,7 @@ public class WebCronJobResourceImpl extends AbstractJobController implements Web
     public WebCronJobResourceImpl(CronJobService cronJobService, CronJobHistoryService cronJobHistoryService,
                                   MessageI18nService i18nService,
                                   WebAuthService authService) {
+        super(authService.getAuthService());
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
         this.i18nService = i18nService;

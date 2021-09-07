@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -49,7 +50,9 @@ public class WebIndexResourceImpl extends AbstractJobController implements WebIn
     private final TaskTemplateAuthService taskTemplateAuthService;
 
     @Autowired
-    public WebIndexResourceImpl(IndexService indexService, TaskTemplateAuthService taskTemplateAuthService) {
+    public WebIndexResourceImpl(IndexService indexService, TaskTemplateAuthService taskTemplateAuthService,
+                                AuthService authService) {
+        super(authService);
         this.indexService = indexService;
         this.taskTemplateAuthService = taskTemplateAuthService;
     }

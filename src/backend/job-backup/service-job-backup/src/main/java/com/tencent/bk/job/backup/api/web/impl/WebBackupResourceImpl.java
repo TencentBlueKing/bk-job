@@ -46,6 +46,7 @@ import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -82,7 +83,9 @@ public class WebBackupResourceImpl extends AbstractJobController implements WebB
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService, ExportJobService exportJobService,
-                                 LogService logService, BkConfig bkConfig, StorageService storageService) {
+                                 LogService logService, BkConfig bkConfig, StorageService storageService,
+                                 AuthService authService) {
+        super(authService);
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;

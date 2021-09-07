@@ -73,6 +73,7 @@ public class WebExecuteTaskResourceImpl extends AbstractJobController implements
     @Autowired
     public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
                                       WebAuthService webAuthService) {
+        super(webAuthService.getAuthService());
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.webAuthService = webAuthService;

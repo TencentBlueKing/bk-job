@@ -77,6 +77,7 @@ public class WebAppAccountResourceImpl extends AbstractJobController implements 
     public WebAppAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
                                      WebAuthService authService, ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
+        super(authService.getAuthService());
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.authService = authService;

@@ -104,6 +104,7 @@ public class WebScriptResourceImpl extends AbstractJobController implements WebS
         ScriptDTOBuilder scriptDTOBuilder,
         WebAuthService authService
     ) {
+        super(authService.getAuthService());
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;

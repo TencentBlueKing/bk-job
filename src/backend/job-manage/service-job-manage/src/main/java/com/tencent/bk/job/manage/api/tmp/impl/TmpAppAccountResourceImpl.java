@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class TmpAppAccountResourceImpl extends AbstractJobController implements TmpAppAccountResource {
+public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
     private AccountService accountService;
     private MessageI18nService i18nService;
 

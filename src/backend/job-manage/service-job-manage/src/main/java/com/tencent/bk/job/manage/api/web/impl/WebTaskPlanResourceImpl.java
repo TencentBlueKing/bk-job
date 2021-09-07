@@ -101,6 +101,7 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
         WebAuthService authService,
         MessageI18nService i18nService
     ) {
+        super(authService.getAuthService());
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;

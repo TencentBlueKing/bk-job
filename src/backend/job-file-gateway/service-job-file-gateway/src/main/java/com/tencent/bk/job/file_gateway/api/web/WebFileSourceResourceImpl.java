@@ -29,11 +29,13 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
@@ -54,13 +56,17 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class WebFileSourceResourceImpl implements WebFileSourceResource {
+public class WebFileSourceResourceImpl extends AbstractJobController implements WebFileSourceResource {
 
     private final WebAuthService authService;
     private final FileSourceService fileSourceService;
 
     @Autowired
-    public WebFileSourceResourceImpl(WebAuthService authService, FileSourceService fileSourceService) {
+    public WebFileSourceResourceImpl(
+        WebAuthService authService,
+        FileSourceService fileSourceService
+    ) {
+        super(authService.getAuthService());
         this.authService = authService;
         this.fileSourceService = fileSourceService;
     }

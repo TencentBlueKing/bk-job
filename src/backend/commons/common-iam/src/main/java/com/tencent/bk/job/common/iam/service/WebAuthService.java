@@ -40,6 +40,8 @@ import java.util.List;
  */
 public interface WebAuthService {
 
+    AuthService getAuthService();
+
     void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
 
     /**
