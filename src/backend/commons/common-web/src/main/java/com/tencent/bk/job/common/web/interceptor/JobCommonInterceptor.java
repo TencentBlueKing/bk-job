@@ -158,13 +158,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
     private boolean preService(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (handler instanceof HandlerMethod) {
-            try {
-                AbstractJobController controllerInstance = getControllerInstance((HandlerMethod) handler);
-                if (controllerInstance != null) {
-                    return controllerInstance.preService(request, response, (HandlerMethod) handler);
-                }
-            } catch (Exception e) {
-                log.error("Error while calling pre service method!", e);
+            AbstractJobController controllerInstance = getControllerInstance((HandlerMethod) handler);
+            if (controllerInstance != null) {
+                return controllerInstance.preService(request, response, (HandlerMethod) handler);
             }
             return true;
         } else {
@@ -173,13 +169,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private void postService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        try {
-            AbstractJobController controllerInstance = getControllerInstance(handler);
-            if (controllerInstance != null) {
-                controllerInstance.postService(request, response, handler);
-            }
-        } catch (Exception e) {
-            log.error("Error while calling post service method!", e);
+        AbstractJobController controllerInstance = getControllerInstance(handler);
+        if (controllerInstance != null) {
+            controllerInstance.postService(request, response, handler);
         }
     }
 }
