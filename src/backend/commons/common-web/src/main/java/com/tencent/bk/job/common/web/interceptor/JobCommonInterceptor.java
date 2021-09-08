@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -72,7 +73,18 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         JobContextUtil.setRequest(request);
         JobContextUtil.setResponse(response);
 
+        // Web接口Header
         String username = request.getHeader("username");
+        // ESB接口Header
+        // 网关从JWT中解析出的Username最高优先级
+        if (StringUtils.isBlank(username)) {
+            username = request.getHeader(JobCommonHeaders.USERNAME);
+        }
+        // QueryString/Body中的Username次优先
+        if (StringUtils.isBlank(username)) {
+            username = parseUsernameFromQueryStringOrBody(request);
+        }
+
         if (StringUtils.isNotBlank(username)) {
             JobContextUtil.setUsername(username);
         }
@@ -116,23 +128,39 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return null;
     }
 
+    private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
+        return parseValueFromQueryStringOrBody(request, "bk_username");
+    }
+
     private Long parseAppIdFromQueryStringOrBody(HttpServletRequest request) {
+        String appIdStr = null;
+        try {
+            appIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (appIdStr == null) return null;
+            return Long.parseLong(appIdStr);
+        } catch (Exception e) {
+            log.warn("Fail to parse appId from {}", appIdStr, e);
+        }
+        return null;
+    }
+
+    private String parseValueFromQueryStringOrBody(HttpServletRequest request, String key) {
         try {
             if (request.getMethod().equals(HttpMethod.POST.name())
                 || request.getMethod().equals(HttpMethod.PUT.name())) {
-                String[] appIds = request.getParameterMap().get("bk_biz_id");
-                if (appIds != null && appIds.length > 0) {
-                    Long appId = Long.parseLong(appIds[0]);
-                    log.debug("parsed from POST/PUT: bk_biz_id={}", appId);
-                    return appId;
+                String[] values = request.getParameterMap().get(key);
+                if (values != null && values.length > 0) {
+                    String value = values[0];
+                    log.debug("parsed from POST/PUT: {}={}", key, value);
+                    return value;
                 }
             } else if (request.getMethod().equals(HttpMethod.GET.name())) {
-                Long appId = Long.parseLong(request.getParameter("bk_biz_id"));
-                log.debug("parsed from GET: bk_biz_id={}", appId);
-                return appId;
+                String value = request.getParameter(key);
+                log.debug("parsed from GET: {}={}", key, value);
+                return value;
             }
         } catch (Exception e) {
-            log.warn("Fail to parse appId from request", e);
+            log.warn("Fail to parse {} from request", key, e);
         }
         return null;
     }
