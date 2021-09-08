@@ -25,11 +25,14 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.controller.AbstractJobController;
+import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,10 +82,12 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         // 网关从JWT中解析出的Username最高优先级
         if (StringUtils.isBlank(username)) {
             username = request.getHeader(JobCommonHeaders.USERNAME);
+            log.debug("username from gateway:{}", username);
         }
         // QueryString/Body中的Username次优先
         if (StringUtils.isBlank(username)) {
             username = parseUsernameFromQueryStringOrBody(request);
+            log.debug("username from query/body:{}", username);
         }
 
         if (StringUtils.isNotBlank(username)) {
@@ -98,8 +103,10 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         }
 
         Long appId = parseAppIdFromPath(request.getRequestURI());
+        log.debug("appId from path:{}", appId);
         if (appId == null) {
             appId = parseAppIdFromQueryStringOrBody(request);
+            log.debug("appId from query/body:{}", appId);
         }
         if (appId != null) {
             JobContextUtil.setAppId(appId);
@@ -148,9 +155,17 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         try {
             if (request.getMethod().equals(HttpMethod.POST.name())
                 || request.getMethod().equals(HttpMethod.PUT.name())) {
-                String[] values = request.getParameterMap().get(key);
-                if (values != null && values.length > 0) {
-                    String value = values[0];
+                if (!(request instanceof RepeatableReadWriteHttpServletRequest)) {
+                    return null;
+                }
+                RepeatableReadWriteHttpServletRequest wrapperRequest =
+                    (RepeatableReadWriteHttpServletRequest) request;
+                if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
+                    ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(wrapperRequest.getBody());
+                    if (jsonBody == null) {
+                        return null;
+                    }
+                    String value = jsonBody.get(key) == null ? null : jsonBody.get(key).asText();
                     log.debug("parsed from POST/PUT: {}={}", key, value);
                     return value;
                 }
