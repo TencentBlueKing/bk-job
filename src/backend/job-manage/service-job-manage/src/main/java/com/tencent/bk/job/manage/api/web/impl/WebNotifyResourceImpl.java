@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
@@ -49,7 +48,7 @@ import static com.tencent.bk.job.common.constant.ErrorCode.USER_NO_PERMISSION_CO
 
 @RestController
 @Slf4j
-public class WebNotifyResourceImpl extends AbstractJobController implements WebNotifyResource {
+public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
@@ -58,7 +57,6 @@ public class WebNotifyResourceImpl extends AbstractJobController implements WebN
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
                                  WebAuthService webAuthService) {
-        super(webAuthService.getAuthService());
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
         this.authService = webAuthService;

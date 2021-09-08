@@ -33,10 +33,13 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -44,9 +47,29 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.*;
-import com.tencent.bk.job.execute.model.web.request.*;
-import com.tencent.bk.job.execute.model.web.vo.*;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepOperationDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteParam;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
+import com.tencent.bk.job.execute.model.web.request.WebFastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.web.request.WebFastPushFileRequest;
+import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
+import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
+import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -61,11 +84,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.*;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.ASSOCIATIVE_ARRAY;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.HOST_LIST;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.INDEX_ARRAY;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.NAMESPACE;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
 
 @RestController
 @Slf4j
-public class WebExecuteTaskResourceImpl extends AbstractJobController implements WebExecuteTaskResource {
+public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private final TaskExecuteService taskExecuteService;
     private final MessageI18nService i18nService;
     private final WebAuthService webAuthService;
@@ -73,7 +101,6 @@ public class WebExecuteTaskResourceImpl extends AbstractJobController implements
     @Autowired
     public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
                                       WebAuthService webAuthService) {
-        super(webAuthService.getAuthService());
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.webAuthService = webAuthService;

@@ -39,7 +39,6 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
@@ -68,7 +67,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class WebAppResourceImpl extends AbstractJobController implements WebAppResource {
+public class WebAppResourceImpl implements WebAppResource {
 
     private final ApplicationService applicationService;
     private final ApplicationFavorService applicationFavorService;
@@ -80,7 +79,6 @@ public class WebAppResourceImpl extends AbstractJobController implements WebAppR
         ApplicationFavorService applicationFavorService,
         AuthService authService
     ) {
-        super(authService);
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.authService = authService;

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
@@ -37,16 +38,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final AuthAppInterceptor authAppInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
 
     @Autowired
-    public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    EsbApiLogInterceptor esbApiLogInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
-                                    EsbReqRewriteInterceptor esbReqRewriteInterceptor) {
+    public InterceptorConfiguration(
+        JobCommonInterceptor jobCommonInterceptor,
+        AuthAppInterceptor authAppInterceptor,
+        EsbApiLogInterceptor esbApiLogInterceptor,
+        ServiceSecurityInterceptor serviceSecurityInterceptor,
+        EsbReqRewriteInterceptor esbReqRewriteInterceptor
+    ) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.authAppInterceptor = authAppInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
@@ -59,5 +65,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
         registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(12);
     }
 }

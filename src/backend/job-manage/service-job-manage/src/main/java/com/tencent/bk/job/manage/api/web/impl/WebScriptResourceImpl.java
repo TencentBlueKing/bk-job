@@ -37,16 +37,26 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.WhiteCharChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.model.dto.*;
+import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
+import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
+import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptRelatedTemplateStepConverter;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
@@ -55,7 +65,12 @@ import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
-import com.tencent.bk.job.manage.model.web.vo.*;
+import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO;
@@ -84,7 +99,7 @@ import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 @RestController
 @Slf4j
-public class WebScriptResourceImpl extends AbstractJobController implements WebScriptResource {
+public class WebScriptResourceImpl implements WebScriptResource {
 
     private final ScriptService scriptService;
 
@@ -104,7 +119,6 @@ public class WebScriptResourceImpl extends AbstractJobController implements WebS
         ScriptDTOBuilder scriptDTOBuilder,
         WebAuthService webAuthService
     ) {
-        super(webAuthService.getAuthService());
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;

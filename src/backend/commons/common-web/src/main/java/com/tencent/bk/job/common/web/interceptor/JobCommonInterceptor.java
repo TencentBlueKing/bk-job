@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -84,7 +85,10 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        Long appId = parseAppId(request.getRequestURI());
+        Long appId = parseAppIdFromPath(request.getRequestURI());
+        if (appId == null) {
+            appId = parseAppIdFromQueryStringOrBody(request);
+        }
         if (appId != null) {
             JobContextUtil.setAppId(appId);
         }
@@ -97,7 +101,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private Long parseAppId(String requestURI) {
+    private Long parseAppIdFromPath(String requestURI) {
         Matcher matcher = APP_ID_PATTERN.matcher(requestURI);
         if (matcher.find()) {
             String appIdStr = matcher.group(1);
@@ -108,6 +112,27 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                 log.error("Error while parse app id!|{}|{}", requestURI, appIdStr);
             }
             return appId;
+        }
+        return null;
+    }
+
+    private Long parseAppIdFromQueryStringOrBody(HttpServletRequest request) {
+        try {
+            if (request.getMethod().equals(HttpMethod.POST.name())
+                || request.getMethod().equals(HttpMethod.PUT.name())) {
+                String[] appIds = request.getParameterMap().get("bk_biz_id");
+                if (appIds != null && appIds.length > 0) {
+                    Long appId = Long.parseLong(appIds[0]);
+                    log.debug("parsed from POST/PUT: bk_biz_id={}", appId);
+                    return appId;
+                }
+            } else if (request.getMethod().equals(HttpMethod.GET.name())) {
+                Long appId = Long.parseLong(request.getParameter("bk_biz_id"));
+                log.debug("parsed from GET: bk_biz_id={}", appId);
+                return appId;
+            }
+        } catch (Exception e) {
+            log.warn("Fail to parse appId from request", e);
         }
         return null;
     }

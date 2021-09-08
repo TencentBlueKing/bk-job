@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.PageUtil;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
@@ -55,7 +54,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class WebFileSourceResourceImpl extends AbstractJobController implements WebFileSourceResource {
+public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     private final WebAuthService authService;
     private final FileSourceService fileSourceService;
@@ -65,7 +64,6 @@ public class WebFileSourceResourceImpl extends AbstractJobController implements 
         WebAuthService webAuthService,
         FileSourceService fileSourceService
     ) {
-        super(webAuthService.getAuthService());
         this.authService = webAuthService;
         this.fileSourceService = fileSourceService;
     }

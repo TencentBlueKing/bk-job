@@ -37,16 +37,36 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
-import com.tencent.bk.job.execute.model.web.vo.*;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteCloudAreaInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteScriptStepVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
+import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +81,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class WebTaskInstanceResourceImpl extends AbstractJobController implements WebTaskInstanceResource {
+public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final TaskInstanceService taskInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ServerService serverService;
@@ -76,7 +96,6 @@ public class WebTaskInstanceResourceImpl extends AbstractJobController implement
                                        ServerService serverService, TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService, ExecuteAuthService executeAuthService,
                                        WebAuthService webAuthService) {
-        super(webAuthService.getAuthService());
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.serverService = serverService;

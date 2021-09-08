@@ -36,10 +36,13 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
@@ -64,7 +67,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +79,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class WebCronJobResourceImpl extends AbstractJobController implements WebCronJobResource {
+public class WebCronJobResourceImpl implements WebCronJobResource {
 
     private final CronJobService cronJobService;
     private final CronJobHistoryService cronJobHistoryService;
@@ -83,7 +90,6 @@ public class WebCronJobResourceImpl extends AbstractJobController implements Web
     public WebCronJobResourceImpl(CronJobService cronJobService, CronJobHistoryService cronJobHistoryService,
                                   MessageI18nService i18nService,
                                   WebAuthService webAuthService) {
-        super(webAuthService.getAuthService());
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
         this.i18nService = i18nService;
