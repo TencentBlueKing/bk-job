@@ -483,7 +483,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         AuthResultVO authResultVO = webAuthService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildSuccessResp(null);
+            return ServiceResponse.buildAuthFailResp(authResultVO);
         }
         return ServiceResponse.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
             i18nService));
