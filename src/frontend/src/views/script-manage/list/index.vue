@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div>
+    <layout>
+        <template #tag>
+            <tag-panel ref="tagPanelRef" @on-change="handleTagPlanChange" />
+        </template>
         <list-action-layout>
             <auth-button
                 theme="primary"
@@ -48,6 +51,7 @@
             ref="list"
             :data-source="getScriptList"
             :size="tableSize"
+            selectable
             :search-control="() => $refs.search">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
@@ -140,6 +144,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.version"
                 :label="$t('script.线上版本')"
+                show-overflow-tooltip
                 prop="version"
                 key="version"
                 width="140"
@@ -237,7 +242,7 @@
                 from="scriptList"
                 :info="relatedScriptInfo" />
         </jb-sideslider>
-    </div>
+    </layout>
 </template>
 <script>
     import I18n from '@/i18n';
@@ -246,22 +251,17 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import NotifyService from '@service/notify';
-    import {
-        isPublicScript,
-    } from '@utils/assist';
-    import {
-        scriptNameRule,
-    } from '@utils/validator';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { isPublicScript } from '@utils/assist';
+    import { scriptNameRule } from '@utils/validator';
+    import { listColumnsCache } from '@utils/cache-helper';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import ScriptRelatedInfo from '../common/script-related-info';
+    import Layout from './components/layout';
+    import TagPanel from './components/tag-panel';
 
     const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -274,7 +274,8 @@
             JbSearchSelect,
             JbEditInput,
             JbEditTag,
-            JbPopoverConfirm,
+            Layout,
+            TagPanel,
         },
         data () {
             return {
@@ -303,6 +304,8 @@
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
             this.tagSericeHandler = this.publicScript ? PublicTagManageService : TagManageService;
             this.getScriptList = this.serviceHandler.scriptList;
+
+            this.searchClass = {};
 
             this.searchSelect = [
                 {
@@ -414,22 +417,25 @@
              * @desc 获取列表数据
              */
             fetchData () {
+                // 合并左侧分类和右侧搜索的查询条件
+                const searchParams = { ...this.searchParams };
+                if (this.searchClass.type) {
+                    searchParams.type = this.searchClass.type;
+                }
+                if (this.searchClass.panelTag) {
+                    searchParams.panelTag = this.searchClass.panelTag;
+                }
                 this.$refs.list.$emit('onFetch', {
-                    ...this.searchParams,
+                    ...searchParams,
                 });
             },
             /**
-             * @desc 通过脚本ID删除脚本
-             * @param {Number} id 脚本id
+             * @desc 切换分类
+             * @param {String} searchClass 最新分类
              */
-            removeScript (id) {
-                return this.serviceHandler.scriptDelete({
-                    id,
-                }).then(() => {
-                    this.fetchData();
-                    this.messageSuccess(I18n.t('script.删除成功'));
-                    return true;
-                });
+            handleTagPlanChange (searchClass) {
+                this.searchClass = searchClass;
+                this.fetchData();
             },
             /**
              * @desc 列表搜索
@@ -554,27 +560,27 @@
              */
             renderHeader (h, data) {
                 /*  eslint-disable vue/script-indent  */
-            return h('div', {
-                directives: [
-                    {
-                        name: 'bkTooltips',
-                        value: {
-                            content: I18n.t('script.显示被执行方案引用的次数'),
-                            placement: 'bottom',
+                return h('div', {
+                    directives: [
+                        {
+                            name: 'bkTooltips',
+                            value: {
+                                content: I18n.t('script.显示被执行方案引用的次数'),
+                                placement: 'bottom',
+                            },
                         },
-                    },
-                ],
-            }, [
-                data.column.label,
-                h('Icon', {
-                    props: {
-                        type: 'italic-info',
-                    },
-                    style: {
-                        marginLeft: '4px',
-                    },
-                }),
-            ]);
+                    ],
+                }, [
+                    data.column.label,
+                    h('Icon', {
+                        props: {
+                            type: 'italic-info',
+                        },
+                        style: {
+                            marginLeft: '4px',
+                        },
+                    }),
+                ]);
         },
     },
 };

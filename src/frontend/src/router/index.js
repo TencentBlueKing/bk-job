@@ -56,6 +56,7 @@ import TicketManage from '@views/ticket-manage/routes';
 import ServiceState from '@views/service-state/routes';
 import DetectRecords from '@views/detect-records/routes';
 import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
+import TagManage from '@views/tag-manage/routes';
 
 Vue.use(VueRouter);
 
@@ -120,7 +121,7 @@ export default ({ appList, isAdmin, appId }) => {
                 ExecutiveHistory,
                 FileManage,
                 TicketManage,
-                
+                TagManage,
             ],
         },
         {

@@ -64,6 +64,7 @@
                     </bk-button>
                 </span>
             </bk-badge>
+            <bk-button @click="handleBatchEditTag">编辑标签</bk-button>
             <template #right>
                 <jb-search-select
                     ref="search"
@@ -257,6 +258,15 @@
                 </bk-table-column>
             </render-list>
         </div>
+        <jb-dialog
+            v-model="isShowBatchEdit"
+            title="编辑标签"
+            header-position="left"
+            :width="480">
+            <batch-edit-tag
+                v-if="isShowBatchEdit"
+                :template-list="listSelect" />
+        </jb-dialog>
     </Layout>
 </template>
 <script>
@@ -278,6 +288,7 @@
     import JbPopoverConfirm from '@components/jb-popover-confirm';
     import Layout from './components/layout';
     import TagPanel from './components/tag-panel';
+    import BatchEditTag from './components/batch-edit-tag.vue';
 
     const TABLE_COLUMN_CACHE = 'task_list_columns';
     
@@ -286,17 +297,18 @@
         components: {
             JbEditTag,
             ListActionLayout,
-            ListOperationExtend,
-            Layout,
-            TagPanel,
             RenderList,
+            ListOperationExtend,
             JbSearchSelect,
             JbPopoverConfirm,
+            Layout,
+            TagPanel,
+            BatchEditTag,
         },
         data () {
             return {
+                isShowBatchEdit: false,
                 currentUser: {},
-                data: [],
                 searchValue: [],
                 listSelect: [],
                 backupInfo: {
@@ -525,6 +537,12 @@
                 }
             },
             /**
+             * @desc 批量编辑 TAG
+             */
+            handleBatchEditTag () {
+                this.isShowBatchEdit = true;
+            },
+            /**
              * @desc 查看登陆用户的作业模板
              */
             handleMyTask () {
@@ -568,6 +586,7 @@
              */
             handleSelection (selectTemplate) {
                 this.listSelect = Object.freeze(selectTemplate);
+                console.log('from ahdad = =', this.listSelect);
             },
             /**
              * @desc 编辑作业模板

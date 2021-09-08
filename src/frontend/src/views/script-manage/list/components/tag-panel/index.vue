@@ -26,9 +26,9 @@
 -->
 
 <template>
-    <div class="template-list-tag-panel" v-bkloading="{ isLoading }">
+    <div class="script-list-tag-panel" v-bkloading="{ isLoading }">
         <tab-item
-            :name="$t('template.全部作业')"
+            :name="$t('script.全部脚本')"
             :id="1"
             :value="classesId"
             icon="business-manage"
@@ -36,19 +36,11 @@
             :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <tab-item
-            :name="$t('template.未分类')"
+            :name="$t('script.未分类')"
             :id="2"
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
-            :loading="isNumberLoading"
-            @on-change="handleClassesChange" />
-        <tab-item
-            :name="$t('template.待更新')"
-            :id="3"
-            :value="classesId"
-            icon="update"
-            :count="needUpdateCount"
             :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <div class="line" />
@@ -196,7 +188,7 @@
             handleEdit (payload) {
                 TagManageService.updateTag(payload)
                     .then(() => {
-                        this.messageSuccess(I18n.t('template.标签名更新成功'));
+                        this.messageSuccess(I18n.t('script.标签名更新成功'));
                         this.fetchTagList();
                     });
             },
@@ -204,7 +196,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    .template-list-tag-panel {
+    .script-list-tag-panel {
         display: flex;
         flex-direction: column;
         min-height: 50%;

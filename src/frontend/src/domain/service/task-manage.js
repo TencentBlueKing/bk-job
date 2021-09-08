@@ -76,4 +76,8 @@ export default {
         return TaskManageSource.getBasicById(params)
             .then(({ data }) => data);
     },
+    batchUpdateTag (params = {}) {
+        return TaskManageSource.batchUpdateTag(params)
+            .then(({ data }) => data);
+    },
 };

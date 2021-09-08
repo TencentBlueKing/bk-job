@@ -1,4 +1,4 @@
-/*
+<!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
  * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
@@ -7,6 +7,8 @@
  *
  * License for BK-JOB蓝鲸智云作业平台:
  *
+ *
+ * Terms of the MIT License:
  * ---------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -16,37 +18,23 @@
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
  * the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
  * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+-->
 
-import Model from '@model/model';
+<template>
+    <jb-router-view :key="$route.path" />
+</template>
+<script>
+    import {
+        loadLanguage,
+    } from '@/i18n';
+    import Local from './local';
 
-export default class Tag extends Model {
-    constructor (payload) {
-        super();
-        this.id = payload.id;
-        this.name = payload.name;
-        this.description = payload.description || '';
-        this.relatedScriptNum = Number(payload.relatedScriptNum);
-        this.relatedTaskTemplateNum = Number(payload.relatedTaskTemplateNum);
-        this.creator = payload.creator;
-        this.createTime = payload.createTime;
-        this.lastModifyUser = payload.lastModifyUser;
-        this.lastModifyTime = payload.lastModifyTime;
-        
-        // 权限
-        this.canManage = payload.canManage || true;
-    }
+    loadLanguage(Local);
 
-    /**
-     * @desc 描述展示文本
-     * @returns { String }
-     */
-    get descriptionText () {
-        return this.getDefaultValue(this.description);
-    }
-}
+    export default {};
+</script>

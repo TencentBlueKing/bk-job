@@ -130,8 +130,9 @@
         },
         created () {
             this.publicScript = isPublicScript(this.$route);
-            this.tagService = this.publicScript ? PubliceTagManageService : TagManageService;
+            
             this.fetchData();
+
             this.rules = {
                 tagName: [
                     {
@@ -148,7 +149,8 @@
              */
             fetchData () {
                 this.isLoading = true;
-                return this.tagService.fetchTagList()
+                const requestHandler = this.publicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
+                requestHandler()
                     .then((data) => {
                         this.list = Object.freeze(data);
                     })

@@ -159,6 +159,7 @@
              */
             close () {
                 this.$emit('input', false);
+                this.$emit('change', false);
             },
             /**
              * @desc 关闭弹框时如果子组件有配置reset方案就执行

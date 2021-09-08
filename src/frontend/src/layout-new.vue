@@ -148,6 +148,10 @@
                     <jb-item-group>
                         <div slot="title">{{ $t('管理.menuGroup') }}</div>
                         <div slot="flod-title">{{ $t('管理.flodTitle') }}</div>
+                        <jb-item index="tagManage">
+                            <Icon type="tag" />
+                            {{ $t('标签') }}
+                        </jb-item>
                         <jb-item index="notifyManage">
                             <Icon type="job-message" />
                             {{ $t('消息通知') }}

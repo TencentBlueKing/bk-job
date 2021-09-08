@@ -23,56 +23,35 @@
  * IN THE SOFTWARE.
 */
 
-import Request from '@utils/request';
-import ModuleBase from './module-base';
-
-class TagManage extends ModuleBase {
-    constructor () {
-        super();
-        this.module = '/job-manage/web/tag';
-    }
-
-    // 获取所有tag
-    getAll (params = {}) {
-        return Request.get(`${this.path}/tag/list`, {
-            params,
-            cache: 2000,
-        });
-    }
-
-    getAllWithBasic (params = {}) {
-        return Request.get(`${this.path}/tag/basic/list`, {
-            params,
-        });
-    }
-
-    update (params = {}) {
-        const realParams = { ...params };
-        delete realParams.id;
-
-        return Request.put(`${this.path}/tag/${params.id}`, {
-            params: realParams,
-        });
-    }
-
-    create (params = {}) {
-        return Request.post(`${this.path}/tag`, {
-            params,
-        });
-    }
-
-    remove (params = {}) {
-        return Request.delete(`${this.path}/tag/${params.id}`);
-    }
-
-    batchUpdate (params = {}) {
-        const realParams = { ...params };
-        delete realParams.id;
-
-        return Request.put(`${this.path}/tag/${params.id}/resources`, {
-            params: realParams,
-        });
-    }
-}
-
-export default new TagManage();
+export default {
+    namespace: 'tag',
+    message: {
+        新建: '',
+        请输入: '',
+        标签名: {
+            colHead: '',
+        },
+        描述: {
+            colHead: '',
+        },
+        关联作业量: {
+            colHead: '',
+        },
+        关联脚本量: {
+            colHead: '',
+        },
+        创建人: '',
+        创建时间: '',
+        更新人: {
+            colHead: '',
+        },
+        更新时间: '',
+        操作: '',
+        编辑: '',
+        批量流转关联项: '',
+        '确认删除该标签？': '',
+        '关联的作业、脚本，将同时移除本标签': '',
+        删除: '',
+        删除成功: '',
+    },
+};

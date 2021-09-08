@@ -168,5 +168,7 @@ export default {
         返回列表: 'go back to list',
         前往编辑: 'edit now',
         选择载入版本: 'Choose version to load',
+        全部脚本: '',
+        未分类: '',
     },
 };

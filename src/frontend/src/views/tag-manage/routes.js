@@ -23,56 +23,28 @@
  * IN THE SOFTWARE.
 */
 
-import Request from '@utils/request';
-import ModuleBase from './module-base';
+import I18n from '@/i18n';
 
-class TagManage extends ModuleBase {
-    constructor () {
-        super();
-        this.module = '/job-manage/web/tag';
-    }
-
-    // 获取所有tag
-    getAll (params = {}) {
-        return Request.get(`${this.path}/tag/list`, {
-            params,
-            cache: 2000,
-        });
-    }
-
-    getAllWithBasic (params = {}) {
-        return Request.get(`${this.path}/tag/basic/list`, {
-            params,
-        });
-    }
-
-    update (params = {}) {
-        const realParams = { ...params };
-        delete realParams.id;
-
-        return Request.put(`${this.path}/tag/${params.id}`, {
-            params: realParams,
-        });
-    }
-
-    create (params = {}) {
-        return Request.post(`${this.path}/tag`, {
-            params,
-        });
-    }
-
-    remove (params = {}) {
-        return Request.delete(`${this.path}/tag/${params.id}`);
-    }
-
-    batchUpdate (params = {}) {
-        const realParams = { ...params };
-        delete realParams.id;
-
-        return Request.put(`${this.path}/tag/${params.id}/resources`, {
-            params: realParams,
-        });
-    }
-}
-
-export default new TagManage();
+export default {
+    path: 'tag_manage',
+    name: 'tagManage',
+    component: () => import('@views/tag-manage/'),
+    meta: {
+        title: I18n.t('标签'),
+        group: 'business',
+    },
+    redirect: {
+        name: 'tagList',
+    },
+    children: [
+        {
+            path: 'index',
+            name: 'tagList',
+            component: () => import('@views/tag-manage/index/index'),
+            meta: {
+                title: I18n.t('标签'),
+                skeleton: 'list',
+            },
+        },
+    ],
+};

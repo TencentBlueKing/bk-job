@@ -95,6 +95,13 @@ class TaskManage extends ModuleBase {
             params,
         });
     }
+
+    // 批量更新 tag
+    batchUpdateTag (params = {}) {
+        return Request.put(`${this.path}/task/template/tag`, {
+            params,
+        });
+    }
 }
 
 export default new TaskManage();
