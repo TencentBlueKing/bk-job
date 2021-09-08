@@ -52,10 +52,10 @@ public class WebTagResourceImpl extends AbstractJobController implements WebTagR
     private final WebAuthService authService;
 
     @Autowired
-    public WebTagResourceImpl(TagService tagService, WebAuthService authService) {
-        super(authService.getAuthService());
+    public WebTagResourceImpl(TagService tagService, WebAuthService webAuthService) {
+        super(webAuthService.getAuthService());
         this.tagService = tagService;
-        this.authService = authService;
+        this.authService = webAuthService;
     }
 
     @Override

@@ -57,11 +57,11 @@ public class WebNotifyResourceImpl extends AbstractJobController implements WebN
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 WebAuthService authService) {
-        super(authService.getAuthService());
+                                 WebAuthService webAuthService) {
+        super(webAuthService.getAuthService());
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = authService;
+        this.authService = webAuthService;
     }
 
     @Override

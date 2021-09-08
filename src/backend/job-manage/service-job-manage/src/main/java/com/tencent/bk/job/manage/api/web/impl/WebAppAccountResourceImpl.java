@@ -75,12 +75,12 @@ public class WebAppAccountResourceImpl extends AbstractJobController implements 
 
     @Autowired
     public WebAppAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
-                                     WebAuthService authService, ApplicationService applicationService,
+                                     WebAuthService webAuthService, ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
-        super(authService.getAuthService());
+        super(webAuthService.getAuthService());
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
     }

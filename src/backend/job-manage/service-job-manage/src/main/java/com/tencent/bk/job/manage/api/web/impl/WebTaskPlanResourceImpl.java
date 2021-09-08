@@ -98,15 +98,15 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
         TaskTemplateService templateService,
         @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         CronJobService cronJobService,
-        WebAuthService authService,
+        WebAuthService webAuthService,
         MessageI18nService i18nService
     ) {
-        super(authService.getAuthService());
+        super(webAuthService.getAuthService());
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.i18nService = i18nService;
     }
 

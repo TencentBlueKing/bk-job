@@ -62,11 +62,11 @@ public class WebFileSourceResourceImpl extends AbstractJobController implements 
 
     @Autowired
     public WebFileSourceResourceImpl(
-        WebAuthService authService,
+        WebAuthService webAuthService,
         FileSourceService fileSourceService
     ) {
-        super(authService.getAuthService());
-        this.authService = authService;
+        super(webAuthService.getAuthService());
+        this.authService = webAuthService;
         this.fileSourceService = fileSourceService;
     }
 

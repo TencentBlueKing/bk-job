@@ -76,13 +76,13 @@ public class WebTaskTemplateResourceImpl extends AbstractJobController implement
     public WebTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        WebAuthService authService,
+        WebAuthService webAuthService,
         TaskTemplateAuthService taskTemplateAuthService
     ) {
-        super(authService.getAuthService());
+        super(webAuthService.getAuthService());
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
     }
 
