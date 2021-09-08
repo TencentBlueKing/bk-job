@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
-import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.List;
 
