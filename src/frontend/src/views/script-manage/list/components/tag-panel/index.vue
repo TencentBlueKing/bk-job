@@ -46,11 +46,11 @@
         <div class="line" />
         <template v-for="item in list">
             <tab-item
+                v-if="item.relatedScriptNum > 0"
                 :key="item.id"
                 :id="item.id"
-                :count="item.relatedTaskTemplateNum"
+                :count="item.relatedScriptNum"
                 :name="item.name"
-                :icon="'tag'"
                 :value="tagId"
                 :can-edit="true"
                 :tag-list="list"
@@ -110,7 +110,9 @@
              * @desc 获取tag列表
              */
             fetchTagList () {
-                this.$request(TagManageService.fetchTagList(), () => {
+                this.$request(TagManageService.fetchTagList({
+                    pageSize: 1000,
+                }), () => {
                     this.isLoading = true;
                 }).then((data) => {
                     this.list = Object.freeze(data.data);
@@ -118,18 +120,6 @@
                 })
                     .finally(() => {
                         this.isLoading = false;
-                    });
-            },
-            /**
-             * @desc 获取tag的使用数量
-             */
-            fetchTagTemplateNum () {
-                TagManageService.fetchTagTemplateNum()
-                    .then((data) => {
-                        this.countMap = data;
-                    })
-                    .finally(() => {
-                        this.isNumberLoading = false;
                     });
             },
             /**

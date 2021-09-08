@@ -54,11 +54,11 @@
         <div class="line" />
         <template v-for="item in list">
             <tab-item
+                v-if="item.relatedTaskTemplateNum > 0"
                 :key="item.id"
                 :id="item.id"
                 :count="item.relatedTaskTemplateNum"
                 :name="item.name"
-                :icon="'tag'"
                 :value="tagId"
                 :can-edit="true"
                 :tag-list="list"
@@ -118,7 +118,9 @@
              * @desc 获取tag列表
              */
             fetchTagList () {
-                this.$request(TagManageService.fetchTagList(), () => {
+                this.$request(TagManageService.fetchTagList({
+                    pageSize: 1000,
+                }), () => {
                     this.isLoading = true;
                 }).then((data) => {
                     this.list = Object.freeze(data.data);

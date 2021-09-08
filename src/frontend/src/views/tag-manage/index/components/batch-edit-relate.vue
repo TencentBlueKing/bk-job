@@ -5,7 +5,10 @@
             form-type="vertical"
             :model="formData"
             :rules="rules">
-            <jb-form-item label="范围" required property="resourceType">
+            <jb-form-item
+                label="范围"
+                required
+                property="resourceType">
                 <bk-checkbox-group v-model="formData.resourceType">
                     <bk-checkbox
                         class="mr10"
@@ -17,7 +20,9 @@
                     </bk-checkbox>
                 </bk-checkbox-group>
             </jb-form-item>
-            <jb-form-item label="标签" style="margin-bottom: 0;">
+            <jb-form-item
+                label="标签"
+                style="margin-bottom: 0;">
                 <div class="tag-panel">
                     <bk-input
                         class="tag-search"
@@ -53,7 +58,9 @@
                 </div>
             </jb-form-item>
         </jb-form>
-        <lower-component level="custom" :custom="isShowCreateTag">
+        <lower-component
+            level="custom"
+            :custom="isShowCreateTag">
             <operation-tag
                 v-model="isShowCreateTag"
                 @on-change="handleTagOperationChange" />
@@ -100,6 +107,7 @@
             // 默认选中的 tag
             state.formData.operationList = [props.data.id];
             const formRef = ref(null);
+            const isSubmitDisable = computed(() => props.data.relatedTaskTemplateNum + props.data.relatedScriptNum < 1);
             const { proxy } = getCurrentInstance();
             // 表单验证规则
             const rules = {
@@ -171,6 +179,9 @@
              * @returns { Promise }
              */
             const submit = () => {
+                if (isSubmitDisable.value) {
+                    return Promise.resolve();
+                }
                 const {
                     operationList,
                     resourceType,
@@ -199,6 +210,7 @@
 
             return {
                 ...toRefs(state),
+                isSubmitDisable,
                 formRef,
                 rules,
                 renderList,
