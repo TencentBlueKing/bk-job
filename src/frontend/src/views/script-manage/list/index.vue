@@ -28,7 +28,9 @@
 <template>
     <layout>
         <template #tag>
-            <tag-panel ref="tagPanelRef" @on-change="handleTagPlanChange" />
+            <tag-panel
+                ref="tagPanelRef"
+                @on-change="handleTagPlanChange" />
         </template>
         <list-action-layout>
             <auth-button
@@ -38,6 +40,11 @@
                 class="w120">
                 {{ $t('script.新建') }}
             </auth-button>
+            <bk-button
+                :disabled="isBatchEditTagDisabled"
+                @click="handleBatchEditTag">
+                编辑标签
+            </bk-button>
             <template #right>
                 <jb-search-select
                     ref="search"
@@ -52,7 +59,8 @@
             :data-source="getScriptList"
             :size="tableSize"
             selectable
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            @on-selection-change="handleSelection">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -232,6 +240,17 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
+        <jb-dialog
+            v-model="isShowBatchEditTag"
+            title="编辑标签"
+            header-position="left"
+            ok-text="确定"
+            :width="480">
+            <batch-edit-tag
+                v-if="isShowBatchEditTag"
+                :template-list="listSelect"
+                @on-change="handleBatchEditChange" />
+        </jb-dialog>
         <jb-sideslider
             :is-show.sync="showRelated"
             :show-footer="false"
@@ -262,6 +281,7 @@
     import ScriptRelatedInfo from '../common/script-related-info';
     import Layout from './components/layout';
     import TagPanel from './components/tag-panel';
+    import BatchEditTag from './components/batch-edit-tag';
 
     const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -276,10 +296,13 @@
             JbEditTag,
             Layout,
             TagPanel,
+            BatchEditTag,
         },
         data () {
             return {
                 showRelated: false,
+                isShowBatchEditTag: false,
+                listSelect: [],
                 relatedScriptInfo: {
                     id: 0,
                 },
@@ -291,6 +314,16 @@
         computed: {
             isSkeletonLoading () {
                 return this.$refs.list.isLoading;
+            },
+            isBatchEditTagDisabled () {
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.listSelect.length; i++) {
+                    const current = this.listSelect[i];
+                    if (!current.canManage) {
+                        return true;
+                    }
+                }
+                return this.listSelect.length < 1;
             },
             allRenderColumnMap () {
                 return this.selectedTableColumn.reduce((result, item) => {
@@ -438,6 +471,19 @@
                 this.fetchData();
             },
             /**
+             * @desc 批量编辑 tag
+             */
+            handleBatchEditTag () {
+                this.isShowBatchEditTag = true;
+            },
+            /**
+             * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
+             */
+            handleBatchEditChange () {
+                this.fetchData();
+                this.$refs.tagPanelRef.init();
+            },
+            /**
              * @desc 列表搜索
              * @param {Object} params 搜索条件
              */
@@ -470,6 +516,13 @@
                     ...payload,
                     updateField: Object.keys(payload)[0],
                 });
+            },
+            /**
+             * @desc 选择脚本
+             * @param {Array} selectScriptList 选择的脚本
+             */
+            handleSelection (selectScriptList) {
+                this.listSelect = Object.freeze(selectScriptList);
             },
             /**
              * @desc 自定义列表配置
