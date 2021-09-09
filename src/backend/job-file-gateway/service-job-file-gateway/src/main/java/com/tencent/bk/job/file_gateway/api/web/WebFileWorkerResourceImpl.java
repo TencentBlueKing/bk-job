@@ -45,7 +45,9 @@ public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
     private final FileWorkerService fileWorkerService;
 
     @Autowired
-    public WebFileWorkerResourceImpl(FileWorkerService fileWorkerService) {
+    public WebFileWorkerResourceImpl(
+        FileWorkerService fileWorkerService
+    ) {
         this.fileWorkerService = fileWorkerService;
     }
 

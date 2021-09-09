@@ -28,7 +28,6 @@ import com.tencent.bk.job.analysis.api.web.WebIndexResource;
 import com.tencent.bk.job.analysis.model.web.AnalysisResultVO;
 import com.tencent.bk.job.analysis.service.IndexService;
 import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +36,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class WebIndexResourceImpl extends AbstractJobController implements WebIndexResource {
+public class WebIndexResourceImpl implements WebIndexResource {
 
     private final IndexService indexService;
 

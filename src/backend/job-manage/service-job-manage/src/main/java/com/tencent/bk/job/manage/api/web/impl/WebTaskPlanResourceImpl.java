@@ -42,7 +42,6 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
@@ -82,7 +81,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class WebTaskPlanResourceImpl extends AbstractJobController implements WebTaskPlanResource {
+public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     private final TaskPlanService planService;
     private final TaskTemplateService templateService;
@@ -98,14 +97,14 @@ public class WebTaskPlanResourceImpl extends AbstractJobController implements We
         TaskTemplateService templateService,
         @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         CronJobService cronJobService,
-        WebAuthService authService,
+        WebAuthService webAuthService,
         MessageI18nService i18nService
     ) {
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.i18nService = i18nService;
     }
 

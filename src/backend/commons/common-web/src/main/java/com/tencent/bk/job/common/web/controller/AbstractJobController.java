@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.controller;
 
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,18 +42,27 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 public abstract class AbstractJobController {
 
+    AuthService authService;
+
+    public AbstractJobController(AuthService authService) {
+        this.authService = authService;
+    }
+
     public boolean preService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        log.debug("Default pre service for |{}", handler);
+        log.debug("Default pre service for {} |{}", request.getRequestURI(), handler);
         return true;
     }
 
     public void postService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        log.debug("Default post service for |{}", handler);
+        log.debug("Default post service for {}|{}", request.getRequestURI(), handler);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ServiceResponse messageNotReadable(HttpMessageNotReadableException exception, HttpServletResponse response) {
+    public ServiceResponse messageNotReadable(
+        HttpMessageNotReadableException exception,
+        HttpServletResponse response
+    ) {
         log.error("请求参数不匹配", exception);
         return ServiceResponse.buildCommonFailResp(exception.getMessage());
     }

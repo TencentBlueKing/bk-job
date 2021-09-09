@@ -60,6 +60,11 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
+    public AuthService getAuthService() {
+        return authService;
+    }
+
+    @Override
     public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
