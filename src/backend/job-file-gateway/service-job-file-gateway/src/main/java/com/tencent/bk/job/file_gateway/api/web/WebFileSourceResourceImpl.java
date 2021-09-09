@@ -60,8 +60,11 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     private final FileSourceService fileSourceService;
 
     @Autowired
-    public WebFileSourceResourceImpl(WebAuthService authService, FileSourceService fileSourceService) {
-        this.authService = authService;
+    public WebFileSourceResourceImpl(
+        WebAuthService webAuthService,
+        FileSourceService fileSourceService
+    ) {
+        this.authService = webAuthService;
         this.fileSourceService = fileSourceService;
     }
 
