@@ -83,6 +83,23 @@ public interface CronJobService {
     CronJobInfoDTO getCronJobInfoById(Long appId, Long cronJobId);
 
     /**
+     * 根据 ID 查询定时任务简单信息，上次执行状态，错误码，错误次数
+     *
+     * @param appId     业务 ID
+     * @param cronJobId 定时任务 ID
+     * @return 定时任务信息
+     */
+    CronJobInfoDTO getCronJobSimpleInfoById(Long appId, Long cronJobId);
+
+    /**
+     * 根据 ID 和定时任务 ID 更新定时任务上次执行状态，错误码，错误次数简单信息
+     *
+     * @param cronJobSimpleInfo 定时任务简单信息
+     * @return 是否更新成功
+     */
+    boolean updateCronJobSimpleById(CronJobInfoDTO cronJobSimpleInfo);
+
+    /**
      * 新增、保存定时任务信息
      *
      * @param cronJobInfo 待新增、保存的定时任务信息
@@ -228,4 +245,5 @@ public interface CronJobService {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
+
 }

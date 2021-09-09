@@ -93,7 +93,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         long scheduledFireTime = getScheduledFireTime(context).toEpochMilli();
 
         CronJobHistoryDTO cronJobHistory =
-            cronJobHistoryService.getHistoryByIdAndTime(appId, cronJobId, scheduledFireTime);
+                cronJobHistoryService.getHistoryByIdAndTime(appId, cronJobId, scheduledFireTime);
         if (cronJobHistory != null) {
             log.warn("Job already running!|{}", cronJobHistory);
             return;
@@ -109,11 +109,19 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             log.debug("Get cronjob info return|{}", cronJobInfo);
         }
 
+        CronJobInfoDTO cronJobSimpleInfo = cronJobService.getCronJobSimpleInfoById(appId, cronJobId);
+        if (log.isDebugEnabled()) {
+            log.debug("Get cronjob simple info return|{}", cronJobSimpleInfo);
+        }
+        Integer lastExecuteStatus = cronJobSimpleInfo.getLastExecuteStatus();
+        Long lastExecuteErrorCode = cronJobSimpleInfo.getLastExecuteErrorCode();
+        Integer lastExecuteErrorCount = cronJobSimpleInfo.getLastExecuteErrorCount();
+
         List<CronJobVariableDTO> variables = cronJobInfo.getVariableValue();
         List<ServiceTaskVariable> taskVariables = null;
         if (CollectionUtils.isNotEmpty(variables)) {
             taskVariables =
-                variables.parallelStream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
+                    variables.parallelStream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
         }
 
         boolean executeFailed = false;
@@ -121,38 +129,52 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         String errorMessage = null;
         cronJobHistoryService.fillExecutor(historyId, cronJobInfo.getLastModifyUser());
         ServiceResponse<ServiceTaskExecuteResult> executeResult = executeTaskService.executeTask(appId,
-            cronJobInfo.getTaskPlanId(),
-            cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
+                cronJobInfo.getTaskPlanId(),
+                cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
         if (log.isDebugEnabled()) {
             log.debug("Execute result|{}", executeResult);
         }
         if (executeResult != null && executeResult.getData() != null
-            && executeResult.getData().getTaskInstanceId() > 0) {
+                && executeResult.getData().getTaskInstanceId() > 0) {
             if (log.isDebugEnabled()) {
                 log.debug("Execute success! Task instance id {}", executeResult.getData().getTaskInstanceId());
             }
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime,
-                ExecuteStatusEnum.RUNNING);
+                    ExecuteStatusEnum.RUNNING);
+            cronJobSimpleInfo.setLastExecuteStatus(1);
+            cronJobSimpleInfo.setLastExecuteErrorCode(null);
+            cronJobSimpleInfo.setLastExecuteErrorCount(0);
         } else {
             log.error("Execute task failed!|{}|{}|{}|{}", appId, cronJobId, scheduledFireTime, executeResult);
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime, ExecuteStatusEnum.FAIL);
+            cronJobSimpleInfo.setLastExecuteStatus(2);
             executeFailed = true;
             if (executeResult != null) {
                 errorCode = executeResult.getCode();
                 errorMessage = executeResult.getErrorMsg();
                 if (errorCode != null) {
                     cronJobHistoryService.fillErrorInfo(historyId, errorCode.longValue(), errorMessage);
+                    cronJobSimpleInfo.setLastExecuteErrorCode(errorCode.longValue());
+                    if (errorCode.longValue() == lastExecuteErrorCode) {
+                        cronJobSimpleInfo.setLastExecuteErrorCount(lastExecuteErrorCount + 1);
+                    } else {
+                        cronJobSimpleInfo.setLastExecuteErrorCount(1);
+                    }
                 }
             }
         }
 
+        cronJobService.updateCronJobSimpleById(cronJobSimpleInfo);
+
         if (context.getNextFireTime() == null) {
             cronJobService.disableExpiredCronJob(appId, cronJobId, cronJobInfo.getLastModifyUser(),
-                cronJobInfo.getLastModifyTime());
+                    cronJobInfo.getLastModifyTime());
         }
 
         if (executeFailed) {
-            notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
+            if (cronJobSimpleInfo.getLastExecuteErrorCount() % 5 == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+                notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
+            }
         }
     }
 }
