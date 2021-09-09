@@ -366,7 +366,7 @@
                 // eslint-disable-next-line no-plusplus
                 for (let i = 0; i < this.listSelect.length; i++) {
                     const current = this.listSelect[i];
-                    if (!current.canManage) {
+                    if (!current.canEdit) {
                         return true;
                     }
                 }

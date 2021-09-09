@@ -260,6 +260,7 @@
         &:hover {
             .tag-normal-box,
             .tag-shortcurt-box {
+                display: flex;
                 opacity: 1;
                 transform: scale(1);
             }
@@ -281,7 +282,7 @@
 
         .tag-normal-box,
         .tag-shortcurt-box {
-            display: flex;
+            display: none;
             height: 30px;
             min-width: 24px;
             color: #979ba5;

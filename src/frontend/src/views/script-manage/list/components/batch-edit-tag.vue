@@ -1,6 +1,8 @@
 <template>
     <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
-        <div style="margin-bottom: 8px;">范围：共<span class="strong number">{{ templateNums }}</span>个脚本</div>
+        <div style="margin-bottom: 8px;">
+            范围：共<span class="strong number" style="color: #313238;">{{ templateNums }}</span>个脚本
+        </div>
         <jb-form form-type="vertical">
             <jb-form-item
                 label="标签"
