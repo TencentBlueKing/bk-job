@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
+import com.tencent.bk.job.execute.common.interceptor.UriPermissionInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -37,16 +38,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final UriPermissionInterceptor uriPermissionInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
 
     @Autowired
     public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    EsbApiLogInterceptor esbApiLogInterceptor,
+                                    UriPermissionInterceptor uriPermissionInterceptor, EsbApiLogInterceptor esbApiLogInterceptor,
                                     ServiceSecurityInterceptor serviceSecurityInterceptor,
                                     EsbReqRewriteInterceptor esbReqRewriteInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
@@ -57,6 +60,10 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         // 注册拦截器
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
+        registry.addInterceptor(uriPermissionInterceptor)
+            .addPathPatterns(
+                uriPermissionInterceptor.getControlUriPatterns()
+            ).order(2);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
         registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
     }
