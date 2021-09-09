@@ -52,7 +52,7 @@ import java.util.List;
 public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private static final RequestIdLogger logger =
         new SimpleRequestIdLogger(LoggerFactory.getLogger(UriPermissionInterceptor.class));
-    private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record**";
+    private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record/**";
     private AuthService authService;
     private PathMatcher pathMatcher;
 

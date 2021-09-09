@@ -58,7 +58,7 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_PUBLIC_SCRIPT = "/web/public_script/**";
     private final String URI_PATTERN_PUBLIC_TAG = "/web/public_tag/**";
     private final String URI_PATTERN_SERVICE_INFO = "/web/serviceInfo/**";
-    private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule**";
+    private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule/**";
     private AuthService authService;
     private PathMatcher pathMatcher;
 
