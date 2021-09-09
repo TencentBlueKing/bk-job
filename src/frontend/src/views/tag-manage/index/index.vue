@@ -61,19 +61,26 @@
                 :label="$t('tag.描述.colHead')"
                 prop="descriptionText"
                 key="descriptionText"
-                sortable
+                show-overflow-tooltip
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.relatedTaskTemplateNum"
                 :label="$t('tag.关联作业量.colHead')"
                 prop="relatedTaskTemplateNum"
                 key="relatedTaskTemplateNum"
-                sortable
+                width="120"
                 align="right">
                 <template slot-scope="{ row }">
-                    <bk-button text class="mr15">
+                    <router-link
+                        target="_blank"
+                        :to="{
+                            name: 'taskList',
+                            query: {
+                                tags: row.id,
+                            },
+                        }">
                         {{ row.relatedTaskTemplateNum }}
-                    </bk-button>
+                    </router-link>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -81,12 +88,19 @@
                 :label="$t('tag.关联脚本量.colHead')"
                 prop="relatedScriptNum"
                 key="relatedScriptNum"
-                sortable
+                width="120"
                 align="right">
                 <template slot-scope="{ row }">
-                    <bk-button text class="mr15">
+                    <router-link
+                        target="_blank"
+                        :to="{
+                            name: 'scriptList',
+                            query: {
+                                tags: row.id,
+                            },
+                        }">
                         {{ row.relatedScriptNum }}
-                    </bk-button>
+                    </router-link>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -94,24 +108,28 @@
                 :label="$t('tag.创建人')"
                 prop="creator"
                 key="creator"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
                 :label="$t('tag.创建时间')"
                 prop="createTime"
                 key="createTime"
+                width="180"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
                 :label="$t('tag.更新人.colHead')"
                 prop="lastModifyUser"
                 key="lastModifyUser"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('tag.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
+                width="180"
                 align="left" />
             <bk-table-column
                 :label="$t('tag.操作')"
@@ -175,7 +193,6 @@
             <batch-edit-relate
                 ref="batchEditRelate"
                 :data="editData"
-                :tag-list="tagList"
                 @on-create="handleCreate" />
         </jb-dialog>
     </div>

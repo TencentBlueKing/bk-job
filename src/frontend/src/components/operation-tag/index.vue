@@ -6,28 +6,28 @@
         header-position="left"
         :mask-close="false"
         :width="480">
-        <div>
-            <jb-form
-                :model="formData"
-                ref="formRef"
-                form-type="vertical"
-                :rules="rules">
-                <jb-form-item
-                    label="标签名"
-                    required
-                    property="name">
-                    <bk-input v-model="formData.name" />
-                </jb-form-item>
-                <jb-form-item
-                    label="描述"
-                    style="margin-bottom: 0;">
-                    <bk-input
-                        v-model="formData.description"
-                        type="textarea"
-                        :maxlength="100" />
-                </jb-form-item>
-            </jb-form>
-        </div>
+        <jb-form
+            v-if="value"
+            :model="formData"
+            ref="formRef"
+            form-type="vertical"
+            style="margin-top: 5px;"
+            :rules="rules">
+            <jb-form-item
+                label="标签名"
+                required
+                property="name">
+                <bk-input v-model="formData.name" :native-attributes="{ autofocus: true }" />
+            </jb-form-item>
+            <jb-form-item
+                label="描述"
+                style="margin-bottom: 0;">
+                <bk-input
+                    v-model="formData.description"
+                    type="textarea"
+                    :maxlength="100" />
+            </jb-form-item>
+        </jb-form>
         <template slot="footer">
             <bk-button
                 theme="primary"
@@ -78,7 +78,7 @@
             const formRef = ref(null);
             const isEdit = computed(() => props.data.id > 0);
             const dialogInfo = computed(() => {
-                if (isEdit) {
+                if (isEdit.value) {
                     return {
                         title: '编辑标签',
                         okText: '保存',
@@ -95,7 +95,7 @@
                     {
                         required: true,
                         message: '标签名不能为空',
-                        trigger: 'blur',
+                        trigger: 'change',
                     },
                     {
                         validator: tagNameRule.validator,

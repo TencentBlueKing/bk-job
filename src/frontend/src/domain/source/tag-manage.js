@@ -43,6 +43,7 @@ class TagManage extends ModuleBase {
     getAllWithBasic (params = {}) {
         return Request.get(`${this.path}/tag/basic/list`, {
             params,
+            cache: 2000,
         });
     }
 

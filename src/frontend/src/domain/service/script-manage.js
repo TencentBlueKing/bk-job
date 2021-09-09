@@ -130,4 +130,9 @@ export default {
         return ScriptManageSource.batchUpdateTag(params)
             .then(({ data }) => data);
     },
+    // 获取业务下标签关联的脚本数量
+    fetchTagCount (params = {}) {
+        return ScriptManageSource.getTagCount(params)
+            .then(({ data }) => data);
+    },
 };

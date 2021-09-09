@@ -33,7 +33,6 @@
             :value="classesId"
             icon="business-manage"
             :count="totalCount"
-            :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <tab-item
             :name="$t('template.未分类')"
@@ -41,7 +40,6 @@
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
-            :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <tab-item
             :name="$t('template.待更新')"
@@ -49,7 +47,6 @@
             :value="classesId"
             icon="update"
             :count="needUpdateCount"
-            :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <div class="line" />
         <template v-for="item in list">
@@ -69,6 +66,7 @@
 </template>
 <script>
     import I18n from '@/i18n';
+    import TaskManageService from '@service/task-manage';
     import TagManageService from '@service/tag-manage';
     import TabItem from './tab-item';
 
@@ -108,7 +106,7 @@
             },
         },
         created () {
-            this.fetchTagList();
+            this.init();
         },
         mounted () {
             this.parseDefaultValueFromURL();
@@ -118,28 +116,31 @@
              * @desc 获取tag列表
              */
             fetchTagList () {
-                this.$request(TagManageService.fetchTagList({
-                    pageSize: 1000,
-                }), () => {
-                    this.isLoading = true;
-                }).then((data) => {
-                    this.list = Object.freeze(data.data);
-                    this.$emit('on-init', data.data);
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
+                return TagManageService.fetchWholeList();
             },
             /**
              * @desc 获取tag的使用数量
              */
             fetchTagTemplateNum () {
-                TagManageService.fetchTagTemplateNum()
-                    .then((data) => {
-                        this.countMap = data;
-                    })
+                return TaskManageService.fetchTagCount();
+            },
+            init () {
+                this.isLoading = true;
+                Promise.all([
+                    this.fetchTagList(),
+                    this.fetchTagTemplateNum(),
+                ]).then(([tagList, countMap]) => {
+                    this.countMap = Object.freeze(countMap);
+                    const list = [];
+                    tagList.forEach((tag) => {
+                        tag.relatedTaskTemplateNum = countMap.tagCount[tag.id] || 0;
+                        list.push(tag);
+                    });
+                    this.list = Object.freeze(list);
+                    this.$emit('on-init', list);
+                })
                     .finally(() => {
-                        this.isNumberLoading = false;
+                        this.isLoading = false;
                     });
             },
             /**

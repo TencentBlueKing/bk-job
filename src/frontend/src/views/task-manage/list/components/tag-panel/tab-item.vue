@@ -79,7 +79,7 @@
         props: {
             icon: {
                 type: String,
-                required: 'tag',
+                default: 'tag',
             },
             loading: {
                 type: Boolean,

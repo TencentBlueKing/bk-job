@@ -8,14 +8,14 @@
             <jb-form-item
                 label="范围"
                 required
-                property="resourceType">
-                <bk-checkbox-group v-model="formData.resourceType">
+                property="resourceTypeList">
+                <bk-checkbox-group v-model="formData.resourceTypeList">
                     <bk-checkbox
                         class="mr10"
-                        value="job_template">
+                        :value="5">
                         作业（{{ data.relatedTaskTemplateNum }}）
                     </bk-checkbox>
-                    <bk-checkbox value="script">
+                    <bk-checkbox :value="1">
                         脚本（{{ data.relatedScriptNum }}）
                     </bk-checkbox>
                 </bk-checkbox-group>
@@ -100,7 +100,7 @@
                 wholeTagList: [],
                 search: '',
                 formData: {
-                    resourceType: ['script', 'job_template'],
+                    resourceTypeList: [1, 5],
                     operationList: [],
                 },
             });
@@ -111,14 +111,15 @@
             const { proxy } = getCurrentInstance();
             // 表单验证规则
             const rules = {
-                resourceType: [
+                resourceTypeList: [
                     {
-                        validator: resourceType => resourceType.length > 0,
+                        validator: resourceTypeList => resourceTypeList.length > 0,
                         message: '范围不能为空',
                         trigger: 'blur',
                     },
                 ],
             };
+            // 展示的 tag 列表数据
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
                 if (!state.search) {
@@ -184,7 +185,7 @@
                 }
                 const {
                     operationList,
-                    resourceType,
+                    resourceTypeList,
                 } = state.formData;
 
                 const addTagIdList = operationList;
@@ -192,10 +193,11 @@
                 if (!operationList.includes(props.data.id)) {
                     deleteTagIdList.push(props.data.id);
                 }
+                _.remove(addTagIdList, id => id === props.data.id);
                 return formRef.value.validate()
                     .then(() => TagManageService.batchUpdate({
                         id: props.data.id,
-                        resourceType,
+                        resourceTypeList,
                         addTagIdList,
                         deleteTagIdList,
                     }))

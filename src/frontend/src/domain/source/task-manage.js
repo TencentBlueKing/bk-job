@@ -102,6 +102,13 @@ class TaskManage extends ModuleBase {
             params,
         });
     }
+
+    // 获取业务下标签关联的模版数量
+    getTagCount (params = {}) {
+        return Request.get(`${this.path}/task/template/tag/count`, {
+            params,
+        });
+    }
 }
 
 export default new TaskManage();

@@ -1,6 +1,6 @@
 <template>
     <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
-        <div>范围：共<span class="strong number">{{ templateNums }}</span>个作业</div>
+        <div style="margin-bottom: 8px;">范围：共<span class="strong number">{{ templateNums }}</span>个作业</div>
         <jb-form form-type="vertical">
             <jb-form-item
                 label="标签"
@@ -30,11 +30,13 @@
                                     <template v-if="tagCheckInfoMap[tagItem.id]">
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].checked"
+                                            v-bk-tooltips.right="'勾选范围里，全部作业使用'"
                                             class="relate-all">
                                             All
                                         </span>
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].indeterminate"
+                                            v-bk-tooltips.right="`勾选范围里，有 ${tagRelateNumMap[tagItem.id]} 个作业使用`"
                                             class="relate-nums">
                                             {{ tagRelateNumMap[tagItem.id] }}/{{ templateNums }}
                                         </span>
@@ -57,7 +59,9 @@
                 </div>
             </jb-form-item>
         </jb-form>
-        <lower-component level="custom" :custom="isShowCreate">
+        <lower-component
+            level="custom"
+            :custom="isShowCreate">
             <operation-tag
                 v-model="isShowCreate"
                 @on-change="handleTagNew" />
@@ -102,9 +106,13 @@
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
-            // tag 被模板使用的数量
+            // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};
-            const defaultCheckedList = [];
+            // 缓存全选
+            const memoCheckedMap = {};
+            // 缓存半选
+            const memoIndeterminateMap = {};
+            // 所选作业关联 tag 的默认选中状态
             const tagCheckInfoMap = {};
             props.templateList.forEach(({ tags }) => {
                 tags.forEach(({ id }) => {
@@ -118,12 +126,13 @@
                     if (!tagCheckInfoMap[id]) {
                         tagCheckInfoMap[id] = {
                             indeterminate: true,
-                            checked: false,
                         };
+                        memoIndeterminateMap[id] = true;
                     }
                     // 如果所有作业都使用了该 tag 则默认被选中
                     if (tagRelateNumMap[id] === state.templateNums) {
-                        defaultCheckedList.push(id);
+                        delete memoIndeterminateMap[id];
+                        memoCheckedMap[id] = id;
                         tagCheckInfoMap[id] = {
                             checked: true,
                         };
@@ -132,15 +141,12 @@
             });
             
             state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
-            state.operationList = [...defaultCheckedList];
+            state.operationList = Object.values(memoCheckedMap);
             state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
-            
+
             const { proxy } = getCurrentInstance();
 
-            /**
-             * @desc tag 过滤的列表
-             * @returns { Array }
-             */
+            // 展示的 tag 列表
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
                 if (!state.search) {
@@ -194,14 +200,17 @@
             const handleTagCheckChange = (value, tagId) => {
                 const tagCheckInfoMap = Object.assign({}, state.tagCheckInfoMap);
                 if (!tagCheckInfoMap[tagId]) {
+                    // 选中添加新 tag
                     tagCheckInfoMap[tagId] = {
                         checked: true,
                     };
                 } else if (!tagCheckInfoMap[tagId].checked) {
+                    // 未被选中 -> 选中
                     tagCheckInfoMap[tagId] = {
                         checked: true,
                     };
                 } else {
+                    // 选中 -> 未被选中
                     tagCheckInfoMap[tagId] = {
                         checked: false,
                     };
@@ -221,18 +230,30 @@
              * @returns { Promise }
              */
             const submit = () => {
-                const currentTagIdMap = state.operationList.reduce((result, item) => {
+                const currentCheckedMap = state.operationList.reduce((result, item) => {
                     result[item] = true;
                     return result;
                 }, {});
-                const addTagIdList = state.operationList;
-                // 默认选中，但是在最新的数据没被选中说明被取消了选中状态
-                const deleteTagIdList = defaultCheckedList.reduce((result, tagId) => {
-                    if (!currentTagIdMap[tagId]) {
-                        result.push(tagId);
+                // add tag
+                const addTagIdList = [...state.operationList];
+                // - 移除默认选中的
+                _.remove(addTagIdList, id => memoCheckedMap[id]);
+                // delete tag
+                const deleteTagIdList = [];
+                //  - 默认选中，在最新的数据未选中
+                Object.keys(memoCheckedMap).forEach((tagId) => {
+                    if (!currentCheckedMap[tagId]) {
+                        deleteTagIdList.push(Number(tagId));
                     }
-                    return result;
-                }, []);
+                });
+                // - 默认半选，在最新的数据中没有任何状态
+                Object.keys(memoIndeterminateMap).forEach((tagId) => {
+                    if (!state.tagCheckInfoMap[tagId].indeterminate
+                        && !state.tagCheckInfoMap[tagId].checked) {
+                        deleteTagIdList.push(Number(tagId));
+                    }
+                });
+                
                 return TaskManageService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,
@@ -261,6 +282,8 @@
 </script>
 <style lang="postcss">
     .task-manage-batch-edit-tag {
+        padding-top: 5px;
+
         .tag-panel {
             display: flex;
             flex-direction: column;

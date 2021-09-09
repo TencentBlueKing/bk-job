@@ -54,7 +54,7 @@ export default {
             .then(({ data }) => data.map(item => new TagModel(item)));
     },
     /**
-     * @desc 批量流转 TAG
+     * @desc 批量流转 tag
      * @param { Object } params 筛选参数
      * @returns { Promise }
      */
@@ -62,9 +62,9 @@ export default {
         return TagManageSource.batchUpdate(params)
             .then(({ data }) => data);
     },
-    fetchTagOfSearch (tagName) {
-        return TagManageSource.getAll({
-            tagName,
+    fetchTagOfSearch (name) {
+        return TagManageSource.getAllWithBasic({
+            name,
         }).then(({ data }) => data.map(tag => new TagModel(tag)));
     },
     fetchTagTemplateNum (params = {}) {

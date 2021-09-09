@@ -26,14 +26,13 @@
 -->
 
 <template>
-    <div class="script-list-tag-panel" v-bkloading="{ isLoading }">
+    <div class="template-list-tag-panel" v-bkloading="{ isLoading }">
         <tab-item
             :name="$t('script.全部脚本')"
             :id="1"
             :value="classesId"
             icon="business-manage"
             :count="totalCount"
-            :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <tab-item
             :name="$t('script.未分类')"
@@ -41,15 +40,14 @@
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
-            :loading="isNumberLoading"
             @on-change="handleClassesChange" />
         <div class="line" />
         <template v-for="item in list">
             <tab-item
-                v-if="item.relatedScriptNum > 0"
+                v-if="item.relatedTaskTemplateNum > 0"
                 :key="item.id"
                 :id="item.id"
-                :count="item.relatedScriptNum"
+                :count="item.relatedTaskTemplateNum"
                 :name="item.name"
                 :value="tagId"
                 :can-edit="true"
@@ -61,6 +59,7 @@
 </template>
 <script>
     import I18n from '@/i18n';
+    import ScriptManageService from '@service/script-manage';
     import TagManageService from '@service/tag-manage';
     import TabItem from './tab-item';
 
@@ -95,12 +94,9 @@
             unclassifiedCount () {
                 return this.countMap.unclassified || 0;
             },
-            needUpdateCount () {
-                return this.countMap.needUpdate || 0;
-            },
         },
         created () {
-            this.fetchTagList();
+            this.init();
         },
         mounted () {
             this.parseDefaultValueFromURL();
@@ -110,13 +106,28 @@
              * @desc 获取tag列表
              */
             fetchTagList () {
-                this.$request(TagManageService.fetchTagList({
-                    pageSize: 1000,
-                }), () => {
-                    this.isLoading = true;
-                }).then((data) => {
-                    this.list = Object.freeze(data.data);
-                    this.$emit('on-init', data.data);
+                return TagManageService.fetchWholeList();
+            },
+            /**
+             * @desc 获取tag的使用数量
+             */
+            fetchTagTemplateNum () {
+                return ScriptManageService.fetchTagCount();
+            },
+            init () {
+                this.isLoading = true;
+                Promise.all([
+                    this.fetchTagList(),
+                    this.fetchTagTemplateNum(),
+                ]).then(([tagList, countMap]) => {
+                    this.countMap = Object.freeze(countMap);
+                    const list = [];
+                    tagList.forEach((tag) => {
+                        tag.relatedTaskTemplateNum = countMap.tagCount[tag.id] || 0;
+                        list.push(tag);
+                    });
+                    this.list = Object.freeze(list);
+                    this.$emit('on-init', list);
                 })
                     .finally(() => {
                         this.isLoading = false;
@@ -186,7 +197,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    .script-list-tag-panel {
+    .template-list-tag-panel {
         display: flex;
         flex-direction: column;
         min-height: 50%;

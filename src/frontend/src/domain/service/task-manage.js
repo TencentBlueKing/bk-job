@@ -80,4 +80,8 @@ export default {
         return TaskManageSource.batchUpdateTag(params)
             .then(({ data }) => data);
     },
+    fetchTagCount (params = {}) {
+        return TaskManageSource.getTagCount(params)
+            .then(({ data }) => data);
+    },
 };

@@ -64,7 +64,11 @@
                     </bk-button>
                 </span>
             </bk-badge>
-            <bk-button @click="handleBatchEditTag">编辑标签</bk-button>
+            <bk-button
+                :disabled="isBatchEditTagDisabled"
+                @click="handleBatchEditTag">
+                编辑标签
+            </bk-button>
             <template #right>
                 <jb-search-select
                     ref="search"
@@ -262,10 +266,12 @@
             v-model="isShowBatchEdit"
             title="编辑标签"
             header-position="left"
+            ok-text="确定"
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEdit"
-                :template-list="listSelect" />
+                :template-list="listSelect"
+                @on-change="handleBatchEditChange" />
         </jb-dialog>
     </Layout>
 </template>
@@ -320,13 +326,42 @@
             };
         },
         computed: {
+            /**
+             * @desc 列表骨架屏 loading
+             * @returns { Boolean }
+             */
             isSkeletonLoading () {
                 return this.$refs.list.isLoading;
             },
+            /**
+             * @desc 导出功能禁用
+             * @returns { Boolean }
+             *
+             * 1，有导入任务未完成，继续上一次的任务
+             * 2，未选中作业
+             * 3，选中的作业没用查看权限
+             */
             isExportJobDisable () {
                 if (this.backupInfo.exportJob.length > 0) {
                     return false;
                 }
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.listSelect.length; i++) {
+                    const current = this.listSelect[i];
+                    if (!current.canView) {
+                        return true;
+                    }
+                }
+                return this.listSelect.length < 1;
+            },
+            /**
+             * @desc 导出功能禁用
+             * @returns { Boolean }
+             *
+             * 1，未选中作业
+             * 2，选中的作业没用查看权限
+             */
+            isBatchEditTagDisabled () {
                 // eslint-disable-next-line no-plusplus
                 for (let i = 0; i < this.listSelect.length; i++) {
                     const current = this.listSelect[i];
@@ -543,6 +578,13 @@
                 this.isShowBatchEdit = true;
             },
             /**
+             * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
+             */
+            handleBatchEditChange () {
+                this.fetchData();
+                this.$refs.tagPanelRef.init();
+            },
+            /**
              * @desc 查看登陆用户的作业模板
              */
             handleMyTask () {
@@ -586,7 +628,6 @@
              */
             handleSelection (selectTemplate) {
                 this.listSelect = Object.freeze(selectTemplate);
-                console.log('from ahdad = =', this.listSelect);
             },
             /**
              * @desc 编辑作业模板
