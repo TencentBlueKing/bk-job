@@ -157,7 +157,7 @@
                             :resource-id="row.id">
                             <jb-edit-tag
                                 :key="row.id"
-                                field="scriptTags"
+                                field="tags"
                                 :value="row.tags"
                                 shortcurt
                                 :remote-hander="val => handleUpdateTask(row, val)" />
@@ -609,15 +609,15 @@
             /**
              * @desc 更新作业模板基本信息
              * @param {Object} task 作业模板数据
-             * @param {Object} tag 标签数据
+             * @param {Object} payload 编辑的数据
              */
-            handleUpdateTask (task, tag) {
+            handleUpdateTask (task, payload) {
                 const { id, name, description } = task;
                 return TaskService.taskUpdateBasic({
                     id,
                     name,
                     description,
-                    tags: tag.scriptTags,
+                    tags: payload.tags,
                 }).then(() => {
                     this.$refs.tagPanelRef.init();
                 });

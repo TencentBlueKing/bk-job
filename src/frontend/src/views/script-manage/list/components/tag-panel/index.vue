@@ -33,21 +33,21 @@
             :value="classesId"
             icon="business-manage"
             :count="totalCount"
-            @on-change="handleClassesChange" />
+            @on-select="handleClassesSelect" />
         <tab-item
             :name="$t('script.未分类')"
             :id="2"
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
-            @on-change="handleClassesChange" />
+            @on-select="handleClassesSelect" />
         <div class="line" />
         <template v-for="item in list">
             <tab-item
-                v-if="item.relatedTaskTemplateNum > 0"
+                v-if="item.relatedScriptNum > 0"
                 :key="item.id"
                 :id="item.id"
-                :count="item.relatedTaskTemplateNum"
+                :count="item.relatedScriptNum"
                 :name="item.name"
                 :value="tagId"
                 :can-edit="true"
@@ -123,7 +123,7 @@
                     this.countMap = Object.freeze(countMap);
                     const list = [];
                     tagList.forEach((tag) => {
-                        tag.relatedTaskTemplateNum = countMap.tagCount[tag.id] || 0;
+                        tag.relatedScriptNum = countMap.tagCount[tag.id] || 0;
                         list.push(tag);
                     });
                     this.list = Object.freeze(list);
@@ -140,7 +140,7 @@
                 let classesId = 1;
                 if (this.$route.query.type) {
                     classesId = ~~this.$route.query.type || 1;
-                    this.handleClassesChange(classesId);
+                    this.handleClassesSelect(classesId);
                     return;
                 }
                 
@@ -156,7 +156,7 @@
              * @desc 分类切换
              * @param {Number} id 分类id
              */
-            handleClassesChange (id) {
+            handleClassesSelect (id) {
                 if (this.classesId === id) {
                     return;
                 }

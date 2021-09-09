@@ -142,6 +142,7 @@
                 if (isEqual(this.memoValue, this.localValue)) {
                     return;
                 }
+                
                 this.isLoading = true;
                 
                 this.remoteHander({
