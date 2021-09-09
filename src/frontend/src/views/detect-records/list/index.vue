@@ -142,6 +142,7 @@
             <bk-table-column
                 :label="$t('detectRecords.操作')"
                 key="action"
+                fixed="right"
                 align="left"
                 width="100">
                 <template slot-scope="{ row }">

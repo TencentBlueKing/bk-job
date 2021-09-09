@@ -51,16 +51,25 @@
             :search-control="() => $refs.search"
             @on-refresh="handleListChange">
             <bk-table-column
+                v-if="allRenderColumnMap.id"
+                label="ID"
+                width="60"
+                prop="id"
+                key="id"
+                align="left" />
+            <bk-table-column
                 :label="$t('tag.标签名.colHead')"
                 prop="name"
                 key="name"
                 sortable
+                min-width="200"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.description"
                 :label="$t('tag.描述.colHead')"
                 prop="descriptionText"
                 key="descriptionText"
+                min-width="200"
                 show-overflow-tooltip
                 align="left" />
             <bk-table-column
@@ -135,6 +144,7 @@
                 :label="$t('tag.操作')"
                 :resizable="false"
                 key="action"
+                fixed="right"
                 width="200">
                 <template slot-scope="{ row }">
                     <auth-button
@@ -266,6 +276,10 @@
                 },
             ];
             this.tableColumn = [
+                {
+                    id: 'id',
+                    label: 'ID',
+                },
                 {
                     id: 'name',
                     label: I18n.t('tag.标签名.colHead'),

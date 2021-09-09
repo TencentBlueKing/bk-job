@@ -194,6 +194,7 @@
             <bk-table-column
                 :label="$t('script.操作')"
                 :resizable="false"
+                fixed="right"
                 key="action"
                 width="170"
                 align="left">

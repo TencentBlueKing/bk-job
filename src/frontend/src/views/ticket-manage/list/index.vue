@@ -66,6 +66,7 @@
                 prop="name"
                 key="name"
                 align="left"
+                min-width="200"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <span class="ticket-name">{{ row.name }}</span>
@@ -76,6 +77,7 @@
                 prop="type"
                 key="type"
                 align="left"
+                width="180"
                 :filters="sourceFilters"
                 :filter-method="handelFilterType">
                 <template slot-scope="{ row }">
@@ -87,6 +89,7 @@
                 :label="$t('ticket.描述')"
                 prop="description"
                 key="description"
+                min-width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <span>{{ row.description }}</span>
@@ -132,6 +135,7 @@
                 :label="$t('ticket.更新人')"
                 prop="lastModifyUser"
                 key="lastModifyUser"
+                width="120"
                 align="left">
                 <template slot-scope="{ row }">
                     <span>{{ row.lastModifyUser }}</span>
@@ -142,6 +146,7 @@
                 :label="$t('ticket.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
+                width="180"
                 align="left">
                 <template slot-scope="{ row }">
                     <span style="display: block;">{{ row.lastModifyTime }}</span>
@@ -151,6 +156,7 @@
                 :label="$t('ticket.操作')"
                 :resizable="false"
                 key="action"
+                fixed="right"
                 width="80"
                 align="left">
                 <template slot-scope="{ row }">

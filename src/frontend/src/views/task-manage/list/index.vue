@@ -203,6 +203,7 @@
                 <bk-table-column
                     key="action"
                     :resizable="false"
+                    fixed="right"
                     :label="$t('template.操作')"
                     width="130">
                     <template slot-scope="{ row }">

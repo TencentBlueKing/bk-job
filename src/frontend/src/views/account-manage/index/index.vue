@@ -55,13 +55,14 @@
                 prop="id"
                 key="id"
                 sortable
-                width="120"
+                width="80"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.alias"
                 :label="$t('account.账号别名.colHead')"
                 prop="alias"
                 key="alias"
+                min-width="180"
                 sortable
                 align="left" />
             <bk-table-column
@@ -69,6 +70,7 @@
                 :label="$t('account.账号名称.colHead')"
                 prop="account"
                 key="account"
+                min-width="180"
                 sortable
                 align="left" />
             <bk-table-column
@@ -76,6 +78,7 @@
                 :label="$t('account.账号用途.colHead')"
                 prop="categoryName"
                 key="categoryName"
+                width="120"
                 sortable
                 align="left" />
             <bk-table-column
@@ -83,6 +86,7 @@
                 :label="$t('account.账号类型.colHead')"
                 prop="typeName"
                 key="typeName"
+                width="120"
                 sortable
                 align="left" />
             <bk-table-column
@@ -90,29 +94,34 @@
                 :label="$t('account.创建人')"
                 prop="creator"
                 key="creator"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
                 :label="$t('account.创建时间')"
                 prop="createTime"
                 key="createTime"
+                width="180"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyUser"
                 :label="$t('account.更新人.colHead')"
                 prop="lastModifyUser"
                 key="lastModifyUser"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('account.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
+                width="180"
                 align="left" />
             <bk-table-column
                 :label="$t('account.操作')"
                 :resizable="false"
                 key="action"
+                fixed="right"
                 width="120">
                 <template slot-scope="{ row }">
                     <auth-button

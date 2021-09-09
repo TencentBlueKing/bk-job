@@ -201,6 +201,7 @@
                     :resizable="false"
                     :label="$t('template.操作')"
                     prop="statusText"
+                    fixed="right"
                     key="action"
                     width="120"
                     align="left">

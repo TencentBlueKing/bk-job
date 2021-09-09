@@ -64,6 +64,7 @@
                 prop="name"
                 key="name"
                 align="left"
+                min-width="200"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <auth-component
@@ -81,6 +82,7 @@
                 v-if="allRenderColumnMap.planName"
                 :label="$t('cron.执行方案名称')"
                 key="planName"
+                min-width="200"
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
@@ -111,6 +113,7 @@
                 :label="$t('cron.执行策略.colHead')"
                 prop="policeText"
                 key="policeText"
+                width="180"
                 align="left">
                 <template slot-scope="{ row }">
                     <span
@@ -125,7 +128,7 @@
                 :label="$t('cron.创建人')"
                 prop="creator"
                 key="creator"
-                width="180"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
@@ -140,6 +143,7 @@
                 sortable
                 prop="lastModifyUser"
                 key="lastModifyUser"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
@@ -154,6 +158,7 @@
                 sortable
                 prop="lastExecuteStatus"
                 key="lastExecuteStatus"
+                width="140"
                 align="left">
                 <template slot-scope="{ row }">
                     <Icon
@@ -168,6 +173,7 @@
                 :label="$t('cron.周期成功率')"
                 :render-header="renderHeader"
                 key="successRateText"
+                width="120"
                 align="left">
                 <template slot-scope="{ row }">
                     <div v-if="row.isStatictisLoading" class="sync-fetch">
@@ -202,6 +208,7 @@
                 :resizable="false"
                 width="200"
                 key="action"
+                fixed="right"
                 align="left">
                 <template slot-scope="{ row }">
                     <bk-switcher
