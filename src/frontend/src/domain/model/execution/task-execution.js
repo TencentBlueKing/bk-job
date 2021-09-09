@@ -91,7 +91,8 @@ const checkStatus = (status) => {
     return 'disabled';
 };
 
-// 作业执行详情页——作业的状态
+// 作业执行详情页
+// 作业实例
 export default class TaskExecution {
     constructor (payload) {
         this.endTime = payload.endTime;
@@ -107,47 +108,72 @@ export default class TaskExecution {
         this.debugTask = payload.debugTask;
     }
 
-    // 是作业执行的任务
+    /**
+     * @desc 是作业执行的任务
+     * @returns { Boolean }
+     */
     get isTask () {
         return this.type === TASK_TYPE_TASK;
     }
 
-    // 快速执行脚本的任务
+    /**
+     * @desc 快速执行脚本的任务
+     * @returns { Boolean }
+     */
     get isScript () {
         return this.type === TASK_TYPE_SCRIPT;
     }
 
-    // 快速分发文件的任务
+    /**
+     * @desc 快速分发文件的任务
+     * @returns { Boolean }
+     */
     get isFile () {
         return this.type === TASK_TYPE_FILE;
     }
 
-    // 作业执行时间
+    /**
+     * @desc 任务执行时间
+     * @returns { String }
+     */
     get totalTimeText () {
         return transformTimeFriendly(this.totalTime);
     }
 
-    // 作业正在执行
+    /**
+     * @desc 任务正在执行
+     * @returns { Boolean }
+     */
     get isDoing () {
         return [
             STATUS_DOING, STATUS_FORCEDING,
         ].includes(this.status);
     }
 
-    // 作业执行成功
+    /**
+     * @desc 任务执行成功
+     * @returns { Boolean }
+     */
     get isSuccess () {
         return [
             STATUS_SUCCESS,
         ].includes(this.status);
     }
 
-    // 可以被强制终止
+    /**
+     * @desc 任务可以被强制终止
+     * @returns { Boolean }
+     */
     get isForcedEnable () {
         return [
             STATUS_DOING,
         ].includes(this.status);
     }
 
+    /**
+     * @desc 任务状态的 css 对应的 class
+     * @returns { String }
+     */
     get displayStyle () {
         return checkStatus(this.status);
     }

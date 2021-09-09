@@ -104,7 +104,8 @@ const checkStatus = (status) => {
     return 'disabled';
 };
 
-// 步骤执行详情页——步骤执行信息汇总
+// 使用场景：步骤执行详情页，步骤执行结果的详细信息
+// —— resultGroups 步骤执行结果分组信息
 export default class StepExecutionDetail {
     constructor (payload) {
         this.stepInstanceId = payload.stepInstanceId;
@@ -120,15 +121,27 @@ export default class StepExecutionDetail {
         this.isLastStep = payload.isLastStep;
         this.resultGroups = this.initResultGroup(payload.resultGroups);
     }
-    
+
+    /**
+     * @desc 步骤执行总耗时
+     * @returns { String }
+     */
     get totalTimeText () {
         return transformTimeFriendly(this.totalTime);
     }
 
+    /**
+     * @desc 分发文件类型的步骤
+     * @returns { Boolean }
+     */
     get isFile () {
         return this.type === TYPE_FILE;
     }
 
+    /**
+     * @desc 步骤执行状态展示css对应的class
+     * @returns { String }
+     */
     get displayStyle () {
         const styleMap = {
             success: 'success',
@@ -143,13 +156,21 @@ export default class StepExecutionDetail {
         return styleMap[checkStatus(this.status)];
     }
 
-    // 步骤详情可以被强制终止(步骤执行详情页面通过步骤的状态来判断作业是否可以强制终止)
+    /**
+     * @desc 步骤详情可以被强制终止(步骤执行详情页面通过步骤的状态来判断作业是否可以强制终止)
+     * @returns { Boolean }
+     */
     get isForcedEnable () {
         return [
-            STATUS_DOING, STATUS_MANUAL_CONFIRM,
+            STATUS_DOING,
+            STATUS_MANUAL_CONFIRM,
         ].includes(this.status);
     }
 
+    /**
+     * @desc 步骤当前状态支持的操作
+     * @returns { Array }
+     */
     get actions () {
         const actionMap = {
             success: [],
@@ -182,10 +203,15 @@ export default class StepExecutionDetail {
         return actionMap[checkStatus(this.status)];
     }
 
-    initResultGroup (payload) {
-        if (!Array.isArray(payload)) {
+    /**
+     * @desc 初始化步骤执行结果的分组数据
+     * @param { Array } resultGroups
+     * @returns { Array }
+     */
+    initResultGroup (resultGroups) {
+        if (!Array.isArray(resultGroups)) {
             return [];
         }
-        return payload.map(item => Object.freeze(new ResultGroup(item)));
+        return resultGroups.map(item => Object.freeze(new ResultGroup(item)));
     }
 }
