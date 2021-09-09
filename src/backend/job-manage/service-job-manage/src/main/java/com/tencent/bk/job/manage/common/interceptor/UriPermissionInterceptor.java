@@ -58,6 +58,8 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_PUBLIC_SCRIPT = "/web/public_script/**";
     private final String URI_PATTERN_PUBLIC_TAG = "/web/public_tag/**";
     private final String URI_PATTERN_SERVICE_INFO = "/web/serviceInfo/**";
+    private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule**";
+    private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record**";
     private AuthService authService;
     private PathMatcher pathMatcher;
 
@@ -89,7 +91,11 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
             // 公共标签
             URI_PATTERN_PUBLIC_TAG,
             // 服务状态
-            URI_PATTERN_SERVICE_INFO
+            URI_PATTERN_SERVICE_INFO,
+            // 高危语句规则
+            URI_PATTERN_DANGEROUS_RULE,
+            // 高危语句拦截记录
+            URI_PATTERN_DANGEROUS_RECORD
         );
     }
 
@@ -113,6 +119,16 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
             }
         } else if (pathMatcher.match(URI_PATTERN_SERVICE_INFO, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.SERVICE_STATE_ACCESS);
+            if (!authResult.isPass()) {
+                throw new InSufficientPermissionException(authResult);
+            }
+        } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RULE, uri)) {
+            AuthResult authResult = authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RULE);
+            if (!authResult.isPass()) {
+                throw new InSufficientPermissionException(authResult);
+            }
+        } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
+            AuthResult authResult = authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RECORD);
             if (!authResult.isPass()) {
                 throw new InSufficientPermissionException(authResult);
             }
