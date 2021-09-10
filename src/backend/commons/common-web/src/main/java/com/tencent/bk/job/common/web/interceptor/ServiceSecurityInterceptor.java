@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
-import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
 import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.common.web.exception.ServiceNoAuthException;
 import com.tencent.bk.job.common.web.util.ProfileUtil;
@@ -45,14 +44,11 @@ import javax.servlet.http.HttpServletResponse;
 public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
     private final JwtManager jwtManager;
     private final ProfileUtil profileUtil;
-    private final ServiceSecurityProperties securityProperties;
 
     @Autowired
-    public ServiceSecurityInterceptor(JwtManager jwtManager, ProfileUtil profileUtil,
-                                      ServiceSecurityProperties securityProperties) {
+    public ServiceSecurityInterceptor(JwtManager jwtManager, ProfileUtil profileUtil) {
         this.jwtManager = jwtManager;
         this.profileUtil = profileUtil;
-        this.securityProperties = securityProperties;
     }
 
 
@@ -61,12 +57,12 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
         if (shouldFilter(request)) {
             String jwt = request.getHeader("x-job-auth-token");
             if (StringUtils.isEmpty(jwt)) {
-                log.warn("Invalid request, jwt is empty! url: {}", request.getRequestURI());
+                log.error("Invalid request, jwt is empty! url: {}", request.getRequestURI());
                 throw new ServiceNoAuthException();
             }
             boolean checkResult = jwtManager.verifyJwt(jwt);
             if (!checkResult) {
-                log.warn("Invalid request, jwt is invalid or expired! url: {}", request.getRequestURI());
+                log.error("Invalid request, jwt is invalid or expired! url: {}", request.getRequestURI());
                 throw new ServiceNoAuthException();
             }
         }
