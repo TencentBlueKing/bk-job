@@ -28,11 +28,11 @@
         @mixin scroller;
     }
 
-    &.bk-table-scrollable-x .bk-table-body-wrapper {
+    /* &.bk-table-scrollable-x .bk-table-body-wrapper {
         &::-webkit-scrollbar {
             height: 6px;
         }
-    }
+    } */
 
     .cell {
         font-size: 13px;
@@ -52,7 +52,9 @@
         }
 
         & > .cell {
+            height: 41px;
             font-weight: normal;
+            line-height: 41px;
             color: #313238;
         }
 
@@ -85,6 +87,12 @@
 .bk-table-fixed,
 .bk-table-fixed-right {
     border-bottom: none;
+
+    .bk-table-row-last {
+        td {
+            border-bottom: none;
+        }
+    }
 }
 
 .bk-table-setting-popover-content-theme.tippy-tooltip {
@@ -95,7 +103,6 @@
     覆盖分页器样式
  */
 .bk-page .bk-page-total-small {
-    /* margin-top: 0 !important; */
     line-height: 24px !important;
 }
 

@@ -120,14 +120,13 @@
             },
         },
         watch: {
-            value (value) {
-                this.localValue = value;
+            value: {
+                handler (value) {
+                    this.localValue = value;
+                    this.memoValue = [...this.value];
+                },
+                immediate: true,
             },
-        },
-        created () {
-            this.memoValue = [
-                ...this.value,
-            ];
         },
         mounted () {
             document.body.addEventListener('click', this.hideEdit);
@@ -139,6 +138,7 @@
         methods: {
             triggerRemote () {
                 this.isEditing = false;
+                console.log('from edit tag triget = ', this.memoValue, this.localValue);
                 if (isEqual(this.memoValue, this.localValue)) {
                     return;
                 }

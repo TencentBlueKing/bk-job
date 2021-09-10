@@ -67,7 +67,7 @@
             <bk-button
                 :disabled="isBatchEditTagDisabled"
                 @click="handleBatchEditTag">
-                编辑标签
+                {{ $t('template.编辑标签') }}
             </bk-button>
             <template #right>
                 <jb-search-select
@@ -265,9 +265,9 @@
         </div>
         <jb-dialog
             v-model="isShowBatchEdit"
-            title="编辑标签"
+            :title="$t('template.编辑标签')"
             header-position="left"
-            ok-text="确定"
+            :ok-text="$t('template.确定')"
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEdit"

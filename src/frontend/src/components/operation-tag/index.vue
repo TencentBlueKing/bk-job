@@ -19,7 +19,7 @@
                 property="name">
                 <jb-input
                     v-model="formData.name"
-                    maxlength="20"
+                    :maxlength="20"
                     :native-attributes="{ autofocus: true }" />
             </jb-form-item>
             <jb-form-item
@@ -149,10 +149,7 @@
                         }
                         return TagManageService.createTag(state.formData)
                             .then((data) => {
-                                ctx.emit('on-change', new TagModel({
-                                    id: data,
-                                    ...state.formData,
-                                }));
+                                ctx.emit('on-change', new TagModel(data));
                                 proxy.messageSuccess('新建标签成功');
                                 handleUpdateDialog(false);
                             });

@@ -285,7 +285,7 @@
                 if (this.operationType === 'create') {
                     return {
                         title: I18n.t('template.新建作业步骤'),
-                        okText: I18n.t('template.保存'),
+                        okText: I18n.t('template.提交'),
                     };
                 }
                 return {

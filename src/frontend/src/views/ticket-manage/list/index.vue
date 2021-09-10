@@ -262,22 +262,35 @@
                 if (!this.ticketDetailInfo.id) {
                     return {
                         title: I18n.t('ticket.新建凭证'),
-                        okText: I18n.t('ticket.保存'),
+                        okText: I18n.t('ticket.提交'),
+                        
                     };
                 }
                 return {
                     title: I18n.t('ticket.编辑凭证'),
-                    okText: I18n.t('ticket.提交'),
+                    okText: I18n.t('ticket.保存'),
                 };
             },
         },
         created () {
             this.getTicketList = TicketService.fetchListWithRelate;
             this.sourceFilters = [
-                { value: 'APP_ID_SECRET_KEY', text: I18n.t('AppID+SecretKey') },
-                { value: 'PASSWORD', text: I18n.t('单一密码') },
-                { value: 'USERNAME_PASSWORD', text: I18n.t('用户名+密码') },
-                { value: 'SECRET_KEY', text: I18n.t('单一SecretKey') },
+                {
+                    value: 'APP_ID_SECRET_KEY',
+                    text: I18n.t('AppID+SecretKey'),
+                },
+                {
+                    value: 'PASSWORD',
+                    text: I18n.t('单一密码'),
+                },
+                {
+                    value: 'USERNAME_PASSWORD',
+                    text: I18n.t('用户名+密码'),
+                },
+                {
+                    value: 'SECRET_KEY',
+                    text: I18n.t('单一SecretKey'),
+                },
             ];
             this.searchSelect = [
                 {

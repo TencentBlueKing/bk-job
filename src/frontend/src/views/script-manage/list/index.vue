@@ -43,7 +43,7 @@
             <bk-button
                 :disabled="isBatchEditTagDisabled"
                 @click="handleBatchEditTag">
-                编辑标签
+                {{ $t('script.编辑标签') }}
             </bk-button>
             <template #right>
                 <jb-search-select
@@ -249,9 +249,9 @@
         </render-list>
         <jb-dialog
             v-model="isShowBatchEditTag"
-            title="编辑标签"
+            :title="$t('script.编辑标签')"
             header-position="left"
-            ok-text="确定"
+            :ok-text="$t('script.确定')"
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEditTag"
@@ -448,8 +448,16 @@
             
             this.rules = {
                 name: [
-                    { required: true, message: I18n.t('script.脚本名称必填'), trigger: 'blur' },
-                    { validator: scriptNameRule.validator, message: scriptNameRule.message, trigger: 'blur' },
+                    {
+                        required: true,
+                        message: I18n.t('script.脚本名称必填'),
+                        trigger: 'blur',
+                    },
+                    {
+                        validator: scriptNameRule.validator,
+                        message: scriptNameRule.message,
+                        trigger: 'blur',
+                    },
                 ],
             };
         },
@@ -489,7 +497,9 @@
              */
             handleBatchEditChange () {
                 this.fetchData();
-                this.$refs.tagPanelRef.init();
+                if (this.$refs.tagPanelRef) {
+                    this.$refs.tagPanelRef.init();
+                }
             },
             /**
              * @desc 列表搜索
@@ -523,6 +533,10 @@
                     id,
                     ...payload,
                     updateField: Object.keys(payload)[0],
+                }).then(() => {
+                    if (this.$refs.tagPanelRef) {
+                        this.$refs.tagPanelRef.init();
+                    }
                 });
             },
             /**

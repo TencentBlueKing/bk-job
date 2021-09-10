@@ -69,7 +69,11 @@
             </jb-form-item>
         </jb-form>
         <template #footer>
-            <bk-button theme="primary" class="w120 mr10" :loading="submitLoading" @click="handleSumbit">
+            <bk-button
+                theme="primary"
+                class="w120 mr10"
+                :loading="submitLoading"
+                @click="handleSumbit">
                 {{ $t('template.提交') }}
             </bk-button>
             <bk-button @click="handleReset">{{ $t('template.重置') }}</bk-button>

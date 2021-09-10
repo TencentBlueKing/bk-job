@@ -29,7 +29,7 @@
     <div class="dashboard-page">
         <div class="operation-bar">
             <div class="app-select">
-                <bk-button theme="primary" @click="handleScreenshot">截图</bk-button>
+                <bk-button theme="primary" @click="handleScreenshot">{{ $t('dashboard.截图') }}</bk-button>
             </div>
             <div class="date-setting">
                 <div class="date-info">

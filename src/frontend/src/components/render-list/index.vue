@@ -206,6 +206,7 @@
             }
         },
         mounted () {
+            this.init();
             this.$on('onFetch', (params) => {
                 if (params) {
                     this.params = Object.freeze(params);
@@ -262,7 +263,6 @@
                         this.isRequesting = false;
                     });
             });
-            this.init();
         },
         methods: {
             /**
@@ -271,7 +271,7 @@
             init () {
                 const { top } = getOffset(this.$refs.renderList);
                 const windowHeight = window.innerHeight;
-                const tableHeadHeight = 43;
+                const tableHeadHeight = 42;
                 const paginationHeight = 63;
                 const windownOffsetBottom = 20;
                 const listTotalHeight = windowHeight - top - tableHeadHeight - paginationHeight - windownOffsetBottom;
@@ -289,7 +289,7 @@
                 if (!this.waitingInit) {
                     this.pagination.limit = limit;
                 }
-                this.tableMaxHeight = tableHeadHeight + listTotalHeight + paginationHeight;
+                this.tableMaxHeight = tableHeadHeight * (limit + 1) + paginationHeight + 1;
                 this.isRendered = true;
             },
             /**

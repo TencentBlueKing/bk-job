@@ -1,11 +1,11 @@
 <template>
     <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
         <div style="margin-bottom: 8px;">
-            范围：共<span class="strong number" style="color: #313238;">{{ templateNums }}</span>个脚本
+            {{ $t('script.范围') }}： {{ $t('script.共') }}<span class="strong number" style="color: #313238;">{{ templateNums }}</span>{{ $t('script.个脚本') }}
         </div>
         <jb-form form-type="vertical">
             <jb-form-item
-                label="标签"
+                :label="$t('script.标签')"
                 required
                 style="margin-bottom: 0;">
                 <div class="tag-panel">
@@ -32,13 +32,13 @@
                                     <template v-if="tagCheckInfoMap[tagItem.id]">
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].checked"
-                                            v-bk-tooltips.right="'勾选范围里，全部脚本使用'"
+                                            v-bk-tooltips.right="$t('script.勾选范围里，全部脚本使用')"
                                             class="relate-all">
                                             All
                                         </span>
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].indeterminate"
-                                            v-bk-tooltips.right="`勾选范围里，有 ${tagRelateNumMap[tagItem.id]} 个脚本使用`"
+                                            v-bk-tooltips.right="`${$t('script.勾选范围里，有')} ${tagRelateNumMap[tagItem.id]} ${$t('script.个脚本使用')}`"
                                             class="relate-nums">
                                             {{ tagRelateNumMap[tagItem.id] }}/{{ templateNums }}
                                         </span>
@@ -59,7 +59,7 @@
                         <bk-icon
                             type="plus-circle"
                             style=" margin-right: 8px; font-size: 16px;" />
-                        <span>新增标签</span>
+                        <span>{{ $t('script.新增标签') }}</span>
                     </div>
                 </div>
             </jb-form-item>
@@ -82,6 +82,7 @@
         getCurrentInstance,
     } from '@vue/composition-api';
     import _ from 'lodash';
+    import I18n from '@/i18n';
     import PubliceTagManageService from '@service/public-tag-manage';
     import TagManageService from '@service/tag-manage';
     import ScriptManageService from '@service/script-manage';
@@ -270,7 +271,7 @@
                     deleteTagIdList,
                     idList: props.templateList.map(({ id }) => id),
                 }).then(() => {
-                    proxy.messageSuccess('编辑标签成功');
+                    proxy.messageSuccess(I18n.t('script.编辑标签成功'));
                     ctx.emit('on-change');
                 });
             };

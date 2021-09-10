@@ -6,22 +6,22 @@
             :model="formData"
             :rules="rules">
             <jb-form-item
-                label="范围"
+                :label="$t('tag.范围')"
                 required
                 property="resourceTypeList">
                 <bk-checkbox-group v-model="formData.resourceTypeList">
                     <bk-checkbox
                         class="mr10"
                         :value="5">
-                        作业（{{ data.relatedTaskTemplateNum }}）
+                        {{ $t('tag.作业') }}（{{ data.relatedTaskTemplateNum }}）
                     </bk-checkbox>
                     <bk-checkbox :value="1">
-                        脚本（{{ data.relatedScriptNum }}）
+                        {{ $t('tag.脚本') }}（{{ data.relatedScriptNum }}）
                     </bk-checkbox>
                 </bk-checkbox-group>
             </jb-form-item>
             <jb-form-item
-                label="标签"
+                :label="$t('tag.标签')"
                 style="margin-bottom: 0;">
                 <div class="tag-panel">
                     <bk-input
@@ -53,7 +53,7 @@
                         <bk-icon
                             type="plus-circle"
                             style=" margin-right: 8px; font-size: 16px;" />
-                        <span>新增标签</span>
+                        <span>{{ $t('tag.新增标签') }}</span>
                     </div>
                 </div>
             </jb-form-item>
@@ -77,6 +77,7 @@
         getCurrentInstance,
     } from '@vue/composition-api';
     import _ from 'lodash';
+    import I18n from '@/i18n';
     import TagManageService from '@service/tag-manage';
     import { encodeRegexp } from '@utils/assist';
     import OperationTag from '@components/operation-tag';
@@ -114,7 +115,7 @@
                 resourceTypeList: [
                     {
                         validator: resourceTypeList => resourceTypeList.length > 0,
-                        message: '范围不能为空',
+                        message: I18n.t('tag.范围不能为空'),
                         trigger: 'blur',
                     },
                 ],

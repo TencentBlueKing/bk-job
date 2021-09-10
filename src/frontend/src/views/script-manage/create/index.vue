@@ -69,8 +69,18 @@
             </jb-form-item>
         </jb-form>
         <template #action>
-            <bk-button class="w120 mr10" :loading="isSbumiting" theme="primary" @click="handleSubmit">{{ $t('script.提交') }}</bk-button>
-            <bk-button theme="default" @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+            <bk-button
+                class="w120 mr10"
+                :loading="isSbumiting"
+                theme="primary"
+                @click="handleSubmit">
+                {{ $t('script.提交') }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                @click="handleCancel">
+                {{ $t('script.取消') }}
+            </bk-button>
         </template>
     </smart-action>
 </template>

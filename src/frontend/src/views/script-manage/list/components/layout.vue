@@ -131,7 +131,7 @@
             flex: 1 0 auto;
 
             &.no-tag {
-                width: auto;
+                width: 100%;
                 padding: 0;
                 background: unset;
             }

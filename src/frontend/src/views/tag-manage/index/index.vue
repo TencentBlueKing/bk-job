@@ -158,16 +158,13 @@
                         @click="handleEdit(row)">
                         {{ $t('tag.编辑') }}
                     </auth-button>
-                    <auth-button
+                    <bk-button
                         class="mr10"
                         theme="primary"
-                        :permission="row.canManage"
-                        auth="tag/edit"
-                        :resource-id="row.id"
                         text
                         @click="handleEditRelate(row)">
                         {{ $t('tag.批量流转关联项') }}
-                    </auth-button>
+                    </bk-button>
                     <jb-popover-confirm
                         :title="$t('tag.确认删除该标签？')"
                         :content="$t('tag.关联的作业、脚本，将同时移除本标签')"

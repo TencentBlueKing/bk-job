@@ -92,7 +92,7 @@
             <bk-button
                 class="mr10"
                 @click="handleDebugScript">
-                调试
+                {{ $t('script.调试') }}
             </bk-button>
             <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
         </template>

@@ -1,11 +1,11 @@
 <template>
     <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
         <div style="margin-bottom: 8px;">
-            范围：共<span class="strong number" style="color: #313238;">{{ templateNums }}</span>个作业
+            {{ $t('template.范围') }}：{{ $t('template.共') }}<span class="strong number" style="color: #313238;">{{ templateNums }}</span>{{ $t('template.个作业') }}
         </div>
         <jb-form form-type="vertical">
             <jb-form-item
-                label="标签"
+                :label="$t('template.标签')"
                 required
                 style="margin-bottom: 0;">
                 <div class="tag-panel">
@@ -32,13 +32,13 @@
                                     <template v-if="tagCheckInfoMap[tagItem.id]">
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].checked"
-                                            v-bk-tooltips.right="'勾选范围里，全部作业使用'"
+                                            v-bk-tooltips.right="$t('template.勾选范围里，全部作业使用')"
                                             class="relate-all">
                                             All
                                         </span>
                                         <span
                                             v-if="tagCheckInfoMap[tagItem.id].indeterminate"
-                                            v-bk-tooltips.right="`勾选范围里，有 ${tagRelateNumMap[tagItem.id]} 个作业使用`"
+                                            v-bk-tooltips.right="`${$t('template.勾选范围里，有')} ${tagRelateNumMap[tagItem.id]} ${$t('template.个作业使用')}`"
                                             class="relate-nums">
                                             {{ tagRelateNumMap[tagItem.id] }}/{{ templateNums }}
                                         </span>
@@ -56,7 +56,7 @@
                         <bk-icon
                             type="plus-circle"
                             style=" margin-right: 8px; font-size: 16px;" />
-                        <span>新增标签</span>
+                        <span>{{ $t('template.新增标签') }}</span>
                     </div>
                 </div>
             </jb-form-item>
@@ -81,6 +81,7 @@
     import _ from 'lodash';
     import TagManageService from '@service/tag-manage';
     import TaskManageService from '@service/task-manage';
+    import I18n from '@/i18n';
     import { encodeRegexp } from '@utils/assist';
     import OperationTag from '@components/operation-tag';
 
@@ -151,6 +152,7 @@
             // 展示的 tag 列表
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
+                
                 if (!state.search) {
                     return allTagList;
                 }
@@ -261,7 +263,7 @@
                     deleteTagIdList,
                     idList: props.templateList.map(({ id }) => id),
                 }).then(() => {
-                    proxy.messageSuccess('编辑标签成功');
+                    proxy.messageSuccess(I18n.t('template.编辑标签成功'));
                     ctx.emit('on-change');
                 });
             };
