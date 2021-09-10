@@ -22,9 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.constants;
+package com.tencent.bk.job.common.constant;
 
-public class JobManageConstants {
+public class JobConstants {
     /**
      * 公共资源对应的业务ID(比如公共脚本)
      */

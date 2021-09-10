@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.error.BadRequestDetail;
 import com.tencent.bk.job.common.model.error.ErrorDetail;
 import lombok.extern.slf4j.Slf4j;
@@ -70,10 +72,21 @@ import javax.validation.ConstraintViolationException;
 @Slf4j
 public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     private final MessageI18nService i18nService;
+    private final AuthService authService;
 
     @Autowired
-    public EsbExceptionControllerAdvice(MessageI18nService i18nService) {
+    public EsbExceptionControllerAdvice(MessageI18nService i18nService, AuthService authService) {
         this.i18nService = i18nService;
+        this.authService = authService;
+    }
+
+    @ExceptionHandler(InSufficientPermissionException.class)
+    @ResponseBody
+    ResponseEntity<?> handleControllerInSufficientPermissionException(HttpServletRequest request, ServiceException ex) {
+        log.warn("Handle service exception", ex);
+        // esb请求错误统一返回200，具体的错误信息放在返回数据里边
+        return new ResponseEntity<>(authService.buildEsbAuthFailResp((InSufficientPermissionException) ex),
+            HttpStatus.OK);
     }
 
     @ExceptionHandler(ServiceException.class)

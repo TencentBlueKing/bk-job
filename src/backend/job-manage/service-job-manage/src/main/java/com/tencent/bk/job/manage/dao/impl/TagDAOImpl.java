@@ -185,7 +185,6 @@ public class TagDAOImpl implements TagDAO {
             String likePattern = "%" + searchCondition.getName() + "%";
             conditions.add(TABLE.NAME.like(likePattern));
         }
-        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
         return conditions;
     }
 

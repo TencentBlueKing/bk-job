@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.config;
 
 import com.tencent.bk.job.analysis.interceptor.UriPermissionInterceptor;
+import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final AuthAppInterceptor authAppInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
 
     @Autowired
-    public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
-                                    UriPermissionInterceptor uriPermissionInterceptor) {
+    public InterceptorConfiguration(
+        JobCommonInterceptor jobCommonInterceptor,
+        AuthAppInterceptor authAppInterceptor,
+        ServiceSecurityInterceptor serviceSecurityInterceptor,
+        UriPermissionInterceptor uriPermissionInterceptor
+    ) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.authAppInterceptor = authAppInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
     }
@@ -55,5 +61,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(uriPermissionInterceptor.getControlUriPatterns()).order(2);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(3);
     }
 }

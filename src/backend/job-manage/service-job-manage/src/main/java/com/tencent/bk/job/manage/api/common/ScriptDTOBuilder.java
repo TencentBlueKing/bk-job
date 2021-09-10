@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.tencent.bk.job.manage.common.constants.JobManageConstants.PUBLIC_APP_ID;
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 @Service
 public class ScriptDTOBuilder {

@@ -78,8 +78,8 @@ public class WebExceptionControllerAdvice extends ResponseEntityExceptionHandler
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
     ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
-        log.warn("Handle service exception", ex);
         if (ex instanceof HttpStatusServiceException) {
+            log.warn("Handle service exception", ex);
             HttpStatusServiceException httpStatusServiceException = (HttpStatusServiceException) ex;
             return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException, i18nService),
                 httpStatusServiceException.getHttpStatus());
@@ -93,6 +93,7 @@ public class WebExceptionControllerAdvice extends ResponseEntityExceptionHandler
             return new ResponseEntity<>(ServiceResponse.buildAuthFailResp(
                 webAuthService.toAuthResultVO(inSufficientPermissionException.getAuthResult())), HttpStatus.OK);
         } else {
+            log.warn("Handle service exception", ex);
             return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex, i18nService),
                 HttpStatus.OK);
         }
