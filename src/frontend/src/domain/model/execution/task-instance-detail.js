@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import TaskInstanceModel from '@model/execution/task-instance';
-import TaskInstanceStepMode from '@model/execution/task-instance-step';
+import TaskInstanceDetailStepMode from '@model/execution/task-instance-detail-step';
 
 // 作业任务的实例信息
 export default class TaskInstanceDetail {
@@ -35,6 +35,10 @@ export default class TaskInstanceDetail {
         this.variables = this.initVariables(payload.variables);
     }
 
+    /**
+     * @desc 任务的步骤信息，默认第一个步骤
+     * @returns { Object }
+     */
     get stepInfo () {
         if (this.steps.length < 1) {
             return {};
@@ -42,17 +46,27 @@ export default class TaskInstanceDetail {
         return this.steps[0];
     }
 
+    /**
+     * @desc 处理任务的步骤数据
+     * @param { Array } steps
+     * @returns { Array }
+     */
     initSteps (steps) {
         if (!_.isArray(steps)) {
             return [];
         }
-        return steps.map(_ => new TaskInstanceStepMode(_));
+        return steps.map(_ => new TaskInstanceDetailStepMode(_));
     }
 
-    initVariables (payload) {
-        if (!_.isArray(payload)) {
+    /**
+     * @desc 处理任务的变量数据
+     * @param { Array } variables
+     * @returns { Array }
+     */
+    initVariables (variables) {
+        if (!_.isArray(variables)) {
             return [];
         }
-        return payload;
+        return variables;
     }
 }

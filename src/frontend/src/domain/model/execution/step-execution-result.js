@@ -26,10 +26,7 @@
 import {
     transformTimeFriendly,
 } from '@utils/assist';
-
-const TASK_TYPE_TASK = 0;
-const TASK_TYPE_SCRIPT = 1;
-const TASK_TYPE_FILE = 2;
+import ResultGroup from '@model/execution/step-execution-result-group';
 
 // 执行状态
 const STATUS_PENDING = 1;
@@ -46,14 +43,25 @@ const STATUS_FORCED_SUCCESS = 11;
 const STATUS_FORCED_FAIL = 12;
 const STATUS_CONFIRM_FORCED = 13;
 
+// 步骤类型
+// const TYPE_SCRIPT = 1
+const TYPE_FILE = 2;
+// const TYPE_APPROVAL = 3
+
 const checkStatus = (status) => {
+    // 执行成功
     if ([
         STATUS_SUCCESS,
         STATUS_PASS,
-        STATUS_INGORE_ERROR,
     ].includes(status)) {
         return 'success';
     }
+    if ([
+        STATUS_INGORE_ERROR,
+    ].includes(status)) {
+        return 'ingore';
+    }
+    // 执行失败
     if ([
         STATUS_FAIL,
         STATUS_STATE_EXCEPTION,
@@ -62,27 +70,36 @@ const checkStatus = (status) => {
     ].includes(status)) {
         return 'fail';
     }
+    // 终止成功
     if ([
         STATUS_FORCED_SUCCESS,
     ].includes(status)) {
         return 'forced';
     }
+    // 执行中
     if ([
         STATUS_DOING,
-        STATUS_FORCEDING,
     ].includes(status)) {
         return 'loading';
     }
+    if ([
+        STATUS_FORCEDING,
+    ].includes(status)) {
+        return 'forceding';
+    }
+    // 人工确认
     if ([
         STATUS_MANUAL_CONFIRM,
     ].includes(status)) {
         return 'confirm';
     }
+    // 确认终止
     if ([
         STATUS_CONFIRM_FORCED,
     ].includes(status)) {
         return 'confirmForced';
     }
+    // 等待执行
     if ([
         STATUS_PENDING,
     ].includes(status)) {
@@ -91,49 +108,26 @@ const checkStatus = (status) => {
     return 'disabled';
 };
 
-// 作业执行详情页
-// 作业实例
-export default class TaskExecution {
+// 使用场景：步骤执行详情页，步骤执行结果的详细信息
+// —— resultGroups 步骤执行结果分组信息
+export default class StepExecutionResult {
     constructor (payload) {
-        this.endTime = payload.endTime;
+        this.stepInstanceId = payload.stepInstanceId;
+        this.retryCount = payload.retryCount;
+        this.finished = payload.finished;
         this.name = payload.name;
         this.startTime = payload.startTime;
+        this.endTime = payload.endTime;
+        this.totalTime = payload.totalTime;
+        this.type = payload.type;
         this.status = payload.status;
         this.statusDesc = payload.statusDesc;
-        this.taskInstanceId = payload.taskInstanceId;
-        this.taskId = payload.taskId;
-        this.totalTime = payload.totalTime;
-        this.templateId = payload.templateId;
-        this.type = payload.type;
-        this.debugTask = payload.debugTask;
+        this.isLastStep = payload.isLastStep;
+        this.resultGroups = this.initResultGroup(payload.resultGroups);
     }
 
     /**
-     * @desc 是作业执行的任务
-     * @returns { Boolean }
-     */
-    get isTask () {
-        return this.type === TASK_TYPE_TASK;
-    }
-
-    /**
-     * @desc 快速执行脚本的任务
-     * @returns { Boolean }
-     */
-    get isScript () {
-        return this.type === TASK_TYPE_SCRIPT;
-    }
-
-    /**
-     * @desc 快速分发文件的任务
-     * @returns { Boolean }
-     */
-    get isFile () {
-        return this.type === TASK_TYPE_FILE;
-    }
-
-    /**
-     * @desc 任务执行时间
+     * @desc 步骤执行总耗时
      * @returns { String }
      */
     get totalTimeText () {
@@ -141,40 +135,89 @@ export default class TaskExecution {
     }
 
     /**
-     * @desc 任务正在执行
+     * @desc 分发文件类型的步骤
      * @returns { Boolean }
      */
-    get isDoing () {
-        return [
-            STATUS_DOING, STATUS_FORCEDING,
-        ].includes(this.status);
+    get isFile () {
+        return this.type === TYPE_FILE;
     }
 
     /**
-     * @desc 任务执行成功
-     * @returns { Boolean }
+     * @desc 步骤执行状态展示css对应的class
+     * @returns { String }
      */
-    get isSuccess () {
-        return [
-            STATUS_SUCCESS,
-        ].includes(this.status);
+    get displayStyle () {
+        const styleMap = {
+            success: 'success',
+            ingore: 'ingore',
+            fail: 'fail',
+            forced: 'forced',
+            forceding: 'loading',
+            loading: 'loading',
+            confirm: 'confirm',
+            confirmForced: 'confirmForced',
+            disabled: 'disabled',
+        };
+        return styleMap[checkStatus(this.status)];
     }
 
     /**
-     * @desc 任务可以被强制终止
+     * @desc 步骤详情可以被强制终止(步骤执行详情页面通过步骤的状态来判断作业是否可以强制终止)
      * @returns { Boolean }
      */
     get isForcedEnable () {
         return [
             STATUS_DOING,
+            STATUS_MANUAL_CONFIRM,
         ].includes(this.status);
     }
 
     /**
-     * @desc 任务状态的 css 对应的 class
-     * @returns { String }
+     * @desc 步骤当前状态支持的操作
+     * @returns { Array }
      */
-    get displayStyle () {
-        return checkStatus(this.status);
+    get actions () {
+        const actionMap = {
+            success: [],
+            ingore: [],
+            disabled: [],
+            forced: [
+                'forcedRetry',
+                'next',
+            ],
+            fail: [
+                'failIpRetry', 'allRetry', 'skip',
+            ],
+            forceding: [
+                'forcedSkip',
+            ],
+            loading: [],
+            confirm: [
+                'confirmForced', 'confirm',
+            ],
+            confirmForced: [
+                'confirmRetry',
+            ],
+        };
+        // 步骤是最后一步 强制终止操作 没有进入下一步的操作
+        if (this.isLastStep) {
+            actionMap.forced = [
+                'forcedRetry',
+            ];
+        }
+        
+        return actionMap[checkStatus(this.status)];
+    }
+
+    /**
+     * @desc 初始化步骤执行结果的分组数据
+     * @param { Array } resultGroups
+     * @returns { Array }
+     */
+    initResultGroup (resultGroups) {
+        if (!Array.isArray(resultGroups)) {
+            return [];
+        }
+        return resultGroups.map(item => Object.freeze(new ResultGroup(item)));
     }
 }
