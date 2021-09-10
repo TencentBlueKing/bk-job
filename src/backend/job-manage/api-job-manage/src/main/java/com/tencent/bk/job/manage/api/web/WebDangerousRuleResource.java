@@ -60,7 +60,7 @@ public interface WebDangerousRuleResource {
 
 
     @ApiOperation(value = "添加/修改高危语句规则", produces = "application/json")
-    @PostMapping("/")
+    @PostMapping
     ServiceResponse<Boolean> addOrUpdateDangerousRule(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
