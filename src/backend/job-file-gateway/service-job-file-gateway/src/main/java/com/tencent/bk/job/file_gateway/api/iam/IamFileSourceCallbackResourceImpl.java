@@ -68,7 +68,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
         int length;
         String keyword;
 
-        public FileSourceSearchCondition(
+        FileSourceSearchCondition(
             List<Long> appIdList,
             List<String> idStrList,
             List<Integer> fileSourceIdList,

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;

@@ -38,14 +38,18 @@ public class IamCallbackAspect {
     }
 
     @Around("processCallbackRequest()")
-    public Object logBeforeProcessCallbackRequest(ProceedingJoinPoint pjp) throws Throwable {
-        Object[] args = pjp.getArgs();
-        if (args.length < 1) {
-            log.warn("unexpected ProceedingJoinPoint, please check");
+    public Object logBeforeProcessCallbackRequest(ProceedingJoinPoint pjp) throws Exception {
+        try {
+            Object[] args = pjp.getArgs();
+            if (args.length < 1) {
+                log.warn("unexpected ProceedingJoinPoint, please check");
+                return pjp.proceed();
+            }
+            CallbackRequestDTO callbackRequest = (CallbackRequestDTO) args[0];
+            logRequest(callbackRequest);
             return pjp.proceed();
+        } catch (Throwable throwable) {
+            throw new Exception("Fail to execute logBeforeProcessCallbackRequest", throwable);
         }
-        CallbackRequestDTO callbackRequest = (CallbackRequestDTO) args[0];
-        logRequest(callbackRequest);
-        return pjp.proceed();
     }
 }
