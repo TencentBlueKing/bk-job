@@ -25,6 +25,7 @@
 apply plugin: 'java'
 dependencies {
     compile(files("libs/iam-sdk-1.0.0.jar"))
+    implementation 'org.aspectj:aspectjweaver'
     implementation(group: 'org.springframework', name: 'spring-context')
     implementation(project(":commons:esb-sdk"))
     compile(project(":commons:common"))
