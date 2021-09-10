@@ -22,31 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.api.web.impl;
+package com.tencent.bk.job.backup.auth;
 
-import com.tencent.bk.job.analysis.api.web.WebIndexResource;
-import com.tencent.bk.job.analysis.model.web.AnalysisResultVO;
-import com.tencent.bk.job.analysis.service.IndexService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-@RestController
 @Slf4j
-public class WebIndexResourceImpl implements WebIndexResource {
+@Component
+@Lazy(false)
+public class ResourceServiceRegister implements InitializingBean {
 
-    private final IndexService indexService;
+    private final ResourceAppInfoQueryService resourceAppInfoQueryService;
+    private final AuthService authService;
 
     @Autowired
-    public WebIndexResourceImpl(IndexService indexService) {
-        this.indexService = indexService;
+    public ResourceServiceRegister(ResourceAppInfoQueryService resourceAppInfoQueryService,
+                                   AuthService authService) {
+        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
+        this.authService = authService;
     }
 
     @Override
-    public ServiceResponse<List<AnalysisResultVO>> listAnalysisResult(String username, Long appId, Long limit) {
-        return ServiceResponse.buildSuccessResp(indexService.listAnalysisResult(username, appId, limit));
+    public void afterPropertiesSet() {
+        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 }

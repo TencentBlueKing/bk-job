@@ -25,13 +25,18 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.controller.AbstractJobController;
+import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -71,7 +76,20 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         JobContextUtil.setRequest(request);
         JobContextUtil.setResponse(response);
 
+        // Web接口Header
         String username = request.getHeader("username");
+        // ESB接口Header
+        // 网关从JWT中解析出的Username最高优先级
+        if (StringUtils.isBlank(username)) {
+            username = request.getHeader(JobCommonHeaders.USERNAME);
+            log.debug("username from gateway:{}", username);
+        }
+        // QueryString/Body中的Username次优先
+        if (StringUtils.isBlank(username)) {
+            username = parseUsernameFromQueryStringOrBody(request);
+            log.debug("username from query/body:{}", username);
+        }
+
         if (StringUtils.isNotBlank(username)) {
             JobContextUtil.setUsername(username);
         }
@@ -84,25 +102,29 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        long appId = parseAppId(request.getRequestURI());
-        JobContextUtil.setAppId(appId);
+        Long appId = parseAppIdFromPath(request.getRequestURI());
+        log.debug("appId from path:{}", appId);
+        if (appId == null) {
+            appId = parseAppIdFromQueryStringOrBody(request);
+            log.debug("appId from query/body:{}", appId);
+        }
+        if (appId != null) {
+            JobContextUtil.setAppId(appId);
+        }
         return preService(request, response, handler);
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         // 只拦截web/service/esb的API请求
-        if (uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/")) {
-            return true;
-        }
-        return false;
+        return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private long parseAppId(String requestURI) {
+    private Long parseAppIdFromPath(String requestURI) {
         Matcher matcher = APP_ID_PATTERN.matcher(requestURI);
         if (matcher.find()) {
             String appIdStr = matcher.group(1);
-            long appId = 0;
+            Long appId = null;
             try {
                 appId = Long.parseLong(appIdStr);
             } catch (NumberFormatException e) {
@@ -110,7 +132,52 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             }
             return appId;
         }
-        return 0;
+        return null;
+    }
+
+    private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
+        return parseValueFromQueryStringOrBody(request, "bk_username");
+    }
+
+    private Long parseAppIdFromQueryStringOrBody(HttpServletRequest request) {
+        String appIdStr = null;
+        try {
+            appIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (appIdStr == null) return null;
+            return Long.parseLong(appIdStr);
+        } catch (Exception e) {
+            log.warn("Fail to parse appId from {}", appIdStr, e);
+        }
+        return null;
+    }
+
+    private String parseValueFromQueryStringOrBody(HttpServletRequest request, String key) {
+        try {
+            if (request.getMethod().equals(HttpMethod.POST.name())
+                || request.getMethod().equals(HttpMethod.PUT.name())) {
+                if (!(request instanceof RepeatableReadWriteHttpServletRequest)) {
+                    return null;
+                }
+                RepeatableReadWriteHttpServletRequest wrapperRequest =
+                    (RepeatableReadWriteHttpServletRequest) request;
+                if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
+                    ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(wrapperRequest.getBody());
+                    if (jsonBody == null) {
+                        return null;
+                    }
+                    String value = jsonBody.get(key) == null ? null : jsonBody.get(key).asText();
+                    log.debug("parsed from POST/PUT: {}={}", key, value);
+                    return value;
+                }
+            } else if (request.getMethod().equals(HttpMethod.GET.name())) {
+                String value = request.getParameter(key);
+                log.debug("parsed from GET: {}={}", key, value);
+                return value;
+            }
+        } catch (Exception e) {
+            log.warn("Fail to parse {} from request", key, e);
+        }
+        return null;
     }
 
     @Override
@@ -159,13 +226,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
     private boolean preService(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (handler instanceof HandlerMethod) {
-            try {
-                AbstractJobController controllerInstance = getControllerInstance((HandlerMethod) handler);
-                if (controllerInstance != null) {
-                    return controllerInstance.preService(request, response, (HandlerMethod) handler);
-                }
-            } catch (Exception e) {
-                log.error("Error while calling pre service method!", e);
+            AbstractJobController controllerInstance = getControllerInstance((HandlerMethod) handler);
+            if (controllerInstance != null) {
+                return controllerInstance.preService(request, response, (HandlerMethod) handler);
             }
             return true;
         } else {
@@ -174,14 +237,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     }
 
     private void postService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        try {
-            AbstractJobController controllerInstance = getControllerInstance(handler);
-            if (controllerInstance != null) {
-                controllerInstance.postService(request, response, handler);
-            }
-        } catch (Exception e) {
-            log.error("Error while calling post service method!", e);
+        AbstractJobController controllerInstance = getControllerInstance(handler);
+        if (controllerInstance != null) {
+            controllerInstance.postService(request, response, handler);
         }
     }
-
 }

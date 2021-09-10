@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +39,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final AuthAppInterceptor authAppInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
 
     @Autowired
-    public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor) {
+    public InterceptorConfiguration(
+        JobCommonInterceptor jobCommonInterceptor,
+        AuthAppInterceptor authAppInterceptor,
+        ServiceSecurityInterceptor serviceSecurityInterceptor
+    ) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.authAppInterceptor = authAppInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
     }
 
@@ -52,5 +58,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         // 注册拦截器
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(1);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(2);
     }
 }

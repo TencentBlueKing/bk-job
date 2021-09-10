@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -137,7 +137,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             return EsbResp.buildCommonFailResp(i18nService, checkResult);
         }
 
-        boolean isQueryPublicScript = request.getAppId() == JobManageConstants.PUBLIC_APP_ID;
+        boolean isQueryPublicScript = request.getAppId() == JobConstants.PUBLIC_APP_ID;
 
         long appId = request.getAppId();
 
@@ -335,7 +335,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             return EsbResp.buildCommonFailResp(i18nService, checkResult);
         }
 
-        boolean isQueryPublicScript = request.getAppId() == JobManageConstants.PUBLIC_APP_ID;
+        boolean isQueryPublicScript = request.getAppId() == JobConstants.PUBLIC_APP_ID;
 
         long appId = request.getAppId();
 

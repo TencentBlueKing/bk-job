@@ -56,10 +56,10 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 WebAuthService authService) {
+                                 WebAuthService webAuthService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = authService;
+        this.authService = webAuthService;
     }
 
     @Override

@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebIndexResource;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
@@ -43,7 +42,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class WebIndexResourceImpl extends AbstractJobController implements WebIndexResource {
+public class WebIndexResourceImpl implements WebIndexResource {
 
     private final IndexService indexService;
     private final TaskTemplateAuthService taskTemplateAuthService;

@@ -56,17 +56,19 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
     }
 
     @Override
-    public ServiceResponse<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(String username,
-                                                                                      String ipStr,
-                                                                                      String appIdStr,
-                                                                                      String appNameStr,
-                                                                                      String actionScopeStr,
-                                                                                      String creator,
-                                                                                      String lastModifier,
-                                                                                      Integer start,
-                                                                                      Integer pageSize,
-                                                                                      String orderField,
-                                                                                      Integer order) {
+    public ServiceResponse<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(
+        String username,
+        String ipStr,
+        String appIdStr,
+        String appNameStr,
+        String actionScopeStr,
+        String creator,
+        String lastModifier,
+        Integer start,
+        Integer pageSize,
+        String orderField,
+        Integer order
+    ) {
         AuthResultVO authResultVO = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
         if (!authResultVO.isPass()) {
             return ServiceResponse.buildAuthFailResp(authResultVO);
