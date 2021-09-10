@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.web.WebPublicScriptResource;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
@@ -48,7 +48,7 @@ import java.util.List;
 @RestController
 @Slf4j
 public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
-    private static final Long PUBLIC_APP_ID = JobManageConstants.PUBLIC_APP_ID;
+    private static final Long PUBLIC_APP_ID = JobConstants.PUBLIC_APP_ID;
     /**
      * 脚本处理的通用服务，与普通脚本不同的是，公共脚本的业务ID=0
      * 鉴权在通用脚本逻辑中处理

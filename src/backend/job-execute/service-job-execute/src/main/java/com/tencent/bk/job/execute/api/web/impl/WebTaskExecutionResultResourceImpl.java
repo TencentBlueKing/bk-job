@@ -146,6 +146,7 @@ public class WebTaskExecutionResultResourceImpl
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService,
                                               GseTaskLogService gseTaskLogService) {
+        super(webAuthService.getAuthService());
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;

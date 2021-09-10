@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.web.request.TagCreateReq;
@@ -47,14 +46,14 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class WebTagResourceImpl extends AbstractJobController implements WebTagResource {
+public class WebTagResourceImpl implements WebTagResource {
     private final TagService tagService;
     private final WebAuthService authService;
 
     @Autowired
-    public WebTagResourceImpl(TagService tagService, WebAuthService authService) {
+    public WebTagResourceImpl(TagService tagService, WebAuthService webAuthService) {
         this.tagService = tagService;
-        this.authService = authService;
+        this.authService = webAuthService;
     }
 
     @Override

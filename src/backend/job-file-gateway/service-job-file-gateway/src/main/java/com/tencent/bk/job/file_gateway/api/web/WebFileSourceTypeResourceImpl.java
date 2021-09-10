@@ -43,7 +43,9 @@ public class WebFileSourceTypeResourceImpl implements WebFileSourceTypeResource 
     private final FileSourceService fileSourceService;
 
     @Autowired
-    public WebFileSourceTypeResourceImpl(FileSourceService fileSourceService) {
+    public WebFileSourceTypeResourceImpl(
+        FileSourceService fileSourceService
+    ) {
         this.fileSourceService = fileSourceService;
     }
 

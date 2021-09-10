@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -82,7 +82,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
 
         long appId = request.getAppId();
         if (isQueryPublicScript) {
-            appId = JobManageConstants.PUBLIC_APP_ID;
+            appId = JobConstants.PUBLIC_APP_ID;
         }
 
         ScriptQueryDTO scriptQuery = new ScriptQueryDTO();

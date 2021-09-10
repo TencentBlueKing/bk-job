@@ -25,13 +25,21 @@
 package com.tencent.bk.job.logsvr.service.impl;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertManyOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
-import com.tencent.bk.job.logsvr.model.*;
+import com.tencent.bk.job.logsvr.model.FileLogQuery;
+import com.tencent.bk.job.logsvr.model.FileTaskLog;
+import com.tencent.bk.job.logsvr.model.ScriptLogQuery;
+import com.tencent.bk.job.logsvr.model.ScriptTaskLog;
+import com.tencent.bk.job.logsvr.model.TaskIpLog;
 import com.tencent.bk.job.logsvr.mongo.LogCollectionFactory;
 import com.tencent.bk.job.logsvr.service.LogService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +52,11 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -382,7 +394,6 @@ public class LogServiceImpl implements LogService {
             query.addCriteria(Criteria.where("stepId").is(stepInstanceId));
             query.addCriteria(Criteria.where("executeCount").is(executeCount));
             query.addCriteria(Criteria.where("ip").in(ips));
-            query.limit(1000);
             List<ScriptTaskLog> scriptLogs = mongoTemplate.find(query, ScriptTaskLog.class, collectionName);
 
             if (CollectionUtils.isEmpty(scriptLogs)) {

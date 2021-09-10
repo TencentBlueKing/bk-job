@@ -87,4 +87,9 @@ public class ActionId {
     public static final String USE_TICKET = "use_ticket";
     public static final String CREATE_TICKET = "create_ticket";
     public static final String MANAGE_TICKET = "manage_ticket";
+    // 高危语句
+    // 高危语句规则管理
+    public static final String HIGH_RISK_DETECT_RULE = "high-risk_detect_rule";
+    // 高危语句拦截记录查看
+    public static final String HIGH_RISK_DETECT_RECORD = "high-risk_detect_record";
 }
