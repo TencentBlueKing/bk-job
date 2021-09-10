@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
@@ -57,7 +56,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +68,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class WebTaskTemplateResourceImpl extends AbstractJobController implements WebTaskTemplateResource {
+public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
@@ -76,12 +79,12 @@ public class WebTaskTemplateResourceImpl extends AbstractJobController implement
     public WebTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        WebAuthService authService,
+        WebAuthService webAuthService,
         TaskTemplateAuthService taskTemplateAuthService
     ) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
     }
 

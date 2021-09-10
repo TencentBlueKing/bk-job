@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
@@ -101,7 +101,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(EsbGetScriptListV3Req request) {
-        request.setAppId(JobManageConstants.PUBLIC_APP_ID);
+        request.setAppId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptListUsingPost(request);
     }
 
@@ -110,14 +110,14 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
-        request.setAppId(JobManageConstants.PUBLIC_APP_ID);
+        request.setAppId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptVersionListUsingPost(request);
     }
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
-        request.setAppId(JobManageConstants.PUBLIC_APP_ID);
+        request.setAppId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptVersionDetailUsingPost(request);
     }
 }

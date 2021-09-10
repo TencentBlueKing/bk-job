@@ -38,7 +38,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.*;
@@ -244,7 +244,7 @@ public class ScriptServiceImpl implements ScriptService {
         long targetAppId = appId;
         if (script.isPublicScript()) {
             // 公共脚本业务ID为0
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
             script.setAppId(targetAppId);
         }
 
@@ -315,7 +315,7 @@ public class ScriptServiceImpl implements ScriptService {
         long targetAppId = appId;
         if (script.isPublicScript()) {
             // 公共脚本业务ID为0
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
             script.setAppId(targetAppId);
         }
 
@@ -466,7 +466,7 @@ public class ScriptServiceImpl implements ScriptService {
         }
         long targetAppId = appId;
         if (existScript.isPublicScript()) {
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
         }
         if (!existScript.getAppId().equals(targetAppId)) {
             throw new ServiceException(ErrorCode.SCRIPT_NOT_IN_APP);
@@ -491,7 +491,7 @@ public class ScriptServiceImpl implements ScriptService {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -554,7 +554,7 @@ public class ScriptServiceImpl implements ScriptService {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -629,7 +629,7 @@ public class ScriptServiceImpl implements ScriptService {
         }
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
         }
         boolean isNameExist = scriptDAO.isExistDuplicateName(targetAppId, newName);
         if (isNameExist) {
@@ -648,7 +648,7 @@ public class ScriptServiceImpl implements ScriptService {
         checkUpdateScriptPermission(operator, appId, script);
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobManageConstants.PUBLIC_APP_ID;
+            targetAppId = JobConstants.PUBLIC_APP_ID;
         }
         tagService.createNewTagIfNotExist(tags, targetAppId, operator);
         scriptDAO.updateScriptTags(operator, scriptId, tags);
