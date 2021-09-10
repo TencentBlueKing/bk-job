@@ -52,7 +52,10 @@
                             </bk-checkbox-group>
                         </scroll-faker>
                     </div>
-                    <div class="tag-create" @click="handleNew">
+                    <div
+                        v-if="!publicScript"
+                        class="tag-create"
+                        @click="handleNew">
                         <bk-icon
                             type="plus-circle"
                             style=" margin-right: 8px; font-size: 16px;" />
@@ -79,9 +82,13 @@
         getCurrentInstance,
     } from '@vue/composition-api';
     import _ from 'lodash';
+    import PubliceTagManageService from '@service/public-tag-manage';
     import TagManageService from '@service/tag-manage';
     import ScriptManageService from '@service/script-manage';
-    import { encodeRegexp } from '@utils/assist';
+    import {
+        isPublicScript,
+        encodeRegexp,
+    } from '@utils/assist';
     import OperationTag from '@components/operation-tag';
 
     export default {
@@ -96,6 +103,7 @@
         },
         emit: ['on-change'],
         setup (props, ctx) {
+            const { proxy } = getCurrentInstance();
             const state = reactive({
                 isLoading: true,
                 isShowCreate: false,
@@ -108,6 +116,8 @@
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
+            const publicScript = isPublicScript(proxy.$route);
+            
             // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};
             // 缓存全选
@@ -146,8 +156,6 @@
             state.operationList = Object.values(memoCheckedMap);
             state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
 
-            const { proxy } = getCurrentInstance();
-
             // 展示的 tag 列表
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
@@ -162,7 +170,8 @@
              * @desc 获取 tag 列表数据
              */
             const fetchData = () => {
-                proxy.$request(TagManageService.fetchWholeList(), () => {
+                const requestHandler = publicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
+                proxy.$request(requestHandler(), () => {
                     state.isLoading = true;
                 }).then((data) => {
                     // 排序
@@ -272,6 +281,7 @@
 
             return {
                 ...toRefs(state),
+                publicScript,
                 renderList,
                 handleFilter,
                 handleNew,

@@ -63,6 +63,7 @@
                 key="name"
                 sortable
                 min-width="200"
+                show-overflow-tooltip
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.description"

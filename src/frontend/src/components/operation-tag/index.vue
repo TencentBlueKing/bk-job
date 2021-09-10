@@ -17,7 +17,10 @@
                 label="标签名"
                 required
                 property="name">
-                <bk-input v-model="formData.name" :native-attributes="{ autofocus: true }" />
+                <jb-input
+                    v-model="formData.name"
+                    maxlength="20"
+                    :native-attributes="{ autofocus: true }" />
             </jb-form-item>
             <jb-form-item
                 label="描述"

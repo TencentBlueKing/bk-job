@@ -27,7 +27,7 @@
 
 <template>
     <layout>
-        <template #tag>
+        <template v-if="!isPublicScript" #tag>
             <tag-panel
                 ref="tagPanelRef"
                 @on-change="handleTagPlanChange" />
@@ -87,7 +87,11 @@
                             :value="row.name"
                             :remote-hander="val => handleUpdateScript(row.id, val)"
                             v-slot="{ value }">
-                            <span style="color: #3a84ff; cursor: pointer;" @click="handleVersion(row)">{{ value }}</span>
+                            <span
+                                style="color: #3a84ff; cursor: pointer;"
+                                @click="handleVersion(row)">
+                                {{ value }}
+                            </span>
                         </jb-edit-input>
                         <span slot="forbid">{{ row.name }}</span>
                     </auth-component>
@@ -208,7 +212,9 @@
                         @click="handleVersion(row)">
                         {{ $t('script.版本管理') }}
                     </auth-button>
-                    <span class="mr10" :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
+                    <span
+                        class="mr10"
+                        :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
                         <auth-button
                             text
                             :permission="row.canView"
@@ -334,9 +340,10 @@
             },
         },
         created () {
-            this.publicScript = isPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
-            this.tagSericeHandler = this.publicScript ? PublicTagManageService : TagManageService;
+            // 公共脚本
+            this.isPublicScript = isPublicScript(this.$route);
+            this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
+            this.tagSericeHandler = this.isPublicScript ? PublicTagManageService : TagManageService;
             this.getScriptList = this.serviceHandler.scriptList;
 
             this.searchClass = {};
@@ -496,7 +503,7 @@
              * @desc 新建脚本
              */
             handleCreate () {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'createPublicScript',
                     });
@@ -541,7 +548,7 @@
              * @param {Object} scriptData 脚本数据
              */
             handleVersion (scriptData) {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'publicScriptVersion',
                         params: {
@@ -564,7 +571,7 @@
             handleExec (scriptData) {
                 this.serviceHandler.getOneOnlineScript({
                     id: scriptData.id,
-                    publicScript: this.publicScript,
+                    publicScript: this.isPublicScript,
                 }).then((script) => {
                     if (!script) {
                         this.$bkMessage({

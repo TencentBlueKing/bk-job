@@ -82,6 +82,11 @@
     }
 }
 
+.bk-table-fixed,
+.bk-table-fixed-right {
+    border-bottom: none;
+}
+
 .bk-table-setting-popover-content-theme.tippy-tooltip {
     padding: 15px 0 0 !important;
 }

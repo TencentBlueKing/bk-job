@@ -28,6 +28,7 @@
 <template>
     <div ref="handler" class="script-manage-list-layout">
         <div
+            v-if="$slots.tag"
             :class="{
                 'layout-left': true,
                 expended: isOpen,
@@ -36,9 +37,19 @@
                 <slot name="tag" />
             </scroll-faker>
         </div>
-        <div class="layout-right">
-            <div class="toggle-button" @click="handleToggle">
-                <Icon type="down-small" class="toggle-arrow" :class="{ open: isOpen }" />
+        <div
+            class="layout-right"
+            :class="{
+                'no-tag': !$slots.tag,
+            }">
+            <div
+                v-if="$slots.tag"
+                class="toggle-button"
+                @click="handleToggle">
+                <Icon
+                    type="down-small"
+                    class="toggle-arrow"
+                    :class="{ open: isOpen }" />
             </div>
             <slot />
         </div>
@@ -63,6 +74,7 @@
             };
         },
         mounted () {
+            console.log(this);
             const {
                 top,
             } = getOffset(this.$refs.handler);
@@ -117,6 +129,12 @@
             background: #fff;
             box-sizing: border-box;
             flex: 1 0 auto;
+
+            &.no-tag {
+                width: auto;
+                padding: 0;
+                background: unset;
+            }
 
             .toggle-button {
                 position: absolute;
