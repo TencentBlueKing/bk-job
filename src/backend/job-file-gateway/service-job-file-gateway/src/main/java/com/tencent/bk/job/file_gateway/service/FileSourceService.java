@@ -43,14 +43,28 @@ public interface FileSourceService {
 
     Integer countWorkTableFileSource(List<Long> appIdList, List<Integer> idList);
 
-    List<FileSourceDTO> listAvailableFileSource(Long appId, String credentialId, String alias, Integer start,
-                                                Integer pageSize);
+    List<FileSourceDTO> listAvailableFileSource(
+        Long appId,
+        String credentialId,
+        String alias,
+        Integer start,
+        Integer pageSize
+    );
 
-    List<FileSourceDTO> listWorkTableFileSource(Long appId, String credentialId, String alias, Integer start,
-                                                Integer pageSize);
+    List<FileSourceDTO> listWorkTableFileSource(
+        Long appId,
+        String credentialId,
+        String alias,
+        Integer start,
+        Integer pageSize
+    );
 
-    List<FileSourceDTO> listWorkTableFileSource(List<Long> appIdList, List<Integer> idList, Integer start,
-                                                Integer pageSize);
+    List<FileSourceDTO> listWorkTableFileSource(
+        List<Long> appIdList,
+        List<Integer> idList,
+        Integer start,
+        Integer pageSize
+    );
 
     Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO);
 

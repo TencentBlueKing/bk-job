@@ -26,11 +26,21 @@ package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.DuplicateEntryException;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.dao.TagDAO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record5;
+import org.jooq.Result;
+import org.jooq.SelectSeekStepN;
+import org.jooq.SortField;
+import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
 import org.jooq.generated.tables.Tag;
 import org.jooq.types.UByte;
@@ -159,7 +169,7 @@ public class TagDAOImpl implements TagDAO {
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.LAST_MODIFY_USER)
                 .from(Tag.TAG).where(conditions).fetch();
         List<TagDTO> result = new ArrayList<>();
-        if (records != null && records.size() > 0) {
+        if (records.size() > 0) {
             records.forEach(record -> result.add(record.into(TagDTO.class)));
         }
         return result;
@@ -167,23 +177,112 @@ public class TagDAOImpl implements TagDAO {
 
     @Override
     public List<TagDTO> listTags(TagDTO searchCondition) {
-        List<Condition> conditions = buildSearchCondition(searchCondition);
+        List<Condition> conditions = buildTagCondition(searchCondition);
         Result<Record5<ULong, ULong, String, String, String>> records =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.LAST_MODIFY_USER).from(Tag.TAG)
                 .where(conditions).orderBy(TABLE.ROW_UPDATE_TIME.desc()).fetch();
         List<TagDTO> tags = new ArrayList<>();
-        if (records != null && records.size() > 0) {
+        if (records.size() > 0) {
             records.forEach(record -> tags.add(record.into(TagDTO.class)));
         }
         return tags;
     }
 
-    private List<Condition> buildSearchCondition(TagDTO searchCondition) {
+    private List<Condition> buildTagCondition(
+        TagDTO tagCondition,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        List<Condition> conditions = buildTagCondition(tagCondition);
+        conditions.addAll(buildBaseSearchCondition(baseSearchCondition));
+        return conditions;
+    }
+
+    private long getTagCount(
+        TagDTO tagCondition,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        List<Condition> conditions = buildTagCondition(tagCondition, baseSearchCondition);
+        Long count = context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
+        if (count == null) {
+            throw new RuntimeException("Get null query count result");
+        }
+        return count;
+    }
+
+    @Override
+    public PageData<TagDTO> listTags(
+        TagDTO tagCondition,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        long count = getTagCount(tagCondition, baseSearchCondition);
+
+        Collection<SortField<?>> orderFields = new ArrayList<>();
+        if (org.apache.commons.lang.StringUtils.isBlank(baseSearchCondition.getOrderField())) {
+            orderFields.add(TABLE.ID.desc());
+        } else {
+            String orderField = baseSearchCondition.getOrderField();
+            if ("name".equals(orderField)) {
+                //正序
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TABLE.NAME.asc());
+                } else {
+                    orderFields.add(TABLE.NAME.desc());
+                }
+            } else {
+                String msg = String.format("orderField %s not supported", orderField);
+                throw new RuntimeException(msg);
+            }
+        }
+        int start = baseSearchCondition.getStartOrDefault(PageUtil.DEFAULT_START);
+        int length = baseSearchCondition.getLengthOrDefault(PageUtil.DEFAULT_POSITIVE_LENGTH);
+        List<Condition> conditions = buildTagCondition(tagCondition);
+
+        SelectSeekStepN<Record5<ULong, ULong, String, String, String>> selectSeekStep = context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.LAST_MODIFY_USER).from(Tag.TAG)
+            .where(conditions).orderBy(orderFields);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL=" + selectSeekStep.getSQL(ParamType.INLINED));
+        }
+        Result<Record5<ULong, ULong, String, String, String>> records;
+        if (length > 0) {
+            records = selectSeekStep.limit(start, length).fetch();
+        } else {
+            records = selectSeekStep.offset(start).fetch();
+        }
+        List<TagDTO> tags = new ArrayList<>();
+        if (records.size() > 0) {
+            records.forEach(record -> tags.add(record.into(TagDTO.class)));
+        }
+        return new PageData<>(start, length, count, tags);
+    }
+
+    private List<Condition> buildTagCondition(TagDTO searchCondition) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(searchCondition.getAppId())));
+        if (searchCondition.getId() != null) {
+            conditions.add(TABLE.ID.eq(ULong.valueOf(searchCondition.getId())));
+        }
+        if (searchCondition.getAppId() != null) {
+            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(searchCondition.getAppId())));
+        }
         if (StringUtils.isNotBlank(searchCondition.getName())) {
             String likePattern = "%" + searchCondition.getName() + "%";
             conditions.add(TABLE.NAME.like(likePattern));
+        }
+        if (StringUtils.isNotBlank(searchCondition.getCreator())) {
+            conditions.add(TABLE.CREATOR.eq(searchCondition.getCreator()));
+        }
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
+        return conditions;
+    }
+
+    private List<Condition> buildBaseSearchCondition(
+        BaseSearchCondition baseSearchCondition
+    ) {
+        List<Condition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(baseSearchCondition.getCreator())) {
+            conditions.add(TABLE.CREATOR.eq(baseSearchCondition.getCreator()));
+        }
+        if (StringUtils.isNotBlank(baseSearchCondition.getLastModifyUser())) {
+            conditions.add(TABLE.LAST_MODIFY_USER.eq(baseSearchCondition.getLastModifyUser()));
         }
         return conditions;
     }

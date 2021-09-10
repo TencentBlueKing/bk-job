@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.check.*;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
@@ -205,4 +207,8 @@ public class TagServiceImpl implements TagService {
         return tagDAO.listTags(searchCondition);
     }
 
+    @Override
+    public PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition){
+        return tagDAO.listTags(tagCondition,baseSearchCondition);
+    }
 }

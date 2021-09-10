@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.api.iam.IamTagCallbackResource;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -48,83 +48,94 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
 @Slf4j
-public class IamTagCallbackResourceImpl extends BaseIamCallbackService implements IamTagCallbackResource {
-    private final TagService tagService;
+@RestController
+public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
+    implements IamTaskTemplateCallbackResource {
+
+    private final TaskTemplateService templateService;
 
     @Autowired
-    public IamTagCallbackResourceImpl(TagService tagService) {
-        this.tagService = tagService;
+    public IamTaskTemplateCallbackResourceImpl(TaskTemplateService templateService) {
+        this.templateService = templateService;
     }
 
-    private Pair<TagDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+    private InstanceInfoDTO convert(TaskTemplateInfoDTO templateInfo) {
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(String.valueOf(templateInfo.getId()));
+        instanceInfo.setDisplayName(templateInfo.getName());
+        return instanceInfo;
+    }
+
+    private Pair<TaskTemplateInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
-        TagDTO tagQuery = new TagDTO();
-        tagQuery.setAppId(searchCondition.getAppIdList().get(0));
-        return Pair.of(tagQuery, baseSearchCondition);
-    }
-
-    private InstanceInfoDTO convert(TagDTO tagDTO) {
-        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-        instanceInfo.setId(String.valueOf(tagDTO.getId()));
-        instanceInfo.setDisplayName(tagDTO.getName());
-        return instanceInfo;
-    }
-
-    @Override
-    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
-
-        TagDTO tagQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-
-        tagQuery.setName(callbackRequest.getFilter().getKeyword());
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
-
-        return IamRespUtil.getSearchInstanceRespFromPageData(tagDTOPageData, this::convert);
+        TaskTemplateInfoDTO templateQuery = new TaskTemplateInfoDTO();
+        templateQuery.setAppId(searchCondition.getAppIdList().get(0));
+        return Pair.of(templateQuery, baseSearchCondition);
     }
 
     @Override
     protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TagDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+        Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
+            getBasicQueryCondition(callbackRequest);
 
-        TagDTO tagQuery = basicQueryCond.getLeft();
+        TaskTemplateInfoDTO templateQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
+        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(
+            templateQuery,
+            baseSearchCondition,
+            null
+        );
 
-        return IamRespUtil.getListInstanceRespFromPageData(tagDTOPageData, this::convert);
+        return IamRespUtil.getListInstanceRespFromPageData(templateDTOPageData, this::convert);
     }
 
     @Override
-    protected CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+        Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
+            getBasicQueryCondition(callbackRequest);
+
+        TaskTemplateInfoDTO templateQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
+
+        templateQuery.setName(callbackRequest.getFilter().getKeyword());
+        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(templateQuery,
+            baseSearchCondition, null);
+
+        return IamRespUtil.getSearchInstanceRespFromPageData(templateDTOPageData, this::convert);
+    }
+
+    @Override
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
-                Long tagId = Long.parseLong(instanceId);
-                TagDTO tagDTO = tagService.getTagInfoById(tagId);
-                if (tagDTO == null) {
+                long id = Long.parseLong(instanceId);
+                TaskTemplateInfoDTO templateInfoDTO = templateService.getTaskTemplateBasicInfoById(id);
+                if (templateInfoDTO == null) {
                     return getNotFoundRespById(instanceId);
                 }
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = new PathInfoDTO();
                 rootNode.setType(ResourceId.APP);
-                rootNode.setId(tagDTO.getAppId().toString());
-                PathInfoDTO tagNode = new PathInfoDTO();
-                tagNode.setType(ResourceId.TAG);
-                tagNode.setId(tagDTO.getId().toString());
-                rootNode.setChild(tagNode);
+                rootNode.setId(templateInfoDTO.getAppId().toString());
+                PathInfoDTO templateNode = new PathInfoDTO();
+                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setId(templateInfoDTO.getId().toString());
+                rootNode.setChild(templateNode);
                 path.add(rootNode);
                 // 实例组装
                 InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
                 instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(tagDTO.getName());
+                instanceInfo.setDisplayName(templateInfoDTO.getName());
                 instanceInfo.setPath(path);
                 instanceAttributeInfoList.add(instanceInfo);
             } catch (NumberFormatException e) {

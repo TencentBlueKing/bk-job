@@ -47,7 +47,11 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
-import com.tencent.bk.job.crontab.timer.*;
+import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
+import com.tencent.bk.job.crontab.timer.QuartzJob;
+import com.tencent.bk.job.crontab.timer.QuartzJobBuilder;
+import com.tencent.bk.job.crontab.timer.QuartzTrigger;
+import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.InnerJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.NotifyJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.SimpleJobExecutor;
@@ -67,7 +71,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -120,6 +129,29 @@ public class CronJobServiceImpl implements CronJobService {
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long cronJobId) {
         return cronJobDAO.getCronJobById(cronJobId);
+    }
+
+    @Override
+    public List<CronJobInfoDTO> getOrderedCronJobInfoByIds(List<Long> cronJobIdList) {
+        Map<Long, CronJobInfoDTO> map = getCronJobInfoMapByIds(cronJobIdList);
+        List<CronJobInfoDTO> cronJobInfoDTOList = new ArrayList<>();
+        for (Long id : cronJobIdList) {
+            CronJobInfoDTO cronJobInfoDTO = map.get(id);
+            if (cronJobInfoDTO != null) {
+                cronJobInfoDTOList.add(cronJobInfoDTO);
+            }
+        }
+        return cronJobInfoDTOList;
+    }
+
+    @Override
+    public Map<Long, CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList) {
+        List<CronJobInfoDTO> cronJobInfoDTOList = cronJobDAO.getCronJobByIds(cronJobIdList);
+        Map<Long, CronJobInfoDTO> map = new HashMap<>();
+        for (CronJobInfoDTO cronJobInfoDTO : cronJobInfoDTOList) {
+            map.put(cronJobInfoDTO.getId(), cronJobInfoDTO);
+        }
+        return map;
     }
 
     @Override
