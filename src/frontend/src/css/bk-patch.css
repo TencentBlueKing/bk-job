@@ -28,11 +28,11 @@
         @mixin scroller;
     }
 
-    /* &.bk-table-scrollable-x .bk-table-body-wrapper {
+    &.bk-table-scrollable-x .bk-table-body-wrapper {
         &::-webkit-scrollbar {
             height: 6px;
         }
-    } */
+    }
 
     .cell {
         font-size: 13px;

@@ -468,8 +468,8 @@
             fetchData () {
                 // 合并左侧分类和右侧搜索的查询条件
                 const searchParams = { ...this.searchParams };
-                if (this.searchClass.type) {
-                    searchParams.type = this.searchClass.type;
+                if (this.searchClass.panelType) {
+                    searchParams.panelType = this.searchClass.panelType;
                 }
                 if (this.searchClass.panelTag) {
                     searchParams.panelTag = this.searchClass.panelTag;

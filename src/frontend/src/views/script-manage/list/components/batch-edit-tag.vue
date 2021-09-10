@@ -236,6 +236,7 @@
             const handleTagNew = (tag) => {
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
+                window.changeAlert = true;
             };
             /**
              * @desc 提交批量编辑

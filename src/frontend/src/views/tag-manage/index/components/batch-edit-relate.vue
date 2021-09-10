@@ -50,10 +50,12 @@
                         </scroll-faker>
                     </div>
                     <div class="tag-create" @click="handleNew">
-                        <bk-icon
-                            type="plus-circle"
-                            style=" margin-right: 8px; font-size: 16px;" />
-                        <span>{{ $t('tag.新增标签') }}</span>
+                        <auth-component auth="tag/create">
+                            <bk-icon
+                                type="plus-circle"
+                                style=" margin-right: 8px; font-size: 16px;" />
+                            <span>{{ $t('tag.新增标签') }}</span>
+                        </auth-component>
                     </div>
                 </div>
             </jb-form-item>

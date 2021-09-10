@@ -14,7 +14,7 @@
             style="margin-top: 5px;"
             :rules="rules">
             <jb-form-item
-                label="标签名"
+                :label="$t('标签名称')"
                 required
                 property="name">
                 <jb-input
@@ -23,7 +23,7 @@
                     :native-attributes="{ autofocus: true }" />
             </jb-form-item>
             <jb-form-item
-                label="描述"
+                :label="$t('描述')"
                 style="margin-bottom: 0;">
                 <bk-input
                     v-model="formData.description"
@@ -39,7 +39,7 @@
                 @click="handleSubmit">
                 {{ dialogInfo.okText }}
             </bk-button>
-            <bk-button @click="handleCancel">取消</bk-button>
+            <bk-button @click="handleCancel">{{ $t('取消') }}</bk-button>
         </template>
     </jb-dialog>
 </template>
@@ -52,6 +52,7 @@
         computed,
         getCurrentInstance,
     } from '@vue/composition-api';
+    import I18n from '@/i18n';
     import TagManageService from '@service/tag-manage';
     import TagModel from '@model/tag';
     import { tagNameRule } from '@utils/validator';
@@ -83,13 +84,13 @@
             const dialogInfo = computed(() => {
                 if (isEdit.value) {
                     return {
-                        title: '编辑标签',
-                        okText: '保存',
+                        title: I18n.t('编辑标签'),
+                        okText: I18n.t('保存'),
                     };
                 }
                 return {
-                    title: '新建标签',
-                    okText: '提交',
+                    title: I18n.t('新建标签'),
+                    okText: I18n.t('提交'),
                 };
             });
             const { proxy } = getCurrentInstance();
@@ -97,7 +98,7 @@
                 name: [
                     {
                         required: true,
-                        message: '标签名不能为空',
+                        message: I18n.t('标签名不能为空'),
                         trigger: 'change',
                     },
                     {
@@ -142,15 +143,17 @@
                                 id: props.data.id,
                                 ...state.formData,
                             }).then(() => {
+                                window.changeAlert = false;
                                 ctx.emit('on-change');
-                                proxy.messageSuccess('编辑标签成功');
+                                proxy.messageSuccess(I18n.t('编辑标签成功'));
                                 handleUpdateDialog(false);
                             });
                         }
                         return TagManageService.createTag(state.formData)
                             .then((data) => {
+                                window.changeAlert = false;
                                 ctx.emit('on-change', new TagModel(data));
-                                proxy.messageSuccess('新建标签成功');
+                                proxy.messageSuccess(I18n.t('新建标签成功'));
                                 handleUpdateDialog(false);
                             });
                     })

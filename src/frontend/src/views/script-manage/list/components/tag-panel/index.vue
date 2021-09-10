@@ -68,15 +68,6 @@
         components: {
             TabItem,
         },
-        props: {
-            active: {
-                type: [
-                    String,
-                    Number,
-                ],
-                default: '',
-            },
-        },
         data () {
             return {
                 isLoading: false,
@@ -138,8 +129,8 @@
              */
             parseDefaultValueFromURL () {
                 let classesId = 1;
-                if (this.$route.query.type) {
-                    classesId = ~~this.$route.query.type || 1;
+                if (this.$route.query.panelType) {
+                    classesId = ~~this.$route.query.panelType || 1;
                     this.handleClassesSelect(classesId);
                     return;
                 }
@@ -163,7 +154,7 @@
                 this.classesId = id;
                 this.tagId = 0;
                 this.$emit('on-change', {
-                    type: this.classesId,
+                    panelType: this.classesId,
                     panelTag: '',
                 });
             },
@@ -176,7 +167,7 @@
                 this.tagId = id;
                 this.classesId = 0;
                 this.$emit('on-change', {
-                    type: '',
+                    panelType: '',
                     panelTag: this.tagId,
                 });
             },
