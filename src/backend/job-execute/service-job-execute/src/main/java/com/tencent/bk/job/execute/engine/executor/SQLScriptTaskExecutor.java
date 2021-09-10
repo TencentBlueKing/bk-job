@@ -119,8 +119,7 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
 
     protected api_script_request getScriptRequest(StepInstanceDTO stepInstance) {
         String sqlScriptContent = stepInstance.getScriptContent();
-        String fileNamePre = (stepInstance.getStepId() > 0 ? "stepId_" + stepInstance.getStepId() :
-            "stepInstanceId_" + stepInstance.getId());
+        String fileNamePre = buildScriptFileNamePrefix(stepInstance);
         String sqlScriptFileName = fileNamePre + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());

@@ -135,7 +135,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         return scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
     }
 
-    private String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
+    public String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
         return "task_" + stepInstance.getTaskInstanceId() +
             "_" + stepInstance.getId();
     }
