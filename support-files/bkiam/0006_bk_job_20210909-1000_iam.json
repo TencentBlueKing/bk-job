@@ -1,0 +1,402 @@
+{
+  "system_id": "bk_job",
+  "operations": [
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "high-risk_detect_rule",
+        "name": "高危语句规则管理",
+        "name_en": "High-risk Detect Rule Setting",
+        "description": "管理作业平台快速执行脚本/作业中的脚本的高危语句判定规则",
+        "description_en": "Manage high-risk rules of scripts",
+        "type": "",
+        "related_actions": [],
+        "related_resource_types": [],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "high-risk_detect_record",
+        "name": "高危语句拦截记录查看",
+        "name_en": "High-risk Detect Record",
+        "description": "查看作业平台根据高危语句判定规则拦截的高危脚本执行记录",
+        "description_en": "View the intercepted execute records of scripts which contain high-risk commands",
+        "type": "",
+        "related_actions": [],
+        "related_resource_types": [],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action_groups",
+      "data": [
+        {
+          "name": "业务",
+          "name_en": "Business",
+          "actions": [
+            {
+              "id": "access_business"
+            }
+          ],
+          "sub_groups": [
+            {
+              "name": "快速执行",
+              "name_en": "Quick Launch",
+              "actions": [
+                {
+                  "id": "quick_execute_script"
+                },
+                {
+                  "id": "quick_transfer_file"
+                }
+              ]
+            },
+            {
+              "name": "脚本",
+              "name_en": "Script",
+              "actions": [
+                {
+                  "id": "execute_script"
+                },
+                {
+                  "id": "create_script"
+                },
+                {
+                  "id": "view_script"
+                },
+                {
+                  "id": "manage_script"
+                }
+              ]
+            },
+            {
+              "name": "作业",
+              "name_en": "Job",
+              "actions": [
+                {
+                  "id": "create_job_template"
+                },
+                {
+                  "id": "view_job_template"
+                },
+                {
+                  "id": "edit_job_template"
+                },
+                {
+                  "id": "delete_job_template"
+                },
+                {
+                  "id": "debug_job_template"
+                },
+                {
+                  "id": "launch_job_plan"
+                },
+                {
+                  "id": "create_job_plan"
+                },
+                {
+                  "id": "view_job_plan"
+                },
+                {
+                  "id": "edit_job_plan"
+                },
+                {
+                  "id": "delete_job_plan"
+                },
+                {
+                  "id": "sync_job_plan"
+                }
+              ]
+            },
+            {
+              "name": "标签",
+              "name_en": "Tag",
+              "actions": [
+                {
+                  "id": "create_tag"
+                },
+                {
+                  "id": "manage_tag"
+                }
+              ]
+            },
+            {
+              "name": "定时任务",
+              "name_en": "Cron",
+              "actions": [
+                {
+                  "id": "create_cron"
+                },
+                {
+                  "id": "manage_cron"
+                }
+              ]
+            },
+            {
+              "name": "执行历史",
+              "name_en": "History",
+              "actions": [
+                {
+                  "id": "view_history"
+                }
+              ]
+            },
+            {
+              "name": "消息通知",
+              "name_en": "Notification",
+              "actions": [
+                {
+                  "id": "notification_setting"
+                }
+              ]
+            },
+            {
+              "name": "执行账号",
+              "name_en": "Account",
+              "actions": [
+                {
+                  "id": "create_account"
+                },
+                {
+                  "id": "manage_account"
+                },
+                {
+                  "id": "use_account"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "全局",
+          "name_en": "Global",
+          "sub_groups": [
+            {
+              "name": "运营视图",
+              "name_en": "Dashboard",
+              "actions": [
+                {
+                  "id": "dashboard_view"
+                }
+              ]
+            },
+            {
+              "name": "服务状态",
+              "name_en": "Service State",
+              "actions": [
+                {
+                  "id": "service_state_access"
+                }
+              ]
+            },
+            {
+              "name": "IP白名单",
+              "name_en": "IP whitelist",
+              "actions": [
+                {
+                  "id": "create_whitelist"
+                },
+                {
+                  "id": "manage_whitelist"
+                }
+              ]
+            },
+            {
+              "name": "公共脚本",
+              "name_en": "Public Script",
+              "actions": [
+                {
+                  "id": "execute_public_script"
+                },
+                {
+                  "id": "create_public_script"
+                },
+                {
+                  "id": "manage_public_script_instance"
+                }
+              ]
+            },
+            {
+              "name": "全局设置",
+              "name_en": "Global Settings",
+              "actions": [
+                {
+                  "id": "global_settings"
+                }
+              ]
+            },
+            {
+              "name": "高危语句规则管理",
+              "name_en": "High-risk Detect Rule Setting",
+              "actions": [
+                {
+                  "id": "high-risk_detect_rule"
+                }
+              ]
+            },
+            {
+              "name": "高危语句拦截记录查看",
+              "name_en": "High-risk Detect Record",
+              "actions": [
+                {
+                  "id": "high-risk_detect_record"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "operation": "upsert_common_actions",
+      "data": [
+        {
+          "name": "业务运维",
+          "name_en": "Operator",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "quick_execute_script"
+            },
+            {
+              "id": "quick_transfer_file"
+            },
+            {
+              "id": "execute_script"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "create_script"
+            },
+            {
+              "id": "manage_script"
+            },
+            {
+              "id": "create_job_template"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "edit_job_template"
+            },
+            {
+              "id": "delete_job_template"
+            },
+            {
+              "id": "debug_job_template"
+            },
+            {
+              "id": "launch_job_plan"
+            },
+            {
+              "id": "create_job_plan"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "edit_job_plan"
+            },
+            {
+              "id": "delete_job_plan"
+            },
+            {
+              "id": "sync_job_plan"
+            },
+            {
+              "id": "create_tag"
+            },
+            {
+              "id": "manage_tag"
+            },
+            {
+              "id": "create_cron"
+            },
+            {
+              "id": "manage_cron"
+            },
+            {
+              "id": "view_history"
+            },
+            {
+              "id": "notification_setting"
+            },
+            {
+              "id": "use_account"
+            },
+            {
+              "id": "create_account"
+            },
+            {
+              "id": "manage_account"
+            }
+          ]
+        },
+        {
+          "name": "业务只读",
+          "name_en": "Visitor",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "view_history"
+            }
+          ]
+        },
+        {
+          "name": "平台管理员",
+          "name_en": "Administrator",
+          "actions": [
+            {
+              "id": "dashboard_view"
+            },
+            {
+              "id": "service_state_access"
+            },
+            {
+              "id": "create_whitelist"
+            },
+            {
+              "id": "manage_whitelist"
+            },
+            {
+              "id": "execute_public_script"
+            },
+            {
+              "id": "create_public_script"
+            },
+            {
+              "id": "manage_public_script_instance"
+            },
+            {
+              "id": "global_settings"
+            },
+            {
+              "id": "high-risk_detect_rule"
+            },
+            {
+              "id": "high-risk_detect_record"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

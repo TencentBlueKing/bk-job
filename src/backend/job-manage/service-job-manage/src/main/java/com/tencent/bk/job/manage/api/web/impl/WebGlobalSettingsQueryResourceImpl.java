@@ -96,10 +96,14 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     @Override
     public ServiceResponse<Boolean> isAdmin(String username) {
         AtomicBoolean flag = new AtomicBoolean(false);
-        CountDownLatch latch = new CountDownLatch(7);
+        CountDownLatch latch = new CountDownLatch(9);
         executor.submit(() -> {
             try {
-                AuthResult createWhiteListAuthResultVO = authService.auth(false, username, ActionId.CREATE_WHITELIST);
+                AuthResult createWhiteListAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.CREATE_WHITELIST
+                );
                 flag.set(flag.get() || createWhiteListAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.CREATE_WHITELIST, username, t);
@@ -109,7 +113,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         executor.submit(() -> {
             try {
-                AuthResult manageWhiteListAuthResultVO = authService.auth(false, username, ActionId.MANAGE_WHITELIST);
+                AuthResult manageWhiteListAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.MANAGE_WHITELIST
+                );
                 flag.set(flag.get() || manageWhiteListAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.MANAGE_WHITELIST, username, t);
@@ -119,8 +127,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         executor.submit(() -> {
             try {
-                AuthResult createPublicScriptAuthResultVO = authService.auth(false, username,
-                    ActionId.CREATE_PUBLIC_SCRIPT);
+                AuthResult createPublicScriptAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.CREATE_PUBLIC_SCRIPT
+                );
                 flag.set(flag.get() || createPublicScriptAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.CREATE_PUBLIC_SCRIPT, username, t);
@@ -130,8 +141,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         executor.submit(() -> {
             try {
-                AuthResult managePublicScriptAuthResultVO = authService.auth(false, username,
-                    ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE);
+                AuthResult managePublicScriptAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE
+                );
                 flag.set(flag.get() || managePublicScriptAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, username, t);
@@ -165,8 +179,40 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         executor.submit(() -> {
             try {
-                AuthResult serviceInfoAuthResultVO = authService.auth(false, username, ActionId.SERVICE_STATE_ACCESS);
+                AuthResult serviceInfoAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.SERVICE_STATE_ACCESS
+                );
                 flag.set(flag.get() || serviceInfoAuthResultVO.isPass());
+            } catch (Throwable t) {
+                log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
+            } finally {
+                latch.countDown();
+            }
+        });
+        executor.submit(() -> {
+            try {
+                AuthResult highRiskRuleAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.HIGH_RISK_DETECT_RULE
+                );
+                flag.set(flag.get() || highRiskRuleAuthResultVO.isPass());
+            } catch (Throwable t) {
+                log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
+            } finally {
+                latch.countDown();
+            }
+        });
+        executor.submit(() -> {
+            try {
+                AuthResult highRiskRecordAuthResultVO = authService.auth(
+                    false,
+                    username,
+                    ActionId.HIGH_RISK_DETECT_RECORD
+                );
+                flag.set(flag.get() || highRiskRecordAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
             } finally {

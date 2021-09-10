@@ -370,7 +370,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME,
             TABLE.CALLBACK_URL, TABLE.TYPE, TABLE.APP_CODE)
-            .from(TABLE.useIndex("idx_app_cron"))
+            .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.CREATE_TIME.desc());
         if(log.isDebugEnabled()) {
