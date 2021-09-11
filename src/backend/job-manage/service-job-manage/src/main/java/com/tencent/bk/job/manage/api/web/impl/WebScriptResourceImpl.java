@@ -152,10 +152,44 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
+
+        if (!checkPublicScriptVersionViewPermission(username, scriptVO)) {
+            return ServiceResponse.buildSuccessResp(null);
+        }
+
         scriptVO.setTypeName(ScriptTypeEnum.getName(scriptVO.getType()));
         // 给前端的脚本内容需要base64编码
         scriptVO.setContent(Base64Util.encodeContentToStr(script.getContent()));
         return ServiceResponse.buildSuccessResp(scriptVO);
+    }
+
+    private boolean checkPublicScriptVersionViewPermission(String username, ScriptVO script) {
+        if (script.getPublicScript() != null && !script.getPublicScript()) {
+            return true;
+        }
+
+        AuthResultVO authResultVO = checkScriptManagePermission(username, script.getAppId(), script.getId());
+        if (authResultVO.isPass()) {
+            return true;
+        } else {
+            // if user does not have public script management permission, only return online public script version list
+            return script.getStatus() == JobResourceStatusEnum.ONLINE.getValue();
+        }
+    }
+
+    private List<ScriptVO> excludeNotOnlinePublicScriptVersion(String username,
+                                                               Long appId,
+                                                               String scriptId,
+                                                               List<ScriptVO> scriptVersions) {
+        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
+        if (authResultVO.isPass()) {
+            return scriptVersions;
+        } else {
+            // if user does not have public script management permission, only return online public script version list
+            return scriptVersions.stream().filter(scriptVersion ->
+                scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
+                .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -480,6 +514,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
             }
         }
+
+        resultVOS = excludeNotOnlinePublicScriptVersion(username, appId, scriptId, resultVOS);
         return ServiceResponse.buildSuccessResp(resultVOS);
     }
 
