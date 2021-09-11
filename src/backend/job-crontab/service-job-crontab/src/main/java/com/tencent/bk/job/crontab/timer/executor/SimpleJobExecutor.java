@@ -34,6 +34,7 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.NotifyService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
+import com.tencent.bk.job.crontab.timer.Notification;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.Setter;
@@ -66,6 +67,9 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
 
     @Autowired
     NotifyService notifyService;
+
+    @Autowired
+    Notification notification;
 
     /**
      * 业务 ID 字符串
@@ -155,7 +159,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                 if (errorCode != null) {
                     cronJobHistoryService.fillErrorInfo(historyId, errorCode.longValue(), errorMessage);
                     cronJobSimpleInfo.setLastExecuteErrorCode(errorCode.longValue());
-                    if (errorCode.longValue() == lastExecuteErrorCode) {
+                    if (lastExecuteErrorCode == null || errorCode.longValue() == lastExecuteErrorCode) {
                         cronJobSimpleInfo.setLastExecuteErrorCount(lastExecuteErrorCount + 1);
                     } else {
                         cronJobSimpleInfo.setLastExecuteErrorCount(1);
@@ -164,16 +168,36 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             }
         }
 
-        cronJobService.updateCronJobSimpleById(cronJobSimpleInfo);
+        if (cronJobService.updateCronJobSimpleById(cronJobSimpleInfo)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Update success! New cronjob simple info|{}", cronJobSimpleInfo);
+            }
+        }
 
         if (context.getNextFireTime() == null) {
             cronJobService.disableExpiredCronJob(appId, cronJobId, cronJobInfo.getLastModifyUser(),
                     cronJobInfo.getLastModifyTime());
         }
 
+        boolean isNotify = false;
         if (executeFailed) {
-            if (cronJobSimpleInfo.getLastExecuteErrorCount() % 5 == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+            if (log.isDebugEnabled()) {
+                log.debug("notification strategy is|{}", notification.getStrategy());
+            }
+            if (notification.getStrategy() == 0) {
+                if (cronJobSimpleInfo.getLastExecuteErrorCount() == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+                    isNotify = true;
+                }
+            } else if (notification.getStrategy() == 1) {
+                isNotify = true;
+            } else if (cronJobSimpleInfo.getLastExecuteErrorCount() % notification.getStrategy() == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+                isNotify = true;
+            }
+            if (isNotify) {
                 notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
+                if (log.isDebugEnabled()) {
+                    log.debug("Send cronjob failed notification, execute error count|{}", cronJobSimpleInfo.getLastExecuteErrorCount());
+                }
             }
         }
     }

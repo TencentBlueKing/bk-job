@@ -37,14 +37,7 @@ import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.OrderField;
-import org.jooq.Record1;
-import org.jooq.Record21;
-import org.jooq.Result;
-import org.jooq.TableField;
-import org.jooq.UpdateSetMoreStep;
+import org.jooq.*;
 import org.jooq.generated.tables.CronJob;
 import org.jooq.generated.tables.records.CronJobRecord;
 import org.jooq.types.UByte;
@@ -537,7 +530,7 @@ public class CronJobDAOImpl implements CronJobDAO {
         cronJobInfoDTO.setId(record.get(TABLE.ID).longValue());
         cronJobInfoDTO.setAppId(record.get(TABLE.APP_ID).longValue());
         cronJobInfoDTO.setLastExecuteStatus(record.get(TABLE.LAST_EXECUTE_STATUS).intValue());
-        cronJobInfoDTO.setLastExecuteErrorCode(record.get(TABLE.LAST_EXECUTE_ERROR_CODE).longValue());
+        cronJobInfoDTO.setLastExecuteErrorCode(DbRecordMapper.getLongValue(record.get(TABLE.LAST_EXECUTE_ERROR_CODE)));
         cronJobInfoDTO.setLastExecuteErrorCount(record.get(TABLE.LAST_EXECUTE_ERROR_COUNT).intValue());
         return cronJobInfoDTO;
     }
