@@ -36,7 +36,7 @@ import com.tencent.bk.job.crontab.util.DbRecordMapper;
 import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.*;
 import org.jooq.generated.tables.CronJob;
 import org.jooq.generated.tables.records.CronJobRecord;
