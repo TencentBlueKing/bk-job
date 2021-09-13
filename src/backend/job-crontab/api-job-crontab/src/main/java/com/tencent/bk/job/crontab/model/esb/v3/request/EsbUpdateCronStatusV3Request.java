@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -55,11 +56,12 @@ public class EsbUpdateCronStatusV3Request extends EsbReq {
     private Integer status;
 
     public boolean validate() {
-        if (id > 0) {
-            if (status == 0 || status == 1) {
-                return true;
-            }
+        if (id == null || id <= 0) {
+            throw new InvalidParamException("id", "id must be a positive integer");
         }
-        return false;
+        if (status == null || status < 0) {
+            throw new InvalidParamException("status", "status must >= 0");
+        }
+        return true;
     }
 }
