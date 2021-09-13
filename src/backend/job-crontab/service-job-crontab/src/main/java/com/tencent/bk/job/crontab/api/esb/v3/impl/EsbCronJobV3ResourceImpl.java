@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -239,19 +240,34 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
         esbCronInfoV3Response.setId(0L);
-        if (request == null || !request.validate()) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+        if (request != null) {
+            request.validate();
+        } else {
+            throw new ServiceException(ErrorCode.ILLEGAL_PARAM, "request body cannot be null");
         }
         Long appId = request.getAppId();
         AuthResult authResult;
         if (request.getId() != null && request.getId() > 0) {
-            authResult = authService.auth(true, request.getUserName(), ActionId.MANAGE_CRON, ResourceTypeEnum.CRON,
-                request.getId().toString(), PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(),
-                    appId.toString()).build());
+            authResult = authService.auth(
+                true,
+                request.getUserName(),
+                ActionId.MANAGE_CRON,
+                ResourceTypeEnum.CRON,
+                request.getId().toString(),
+                PathBuilder.newBuilder(
+                    ResourceTypeEnum.BUSINESS.getId(),
+                    appId.toString()
+                ).build()
+            );
         } else {
-            authResult = authService.auth(true, request.getUserName(), ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS,
-                request.getAppId().toString(), null);
+            authResult = authService.auth(
+                true,
+                request.getUserName(),
+                ActionId.CREATE_CRON,
+                ResourceTypeEnum.BUSINESS,
+                request.getAppId().toString(),
+                null
+            );
         }
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
@@ -261,6 +277,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         cronJobInfo.setName(request.getName());
         cronJobInfo.setTaskPlanId(request.getPlanId());
         cronJobInfo.setCronExpression(request.getCronExpression());
+        cronJobInfo.setExecuteTime(request.getExecuteTime());
         List<EsbGlobalVarV3DTO> globalVarV3DTOList = request.getGlobalVarList();
         if (globalVarV3DTOList != null) {
             // 校验id/name，解析id
