@@ -43,6 +43,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,6 +71,9 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
 
     @Autowired
     Notification notification;
+
+    @Value("${notification.strategy}")
+    private Integer FailedNotificationStrategy;
 
     /**
      * 业务 ID 字符串
@@ -179,10 +183,14 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                     cronJobInfo.getLastModifyTime());
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("Failed notification strategy is|{}", FailedNotificationStrategy);
+        }
+
         boolean isNotify = false;
         if (executeFailed) {
             if (log.isDebugEnabled()) {
-                log.debug("notification strategy is|{}", notification.getStrategy());
+                log.debug("Failed notification strategy is|{}", notification.getStrategy());
             }
             if (notification.getStrategy() == 0) {
                 if (cronJobSimpleInfo.getLastExecuteErrorCount() == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
