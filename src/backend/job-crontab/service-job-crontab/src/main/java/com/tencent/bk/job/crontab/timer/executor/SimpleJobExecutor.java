@@ -119,8 +119,6 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             log.debug("Get cronjob Error info return|{}", cronJobErrorInfo);
         }
         Integer lastExecuteStatus = cronJobErrorInfo.getLastExecuteStatus();
-        Long lastExecuteErrorCode = cronJobErrorInfo.getLastExecuteErrorCode();
-        Integer lastExecuteErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
 
         List<CronJobVariableDTO> variables = cronJobInfo.getVariableValue();
         List<ServiceTaskVariable> taskVariables = null;
@@ -146,34 +144,20 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             }
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime,
                 ExecuteStatusEnum.RUNNING);
-            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.SUCCESS.getValue());
-            cronJobErrorInfo.setLastExecuteErrorCode(null);
-            cronJobErrorInfo.setLastExecuteErrorCount(0);
         } else {
             log.error("Execute task failed!|{}|{}|{}|{}", appId, cronJobId, scheduledFireTime, executeResult);
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime, ExecuteStatusEnum.FAIL);
-            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.FAIL.getValue());
             executeFailed = true;
             if (executeResult != null) {
                 errorCode = executeResult.getCode();
                 errorMessage = executeResult.getErrorMsg();
                 if (errorCode != null) {
                     cronJobHistoryService.fillErrorInfo(historyId, errorCode.longValue(), errorMessage);
-                    cronJobErrorInfo.setLastExecuteErrorCode(errorCode.longValue());
-                    if (lastExecuteErrorCode == null || errorCode.longValue() == lastExecuteErrorCode) {
-                        cronJobErrorInfo.setLastExecuteErrorCount(lastExecuteErrorCount + 1);
-                    } else {
-                        cronJobErrorInfo.setLastExecuteErrorCount(1);
-                    }
                 }
             }
         }
 
-        if (cronJobService.updateCronJobErrorById(cronJobErrorInfo)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Update success! New cronjob simple info|{}", cronJobErrorInfo);
-            }
-        }
+        updateCronJobErrorInfo(cronJobErrorInfo, executeFailed, errorCode);
 
         if (context.getNextFireTime() == null) {
             cronJobService.disableExpiredCronJob(appId, cronJobId, cronJobInfo.getLastModifyUser(),
@@ -184,6 +168,33 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
             if (log.isDebugEnabled()) {
                 log.debug("Send cronjob failed notification, execute error count is {}", cronJobErrorInfo.getLastExecuteErrorCount());
+            }
+        }
+    }
+
+    private void updateCronJobErrorInfo(CronJobInfoDTO cronJobErrorInfo, boolean executeFailed, Integer errorCode) {
+
+        Long lastExecuteErrorCode = cronJobErrorInfo.getLastExecuteErrorCode();
+        Integer lastExecuteErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
+
+        if (executeFailed) {
+            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.FAIL.getValue());
+            if (errorCode != null) {
+                cronJobErrorInfo.setLastExecuteErrorCode(errorCode.longValue());
+                if (lastExecuteErrorCode == null || errorCode.longValue() == lastExecuteErrorCode) {
+                    cronJobErrorInfo.setLastExecuteErrorCount(lastExecuteErrorCount + 1);
+                } else {
+                    cronJobErrorInfo.setLastExecuteErrorCount(1);
+                }
+            }
+        } else {
+            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.SUCCESS.getValue());
+            cronJobErrorInfo.setLastExecuteErrorCode(null);
+            cronJobErrorInfo.setLastExecuteErrorCount(0);
+        }
+        if (cronJobService.updateCronJobErrorById(cronJobErrorInfo)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Update success! New cronjob simple info|{}", cronJobErrorInfo);
             }
         }
     }

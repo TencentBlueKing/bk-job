@@ -181,36 +181,7 @@ public class CronJobServiceImpl implements CronJobService {
                 cronJobInfo.getCreator(), null);
             return id;
         } else {
-            if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-                List<CronJobVariableDTO> hasMaskVariableList = new ArrayList<>();
-                for (CronJobVariableDTO cronJobVariable : cronJobInfo.getVariableValue()) {
-                    if (cronJobVariable.getType().needMask()) {
-                        if (cronJobVariable.getValue().equals(cronJobVariable.getType().getMask())) {
-                            hasMaskVariableList.add(cronJobVariable);
-                        }
-                    }
-                }
-                if (CollectionUtils.isNotEmpty(hasMaskVariableList)) {
-                    CronJobInfoDTO originCronJob =
-                        cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
-                    if (CollectionUtils.isNotEmpty(originCronJob.getVariableValue())) {
-                        for (CronJobVariableDTO cronJobVariable : originCronJob.getVariableValue()) {
-                            Iterator<CronJobVariableDTO> newCronJobVariableIterator = hasMaskVariableList.iterator();
-                            while (newCronJobVariableIterator.hasNext()) {
-                                CronJobVariableDTO newCronJobVariable = newCronJobVariableIterator.next();
-                                if (newCronJobVariable.getId().equals(cronJobVariable.getId())) {
-                                    newCronJobVariable.setValue(cronJobVariable.getValue());
-                                    newCronJobVariableIterator.remove();
-                                    break;
-                                }
-                            }
-                            if (CollectionUtils.isEmpty(hasMaskVariableList)) {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            checkCronJobVariableValue(cronJobInfo);
             if (cronJobInfo.getEnable()) {
                 try {
                     List<ServiceTaskVariable> taskVariables = null;
@@ -238,6 +209,39 @@ public class CronJobServiceImpl implements CronJobService {
                 }
             }
             return cronJobInfo.getId();
+        }
+    }
+
+    private void checkCronJobVariableValue(CronJobInfoDTO cronJobInfo) {
+        if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
+            List<CronJobVariableDTO> hasMaskVariableList = new ArrayList<>();
+            for (CronJobVariableDTO cronJobVariable : cronJobInfo.getVariableValue()) {
+                if (cronJobVariable.getType().needMask()) {
+                    if (cronJobVariable.getValue().equals(cronJobVariable.getType().getMask())) {
+                        hasMaskVariableList.add(cronJobVariable);
+                    }
+                }
+            }
+            if (CollectionUtils.isNotEmpty(hasMaskVariableList)) {
+                CronJobInfoDTO originCronJob =
+                    cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
+                if (CollectionUtils.isNotEmpty(originCronJob.getVariableValue())) {
+                    for (CronJobVariableDTO cronJobVariable : originCronJob.getVariableValue()) {
+                        Iterator<CronJobVariableDTO> newCronJobVariableIterator = hasMaskVariableList.iterator();
+                        while (newCronJobVariableIterator.hasNext()) {
+                            CronJobVariableDTO newCronJobVariable = newCronJobVariableIterator.next();
+                            if (newCronJobVariable.getId().equals(cronJobVariable.getId())) {
+                                newCronJobVariable.setValue(cronJobVariable.getValue());
+                                newCronJobVariableIterator.remove();
+                                break;
+                            }
+                        }
+                        if (CollectionUtils.isEmpty(hasMaskVariableList)) {
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
