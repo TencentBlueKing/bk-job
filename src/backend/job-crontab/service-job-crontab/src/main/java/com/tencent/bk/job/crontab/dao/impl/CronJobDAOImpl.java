@@ -192,20 +192,20 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
-    public CronJobInfoDTO getCronJobSimpleById(long appId, long cronJobId) {
+    public CronJobInfoDTO getCronJobErrorById(long appId, long cronJobId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobId)));
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        return getCronJobSimpleByConditions(conditions);
+        return getCronJobErrorByConditions(conditions);
     }
 
-    private CronJobInfoDTO getCronJobSimpleByConditions(Collection<Condition> conditions) {
+    private CronJobInfoDTO getCronJobErrorByConditions(Collection<Condition> conditions) {
         Record5<ULong, ULong, UByte, ULong, UInteger> record = context
             .select(TABLE.ID, TABLE.APP_ID, TABLE.LAST_EXECUTE_STATUS, TABLE.LAST_EXECUTE_ERROR_CODE,
                 TABLE.LAST_EXECUTE_ERROR_COUNT)
             .from(TABLE).where(conditions).fetchOne();
-        return convertToCronJobSimpleDTO(record);
+        return convertToCronJobErrorDTO(record);
     }
 
     private CronJobInfoDTO getCronJobByConditions(Collection<Condition> conditions) {
@@ -332,19 +332,19 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
-    public boolean updateCronJobSimpleById(CronJobInfoDTO cronJobSimpleInfo) {
+    public boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobSimpleInfo.getId())));
-        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(cronJobSimpleInfo.getAppId())));
+        conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobErrorInfo.getId())));
+        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(cronJobErrorInfo.getAppId())));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
 
         UpdateSetMoreStep<CronJobRecord> updateStep =
-            context.update(TABLE).set(TABLE.LAST_EXECUTE_STATUS, UByte.valueOf(cronJobSimpleInfo.getLastExecuteStatus()));
-        if (cronJobSimpleInfo.getLastExecuteErrorCode() != null) {
-            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_CODE, ULong.valueOf(cronJobSimpleInfo.getLastExecuteErrorCode()));
+            context.update(TABLE).set(TABLE.LAST_EXECUTE_STATUS, UByte.valueOf(cronJobErrorInfo.getLastExecuteStatus()));
+        if (cronJobErrorInfo.getLastExecuteErrorCode() != null) {
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_CODE, ULong.valueOf(cronJobErrorInfo.getLastExecuteErrorCode()));
         }
-        if (cronJobSimpleInfo.getLastExecuteErrorCount() != null) {
-            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_COUNT, UInteger.valueOf(cronJobSimpleInfo.getLastExecuteErrorCount()));
+        if (cronJobErrorInfo.getLastExecuteErrorCount() != null) {
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_COUNT, UInteger.valueOf(cronJobErrorInfo.getLastExecuteErrorCount()));
         }
         return 1 == updateStep.where(conditions).limit(1).execute();
     }
@@ -522,7 +522,7 @@ public class CronJobDAOImpl implements CronJobDAO {
         return cronJobInfoDTO;
     }
 
-    private CronJobInfoDTO convertToCronJobSimpleDTO(Record5<ULong, ULong, UByte, ULong, UInteger> record) {
+    private CronJobInfoDTO convertToCronJobErrorDTO(Record5<ULong, ULong, UByte, ULong, UInteger> record) {
         if (record == null) {
             return null;
         }

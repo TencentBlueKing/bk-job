@@ -2,10 +2,6 @@ use job_crontab;
 
 SET NAMES utf8mb4;
 
-use job_crontab;
-
-SET NAMES utf8mb4;
-
 DROP PROCEDURE IF EXISTS job_schema_update;
 
 DELIMITER <JOB_UBF>
@@ -22,7 +18,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'cron_job'
                     AND COLUMN_NAME = 'last_execute_error_code') THEN
-        ALTER TABLE cron_job ADD COLUMN `last_execute_error_code` bigint(20) UNSIGNED NULL DEFAULT NULL AFTER `last_execute_status`;
+        ALTER TABLE cron_job ADD COLUMN `last_execute_error_code` bigint(20) UNSIGNED NULL DEFAULT NULL;
     END IF;
 
     IF NOT EXISTS(SELECT 1
@@ -30,7 +26,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'cron_job'
                     AND COLUMN_NAME = 'last_execute_error_count') THEN
-        ALTER TABLE cron_job ADD COLUMN `last_execute_error_count` int(11) UNSIGNED NOT NULL DEFAULT '0' AFTER `last_execute_error_code`;
+        ALTER TABLE cron_job ADD COLUMN `last_execute_error_count` int(11) UNSIGNED NOT NULL DEFAULT '0';
     END IF;
 
     COMMIT;

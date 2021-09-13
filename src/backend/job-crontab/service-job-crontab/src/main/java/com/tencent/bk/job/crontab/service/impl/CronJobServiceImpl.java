@@ -160,13 +160,13 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    public CronJobInfoDTO getCronJobSimpleInfoById(Long appId, Long cronJobId) {
-        return cronJobDAO.getCronJobSimpleById(appId, cronJobId);
+    public CronJobInfoDTO getCronJobErrorInfoById(Long appId, Long cronJobId) {
+        return cronJobDAO.getCronJobErrorById(appId, cronJobId);
     }
 
     @Override
-    public boolean updateCronJobSimpleById(CronJobInfoDTO cronJobSimpleInfo) {
-        return cronJobDAO.updateCronJobSimpleById(cronJobSimpleInfo);
+    public boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo) {
+        return cronJobDAO.updateCronJobErrorById(cronJobErrorInfo);
     }
 
     @Override
