@@ -95,10 +95,11 @@
                             prop="relatedTaskNum"
                             key="relatedTaskNum"
                             :render-header="renderHeader"
-                            align="left"
+                            align="right"
                             width="150">
                             <template slot-scope="{ row }">
                                 <bk-button
+                                    class="mr20"
                                     text
                                     v-bk-tooltips.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
@@ -970,7 +971,8 @@
             }
 
             .select-flag {
-                margin-left: 10px;
+                float: right;
+                margin-top: 3px;
                 color: #a3c5fd;
             }
         }

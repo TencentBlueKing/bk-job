@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="template-list-tag-panel" v-bkloading="{ isLoading }">
+    <div class="script-list-tag-panel" v-bkloading="{ isLoading }">
         <tab-item
             :name="$t('script.全部脚本')"
             :id="1"
@@ -188,7 +188,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    .template-list-tag-panel {
+    .script-list-tag-panel {
         display: flex;
         flex-direction: column;
         min-height: 50%;

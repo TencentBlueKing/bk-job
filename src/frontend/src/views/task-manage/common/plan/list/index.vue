@@ -158,7 +158,7 @@
                     prop="cronJobCount"
                     key="cronJobCount"
                     width="160"
-                    align="left">
+                    align="right">
                     <template slot-scope="{ row }">
                         <bk-button
                             text

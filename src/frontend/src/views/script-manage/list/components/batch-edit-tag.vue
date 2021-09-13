@@ -1,5 +1,5 @@
 <template>
-    <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
+    <div class="script-manage-batch-edit-tag" v-bkloading="{ isLoading }">
         <div style="margin-bottom: 8px;">
             {{ $t('script.范围') }}： {{ $t('script.共') }}<span class="strong number" style="color: #313238;">{{ templateNums }}</span>{{ $t('script.个脚本') }}
         </div>
@@ -53,11 +53,15 @@
                             </bk-checkbox-group>
                         </scroll-faker>
                         <Empty
-                            v-else
+                            v-else-if="search"
                             type="search"
                             style="margin-top: 20px;">
                             <span>{{ $t('script.搜索结果为空') }}，</span>
-                            <bk-button text @click="handleClearSearch">清空搜索</bk-button>
+                            <bk-button
+                                text
+                                @click="handleClearSearch">
+                                {{ $t('script.清空搜索') }}
+                            </bk-button>
                         </Empty>
                     </div>
                     <div
@@ -238,6 +242,7 @@
                         checked: false,
                     };
                 }
+                window.changeAlert = true;
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
             };
             /**
@@ -307,7 +312,7 @@
     };
 </script>
 <style lang="postcss">
-    .task-manage-batch-edit-tag {
+    .script-manage-batch-edit-tag {
         padding-top: 5px;
 
         .tag-panel {

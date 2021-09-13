@@ -26,11 +26,12 @@
                 <div class="tag-panel">
                     <bk-input
                         class="tag-search"
+                        :value="search"
                         :spellcheck="false"
                         left-icon="bk-icon icon-search"
-                        @change="handleFilter" />
+                        @change="handleSearch" />
                     <div class="wrapper" style="height: 210px;">
-                        <scroll-faker>
+                        <scroll-faker v-if="renderList.length > 0">
                             <bk-checkbox-group
                                 v-model="formData.operationList"
                                 class="tag-list">
@@ -48,6 +49,17 @@
                                 </bk-checkbox>
                             </bk-checkbox-group>
                         </scroll-faker>
+                        <Empty
+                            v-else-if="search"
+                            type="search"
+                            style="margin-top: 20px;">
+                            <span>{{ $t('tag.搜索结果为空') }}，</span>
+                            <bk-button
+                                text
+                                @click="handleClearSearch">
+                                {{ $t('tag.清空搜索') }}
+                            </bk-button>
+                        </Empty>
                     </div>
                     <div class="tag-create" @click="handleNew">
                         <auth-component auth="tag/create">
@@ -164,9 +176,15 @@
             /**
              * @desc 过滤 tag 列表
              */
-            const handleFilter = _.debounce((search) => {
+            const handleSearch = _.debounce((search) => {
                 state.search = _.trim(search);
             }, 300);
+            /**
+             * @desc 清除过滤项
+             */
+            const handleClearSearch = () => {
+                state.search = '';
+            };
             /**
              * @desc 新建 tag
              * @returns { Boolean }
@@ -220,7 +238,8 @@
                 rules,
                 renderList,
                 refresh,
-                handleFilter,
+                handleSearch,
+                handleClearSearch,
                 handleNew,
                 handleTagOperationChange,
                 submit,

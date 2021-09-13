@@ -27,7 +27,7 @@
 
 <template>
     <div
-        class="task-list-tag-edit"
+        class="script-list-tag-edit"
         :class="{
             'active': value === id,
             'display': !canEdit,
@@ -236,7 +236,7 @@
         }
     }
 
-    .task-list-tag-edit {
+    .script-list-tag-edit {
         position: relative;
         display: flex;
         align-items: center;

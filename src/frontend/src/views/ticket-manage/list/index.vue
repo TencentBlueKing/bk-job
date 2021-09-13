@@ -101,11 +101,16 @@
                 prop="related"
                 key="related"
                 width="100"
-                align="left">
+                align="right">
                 <template slot-scope="{ row }">
-                    <div v-if="row.isRelatedLoading" class="sync-fetch-relate-nums">
+                    <div
+                        v-if="row.isRelatedLoading"
+                        class="sync-fetch-relate-nums">
                         <div class="related-nums-loading">
-                            <Icon type="sync-pending" svg style="color: #3a84ff;" />
+                            <Icon
+                                type="sync-pending"
+                                svg
+                                style="color: #3a84ff;" />
                         </div>
                     </div>
                     <bk-button
@@ -136,22 +141,14 @@
                 prop="lastModifyUser"
                 key="lastModifyUser"
                 width="120"
-                align="left">
-                <template slot-scope="{ row }">
-                    <span>{{ row.lastModifyUser }}</span>
-                </template>
-            </bk-table-column>
+                align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('ticket.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
                 width="180"
-                align="left">
-                <template slot-scope="{ row }">
-                    <span style="display: block;">{{ row.lastModifyTime }}</span>
-                </template>
-            </bk-table-column>
+                align="left" />
             <bk-table-column
                 :label="$t('ticket.操作')"
                 :resizable="false"
@@ -213,9 +210,7 @@
     import I18n from '@/i18n';
     import TicketService from '@service/ticket-manage';
     import NotifyService from '@service/notify';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { listColumnsCache } from '@utils/cache-helper';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';
     import JbPopoverConfirm from '@components/jb-popover-confirm';

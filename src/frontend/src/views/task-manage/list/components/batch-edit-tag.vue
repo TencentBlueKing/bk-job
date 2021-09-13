@@ -53,11 +53,11 @@
                             </bk-checkbox-group>
                         </scroll-faker>
                         <Empty
-                            v-else
+                            v-else-if="search"
                             type="search"
                             style="margin-top: 20px;">
                             <span>{{ $t('template.搜索结果为空') }}，</span>
-                            <bk-button text @click="handleClearSearch">清空搜索</bk-button>
+                            <bk-button text @click="handleClearSearch">{{ $t('template.清空搜索') }}</bk-button>
                         </Empty>
                     </div>
                     <div class="tag-create" @click="handleNew">
@@ -235,6 +235,7 @@
                         checked: false,
                     };
                 }
+                window.changeAlert = true;
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
             };
             /**

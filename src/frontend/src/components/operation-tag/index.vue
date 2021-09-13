@@ -1,7 +1,7 @@
 <template>
     <jb-dialog
         :value="value"
-        @input="handleUpdateDialog"
+        @input="handleCloseDialog"
         :title="dialogInfo.title"
         header-position="left"
         :mask-close="false"
@@ -55,6 +55,7 @@
     import I18n from '@/i18n';
     import TagManageService from '@service/tag-manage';
     import TagModel from '@model/tag';
+    import { leaveConfirm } from '@utils/assist';
     import { tagNameRule } from '@utils/validator';
 
     const genDefaultData = () => ({
@@ -94,6 +95,7 @@
                 };
             });
             const { proxy } = getCurrentInstance();
+            // tag 验证规则
             const rules = {
                 name: [
                     {
@@ -123,12 +125,14 @@
             });
             /**
              * @desc 更新弹窗显示状态
-             * @param { Boolean } value
              */
-            const handleUpdateDialog = (value) => {
-                ctx.emit('change', value);
-                ctx.emit('input', value);
-                state.formData = genDefaultData();
+            const handleCloseDialog = () => {
+                leaveConfirm()
+                    .then(() => {
+                        ctx.emit('change', false);
+                        ctx.emit('input', false);
+                        state.formData = genDefaultData();
+                    });
             };
             /**
              * @desc 提交操作结果
@@ -146,7 +150,7 @@
                                 window.changeAlert = false;
                                 ctx.emit('on-change');
                                 proxy.messageSuccess(I18n.t('编辑标签成功'));
-                                handleUpdateDialog(false);
+                                handleCloseDialog();
                             });
                         }
                         return TagManageService.createTag(state.formData)
@@ -154,7 +158,7 @@
                                 window.changeAlert = false;
                                 ctx.emit('on-change', new TagModel(data));
                                 proxy.messageSuccess(I18n.t('新建标签成功'));
-                                handleUpdateDialog(false);
+                                handleCloseDialog();
                             });
                     })
                     .finally(() => {
@@ -165,7 +169,7 @@
              * @desc 取消编辑
              */
             const handleCancel = () => {
-                handleUpdateDialog(false);
+                handleCloseDialog();
             };
             
             return {
@@ -173,7 +177,7 @@
                 formRef,
                 dialogInfo,
                 rules,
-                handleUpdateDialog,
+                handleCloseDialog,
                 handleSubmit,
                 handleCancel,
             };

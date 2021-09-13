@@ -59,5 +59,6 @@ export default {
         标签: '',
         新增标签: '',
         范围不能为空: '',
+        搜索结果为空: 'Search Empty',
     },
 };

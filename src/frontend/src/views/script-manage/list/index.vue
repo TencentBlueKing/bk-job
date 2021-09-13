@@ -139,7 +139,7 @@
                 key="related"
                 width="100"
                 :render-header="renderHeader"
-                align="left">
+                align="right">
                 <template slot-scope="{ row }">
                     <bk-button
                         text
