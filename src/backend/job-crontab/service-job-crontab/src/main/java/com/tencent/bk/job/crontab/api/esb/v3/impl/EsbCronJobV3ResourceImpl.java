@@ -201,34 +201,29 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     public EsbResp<EsbCronInfoV3Response> updateCronStatus(EsbUpdateCronStatusV3Request request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
-        if (request.validate()) {
+        request.validate();
+        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.MANAGE_CRON,
+            ResourceTypeEnum.CRON, request.getId().toString(),
+            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        if (!authResult.isPass()) {
+            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+        }
 
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.MANAGE_CRON,
-                ResourceTypeEnum.CRON, request.getId().toString(),
-                PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
-            if (!authResult.isPass()) {
-                return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+        Boolean updateResult = null;
+        try {
+            updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
+                request.getStatus() == 1);
+        } catch (TaskExecuteAuthFailedException e) {
+            if (e.getAuthResult() != null) {
+                return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
+            } else {
+                return EsbResp.buildAuthFailResult(null, i18nService);
             }
-
-            Boolean updateResult = null;
-            try {
-                updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
-                    request.getStatus() == 1);
-            } catch (TaskExecuteAuthFailedException e) {
-                if (e.getAuthResult() != null) {
-                    return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
-                } else {
-                    return EsbResp.buildAuthFailResult(null, i18nService);
-                }
-            }
-            if (updateResult) {
-                EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
-                esbCronInfoV3Response.setId(request.getId());
-                return EsbResp.buildSuccessResp(esbCronInfoV3Response);
-            }
-        } else {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+        }
+        if (updateResult) {
+            EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
+            esbCronInfoV3Response.setId(request.getId());
+            return EsbResp.buildSuccessResp(esbCronInfoV3Response);
         }
         return EsbResp.buildCommonFailResp(ErrorCode.UPDATE_CRON_JOB_FAILED,
             i18nService.getI18n(String.valueOf(ErrorCode.UPDATE_CRON_JOB_FAILED)));

@@ -72,7 +72,7 @@ public class EsbSaveCronV3Request extends EsbReq {
     private String cronExpression;
 
     /**
-     * 单次执行的指定执行时间
+     * 单次执行的指定执行时间（Unix时间戳）
      * <p>
      * 不可与 cronExpression 同时为空
      */
