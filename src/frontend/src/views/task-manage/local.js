@@ -490,6 +490,7 @@ export default {
         变量使用指引: 'How to use Global Var',
         魔法变量: 'Magic Var.',
         使用指引: 'User Guide',
+        标签: 'Tags',
         编辑标签: '',
         范围: '',
         个作业: '',
@@ -498,5 +499,6 @@ export default {
         个作业使用: '',
         新增标签: '',
         编辑标签成功: '',
+        搜索结果为空: 'Search Empty',
     },
 };

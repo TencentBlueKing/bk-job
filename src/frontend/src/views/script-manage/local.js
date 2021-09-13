@@ -169,6 +169,7 @@ export default {
         前往编辑: 'edit now',
         选择载入版本: 'Choose version to load',
         调试: 'Debug',
+        标签: 'Tags',
         全部脚本: '',
         未分类: '',
         编辑标签: '',
@@ -179,5 +180,6 @@ export default {
         个脚本使用: '',
         新增标签: '',
         编辑标签成功: '',
+        搜索结果为空: 'Search Empty',
     },
 };

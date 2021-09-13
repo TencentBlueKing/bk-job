@@ -13,11 +13,12 @@
                         class="tag-search"
                         :spellcheck="false"
                         left-icon="bk-icon icon-search"
-                        @change="handleFilter" />
+                        :value="search"
+                        @change="handleSearch" />
                     <div
                         class="wrapper"
                         style="height: 210px;">
-                        <scroll-faker>
+                        <scroll-faker v-if="renderList.length > 0">
                             <bk-checkbox-group
                                 v-model="operationList"
                                 class="tag-list">
@@ -51,6 +52,13 @@
                                 </bk-checkbox>
                             </bk-checkbox-group>
                         </scroll-faker>
+                        <Empty
+                            v-else
+                            type="search"
+                            style="margin-top: 20px;">
+                            <span>{{ $t('template.搜索结果为空') }}，</span>
+                            <bk-button text @click="handleClearSearch">清空搜索</bk-button>
+                        </Empty>
                     </div>
                     <div class="tag-create" @click="handleNew">
                         <auth-component auth="tag/create">
@@ -188,8 +196,14 @@
              * @desc 过滤 tag
              * @param { String } search
              */
-            const handleFilter = (search) => {
+            const handleSearch = (search) => {
                 state.search = _.trim(search);
+            };
+            /**
+             * @desc 清空搜索内容
+             */
+            const handleClearSearch = () => {
+                state.search = '';
             };
             /**
              * @desc 新建 tag
@@ -278,10 +292,11 @@
             return {
                 ...toRefs(state),
                 renderList,
-                handleFilter,
+                handleSearch,
                 handleNew,
                 handleTagCheckChange,
                 handleTagNew,
+                handleClearSearch,
                 submit,
             };
         },
