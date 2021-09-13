@@ -165,5 +165,4 @@ public interface CronJobDAO {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
-
 }

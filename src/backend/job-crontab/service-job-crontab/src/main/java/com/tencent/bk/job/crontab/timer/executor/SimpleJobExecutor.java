@@ -34,7 +34,6 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.NotifyService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
-import com.tencent.bk.job.crontab.timer.Notification;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.Setter;
@@ -69,11 +68,8 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
     @Autowired
     NotifyService notifyService;
 
-    @Autowired
-    Notification notification;
-
-    @Value("${notification.strategy}")
-    private Integer FailedNotificationStrategy;
+    @Value("${notification.failed.start}")
+    private Integer startFailedNotification;
 
     /**
      * 业务 ID 字符串
@@ -101,7 +97,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         long scheduledFireTime = getScheduledFireTime(context).toEpochMilli();
 
         CronJobHistoryDTO cronJobHistory =
-                cronJobHistoryService.getHistoryByIdAndTime(appId, cronJobId, scheduledFireTime);
+            cronJobHistoryService.getHistoryByIdAndTime(appId, cronJobId, scheduledFireTime);
         if (cronJobHistory != null) {
             log.warn("Job already running!|{}", cronJobHistory);
             return;
@@ -129,7 +125,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         List<ServiceTaskVariable> taskVariables = null;
         if (CollectionUtils.isNotEmpty(variables)) {
             taskVariables =
-                    variables.parallelStream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
+                variables.parallelStream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
         }
 
         boolean executeFailed = false;
@@ -137,18 +133,18 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         String errorMessage = null;
         cronJobHistoryService.fillExecutor(historyId, cronJobInfo.getLastModifyUser());
         ServiceResponse<ServiceTaskExecuteResult> executeResult = executeTaskService.executeTask(appId,
-                cronJobInfo.getTaskPlanId(),
-                cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
+            cronJobInfo.getTaskPlanId(),
+            cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
         if (log.isDebugEnabled()) {
             log.debug("Execute result|{}", executeResult);
         }
         if (executeResult != null && executeResult.getData() != null
-                && executeResult.getData().getTaskInstanceId() > 0) {
+            && executeResult.getData().getTaskInstanceId() > 0) {
             if (log.isDebugEnabled()) {
                 log.debug("Execute success! Task instance id {}", executeResult.getData().getTaskInstanceId());
             }
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime,
-                    ExecuteStatusEnum.RUNNING);
+                ExecuteStatusEnum.RUNNING);
             cronJobSimpleInfo.setLastExecuteStatus(1);
             cronJobSimpleInfo.setLastExecuteErrorCode(null);
             cronJobSimpleInfo.setLastExecuteErrorCount(0);
@@ -180,31 +176,30 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
 
         if (context.getNextFireTime() == null) {
             cronJobService.disableExpiredCronJob(appId, cronJobId, cronJobInfo.getLastModifyUser(),
-                    cronJobInfo.getLastModifyTime());
+                cronJobInfo.getLastModifyTime());
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Failed notification strategy is|{}", FailedNotificationStrategy);
-        }
+        Integer executeStatus = cronJobSimpleInfo.getLastExecuteStatus();
+        Integer executeErrorCount = cronJobSimpleInfo.getLastExecuteErrorCount();
 
         boolean isNotify = false;
         if (executeFailed) {
             if (log.isDebugEnabled()) {
-                log.debug("Failed notification strategy is|{}", notification.getStrategy());
+                log.debug("Start failed notification strategy is {}", startFailedNotification);
             }
-            if (notification.getStrategy() == 0) {
-                if (cronJobSimpleInfo.getLastExecuteErrorCount() == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+            if (startFailedNotification == 0) {
+                if (executeErrorCount == 1 || !lastExecuteStatus.equals(executeStatus)) {
                     isNotify = true;
                 }
-            } else if (notification.getStrategy() == 1) {
+            } else if (startFailedNotification == 1) {
                 isNotify = true;
-            } else if (cronJobSimpleInfo.getLastExecuteErrorCount() % notification.getStrategy() == 1 || !lastExecuteStatus.equals(cronJobSimpleInfo.getLastExecuteStatus())) {
+            } else if (executeErrorCount % startFailedNotification == 1 || !lastExecuteStatus.equals(executeStatus)) {
                 isNotify = true;
             }
             if (isNotify) {
                 notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
                 if (log.isDebugEnabled()) {
-                    log.debug("Send cronjob failed notification, execute error count|{}", cronJobSimpleInfo.getLastExecuteErrorCount());
+                    log.debug("Send cronjob failed notification, execute error count is {}", executeErrorCount);
                 }
             }
         }

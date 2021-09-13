@@ -71,7 +71,7 @@ public interface CronJobService {
      * @param cronJobIdList 定时任务 IDs
      * @return 定时任务信息
      */
-    Map<Long,CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList);
+    Map<Long, CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList);
 
     /**
      * 根据 ID 查询定时任务信息
@@ -245,5 +245,4 @@ public interface CronJobService {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
-
 }

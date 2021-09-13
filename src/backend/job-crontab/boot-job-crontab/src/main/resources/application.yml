@@ -83,5 +83,6 @@ job:
       public-key-base64: ${job.security.public-key-base64}
 
 notification:
-  #连续失败通知策略：默认 0-连续失败只通知第一次；1-每次失败都通知；2-每2次通知一次；n-每n次通知一次，n为正整数
-  strategy: 0
+  failed:
+    #连续启动失败通知策略：默认 0-连续失败只通知第一次；1-每次失败都通知；2-每2次通知一次；n-每n次通知一次，n为正整数
+    start: 0
