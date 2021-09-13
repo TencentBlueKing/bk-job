@@ -29,11 +29,13 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 @Getter
 @Setter
+@ToString
 public class EsbBatchGetJobInstanceIpLogV3Request extends EsbReq {
     /**
      * 业务 ID

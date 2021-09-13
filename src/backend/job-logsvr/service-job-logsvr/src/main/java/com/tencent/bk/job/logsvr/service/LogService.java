@@ -98,6 +98,7 @@ public interface LogService {
     List<FileTaskLog> getFileLogsByTaskIds(String jobCreateDate, long stepInstanceId, int executeCount,
                                            List<String> taskIds);
 
+
     /**
      * 删除步骤日志
      *

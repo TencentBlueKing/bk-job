@@ -22,45 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model;
+package com.tencent.bk.job.logsvr.model.service;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.Collections;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-public class ScriptLogQuery {
-    /**
-     * 作业实例创建时间,格式yyyy_MM_dd
-     */
+/**
+ * 文件任务执行日志查询请求
+ */
+@Getter
+@Setter
+@ToString
+public class FileLogQueryRequest {
+    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
     private String jobCreateDate;
-    /**
-     * 作业步骤实例ID
-     */
+
+    @ApiModelProperty(value = "步骤实例ID", required = true)
     private Long stepInstanceId;
-    /**
-     * 执行任务的主机ip
-     */
-    private List<String> ips;
-    /**
-     * 执行次数
-     */
+
+    @ApiModelProperty(value = "执行次数", required = true)
     private Integer executeCount;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, String ip, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = Collections.singletonList(ip);
-        this.executeCount = executeCount;
-    }
+    @ApiModelProperty("服务器IP列表;如果ips参数不为空，那么忽略ip参数")
+    private List<String> ips;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, List<String> ips, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = ips;
-        this.executeCount = executeCount;
-    }
+    @ApiModelProperty("服务器IP")
+    private String ip;
+
+    /**
+     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
+     */
+    @ApiModelProperty("分发模式,0:upload,1:download")
+    private Integer mode;
 }

@@ -29,7 +29,8 @@ import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 
 import java.util.List;
@@ -178,6 +179,18 @@ public interface LogService {
                                                                int executeCount) throws ServiceException;
 
     /**
+     * 获取文件任务文件源日志
+     *
+     * @param stepInstanceId 步骤实例 ID
+     * @param executeCount   执行次数
+     * @param ips            服务器列表
+     * @return 日志内容
+     * @throws ServiceException
+     */
+    ServiceIpLogsDTO batchGetFileIpLogContent(long stepInstanceId,
+                                              int executeCount, List<IpDTO> ips) throws ServiceException;
+
+    /**
      * 根据关键字获取对应的ip
      *
      * @param stepInstanceId 步骤实例ID
@@ -200,7 +213,7 @@ public interface LogService {
      * @throws ServiceException 写入失败，返回ServiceException
      */
     void writeFileLogWithTimestamp(long jobCreateTime, long stepInstanceId, int executeCount,
-                                   String cloudAreaIdAndIp, ServiceLogDTO executionLog,
+                                   String cloudAreaIdAndIp, ServiceIpLogDTO executionLog,
                                    Long logTimeInMillSeconds) throws ServiceException;
 
     /**
@@ -209,6 +222,6 @@ public interface LogService {
      * @param jobCreateTime 任务创建时间
      * @param fileLogs      文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceLogDTO> fileLogs);
+    void writeFileLogs(long jobCreateTime, List<ServiceIpLogDTO> fileLogs);
 
 }

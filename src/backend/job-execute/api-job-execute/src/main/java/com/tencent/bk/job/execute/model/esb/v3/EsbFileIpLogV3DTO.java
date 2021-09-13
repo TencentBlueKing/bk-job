@@ -22,45 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model;
+package com.tencent.bk.job.execute.model.esb.v3;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.util.Collections;
 import java.util.List;
 
+/**
+ * IP对应的文件分发日志
+ */
 @Data
-@NoArgsConstructor
-public class ScriptLogQuery {
-    /**
-     * 作业实例创建时间,格式yyyy_MM_dd
-     */
-    private String jobCreateDate;
-    /**
-     * 作业步骤实例ID
-     */
-    private Long stepInstanceId;
-    /**
-     * 执行任务的主机ip
-     */
-    private List<String> ips;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
+public class EsbFileIpLogV3DTO {
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, String ip, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = Collections.singletonList(ip);
-        this.executeCount = executeCount;
-    }
+    /**
+     * 云区域ID
+     */
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, List<String> ips, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = ips;
-        this.executeCount = executeCount;
-    }
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 文件任务日志
+     */
+    @JsonProperty("file_logs")
+    private List<EsbFileLogV3DTO> fileLogs;
 }
