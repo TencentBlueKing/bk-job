@@ -36,6 +36,10 @@ export default class AccountRule {
         this.description = payload.description;
     }
 
+    /**
+     * @desc 操作系统关键标识
+     * @returns { String }
+     */
     get osTypeKey () {
         const textMap = {
             [OS_TYPE_LINUX]: 'linux',
@@ -45,6 +49,10 @@ export default class AccountRule {
         return textMap[this.osType];
     }
 
+    /**
+     * @desc 操作系统类型显示文本
+     * @returns { String }
+     */
     get osTypeText () {
         const textMap = {
             [OS_TYPE_LINUX]: I18n.t('Linux 账号'),

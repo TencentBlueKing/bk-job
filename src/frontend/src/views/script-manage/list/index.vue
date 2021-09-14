@@ -143,6 +143,7 @@
                 <template slot-scope="{ row }">
                     <bk-button
                         text
+                        class="mr20"
                         v-bk-tooltips.right.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
                                     <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
@@ -634,29 +635,21 @@
              * @desc 自定义表头
              */
             renderHeader (h, data) {
-                /*  eslint-disable vue/script-indent  */
-                return h('div', {
-                    directives: [
-                        {
-                            name: 'bkTooltips',
-                            value: {
-                                content: I18n.t('script.显示被执行方案引用的次数'),
-                                placement: 'bottom',
-                            },
-                        },
-                    ],
-                }, [
-                    data.column.label,
-                    h('Icon', {
-                        props: {
-                            type: 'italic-info',
-                        },
-                        style: {
-                            marginLeft: '4px',
-                        },
-                    }),
-                ]);
+                return (
+                    <span>
+                        <span>{ data.column.label }</span>
+                        <bk-popover>
+                            <icon
+                                type="circle-italics-info"
+                                style="margin-left: 8px; font-size: 12px;" />
+                            <div slot="content">
+                                <div>{ I18n.t('script.显示被作业引用的次数') }</div>
+                                <div>{ I18n.t('script.显示被执行方案引用的次数') }</div>
+                            </div>
+                        </bk-popover>
+                    </span>
+                );
+            },
         },
-    },
-};
+    };
 </script>

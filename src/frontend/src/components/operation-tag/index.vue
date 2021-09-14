@@ -5,6 +5,7 @@
         :title="dialogInfo.title"
         header-position="left"
         :mask-close="false"
+        class="job-tag-create-dialog"
         :width="480">
         <jb-form
             v-if="value"

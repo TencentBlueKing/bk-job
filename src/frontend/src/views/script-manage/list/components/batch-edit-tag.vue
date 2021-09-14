@@ -1,7 +1,7 @@
 <template>
     <div class="script-manage-batch-edit-tag" v-bkloading="{ isLoading }">
         <div style="margin-bottom: 8px;">
-            {{ $t('script.范围') }}： {{ $t('script.共') }}<span class="strong number" style="color: #313238;">{{ templateNums }}</span>{{ $t('script.个脚本') }}
+            {{ $t('script.范围') }}：{{ $t('script.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('script.个脚本') }}
         </div>
         <jb-form form-type="vertical">
             <jb-form-item

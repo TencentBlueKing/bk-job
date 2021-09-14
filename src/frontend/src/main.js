@@ -23,7 +23,6 @@
  * IN THE SOFTWARE.
 */
 
-import './public-path';
 import Vue from 'vue';
 import '@icon-cool/bk-icon-job';
 import '@icon-cool/bk-icon-job/src/index.js';

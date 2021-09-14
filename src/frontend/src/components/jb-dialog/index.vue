@@ -34,8 +34,7 @@
         :draggable="false"
         :show-footer="showFooter"
         :title="title"
-        @cancel="handleClose"
-        @confirm="handleConfirm">
+        @input="handleClose">
         <template v-if="isRender">
             <slot />
         </template>
@@ -169,6 +168,7 @@
                 if (window.changeAlert) {
                     cancelHandler = leaveConfirm();
                 }
+                
                 cancelHandler
                     .then(() => {
                         this.checkHandle();

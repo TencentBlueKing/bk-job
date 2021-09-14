@@ -1,7 +1,7 @@
 <template>
     <div class="task-manage-batch-edit-tag" v-bkloading="{ isLoading }">
         <div style="margin-bottom: 8px;">
-            {{ $t('template.范围') }}：{{ $t('template.共') }}<span class="strong number" style="color: #313238;">{{ templateNums }}</span>{{ $t('template.个作业') }}
+            {{ $t('template.范围') }}：{{ $t('template.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('template.个作业') }}
         </div>
         <jb-form form-type="vertical">
             <jb-form-item

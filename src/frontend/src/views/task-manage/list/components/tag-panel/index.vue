@@ -167,7 +167,6 @@
              * @param {Number} id 分类id
              */
             handleClassesSelect (id) {
-                console.log('from classes change', id);
                 if (this.classesId === id) {
                     return;
                 }
