@@ -228,18 +228,12 @@
               ]
             },
             {
-              "name": "高危语句规则管理",
-              "name_en": "High-risk Detect Rule Setting",
+              "name": "高危语句检测",
+              "name_en": "High-risk Detect",
               "actions": [
                 {
                   "id": "high-risk_detect_rule"
-                }
-              ]
-            },
-            {
-              "name": "高危语句拦截记录查看",
-              "name_en": "High-risk Detect Record",
-              "actions": [
+                },
                 {
                   "id": "high-risk_detect_record"
                 }
