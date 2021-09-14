@@ -517,9 +517,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         StringBuilder sb = new StringBuilder();
         sb.append("function outputVarOnExit(){\n");
         sb.append("  exit_code=$?\n");
-        sb.append("  if [ 0 == \"$exit_code\" ];then\n");
         if (taskVariablesAnalyzeResult.isExistAnyVar()) {
-            sb.append("    set|egrep '");
+            sb.append("  set|egrep '");
             int paramCount = taskVariablesAnalyzeResult.getAllVarNames().size();
             for (String paramName : taskVariablesAnalyzeResult.getAllVarNames()) {
                 sb.append("^").append(paramName).append("=");
@@ -535,14 +534,14 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         if (taskVariablesAnalyzeResult.isExistNamespaceVar()) {
             String namespaceParamOutputPath =
                 "${BASE_PATH}" + scriptFilePath + File.separator + namespaceParamsOutputFileName;
-            sb.append("    if [ ! -f ").append(namespaceParamOutputPath).append(" ];then\n");
-            sb.append("      touch ").append(namespaceParamOutputPath).append("\n");
-            sb.append("      chmod 700 ").append(namespaceParamOutputPath).append("\n");
-            sb.append("    fi\n");
-            sb.append("    sed -i 's/^[#]*/#/g' ").append(namespaceParamOutputPath).append("\n");
-            sb.append("    sed -i '$a #step_instance_id:").append(stepInstanceId).append("' ")
+            sb.append("  if [ ! -f ").append(namespaceParamOutputPath).append(" ];then\n");
+            sb.append("    touch ").append(namespaceParamOutputPath).append("\n");
+            sb.append("    chmod 700 ").append(namespaceParamOutputPath).append("\n");
+            sb.append("  fi\n");
+            sb.append("  sed -i 's/^[#]*/#/g' ").append(namespaceParamOutputPath).append("\n");
+            sb.append("  sed -i '$a #step_instance_id:").append(stepInstanceId).append("' ")
                 .append(namespaceParamOutputPath).append("\n");
-            sb.append("    set|egrep '");
+            sb.append("  set|egrep '");
             int paramCount = taskVariablesAnalyzeResult.getNamespaceVarNames().size();
             for (String paramName : taskVariablesAnalyzeResult.getNamespaceVarNames()) {
                 sb.append("^").append(paramName).append("=");
@@ -554,7 +553,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             sb.append("' >> ");
             sb.append(namespaceParamOutputPath).append("\n");
         }
-        sb.append("  fi\n");
+        sb.append("  return $exit_code");
         sb.append("}\n");
         return sb.toString();
     }
