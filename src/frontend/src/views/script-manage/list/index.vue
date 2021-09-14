@@ -277,7 +277,7 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import NotifyService from '@service/notify';
-    import { isPublicScript } from '@utils/assist';
+    import { checkPublicScript } from '@utils/assist';
     import { scriptNameRule } from '@utils/validator';
     import { listColumnsCache } from '@utils/cache-helper';
     import ListActionLayout from '@components/list-action-layout';
@@ -341,7 +341,7 @@
         },
         created () {
             // 公共脚本
-            this.isPublicScript = isPublicScript(this.$route);
+            this.isPublicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
             this.tagSericeHandler = this.isPublicScript ? PublicTagManageService : TagManageService;
             this.getScriptList = this.serviceHandler.scriptList;

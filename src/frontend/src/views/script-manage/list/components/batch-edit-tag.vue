@@ -106,7 +106,7 @@
     import TagManageService from '@service/tag-manage';
     import ScriptManageService from '@service/script-manage';
     import {
-        isPublicScript,
+        checkPublicScript,
         encodeRegexp,
     } from '@utils/assist';
     import OperationTag from '@components/operation-tag';
@@ -136,7 +136,7 @@
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
-            const publicScript = isPublicScript(proxy.$route);
+            const publicScript = checkPublicScript(proxy.$route);
             
             // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};

@@ -90,7 +90,7 @@
     import PublicScriptService from '@service/public-script-manage';
     import {
         formatScriptTypeValue,
-        isPublicScript,
+        checkPublicScript,
         getOffset,
         scriptErrorAlert,
     } from '@utils/assist';
@@ -126,7 +126,7 @@
             };
         },
         created () {
-            this.publicScript = isPublicScript(this.$route);
+            this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
             this.rules = {

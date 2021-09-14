@@ -93,7 +93,7 @@
     import TagManageService from '@service/tag-manage';
     import I18n from '@/i18n';
     import {
-        isPublicScript,
+        checkPublicScript,
         leaveConfirm,
     } from '@utils/assist';
     import {
@@ -137,7 +137,7 @@
             },
         },
         created () {
-            this.publicScript = isPublicScript(this.$route);
+            this.publicScript = checkPublicScript(this.$route);
             
             this.fetchData();
 
