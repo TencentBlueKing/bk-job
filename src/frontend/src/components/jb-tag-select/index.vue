@@ -58,8 +58,16 @@
             header-position="left"
             :width="480"
             @click.stop="">
-            <jb-form form-type="vertical" :model="formData" :rules="rules" ref="tagCreateForm">
-                <jb-form-item :label="$t('标签名称')" required property="tagName" style="margin-bottom: 0;">
+            <jb-form
+                form-type="vertical"
+                :model="formData"
+                :rules="rules"
+                ref="tagCreateForm">
+                <jb-form-item
+                    :label="$t('标签名称')"
+                    required
+                    property="tagName"
+                    style="margin-bottom: 0;">
                     <bk-input
                         v-model="formData.tagName"
                         :native-attributes="{ autofocus: 'autofocus' }"

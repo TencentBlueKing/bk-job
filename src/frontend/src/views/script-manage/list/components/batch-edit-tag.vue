@@ -44,11 +44,11 @@
                                             {{ tagRelateNumMap[tagItem.id] }}/{{ templateNums }}
                                         </span>
                                     </template>
-                                    <Icon
+                                    <span
                                         v-if="tagItem.isNew"
-                                        type="new"
-                                        svg
-                                        class="new-tag-flag" />
+                                        class="new-tag-flag">
+                                        new
+                                    </span>
                                 </bk-checkbox>
                             </bk-checkbox-group>
                         </scroll-faker>
@@ -64,15 +64,22 @@
                             </bk-button>
                         </Empty>
                     </div>
-                    <div
-                        v-if="!publicScript"
-                        class="tag-create"
-                        @click="handleNew">
-                        <bk-icon
-                            type="plus-circle"
-                            style=" margin-right: 8px; font-size: 16px;" />
-                        <span>{{ $t('script.新增标签') }}</span>
-                    </div>
+                    <template v-if="!publicScript">
+                        <auth-component auth="tag/create">
+                            <div class="tag-create" @click="handleNew">
+                                <bk-icon
+                                    type="plus-circle"
+                                    style=" margin-right: 8px; font-size: 16px;" />
+                                <span>{{ $t('script.新增标签') }}</span>
+                            </div>
+                            <div slot="forbid" class="tag-create">
+                                <bk-icon
+                                    type="plus-circle"
+                                    style=" margin-right: 8px; font-size: 16px;" />
+                                <span>{{ $t('script.新增标签') }}</span>
+                            </div>
+                        </auth-component>
+                    </template>
                 </div>
             </jb-form-item>
         </jb-form>
@@ -363,7 +370,7 @@
 
             .relate-all,
             .relate-nums {
-                padding: 0 5px;
+                padding: 0 4px;
                 font-size: 12px;
                 font-weight: 500;
                 line-height: 16px;
@@ -381,9 +388,14 @@
             }
 
             .new-tag-flag {
+                padding: 0 5px;
                 margin-left: 5px;
-                font-size: 18px;
+                font-size: 12px;
+                line-height: 16px;
+                color: #ff9c01;
                 vertical-align: middle;
+                background: #ffe8c3;
+                border-radius: 2px;
             }
         }
 

@@ -44,11 +44,11 @@
                                             {{ tagRelateNumMap[tagItem.id] }}/{{ templateNums }}
                                         </span>
                                     </template>
-                                    <Icon
+                                    <span
                                         v-if="tagItem.isNew"
-                                        type="new"
-                                        svg
-                                        class="new-tag-flag" />
+                                        class="new-tag-flag">
+                                        new
+                                    </span>
                                 </bk-checkbox>
                             </bk-checkbox-group>
                         </scroll-faker>
@@ -60,14 +60,20 @@
                             <bk-button text @click="handleClearSearch">{{ $t('template.清空搜索') }}</bk-button>
                         </Empty>
                     </div>
-                    <div class="tag-create" @click="handleNew">
-                        <auth-component auth="tag/create">
+                    <auth-component auth="tag/create">
+                        <div class="tag-create" @click="handleNew">
                             <bk-icon
                                 type="plus-circle"
                                 style=" margin-right: 8px; font-size: 16px;" />
                             <span>{{ $t('template.新增标签') }}</span>
-                        </auth-component>
-                    </div>
+                        </div>
+                        <div slot="forbid" class="tag-create">
+                            <bk-icon
+                                type="plus-circle"
+                                style=" margin-right: 8px; font-size: 16px;" />
+                            <span>{{ $t('template.新增标签') }}</span>
+                        </div>
+                    </auth-component>
                 </div>
             </jb-form-item>
         </jb-form>
@@ -373,9 +379,14 @@
             }
 
             .new-tag-flag {
+                padding: 0 4px;
                 margin-left: 5px;
-                font-size: 18px;
+                font-size: 12px;
+                line-height: 16px;
+                color: #ff9c01;
                 vertical-align: middle;
+                background: #ffe8c3;
+                border-radius: 2px;
             }
         }
 

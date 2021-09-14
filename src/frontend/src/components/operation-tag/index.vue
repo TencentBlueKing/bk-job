@@ -1,7 +1,7 @@
 <template>
     <jb-dialog
         :value="value"
-        @input="handleCloseDialog"
+        @input="handleCancel"
         :title="dialogInfo.title"
         header-position="left"
         :mask-close="false"
@@ -127,12 +127,9 @@
              * @desc 更新弹窗显示状态
              */
             const handleCloseDialog = () => {
-                leaveConfirm()
-                    .then(() => {
-                        ctx.emit('change', false);
-                        ctx.emit('input', false);
-                        state.formData = genDefaultData();
-                    });
+                ctx.emit('change', false);
+                ctx.emit('input', false);
+                state.formData = genDefaultData();
             };
             /**
              * @desc 提交操作结果
@@ -169,7 +166,10 @@
              * @desc 取消编辑
              */
             const handleCancel = () => {
-                handleCloseDialog();
+                leaveConfirm()
+                    .then(() => {
+                        handleCloseDialog();
+                    });
             };
             
             return {

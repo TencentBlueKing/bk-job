@@ -223,6 +223,7 @@
                         deleteTagIdList,
                     }))
                     .then(() => {
+                        proxy.messageSuccess(I18n.t('tag.批量流转关联项成功'));
                         ctx.emit('on-change');
                     });
             };
