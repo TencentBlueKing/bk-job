@@ -128,7 +128,7 @@
     import CardLayout from '@components/task-step/file/card-layout';
     import ItemFactory from '@components/task-step/file/item-factory';
     import {
-        getScriptName,
+        genDefaultName,
         compareHost,
         detectionSourceFileDupLocation,
     } from '@utils/assist';
@@ -138,7 +138,7 @@
 
     const getDefaultData = () => ({
         // 快速执行name
-        name: getScriptName(I18n.t('execution.快速执行分发文件')),
+        name: genDefaultName(I18n.t('execution.快速执行分发文件')),
         // 源文件列表
         fileSourceList: [],
         // 超时

@@ -27,7 +27,12 @@ import Cookie from 'js-cookie';
 
 export const defaultValue = value => value || '--';
 
-export const getScriptName = (name) => {
+/**
+ * @desc 生成默认名称
+ * @param { String } prefixStr 名称前缀
+ * @returns { String }
+ */
+export const genDefaultName = (prefixStr = 'auto') => {
     const formatStr = (str) => {
         if (String(str).length === 1) {
             return `0${str}`;
@@ -46,10 +51,14 @@ export const getScriptName = (name) => {
         formatStr(d.getSeconds()),
         d.getMilliseconds(),
     ];
-    return `${name}_${temp.join('')}`;
+    return `${prefixStr}_${temp.join('')}`;
 };
 
-export const getScriptVersion = (time) => {
+/**
+ * @desc 生成默认脚本版本号
+ * @returns { String }
+ */
+export const genDefaultScriptVersion = () => {
     const uid = Cookie.get('job_user');
     const formatStr = (str) => {
         if (String(str).length === 1) {
@@ -67,14 +76,14 @@ export const getScriptVersion = (time) => {
     const millSeconds = formatStr(d.getMilliseconds());
 
     const temp = [
-        d.getFullYear(), month, date, hours, minutes, seconds, millSeconds,
+        d.getFullYear(),
+        month,
+        date,
+        hours,
+        minutes,
+        seconds,
+        millSeconds,
     ];
-    if (time) {
-        const t = [
-            d.getFullYear(), month, date, hours, minutes, seconds,
-        ];
-        const str = t.reduce((result, item) => `${result}${item}`, '');
-        return `${uid}.${str}`;
-    }
+    
     return `${uid}.${temp.join('')}`;
 };

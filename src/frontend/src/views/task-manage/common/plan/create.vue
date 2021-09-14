@@ -85,7 +85,7 @@
     import TaskManageService from '@service/task-manage';
     import ExecPlanService from '@service/task-plan';
     import {
-        getScriptName,
+        genDefaultName,
         findUsedVariable,
     } from '@utils/assist';
     import {
@@ -99,7 +99,7 @@
     
     const getDefaultData = () => ({
         id: 0,
-        name: getScriptName(I18n.t('template.执行方案.label')),
+        name: genDefaultName(I18n.t('template.执行方案.label')),
         enableSteps: [],
         templateId: 0,
         variables: [],
@@ -199,7 +199,7 @@
                     this.taskStepList = Object.freeze(stepList);
                     
                     // 新建执行方案默认值处理
-                    let planName = getScriptName(I18n.t('template.执行方案.label'));
+                    let planName = genDefaultName(I18n.t('template.执行方案.label'));
                     if (this.firstPlan) {
                         // 第一个执行方案名默认和模板名相同
                         planName = name;

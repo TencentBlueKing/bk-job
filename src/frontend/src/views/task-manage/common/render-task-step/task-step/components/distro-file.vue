@@ -103,7 +103,7 @@
     import CardLayout from '@components/task-step/file/card-layout';
     import ItemFactory from '@components/task-step/file/item-factory';
     import {
-        getScriptName,
+        genDefaultName,
         compareHost,
         detectionSourceFileDupLocation,
     } from '@utils/assist';
@@ -111,7 +111,7 @@
     const getDefaultData = () => ({
         id: 0,
         // 步骤名称
-        name: getScriptName(I18n.t('template.步骤分发文件')),
+        name: genDefaultName(I18n.t('template.步骤分发文件')),
         // 源文件列表
         fileSourceList: [],
         // 超时

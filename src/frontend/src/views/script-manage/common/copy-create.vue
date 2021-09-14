@@ -107,7 +107,7 @@
     import AceEditor from '@components/ace-editor';
     import {
         formatScriptTypeValue,
-        getScriptVersion,
+        genDefaultScriptVersion,
         checkPublicScript,
         getOffset,
         leaveConfirm,
@@ -120,7 +120,7 @@
     const genDefaultFormData = () => ({
         id: '',
         typeName: 'Shell',
-        version: getScriptVersion(),
+        version: genDefaultScriptVersion(),
         versionDesc: '',
         type: 1,
         content: '',

@@ -83,23 +83,42 @@ export default class SourceFile extends Model {
         this.canView = payload.canView;
     }
 
-    // 文件源访问是否正常
+    /**
+     * @desc 文件源访问是否正常
+     * @returns { Boolean }
+     */
     get isAvailable () {
         return this.status === STATUS_NORMAL;
     }
 
+    /**
+     * @desc 文件源状态展示文本
+     * @returns { String }
+     */
     get statusText () {
         return SourceFile.STATUS_TEXT_MAP[this.status];
     }
 
+    /**
+     * @desc 文件源状态显示 icon 名
+     * @returns { String }
+     */
     get statusIcon () {
         return SourceFile.STATUS_ICON_MAP[this.status];
     }
 
+    /**
+     * @desc 存储类型显示文本
+     * @returns { String }
+     */
     get storageTypeText () {
         return SourceFile.STORAGE_TYPE_MAP[this.storageType];
     }
 
+    /**
+     * @desc 公共文件源标识
+     * @returns { String }
+     */
     get publicFlagHtml () {
         let styles = 'display: inline-block; font-size: 12px; padding: 0 3px;';
         if (this.publicFlag) {

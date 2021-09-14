@@ -123,12 +123,8 @@
 <script>
     import I18n from '@/i18n';
     import BackupService from '@service/backup';
-    import {
-        getScriptName,
-    } from '@utils/assist';
-    import {
-        taskExport,
-    } from '@utils/cache-helper';
+    import { genDefaultName } from '@utils/assist';
+    import { taskExport } from '@utils/cache-helper';
 
     export default {
         data () {
@@ -136,7 +132,7 @@
             return {
                 isSubmiting: false,
                 formData: {
-                    packageName: getScriptName(`bk_job_export_${window.PROJECT_CONFIG.APP_ID}`).slice(0, 40),
+                    packageName: genDefaultName(`bk_job_export_${window.PROJECT_CONFIG.APP_ID}`).slice(0, 40),
                     secretHandler: 1,
                     isEncrypt: 2,
                     password: '',

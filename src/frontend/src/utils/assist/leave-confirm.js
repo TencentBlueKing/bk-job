@@ -26,6 +26,11 @@
 import Vue from 'vue';
 import I18n from '@/i18n';
 
+/**
+ * @desc 页面编辑状态未保存离开确认
+ * @param { String } message
+ * @returns { Promise }
+ */
 export const leaveConfirm = (message = I18n.t('离开将会导致未保存信息丢失')) => {
     if (!window.changeAlert || window.changeAlert === 'jbSidesider') {
         return Promise.resolve();

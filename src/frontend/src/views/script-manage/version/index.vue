@@ -319,7 +319,7 @@
         checkPublicScript,
         leaveConfirm,
         getOffset,
-        getScriptVersion,
+        genDefaultScriptVersion,
         encodeRegexp,
     } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
@@ -825,7 +825,7 @@
                     ...currentScriptVersion,
                     scriptVersionId: -1,
                     status: -1,
-                    version: getScriptVersion().slice(0, 30),
+                    version: genDefaultScriptVersion().slice(0, 30),
                 });
                 this.isListFlod = true;
                 this.lastSelectScriptVersionId = this.selectVersionId;

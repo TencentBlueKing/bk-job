@@ -90,7 +90,7 @@
     import TaskStepModel from '@model/task/task-step';
     import TaskHostNodeModel from '@model/task-host-node';
     import {
-        getScriptName,
+        genDefaultName,
         scriptErrorAlert,
     } from '@utils/assist';
     import ItemFactory from '@components/task-step/script/item-factory';
@@ -98,7 +98,7 @@
     const getDefaultData = () => ({
         isScriptContentLoading: false,
         // 脚本步骤名称
-        name: getScriptName(I18n.t('template.步骤执行脚本')),
+        name: genDefaultName(I18n.t('template.步骤执行脚本')),
         // 错误处理
         ignoreError: 0,
         // 脚本步骤的id

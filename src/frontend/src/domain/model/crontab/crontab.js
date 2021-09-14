@@ -255,6 +255,11 @@ export default class Crontab {
         return this.lastFailRecord.length > 0;
     }
 
+    /**
+     * @desc 定时任务全局变量
+     * @param { Array } variableValue
+     * @returns { Array }
+     */
     initVariableValue (variableValue) {
         if (!_.isArray(variableValue)) {
             return [];
@@ -262,6 +267,11 @@ export default class Crontab {
         return variableValue.map(_ => new CrontabVariableModel(_));
     }
 
+    /**
+     * @desc 定时任务消息通知人
+     * @param { Object } payload
+     * @returns { Object }
+     */
     initNotifyUser (payload) {
         if (!_.isObject(payload)) {
             return {
