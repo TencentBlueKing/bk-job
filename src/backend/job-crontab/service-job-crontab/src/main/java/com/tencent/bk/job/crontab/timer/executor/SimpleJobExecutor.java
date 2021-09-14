@@ -118,7 +118,6 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         if (log.isDebugEnabled()) {
             log.debug("Get cronjob Error info return|{}", cronJobErrorInfo);
         }
-        Integer lastExecuteStatus = cronJobErrorInfo.getLastExecuteStatus();
 
         List<CronJobVariableDTO> variables = cronJobInfo.getVariableValue();
         List<ServiceTaskVariable> taskVariables = null;
@@ -164,7 +163,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                 cronJobInfo.getLastModifyTime());
         }
 
-        if (executeFailed && isNotify(cronJobErrorInfo, lastExecuteStatus)) {
+        if (executeFailed && isNotify(cronJobErrorInfo, cronJobInfo.getLastExecuteStatus())) {
             notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
             if (log.isDebugEnabled()) {
                 log.debug("Send cronjob failed notification, execute error count is {}", cronJobErrorInfo.getLastExecuteErrorCount());
