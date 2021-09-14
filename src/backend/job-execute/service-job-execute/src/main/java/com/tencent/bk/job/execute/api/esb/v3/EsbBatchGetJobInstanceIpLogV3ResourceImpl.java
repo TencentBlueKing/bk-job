@@ -134,7 +134,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         }
 
         int ipSize = request.getIpList().size();
-        if (ipSize >= 500) {
+        if (ipSize > 500) {
             log.warn("IpList size is gt 500, stepInstanceId={}, size: {}", request.getStepInstanceId(), ipSize);
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
                 "ip_list");
@@ -186,7 +186,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             IpDTO cloudIp = IpUtils.transform(ipLogContent.getIp());
             scriptIpLog.setCloudAreaId(cloudIp.getCloudAreaId());
             scriptIpLog.setIp(cloudIp.getIp());
-            scriptIpLog.setLogContent(scriptIpLog.getLogContent());
+            scriptIpLog.setLogContent(ipLogContent.getContent());
             return scriptIpLog;
         }).collect(Collectors.toList());
         ipLogs.setScriptTaskLogs(scriptTaskLogs);
