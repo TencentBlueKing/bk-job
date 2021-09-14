@@ -39,7 +39,12 @@ import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.model.CopyFileRsp;
 import com.tencent.bk.job.execute.engine.gse.model.GSEFileTaskResult;
-import com.tencent.bk.job.execute.engine.model.*;
+import com.tencent.bk.job.execute.engine.model.FileTaskLog;
+import com.tencent.bk.job.execute.engine.model.GseLog;
+import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.engine.util.Utils;
@@ -49,13 +54,18 @@ import com.tencent.bk.job.execute.model.GseTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
@@ -230,7 +240,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         long currentTime = DateUtils.currentTimeMillis();
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
         // 执行日志, Map<ip, 日志>
-        Map<String, ServiceLogDTO> executionLogs = new HashMap<>();
+        Map<String, ServiceIpLogDTO> executionLogs = new HashMap<>();
 
         for (Map.Entry<String, String> ipResult : ipResults) {
             CopyFileRsp copyFileRsp = parseCopyFileRspFromGSELog(ipResult);
@@ -283,7 +293,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return analyseExecuteResult();
     }
 
-    private void analyseFileResult(String cloudIp, CopyFileRsp copyFileRsp, Map<String, ServiceLogDTO> executionLogs,
+    private void analyseFileResult(String cloudIp, CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs,
                                    boolean isDownloadLog) {
         GseTaskIpLogDTO ipLog = this.ipLogMap.get(cloudIp);
         if (ipLog.getStartTime() == null) {
@@ -555,7 +565,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
 
-    private void dealIpTaskFail(CopyFileRsp copyFileRsp, Map<String, ServiceLogDTO> executionLogs) {
+    private void dealIpTaskFail(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         boolean isDownloadError = taskResult.isDownloadMode();
         // 被该错误影响的ip
@@ -651,7 +661,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return sj.toString();
     }
 
-    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<String, ServiceLogDTO> executionLogs,
+    private void dealUploadFail(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs,
                                 Set<String> affectIps) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String sourceCloudIp = taskResult.getSourceCloudIp();
@@ -753,7 +763,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /*
      * 从执行结果生成执行日志
      */
-    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<String, ServiceLogDTO> executionLogs) {
+    private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         if (null != taskResult) {
             Integer mode = taskResult.getMode();
@@ -871,11 +881,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return formatter.format(speed);
     }
 
-    private void addFileTaskLog(Map<String, ServiceLogDTO> executionLogs, String ip,
+    private void addFileTaskLog(Map<String, ServiceIpLogDTO> executionLogs, String ip,
                                 ServiceFileTaskLogDTO fileTaskLog) {
-        ServiceLogDTO ipExecutionLog = executionLogs.get(ip);
+        ServiceIpLogDTO ipExecutionLog = executionLogs.get(ip);
         if (ipExecutionLog == null) {
-            ipExecutionLog = new ServiceLogDTO();
+            ipExecutionLog = new ServiceIpLogDTO();
             ipExecutionLog.setStepInstanceId(stepInstanceId);
             ipExecutionLog.setIp(ip);
             ipExecutionLog.setExecuteCount(stepInstance.getExecuteCount());
@@ -884,7 +894,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         ipExecutionLog.addFileTaskLog(fileTaskLog);
     }
 
-    private void writeFileTaskLogContent(Map<String, ServiceLogDTO> executionLogs) {
+    private void writeFileTaskLogContent(Map<String, ServiceIpLogDTO> executionLogs) {
         executionLogs.forEach((ip, executionLog) -> {
             logService.writeFileLogWithTimestamp(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(), ip, executionLog, System.currentTimeMillis());

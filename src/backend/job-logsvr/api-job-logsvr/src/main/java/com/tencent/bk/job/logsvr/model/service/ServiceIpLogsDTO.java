@@ -22,45 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model;
+package com.tencent.bk.job.logsvr.model.service;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
-@Data
-@NoArgsConstructor
-public class ScriptLogQuery {
-    /**
-     * 作业实例创建时间,格式yyyy_MM_dd
-     */
-    private String jobCreateDate;
+@ApiModel("主机执行日志-批量")
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ServiceIpLogsDTO {
     /**
      * 作业步骤实例ID
      */
+    @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
-    /**
-     * 执行任务的主机ip
-     */
-    private List<String> ips;
+
     /**
      * 执行次数
      */
+    @ApiModelProperty("执行次数")
     private Integer executeCount;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, String ip, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = Collections.singletonList(ip);
-        this.executeCount = executeCount;
-    }
+    /**
+     * 主机执行日志列表
+     */
+    @ApiModelProperty(value = "主机执行日志")
+    @JsonProperty("ipLogs")
+    private List<ServiceIpLogDTO> ipLogs;
 
-    public ScriptLogQuery(String jobCreateDate, Long stepInstanceId, List<String> ips, Integer executeCount) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ips = ips;
-        this.executeCount = executeCount;
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ServiceIpLogsDTO.class.getSimpleName() + "[", "]")
+            .add("stepInstanceId=" + stepInstanceId)
+            .add("executeCount=" + executeCount)
+            .add("ipLogs=" + ipLogs)
+            .toString();
     }
 }

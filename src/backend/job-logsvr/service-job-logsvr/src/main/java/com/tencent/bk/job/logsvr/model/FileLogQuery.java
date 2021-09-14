@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.logsvr.model;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.List;
 import java.util.StringJoiner;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class FileLogQuery {
     /**
      * 作业实例创建时间,格式yyyy_MM_dd
@@ -45,6 +48,10 @@ public class FileLogQuery {
      */
     private String ip;
     /**
+     * 执行任务的主机ip列表
+     */
+    private List<String> ips;
+    /**
      * 执行次数
      */
     private Integer executeCount;
@@ -55,20 +62,13 @@ public class FileLogQuery {
      */
     private Integer mode;
 
-    public FileLogQuery(String jobCreateDate, Long stepInstanceId, String ip, Integer executeCount, Integer mode) {
-        this.jobCreateDate = jobCreateDate;
-        this.stepInstanceId = stepInstanceId;
-        this.ip = ip;
-        this.executeCount = executeCount;
-        this.mode = mode;
-    }
-
     @Override
     public String toString() {
         return new StringJoiner(", ", FileLogQuery.class.getSimpleName() + "[", "]")
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("stepInstanceId=" + stepInstanceId)
             .add("ip='" + ip + "'")
+            .add("ips='" + ips + "'")
             .add("executeCount=" + executeCount)
             .add("mode=" + mode)
             .toString();
