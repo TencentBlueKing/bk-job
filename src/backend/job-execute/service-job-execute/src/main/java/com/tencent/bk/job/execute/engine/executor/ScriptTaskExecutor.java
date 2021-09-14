@@ -553,7 +553,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             sb.append("' >> ");
             sb.append(namespaceParamOutputPath).append("\n");
         }
-        sb.append("  return $exit_code");
+        sb.append("  return $exit_code\n");
         sb.append("}\n");
         return sb.toString();
     }
