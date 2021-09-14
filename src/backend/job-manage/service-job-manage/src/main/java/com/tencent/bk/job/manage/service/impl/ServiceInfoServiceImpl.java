@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.ServiceInstanceInfoDTO;
@@ -97,11 +96,9 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
             if (serviceInstance.getServiceId().equals("job-gateway-management")) {
                 return false;
             } else {
-                Map<String, String> tagMap = serviceInstance.getMetadata();
-                return tagMap.containsKey(JobDiscoveryConsts.TAG_KEY_TYPE)
-                    && JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE
-                    .equals(tagMap.get(JobDiscoveryConsts.TAG_KEY_TYPE))
-                    && serviceInstance.getServiceId().startsWith("job");
+                Map<String, String> metaData = serviceInstance.getMetadata();
+                log.debug("metaData={}", JsonUtils.toJson(metaData));
+                return serviceInstance.getServiceId().startsWith("job");
             }
         }).map(serviceInstance -> {
             ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
