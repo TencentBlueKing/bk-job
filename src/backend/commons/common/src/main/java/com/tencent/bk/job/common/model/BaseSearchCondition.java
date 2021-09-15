@@ -35,7 +35,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class BaseSearchCondition {
+public class BaseSearchCondition implements Cloneable {
     /**
      * 分页起始
      */
@@ -48,9 +48,9 @@ public class BaseSearchCondition {
     private Integer length;
 
     /**
-     * 排序 0：逆序 1：正序
+     * 排序 0：降序 1：升序
      */
-    @ApiModelProperty(value = "排序 0：逆序 1：正序", required = false)
+    @ApiModelProperty(value = "排序 0：降序 1：升序", required = false)
     private Integer order;
 
     /**
@@ -99,6 +99,21 @@ public class BaseSearchCondition {
     public boolean isGetAll() {
         return start != null && start == -1
             && length != null && length == -1;
+    }
+
+    public BaseSearchCondition clone() {
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(start);
+        baseSearchCondition.setLength(length);
+        baseSearchCondition.setOrderField(orderField);
+        baseSearchCondition.setOrder(order);
+        baseSearchCondition.setCreateTimeEnd(createTimeEnd);
+        baseSearchCondition.setCreateTimeStart(createTimeStart);
+        baseSearchCondition.setCreator(creator);
+        baseSearchCondition.setLastModifyUser(lastModifyUser);
+        baseSearchCondition.setLastModifyTimeStart(lastModifyTimeStart);
+        baseSearchCondition.setLastModifyTimeEnd(lastModifyTimeEnd);
+        return baseSearchCondition;
     }
 
 }

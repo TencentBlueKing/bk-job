@@ -22,25 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
-/**
- * 脚本新增、更新请求
- */
-
-@Data
-@ApiModel("标签新增请求报文")
-public class TagCreateReq {
-    /**
-     * 标签名称
-     */
-    @ApiModelProperty(value = "标签名称", required = true)
-    private String tagName;
-
-}
-
-
+USE job_manage;
+TRUNCATE TABLE `resource_tag`;
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (1, '1', 1);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (1, '1', 2);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (1, '2', 1);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (1, '3', 3);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (1, '3', 4);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (5, '1', 1);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (5, '1', 2);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (5, '2', 1);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (5, '3', 3);
+INSERT INTO `resource_tag` (resource_type, resource_id, tag_id) VALUES (5, '3', 4);

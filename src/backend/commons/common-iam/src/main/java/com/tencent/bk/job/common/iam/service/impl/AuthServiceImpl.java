@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
+    public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
                                                String resourceId) {
         // 业务集、全业务特殊鉴权
         if (resourceAppInfoQueryService != null) {

@@ -89,7 +89,7 @@ public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDA
     }
 
     private ScriptSyncTemplateStepDTO extract(Record record) {
-        if (record == null || record.size() == 0) {
+        if (record == null) {
             return null;
         }
         ScriptSyncTemplateStepDTO templateStep = new ScriptSyncTemplateStepDTO();

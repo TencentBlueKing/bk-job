@@ -53,7 +53,7 @@ public interface WebPublicTagResource {
                                           @RequestHeader("username")
                                               String username,
                                           @ApiParam("标签名称")
-                                          @RequestParam(value = "tagName", required = false)
-                                              String tagName);
+                                          @RequestParam(value = "name", required = false)
+                                              String name);
 
 }

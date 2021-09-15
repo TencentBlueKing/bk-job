@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.template.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.DataConsistencyException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -39,6 +40,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
@@ -46,6 +48,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
@@ -66,6 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,27 +78,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * @since 16/10/2019 19:38
- */
 @Slf4j
 @Service("TaskTemplateServiceImpl")
 public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private final TagService tagService;
-    private AbstractTaskStepService taskStepService;
-    private AbstractTaskVariableService taskVariableService;
-    private TaskTemplateDAO taskTemplateDAO;
-    private TemplateStatusUpdateService templateStatusUpdateService;
-    private TaskFavoriteService taskFavoriteService;
-    private CronJobService cronJobService;
+    private final AbstractTaskStepService taskStepService;
+    private final AbstractTaskVariableService taskVariableService;
+    private final TaskTemplateDAO taskTemplateDAO;
+    private final TemplateStatusUpdateService templateStatusUpdateService;
+    private final TaskFavoriteService taskFavoriteService;
+    private final CronJobService cronJobService;
 
     @Autowired
     private TaskPlanService taskPlanService;
-
     @Autowired
     private ScriptService scriptService;
-
     @Autowired
     private TaskTemplateService taskTemplateService;
 
@@ -132,78 +131,144 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public PageData<TaskTemplateInfoDTO> listPageTaskTemplates(
-        TaskTemplateInfoDTO templateCondition,
-        BaseSearchCondition baseSearchCondition,
-        List<Long> favoriteTemplateId
-    ) {
+    public PageData<TaskTemplateInfoDTO> listPageTaskTemplates(TaskTemplateQuery query) {
+
         PageData<TaskTemplateInfoDTO> templateInfoPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, favoriteTemplateId);
+            taskTemplateDAO.listPageTaskTemplates(query);
         templateInfoPageData.getData().forEach(templateInfo -> {
             templateInfo.setStepList(taskStepService.listStepsByParentId(templateInfo.getId()));
             templateInfo.setVariableList(taskVariableService.listVariablesByParentId(templateInfo.getId()));
         });
+        setTags(query.getAppId(), templateInfoPageData.getData());
         return templateInfoPageData;
     }
 
+    private void setTags(Long appId, List<TaskTemplateInfoDTO> templateInfoList) {
+        List<String> templateIds = templateInfoList.stream().map(template -> String.valueOf(template.getId()))
+            .collect(Collectors.toList());
+        List<ResourceTagDTO> resourceTags = tagService.listResourceTagsByResourceTypeAndResourceIds(appId,
+            JobResourceTypeEnum.TEMPLATE.getValue(), templateIds);
+
+        Map<Long, List<ResourceTagDTO>> templateTags = new HashMap<>();
+        resourceTags.forEach(resourceTag -> {
+            Long templateId = Long.parseLong(resourceTag.getResourceId());
+            templateTags.computeIfAbsent(templateId, k -> new ArrayList<>());
+            templateTags.get(templateId).add(resourceTag);
+        });
+
+        templateInfoList.forEach(template -> {
+            List<ResourceTagDTO> tags = templateTags.get(template.getId());
+            if (CollectionUtils.isNotEmpty(tags)) {
+                template.setTags(buildTags(tags));
+            }
+        });
+    }
+
+    private List<TagDTO> buildTags(List<ResourceTagDTO> resourceTags) {
+        return resourceTags.stream().map(ResourceTagDTO::getTag)
+            .sorted(Comparator.comparing(TagDTO::getName)).collect(Collectors.toList());
+    }
+
     @Override
-    public PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(
-        TaskTemplateInfoDTO templateCondition,
-        BaseSearchCondition baseSearchCondition,
-        List<Long> favoredTemplateIdList
-    ) {
+    public PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(TaskTemplateQuery query,
+                                                                        List<Long> favoredTemplateIdList) {
+        boolean matchAnyFavoredTemplate = false;
+        List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
+        List<TaskTemplateInfoDTO> matchedFavoredTemplatesOnCurrentPage = null;
+
+        BaseSearchCondition baseSearchCondition = query.getBaseSearchCondition();
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         boolean getAll = baseSearchCondition.isGetAll();
 
-        boolean hasFavored = false;
-        List<TaskTemplateInfoDTO> favoredTemplateInfos = null;
-        if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
-            favoredTemplateInfos = taskTemplateDAO.listTaskTemplateByIds(templateCondition.getAppId(),
-                favoredTemplateIdList, templateCondition, baseSearchCondition);
-            if (CollectionUtils.isNotEmpty(favoredTemplateInfos)) {
-                hasFavored = true;
+        if (!query.isExistIdCondition()) {
+            query.setExcludeTemplateIds(favoredTemplateIdList);
+            transformTagConditionToTemplateIds(query);
+
+            if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
+                TaskTemplateQuery favoredTemplateQuery = query.clone();
+                favoredTemplateQuery.setExcludeTemplateIds(null);
+                if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
+                    // remain common template ids
+                    favoredTemplateQuery.getIds().retainAll(favoredTemplateIdList);
+                } else {
+                    favoredTemplateQuery.setIds(favoredTemplateIdList);
+                }
+                if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
+                    matchedFavoredTemplates = taskTemplateDAO.listTaskTemplates(favoredTemplateQuery);
+                }
+                log.debug("FavoredTemplateQuery: {}, templates: {}", favoredTemplateQuery, matchedFavoredTemplates);
+                if (CollectionUtils.isNotEmpty(matchedFavoredTemplates)) {
+                    matchAnyFavoredTemplate = true;
+                }
+            }
+
+            if (matchAnyFavoredTemplate && !getAll) {
+                if (matchedFavoredTemplates.size() <= start) {
+                    baseSearchCondition.setStart(start - matchedFavoredTemplates.size());
+                    matchedFavoredTemplatesOnCurrentPage = null;
+                } else {
+                    matchedFavoredTemplatesOnCurrentPage = matchedFavoredTemplates.subList(start,
+                        Math.min(matchedFavoredTemplates.size(), start + length));
+                    baseSearchCondition.setStart(0);
+                    baseSearchCondition.setLength(Math.max(1, start + length - matchedFavoredTemplates.size()));
+                }
             }
         }
 
-        if (hasFavored && CollectionUtils.isNotEmpty(favoredTemplateInfos) && !getAll) {
-            if (favoredTemplateInfos.size() < start) {
-                baseSearchCondition.setStart(start - favoredTemplateInfos.size());
-                favoredTemplateInfos = null;
-            } else {
-                favoredTemplateInfos.subList(0, start).clear();
-                baseSearchCondition.setStart(0);
-                baseSearchCondition.setLength(length - favoredTemplateInfos.size());
+        PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
+
+        log.debug("TemplateQuery: {}, templates: {}", query, templatePageData);
+
+        if (matchAnyFavoredTemplate) {
+            if (CollectionUtils.isNotEmpty(matchedFavoredTemplatesOnCurrentPage)) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplatesOnCurrentPage);
             }
-        }
-
-        PageData<TaskTemplateInfoDTO> templateInfoPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, favoredTemplateIdList);
-
-        if (hasFavored && CollectionUtils.isNotEmpty(favoredTemplateInfos)) {
-            templateInfoPageData.getData().addAll(0, favoredTemplateInfos);
             if (!getAll) {
-                if (length < templateInfoPageData.getData().size()) {
-                    templateInfoPageData.getData().subList(length, templateInfoPageData.getData().size()).clear();
+                if (length < templatePageData.getData().size()) {
+                    templatePageData.getData().subList(length, templatePageData.getData().size()).clear();
                 }
             }
         }
 
         if (!getAll) {
-            templateInfoPageData.setStart(start);
-            templateInfoPageData.setPageSize(length);
+            templatePageData.setStart(start);
+            templatePageData.setPageSize(length);
+            if (matchAnyFavoredTemplate) {
+                templatePageData.setTotal(matchedFavoredTemplates.size() + templatePageData.getTotal());
+            }
         }
 
-        if (CollectionUtils.isNotEmpty(templateInfoPageData.getData())) {
-            templateInfoPageData.getData().forEach(TaskTemplateServiceImpl::setUpdateFlag);
+        if (CollectionUtils.isNotEmpty(templatePageData.getData())) {
+            templatePageData.getData().forEach(TaskTemplateServiceImpl::setUpdateFlag);
         }
-        return templateInfoPageData;
+
+        setTags(query.getAppId(), templatePageData.getData());
+        return templatePageData;
+    }
+
+    private void transformTagConditionToTemplateIds(TaskTemplateQuery query) {
+        List<Long> matchTemplateIds = new ArrayList<>();
+        if (query.isUntaggedTemplate()) {
+            // untagged template
+            List<Long> taggedTemplateIds = tagService.listAppTaggedResourceIds(query.getAppId(),
+                JobResourceTypeEnum.TEMPLATE.getValue()).stream().map(Long::valueOf)
+                .collect(Collectors.toList());
+            matchTemplateIds.addAll(taskTemplateDAO.listAllAppTemplateId(query.getAppId()));
+            matchTemplateIds.removeAll(taggedTemplateIds);
+        } else if (CollectionUtils.isNotEmpty(query.getTags())) {
+            List<Long> tagIds = query.getTags().stream().map(TagDTO::getId).collect(Collectors.toList());
+            matchTemplateIds = tagService.listResourceIdsWithAllTagIds(JobResourceTypeEnum.TEMPLATE.getValue(),
+                tagIds).stream().map(Long::valueOf).collect(Collectors.toList());
+        }
+        query.setIds(matchTemplateIds);
     }
 
     @Override
     public TaskTemplateInfoDTO getTaskTemplateById(Long appId, Long templateId) {
         TaskTemplateInfoDTO templateInfo = taskTemplateDAO.getTaskTemplateById(appId, templateId);
         if (templateInfo != null) {
+            setTags(appId, Collections.singletonList(templateInfo));
             templateInfo.setStepList(taskStepService.listStepsByParentId(templateInfo.getId()));
             templateInfo.setVariableList(taskVariableService.listVariablesByParentId(templateInfo.getId()));
             setUpdateFlag(templateInfo);
@@ -232,7 +297,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 throw new ServiceException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
             }
             // 保存新增的标签并获取tagId
-            taskTemplateService.processTemplateTag(taskTemplateInfo);
+            taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
             // 获取引用的非线上脚本
             Map<String, Long> outdatedScriptMap = getOutdatedScriptMap(taskTemplateInfo.getStepList());
@@ -273,6 +338,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
                 templateId = taskTemplateInfo.getId();
             }
+
+            updateTemplateTags(taskTemplateInfo);
 
             // 写步骤
             taskTemplateService.processTemplateStep(taskTemplateInfo);
@@ -386,7 +453,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public void processTemplateTag(TaskTemplateInfoDTO taskTemplateInfo) {
+    public void createNewTagForTemplateIfNotExist(TaskTemplateInfoDTO taskTemplateInfo) {
         try {
             List<TagDTO> tags = taskTemplateInfo.getTags();
             if (tags != null && !tags.isEmpty()) {
@@ -420,37 +487,53 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         taskPlanService.deleteTaskPlanByTemplate(appId, templateId);
-        return taskTemplateDAO.deleteTaskTemplateById(appId, templateId);
+        taskTemplateDAO.deleteTaskTemplateById(appId, templateId);
+        tagService.batchDeleteResourceTags(appId, JobResourceTypeEnum.TEMPLATE.getValue(), String.valueOf(templateId));
+        return true;
     }
 
     @Override
     public TagCountVO getTagTemplateCount(Long appId) {
-        Map<Long, Long> templateTagCount = taskTemplateDAO.getTemplateTagCount(appId);
         TagCountVO tagCount = new TagCountVO();
+
+        List<String> appTemplateIds = taskTemplateDAO.listAllAppTemplateId(appId)
+            .stream().map(String::valueOf).collect(Collectors.toList());
+        tagCount.setTotal((long) appTemplateIds.size());
+
+        List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(appId,
+            JobResourceTypeEnum.TEMPLATE.getValue(), appTemplateIds);
+        Map<Long, Long> templateTagCount = tagService.countResourcesByTag(tags);
         tagCount.setTagCount(templateTagCount);
-        tagCount.setTotal(taskTemplateDAO.getAllTemplateCount(appId));
-        tagCount.setUnclassified(taskTemplateDAO.getUnclassifiedTemplateCount(appId));
+
+        long taggedTemplateCount = tags.stream()
+            .map(tag -> Long.valueOf(tag.getResourceId())).distinct().count();
+        tagCount.setUnclassified(appTemplateIds.size() - taggedTemplateCount);
+
         tagCount.setNeedUpdate(taskTemplateDAO.getNeedUpdateTemplateCount(appId));
         return tagCount;
     }
 
     @Override
     public Boolean saveTaskTemplateBasicInfo(TaskTemplateInfoDTO taskTemplateInfo) {
-        processTemplateTag(taskTemplateInfo);
+        createNewTagForTemplateIfNotExist(taskTemplateInfo);
+        updateTemplateTags(taskTemplateInfo);
         if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, false)) {
             throw new ServiceException(ErrorCode.UPDATE_TEMPLATE_FAILED);
         }
         return true;
     }
 
-    @Override
-    public Map<Long, List<Long>> listTemplateScriptVersionInfo(Long appId, List<Long> templateIdList) {
-        return taskStepService.batchListScriptStepVersionIdsByTemplateIds(appId, templateIdList);
+    private void updateTemplateTags(TaskTemplateInfoDTO taskTemplateInfo) {
+        tagService.patchResourceTags(JobResourceTypeEnum.TEMPLATE.getValue(), String.valueOf(taskTemplateInfo.getId()),
+            taskTemplateInfo.getTags() == null ? Collections.emptyList() :
+                taskTemplateInfo.getTags().stream().map(TagDTO::getId).distinct().collect(Collectors.toList()));
     }
 
     @Override
     public TaskTemplateInfoDTO getTaskTemplateBasicInfoById(Long appId, Long templateId) {
-        return taskTemplateDAO.getTaskTemplateById(appId, templateId);
+        TaskTemplateInfoDTO template = taskTemplateDAO.getTaskTemplateById(appId, templateId);
+        setTags(appId, Collections.singletonList(template));
+        return template;
     }
 
     @Override
@@ -459,13 +542,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public TaskTemplateInfoDTO getDeletedTaskTemplateBasicInfoById(Long templateId) {
-        return taskTemplateDAO.getDeletedTaskTemplateById(templateId);
-    }
-
-    @Override
     public List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(Long appId, List<Long> templateIdList) {
-        return taskTemplateDAO.listTaskTemplateByIds(appId, templateIdList, null, null);
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).ids(templateIdList).build();
+        List<TaskTemplateInfoDTO> templates = taskTemplateDAO.listTaskTemplates(query);
+        setTags(appId, templates);
+        return templates;
     }
 
     @Override
@@ -493,10 +574,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public List<TaskTemplateInfoDTO> getFavoredTemplateBasicInfo(Long appId, String username) {
         List<Long> favoredTemplateList = taskFavoriteService.listFavorites(appId, username);
-        TaskTemplateInfoDTO taskTemplateInfoDTO = new TaskTemplateInfoDTO();
-        taskTemplateInfoDTO.setAppId(appId);
-        return taskTemplateDAO.listTaskTemplateByIds(appId, favoredTemplateList, taskTemplateInfoDTO,
-            new BaseSearchCondition());
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).ids(favoredTemplateList)
+            .baseSearchCondition(new BaseSearchCondition()).build();
+        List<TaskTemplateInfoDTO> templates = taskTemplateDAO.listTaskTemplates(query);
+        setTags(appId, templates);
+        return templates;
     }
 
     @Override
@@ -516,7 +598,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (taskTemplateByName != null) {
                 throw new ServiceException(ErrorCode.TEMPLATE_NAME_EXIST);
             }
-            taskTemplateService.processTemplateTag(taskTemplateInfo);
+            taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
             if (createTime != null && createTime > 0) {
                 taskTemplateInfo.setCreateTime(createTime);
@@ -546,7 +628,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             } else {
                 taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
                 if (taskTemplateService.checkTemplateId(taskTemplateInfo.getId())) {
-                    if (taskTemplateDAO.insertTaskTemplateWithId(taskTemplateInfo)) {
+                    if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
                         templateId = taskTemplateInfo.getId();
                     } else {
                         throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
@@ -555,6 +637,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     throw new ServiceException(ErrorCode.TEMPLATE_ID_EXIST);
                 }
             }
+
+            updateTemplateTags(taskTemplateInfo);
 
             taskTemplateService.processTemplateStep(taskTemplateInfo);
 
@@ -655,7 +739,32 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (templateId == null) {
             throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
         }
+        if (CollectionUtils.isNotEmpty(taskTemplateInfo.getTags())) {
+            List<ResourceTagDTO> tags =
+                taskTemplateInfo.getTags().stream()
+                    .map(tag -> new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(),
+                        String.valueOf(templateId), tag.getId())).collect(Collectors.toList());
+            tagService.batchSaveResourceTags(tags);
+        }
         return templateId;
+    }
+
+    @Override
+    public boolean insertNewTemplateWithTemplateId(TaskTemplateInfoDTO taskTemplateInfo) {
+        taskTemplateInfo.setFirstStepId(0L);
+        taskTemplateInfo.setLastStepId(0L);
+        boolean isSuccess = taskTemplateDAO.insertTaskTemplateWithId(taskTemplateInfo);
+        if (!isSuccess) {
+            throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
+        }
+        if (CollectionUtils.isNotEmpty(taskTemplateInfo.getTags())) {
+            List<ResourceTagDTO> tags =
+                taskTemplateInfo.getTags().stream()
+                    .map(tag -> new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(),
+                        String.valueOf(taskTemplateInfo.getId()), tag.getId())).collect(Collectors.toList());
+            tagService.batchSaveResourceTags(tags);
+        }
+        return true;
     }
 
     @Override
@@ -708,11 +817,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public Integer countByTag(Long appId, Long tagId) {
-        return taskTemplateDAO.countByTag(appId, tagId);
-    }
-
-    @Override
     public Integer countCiteScriptSteps(Long appId, List<String> scriptIdList) {
         return taskStepService.countScriptStepsByScriptIds(appId, scriptIdList);
     }
@@ -751,7 +855,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
             }
             if (MapUtils.isNotEmpty(scriptVersionMap)) {
-                Map<String, ScriptDTO> scriptInfoMap = null;
+                Map<String, ScriptDTO> scriptInfoMap;
                 try {
                     scriptInfoMap = scriptService
                         .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));

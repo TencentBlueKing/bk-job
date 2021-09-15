@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
@@ -35,16 +36,15 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
@@ -141,7 +141,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         long appId = request.getAppId();
 
-        ScriptQueryDTO scriptQuery = new ScriptQueryDTO();
+        ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(appId);
         scriptQuery.setPublicScript(isQueryPublicScript);
         scriptQuery.setName(request.getName());
@@ -339,7 +339,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         long appId = request.getAppId();
 
-        ScriptQueryDTO scriptQuery = new ScriptQueryDTO();
+        ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(appId);
         scriptQuery.setPublicScript(isQueryPublicScript);
         scriptQuery.setId(request.getScriptId());

@@ -30,7 +30,14 @@ import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitPercentStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.generated.tables.GseTaskIpLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -278,6 +285,9 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     }
 
     private GseTaskIpLogDTO extract(Record record) {
+        if (record == null) {
+            return null;
+        }
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         GseTaskIpLogDTO ipLog = new GseTaskIpLogDTO();
         ipLog.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
@@ -303,17 +313,14 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     @Override
     public GseTaskIpLogDTO getIpLogByIp(Long stepInstanceId, Integer executeCount, String ip) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
-        Record result = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS, t.START_TIME, t.END_TIME,
+        Record record = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.ERROR_CODE, t.EXIT_CODE, t.TAG, t.LOG_OFFSET, t.DISPLAY_IP, t.IS_TARGET, t.IS_SOURCE)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .and(t.IP.eq(ip))
             .fetchOne();
-        if (result == null || result.size() == 0) {
-            return null;
-        }
-        return extract(result);
+        return extract(record);
     }
 
     @Override

@@ -33,14 +33,29 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.*;
+import org.jooq.generated.tables.StepInstance;
+import org.jooq.generated.tables.StepInstanceConfirm;
+import org.jooq.generated.tables.StepInstanceFile;
+import org.jooq.generated.tables.StepInstanceScript;
+import org.jooq.generated.tables.TaskInstance;
 import org.jooq.generated.tables.records.StepInstanceRecord;
 import org.jooq.types.UByte;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +67,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.jooq.impl.DSL.*;
+import static org.jooq.impl.DSL.max;
+import static org.jooq.impl.DSL.min;
+import static org.jooq.impl.DSL.sum;
 
 @Slf4j
 @Repository
@@ -173,84 +190,84 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        Record result = ctx.select(t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM,
+        Record record = ctx.select(t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM,
             t.RESOLVED_SCRIPT_PARAM, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT,
             t.DB_ACCOUNT_ID, t.DB_ACCOUNT, t.DB_TYPE, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID,
             t.SCRIPT_VERSION_ID, t.IS_SECURE_PARAM
         ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
-        return extractScriptInfo(result);
+        return extractScriptInfo(record);
     }
 
-    private ScriptStepInstanceDTO extractScriptInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private ScriptStepInstanceDTO extractScriptInfo(Record record) {
+        if (record == null) {
             return null;
         }
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
-        stepInstance.setStepInstanceId(result.get(t.STEP_INSTANCE_ID));
-        stepInstance.setScriptContent(result.get(t.SCRIPT_CONTENT));
-        stepInstance.setScriptType(JooqDataTypeUtil.getIntegerFromByte(result.get(t.SCRIPT_TYPE)));
-        stepInstance.setScriptParam(result.get(t.SCRIPT_PARAM));
-        stepInstance.setResolvedScriptParam(result.get(t.RESOLVED_SCRIPT_PARAM));
-        stepInstance.setTimeout(result.get(t.EXECUTION_TIMEOUT));
-        stepInstance.setAccountId(result.get(t.SYSTEM_ACCOUNT_ID));
-        stepInstance.setAccount(result.get(t.SYSTEM_ACCOUNT));
-        stepInstance.setDbAccountId(result.get(t.DB_ACCOUNT_ID));
-        stepInstance.setDbType(JooqDataTypeUtil.getIntegerFromByte(result.get(t.DB_TYPE)));
-        stepInstance.setDbAccount(result.get(t.DB_ACCOUNT));
-        stepInstance.setDbPass(result.get(t.DB_PASSWORD));
-        stepInstance.setDbPort(result.get(t.DB_PORT));
-        stepInstance.setSecureParam(result.get(t.IS_SECURE_PARAM).intValue() == 1);
-        Byte scriptSource = result.get(t.SCRIPT_SOURCE);
+        stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
+        stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
+        stepInstance.setScriptType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.SCRIPT_TYPE)));
+        stepInstance.setScriptParam(record.get(t.SCRIPT_PARAM));
+        stepInstance.setResolvedScriptParam(record.get(t.RESOLVED_SCRIPT_PARAM));
+        stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
+        stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
+        stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
+        stepInstance.setDbAccountId(record.get(t.DB_ACCOUNT_ID));
+        stepInstance.setDbType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.DB_TYPE)));
+        stepInstance.setDbAccount(record.get(t.DB_ACCOUNT));
+        stepInstance.setDbPass(record.get(t.DB_PASSWORD));
+        stepInstance.setDbPort(record.get(t.DB_PORT));
+        stepInstance.setSecureParam(record.get(t.IS_SECURE_PARAM).intValue() == 1);
+        Byte scriptSource = record.get(t.SCRIPT_SOURCE);
         if (scriptSource == null) {
             stepInstance.setScriptSource(1);
         } else {
             stepInstance.setScriptSource(scriptSource.intValue());
         }
-        stepInstance.setScriptId(result.get(t.SCRIPT_ID));
-        stepInstance.setScriptVersionId(result.get(t.SCRIPT_VERSION_ID));
+        stepInstance.setScriptId(record.get(t.SCRIPT_ID));
+        stepInstance.setScriptVersionId(record.get(t.SCRIPT_VERSION_ID));
         return stepInstance;
     }
 
     @Override
     public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        Record result = ctx.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.RESOLVED_FILE_SOURCE, t.FILE_TARGET_PATH,
+        Record record = ctx.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.RESOLVED_FILE_SOURCE, t.FILE_TARGET_PATH,
             t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
             t.FILE_DUPLICATE_HANDLE,
             t.NOT_EXIST_PATH_HANDLER, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
-        return extractFileInfo(result);
+        return extractFileInfo(record);
     }
 
-    private FileStepInstanceDTO extractFileInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private FileStepInstanceDTO extractFileInfo(Record record) {
+        if (record == null) {
             return null;
         }
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         FileStepInstanceDTO stepInstance = new FileStepInstanceDTO();
-        stepInstance.setStepInstanceId(result.get(t.STEP_INSTANCE_ID));
-        stepInstance.setTimeout(result.get(t.EXECUTION_TIMEOUT));
-        List<FileSourceDTO> fileSourceList = JsonUtils.fromJson(result.get(t.FILE_SOURCE),
+        stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
+        stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
+        List<FileSourceDTO> fileSourceList = JsonUtils.fromJson(record.get(t.FILE_SOURCE),
             new TypeReference<List<FileSourceDTO>>() {
         });
         stepInstance.setFileSourceList(fileSourceList);
-        if (StringUtils.isNotEmpty(result.get(t.RESOLVED_FILE_SOURCE))) {
-            List<FileSourceDTO> resolvedFileSourceList = JsonUtils.fromJson(result.get(t.RESOLVED_FILE_SOURCE),
+        if (StringUtils.isNotEmpty(record.get(t.RESOLVED_FILE_SOURCE))) {
+            List<FileSourceDTO> resolvedFileSourceList = JsonUtils.fromJson(record.get(t.RESOLVED_FILE_SOURCE),
                 new TypeReference<List<FileSourceDTO>>() {
             });
             stepInstance.setResolvedFileSourceList(resolvedFileSourceList);
         }
-        stepInstance.setFileTargetPath(result.get(t.FILE_TARGET_PATH));
-        stepInstance.setResolvedFileTargetPath(result.get(t.RESOLVED_FILE_TARGET_PATH));
-        stepInstance.setAccountId(result.get(t.SYSTEM_ACCOUNT_ID));
-        stepInstance.setAccount(result.get(t.SYSTEM_ACCOUNT));
-        stepInstance.setFileUploadSpeedLimit(result.get(t.FILE_UPLOAD_SPEED_LIMIT));
-        stepInstance.setFileDownloadSpeedLimit(result.get(t.FILE_DOWNLOAD_SPEED_LIMIT));
-        stepInstance.setFileDuplicateHandle(JooqDataTypeUtil.getIntegerFromByte(result.get(t.FILE_DUPLICATE_HANDLE)));
-        UByte notExistPathHandlerRecordValue = result.get(t.NOT_EXIST_PATH_HANDLER);
+        stepInstance.setFileTargetPath(record.get(t.FILE_TARGET_PATH));
+        stepInstance.setResolvedFileTargetPath(record.get(t.RESOLVED_FILE_TARGET_PATH));
+        stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
+        stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
+        stepInstance.setFileUploadSpeedLimit(record.get(t.FILE_UPLOAD_SPEED_LIMIT));
+        stepInstance.setFileDownloadSpeedLimit(record.get(t.FILE_DOWNLOAD_SPEED_LIMIT));
+        stepInstance.setFileDuplicateHandle(JooqDataTypeUtil.getIntegerFromByte(record.get(t.FILE_DUPLICATE_HANDLE)));
+        UByte notExistPathHandlerRecordValue = record.get(t.NOT_EXIST_PATH_HANDLER);
         if (notExistPathHandlerRecordValue == null) {
             // 默认为创建目录
             stepInstance.setNotExistPathHandler(1);
@@ -263,76 +280,76 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public ConfirmStepInstanceDTO getConfirmStepInstance(long stepInstanceId) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        Record result = ctx.select(t.STEP_INSTANCE_ID, t.CONFIRM_MESSAGE, t.CONFIRM_REASON, t.CONFIRM_USERS,
+        Record record = ctx.select(t.STEP_INSTANCE_ID, t.CONFIRM_MESSAGE, t.CONFIRM_REASON, t.CONFIRM_USERS,
             t.CONFIRM_ROLES, t.NOTIFY_CHANNELS).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
-        return extractConfirmInfo(result);
+        return extractConfirmInfo(record);
     }
 
-    private ConfirmStepInstanceDTO extractConfirmInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private ConfirmStepInstanceDTO extractConfirmInfo(Record record) {
+        if (record == null) {
             return null;
         }
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         ConfirmStepInstanceDTO stepInstanceDTO = new ConfirmStepInstanceDTO();
-        stepInstanceDTO.setStepInstanceId(result.get(t.STEP_INSTANCE_ID));
-        stepInstanceDTO.setConfirmMessage(result.get(t.CONFIRM_MESSAGE));
-        stepInstanceDTO.setConfirmReason(result.get(t.CONFIRM_REASON));
-        stepInstanceDTO.setConfirmUsers(result.get(t.CONFIRM_USERS) == null ? null :
-            Utils.getNotBlankSplitList(result.get(t.CONFIRM_USERS), ","));
-        stepInstanceDTO.setConfirmRoles(result.get(t.CONFIRM_ROLES) == null ? null :
-            Utils.getNotBlankSplitList(result.get(t.CONFIRM_ROLES), ","));
-        stepInstanceDTO.setNotifyChannels(result.get(t.NOTIFY_CHANNELS) == null ? null :
-            Utils.getNotBlankSplitList(result.get(t.NOTIFY_CHANNELS), ","));
+        stepInstanceDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
+        stepInstanceDTO.setConfirmMessage(record.get(t.CONFIRM_MESSAGE));
+        stepInstanceDTO.setConfirmReason(record.get(t.CONFIRM_REASON));
+        stepInstanceDTO.setConfirmUsers(record.get(t.CONFIRM_USERS) == null ? null :
+            Utils.getNotBlankSplitList(record.get(t.CONFIRM_USERS), ","));
+        stepInstanceDTO.setConfirmRoles(record.get(t.CONFIRM_ROLES) == null ? null :
+            Utils.getNotBlankSplitList(record.get(t.CONFIRM_ROLES), ","));
+        stepInstanceDTO.setNotifyChannels(record.get(t.NOTIFY_CHANNELS) == null ? null :
+            Utils.getNotBlankSplitList(record.get(t.NOTIFY_CHANNELS), ","));
         return stepInstanceDTO;
     }
 
     @Override
     public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record result = ctx.select(t.ID, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE, t.OPERATOR,
+        Record record = ctx.select(t.ID, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE, t.OPERATOR,
             t.STATUS, t.EXECUTE_COUNT, t.TARGET_SERVERS, t.ABNORMAL_AGENT_IP_LIST, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.TOTAL_IP_NUM, t.ABNORMAL_AGENT_NUM, t.RUN_IP_NUM, t.FAIL_IP_NUM, t.SUCCESS_IP_NUM,
             t.CREATE_TIME, t.IGNORE_ERROR, t.STEP_NUM, t.STEP_ORDER)
             .from(t)
             .where(t.ID.eq(stepInstanceId)).fetchOne();
-        return extractBaseInfo(result);
+        return extractBaseInfo(record);
     }
 
-    private StepInstanceBaseDTO extractBaseInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private StepInstanceBaseDTO extractBaseInfo(Record record) {
+        if (record == null) {
             return null;
         }
         StepInstanceBaseDTO stepInstance = new StepInstanceBaseDTO();
         StepInstance t = StepInstance.STEP_INSTANCE;
-        stepInstance.setId(result.get(t.ID));
-        stepInstance.setAppId(result.get(t.APP_ID));
-        stepInstance.setStepId(result.get(t.STEP_ID));
-        stepInstance.setTaskInstanceId(result.get(t.TASK_INSTANCE_ID));
-        stepInstance.setName(result.get(t.NAME));
-        stepInstance.setExecuteType(JooqDataTypeUtil.getIntegerFromByte(result.get(t.TYPE)));
-        stepInstance.setOperator(result.get(t.OPERATOR));
-        stepInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(result.get(t.STATUS)));
-        stepInstance.setExecuteCount(result.get(t.EXECUTE_COUNT));
-        stepInstance.setStartTime(result.get(t.START_TIME));
-        stepInstance.setEndTime(result.get(t.END_TIME));
-        stepInstance.setTotalTime(result.get(t.TOTAL_TIME));
-        stepInstance.setTotalIPNum(result.get(t.TOTAL_IP_NUM));
-        if (StringUtils.isNotBlank(result.get(t.TARGET_SERVERS))) {
-            ServersDTO targetServers = JsonUtils.fromJson(result.get(t.TARGET_SERVERS), ServersDTO.class);
+        stepInstance.setId(record.get(t.ID));
+        stepInstance.setAppId(record.get(t.APP_ID));
+        stepInstance.setStepId(record.get(t.STEP_ID));
+        stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
+        stepInstance.setName(record.get(t.NAME));
+        stepInstance.setExecuteType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.TYPE)));
+        stepInstance.setOperator(record.get(t.OPERATOR));
+        stepInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(record.get(t.STATUS)));
+        stepInstance.setExecuteCount(record.get(t.EXECUTE_COUNT));
+        stepInstance.setStartTime(record.get(t.START_TIME));
+        stepInstance.setEndTime(record.get(t.END_TIME));
+        stepInstance.setTotalTime(record.get(t.TOTAL_TIME));
+        stepInstance.setTotalIPNum(record.get(t.TOTAL_IP_NUM));
+        if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
+            ServersDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ServersDTO.class);
             stepInstance.setTargetServers(targetServers);
             stepInstance.setIpList(targetServers.buildIpListStr());
         }
-        stepInstance.setBadIpList(result.get(t.ABNORMAL_AGENT_IP_LIST));
-        stepInstance.setBadIPNum(result.get(t.ABNORMAL_AGENT_NUM));
-        stepInstance.setRunIPNum(result.get(t.RUN_IP_NUM));
-        stepInstance.setFailIPNum(result.get(t.FAIL_IP_NUM));
-        stepInstance.setSuccessIPNum(result.get(t.SUCCESS_IP_NUM));
-        stepInstance.setCreateTime(result.get(t.CREATE_TIME));
-        stepInstance.setIgnoreError(JooqDataTypeUtil.getIntegerFromByte(result.get(t.IGNORE_ERROR)) != null
-            && JooqDataTypeUtil.getIntegerFromByte(result.get(t.IGNORE_ERROR)).equals(1));
-        stepInstance.setStepNum(result.get(t.STEP_NUM));
-        stepInstance.setStepOrder(result.get(t.STEP_ORDER));
+        stepInstance.setBadIpList(record.get(t.ABNORMAL_AGENT_IP_LIST));
+        stepInstance.setBadIPNum(record.get(t.ABNORMAL_AGENT_NUM));
+        stepInstance.setRunIPNum(record.get(t.RUN_IP_NUM));
+        stepInstance.setFailIPNum(record.get(t.FAIL_IP_NUM));
+        stepInstance.setSuccessIPNum(record.get(t.SUCCESS_IP_NUM));
+        stepInstance.setCreateTime(record.get(t.CREATE_TIME));
+        stepInstance.setIgnoreError(JooqDataTypeUtil.getIntegerFromByte(record.get(t.IGNORE_ERROR)) != null
+            && JooqDataTypeUtil.getIntegerFromByte(record.get(t.IGNORE_ERROR)).equals(1));
+        stepInstance.setStepNum(record.get(t.STEP_NUM));
+        stepInstance.setStepOrder(record.get(t.STEP_ORDER));
         return stepInstance;
     }
 
@@ -442,31 +459,31 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public Long getFirstStepStartTime(long taskInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record result = ctx.select(min(t.START_TIME).as("time")).from(t)
+        Record record = ctx.select(min(t.START_TIME).as("time")).from(t)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.START_TIME.isNotNull())
             .fetchOne();
-        return result.get("time", Long.class);
+        return record.get("time", Long.class);
     }
 
     @Override
     public Long getLastStepEndTime(long taskInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record result = ctx.select(max(t.END_TIME).as("time")).from(t)
+        Record record = ctx.select(max(t.END_TIME).as("time")).from(t)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.END_TIME.isNotNull())
             .fetchOne();
-        return result.get("time", Long.class);
+        return record.get("time", Long.class);
     }
 
     @Override
     public long getAllStepTotalTime(long taskInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record result = ctx.select(sum(t.TOTAL_TIME).as("total_time"))
+        Record record = ctx.select(sum(t.TOTAL_TIME).as("total_time"))
             .from(t)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .fetchOne();
-        return result.getValue("total_time", Long.class);
+        return record.getValue("total_time", Long.class);
     }
 
     @Override
@@ -588,7 +605,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public StepInstanceBaseDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record result = ctx.select(t.ID, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE, t.OPERATOR,
+        Record record = ctx.select(t.ID, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE, t.OPERATOR,
             t.STATUS, t.EXECUTE_COUNT, t.TARGET_SERVERS, t.ABNORMAL_AGENT_IP_LIST, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.TOTAL_IP_NUM, t.ABNORMAL_AGENT_NUM, t.RUN_IP_NUM, t.FAIL_IP_NUM, t.SUCCESS_IP_NUM,
             t.CREATE_TIME, t.IGNORE_ERROR, t.STEP_NUM, t.STEP_ORDER)
@@ -599,7 +616,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             .orderBy(t.ID.desc())
             .limit(1)
             .fetchOne();
-        return extractBaseInfo(result);
+        return extractBaseInfo(record);
     }
 
     @Override

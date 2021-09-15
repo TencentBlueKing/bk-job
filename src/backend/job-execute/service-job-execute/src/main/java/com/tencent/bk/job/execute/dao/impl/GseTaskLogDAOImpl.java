@@ -46,30 +46,30 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
     @Override
     public GseTaskLogDTO getStepLastExecuteLog(long stepInstanceId) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        Record result = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
+        Record record = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
             t.STATUS, t.GSE_TASK_ID)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .orderBy(t.EXECUTE_COUNT.desc())
             .limit(1)
             .fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
-    private GseTaskLogDTO extractInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private GseTaskLogDTO extractInfo(Record record) {
+        if (record == null) {
             return null;
         }
         GseTaskLogDTO gseTaskLogDTO = new GseTaskLogDTO();
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
 
-        gseTaskLogDTO.setStepInstanceId(result.get(t.STEP_INSTANCE_ID));
-        gseTaskLogDTO.setExecuteCount(result.get(t.EXECUTE_COUNT));
-        gseTaskLogDTO.setStartTime(result.get(t.START_TIME));
-        gseTaskLogDTO.setEndTime(result.get(t.END_TIME));
-        gseTaskLogDTO.setTotalTime(result.get(t.TOTAL_TIME));
-        gseTaskLogDTO.setStatus(result.get(t.STATUS).intValue());
-        gseTaskLogDTO.setGseTaskId(result.get(t.GSE_TASK_ID));
+        gseTaskLogDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
+        gseTaskLogDTO.setExecuteCount(record.get(t.EXECUTE_COUNT));
+        gseTaskLogDTO.setStartTime(record.get(t.START_TIME));
+        gseTaskLogDTO.setEndTime(record.get(t.END_TIME));
+        gseTaskLogDTO.setTotalTime(record.get(t.TOTAL_TIME));
+        gseTaskLogDTO.setStatus(record.get(t.STATUS).intValue());
+        gseTaskLogDTO.setGseTaskId(record.get(t.GSE_TASK_ID));
         return gseTaskLogDTO;
     }
 
@@ -97,12 +97,12 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
     @Override
     public GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount) {
         GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        Record result = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
+        Record record = create.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
             t.STATUS, t.GSE_TASK_ID).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
     @Override

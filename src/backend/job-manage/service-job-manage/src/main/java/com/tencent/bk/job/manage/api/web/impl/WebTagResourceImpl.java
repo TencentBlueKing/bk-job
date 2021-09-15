@@ -24,41 +24,116 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.model.web.request.TagCreateReq;
+import com.tencent.bk.job.manage.model.web.request.BatchPatchResourceTagReq;
+import com.tencent.bk.job.manage.model.web.request.TagCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
 public class WebTagResourceImpl implements WebTagResource {
     private final TagService tagService;
     private final WebAuthService authService;
+    private final MessageI18nService i18nService;
 
     @Autowired
-    public WebTagResourceImpl(TagService tagService, WebAuthService webAuthService) {
+    public WebTagResourceImpl(TagService tagService, WebAuthService webAuthService,
+                              MessageI18nService i18nService) {
         this.tagService = tagService;
         this.authService = webAuthService;
+        this.i18nService = i18nService;
     }
 
     @Override
-    public ServiceResponse<List<TagVO>> listTags(String username, Long appId, String tagName) {
-        List<TagDTO> tags = tagService.listTags(appId, tagName);
+    public ServiceResponse<PageData<TagVO>> listPageTags(String username, Long appId, String name, String creator,
+                                                         String lastModifyUser, Integer start, Integer pageSize,
+                                                         String orderField, Integer order) {
+        TagDTO tagQuery = new TagDTO();
+        tagQuery.setAppId(appId);
+        tagQuery.setName(name);
+        tagQuery.setCreator(creator);
+        tagQuery.setLastModifyUser(lastModifyUser);
+
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(start);
+        baseSearchCondition.setLength(pageSize);
+        baseSearchCondition.setOrder(order);
+        baseSearchCondition.setOrderField(orderField);
+
+        PageData<TagDTO> pageTags = tagService.listPageTags(tagQuery, baseSearchCondition);
+        PageData<TagVO> pageTagVOs = PageData.from(pageTags, TagDTO::toVO);
+
+        List<Long> tagIds = pageTags.getData().stream().map(TagDTO::getId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(tagIds)) {
+            List<ResourceTagDTO> resourceTags = tagService.listResourceTagsByTagIds(appId, tagIds);
+            Map<Long, Map<Integer, List<ResourceTagDTO>>> resourcesGroupByTagIdAndResourceType =
+                groupByTagIdAndResourceType(resourceTags);
+            pageTagVOs.getData().forEach(tag -> {
+                Map<Integer, List<ResourceTagDTO>> resourcesGroupByType =
+                    resourcesGroupByTagIdAndResourceType.get(tag.getId());
+                if (resourcesGroupByType != null) {
+                    List<ResourceTagDTO> appScriptResources = resourcesGroupByType
+                        .get(JobResourceTypeEnum.APP_SCRIPT.getValue());
+                    tag.setRelatedScriptNum(appScriptResources == null ? 0 : appScriptResources.size());
+                    List<ResourceTagDTO> templateResources = resourcesGroupByType
+                        .get(JobResourceTypeEnum.TEMPLATE.getValue());
+                    tag.setRelatedTaskTemplateNum(templateResources == null ? 0 : templateResources.size());
+                } else {
+                    tag.setRelatedScriptNum(0);
+                    tag.setRelatedTaskTemplateNum(0);
+                }
+            });
+        }
+
+        return ServiceResponse.buildSuccessResp(pageTagVOs);
+    }
+
+    private Map<Long, Map<Integer, List<ResourceTagDTO>>> groupByTagIdAndResourceType(
+        List<ResourceTagDTO> resourceTags) {
+
+        Map<Long, Map<Integer, List<ResourceTagDTO>>> result = new HashMap<>();
+        resourceTags.forEach(resourceTag -> {
+            result.computeIfAbsent(resourceTag.getTagId(), k -> new HashMap<>());
+            result.get(resourceTag.getTagId()).computeIfAbsent(resourceTag.getResourceType(), k -> new ArrayList<>());
+            result.get(resourceTag.getTagId()).get(resourceTag.getResourceType()).add(resourceTag);
+        });
+        return result;
+    }
+
+    @Override
+    public ServiceResponse<List<TagVO>> listTagsBasic(String username, Long appId, String name) {
+        List<TagDTO> tags = tagService.listTags(appId, name);
         assert tags != null;
         List<TagVO> tagVOS = new ArrayList<>(tags.size());
         for (TagDTO tag : tags) {
@@ -71,36 +146,161 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> updateTagInfo(String username, Long appId, Long tagId, String tagName) {
-        AuthResultVO authResultVO = checkManageTagPermission(username, appId, tagId.toString());
+    public ServiceResponse<Boolean> updateTagInfo(String username, Long appId, Long tagId,
+                                                  TagCreateUpdateReq tagCreateUpdateReq) {
+        AuthResultVO authResultVO = checkManageTagPermission(username, appId, tagId);
         if (!authResultVO.isPass()) {
             return ServiceResponse.buildAuthFailResp(authResultVO);
         }
-        return ServiceResponse.buildSuccessResp(tagService.updateTagById(appId, tagId, tagName, username));
+        TagDTO tag = new TagDTO();
+        tag.setId(tagId);
+        tag.setAppId(appId);
+        tag.setName(tagCreateUpdateReq.getName());
+        tag.setDescription(tagCreateUpdateReq.getDescription());
+        return ServiceResponse.buildSuccessResp(tagService.updateTagById(username, tag));
     }
 
     @Override
-    public ServiceResponse<Long> saveTagInfo(String username, Long appId, TagCreateReq tagCreateReq) {
+    public ServiceResponse<TagVO> saveTagInfo(String username, Long appId, TagCreateUpdateReq tagCreateUpdateReq) {
         AuthResultVO authResult = checkCreateTagPermission(username, appId);
         if (!authResult.isPass()) {
             return ServiceResponse.buildAuthFailResp(authResult);
         }
-        Long tagId = tagService.insertNewTag(appId, tagCreateReq.getTagName(), username);
-        authService.registerResource(tagId.toString(), tagCreateReq.getTagName(), ResourceId.TAG, username, null);
-        return ServiceResponse.buildSuccessResp(tagId);
+        TagDTO tag = new TagDTO();
+        tag.setAppId(appId);
+        tag.setName(tagCreateUpdateReq.getName());
+        tag.setDescription(tagCreateUpdateReq.getDescription());
+        Long tagId = tagService.insertNewTag(username, tag);
+        authService.registerResource(tagId.toString(), tagCreateUpdateReq.getName(), ResourceId.TAG, username, null);
+
+        TagDTO savedTag = tagService.getTagInfoById(appId, tagId);
+        return ServiceResponse.buildSuccessResp(TagDTO.toVO(savedTag));
     }
 
-    private AuthResultVO checkManageTagPermission(String username, Long appId, String tagId) {
-        return authService.auth(true, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, tagId,
-            buildTagPathInfo(appId));
+    private AuthResultVO checkManageTagPermission(String username, Long appId, Long tagId) {
+        return authService.auth(true, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG,
+            String.valueOf(tagId), buildTagPathInfo(appId));
     }
 
-    // 暂时未用到
     private AuthResultVO checkCreateTagPermission(String username, Long appId) {
         return authService.auth(true, username, ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, appId.toString(), null);
     }
 
     private PathInfoDTO buildTagPathInfo(Long appId) {
         return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build();
+    }
+
+    @Override
+    public ServiceResponse<Boolean> deleteTag(String username, Long appId, Long tagId) {
+        checkManageTagPermission(username, appId, tagId);
+        tagService.deleteTag(tagId);
+        return ServiceResponse.buildSuccessResp(true);
+    }
+
+    @Override
+    public ServiceResponse<?> patchTagRefResourceTags(String username, Long appId, Long tagId,
+                                                      BatchPatchResourceTagReq tagBatchUpdateReq) {
+        ValidateResult validateResult = checkBatchPatchResourceTagReq(tagId, tagBatchUpdateReq);
+        if (!validateResult.isPass()) {
+            return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
+        }
+
+        List<ResourceTagDTO> resourceTags = tagService.listResourceTagsByTagId(appId, tagId);
+        Map<JobResourceTypeEnum, Set<String>> resources = filterAndClassifyResources(
+            tagBatchUpdateReq.getResourceTypeList(), resourceTags);
+        if (resources.isEmpty()) {
+            return ServiceResponse.buildSuccessResp(null);
+        }
+
+        AuthResult authResult;
+        resources.forEach((resourceType, resourceIds) -> {
+            switch (resourceType) {
+                case APP_SCRIPT:
+                    break;
+                case TEMPLATE:
+                    break;
+            }
+        });
+
+        List<ResourceTagDTO> addResourceTags = new ArrayList<>();
+        List<ResourceTagDTO> deleteResourceTags = new ArrayList<>();
+        resources.forEach((resourceType, resourceIds) -> {
+//            switch (resourceType) {
+//                case SCRIPT:
+//                    break;
+//                case TEMPLATE:
+//                    break;
+//            }
+            if (CollectionUtils.isNotEmpty(tagBatchUpdateReq.getAddTagIdList())) {
+                resourceIds.forEach(resourceId -> tagBatchUpdateReq.getAddTagIdList()
+                    .forEach(addTagId -> addResourceTags.add(
+                        new ResourceTagDTO(resourceType.getValue(), resourceId, addTagId))));
+            }
+            if (CollectionUtils.isNotEmpty(tagBatchUpdateReq.getDeleteTagIdList())) {
+                resourceIds.forEach(resourceId -> tagBatchUpdateReq.getDeleteTagIdList()
+                    .forEach(deleteTagId -> deleteResourceTags.add(
+                        new ResourceTagDTO(resourceType.getValue(), resourceId, deleteTagId))));
+            }
+            tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
+        });
+
+        return ServiceResponse.buildSuccessResp(null);
+    }
+
+
+
+    private ValidateResult checkBatchPatchResourceTagReq(Long baseTagId, BatchPatchResourceTagReq req) {
+        if (CollectionUtils.isEmpty(req.getResourceTypeList())) {
+            log.warn("BatchPatchResourceTagReq->resourceTypeList is empty");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "resourceTypeList");
+        }
+        if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
+            req.getAddTagIdList().remove(baseTagId);
+        }
+        for (Integer resourceType : req.getResourceTypeList()) {
+            if (!isSupportResourceType(resourceType)) {
+                log.warn("BatchPatchResourceTagReq->resourceType is invalid. resourceType: {}", resourceType);
+                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "resourceTypeList");
+            }
+        }
+        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
+            log.warn("BatchPatchResourceTagReq->No tags changed!");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                "addTagIdList|deleteTagIdList");
+        }
+        return ValidateResult.pass();
+    }
+
+    private boolean isSupportResourceType(Integer resourceType) {
+        JobResourceTypeEnum resourceTypeEnum = JobResourceTypeEnum.valOf(resourceType);
+        return (resourceTypeEnum == JobResourceTypeEnum.APP_SCRIPT
+            || resourceTypeEnum == JobResourceTypeEnum.TEMPLATE);
+    }
+
+    private Map<JobResourceTypeEnum, Set<String>> filterAndClassifyResources(List<Integer> filterResourceTypes,
+                                                                          List<ResourceTagDTO> resourceTags) {
+        Map<JobResourceTypeEnum, Set<String>> resources = new HashMap<>();
+        resourceTags.stream().filter(resourceTag -> filterResourceTypes.contains(resourceTag.getResourceType()))
+            .forEach(resourceTag -> {
+                JobResourceTypeEnum resourceType = JobResourceTypeEnum.valOf(resourceTag.getResourceType());
+                resources.computeIfAbsent(resourceType, k -> new HashSet<>());
+                resources.get(resourceType).add(resourceTag.getResourceId());
+
+            });
+        return resources;
+    }
+
+    private ResourceTypeEnum toIamResourceType(JobResourceTypeEnum jobResourceType) {
+        if (jobResourceType == null) {
+            throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+        }
+        switch (jobResourceType) {
+            case APP_SCRIPT:
+                return ResourceTypeEnum.SCRIPT;
+            case TEMPLATE:
+                return ResourceTypeEnum.TEMPLATE;
+            default:
+                throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 }

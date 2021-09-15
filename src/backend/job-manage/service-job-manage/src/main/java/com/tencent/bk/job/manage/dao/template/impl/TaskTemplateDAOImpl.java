@@ -29,17 +29,17 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
-import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
+import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Record14;
+import org.jooq.Record13;
 import org.jooq.Result;
 import org.jooq.SelectJoinStep;
 import org.jooq.TableField;
@@ -54,12 +54,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.jooq.impl.DSL.falseCondition;
 
 /**
  * @since 27/9/2019 15:22
@@ -69,12 +71,10 @@ import java.util.stream.Collectors;
 public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     private static final TaskTemplate TABLE = TaskTemplate.TASK_TEMPLATE;
     private DSLContext context;
-    private TagService tagService;
 
     @Autowired
-    public TaskTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context, TagService tagService) {
+    public TaskTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context) {
         this.context = context;
-        this.tagService = tagService;
     }
 
     private static OrderField<?> buildBasicOrderField(TableField<TaskTemplateRecord, ?> field, Integer order) {
@@ -97,8 +97,6 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
                     orderFields.add(buildBasicOrderField(TABLE.NAME, baseSearchCondition.getOrder()));
                 } else if (TABLE.CREATOR.getName().equals(baseSearchCondition.getOrderField())) {
                     orderFields.add(buildBasicOrderField(TABLE.CREATOR, baseSearchCondition.getOrder()));
-                } else if (TABLE.TAGS.getName().equals(baseSearchCondition.getOrderField())) {
-                    orderFields.add(buildBasicOrderField(TABLE.TAGS, baseSearchCondition.getOrder()));
                 } else if (TABLE.LAST_MODIFY_TIME.getName().equals(baseSearchCondition.getOrderField())) {
                     orderFields.add(buildBasicOrderField(TABLE.LAST_MODIFY_TIME, baseSearchCondition.getOrder()));
                 } else if (TABLE.LAST_MODIFY_USER.getName().equals(baseSearchCondition.getOrderField())) {
@@ -112,28 +110,24 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     }
 
     @Override
-    public PageData<TaskTemplateInfoDTO> listPageTaskTemplates(TaskTemplateInfoDTO templateCondition,
-                                                               BaseSearchCondition baseSearchCondition,
-                                                               List<Long> excludeTemplateIdList) {
-        List<Condition> conditions = buildConditionList(templateCondition, baseSearchCondition);
+    public PageData<TaskTemplateInfoDTO> listPageTaskTemplates(TaskTemplateQuery query) {
+        List<Condition> conditions = buildConditionList(query);
         long templateCount = getPageTaskTemplateCount(conditions);
+
+        BaseSearchCondition baseSearchCondition = query.getBaseSearchCondition();
         List<OrderField<?>> orderFields = buildOrderField(baseSearchCondition);
 
-        if (CollectionUtils.isNotEmpty(excludeTemplateIdList)) {
-            conditions.add(TABLE.ID
-                .notIn(excludeTemplateIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
-        }
 
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        SelectJoinStep<Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong,
-            String, UByte>> selectJoinStep =
+        SelectJoinStep<Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong,
+                    String, UByte>> selectJoinStep =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS, TABLE.FIRST_STEP_ID,
+                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
                 TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS).from(TABLE);
 
-        Result<Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+        Result<Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte>> records;
 
         if (baseSearchCondition.isGetAll()) {
@@ -148,7 +142,7 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         if (records.size() >= 1) {
             records.forEach(record -> templateInfoList.add(DbRecordMapper.convertRecordToTemplateInfo(record)));
         }
-        setTagName(templateInfoList);
+
         PageData<TaskTemplateInfoDTO> templateInfoPageData = new PageData<>();
         templateInfoPageData.setTotal(templateCount);
         templateInfoPageData.setStart(start);
@@ -159,24 +153,19 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     }
 
     @Override
-    public List<TaskTemplateInfoDTO> listTaskTemplateByIds(Long appId, List<Long> templateIdList,
-                                                           TaskTemplateInfoDTO templateCondition,
-                                                           BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = buildConditionList(templateCondition, baseSearchCondition);
-        conditions.add(TABLE.ID.in(templateIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
-        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
-        List<OrderField<?>> orderFields = buildOrderField(baseSearchCondition);
-        Result<Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+    public List<TaskTemplateInfoDTO> listTaskTemplates(TaskTemplateQuery query) {
+        List<Condition> conditions = buildConditionList(query);
+        List<OrderField<?>> orderFields = buildOrderField(query.getBaseSearchCondition());
+        Result<Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte>> result =
             context
                 .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS,
+                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
                     TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS)
                 .from(TABLE).where(conditions).orderBy(orderFields).fetch();
         List<TaskTemplateInfoDTO> templateInfoList = new ArrayList<>();
-        if (result != null && result.size() >= 1) {
+        if (result.size() >= 1) {
             result.map(record -> templateInfoList.add(DbRecordMapper.convertRecordToTemplateInfo(record)));
-            setTagName(templateInfoList);
         }
         return templateInfoList;
     }
@@ -187,16 +176,15 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         conditions.add(TABLE.ID.equal(ULong.valueOf(templateId)));
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+        Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte> record =
             context
                 .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS,
+                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
                     TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS)
                 .from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             TaskTemplateInfoDTO taskTemplate = DbRecordMapper.convertRecordToTemplateInfo(record);
-            setTagName(Collections.singletonList(taskTemplate));
             return taskTemplate;
         } else {
             return null;
@@ -220,72 +208,83 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     }
 
     private TaskTemplateInfoDTO getOneTaskTemplate(List<Condition> conditions) {
-        Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+        Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte> record = context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR,
             TABLE.STATUS,
-            TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS, TABLE.FIRST_STEP_ID,
+            TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
             TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS)
             .from(TABLE).where(conditions).fetchOne();
-        if (record != null && record.size() > 0) {
+        if (record != null) {
             return DbRecordMapper.convertRecordToTemplateInfo(record);
         } else {
             return null;
         }
     }
 
-    /**
-     * 查询符合条件的模版数量
-     *
-     * @return
-     */
     private long getPageTaskTemplateCount(List<Condition> conditions) {
         return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
     }
 
-    private List<Condition> buildConditionList(TaskTemplateInfoDTO templateCondition,
-                                               BaseSearchCondition baseSearchCondition) {
+    private List<Condition> buildConditionList(TaskTemplateQuery query) {
         List<Condition> conditions = new ArrayList<>();
 
-        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
 
-        if (templateCondition != null) {
-            conditions.add(TABLE.APP_ID.equal(ULong.valueOf(templateCondition.getAppId())));
-            if (templateCondition.getId() != null && templateCondition.getId() > 0) {
-                conditions.add(TABLE.ID.equal(ULong.valueOf(templateCondition.getId())));
-                return conditions;
-            }
-            if (StringUtils.isNotBlank(templateCondition.getName())) {
-                conditions.add(TABLE.NAME.like("%" + templateCondition.getName() + "%"));
-            }
-            if (StringUtils.isNotBlank(templateCondition.getCreator())) {
-                conditions.add(TABLE.CREATOR.equal(templateCondition.getCreator()));
-            }
-            if (CollectionUtils.isNotEmpty(templateCondition.getTags())) {
-                if (templateCondition.getTags().size() == 1 && templateCondition.getTags().get(0).getId() == 0) {
-                    conditions.add(TABLE.TAGS.isNull());
+        if (query.getAppId() != null) {
+            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(query.getAppId())));
+        }
+
+        if (CollectionUtils.isNotEmpty(query.getExcludeTemplateIds())) {
+            if (query.getId() != null && query.getId() > 0) {
+                if (query.getExcludeTemplateIds().contains(query.getId())) {
+                    conditions.add(falseCondition());
                 } else {
-                    for (TagDTO tagInfo : templateCondition.getTags()) {
-                        conditions.add(TABLE.TAGS.like("%" + TagUtils.buildDbTag(tagInfo.getId()) + "%"));
-                    }
+                    conditions.add(TABLE.ID.eq(ULong.valueOf(query.getId())));
                 }
-            }
-            if (templateCondition.getScriptStatus() != null) {
-                if (templateCondition.getScriptStatus() != 0) {
-                    conditions.add(TABLE.SCRIPT_STATUS.greaterThan(UByte.valueOf(0)));
+            } else if (CollectionUtils.isNotEmpty(query.getIds())) {
+                List<Long> includeIds = new ArrayList<>(query.getIds());
+                includeIds.removeAll(query.getExcludeTemplateIds());
+                if (includeIds.size() == 1) {
+                    conditions.add(TABLE.ID.eq(ULong.valueOf(includeIds.get(0))));
                 } else {
-                    conditions.add(TABLE.SCRIPT_STATUS.equal(UByte.valueOf(0)));
+                    conditions.add(TABLE.ID.in(includeIds));
                 }
+            } else {
+                conditions.add(TABLE.ID.notIn(query.getExcludeTemplateIds()));
             }
-            if (templateCondition.getStatus() != null) {
-                conditions.add(TABLE.STATUS.equal(UByte.valueOf(templateCondition.getStatus().getStatus())));
+        } else {
+            if (query.getId() != null && query.getId() > 0) {
+                conditions.add(TABLE.ID.eq(ULong.valueOf(query.getId())));
+            } else if (CollectionUtils.isNotEmpty(query.getIds())) {
+                if (query.getIds().size() == 1) {
+                    conditions.add(TABLE.ID.eq(ULong.valueOf(query.getIds().get(0))));
+                } else {
+                    conditions.add(TABLE.ID.in(query.getIds()));
+                }
             }
         }
-        if (baseSearchCondition != null) {
+
+        if (StringUtils.isNotBlank(query.getName())) {
+            conditions.add(TABLE.NAME.like("%" + query.getName() + "%"));
+        }
+
+        if (query.getScriptStatus() != null) {
+            if (query.getScriptStatus() != 0) {
+                conditions.add(TABLE.SCRIPT_STATUS.greaterThan(UByte.valueOf(0)));
+            } else {
+                conditions.add(TABLE.SCRIPT_STATUS.eq(UByte.valueOf(0)));
+            }
+        }
+        if (query.getStatus() != null) {
+            conditions.add(TABLE.STATUS.eq(UByte.valueOf(query.getStatus().getStatus())));
+        }
+        if (query.getBaseSearchCondition() != null) {
+            BaseSearchCondition baseSearchCondition = query.getBaseSearchCondition();
             if (StringUtils.isNotBlank(baseSearchCondition.getCreator())) {
-                conditions.add(TABLE.CREATOR.equal(baseSearchCondition.getCreator()));
+                conditions.add(TABLE.CREATOR.eq(baseSearchCondition.getCreator()));
             }
             if (StringUtils.isNotBlank(baseSearchCondition.getLastModifyUser())) {
-                conditions.add(TABLE.LAST_MODIFY_USER.equal(baseSearchCondition.getLastModifyUser()));
+                conditions.add(TABLE.LAST_MODIFY_USER.eq(baseSearchCondition.getLastModifyUser()));
             }
         }
         return conditions;
@@ -295,14 +294,12 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     public Long insertTaskTemplate(TaskTemplateInfoDTO templateInfo) {
         TaskTemplateRecord record = context.insertInto(TABLE)
             .columns(TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS, TABLE.CREATE_TIME,
-                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID,
+                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID,
                 TABLE.VERSION, TABLE.SCRIPT_STATUS)
             .values(ULong.valueOf(templateInfo.getAppId()), templateInfo.getName(), templateInfo.getDescription(),
                 templateInfo.getCreator(), UByte.valueOf(templateInfo.getStatus().getStatus()),
                 ULong.valueOf(templateInfo.getCreateTime()), templateInfo.getLastModifyUser(),
                 ULong.valueOf(templateInfo.getLastModifyTime()),
-                TagUtils
-                    .buildDbTagList(templateInfo.getTags().stream().map(TagDTO::getId).collect(Collectors.toList())),
                 ULong.valueOf(templateInfo.getFirstStepId()), ULong.valueOf(templateInfo.getLastStepId()),
                 UUID.randomUUID().toString(), UByte.valueOf(0))
             .returning(TABLE.ID).fetchOne();
@@ -334,10 +331,6 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         if (templateInfo.getStatus() != null) {
             updateStep = updateStep.set(TABLE.STATUS, UByte.valueOf(templateInfo.getStatus().getStatus()));
         }
-        if (templateInfo.getTags() != null) {
-            updateStep = updateStep.set(TABLE.TAGS, TagUtils
-                .buildDbTagList(templateInfo.getTags().stream().map(TagDTO::getId).collect(Collectors.toList())));
-        }
         if (templateInfo.getFirstStepId() != null) {
             updateStep = updateStep.set(TABLE.FIRST_STEP_ID, ULong.valueOf(templateInfo.getFirstStepId()));
         }
@@ -360,45 +353,11 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     }
 
     @Override
-    public Map<Long, Long> getTemplateTagCount(Long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
-        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        Result<Record1<String>> result = context.select(TABLE.TAGS).from(TABLE).where(conditions).fetch();
-        if (result == null) {
-            return Collections.emptyMap();
-        }
-        Map<Long, Long> tagCount = new HashMap<>(result.size());
-        for (Record1<String> record : result) {
-            List<Long> tags = TagUtils.decodeDbTag(record.get(TABLE.TAGS));
-            tags.forEach(tag -> {
-                if (tagCount.containsKey(tag)) {
-                    tagCount.put(tag, tagCount.get(tag) + 1);
-                } else {
-                    tagCount.put(tag, 1L);
-                }
-            });
-        }
-
-        return tagCount;
-    }
-
-    @Override
     public Long getAllTemplateCount(Long appId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
         return getPageTaskTemplateCount(conditions);
-    }
-
-    @Override
-    public Long getUnclassifiedTemplateCount(Long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
-        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        conditions.add(TABLE.TAGS.isNull());
-        return getPageTaskTemplateCount(conditions);
-
     }
 
     @Override
@@ -441,16 +400,15 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         conditions.add(TABLE.NAME.equal(name));
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+        Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte> record =
             context
                 .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS,
+                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
                     TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS)
                 .from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             TaskTemplateInfoDTO taskTemplate = DbRecordMapper.convertRecordToTemplateInfo(record);
-            setTagName(Collections.singletonList(taskTemplate));
             return taskTemplate;
         } else {
             return null;
@@ -462,10 +420,10 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.equal(ULong.valueOf(templateId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        Record14<ULong, ULong, String, String, String, UByte, ULong, String, ULong, String, ULong, ULong, String,
+        Record13<ULong, ULong, String, String, String, UByte, ULong, String, ULong, ULong, ULong, String,
             UByte> record = context.select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR,
             TABLE.STATUS,
-            TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS,
+            TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
             TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.SCRIPT_STATUS).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return DbRecordMapper.convertRecordToTemplateInfo(record);
@@ -487,8 +445,8 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
 
     @Override
     public boolean checkTemplateId(Long templateId) {
-        return context.selectCount().from(TABLE).where(TABLE.ID.equal(ULong.valueOf(templateId))).fetchOne().get(0,
-            Integer.class) == 0;
+        return Objects.requireNonNull(context.selectCount().from(TABLE)
+            .where(TABLE.ID.equal(ULong.valueOf(templateId))).fetchOne()).get(0, Integer.class) == 0;
     }
 
     @Override
@@ -496,14 +454,12 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         return context.insertInto(TABLE)
             .columns(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS,
                 TABLE.CREATE_TIME,
-                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.TAGS, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID,
+                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID,
                 TABLE.VERSION, TABLE.SCRIPT_STATUS)
             .values(ULong.valueOf(templateInfo.getId()), ULong.valueOf(templateInfo.getAppId()),
                 templateInfo.getName(), templateInfo.getDescription(), templateInfo.getCreator(),
                 UByte.valueOf(templateInfo.getStatus().getStatus()), ULong.valueOf(templateInfo.getCreateTime()),
                 templateInfo.getLastModifyUser(), ULong.valueOf(templateInfo.getLastModifyTime()),
-                TagUtils
-                    .buildDbTagList(templateInfo.getTags().stream().map(TagDTO::getId).collect(Collectors.toList())),
                 ULong.valueOf(templateInfo.getFirstStepId()), ULong.valueOf(templateInfo.getLastStepId()),
                 UUID.randomUUID().toString(), UByte.valueOf(0))
             .execute() == 1;
@@ -511,34 +467,26 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
 
 
     private Integer countScriptByConditions(Collection<Condition> conditions) {
-        return context.selectCount().from(TABLE)
+        return Objects.requireNonNull(context.selectCount().from(TABLE)
             .where(conditions)
-            .fetchOne().value1();
-    }
-
-    @Override
-    public Integer countByTag(Long appId, Long tagId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
-        if (appId != null) {
-            conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
-        }
-        if (tagId != null) {
-            conditions.add(TABLE.TAGS.like("%<" + tagId + ">%"));
-        }
-        return countScriptByConditions(conditions);
+            .fetchOne()).value1();
     }
 
     @Override
     public List<Long> listAllTemplateId() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
-        List<ULong> uLongTemplateId = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
-        if (CollectionUtils.isNotEmpty(uLongTemplateId)) {
-            return uLongTemplateId.parallelStream().map(ULong::longValue).collect(Collectors.toList());
-        } else {
-            return new ArrayList<>();
-        }
+        List<ULong> templateIds = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
+        return templateIds.stream().map(ULong::longValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> listAllAppTemplateId(Long appId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
+        List<ULong> templateIds = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
+        return templateIds.stream().map(ULong::longValue).collect(Collectors.toList());
     }
 
     @Override
@@ -551,24 +499,6 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
         return context.selectCount().from(TABLE)
             .where(conditions)
             .fetchOne().value1();
-    }
-
-    private void setTagName(List<TaskTemplateInfoDTO> templateInfoList) {
-        // 设置标签名称.从DAO查询的结果仅包含tagId
-        if (templateInfoList != null && !templateInfoList.isEmpty()) {
-            Long appId = templateInfoList.get(0).getAppId();
-            List<TagDTO> tags = tagService.listTagsByAppId(appId);
-            Map<Long, String> tagIdNameMap = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(tags)) {
-                tags.forEach(tag -> tagIdNameMap.put(tag.getId(), tag.getName()));
-            }
-            for (TaskTemplateInfoDTO templateInfo : templateInfoList) {
-                List<TagDTO> scriptTags = templateInfo.getTags();
-                if (CollectionUtils.isNotEmpty(scriptTags)) {
-                    scriptTags.forEach(tag -> tag.setName(tagIdNameMap.get(tag.getId())));
-                }
-            }
-        }
     }
 
     @Override
@@ -591,5 +521,19 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     public void updateTemplateStatus(ULong templateId, int scriptStatus) {
         context.update(TABLE).set(TABLE.SCRIPT_STATUS, UByte.valueOf(scriptStatus))
             .where(TABLE.ID.equal(templateId)).execute();
+    }
+
+    @Override
+    public Map<Long, List<Long>> listAllTemplateTagsCompatible() {
+        Result<? extends Record> result =
+            context.select(TABLE.ID, TABLE.TAGS).from(TABLE).where(TABLE.IS_DELETED.eq(UByte.valueOf(0))).fetch();
+        Map<Long, List<Long>> templateTagsMap = new HashMap<>();
+        result.map(record -> {
+            long templateId = record.get(TABLE.ID).longValue();
+            List<Long> tagIds = TagUtils.decodeDbTag(record.get(TABLE.TAGS));
+            templateTagsMap.put(templateId, tagIds);
+            return null;
+        });
+        return templateTagsMap;
     }
 }

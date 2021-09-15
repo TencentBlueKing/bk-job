@@ -24,16 +24,18 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.web.WebPublicScriptResource;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO;
@@ -85,9 +87,8 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
                                                               String creator, String lastModifyUser, String scriptId,
                                                               Integer start, Integer pageSize, String orderField,
                                                               Integer order) {
-        return scriptResourceProxy.listPageScript(username, PUBLIC_APP_ID, true, name, type, tags, creator,
-            lastModifyUser,
-            scriptId, start, pageSize, orderField, order);
+        return scriptResourceProxy.listPageScript(username, PUBLIC_APP_ID, true, name, type, tags, null,
+            null, creator, lastModifyUser, scriptId, start, pageSize, orderField, order);
     }
 
     @Override
@@ -158,5 +159,16 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
     public ServiceResponse<ScriptCiteInfoVO> getPublicScriptCiteInfo(String username, String scriptId,
                                                                      Long scriptVersionId) {
         return scriptResourceProxy.getScriptCiteInfo(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+    }
+
+    @Override
+    public ServiceResponse<?> batchUpdatePublicScriptTags(String username,
+                                                                ScriptTagBatchUpdateReq tagBatchUpdateReq) {
+        return scriptResourceProxy.batchUpdateScriptTags(username, PUBLIC_APP_ID, tagBatchUpdateReq);
+    }
+
+    @Override
+    public ServiceResponse<TagCountVO> getTagPublicScriptCount(String username) {
+        return scriptResourceProxy.getTagScriptCount(username, PUBLIC_APP_ID);
     }
 }
