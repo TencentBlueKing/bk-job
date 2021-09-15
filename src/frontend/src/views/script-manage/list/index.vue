@@ -27,7 +27,7 @@
 
 <template>
     <layout>
-        <template v-if="!isPublicScript" #tag>
+        <template #tag>
             <tag-panel
                 ref="tagPanelRef"
                 @on-change="handleTagPlanChange" />

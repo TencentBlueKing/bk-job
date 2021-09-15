@@ -64,7 +64,7 @@
                             </bk-button>
                         </Empty>
                     </div>
-                    <template v-if="!publicScript">
+                    <template v-if="!isPublicScript">
                         <auth-component auth="tag/create">
                             <div class="tag-create" @click="handleNew">
                                 <bk-icon
@@ -105,6 +105,7 @@
     import PubliceTagManageService from '@service/public-tag-manage';
     import TagManageService from '@service/tag-manage';
     import ScriptManageService from '@service/script-manage';
+    import PublicScriptManageService from '@service/public-script-manage';
     import {
         checkPublicScript,
         encodeRegexp,
@@ -136,7 +137,7 @@
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
-            const publicScript = checkPublicScript(proxy.$route);
+            const isPublicScript = checkPublicScript(proxy.$route);
             
             // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};
@@ -190,7 +191,7 @@
              * @desc 获取 tag 列表数据
              */
             const fetchData = () => {
-                const requestHandler = publicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
+                const requestHandler = isPublicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
                 proxy.$request(requestHandler(), () => {
                     state.isLoading = true;
                 }).then((data) => {
@@ -289,8 +290,10 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
+
+                const requestHander = isPublicScript ? PublicScriptManageService.batchUpdateTag : ScriptManageService.batchUpdateTag;
                 
-                return ScriptManageService.batchUpdateTag({
+                return requestHander({
                     addTagIdList,
                     deleteTagIdList,
                     idList: props.templateList.map(({ id }) => id),
@@ -306,7 +309,7 @@
 
             return {
                 ...toRefs(state),
-                publicScript,
+                isPublicScript,
                 renderList,
                 handleSearch,
                 handleClearSearch,

@@ -60,7 +60,10 @@
 <script>
     import I18n from '@/i18n';
     import ScriptManageService from '@service/script-manage';
+    import PublicScriptManageService from '@service/public-script-manage';
     import TagManageService from '@service/tag-manage';
+    import PubliceTagManageService from '@service/public-tag-manage';
+    import { checkPublicScript } from '@utils/assist';
     import TabItem from './tab-item';
 
     export default {
@@ -87,6 +90,7 @@
             },
         },
         created () {
+            this.isPublicScript = checkPublicScript(this.$route);
             this.init();
         },
         mounted () {
@@ -97,19 +101,25 @@
              * @desc 获取tag列表
              */
             fetchTagList () {
+                if (this.isPublicScript) {
+                    return PubliceTagManageService.fetchTagList();
+                }
                 return TagManageService.fetchWholeList();
             },
             /**
              * @desc 获取tag的使用数量
              */
-            fetchTagTemplateNum () {
+            fetchTagScriptNum () {
+                if (this.isPublicScript) {
+                    return PublicScriptManageService.fetchTagCount();
+                }
                 return ScriptManageService.fetchTagCount();
             },
             init () {
                 this.isLoading = true;
                 Promise.all([
                     this.fetchTagList(),
-                    this.fetchTagTemplateNum(),
+                    this.fetchTagScriptNum(),
                 ]).then(([tagList, countMap]) => {
                     this.countMap = Object.freeze(countMap);
                     const list = [];
