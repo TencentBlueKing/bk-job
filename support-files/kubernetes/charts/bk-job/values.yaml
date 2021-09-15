@@ -322,12 +322,6 @@ iam:
   ## The system ID of Job in the IAM. Fixed Value
   systemId: bk_job
 
-## License Server Config
-license:
-  file: /data/job/cert/platform.cert
-  service:
-    url: "http://license.example.com"
-
 ## BlueKing PaaS Config
 paas:
   login:

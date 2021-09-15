@@ -34,10 +34,6 @@ gse:
 iam:
   base-url: __BK_IAM_PRIVATE_URL__
   system-id: bk_job
-license:
-  file: __BK_CERT_PATH__/platform.cert
-  service:
-    url: __BK_LICENSE_PRIVATE_URL__/certificate
 paas:
   login:
     url: __BK_PAAS_PUBLIC_URL__/login/

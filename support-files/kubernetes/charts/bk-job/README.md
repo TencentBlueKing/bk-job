@@ -63,7 +63,6 @@ bitnami/rabbitmq
 | `gse.taskserver.port`   | GSE TASK接口端口  | `48673`      |
 | `gse.server.zookeeper.connect.string`   | GSE Zookeeper根地址  | `gse-zk.example.com`      |
 | `iam.baseUrl`   | 权限中心后台根地址  | `http://bkiam.example.com`      |
-| `license.service.url`   | License后台根地址  | `http://license.example.com`      |
 | `paas.login.url`   | PaaS登录地址  | `http://paas.example.com/login`      |
 | `cmdb.server.url`   | CMDB首页地址  | `http://cmdb.example.com`      |
 | `nodeman.server.url`   | 节点管理首页地址  | `http://nodeman.example.com`      |
