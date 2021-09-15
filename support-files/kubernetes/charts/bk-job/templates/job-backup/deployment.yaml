@@ -60,7 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.backupConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 "
+              value: {{ .Values.backupConfig.jvmOptions | quoto }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR

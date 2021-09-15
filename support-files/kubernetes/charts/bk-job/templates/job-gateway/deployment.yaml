@@ -58,7 +58,7 @@ spec:
           imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC "
+              value: {{ .Values.gatewayConfig.jvmOptions | quoto }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR

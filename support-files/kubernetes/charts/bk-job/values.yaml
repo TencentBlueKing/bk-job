@@ -507,6 +507,7 @@ manageConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
 ## @section job-execute parameters
@@ -551,6 +552,7 @@ executeConfig:
   service:
     type: ClusterIP
     port: 80
+  jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
 ## @section job-crontab parameters
@@ -595,6 +597,7 @@ crontabConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-logsvr parameters
 logsvrConfig:
@@ -638,6 +641,7 @@ logsvrConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-backup parameters
 backupConfig:
@@ -681,6 +685,7 @@ backupConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-analysis parameters
 analysisConfig:
@@ -724,6 +729,7 @@ analysisConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-file-gateway parameters
 fileGatewayConfig:
@@ -767,6 +773,7 @@ fileGatewayConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-analysis parameters
 fileWorkerConfig:
@@ -823,6 +830,7 @@ fileWorkerConfig:
   downloadFile:
     dir: /tmp/job
     expireDays: 7
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-frontend parameters
 frontendConfig:
