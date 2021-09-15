@@ -24,10 +24,17 @@
 
 package com.tencent.bk.job.common.consul.provider;
 
+import com.ecwid.consul.v1.ConsulClient;
+import com.ecwid.consul.v1.QueryParams;
+import com.ecwid.consul.v1.Response;
+import com.ecwid.consul.v1.health.HealthChecksForServiceRequest;
+import com.ecwid.consul.v1.health.model.Check;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -37,6 +44,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.ecwid.consul.v1.health.model.Check.CheckStatus.CRITICAL;
+import static org.springframework.boot.actuate.health.Status.OUT_OF_SERVICE;
+import static org.springframework.boot.actuate.health.Status.UNKNOWN;
+import static org.springframework.boot.actuate.health.Status.UP;
 
 @Slf4j
 @Component
@@ -50,16 +62,68 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
         log.debug("ConsulServiceInfoServiceImpl inited");
     }
 
+    private ConsulClient consulClient;
+    private boolean consulInited = false;
+
+    public void initConsul() {
+        this.consulClient = ApplicationContextRegister.getBean(ConsulClient.class);
+        consulInited = true;
+    }
+
     private boolean checkNodeStatus(String nodeName) {
+        Response<List<Check>> response = consulClient.getHealthChecksForNode(nodeName, QueryParams.DEFAULT);
+        List<Check> checks = response.getValue();
+        for (Check check : checks) {
+            if (StringUtils.isBlank(check.getServiceId())
+                && (check.getCheckId().contains("maintenance")
+                || check.getName().toLowerCase().contains("maintenance")
+                || check.getStatus() == CRITICAL)) {
+                return false;
+            }
+        }
         return true;
     }
 
     private void fillVersionAndStatus(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
-        serviceInstanceInfoDTO.setVersion("consul version");
+        HealthChecksForServiceRequest request = HealthChecksForServiceRequest.newBuilder()
+            .setQueryParams(QueryParams.DEFAULT)
+            .build();
+        Response<List<Check>> response =
+            consulClient.getHealthChecksForService(serviceInstanceInfoDTO.getServiceName(), request);
+        List<Check> checks = response.getValue();
+        Check targetCheck = null;
+        for (Check check : checks) {
+            if (check.getServiceId().equals(serviceInstanceInfoDTO.getName())) {
+                targetCheck = check;
+                break;
+            }
+        }
+        if (targetCheck == null) {
+            serviceInstanceInfoDTO.setStatusCode(UNKNOWN.getCode());
+            return;
+        } else if (targetCheck.getName().toLowerCase().contains("maintenance")) {
+            serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
+            serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
+        } else {
+            if (checkNodeStatus(targetCheck.getNode())) {
+                serviceInstanceInfoDTO.setStatusCode(UP.getCode());
+                serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
+            } else {
+                serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
+                serviceInstanceInfoDTO.setStatusMessage("Node " + targetCheck.getNode() + " not healthy");
+            }
+        }
+        List<String> tagList = targetCheck.getServiceTags();
+        for (String tag : tagList) {
+            if (tag.startsWith("version=")) {
+                serviceInstanceInfoDTO.setVersion(StringUtils.removeStart(tag, "version="));
+            }
+        }
     }
 
     @Override
     public List<ServiceInstanceInfoDTO> listServiceInfo() {
+        if (!consulInited) initConsul();
         List<String> serviceIdList = discoveryClient.getServices();
         List<ServiceInstance> serviceInstanceList = new ArrayList<>();
         for (String serviceId : serviceIdList) {

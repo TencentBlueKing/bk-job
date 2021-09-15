@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.processor;
+package com.tencent.bk.job.common.discovery.processor;
 
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import org.springframework.boot.SpringApplication;
