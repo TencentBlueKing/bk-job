@@ -34,8 +34,10 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CredentialService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -59,18 +61,20 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
     private TaskPlanService planService;
     private AccountService accountService;
     private TagService tagService;
+    private CredentialService credentialService;
 
     @Autowired
     public ResourceAppInfoQueryServiceImpl(ApplicationService applicationService, ScriptService scriptService,
                                            TaskTemplateService templateService, TaskPlanService planService,
                                            AccountService accountService, TagService tagService,
-                                           AuthService authService) {
+                                           AuthService authService, CredentialService credentialService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
         this.planService = planService;
         this.accountService = accountService;
         this.tagService = tagService;
+        this.credentialService = credentialService;
         authService.setResourceAppInfoQueryService(this);
     }
 
@@ -148,6 +152,17 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
                     if (tagDTO != null) {
                         return getResourceAppInfoById(tagDTO.getAppId());
                     }
+                }
+                break;
+            case TICKET:
+                ServiceCredentialDTO credentialDTO = credentialService.getServiceCredentialById(resourceId);
+                if (credentialDTO == null) {
+                    log.warn("Cannot find credential by id {}", resourceId);
+                    return null;
+                }
+                appId = credentialDTO.getAppId();
+                if (appId > 0) {
+                    return getResourceAppInfoById(appId);
                 }
                 break;
             default:

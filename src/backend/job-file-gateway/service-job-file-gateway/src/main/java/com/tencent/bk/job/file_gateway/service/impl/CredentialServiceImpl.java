@@ -27,8 +27,8 @@ package com.tencent.bk.job.file_gateway.service.impl;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
-import com.tencent.bk.job.ticket.model.credential.CommonCredential;
-import com.tencent.bk.job.ticket.model.inner.resp.ServiceCredentialDTO;
+import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ public class CredentialServiceImpl implements CredentialService {
             commonCredential.setType(credentialDTO.getType());
             return commonCredential;
         } catch (Exception e) {
-            log.error("credential not valid:{}", credentialDTO);
+            log.error("credential not valid:{}", credentialDTO, e);
             return null;
         }
     }

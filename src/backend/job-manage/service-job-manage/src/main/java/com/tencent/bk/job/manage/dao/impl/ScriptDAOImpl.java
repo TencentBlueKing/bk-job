@@ -36,8 +36,14 @@ import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
-import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record12;
+import org.jooq.RecordMapper;
+import org.jooq.Result;
+import org.jooq.SortField;
 import org.jooq.generated.tables.Script;
 import org.jooq.generated.tables.ScriptVersion;
 import org.jooq.impl.DSL;
@@ -47,7 +53,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

@@ -61,7 +61,6 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-@SuppressWarnings("all")
 public class LicenseCheckRunner implements CommandLineRunner, ApplicationContextAware {
 
     private ApplicationContext context;
@@ -69,8 +68,6 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
     private final BkConfig bkConfig;
 
     private CloseableHttpClient httpClient;
-
-    private volatile LicenseCheckResultDTO licenseCheckResult;
 
     public LicenseCheckRunner(BkConfig bkConfig) {
         this.bkConfig = bkConfig;
@@ -81,23 +78,19 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
         if (httpClient == null) {
             X509TrustManager tm = new X509TrustManager() {
                 @Override
-                @SuppressWarnings("all")
                 public void checkClientTrusted(X509Certificate[] xcs, String string) {
                 }
 
                 @Override
-                @SuppressWarnings("all")
                 public void checkServerTrusted(X509Certificate[] xcs, String string) {
                 }
 
                 @Override
-                @SuppressWarnings("all")
                 public X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
             };
 
-            @SuppressWarnings("all")
             HostnameVerifier hostnameVerifier = (arg0, arg1) -> true;
 
             try {
@@ -127,12 +120,12 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
     }
 
     private void checkLicence() {
-        licenseCheckResult = getLicenceCheckResult();
-        if (licenseCheckResult != null && licenseCheckResult.isOk()) {
+        LicenseCheckResultDTO licenseCheckResult = getLicenceCheckResult();
+        if (licenseCheckResult.isOk()) {
             // License有效，一直保持至下次重启进程
             log.info("Check license on start finished, license is ok");
         } else {
-            log.error("Fail to check license, please check whether the license server is avaliable");
+            log.error("Fail to check license, please check whether the license server is available");
             ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) context;
             ctx.close();
         }
@@ -166,7 +159,7 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
             } catch (IOException e) {
                 retryTimes++;
                 if (retryTimes <= maxRetryTimes) {
-                    log.warn("Exception while getting license! Retrying...|{}", retryTimes);
+                    log.error("Exception while getting license! Retrying...|{}", retryTimes);
                     try {
                         Thread.sleep(1000 * retryInterval);
                     } catch (InterruptedException ignored) {
@@ -211,6 +204,10 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
 
     @Override
     public void run(String... args) throws Exception {
-        checkLicence();
+        if (bkConfig.isEnableLicenseValidate()) {
+            checkLicence();
+        } else {
+            log.info("License validation disabled!");
+        }
     }
 }

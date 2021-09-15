@@ -27,11 +27,8 @@ package com.tencent.bk.job.execute.schedule.tasks;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.execute.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,29 +36,27 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class SyncAppAndRefreshCacheTask {
-    private static final String serverIp = IpUtils.getFirstMachineIP();
     private final ApplicationService applicationService;
-    private final RedisTemplate redisTemplate;
-    private final NotifyService notifyService;
-    private final JobExecuteConfig config;
+    private final RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
     public SyncAppAndRefreshCacheTask(ApplicationService applicationService,
-                                      @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate,
-                                      NotifyService notifyService, JobExecuteConfig config) {
+                                      @Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate) {
         this.applicationService = applicationService;
         this.redisTemplate = redisTemplate;
-        this.notifyService = notifyService;
-        this.config = config;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void execute() {
         StopWatch watch = new StopWatch("sync-apps");
         try {
@@ -110,7 +105,7 @@ public class SyncAppAndRefreshCacheTask {
 
             watch.start("get-all-cache-apps");
             String appKey = "job:execute:apps";
-            Set<String> cacheAppIds = redisTemplate.opsForHash().keys(appKey);
+            Set<String> cacheAppIds = redisTemplate.<String, CacheAppDO>opsForHash().keys(appKey);
             watch.stop();
 
 

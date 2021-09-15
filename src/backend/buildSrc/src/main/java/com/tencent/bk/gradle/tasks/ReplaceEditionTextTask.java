@@ -166,4 +166,44 @@ class ReplaceEditionTextTask extends DefaultTask {
     public void process(String pattern) {
         patternSet.add(pattern);
     }
+
+    public FileCollection getProcessResourcesOutputFiles() {
+        return processResourcesOutputFiles;
+    }
+
+    public void setProcessResourcesOutputFiles(FileCollection processResourcesOutputFiles) {
+        this.processResourcesOutputFiles = processResourcesOutputFiles;
+    }
+
+    public String getSrcStr() {
+        return srcStr;
+    }
+
+    public void setSrcStr(String srcStr) {
+        this.srcStr = srcStr;
+    }
+
+    public String getTargetStr() {
+        return targetStr;
+    }
+
+    public void setTargetStr(String targetStr) {
+        this.targetStr = targetStr;
+    }
+
+    public String getDefaultEdition() {
+        return defaultEdition;
+    }
+
+    public void setDefaultEdition(String defaultEdition) {
+        this.defaultEdition = defaultEdition;
+    }
+
+    public String getDefaultPackageType() {
+        return defaultPackageType;
+    }
+
+    public void setDefaultPackageType(String defaultPackageType) {
+        this.defaultPackageType = defaultPackageType;
+    }
 }

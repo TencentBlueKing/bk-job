@@ -50,20 +50,39 @@ public class RouteConfig {
     }
 
     @Bean
-    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService) {
-        return new UserHandler(loginService, i18nService);
+    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService, @Autowired LoginExemptionConfig loginExemptionConfig) {
+        return new UserHandler(loginService, i18nService, loginExemptionConfig);
     }
 
     static class UserHandler {
         private LoginService loginService;
         private MessageI18nService i18nService;
+        private LoginExemptionConfig loginExemptionConfig;
 
-        UserHandler(LoginService loginService, MessageI18nService i18nService) {
+        UserHandler(
+            LoginService loginService,
+            MessageI18nService i18nService,
+            LoginExemptionConfig loginExemptionConfig
+        ) {
             this.loginService = loginService;
             this.i18nService = i18nService;
+            this.loginExemptionConfig = loginExemptionConfig;
+        }
+
+        private BkUserDTO getLoginExemptUser() {
+            BkUserDTO bkUserDTO = new BkUserDTO();
+            bkUserDTO.setId(1L);
+            bkUserDTO.setUsername(loginExemptionConfig.getDefaultUser());
+            bkUserDTO.setDisplayName(loginExemptionConfig.getDefaultUser());
+            bkUserDTO.setUid(loginExemptionConfig.getDefaultUser());
+            return bkUserDTO;
         }
 
         Mono<ServerResponse> getUserByBkToken(ServerRequest request) {
+            if (loginExemptionConfig.isEnableLoginExemption()) {
+                ServiceResponse<BkUserDTO> resp = ServiceResponse.buildSuccessResp(getLoginExemptUser());
+                return ServerResponse.ok().body(Mono.just(resp), ServiceResponse.class);
+            }
             MultiValueMap<String, HttpCookie> cookieMap = request.cookies();
             HttpCookie bkTokenCookie = cookieMap.get(loginService.getCookieNameForToken()).get(0);
 

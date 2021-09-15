@@ -35,7 +35,7 @@ public class BkConfig {
     @Value("${job.web.url:}")
     private String jobWebUrl;
 
-    @Value("${job.backup.swagger.url:backup.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
 }

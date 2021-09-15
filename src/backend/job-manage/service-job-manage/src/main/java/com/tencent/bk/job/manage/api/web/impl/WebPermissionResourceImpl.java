@@ -309,6 +309,34 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return ServiceResponse.buildSuccessResp(AuthResultVO.fail());
     }
 
+    private ServiceResponse<AuthResultVO> checkTicketOperationPermission(
+        String username,
+        String appIdStr,
+        String action,
+        String resourceId,
+        boolean isReturnApplyUrl
+    ) {
+        if (appIdStr == null) {
+            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"appId", "appId cannot be null or empty"});
+        }
+        switch (action) {
+            case "use":
+                return ServiceResponse.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
+                    ActionId.USE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildAppPathInfo(appIdStr)));
+            case "create":
+                return ServiceResponse.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
+                    ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS, appIdStr, null));
+            case "edit":
+            case "delete":
+                return ServiceResponse.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
+                    ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildAppPathInfo(appIdStr)));
+            default:
+                log.error("Unknown operator|{}|{}|{}|{}", username, appIdStr, action, resourceId);
+        }
+        return ServiceResponse.buildSuccessResp(AuthResultVO.fail());
+    }
+
     @Override
     public ServiceResponse<AuthResultVO> checkOperationPermission(
         String username,
@@ -361,6 +389,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 break;
             case "tag":
                 return checkTagOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+            case "ticket":
+                return checkTicketOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
         }
         return ServiceResponse.buildSuccessResp(AuthResultVO.fail());
     }

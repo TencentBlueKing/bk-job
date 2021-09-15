@@ -28,33 +28,29 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.web.model.InnerServiceResponse;
+import com.tencent.bk.job.common.api.model.InnerServiceResponse;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
-import com.tencent.bk.job.manage.client.ServiceCredentialResourceClient;
+import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
-import com.tencent.bk.job.ticket.consts.CredentialTypeEnum;
-import com.tencent.bk.job.ticket.model.inner.resp.ServiceBasicCredentialDTO;
-import com.tencent.bk.job.ticket.model.web.req.CredentialCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
+import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceBasicCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.APP_ID_SECRET_KEY;
-import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.PASSWORD;
-import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.SECRET_KEY;
-import static com.tencent.bk.job.ticket.consts.CredentialTypeEnum.USERNAME_PASSWORD;
 
 @RestController
 @Slf4j
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
-    private final ServiceCredentialResourceClient credentialService;
+    private final ServiceCredentialResource credentialService;
     private final AuthService authService;
     private final MessageI18nService i18nService;
 
     @Autowired
-    public EsbCredentialResourceV3Impl(ServiceCredentialResourceClient credentialService, AuthService authService, MessageI18nService i18nService) {
+    public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService, AuthService authService, MessageI18nService i18nService) {
         this.credentialService = credentialService;
         this.authService = authService;
         this.i18nService = i18nService;
@@ -137,14 +133,14 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         createUpdateReq.setName(req.getName());
         createUpdateReq.setType(CredentialTypeEnum.valueOf(req.getType()));
         createUpdateReq.setDescription(req.getDescription());
-        if (SECRET_KEY.name().equals(type)) {
+        if (CredentialTypeEnum.SECRET_KEY.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialSecretKey());
-        } else if (PASSWORD.name().equals(type)) {
+        } else if (CredentialTypeEnum.PASSWORD.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialPassword());
-        } else if (APP_ID_SECRET_KEY.name().equals(type)) {
+        } else if (CredentialTypeEnum.APP_ID_SECRET_KEY.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialAccessKey());
             createUpdateReq.setValue2(req.getCredentialSecretKey());
-        } else if (USERNAME_PASSWORD.name().equals(type)) {
+        } else if (CredentialTypeEnum.USERNAME_PASSWORD.name().equals(type)) {
             createUpdateReq.setValue1(req.getCredentialUsername());
             createUpdateReq.setValue2(req.getCredentialPassword());
         } else {

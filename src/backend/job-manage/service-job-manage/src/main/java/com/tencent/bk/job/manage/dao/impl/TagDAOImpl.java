@@ -43,7 +43,6 @@ import org.jooq.SortField;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
 import org.jooq.generated.tables.Tag;
-import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -217,7 +216,7 @@ public class TagDAOImpl implements TagDAO {
         long count = getTagCount(tagCondition, baseSearchCondition);
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
-        if (org.apache.commons.lang.StringUtils.isBlank(baseSearchCondition.getOrderField())) {
+        if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TABLE.ID.desc());
         } else {
             String orderField = baseSearchCondition.getOrderField();
@@ -270,7 +269,6 @@ public class TagDAOImpl implements TagDAO {
         if (StringUtils.isNotBlank(searchCondition.getCreator())) {
             conditions.add(TABLE.CREATOR.eq(searchCondition.getCreator()));
         }
-        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
         return conditions;
     }
 

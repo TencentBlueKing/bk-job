@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StatisticConfig {
 
-    @Value("${job.analysis.statistics.expire.enable:true}")
+    @Value("${job.analysis.statistics.expire.enabled:true}")
     private Boolean enableExpire;
 
     @Value("${job.analysis.statistics.expire.days:366}")
@@ -41,7 +41,7 @@ public class StatisticConfig {
     @Value("${job.analysis.statistics.frequency.hours:1}")
     private Integer intervalHours;
 
-    @Value("${job.analysis.statistics.enable:true}")
+    @Value("${job.analysis.statistics.enabled:true}")
     private Boolean enable;
 
     @Value("${job.analysis.statistics.mom.days:1}")

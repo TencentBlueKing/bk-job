@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BkConfig {
 
-    @Value("${job.analysis.swagger.url:analysis.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
 }

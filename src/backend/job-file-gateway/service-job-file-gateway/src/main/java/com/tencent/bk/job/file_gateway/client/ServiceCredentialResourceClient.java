@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.client;
 
-import com.tencent.bk.job.ticket.api.inner.ServiceCredentialResource;
+import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
 import org.springframework.cloud.openfeign.FeignClient;
 
 /**
  * 业务服务远程调用客户端
  */
-@FeignClient(value = "job-ticket", contextId = "job-ticket-credential")
+@FeignClient(value = "job-manage", contextId = "job-manage-credential")
 public interface ServiceCredentialResourceClient extends ServiceCredentialResource {
 }

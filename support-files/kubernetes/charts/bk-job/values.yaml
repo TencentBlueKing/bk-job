@@ -1,0 +1,893 @@
+# Default values for bk-job.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+##
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+
+## @param nameOverride String to partially override common.names.fullname
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain
+##
+clusterDomain: cluster.local
+## Specifies whether a ServiceAccount should be created
+serviceAccount:
+  create: true
+  ## The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  ##
+  name:
+rbac:
+  create: true
+
+ingress:
+  enabled: false
+
+## @section Job common component parameters
+##
+
+## MariaDB chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/mariadb/values.yaml
+##
+mariadb:
+  ## @param mariadb.enabled Whether to deploy a mariadb server to satisfy the applications database requirements
+  ## To use an external database set this to false and configure the externalDatabase parameters
+  ##
+  enabled: true
+  ## @param mariadb.architecture MariaDB architecture. Allowed values: `standalone` or `replication`
+  ##
+  architecture: standalone
+  ## MariaDB Authentication parameters
+  ##
+  auth:
+    ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
+    ##
+    rootPassword: "job"
+    ## @param mariadb.auth.database Database name to create
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
+    ##
+    database: ""
+    ## @param mariadb.auth.username Database user to create
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+    ##
+    username: job
+    ## @param mariadb.auth.password Password for the database
+    ##
+    password: "job"
+  primary:
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      ## @param mariadb.primary.persistence.enabled Enable database persistence using PVC
+      ##
+      enabled: true
+      ## @param mariadb.primary.persistence.storageClass MariaDB primary persistent volume storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      storageClass: ""
+      ## @param mariadb.primary.persistence.accessModes Database Persistent Volume Access Modes
+      ##
+      accessModes:
+        - ReadWriteOnce
+      ## @param mariadb.primary.persistence.size Database Persistent Volume Size
+      ##
+      size: 8Gi
+      ## @param mariadb.primary.persistence.hostPath Set path in case you want to use local host path volumes (not recommended in production)
+      ##
+      hostPath: ""
+      ## @param mariadb.primary.persistence.existingClaim Name of an existing `PersistentVolumeClaim` for MariaDB primary replicas
+      ##
+      existingClaim: ""
+  initdbScripts:
+    init_root_privileges.sql: |
+      grant all privileges on *.* to 'root'@'%' identified by 'job';
+      grant all privileges on *.* to 'job'@'%' identified by 'job';
+      flush privileges;
+
+## External MariaDB configuration
+##
+externalMariaDB:
+  ## @param externalMariaDB.existingPasswordSecret: Existing secret with MariaDB
+  ##
+  existingPasswordSecret: ""
+  ## @param externalMariaDB.existingPasswordKey: Key in existingPasswordSecret, defaults to "mariadb-password"
+  ##
+  existingPasswordKey: ""
+  ## @param externalMariaDB.host Host of the existing database
+  ##
+  host: ""
+  ## @param externalMariaDB.port Port of the existing database
+  ##
+  port: 3306
+  ## @param externalMariaDB.user Existing username in the existing database
+  ##
+  username: job
+  ## @param externalMariaDB.password Password for the above username
+  ##
+  password: ""
+
+
+## Redis chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
+##
+redis:
+  ## @param redis.enabled Whether to deploy a redis
+  ## To use an external redis set this to false and configure the externalRedis parameters
+  ##
+  enabled: true
+  ## @param redis.architecture Redis architecture. Allowed values: standalone or replication
+  ##
+  architecture: standalone
+  ## Redis Authentication parameters
+  ##
+  auth:
+    ## @param redis.auth.enabled Enable password authentication
+    ##
+    enabled: true
+    ## @param redis.auth.sentinel Enable password authentication on sentinels too
+    ##
+    sentinel: true
+    ## @param redis.auth.password Password for the database
+    ##
+    password: "job"
+    ## @param redis.auth.existingSecret The name of an existing secret with Redis&trade; credentials
+    ## NOTE: When it's set, the previous `auth.password` parameter is ignored
+    ##
+    existingSecret: ""
+    ## @param redis.auth.existingSecretPasswordKey Password key to be retrieved from existing secret
+    ## NOTE: ignored unless `auth.existingSecret` parameter is set
+    ##
+    existingSecretPasswordKey: ""
+    ## @param auth.usePasswordFiles Mount credentials as files instead of using an environment variable
+    ##
+
+## External Redis configuration
+##
+externalRedis:
+  ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
+  ##
+  existingPasswordSecret: ""
+  ## @param externalRedis.existingPasswordKey: Key in existingPasswordSecret, defaults to "redis-password"
+  ##
+  existingPasswordKey: ""
+  ## @param externalRedis.host Host of the existing redis
+  ##
+  host: ""
+  ## @param externalRedis.port Port of the existing redis
+  ##
+  port: 6379
+  ## @param externalRedis.password Password
+  ##
+  password: "job"
+
+
+## RabbitMQ chart configuration
+## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml
+##
+rabbitmq:
+  ## @param rabbitmq.enabled Whether to deploy a RabbitMQ
+  ## To use an external RabbitMQ set this to false and configure the externalRabbitMQ parameters
+  ##
+  enabled: true
+  ## RabbitMQ Authentication parameters
+  ##
+  auth:
+    ## @param rabbitmq.auth.username RabbitMQ application username
+    ##
+    username: job
+    ## @param rabbitmq.auth.password RabbitMQ application password
+    ##
+    password: "job"
+    ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
+    ##
+    erlangCookie: "job"
+  loadDefinition:
+    enabled: true
+    existingSecret: job-rabbitmq-load-definition
+  extraConfiguration: |
+    management.load_definitions = /app/load_definition.json
+
+## External RabbitMQ configuration
+##
+externalRabbitMQ:
+  ## @param externalRabbitMQ.existingPasswordSecret: Existing secret with RabbitMQ
+  ##
+  existingPasswordSecret: ""
+  ## @param externalRabbitMQ.existingPasswordKey: Key in existingPasswordSecret, defaults to "rabbitmq-password"
+  ##
+  existingPasswordKey: ""
+  ## @param externalRabbitMQ.host Host of the existing RabbitMQ
+  ##
+  host: ""
+  ## @param externalRabbitMQ.port Port of the existing RabbitMQ
+  ##
+  port: 5672
+  ## @param externalRabbitMQ.username Username
+  ##
+  username: "job"
+  ## @param externalRabbitMQ.password Password
+  ##
+  password: "job"
+
+
+## mongodb charts Config
+## ref: https://github.com/bitnami/charts/tree/master/bitnami/mongodb
+mongodb:
+  # Whether to deploy mongodb
+  # If you need to use an external database, set it to false and configure externalMongoDB
+  enabled: true
+  architecture: "standalone"
+  useStatefulSet: true
+  auth:
+    rootPassword: job
+    enabled: true
+    database: joblog
+    username: job
+    password: job
+
+## If mongodb.enabled is false, use externalMongoDB
+externalMongoDB:
+  ## @param externalMongoDB.existingPasswordSecret: Existing secret with MongoDB
+  ##
+  existingPasswordSecret: ""
+  ## @param externalMongoDB.existingPasswordKey: Key in existingPasswordSecret, defaults to "mongodb-password"
+  ##
+  existingPasswordKey: ""
+  host: ""
+  port: 27017
+  database: joblog
+  username: ""
+  password: ""
+
+nginx-ingress-controller:
+  enabled: false
+
+## @section job application common parameters
+##
+app:
+  ## job app_code. Fixed Value
+  code: bk_job
+  ## job app_secret
+  secret: ""
+
+## BlueKing ESB Config
+esb:
+  service:
+    ## ESB Service URL
+    url: "http://paas.example.com"
+
+## BlueKing GSE Config
+gse:
+  ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
+  ##
+  existingTlsSecret: ""
+  cacheApiServer:
+    host: "gse-api.example.com"
+    port: 59313
+  ssl:
+    keystore:
+      ## @param gse.ssl.keystore.password: Password for gse keystore. Task effect when gse.existingTlsSecret is not set.
+      ##
+      password: "2y#8VI2B4Sm9Dk^J"
+    truststore:
+      ## @param gse.ssl.truststore.password: Password for gse truststore. Task effect when gse.existingTlsSecret is not set.
+      ##
+      password: "2y#8VI2B4Sm9Dk^J"
+  taskserver:
+    host: "gse-task.example.com"
+    port: 48673
+  server:
+    discovery:
+      type: zookeeper
+    zookeeper:
+      connect:
+        string: "gse-zk.example.com"
+  query:
+    threads:
+      num: 5
+    batchSize: 5000
+
+## BlueKing IAM Config
+iam:
+  baseUrl: "http://bkiam.example.com"
+  ## The system ID of Job in the IAM. Fixed Value
+  systemId: bk_job
+
+## BlueKing PaaS Config
+paas:
+  login:
+    url: "http://paas.example.com/login"
+
+## BlueKing CMDB Config
+cmdb:
+  app:
+    index:
+      path: /#/business/{appId}/index
+  interface:
+    briefCacheTopo:
+      enabled: true
+    findHostRelation:
+      longTerm:
+        concurrency: 10
+    flowControl:
+      default:
+        limit: 50
+      enabled: false
+    retry:
+      enabled: true
+  query:
+    threads:
+      num: 20
+  server:
+    url: http://cmdb.example.com
+
+## BlueKing NodeMan Config
+nodeman:
+  server:
+    url: http://nodeman.example.com
+
+## BlueKing Artifactory Config
+artifactory:
+  enabled: true
+  baseUrl: http://bkrepo.example.com
+  download:
+    concurrency: 10
+  admin:
+    username: admin
+    password: blueking
+  job:
+    username: bkjob
+    password: bkjob
+    project: bkjob
+    repo:
+      localUpload: localupload
+
+## Swagger Doc
+swagger:
+  url: "swagger.job.com"
+
+## Job Common Config
+job:
+  profile: prod
+  edition: ce
+  security:
+    privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
+    publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFnZ3hWT0F4dmd2QkNuTG40eXBaVzIySEU3OS9NZ0V6amhZZ09LM2hVbEpJc1N1amlkZVZ2OTdZMVhMRjArSkdEdEM0UllGNStUWGQ3dFNCWG1hOWQwanpJMkpPREtBSDJtbW91MVd1Y0pHclVMT09yODlpL25zWkVnTGxiczVqdmlwZFRCSHF5cXVzWkM2RWQ3dEl5cW80SlF3dGo5QVVFSjB2WEJHVGQ3aXk1Q3BLSkdKa0ZRK0h0ejQ1bDcrMGY4V0tNcXpiU3JyU0ZHd01DTWJSUWNJdHlSV2VuTFdSaWUzcE12eUc3clRNZDBQWVoyc1VXemdTVUd1cUgzdWFpR1B2eE1aT2hKczlFK3ZJWlZiVUlYdi85d1NlNXg5d2hnVjg1TUZVTzFrL0Vrd1lPMWpiYWFDVVdHUkd0bGZpWnJYVDZkaC9ZK29lcElXQmN6MFdCVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+    actuator:
+      user:
+        name: actuator_name
+        password: actuator_password
+  encrypt:
+    password: "job#2021"
+  feature:
+    toggle:
+      fileManage:
+        enabled: true
+  storage:
+    rootPath: /data/job/local
+
+## @section job-gateway parameters
+gatewayConfig:
+  loginExemption:
+    enabled: false
+    defaultUser: admin
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-gateway
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort:
+    https: 19802
+    http: 9802
+    management: 19876
+  service:
+    type: ClusterIP
+    port:
+      https: 443
+      http: 80
+  ingress:
+    enabled: true
+    hostname: "jobapi.example.com"
+    path: "/"
+    pathType: ImplementationSpecific
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
+    extraHosts: []
+    tls: []
+    extraTls: []
+    secrets: []
+  server:
+    ssl:
+      keystore:
+        password: ""
+      truststore:
+        password: ""
+  jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+
+## @section job-manage parameters
+manageConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-manage
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19803
+  service:
+    port: 80
+    type: ClusterIP
+
+
+## @section job-execute parameters
+executeConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-execute
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19804
+  service:
+    type: ClusterIP
+    port: 80
+
+
+## @section job-crontab parameters
+crontabConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-crontab
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19805
+  service:
+    port: 80
+    type: ClusterIP
+
+## @section job-logsvr parameters
+logsvrConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-logsvr
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19806
+  service:
+    port: 80
+    type: ClusterIP
+
+## @section job-backup parameters
+backupConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-backup
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19808
+  service:
+    port: 80
+    type: ClusterIP
+
+## @section job-analysis parameters
+analysisConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-analysis
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19807
+  service:
+    port: 80
+    type: ClusterIP
+
+## @section job-file-gateway parameters
+fileGatewayConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-file-gateway
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19809
+  service:
+    port: 80
+    type: ClusterIP
+
+## @section job-analysis parameters
+fileWorkerConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-file-worker
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19810
+  service:
+    port: 80
+    type: ClusterIP
+  swaggerUrl: ""
+  instanceName: job-file-worker-public-1
+  version: 0.0.1
+  id: 1
+  token: "testToken"
+  appId: -1
+  abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
+  access:
+    port: 19810
+  cloudAreaId: 0
+  downloadFile:
+    dir: /tmp/job
+    expireDays: 7
+
+## @section job-frontend parameters
+frontendConfig:
+  image:
+    registry: mirrors.tencent.com
+    repository: bkce/job-frontend
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits: {}
+    requests: {}
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  service:
+    type: ClusterIP
+    port: 80
+  web:
+    scheme: "http"
+    domain: "job.example.com"
+  backend:
+    apiGateway:
+      scheme: "http"
+      domain: "jobapi.example.com"
+  ingress:
+    enabled: true
+    hostname: "job.example.com"
+    pathType: ImplementationSpecific
+    path: "/"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+    extraHosts: []
+    tls: []
+    extraTls: []
+    secrets: []
+
+migration:
+  image:
+    registry: "mirrors.tencent.com"
+    repository: "bkce/job-migration"
+    tag: 3.4.0-alpha
+    pullPolicy: IfNotPresent

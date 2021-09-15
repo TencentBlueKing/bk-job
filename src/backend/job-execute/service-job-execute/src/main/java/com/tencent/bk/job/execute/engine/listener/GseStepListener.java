@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -60,12 +59,10 @@ public class GseStepListener {
     }
 
     @StreamListener(GseTaskProcessor.INPUT)
-    public void handleMessage(@Payload StepControlMessage gseStepControlMessage,
-                              @Header("X-B3-TraceId") String traceId, @Header("X-B3-SpanId") String spanId) {
-        log.info("Receive gse step control message, stepInstanceId={}, action={}, requestId={}, msgSendTime={}, " +
-                "traceId={}, spanId={}", gseStepControlMessage.getStepInstanceId(),
-            gseStepControlMessage.getAction(), gseStepControlMessage.getRequestId(), gseStepControlMessage.getTime(),
-            traceId, spanId);
+    public void handleMessage(@Payload StepControlMessage gseStepControlMessage) {
+        log.info("Receive gse step control message, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",
+            gseStepControlMessage.getStepInstanceId(),
+            gseStepControlMessage.getAction(), gseStepControlMessage.getRequestId(), gseStepControlMessage.getTime());
         long stepInstanceId = gseStepControlMessage.getStepInstanceId();
         String requestId = gseStepControlMessage.getRequestId();
         try {

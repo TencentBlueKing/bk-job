@@ -134,17 +134,29 @@ public class DispatchServiceImpl implements DispatchService {
                     return null;
                 }
             } else {
-                fileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(fileSourceDTO.getAppId(), workerSelectScope,
-                    abilityTagList.get(0));
+                String abilityTag = abilityTagList.get(0);
+                fileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(
+                    fileSourceDTO.getAppId(),
+                    workerSelectScope,
+                    abilityTag
+                );
+                log.debug("abilityTag:{}, workerNum:{}", abilityTag, fileWorkerDTOList.size());
                 // 能力交集
                 for (int i = 1; i < abilityTagList.size(); i++) {
-                    String abilityTag = abilityTagList.get(i);
+                    List<FileWorkerDTO> tmpFileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(
+                        fileSourceDTO.getAppId(),
+                        workerSelectScope,
+                        abilityTag
+                    );
+                    log.debug("abilityTag:{}, workerNum:{}", abilityTag, tmpFileWorkerDTOList.size());
+                    abilityTag = abilityTagList.get(i);
                     // 取交集
-                    fileWorkerDTOList.retainAll(getFileWorkerByScopeAndAbilityTag(fileSourceDTO.getAppId(),
-                        workerSelectScope, abilityTag));
+                    fileWorkerDTOList.retainAll(tmpFileWorkerDTOList);
+                    log.debug("after intersection of {}, retained workNum={}", abilityTag, fileWorkerDTOList.size());
                 }
             }
             if (fileWorkerDTOList.isEmpty()) {
+                log.warn("cannot find any file worker after ability intersection");
                 return null;
             }
             // 在线状态过滤

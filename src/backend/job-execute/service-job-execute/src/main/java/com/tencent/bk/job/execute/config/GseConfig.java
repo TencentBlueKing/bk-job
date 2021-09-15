@@ -50,7 +50,7 @@ public class GseConfig {
     @Value("${gse.cache.apiserver.port:59313}")
     private int gseCacheApiServerPort;
 
-    @Value("${gse.ssl.enable:true}")
+    @Value("${gse.ssl.enabled:true}")
     private boolean gseSSLEnable;
 
     @Value("${gse.ssl.keystore.path:}")

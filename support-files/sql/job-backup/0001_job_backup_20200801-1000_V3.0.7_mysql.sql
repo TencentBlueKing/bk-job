@@ -1,12 +1,12 @@
 SET NAMES utf8mb4;
 
-CREATE DATABASE job_backup DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;
+CREATE DATABASE IF NOT EXISTS job_backup DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;
 USE job_backup;
 
 -- ----------------------------
 -- Table structure for export_job
 -- ----------------------------
-CREATE TABLE `export_job`
+CREATE TABLE IF NOT EXISTS `export_job`
 (
     `id`                 varchar(36)         NOT NULL,
     `app_id`             bigint(20) UNSIGNED NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE `export_job`
 -- ----------------------------
 -- Table structure for export_log
 -- ----------------------------
-CREATE TABLE `export_log`
+CREATE TABLE IF NOT EXISTS `export_log`
 (
     `id`          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `app_id`      bigint(20) UNSIGNED NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE `export_log`
 -- ----------------------------
 -- Table structure for import_job
 -- ----------------------------
-CREATE TABLE `import_job`
+CREATE TABLE IF NOT EXISTS `import_job`
 (
     `id`                   varchar(36)         NOT NULL,
     `app_id`               bigint(20) UNSIGNED NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE `import_job`
 -- ----------------------------
 -- Table structure for import_log
 -- ----------------------------
-CREATE TABLE `import_log`
+CREATE TABLE IF NOT EXISTS `import_log`
 (
     `id`          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `app_id`      bigint(20) UNSIGNED NOT NULL,

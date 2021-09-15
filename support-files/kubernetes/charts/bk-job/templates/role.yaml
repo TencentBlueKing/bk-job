@@ -1,0 +1,26 @@
+{{- if .Values.rbac.create }}
+kind: Role
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+metadata:
+  name: {{ include "job.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups:
+      - ""
+      - "batch"
+    resources:
+      - jobs
+      - secrets
+      - configmaps
+      - services
+      - pods
+      - endpoints
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}

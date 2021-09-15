@@ -38,19 +38,19 @@ public class CcConfig {
     @Value("${cmdb.query.threads.num:20}")
     private int cmdbQueryThreadsNum;
 
-    @Value("${cmdb.interface.briefCacheTopo.enable:false}")
+    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
     private Boolean enableInterfaceBriefCacheTopo;
 
-    @Value("${cmdb.interface.retry.enable:false}")
+    @Value("${cmdb.interface.retry.enabled:false}")
     private Boolean enableInterfaceRetry;
 
     @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
     private Integer findHostRelationLongTermConcurrency;
 
-    @Value("${cmdb.interface.optimize.lock.enable:false}")
+    @Value("${cmdb.interface.optimize.lock.enabled:false}")
     private Boolean enableLockOptimize;
 
-    @Value("${cmdb.interface.flowControl.enable:false}")
+    @Value("${cmdb.interface.flowControl.enabled:false}")
     private Boolean enableFlowControl;
 
     @Value("${cmdb.interface.flowControl.precision:20}")

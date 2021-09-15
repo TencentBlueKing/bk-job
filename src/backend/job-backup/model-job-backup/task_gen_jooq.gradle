@@ -1,7 +1,7 @@
 apply plugin: 'nu.studer.jooq'
 
 dependencies {
-    compile "org.jooq:jooq"
+    api "org.jooq:jooq"
     jooqRuntime "mysql:mysql-connector-java"
 }
 

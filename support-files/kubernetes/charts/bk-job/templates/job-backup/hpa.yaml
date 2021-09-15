@@ -1,0 +1,35 @@
+{{- if .Values.backupConfig.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: "job-backup"
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-backup"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+    kind: Deployment
+    name: "job-backup"
+  minReplicas: {{ .Values.backupConfig.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.backupConfig.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.backupConfig.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.backupConfig.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.backupConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.backupConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

@@ -71,6 +71,15 @@ public class FileWorkerServiceImpl implements FileWorkerService {
                 log.warn("cannot parse fileWorkerConfig, configStr={}", configStr);
             }
         }
+        if (!fileWorkerDAO.existsFileWorker(
+            dslContext,
+            fileWorkerDTO.getAccessHost(),
+            fileWorkerDTO.getAccessPort())
+        ) {
+            fileWorkerDAO.insertFileWorker(dslContext, fileWorkerDTO);
+        } else {
+            fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
+        }
         if (fileWorkerConfig != null) {
             List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
             List<FileSourceTypeDTO> fileSourceTypeDTOList = new ArrayList<>();
@@ -84,14 +93,9 @@ public class FileWorkerServiceImpl implements FileWorkerService {
                 fileSourceTypeDTO.setLastModifier("Worker_" + id);
                 fileSourceTypeDTOList.add(fileSourceTypeDTO);
             }
-            dslContext.transaction(configuration -> {
-                fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
-                for (FileSourceTypeDTO fileSourceTypeDTO : fileSourceTypeDTOList) {
-                    fileSourceTypeDAO.upsertByWorker(dslContext, fileSourceTypeDTO);
-                }
-            });
-        } else {
-            fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
+            for (FileSourceTypeDTO fileSourceTypeDTO : fileSourceTypeDTOList) {
+                fileSourceTypeDAO.upsertByWorker(dslContext, fileSourceTypeDTO);
+            }
         }
         return id;
     }

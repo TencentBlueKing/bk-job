@@ -1,0 +1,35 @@
+{{- if .Values.logsvrConfig.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: "job-logsvr"
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-logsvr"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+    kind: Deployment
+    name: "job-logsvr"
+  minReplicas: {{ .Values.logsvrConfig.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.logsvrConfig.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.logsvrConfig.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.logsvrConfig.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.logsvrConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.logsvrConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

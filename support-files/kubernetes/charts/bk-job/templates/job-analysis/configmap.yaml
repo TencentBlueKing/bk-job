@@ -1,0 +1,80 @@
+{{- if .Values.analysisConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-analysis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-analysis"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    spring:
+      application:
+        name: {{ include "common.names.fullname" . }}-analysis
+      cloud:
+        refresh:
+          extra-refreshable: javax.sql.DataSource
+      datasource:
+        job-analysis:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: jdbc:mysql://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_analysis?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-analysis"
+          validationTimeout: 5000
+      rabbitmq:
+        host: {{ include "job.rabbitmq.host" . }}
+        port: {{ include "job.rabbitmq.port" . }}
+        username: {{ include "job.rabbitmq.username" . }}
+        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${rabbitmq-password}
+        {{- end }}
+        virtual-host: {{ include "job.rabbitmq.vhost" . }}
+      redis:
+        mode: standalone
+        host: {{ include "job.redis.host" . }}
+        port: {{ include "job.redis.port" . }}
+        #sentinel:
+          #password:
+          #master:
+          #nodes:
+        {{ if .Values.externalRedis.existingPasswordSecret }}
+        password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${redis-password}
+        {{- end }}
+        database: 0
+        lettuce:
+          pool:
+            min-idle: 5
+            max-idle: 10
+            max-active: 8
+            max-wait: 1ms
+          shutdown-timeout: 100ms
+      servlet:
+        multipart:
+          max-file-size: 5GB
+          max-request-size: 5GB
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 300000
+    server:
+      port: {{ .Values.analysisConfig.containerPort }}
+  {{- end}}
