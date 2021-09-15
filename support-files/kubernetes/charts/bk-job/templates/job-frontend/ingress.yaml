@@ -20,9 +20,9 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 spec:
-  { { - if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) } }
-  ingressClassName: { { .Values.ingress.ingressClassName | quote } }
-  { { - end } }
+  {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
+  {{- end }}
   rules:
     {{- if .Values.frontendConfig.ingress.hostname }}
     - host: {{ .Values.frontendConfig.ingress.hostname }}
@@ -35,7 +35,7 @@ spec:
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
             pathType: {{ .Values.frontendConfig.ingress.pathType }}
             {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" .)) "servicePort" {{ .Values.frontendConfig.service.port | quote }} "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" .)) "servicePort" .Values.frontendConfig.service.port "context" $)  | nindent 14 }}
     {{- end }}
     {{- range .Values.frontendConfig.ingress.extraHosts }}
     - host: {{ .name }}
