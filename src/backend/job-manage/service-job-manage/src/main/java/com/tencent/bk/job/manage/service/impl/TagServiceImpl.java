@@ -272,12 +272,16 @@ public class TagServiceImpl implements TagService {
     public void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags,
                                           List<ResourceTagDTO> deleteResourceTags) {
         StopWatch watch = new StopWatch("batchPatchResourceTags");
-        watch.start("batchSaveResourceTags");
-        resourceTagDAO.batchSaveResourceTags(addResourceTags);
-        watch.stop();
-        watch.start("deleteResourceTags");
-        resourceTagDAO.deleteResourceTags(deleteResourceTags);
-        watch.stop();
+        if (CollectionUtils.isNotEmpty(addResourceTags)) {
+            watch.start("batchSaveResourceTags");
+            resourceTagDAO.batchSaveResourceTags(addResourceTags);
+            watch.stop();
+        }
+        if (CollectionUtils.isNotEmpty(deleteResourceTags)) {
+            watch.start("deleteResourceTags");
+            resourceTagDAO.deleteResourceTags(deleteResourceTags);
+            watch.stop();
+        }
         if (watch.getTotalTimeMillis() > 1000L) {
             log.warn("BatchPatchResourceTags cost too much time, cost: {} ms, statistics: {}",
                 watch.getTotalTimeMillis(), watch.prettyPrint());
