@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -377,6 +379,12 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
         }
 
+        AuthResultVO authResultVO = batchAuthTemplate(username, ActionId.EDIT_JOB_TEMPLATE, appId,
+            req.getIdList().stream().map(String::valueOf).collect(Collectors.toList()));
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
+
         List<Long> templateIdList = req.getIdList();
         List<ResourceTagDTO> addResourceTags = null;
         List<ResourceTagDTO> deleteResourceTags = null;
@@ -393,6 +401,20 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
 
         return ServiceResponse.buildSuccessResp(null);
+    }
+
+    private AuthResultVO batchAuthTemplate(String username, String actionId, Long appId, List<String> templateIdList) {
+        List<PermissionResource> resources = templateIdList.stream().map(templateId -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(templateId);
+            resource.setResourceType(ResourceTypeEnum.TEMPLATE);
+            resource.setPathInfo(PathBuilder.newBuilder(
+                ResourceTypeEnum.BUSINESS.getId(),
+                appId.toString()
+            ).build());
+            return resource;
+        }).collect(Collectors.toList());
+        return authService.batchAuthResources(username, actionId, appId, resources);
     }
 
     private ValidateResult checkTemplateTagBatchPatchReq(TemplateTagBatchPatchReq req) {

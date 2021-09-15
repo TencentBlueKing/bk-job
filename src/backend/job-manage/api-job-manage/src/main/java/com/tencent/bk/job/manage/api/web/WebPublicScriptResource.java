@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
-import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
@@ -270,7 +270,7 @@ public interface WebPublicScriptResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本标签批量更新请求报文", name = "tagBatchUpdateReq", required = true)
-        @RequestBody ScriptTagBatchUpdateReq tagBatchUpdateReq
+        @RequestBody ScriptTagBatchPatchReq tagBatchUpdateReq
     );
 
     @ApiOperation(value = "获取业务下标签关联的脚本数量", produces = "application/json")

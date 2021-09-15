@@ -75,7 +75,7 @@ public interface AuthService {
      *
      * @param username       用户名
      * @param resourceType   资源类型
-     * @param resourceId资源ID
+     * @param resourceId     资源ID
      * @return 鉴权结果
      */
     boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,

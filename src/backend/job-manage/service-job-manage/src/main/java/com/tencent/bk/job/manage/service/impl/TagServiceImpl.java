@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ParamErrorException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -62,14 +61,11 @@ import java.util.stream.Collectors;
 public class TagServiceImpl implements TagService {
     private final TagDAO tagDAO;
     private final ResourceTagDAO resourceTagDAO;
-    private final AuthService authService;
 
     @Autowired
-    public TagServiceImpl(TagDAO tagDAO, ResourceTagDAO resourceTagDAO,
-                          AuthService authService) {
+    public TagServiceImpl(TagDAO tagDAO, ResourceTagDAO resourceTagDAO) {
         this.tagDAO = tagDAO;
         this.resourceTagDAO = resourceTagDAO;
-        this.authService = authService;
     }
 
     @Override
@@ -317,8 +313,7 @@ public class TagServiceImpl implements TagService {
     public List<ResourceTagDTO> buildResourceTags(Integer resourceType, List<String> resourceIds, List<Long> tagIds) {
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(tagIds) && CollectionUtils.isNotEmpty(resourceIds)) {
-            resourceIds.forEach(resourceId -> tagIds
-                .forEach(tagId -> resourceTags.add(
+            resourceIds.forEach(resourceId -> tagIds.forEach(tagId -> resourceTags.add(
                     new ResourceTagDTO(resourceType, resourceId, tagId))));
         }
         return resourceTags;

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -32,14 +33,17 @@ import java.util.List;
 
 @Data
 @ApiModel("作业模板标签批量更新请求")
-public class ScriptTagBatchUpdateReq {
+public class ScriptTagBatchPatchReq {
 
     @ApiModelProperty(value = "脚本 ID 列表", required = true)
+    @JsonProperty("idList")
     private List<String> idList;
 
     @ApiModelProperty(value = "新增的标签ID列表")
+    @JsonProperty("addTagIdList")
     private List<Long> addTagIdList;
 
     @ApiModelProperty(value = "新增的标签ID列表")
+    @JsonProperty("deleteTagIdList")
     private List<Long> deleteTagIdList;
 }

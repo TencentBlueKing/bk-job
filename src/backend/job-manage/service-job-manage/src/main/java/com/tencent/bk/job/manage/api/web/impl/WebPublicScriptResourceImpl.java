@@ -32,7 +32,7 @@ import com.tencent.bk.job.manage.api.web.WebScriptResource;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
-import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
@@ -163,7 +163,7 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
 
     @Override
     public ServiceResponse<?> batchUpdatePublicScriptTags(String username,
-                                                                ScriptTagBatchUpdateReq tagBatchUpdateReq) {
+                                                                ScriptTagBatchPatchReq tagBatchUpdateReq) {
         return scriptResourceProxy.batchUpdateScriptTags(username, PUBLIC_APP_ID, tagBatchUpdateReq);
     }
 

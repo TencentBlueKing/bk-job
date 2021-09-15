@@ -102,6 +102,17 @@ public interface WebAuthService {
      */
     List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList);
 
+    /**
+     * 批量鉴权
+     *
+     * @param username  用户名
+     * @param actionId  操作ID
+     * @param appId     业务ID
+     * @param resources 资源列表
+     * @return 鉴权结果
+     */
+    AuthResultVO batchAuthResources(String username, String actionId, Long appId, List<PermissionResource> resources);
+
     AppIdResult getAppIdList(String username, List<Long> allAppIdList);
 
     String getApplyUrl(String actionId);

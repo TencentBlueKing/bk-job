@@ -26,12 +26,11 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -206,31 +205,20 @@ public class WebTagResourceImpl implements WebTagResource {
         }
 
         List<ResourceTagDTO> resourceTags = tagService.listResourceTagsByTagId(appId, tagId);
-        Map<JobResourceTypeEnum, Set<String>> resources = filterAndClassifyResources(
+        Map<JobResourceTypeEnum, Set<String>> resourceGroups = filterAndClassifyResources(
             tagBatchUpdateReq.getResourceTypeList(), resourceTags);
-        if (resources.isEmpty()) {
+        if (resourceGroups.isEmpty()) {
             return ServiceResponse.buildSuccessResp(null);
         }
 
-        AuthResult authResult;
-        resources.forEach((resourceType, resourceIds) -> {
-            switch (resourceType) {
-                case APP_SCRIPT:
-                    break;
-                case TEMPLATE:
-                    break;
-            }
-        });
+        AuthResultVO authResultVO = checkTagRelatedResourcesUpdatePermission(username, appId, resourceGroups);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
 
         List<ResourceTagDTO> addResourceTags = new ArrayList<>();
         List<ResourceTagDTO> deleteResourceTags = new ArrayList<>();
-        resources.forEach((resourceType, resourceIds) -> {
-//            switch (resourceType) {
-//                case SCRIPT:
-//                    break;
-//                case TEMPLATE:
-//                    break;
-//            }
+        resourceGroups.forEach((resourceType, resourceIds) -> {
             if (CollectionUtils.isNotEmpty(tagBatchUpdateReq.getAddTagIdList())) {
                 resourceIds.forEach(resourceId -> tagBatchUpdateReq.getAddTagIdList()
                     .forEach(addTagId -> addResourceTags.add(
@@ -245,6 +233,49 @@ public class WebTagResourceImpl implements WebTagResource {
         });
 
         return ServiceResponse.buildSuccessResp(null);
+    }
+
+    private AuthResultVO checkTagRelatedResourcesUpdatePermission(String username, Long appId,
+                                                                  Map<JobResourceTypeEnum, Set<String>> resourceGroup) {
+        if (resourceGroup.size() == 0) {
+            return AuthResultVO.pass();
+        }
+
+        String appIdStr = String.valueOf(appId);
+
+        List<PermissionActionResource> actionResources = new ArrayList<>(resourceGroup.size());
+        resourceGroup.forEach((resourceType, resources) -> {
+            switch (resourceType) {
+                case APP_SCRIPT:
+                    PermissionActionResource manageAppScriptActionResource = new PermissionActionResource();
+                    manageAppScriptActionResource.setActionId(ActionId.MANAGE_SCRIPT);
+                    resources.forEach(resourceId ->
+                        manageAppScriptActionResource.addResource(ResourceTypeEnum.SCRIPT, resourceId,
+                            buildAppPathInfo(appIdStr)));
+                    actionResources.add(manageAppScriptActionResource);
+                    break;
+                case PUBLIC_SCRIPT:
+                    PermissionActionResource managePublicScriptActionResource = new PermissionActionResource();
+                    managePublicScriptActionResource.setActionId(ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE);
+                    resources.forEach(resourceId ->
+                        managePublicScriptActionResource.addResource(ResourceTypeEnum.PUBLIC_SCRIPT, resourceId, null));
+                    actionResources.add(managePublicScriptActionResource);
+                    break;
+                case TEMPLATE:
+                    PermissionActionResource editTemplateActionResource = new PermissionActionResource();
+                    editTemplateActionResource.setActionId(ActionId.EDIT_JOB_TEMPLATE);
+                    resources.forEach(resourceId ->
+                        editTemplateActionResource.addResource(ResourceTypeEnum.TEMPLATE, resourceId,
+                            buildAppPathInfo(appIdStr)));
+                    actionResources.add(editTemplateActionResource);
+                    break;
+            }
+        });
+        return authService.auth(true, username, actionResources);
+    }
+
+    private PathInfoDTO buildAppPathInfo(String appId) {
+        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId).build();
     }
 
 
@@ -288,19 +319,5 @@ public class WebTagResourceImpl implements WebTagResource {
 
             });
         return resources;
-    }
-
-    private ResourceTypeEnum toIamResourceType(JobResourceTypeEnum jobResourceType) {
-        if (jobResourceType == null) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
-        }
-        switch (jobResourceType) {
-            case APP_SCRIPT:
-                return ResourceTypeEnum.SCRIPT;
-            case TEMPLATE:
-                return ResourceTypeEnum.TEMPLATE;
-            default:
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
-        }
     }
 }

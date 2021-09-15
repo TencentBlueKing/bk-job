@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -68,7 +69,7 @@ import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
-import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
@@ -1074,14 +1075,22 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public ServiceResponse<?> batchUpdateScriptTags(String username, Long appId,
-                                                          ScriptTagBatchUpdateReq req) {
+    public ServiceResponse<?> batchUpdateScriptTags(String username, Long appId, ScriptTagBatchPatchReq req) {
         ValidateResult validateResult = checkScriptTagBatchPatchReq(req);
         if (!validateResult.isPass()) {
             return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
         }
 
+        boolean isPublicScript = appId == PUBLIC_APP_ID;
         List<String> scriptIdList = req.getIdList();
+
+        ResourceTypeEnum iamResourceType = isPublicScript ? ResourceTypeEnum.PUBLIC_SCRIPT : ResourceTypeEnum.SCRIPT;
+        String actionId = isPublicScript ? ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE : ActionId.MANAGE_SCRIPT;
+        AuthResultVO authResultVO = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
+
         List<ResourceTagDTO> addResourceTags = null;
         List<ResourceTagDTO> deleteResourceTags = null;
         Integer resourceType = appId == PUBLIC_APP_ID ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
@@ -1101,7 +1110,24 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return ServiceResponse.buildSuccessResp(true);
     }
 
-    private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchUpdateReq req) {
+    private AuthResultVO batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
+                                         List<String> scriptIdList) {
+        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(scriptId);
+            resource.setResourceType(resourceType);
+            if (resourceType == ResourceTypeEnum.SCRIPT) {
+                resource.setPathInfo(PathBuilder.newBuilder(
+                    ResourceTypeEnum.BUSINESS.getId(),
+                    appId.toString()
+                ).build());
+            }
+            return resource;
+        }).collect(Collectors.toList());
+        return authService.batchAuthResources(username, actionId, appId, resources);
+    }
+
+    private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {
         if (CollectionUtils.isEmpty(req.getIdList())) {
             log.warn("ScriptTagBatchUpdateReq->idList is empty");
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "idList");
