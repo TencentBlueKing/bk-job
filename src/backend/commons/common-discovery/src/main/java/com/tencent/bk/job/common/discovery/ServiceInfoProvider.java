@@ -22,12 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.discovery;
 
-import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
+import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 
 import java.util.List;
 
-public interface ServiceInfoService {
-    List<ServiceInfoVO> listServiceInfo();
+public interface ServiceInfoProvider {
+    List<ServiceInstanceInfoDTO> listServiceInfo();
 }

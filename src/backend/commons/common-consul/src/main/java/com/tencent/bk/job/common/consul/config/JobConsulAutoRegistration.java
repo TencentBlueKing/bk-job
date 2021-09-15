@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.common.consul.config;
 
 import com.ecwid.consul.v1.agent.model.NewService;
 import com.tencent.bk.job.common.constant.JobDiscoveryConsts;

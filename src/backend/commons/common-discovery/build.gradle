@@ -24,7 +24,5 @@
 
 dependencies {
     api project(':commons:common')
-    api project(':commons:common-discovery')
-    api 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     api 'org.springframework.boot:spring-boot-starter-actuator'
 }

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.model;
+package com.tencent.bk.job.common.discovery.model;
 
 import lombok.Data;
 
