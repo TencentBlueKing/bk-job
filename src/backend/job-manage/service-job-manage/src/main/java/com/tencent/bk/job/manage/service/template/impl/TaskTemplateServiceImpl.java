@@ -75,6 +75,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -165,7 +166,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     private List<TagDTO> buildTags(List<ResourceTagDTO> resourceTags) {
-        return resourceTags.stream().map(ResourceTagDTO::getTag)
+        return resourceTags.stream().map(ResourceTagDTO::getTag).filter(Objects::nonNull)
             .sorted(Comparator.comparing(TagDTO::getName)).collect(Collectors.toList());
     }
 
