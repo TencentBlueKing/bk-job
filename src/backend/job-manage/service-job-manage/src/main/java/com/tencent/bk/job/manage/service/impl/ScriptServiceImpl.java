@@ -65,8 +65,6 @@ import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.impl.TemplateStatusUpdateService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1020,13 +1018,6 @@ public class ScriptServiceImpl implements ScriptService {
         this.taskTemplateService = taskTemplateService;
     }
 
-    @Data
-    @NoArgsConstructor
-    private static class ScriptVersionIdPair {
-        String scriptId;
-        Long scriptVersionId;
-    }
-
     @Override
     public TagCountVO getTagScriptCount(Long appId) {
         TagCountVO tagCount = new TagCountVO();
@@ -1035,8 +1026,10 @@ public class ScriptServiceImpl implements ScriptService {
             .stream().map(String::valueOf).collect(Collectors.toList());
         tagCount.setTotal((long) appScriptIds.size());
 
+        Integer resourceType = JobConstants.PUBLIC_APP_ID == appId ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+            JobResourceTypeEnum.APP_SCRIPT.getValue();
         List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(appId,
-            JobResourceTypeEnum.APP_SCRIPT.getValue(), appScriptIds);
+            resourceType, appScriptIds);
         Map<Long, Long> scriptTagCount = tagService.countResourcesByTag(tags);
         tagCount.setTagCount(scriptTagCount);
 
