@@ -61,6 +61,7 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -202,21 +203,32 @@ public class AuthServiceImpl implements AuthService {
             } else {
                 // Job当前的场景，暂时只需要支持操作依赖一个资源
                 ResourceTypeEnum resourceType = relatedResourceGroups.get(0).getResourceType();
-                PermissionResource resource = relatedResourceGroups.get(0).getPermissionResources().get(0);
-                if (authSpecialAppByMaintainer(username, resourceType, resource.getResourceId())) {
+                List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
+                // All resources are under one application, so choose any one for authentication
+                if (authSpecialAppByMaintainer(username, resourceType, resources.get(0).getResourceId())) {
                     authResult.setPass(true);
-                } else if (!authHelper.isAllowed(username, actionId, buildInstance(resourceType,
-                    resource.getResourceId(), resource.getPathInfo()))) {
-                    authResult.setPass(false);
-                    if (isReturnApplyUrl) {
-                        resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
-                            resource.getResourceId()));
+                } else {
+                    List<String> allowedResourceIds =
+                        authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+                    List<String> notAllowResourceIds =
+                        resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
+                            .map(PermissionResource::getResourceId).collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(notAllowResourceIds)) {
+                        authResult.setPass(false);
+                        resources.forEach(resource -> {
+                            if (notAllowResourceIds.contains(resource.getResourceId())) {
+                                if (isReturnApplyUrl) {
+                                    resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
+                                        resource.getResourceId()));
+                                }
+                                PermissionActionResource requiredActionResource = new PermissionActionResource();
+                                requiredActionResource.setActionId(actionId);
+                                requiredActionResource.addResource(resource);
+                                requiredActionResources.add(requiredActionResource);
+                                authResult.addRequiredPermission(actionId, resource);
+                            }
+                        });
                     }
-                    PermissionActionResource requiredActionResource = new PermissionActionResource();
-                    requiredActionResource.setActionId(actionId);
-                    requiredActionResource.addResource(resource);
-                    requiredActionResources.add(requiredActionResource);
-                    authResult.addRequiredPermission(actionId, resource);
                 }
             }
         }
