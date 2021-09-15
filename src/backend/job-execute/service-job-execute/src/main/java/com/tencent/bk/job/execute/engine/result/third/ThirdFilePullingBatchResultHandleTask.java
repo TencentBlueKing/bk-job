@@ -33,7 +33,13 @@ import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -41,11 +47,16 @@ import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -159,7 +170,7 @@ public class ThirdFilePullingBatchResultHandleTask implements ContinuousSchedule
             int maxLogSize = 0;
             // 写日志
             for (FileSourceTaskStatusDTO fileSourceTaskStatusDTO : fileSourceTaskStatusInfoList) {
-                List<ServiceLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
+                List<ServiceIpLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
                 if (logList != null && !logList.isEmpty()) {
                     writeLogs(stepInstance, logList);
                     if (logList.size() > maxLogSize) {
@@ -190,10 +201,10 @@ public class ThirdFilePullingBatchResultHandleTask implements ContinuousSchedule
         return batchTaskStatusDTO;
     }
 
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceLogDTO> logDTOList) {
-        for (ServiceLogDTO serviceLogDTO : logDTOList) {
+    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
+        for (ServiceIpLogDTO serviceIpLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
-                stepInstance.getExecuteCount(), serviceLogDTO.getIp(), serviceLogDTO, System.currentTimeMillis());
+                stepInstance.getExecuteCount(), serviceIpLogDTO.getIp(), serviceIpLogDTO, System.currentTimeMillis());
         }
     }
 

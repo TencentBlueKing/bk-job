@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.model.resp.inner;
 
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,7 +47,7 @@ public class FileSourceTaskStatusDTO {
      * 文件源文件路径->文件在机器上的真实路径
      */
     Map<String, String> filePathMap;
-    List<ServiceLogDTO> logList;
+    List<ServiceIpLogDTO> logList;
     Boolean logEnd;
 
     public boolean isDone() {

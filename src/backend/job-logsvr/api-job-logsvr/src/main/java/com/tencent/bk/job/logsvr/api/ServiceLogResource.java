@@ -28,10 +28,12 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.logsvr.model.service.BatchSaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.FileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.SaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ScriptLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogsDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -57,19 +59,19 @@ public interface ServiceLogResource {
 
     @ApiOperation("保存执行日志")
     @PostMapping
-    ServiceResponse saveLog(
+    ServiceResponse<?> saveLog(
         @ApiParam("保存日志请求报文")
         @RequestBody SaveLogRequest request);
 
     @ApiOperation("保存执行日志")
     @PostMapping("/batch")
-    ServiceResponse saveLogs(
+    ServiceResponse<?> saveLogs(
         @ApiParam("批量保存日志请求报文")
         @RequestBody BatchSaveLogRequest request);
 
-    @ApiOperation("获取agent对应的执行日志")
+    @ApiOperation("根据服务器IP获取对应的执行日志")
     @GetMapping("/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}")
-    ServiceResponse<ServiceLogDTO> getIpLogContent(
+    ServiceResponse<ServiceIpLogDTO> getIpLogContent(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
@@ -81,9 +83,9 @@ public interface ServiceLogResource {
         @ApiParam("日志类型")
         @RequestParam("logType") Integer logType);
 
-    @ApiOperation("获取脚本任务agent对应的执行日志")
+    @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
     @GetMapping("/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}")
-    ServiceResponse<ServiceLogDTO> getScriptIpLogContent(
+    ServiceResponse<ServiceIpLogDTO> getScriptIpLogContent(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
@@ -93,9 +95,9 @@ public interface ServiceLogResource {
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate);
 
-    @ApiOperation("批量获取脚本任务agent对应的执行日志")
+    @ApiOperation("批量获取脚本任务对应的执行日志")
     @PostMapping("/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    ServiceResponse<List<ServiceLogDTO>> batchGetScriptLogContent(
+    ServiceResponse<List<ServiceIpLogDTO>> batchGetScriptLogContent(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
@@ -107,7 +109,7 @@ public interface ServiceLogResource {
 
     @ApiOperation("按照IP获取文件任务对应的执行日志")
     @GetMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}")
-    ServiceResponse<ServiceLogDTO> getFileIpLogContent(
+    ServiceResponse<ServiceIpLogDTO> getFileIpLogContent(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
@@ -135,7 +137,7 @@ public interface ServiceLogResource {
 
     @ApiOperation("获取文件任务agent对应的执行日志")
     @PostMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
-    ServiceResponse<ServiceLogDTO> getFileLogContentListByTaskIds(
+    ServiceResponse<ServiceIpLogDTO> getFileLogContentListByTaskIds(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
@@ -145,9 +147,13 @@ public interface ServiceLogResource {
         @ApiParam("文件任务ID列表，多个任务ID以;分隔")
         @RequestBody List<String> taskIds);
 
+    @ApiOperation("获取文件任务对应的执行日志")
+    @PostMapping("/file")
+    ServiceResponse<ServiceIpLogsDTO> getFileLogContent(@RequestBody FileLogQueryRequest request);
+
     @ApiOperation("删除执行日志")
     @DeleteMapping("/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    ServiceResponse deleteStepContent(
+    ServiceResponse<Long> deleteStepContent(
         @ApiParam("步骤ID")
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam("执行次数")
