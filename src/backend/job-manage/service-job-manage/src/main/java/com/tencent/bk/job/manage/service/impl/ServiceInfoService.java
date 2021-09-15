@@ -31,7 +31,6 @@ import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -42,15 +41,6 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ServiceInfoService {
-
-    public static final Map<String, Byte> statusMap = new HashMap<>();
-
-    static {
-        statusMap.put(Status.UP.getCode(), (byte) 1);
-        statusMap.put(Status.DOWN.getCode(), (byte) 0);
-        statusMap.put(Status.OUT_OF_SERVICE.getCode(), (byte) 0);
-        statusMap.put(Status.UNKNOWN.getCode(), (byte) -1);
-    }
 
     ServiceInfoProvider serviceInfoProvider;
 
@@ -66,7 +56,7 @@ public class ServiceInfoService {
         serviceInstanceInfoVO.setVersion(serviceInstanceInfoDTO.getVersion());
         serviceInstanceInfoVO.setIp(serviceInstanceInfoDTO.getIp());
         serviceInstanceInfoVO.setPort(serviceInstanceInfoDTO.getPort());
-        serviceInstanceInfoVO.setStatus(statusMap.get(serviceInstanceInfoDTO.getStatusCode()));
+        serviceInstanceInfoVO.setStatus(serviceInstanceInfoDTO.getStatusCode());
         serviceInstanceInfoVO.setStatusMessage(serviceInstanceInfoDTO.getStatusMessage());
         return serviceInstanceInfoVO;
     }

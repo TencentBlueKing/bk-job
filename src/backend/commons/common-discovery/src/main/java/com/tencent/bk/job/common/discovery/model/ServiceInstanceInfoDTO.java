@@ -43,7 +43,7 @@ public class ServiceInstanceInfoDTO {
     /**
      * 服务状态Code
      */
-    private String statusCode;
+    private Byte statusCode;
     /**
      * 状态Message
      */

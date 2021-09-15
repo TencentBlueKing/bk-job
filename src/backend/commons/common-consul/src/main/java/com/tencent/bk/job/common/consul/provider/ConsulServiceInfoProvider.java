@@ -36,11 +36,13 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,7 +56,16 @@ import static org.springframework.boot.actuate.health.Status.UP;
 @Component
 public class ConsulServiceInfoProvider implements ServiceInfoProvider {
 
-    private DiscoveryClient discoveryClient;
+    public static final Map<String, Byte> statusMap = new HashMap<>();
+
+    static {
+        statusMap.put(Status.UP.getCode(), (byte) 1);
+        statusMap.put(Status.DOWN.getCode(), (byte) 0);
+        statusMap.put(Status.OUT_OF_SERVICE.getCode(), (byte) 0);
+        statusMap.put(Status.UNKNOWN.getCode(), (byte) -1);
+    }
+
+    private final DiscoveryClient discoveryClient;
 
     @Autowired
     public ConsulServiceInfoProvider(DiscoveryClient discoveryClient) {
@@ -99,17 +110,17 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
             }
         }
         if (targetCheck == null) {
-            serviceInstanceInfoDTO.setStatusCode(UNKNOWN.getCode());
+            serviceInstanceInfoDTO.setStatusCode(statusMap.get(UNKNOWN.getCode()));
             return;
         } else if (targetCheck.getName().toLowerCase().contains("maintenance")) {
-            serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
+            serviceInstanceInfoDTO.setStatusCode(statusMap.get(OUT_OF_SERVICE.getCode()));
             serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
         } else {
             if (checkNodeStatus(targetCheck.getNode())) {
-                serviceInstanceInfoDTO.setStatusCode(UP.getCode());
+                serviceInstanceInfoDTO.setStatusCode(statusMap.get(UP.getCode()));
                 serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
             } else {
-                serviceInstanceInfoDTO.setStatusCode(OUT_OF_SERVICE.getCode());
+                serviceInstanceInfoDTO.setStatusCode(statusMap.get(OUT_OF_SERVICE.getCode()));
                 serviceInstanceInfoDTO.setStatusMessage("Node " + targetCheck.getNode() + " not healthy");
             }
         }

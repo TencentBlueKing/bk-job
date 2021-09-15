@@ -39,15 +39,28 @@ import java.util.stream.Collectors;
 @Slf4j
 public class K8SServiceInfoProvider implements ServiceInfoProvider {
 
-    private DiscoveryClient discoveryClient;
+    public final String KEY_JOB_MS_VERSION = "bk.job.image/tag";
+    private final DiscoveryClient discoveryClient;
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
         log.debug("K8sServiceInfoServiceImpl inited");
     }
 
-    private void fillVersionAndStatus(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
-        serviceInstanceInfoDTO.setVersion("k8s version");
+    private void fillVersionAndStatus(
+        ServiceInstance serviceInstance,
+        ServiceInstanceInfoDTO serviceInstanceInfoDTO
+    ) {
+        Map<String, String> metaData = serviceInstance.getMetadata();
+        if (metaData == null) {
+            log.warn("No metadata found in serviceInstance {}", serviceInstance);
+            return;
+        }
+        String version = metaData.getOrDefault(KEY_JOB_MS_VERSION, "Unknown");
+        serviceInstanceInfoDTO.setVersion(version);
+        // TODO:通过K8s API查询POD状态
+        serviceInstanceInfoDTO.setStatusCode((byte) 1);
+        serviceInstanceInfoDTO.setStatusMessage("");
     }
 
     @Override
@@ -74,7 +87,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());
             serviceInstanceInfoDTO.setIp(serviceInstance.getHost());
             serviceInstanceInfoDTO.setPort(serviceInstance.getPort());
-            fillVersionAndStatus(serviceInstanceInfoDTO);
+            fillVersionAndStatus(serviceInstance, serviceInstanceInfoDTO);
             return serviceInstanceInfoDTO;
         }).collect(Collectors.toList());
     }

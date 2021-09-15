@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-analysis"
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.analysisConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
