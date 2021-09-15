@@ -60,7 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.fileGatewayConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value: {{ .Values.fileGatewayConfig.jvmOptions | quoto }}
+              value: {{ .Values.fileGatewayConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR

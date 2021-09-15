@@ -60,7 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value: {{ .Values.executeConfig.jvmOptions | quoto }}
+              value: {{ .Values.executeConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR

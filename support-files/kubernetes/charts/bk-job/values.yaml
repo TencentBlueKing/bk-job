@@ -45,6 +45,7 @@ rbac:
 
 ingress:
   enabled: false
+  ingressClassName: ""
 
 ## @section Job common component parameters
 ##
@@ -100,7 +101,7 @@ mariadb:
         - ReadWriteOnce
       ## @param mariadb.primary.persistence.size Database Persistent Volume Size
       ##
-      size: 8Gi
+      size: 10Gi
       ## @param mariadb.primary.persistence.hostPath Set path in case you want to use local host path volumes (not recommended in production)
       ##
       hostPath: ""
@@ -147,6 +148,9 @@ redis:
   ## @param redis.architecture Redis architecture. Allowed values: standalone or replication
   ##
   architecture: standalone
+  master:
+    persistence:
+      size: 10Gi
   ## Redis Authentication parameters
   ##
   auth:
@@ -198,6 +202,8 @@ rabbitmq:
   ## To use an external RabbitMQ set this to false and configure the externalRabbitMQ parameters
   ##
   enabled: true
+  persistence:
+    size: 10Gi
   ## RabbitMQ Authentication parameters
   ##
   auth:
@@ -246,6 +252,8 @@ mongodb:
   # If you need to use an external database, set it to false and configure externalMongoDB
   enabled: true
   architecture: "standalone"
+  persistence:
+    size: 10Gi
   useStatefulSet: true
   auth:
     rootPassword: job

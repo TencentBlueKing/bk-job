@@ -62,7 +62,7 @@ spec:
             - name: BK_JOB_EDITION
               value: {{ .Values.job.edition }}
             - name: BK_JOB_JVM_OPTION
-              value: {{ .Values.manageConfig.jvmOptions | quoto }}
+              value: {{ .Values.manageConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
