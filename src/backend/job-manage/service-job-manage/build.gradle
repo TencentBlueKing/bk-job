@@ -33,6 +33,7 @@ dependencies {
     api project(":commons:common-security")
     api project(":commons:common-redis")
     api project(":commons:cmdb-sdk-ext")
+    api project(":commons:artifactory-sdk")
     api project(":commons:paas-sdk")
     api project(":commons:esb-sdk")
     api project(":commons:gse-sdk")

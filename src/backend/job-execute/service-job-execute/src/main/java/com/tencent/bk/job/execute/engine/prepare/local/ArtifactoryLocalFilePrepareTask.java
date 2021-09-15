@@ -33,7 +33,7 @@ import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -110,8 +110,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         return this.isReadyForNextStepWrapper.get();
     }
 
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceLogDTO> logDTOList) {
-        for (ServiceLogDTO serviceLogDTO : logDTOList) {
+    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
+        for (ServiceIpLogDTO serviceLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
                 stepInstance.getExecuteCount(), serviceLogDTO.getIp(), serviceLogDTO, System.currentTimeMillis());
         }

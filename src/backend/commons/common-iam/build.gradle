@@ -29,4 +29,5 @@ dependencies {
     api 'org.springframework:spring-context'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.apache.httpcomponents:httpclient'
+    implementation 'org.aspectj:aspectjweaver'
 }
