@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.timer.executor;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.LastExecuteStatusEnum;
+import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
@@ -208,11 +209,11 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             log.debug("Start failed notification strategy is {}", startFailedNotification);
         }
 
-        if (startFailedNotification == 0) {
+        if (startFailedNotification == NotificationPolicyEnum.DEFAULT.getValue()) {
             if (executeErrorCount == 1 || !lastExecuteStatus.equals(executeStatus)) {
                 return true;
             }
-        } else if (startFailedNotification == 1) {
+        } else if (startFailedNotification == NotificationPolicyEnum.EVERYTIME.getValue()) {
             return true;
         } else if (executeErrorCount % startFailedNotification == 1 || !lastExecuteStatus.equals(executeStatus)) {
             return true;
