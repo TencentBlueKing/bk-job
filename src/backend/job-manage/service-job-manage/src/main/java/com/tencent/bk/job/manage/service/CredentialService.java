@@ -29,9 +29,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
-
-import java.util.List;
 
 public interface CredentialService {
 

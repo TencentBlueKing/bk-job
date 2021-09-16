@@ -29,8 +29,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import org.jooq.DSLContext;
 
-import java.util.List;
-
 public interface CredentialDAO {
     String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
 

@@ -64,7 +64,7 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
     private final CredentialService credentialService;
 
     @Autowired
-    public ResourceAppInfoQueryServiceImpl(
+    ResourceAppInfoQueryServiceImpl(
         ApplicationService applicationService,
         ScriptService scriptService,
         TaskTemplateService templateService,
