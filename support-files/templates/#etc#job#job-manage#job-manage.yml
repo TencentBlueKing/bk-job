@@ -31,7 +31,6 @@ spring:
     password: __BK_JOB_MANAGE_RABBITMQ_PASSWORD__
     virtual-host: __BK_JOB_MANAGE_RABBITMQ_VHOST__
   redis:
-    mode: __BK_JOB_MANAGE_REDIS_MODE__
     host: __BK_JOB_MANAGE_REDIS_HOST__
     port: __BK_JOB_MANAGE_REDIS_PORT__
     sentinel:
