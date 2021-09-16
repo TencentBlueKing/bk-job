@@ -33,7 +33,7 @@ import I18n from '@/i18n';
  */
 export const leaveConfirm = (message = I18n.t('离开将会导致未保存信息丢失')) => {
     if (!window.changeAlert || window.changeAlert === 'dialog') {
-        return Promise.resolve();
+        return Promise.resolve(true);
     }
     const vm = new Vue();
     const h = vm.$createElement;
@@ -49,7 +49,7 @@ export const leaveConfirm = (message = I18n.t('离开将会导致未保存信息
             }, message),
             confirmFn: () => {
                 window.changeAlert = false;
-                resolve();
+                resolve(true);
             },
             cancelFn: () => {
                 reject(Error('cancel'));
