@@ -69,8 +69,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -125,9 +127,7 @@ public class AuthServiceImpl implements AuthService {
         if (resourceAppInfoQueryService != null) {
             ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
             if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return true;
-                }
+                return resourceAppInfo.getMaintainerList().contains(username);
             }
         } else {
             log.warn("appInfoQueryService not set, cannot auth special business");
@@ -383,20 +383,28 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private List<ActionDTO> buildApplyActions(List<PermissionActionResource> permissionActionResources) {
+        Map<String, List<PermissionResourceGroup>> resourcesGroupByAction = new HashMap<>();
+        permissionActionResources.forEach(actionResource ->
+            resourcesGroupByAction.compute(actionResource.getActionId(), (actionId, resources) -> {
+            if (resources == null) {
+                resources = new ArrayList<>();
+            }
+            resources.addAll(actionResource.getResourceGroups());
+            return resources;
+        }));
+
         List<ActionDTO> actions = new ArrayList<>();
-        for (PermissionActionResource permissionActionResource : permissionActionResources) {
+        resourcesGroupByAction.forEach((actionId, resourceGroups) -> {
             ActionDTO action = new ActionDTO();
-            String actionId = permissionActionResource.getActionId();
             action.setId(actionId);
             actions.add(action);
 
-            List<PermissionResourceGroup> relatedResourceGroups = permissionActionResource.getResourceGroups();
-            if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                continue;
+            if (resourceGroups == null || resourceGroups.isEmpty()) {
+                return;
             }
 
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-            for (PermissionResourceGroup relatedResourceGroup : relatedResourceGroups) {
+            for (PermissionResourceGroup relatedResourceGroup : resourceGroups) {
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
                 relatedResourceType.setSystemId(relatedResourceGroup.getSystemId());
                 relatedResourceType.setType(relatedResourceGroup.getResourceType().getId());
@@ -405,9 +413,8 @@ public class AuthServiceImpl implements AuthService {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
                     if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        relatedResource.getParentHierarchicalResources().forEach(resource -> {
-                            hierarchicalInstance.add(convertPermissionResourceToInstance(resource));
-                        });
+                        relatedResource.getParentHierarchicalResources().forEach(
+                            resource -> hierarchicalInstance.add(convertPermissionResourceToInstance(resource)));
                         hierarchicalInstance.add(instance);
                         instanceList.add(hierarchicalInstance);
                     } else {
@@ -419,7 +426,7 @@ public class AuthServiceImpl implements AuthService {
                 relatedResourceTypes.add(relatedResourceType);
             }
             action.setRelatedResourceTypes(relatedResourceTypes);
-        }
+        });
         return actions;
     }
 
