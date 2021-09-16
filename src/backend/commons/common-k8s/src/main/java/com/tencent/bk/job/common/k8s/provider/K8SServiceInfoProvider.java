@@ -112,9 +112,6 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
                 namespace, null, null, null,
                 null, null, null, null,
                 null, null, null);
-            if (log.isDebugEnabled()) {
-                log.debug("podList={}", JsonUtils.toJson(podList));
-            }
         } catch (ApiException | IOException e) {
             log.error("Fail to get pod info from k8s API", e);
             return;
@@ -127,6 +124,9 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         if (podStatus != null) {
             serviceInstanceInfoDTO.setStatusCode(convertPodStatus(podStatus));
             serviceInstanceInfoDTO.setStatusMessage(podStatus.getReason());
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("podStatus={}", JsonUtils.toJson(podStatus));
         }
     }
 
@@ -146,7 +146,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             } else {
                 Map<String, String> metaData = serviceInstance.getMetadata();
                 log.debug("metaData={}", JsonUtils.toJson(metaData));
-                return serviceInstance.getServiceId().startsWith("job");
+                return serviceInstance.getServiceId().contains("job-");
             }
         }).map(serviceInstance -> {
             ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
