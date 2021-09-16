@@ -24,40 +24,28 @@
 
 package com.tencent.bk.job.config.config;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http.csrf().disable().authorizeRequests()
-//                .anyRequest().authenticated().and()
-//                .httpBasic();
-//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
+        http.requestMatcher(AnyRequestMatcher.INSTANCE).authorizeRequests()
             .antMatchers("/actuator/health/**").permitAll()
             .antMatchers("/actuator/info").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/configprops/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/env/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/mappings/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/metrics/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/prometheus/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/beans/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/conditions/**").hasRole("ENDPOINT_ADMIN")
-            .antMatchers("/actuator/scheduledtasks/**").hasRole("ENDPOINT_ADMIN")
             .and()
-            .httpBasic();
+            .httpBasic()
+            .and()
+            .authorizeRequests()
+            .anyRequest()
+            .authenticated();
     }
 
 }
