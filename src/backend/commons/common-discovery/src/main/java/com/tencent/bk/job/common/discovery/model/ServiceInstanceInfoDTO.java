@@ -28,6 +28,14 @@ import lombok.Data;
 
 @Data
 public class ServiceInstanceInfoDTO {
+
+    // 正常
+    public static byte STATUS_OK = 1;
+    // 异常
+    public static byte STATUS_ERROR = 0;
+    // 未知
+    public static byte STATUS_UNKNOWN = -1;
+
     /**
      * 服务名称
      */

@@ -45,7 +45,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceI
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,6 +52,9 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
 
     public final String KEY_HELM_NAMESPACE = "meta.helm.sh/release-namespace";
     public final String KEY_JOB_MS_VERSION = "bk.job.image/tag";
+    public final String VERSION_UNKNOWN = "Unknown";
+    public final String NAMESPACE_DEFAULT = "default";
+    public final String PHASE_RUNNING = "Running";
     private final DiscoveryClient discoveryClient;
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient) {
@@ -64,7 +66,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         KubernetesServiceInstance k8sServiceInstance = (KubernetesServiceInstance) serviceInstance;
         String namespace = k8sServiceInstance.getNamespace();
         if (StringUtils.isNotBlank(namespace)) return namespace;
-        return serviceInstance.getMetadata().getOrDefault(KEY_HELM_NAMESPACE, "default");
+        return serviceInstance.getMetadata().getOrDefault(KEY_HELM_NAMESPACE, NAMESPACE_DEFAULT);
     }
 
     private V1Pod findPodByUid(V1PodList podList, String uid) {
@@ -79,29 +81,25 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
     }
 
     private Byte convertPodStatus(V1PodStatus podStatus) {
+        if (podStatus == null) return ServiceInstanceInfoDTO.STATUS_UNKNOWN;
         String phase = podStatus.getPhase();
         if (StringUtils.isNotBlank(phase)) {
-            if (phase.equals("Running"))
-                return (byte) 1;
+            if (phase.equals(PHASE_RUNNING))
+                return ServiceInstanceInfoDTO.STATUS_OK;
             else
-                return (byte) 0;
+                return ServiceInstanceInfoDTO.STATUS_ERROR;
         }
-        return (byte) -1;
+        return ServiceInstanceInfoDTO.STATUS_UNKNOWN;
     }
 
-    private void fillVersionAndStatus(
-        ServiceInstance serviceInstance,
-        ServiceInstanceInfoDTO serviceInstanceInfoDTO
+    private ServiceInstanceInfoDTO getDetailFromK8s(
+        ServiceInstance serviceInstance
     ) {
-        Map<String, String> metaData = serviceInstance.getMetadata();
-        if (metaData == null) {
-            log.warn("No metadata found in serviceInstance {}", serviceInstance);
-            return;
-        }
-        String version = metaData.getOrDefault(KEY_JOB_MS_VERSION, "Unknown");
-        serviceInstanceInfoDTO.setVersion(version);
+        ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
+        serviceInstanceInfoDTO.setServiceName(serviceInstance.getServiceId());
+        serviceInstanceInfoDTO.setIp(serviceInstance.getHost());
+        serviceInstanceInfoDTO.setPort(serviceInstance.getPort());
         String namespace = getNameSpace(serviceInstance);
-        log.debug("namespace={},version={}", namespace, version);
         V1PodList podList;
         try {
             ApiClient client = Config.defaultClient();
@@ -114,11 +112,21 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
                 null, null, null);
         } catch (ApiException | IOException e) {
             log.error("Fail to get pod info from k8s API", e);
-            return;
+            serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());
+            serviceInstanceInfoDTO.setVersion(VERSION_UNKNOWN);
+            serviceInstanceInfoDTO.setStatusCode(convertPodStatus(null));
+            serviceInstanceInfoDTO.setStatusMessage("Fail to get pod info from k8s");
+            return serviceInstanceInfoDTO;
         }
         V1Pod pod = findPodByUid(podList, serviceInstance.getInstanceId());
-        if (pod.getMetadata() != null) {
-            serviceInstanceInfoDTO.setName(pod.getMetadata().getName());
+        V1ObjectMeta metaData = pod.getMetadata();
+        if (metaData != null) {
+            serviceInstanceInfoDTO.setName(metaData.getName());
+        }
+        if (metaData != null && metaData.getLabels() != null) {
+            String version = metaData.getLabels().getOrDefault(KEY_JOB_MS_VERSION, VERSION_UNKNOWN);
+            serviceInstanceInfoDTO.setVersion(version);
+            log.debug("namespace={},version={}", namespace, version);
         }
         V1PodStatus podStatus = pod.getStatus();
         if (podStatus != null) {
@@ -128,6 +136,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
         if (log.isDebugEnabled()) {
             log.debug("podStatus={}", JsonUtils.toJson(podStatus));
         }
+        return serviceInstanceInfoDTO;
     }
 
     @Override
@@ -141,22 +150,12 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
         }
         return serviceInstanceList.parallelStream().filter(serviceInstance -> {
-            if (serviceInstance.getServiceId().equals("job-gateway-management")) {
+            if (serviceInstance.getServiceId().contains("job-gateway-management")) {
                 return false;
             } else {
-                Map<String, String> metaData = serviceInstance.getMetadata();
-                log.debug("metaData={}", JsonUtils.toJson(metaData));
                 return serviceInstance.getServiceId().contains("job-");
             }
-        }).map(serviceInstance -> {
-            ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
-            serviceInstanceInfoDTO.setServiceName(serviceInstance.getServiceId());
-            serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());
-            serviceInstanceInfoDTO.setIp(serviceInstance.getHost());
-            serviceInstanceInfoDTO.setPort(serviceInstance.getPort());
-            fillVersionAndStatus(serviceInstance, serviceInstanceInfoDTO);
-            return serviceInstanceInfoDTO;
-        }).collect(Collectors.toList());
+        }).map(this::getDetailFromK8s).collect(Collectors.toList());
     }
 
 }

@@ -56,13 +56,14 @@ import static org.springframework.boot.actuate.health.Status.UP;
 @Component
 public class ConsulServiceInfoProvider implements ServiceInfoProvider {
 
+    public final String KEY_WORD_MAINTENANCE = "maintenance";
     public static final Map<String, Byte> statusMap = new HashMap<>();
 
     static {
-        statusMap.put(Status.UP.getCode(), (byte) 1);
-        statusMap.put(Status.DOWN.getCode(), (byte) 0);
-        statusMap.put(Status.OUT_OF_SERVICE.getCode(), (byte) 0);
-        statusMap.put(Status.UNKNOWN.getCode(), (byte) -1);
+        statusMap.put(Status.UP.getCode(), ServiceInstanceInfoDTO.STATUS_OK);
+        statusMap.put(Status.DOWN.getCode(), ServiceInstanceInfoDTO.STATUS_ERROR);
+        statusMap.put(Status.OUT_OF_SERVICE.getCode(), ServiceInstanceInfoDTO.STATUS_ERROR);
+        statusMap.put(Status.UNKNOWN.getCode(), ServiceInstanceInfoDTO.STATUS_UNKNOWN);
     }
 
     private final DiscoveryClient discoveryClient;
@@ -86,8 +87,8 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
         List<Check> checks = response.getValue();
         for (Check check : checks) {
             if (StringUtils.isBlank(check.getServiceId())
-                && (check.getCheckId().contains("maintenance")
-                || check.getName().toLowerCase().contains("maintenance")
+                && (check.getCheckId().contains(KEY_WORD_MAINTENANCE)
+                || check.getName().toLowerCase().contains(KEY_WORD_MAINTENANCE)
                 || check.getStatus() == CRITICAL)) {
                 return false;
             }
@@ -112,7 +113,7 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
         if (targetCheck == null) {
             serviceInstanceInfoDTO.setStatusCode(statusMap.get(UNKNOWN.getCode()));
             return;
-        } else if (targetCheck.getName().toLowerCase().contains("maintenance")) {
+        } else if (targetCheck.getName().toLowerCase().contains(KEY_WORD_MAINTENANCE)) {
             serviceInstanceInfoDTO.setStatusCode(statusMap.get(OUT_OF_SERVICE.getCode()));
             serviceInstanceInfoDTO.setStatusMessage(targetCheck.getNotes());
         } else {
