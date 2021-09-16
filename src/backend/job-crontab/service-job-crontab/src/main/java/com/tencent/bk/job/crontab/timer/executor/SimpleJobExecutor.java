@@ -209,7 +209,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             log.debug("Start failed notification policy|{}", notificationPolicy);
         }
         if (begin < 1 || frequency < 1 || totalTimes < -1) {
-            log.error("Policy is wrong, please check the configuration file|{}",notificationPolicy);
+            log.error("Policy is wrong, please check the configuration file|{}", notificationPolicy);
         }
 
         if (totalTimes == NotificationPolicyEnum.NO_NOTIFY.getValue()) {
