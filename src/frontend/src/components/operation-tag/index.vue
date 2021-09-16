@@ -1,7 +1,6 @@
 <template>
     <jb-dialog
         :value="value"
-        @input="handleCancel"
         :title="dialogInfo.title"
         header-position="left"
         :mask-close="false"
@@ -124,14 +123,12 @@
             }, {
                 immediate: true,
             });
-            /**
-             * @desc 更新弹窗显示状态
-             */
-            const handleCloseDialog = () => {
+            const closeDialog = () => {
                 ctx.emit('change', false);
                 ctx.emit('input', false);
                 state.formData = genDefaultData();
             };
+
             /**
              * @desc 提交操作结果
              */
@@ -148,7 +145,7 @@
                                 window.changeAlert = false;
                                 ctx.emit('on-change');
                                 proxy.messageSuccess(I18n.t('编辑标签成功'));
-                                handleCloseDialog();
+                                closeDialog();
                             });
                         }
                         return TagManageService.createTag(state.formData)
@@ -156,7 +153,7 @@
                                 window.changeAlert = false;
                                 ctx.emit('on-change', new TagModel(data));
                                 proxy.messageSuccess(I18n.t('新建标签成功'));
-                                handleCloseDialog();
+                                closeDialog();
                             });
                     })
                     .finally(() => {
@@ -169,7 +166,7 @@
             const handleCancel = () => {
                 leaveConfirm()
                     .then(() => {
-                        handleCloseDialog();
+                        closeDialog();
                     });
             };
             
@@ -178,7 +175,6 @@
                 formRef,
                 dialogInfo,
                 rules,
-                handleCloseDialog,
                 handleSubmit,
                 handleCancel,
             };

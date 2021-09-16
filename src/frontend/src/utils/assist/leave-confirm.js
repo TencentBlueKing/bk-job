@@ -32,7 +32,7 @@ import I18n from '@/i18n';
  * @returns { Promise }
  */
 export const leaveConfirm = (message = I18n.t('离开将会导致未保存信息丢失')) => {
-    if (!window.changeAlert || window.changeAlert === 'jbSidesider') {
+    if (!window.changeAlert || window.changeAlert === 'dialog') {
         return Promise.resolve();
     }
     const vm = new Vue();
