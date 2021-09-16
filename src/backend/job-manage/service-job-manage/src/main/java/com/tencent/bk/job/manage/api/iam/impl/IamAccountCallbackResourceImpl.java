@@ -24,25 +24,33 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
+import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamAccountCallbackResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.service.AccountService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
-import com.tencent.bk.sdk.iam.dto.callback.response.*;
+import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class IamAccountCallbackResourceImpl implements IamAccountCallbackResource {
+public class IamAccountCallbackResourceImpl extends BaseIamCallbackService implements IamAccountCallbackResource {
     private final AccountService accountService;
 
     @Autowired
@@ -50,93 +58,92 @@ public class IamAccountCallbackResourceImpl implements IamAccountCallbackResourc
         this.accountService = accountService;
     }
 
+    private Pair<AccountDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(searchCondition.getStart().intValue());
+        baseSearchCondition.setLength(searchCondition.getLength().intValue());
+
+        AccountDTO accountQuery = new AccountDTO();
+        accountQuery.setAppId(searchCondition.getAppIdList().get(0));
+        return Pair.of(accountQuery, baseSearchCondition);
+    }
+
+    private InstanceInfoDTO convert(AccountDTO accountDTO) {
+        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+        instanceInfo.setId(String.valueOf(accountDTO.getId()));
+        instanceInfo.setDisplayName(accountDTO.getAlias());
+        return instanceInfo;
+    }
+
+    @Override
+    protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
+        Pair<AccountDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+
+        AccountDTO accountQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
+        PageData<AccountDTO> accountDTOPageData = accountService.listPageAccount(accountQuery,
+            baseSearchCondition);
+
+        return IamRespUtil.getListInstanceRespFromPageData(accountDTOPageData, this::convert);
+    }
+
+    @Override
+    protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
+
+        Pair<AccountDTO, BaseSearchCondition> basicQueryCond = getBasicQueryCondition(callbackRequest);
+        AccountDTO accountQuery = basicQueryCond.getLeft();
+        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
+
+        accountQuery.setAlias(callbackRequest.getFilter().getKeyword());
+        PageData<AccountDTO> accountDTOPageData = accountService.listPageAccount(accountQuery,
+            baseSearchCondition);
+
+        return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
+    }
+
+    @Override
+    protected CallbackBaseResponseDTO fetchInstanceResp(
+        CallbackRequestDTO callbackRequest
+    ) {
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
+        List<Object> instanceAttributeInfoList = new ArrayList<>();
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                AccountDTO accountDTO = accountService.getAccountById(id);
+                if (accountDTO == null) {
+                    return getNotFoundRespById(instanceId);
+                }
+                // 拓扑路径构建
+                List<PathInfoDTO> path = new ArrayList<>();
+                PathInfoDTO rootNode = new PathInfoDTO();
+                rootNode.setType(ResourceId.APP);
+                rootNode.setId(accountDTO.getAppId().toString());
+                PathInfoDTO accountNode = new PathInfoDTO();
+                accountNode.setType(ResourceId.ACCOUNT);
+                accountNode.setId(accountDTO.getId().toString());
+                rootNode.setChild(accountNode);
+                path.add(rootNode);
+                // 实例组装
+                InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
+                instanceInfo.setId(instanceId);
+                instanceInfo.setDisplayName(accountDTO.getAlias());
+                instanceInfo.setPath(path);
+                instanceAttributeInfoList.add(instanceInfo);
+            } catch (NumberFormatException e) {
+                log.error("Parse object id failed!|{}", instanceId, e);
+            }
+        }
+
+        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
+        fetchInstanceInfoResponse.setCode(0L);
+        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
+        return fetchInstanceInfoResponse;
+    }
+
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        log.debug("Receive iam callback|{}", callbackRequest);
-        CallbackBaseResponseDTO response;
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        switch (callbackRequest.getMethod()) {
-            case LIST_INSTANCE:
-                log.debug("List instance request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
-
-                BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-                baseSearchCondition.setStart(searchCondition.getStart().intValue());
-                baseSearchCondition.setLength(searchCondition.getLength().intValue());
-
-                AccountDTO accountQuery = new AccountDTO();
-                accountQuery.setAppId(searchCondition.getAppIdList().get(0));
-                PageData<AccountDTO> accountDTOPageData = accountService.listPageAccount(accountQuery,
-                    baseSearchCondition);
-
-                List<InstanceInfoDTO> instanceInfoList =
-                    accountDTOPageData.getData().parallelStream().map(accountDTO -> {
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(String.valueOf(accountDTO.getId()));
-                        instanceInfo.setDisplayName(accountDTO.getAlias());
-                        return instanceInfo;
-                    }).collect(Collectors.toList());
-
-                ListInstanceResponseDTO instanceResponse = new ListInstanceResponseDTO();
-                instanceResponse.setCode(0L);
-                BaseDataResponseDTO<InstanceInfoDTO> baseDataResponse = new BaseDataResponseDTO<>();
-                baseDataResponse.setResult(instanceInfoList);
-                baseDataResponse.setCount(accountDTOPageData.getTotal());
-                instanceResponse.setData(baseDataResponse);
-                response = instanceResponse;
-                break;
-            case FETCH_INSTANCE_INFO:
-                log.debug("Fetch instance info request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-
-                List<Object> instanceAttributeInfoList = new ArrayList<>();
-                for (String instanceId : searchCondition.getIdList()) {
-                    try {
-                        long id = Long.parseLong(instanceId);
-                        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                        instanceInfo.setId(instanceId);
-                        AccountDTO accountDTO = accountService.getAccountById(id);
-                        if (accountDTO != null) {
-                            instanceInfo.setDisplayName(accountDTO.getAlias());
-                        } else {
-                            instanceInfo.setDisplayName("Unknown(may be deleted)");
-                            log.warn("Unexpected accountId:{} passed by iam", id);
-                        }
-                        instanceAttributeInfoList.add(instanceInfo);
-                    } catch (NumberFormatException e) {
-                        log.error("Parse object id failed!|{}", instanceId, e);
-                    }
-                }
-
-                FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-                fetchInstanceInfoResponse.setCode(0L);
-                fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-
-                response = fetchInstanceInfoResponse;
-                break;
-            case LIST_ATTRIBUTE:
-                log.debug("List attribute request!|{}|{}|{}", callbackRequest.getType(), callbackRequest.getFilter(),
-                    callbackRequest.getPage());
-                response = new ListAttributeResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_ATTRIBUTE_VALUE:
-                log.debug("List attribute value request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListAttributeValueResponseDTO();
-                response.setCode(0L);
-                break;
-            case LIST_INSTANCE_BY_POLICY:
-                log.debug("List instance by policy request!|{}|{}|{}", callbackRequest.getType(),
-                    callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new ListInstanceByPolicyResponseDTO();
-                response.setCode(0L);
-                break;
-            default:
-                log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),
-                    callbackRequest.getType(), callbackRequest.getFilter(), callbackRequest.getPage());
-                response = new CallbackBaseResponseDTO();
-        }
-        return response;
+        return baseCallback(callbackRequest);
     }
 }

@@ -154,6 +154,7 @@
         created () {
             this.taskId = this.$route.params.id || 0;
             this.isEdit = this.$route.name === 'templateEdit';
+            this.isClone = this.$route.name === 'templateClone';
             // 是否默认显示步骤编辑框
             this.initShowStepId = Number(this.$route.params.stepId);
 
@@ -215,7 +216,7 @@
                         steps: stepList,
                     };
                     // 克隆模板提示密文变量
-                    if (!this.isEdit) {
+                    if (this.isClone) {
                         this.searchCiphertextVariable();
                     }
                     // 编辑执行步骤

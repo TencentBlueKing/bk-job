@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
@@ -42,6 +43,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final AuthAppInterceptor authAppInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
@@ -49,13 +51,17 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     private final JobIamInterceptor iamInterceptor;
 
     @Autowired
-    public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
-                                    UriPermissionInterceptor uriPermissionInterceptor,
-                                    EsbApiLogInterceptor esbApiLogInterceptor,
-                                    EsbReqRewriteInterceptor esbReqRewriteInterceptor,
-                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
-                                    JobIamInterceptor iamInterceptor) {
+    public InterceptorConfiguration(
+        JobCommonInterceptor jobCommonInterceptor,
+        AuthAppInterceptor authAppInterceptor,
+        UriPermissionInterceptor uriPermissionInterceptor,
+        EsbApiLogInterceptor esbApiLogInterceptor,
+        EsbReqRewriteInterceptor esbReqRewriteInterceptor,
+        ServiceSecurityInterceptor serviceSecurityInterceptor,
+        JobIamInterceptor iamInterceptor
+    ) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.authAppInterceptor = authAppInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
@@ -75,5 +81,6 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(3);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(10);
         registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(11);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(12);
     }
 }

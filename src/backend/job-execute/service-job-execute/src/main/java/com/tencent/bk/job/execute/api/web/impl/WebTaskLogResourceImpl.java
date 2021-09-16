@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.execute.api.web.WebTaskLogResource;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
@@ -55,7 +54,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @Slf4j
-public class WebTaskLogResourceImpl extends AbstractJobController implements WebTaskLogResource {
+public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final String logFileDir;
     private final MessageI18nService i18nService;
     private final TaskInstanceService taskInstanceService;

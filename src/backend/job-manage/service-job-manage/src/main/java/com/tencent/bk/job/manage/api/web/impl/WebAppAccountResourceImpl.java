@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.web.WebAppAccountResource;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
@@ -58,7 +57,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +69,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class WebAppAccountResourceImpl extends AbstractJobController implements WebAppAccountResource {
+public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private AccountService accountService;
     private MessageI18nService i18nService;
     private WebAuthService authService;
@@ -75,11 +78,11 @@ public class WebAppAccountResourceImpl extends AbstractJobController implements 
 
     @Autowired
     public WebAppAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
-                                     WebAuthService authService, ApplicationService applicationService,
+                                     WebAuthService webAuthService, ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.authService = authService;
+        this.authService = webAuthService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
     }

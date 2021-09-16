@@ -32,18 +32,28 @@ import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -157,7 +167,7 @@ public class ThirdFilePullingResultHandleTask implements ContinuousScheduledTask
                 log.debug("resp={}", resp);
                 FileSourceTaskStatusDTO fileSourceTaskStatusDTO = resp.getData();
                 // 写日志
-                List<ServiceLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
+                List<ServiceIpLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
                 if (logList != null && !logList.isEmpty()) {
                     writeLogs(stepInstance, logList);
                     logStart += logList.size();
@@ -192,10 +202,10 @@ public class ThirdFilePullingResultHandleTask implements ContinuousScheduledTask
         return resultList;
     }
 
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceLogDTO> logDTOList) {
-        for (ServiceLogDTO serviceLogDTO : logDTOList) {
+    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
+        for (ServiceIpLogDTO serviceIpLogDTO : logDTOList) {
             logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
-                stepInstance.getExecuteCount(), serviceLogDTO.getIp(), serviceLogDTO, System.currentTimeMillis());
+                stepInstance.getExecuteCount(), serviceIpLogDTO.getIp(), serviceIpLogDTO, System.currentTimeMillis());
         }
     }
 

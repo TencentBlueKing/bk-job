@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
 import java.util.List;
@@ -100,4 +102,13 @@ public interface TagDAO {
      * @return
      */
     List<TagDTO> listTags(TagDTO searchCondition);
+
+    /**
+     * 标签通用查询
+     *
+     * @param tagCondition
+     * @param baseSearchCondition
+     * @return
+     */
+    PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition);
 }

@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
-import com.tencent.bk.job.manage.common.constants.JobManageConstants;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.service.TagService;
@@ -62,7 +62,7 @@ public class ServiceTagResourceImpl implements ServiceTagResource {
 
     @Override
     public ServiceResponse<List<ServiceTagDTO>> listPublicTags() {
-        List<TagDTO> tags = tagService.listTags(JobManageConstants.PUBLIC_APP_ID, null);
+        List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, null);
         return ServiceResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
     }
 }

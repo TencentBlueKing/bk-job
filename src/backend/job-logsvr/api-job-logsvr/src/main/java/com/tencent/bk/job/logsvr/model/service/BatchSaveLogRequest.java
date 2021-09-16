@@ -31,7 +31,6 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * 批量保存执行日志请求
@@ -49,7 +48,7 @@ public class BatchSaveLogRequest {
      * 执行日志
      */
     @ApiModelProperty(value = "执行日志", required = true)
-    private List<ServiceLogDTO> logs;
+    private List<ServiceIpLogDTO> logs;
 
     /**
      * 日志类型
@@ -61,7 +60,7 @@ public class BatchSaveLogRequest {
         return new StringJoiner(", ", BatchSaveLogRequest.class.getSimpleName() + "[", "]")
             .add("jobCreateDate='" + jobCreateDate + "'")
             .add("logType='" + logType + "'")
-            .add("logs=" + logs.stream().map(ServiceLogDTO::toStringBasic).collect(Collectors.toList()))
+            .add("logs=" + logs)
             .toString();
     }
 }

@@ -38,7 +38,11 @@ import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
-import com.tencent.bk.job.common.iam.model.*;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -61,7 +65,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j

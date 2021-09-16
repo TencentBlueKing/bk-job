@@ -32,6 +32,9 @@ import java.util.List;
 
 public class PageUtil {
 
+    public static final int DEFAULT_START = 0;
+    public static final int DEFAULT_POSITIVE_LENGTH = 10;
+
     public static Pair<Integer, Integer> normalizePageParam(Integer start, Integer pageSize) {
         if (start == null) {
             start = 0;

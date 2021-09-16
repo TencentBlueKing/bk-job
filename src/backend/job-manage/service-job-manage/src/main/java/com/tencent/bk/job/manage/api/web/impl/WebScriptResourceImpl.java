@@ -37,16 +37,26 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.WhiteCharChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.model.dto.*;
+import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
+import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
+import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptRelatedTemplateStepConverter;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
@@ -55,7 +65,12 @@ import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
-import com.tencent.bk.job.manage.model.web.vo.*;
+import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO;
@@ -80,11 +95,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.manage.common.constants.JobManageConstants.PUBLIC_APP_ID;
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 @RestController
 @Slf4j
-public class WebScriptResourceImpl extends AbstractJobController implements WebScriptResource {
+public class WebScriptResourceImpl implements WebScriptResource {
 
     private final ScriptService scriptService;
 
@@ -102,13 +117,13 @@ public class WebScriptResourceImpl extends AbstractJobController implements WebS
         MessageI18nService i18nService,
         ScriptCheckService scriptCheckService,
         ScriptDTOBuilder scriptDTOBuilder,
-        WebAuthService authService
+        WebAuthService webAuthService
     ) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
-        this.authService = authService;
+        this.authService = webAuthService;
     }
 
     @Override
@@ -137,10 +152,44 @@ public class WebScriptResourceImpl extends AbstractJobController implements WebS
         }
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
+
+        if (!checkPublicScriptVersionViewPermission(username, scriptVO)) {
+            return ServiceResponse.buildSuccessResp(null);
+        }
+
         scriptVO.setTypeName(ScriptTypeEnum.getName(scriptVO.getType()));
         // 给前端的脚本内容需要base64编码
         scriptVO.setContent(Base64Util.encodeContentToStr(script.getContent()));
         return ServiceResponse.buildSuccessResp(scriptVO);
+    }
+
+    private boolean checkPublicScriptVersionViewPermission(String username, ScriptVO script) {
+        if (script.getPublicScript() != null && !script.getPublicScript()) {
+            return true;
+        }
+
+        AuthResultVO authResultVO = checkScriptManagePermission(username, script.getAppId(), script.getId());
+        if (authResultVO.isPass()) {
+            return true;
+        } else {
+            // if user does not have public script management permission, only return online public script version list
+            return script.getStatus() == JobResourceStatusEnum.ONLINE.getValue();
+        }
+    }
+
+    private List<ScriptVO> excludeNotOnlinePublicScriptVersion(String username,
+                                                               Long appId,
+                                                               String scriptId,
+                                                               List<ScriptVO> scriptVersions) {
+        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
+        if (authResultVO.isPass()) {
+            return scriptVersions;
+        } else {
+            // if user does not have public script management permission, only return online public script version list
+            return scriptVersions.stream().filter(scriptVersion ->
+                scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
+                .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -465,6 +514,8 @@ public class WebScriptResourceImpl extends AbstractJobController implements WebS
 
             }
         }
+
+        resultVOS = excludeNotOnlinePublicScriptVersion(username, appId, scriptId, resultVOS);
         return ServiceResponse.buildSuccessResp(resultVOS);
     }
 

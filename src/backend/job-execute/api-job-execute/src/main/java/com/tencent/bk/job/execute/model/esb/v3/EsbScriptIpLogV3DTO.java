@@ -22,22 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.iam;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * @since 15/6/2020 15:40
+ * IP对应的脚本执行日志
  */
-@RequestMapping("/iam/api/v1/resources/task")
-public interface IamTaskCallbackResource {
-    @PostMapping("/template")
-    CallbackBaseResponseDTO templateCallback(@RequestBody CallbackRequestDTO callbackRequest);
+@Data
+public class EsbScriptIpLogV3DTO {
 
-    @PostMapping("/plan")
-    CallbackBaseResponseDTO planCallback(@RequestBody CallbackRequestDTO callbackRequest);
+    /**
+     * 云区域ID
+     */
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
+
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 脚本任务日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
 }
