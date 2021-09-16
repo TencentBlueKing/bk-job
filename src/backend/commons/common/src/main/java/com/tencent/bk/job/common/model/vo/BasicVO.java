@@ -22,27 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.migration;
+package com.tencent.bk.job.common.model.vo;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
-
-/**
- * 微服务升级
- */
-@RequestMapping("/migration")
-@RestController
-public interface MigrationResource {
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@ApiModel("BasicVO")
+public class BasicVO {
+    /**
+     * 创建者
+     */
+    @ApiModelProperty(value = "创建者")
+    private String creator;
 
     /**
-     * 对DB账号的密码进行加密
-     *
-     * @return
+     * 创建时间
      */
-    @PostMapping("/action/encryptDbAccountPassword")
-    ServiceResponse<List<Long>> encryptDbAccountPassword();
+    @ApiModelProperty(value = "创建时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long createTime;
+
+    /**
+     * 最后修改人
+     */
+    @ApiModelProperty(value = "最后更新者")
+    private String lastModifyUser;
+
+    /**
+     * 最后修改时间
+     */
+    @ApiModelProperty(value = "最后更新时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long lastModifyTime;
 }

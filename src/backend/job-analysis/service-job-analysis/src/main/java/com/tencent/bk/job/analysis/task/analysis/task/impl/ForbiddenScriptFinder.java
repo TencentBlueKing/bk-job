@@ -51,7 +51,11 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.model.inner.*;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -295,11 +299,7 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
                     ServiceTaskTemplateDTO templateCondition = new ServiceTaskTemplateDTO();
                     templateCondition.setAppId(appId);
                     PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-                        templateService.listPageTaskTemplates(
-                            templateCondition,
-                            baseSearchCondition,
-                            null
-                        );
+                        templateService.listPageTaskTemplates(appId, baseSearchCondition);
                     List<ServiceTaskTemplateDTO> taskTemplateInfoDTOList = taskTemplateInfoDTOPageData.getData();
                     for (ServiceTaskTemplateDTO taskTemplateInfoDTO : taskTemplateInfoDTOList) {
                         findForbiddenScriptFromTemplatePlans(taskTemplateInfoDTO, badTplPlanInfoList);

@@ -28,18 +28,9 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 
-import java.util.List;
-
 public interface TaskTemplateService {
-    /**
-     * 分页查询模版列表
-     *
-     * @param templateCondition   查询条件
-     * @param baseSearchCondition 搜索参数
-     * @return 分页后的模版列表
-     */
-    PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(ServiceTaskTemplateDTO templateCondition,
-                                                           BaseSearchCondition baseSearchCondition,
-                                                           List<Long> favoriteTemplateId);
+
+    PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(Long appId,
+                                                           BaseSearchCondition baseSearchCondition);
 
 }

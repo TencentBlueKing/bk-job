@@ -25,15 +25,18 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -50,9 +53,9 @@ import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
 import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
@@ -61,15 +64,18 @@ import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptRelatedTemplateStepConverter;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
+import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteInfoVO;
@@ -77,6 +83,7 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -90,9 +97,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
@@ -111,19 +120,22 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final WebAuthService authService;
 
+    private final TagService tagService;
+
     @Autowired
     public WebScriptResourceImpl(
         ScriptService scriptService,
         MessageI18nService i18nService,
         ScriptCheckService scriptCheckService,
         ScriptDTOBuilder scriptDTOBuilder,
-        WebAuthService webAuthService
-    ) {
+        WebAuthService webAuthService,
+        TagService tagService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
         this.authService = webAuthService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -269,6 +281,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
         String name,
         Integer type,
         String tags,
+        Long panelTag,
+        Integer panelType,
         String creator,
         String lastModifyUser,
         String scriptId,
@@ -278,7 +292,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         Integer order
     ) {
         JobContextUtil.setAppId(appId);
-        ScriptQueryDTO scriptQuery = new ScriptQueryDTO();
+        ScriptQuery scriptQuery = new ScriptQuery();
         if (publicScript != null && publicScript) {
             scriptQuery.setPublicScript(true);
             scriptQuery.setAppId(PUBLIC_APP_ID);
@@ -290,7 +304,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
         scriptQuery.setName(name);
         scriptQuery.setType(type);
         scriptQuery.setPublicScript(publicScript);
-        scriptQuery.setTags(tags);
+        if (panelType != null && panelType == 2) {
+            scriptQuery.setUntaggedScript(true);
+        } else {
+            addTagCondition(scriptQuery, tags, panelTag);
+        }
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setLength(pageSize);
@@ -343,6 +361,28 @@ public class WebScriptResourceImpl implements WebScriptResource {
         processAnyScriptExistFlag(appId, publicScript, resultPageData);
 
         return ServiceResponse.buildSuccessResp(resultPageData);
+    }
+
+    private void addTagCondition(ScriptQuery query, String tags, Long panelTagId) {
+        if (StringUtils.isNotBlank(tags)) {
+            query.setTagIds(Arrays.stream(tags.split(",")).map(tagIdStr -> {
+                try {
+                    return Long.parseLong(tagIdStr);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toList()));
+        }
+        if (panelTagId != null && panelTagId > 0) {
+            // Frontend need additional param to tell where the tag from
+            TagDTO tagInfo = new TagDTO();
+            tagInfo.setId(panelTagId);
+            if (CollectionUtils.isEmpty(query.getTagIds())) {
+                query.setTagIds(Collections.singletonList(panelTagId));
+            } else {
+                query.getTagIds().add(panelTagId);
+            }
+        }
     }
 
     private void processAnyScriptExistFlag(Long appId, Boolean publicScript, PageData resultPageData) {
@@ -976,38 +1016,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return ServiceResponse.buildSuccessResp(syncResultVOS);
     }
 
-    private ScriptCiteCountVO mockScriptCiteCountVO() {
-        ScriptCiteCountVO scriptCiteCountVO = new ScriptCiteCountVO();
-        scriptCiteCountVO.setTemplateCiteCount(100);
-        scriptCiteCountVO.setTaskPlanCiteCount(200);
-        return scriptCiteCountVO;
-    }
-
-    private ScriptCiteInfoVO mockScriptCiteInfoVO() {
-        ScriptCiteInfoVO scriptCiteInfoVO = new ScriptCiteInfoVO();
-        List<ScriptCitedTemplateVO> citedTemplateList = new ArrayList<>();
-        ScriptCitedTemplateVO scriptCitedTemplateVO = new ScriptCitedTemplateVO();
-        scriptCitedTemplateVO.setAppId(2L);
-        scriptCitedTemplateVO.setScriptVersion("test version");
-        scriptCitedTemplateVO.setScriptStatus(2);
-        scriptCitedTemplateVO.setScriptStatusDesc("ScriptStatusDesc");
-        scriptCitedTemplateVO.setTaskTemplateId(1L);
-        scriptCitedTemplateVO.setTaskTemplateName("mock template name");
-        citedTemplateList.add(scriptCitedTemplateVO);
-        scriptCiteInfoVO.setCitedTemplateList(citedTemplateList);
-        List<ScriptCitedTaskPlanVO> citedTaskPlanList = new ArrayList<>();
-        ScriptCitedTaskPlanVO scriptcitedTaskPlanVO = new ScriptCitedTaskPlanVO();
-        scriptcitedTaskPlanVO.setAppId(2L);
-        scriptcitedTaskPlanVO.setScriptVersion("test version");
-        scriptcitedTaskPlanVO.setScriptStatus(2);
-        scriptcitedTaskPlanVO.setScriptStatusDesc("ScriptStatusDesc");
-        scriptcitedTaskPlanVO.setTaskPlanId(1L);
-        scriptcitedTaskPlanVO.setTaskPlanName("mock plan name");
-        citedTaskPlanList.add(scriptcitedTaskPlanVO);
-        scriptCiteInfoVO.setCitedTaskPlanList(citedTaskPlanList);
-        return scriptCiteInfoVO;
-    }
-
     private ScriptCiteCountVO getScriptCiteCountOfAllScript(
         String username,
         Long appId,
@@ -1018,8 +1026,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             scriptVersionId);
         Integer taskPlanCiteCount = scriptService.getScriptTaskPlanCiteCount(username, appId, scriptId,
             scriptVersionId);
-        ScriptCiteCountVO scriptCiteCountVO = new ScriptCiteCountVO(templateCiteCount, taskPlanCiteCount);
-        return scriptCiteCountVO;
+        return new ScriptCiteCountVO(templateCiteCount, taskPlanCiteCount);
     }
 
     private ScriptCiteInfoVO getScriptCiteInfoOfAllScript(
@@ -1042,8 +1049,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
         List<ScriptCitedTaskPlanVO> citedTaskPlanVOList =
             citedTaskPlanList.parallelStream().map(ScriptCitedTaskPlanDTO::toVO).collect(Collectors.toList());
-        ScriptCiteInfoVO scriptCiteInfoVO = new ScriptCiteInfoVO(citedTemplateVOList, citedTaskPlanVOList);
-        return scriptCiteInfoVO;
+        return new ScriptCiteInfoVO(citedTemplateVOList, citedTaskPlanVOList);
     }
 
     @Override
@@ -1066,5 +1072,78 @@ public class WebScriptResourceImpl implements WebScriptResource {
     ) {
         ScriptCiteCountVO scriptCiteCountVO = getScriptCiteCountOfAllScript(username, appId, scriptId, scriptVersionId);
         return ServiceResponse.buildSuccessResp(scriptCiteCountVO);
+    }
+
+    @Override
+    public ServiceResponse<?> batchUpdateScriptTags(String username, Long appId, ScriptTagBatchPatchReq req) {
+        ValidateResult validateResult = checkScriptTagBatchPatchReq(req);
+        if (!validateResult.isPass()) {
+            return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
+        }
+
+        boolean isPublicScript = appId == PUBLIC_APP_ID;
+        List<String> scriptIdList = req.getIdList();
+
+        ResourceTypeEnum iamResourceType = isPublicScript ? ResourceTypeEnum.PUBLIC_SCRIPT : ResourceTypeEnum.SCRIPT;
+        String actionId = isPublicScript ? ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE : ActionId.MANAGE_SCRIPT;
+        AuthResultVO authResultVO = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
+
+        List<ResourceTagDTO> addResourceTags = null;
+        List<ResourceTagDTO> deleteResourceTags = null;
+        Integer resourceType = appId == PUBLIC_APP_ID ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+            JobResourceTypeEnum.APP_SCRIPT.getValue();
+        if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
+            addResourceTags = tagService.buildResourceTags(resourceType,
+                scriptIdList.stream().map(String::valueOf).collect(Collectors.toList()),
+                req.getAddTagIdList());
+        }
+        if (CollectionUtils.isNotEmpty(req.getDeleteTagIdList())) {
+            deleteResourceTags = tagService.buildResourceTags(resourceType,
+                scriptIdList.stream().map(String::valueOf).collect(Collectors.toList()),
+                req.getDeleteTagIdList());
+        }
+        tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
+
+        return ServiceResponse.buildSuccessResp(true);
+    }
+
+    private AuthResultVO batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
+                                         List<String> scriptIdList) {
+        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(scriptId);
+            resource.setResourceType(resourceType);
+            if (resourceType == ResourceTypeEnum.SCRIPT) {
+                resource.setPathInfo(PathBuilder.newBuilder(
+                    ResourceTypeEnum.BUSINESS.getId(),
+                    appId.toString()
+                ).build());
+            }
+            return resource;
+        }).collect(Collectors.toList());
+        return authService.batchAuthResources(username, actionId, appId, resources);
+    }
+
+    private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {
+        if (CollectionUtils.isEmpty(req.getIdList())) {
+            log.warn("ScriptTagBatchUpdateReq->idList is empty");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "idList");
+        }
+
+        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
+            log.warn("ScriptTagBatchUpdateReq->No script tags changed!");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                "addTagIdList|deleteTagIdList");
+        }
+        return ValidateResult.pass();
+    }
+
+    @Override
+    public ServiceResponse<TagCountVO> getTagScriptCount(String username, Long appId) {
+
+        return ServiceResponse.buildSuccessResp(scriptService.getTagScriptCount(appId));
     }
 }

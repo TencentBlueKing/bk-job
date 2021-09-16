@@ -22,53 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto;
+package com.tencent.bk.job.manage.model.web.request;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-/**
- * 脚本查询
- */
-@Getter
-@Setter
-@ToString
-public class ScriptQueryDTO {
-    /**
-     * 脚本版本ID，对应某个版本的脚本的ID
-     */
-    private Long scriptVersionId;
-    /**
-     * 脚本ID，一个脚本包含多个版本的脚本
-     */
-    private String id;
-    /**
-     * 脚本名称
-     */
-    private String name;
-    /**
-     * 脚本类型
-     */
-    private Integer type;
+import java.util.List;
 
-    /**
-     * 是否公共脚本
-     */
-    private Boolean publicScript;
-    /**
-     * 业务ID
-     */
-    private Long appId;
-    /**
-     * 脚本标签
-     */
-    private String tags;
+@Data
+@ApiModel("作业模板标签批量更新请求")
+public class TemplateTagBatchPatchReq {
 
-    /**
-     * 脚本状态
-     *
-     * @see com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum
-     */
-    private Integer status;
+    @ApiModelProperty(value = "模版 ID 列表", required = true)
+    private List<Long> idList;
+
+    @ApiModelProperty(value = "新增的标签ID列表")
+    private List<Long> addTagIdList;
+
+    @ApiModelProperty(value = "新增的标签ID列表")
+    private List<Long> deleteTagIdList;
 }

@@ -105,7 +105,7 @@ public interface WebAppAccountResource {
         @ApiParam("排序字段,别名:alias,名称:account,更新时间:lastModifyTime")
         @RequestParam(value = "orderField", required = false)
             String orderField,
-        @ApiParam("排序顺序,0:逆序;1:正序")
+        @ApiParam("排序顺序,0:降序;1:升序")
         @RequestParam(value = "order", required = false)
             Integer order,
         @ApiParam("关键字：支持账号ID、账号别名、账号名称、创建人、更新人的模糊搜索")

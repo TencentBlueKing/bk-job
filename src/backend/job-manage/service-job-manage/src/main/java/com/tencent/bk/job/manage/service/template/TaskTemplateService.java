@@ -24,47 +24,36 @@
 
 package com.tencent.bk.job.manage.service.template;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-/**
- * @since 16/10/2019 19:38
- */
 public interface TaskTemplateService {
     /**
      * 分页查询模版列表
      *
-     * @param templateCondition   查询条件
-     * @param baseSearchCondition 搜索参数
+     * @param query 查询条件
      * @return 分页后的模版列表
      */
-    PageData<TaskTemplateInfoDTO> listPageTaskTemplates(
-        TaskTemplateInfoDTO templateCondition,
-        BaseSearchCondition baseSearchCondition, List<Long> favoriteTemplateId
-    );
+    PageData<TaskTemplateInfoDTO> listPageTaskTemplates(TaskTemplateQuery query);
 
     /**
      * 分页查询模版基本信息列表
      *
-     * @param templateCondition   查询条件
-     * @param baseSearchCondition 搜索参数
-     * @param favoriteTemplateId  收藏的模版 ID 列表
+     * @param query                 查询条件
+     * @param favoredTemplateIdList 收藏的模板ID列表,需要优先展示
      * @return 分页后的模版基本列表
      */
-    PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(
-        TaskTemplateInfoDTO templateCondition,
-        BaseSearchCondition baseSearchCondition, List<Long> favoriteTemplateId
-    );
+    PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(TaskTemplateQuery query,
+                                                                 List<Long> favoredTemplateIdList);
 
     /**
      * 根据 ID 查询模版信息
@@ -111,15 +100,6 @@ public interface TaskTemplateService {
     Boolean saveTaskTemplateBasicInfo(TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
-     * 根据作业模版 ID 列表批量查询引用的脚本版本
-     *
-     * @param appId          业务 ID
-     * @param templateIdList 作业模版 ID 列表
-     * @return 作业模版 ID 与引用的脚本版本 ID 列表对应表
-     */
-    Map<Long, List<Long>> listTemplateScriptVersionInfo(Long appId, List<Long> templateIdList);
-
-    /**
      * 根据作业模版 ID 查询模版基础信息
      * <p>
      * 不包含步骤、变量信息
@@ -139,16 +119,6 @@ public interface TaskTemplateService {
      * @return 模版基础信息
      */
     TaskTemplateInfoDTO getTaskTemplateBasicInfoById(Long templateId);
-
-    /**
-     * 根据作业模版 ID 查询已删除的模版基础信息
-     * <p>
-     * 不包含步骤、变量信息，仅返回已删除的模版
-     *
-     * @param templateId 作业模版 ID
-     * @return 模版基础信息
-     */
-    TaskTemplateInfoDTO getDeletedTaskTemplateBasicInfoById(Long templateId);
 
     /**
      * 根据模版 ID 列表批量查询模版基础信息
@@ -207,13 +177,11 @@ public interface TaskTemplateService {
     );
 
     /**
-     * 更新模版标签信息
-     * <p>
-     * 弱标签不存在则会先创建对应标签
+     * 为模板创建标签
      *
      * @param taskTemplateInfo 模版信息
      */
-    void processTemplateTag(TaskTemplateInfoDTO taskTemplateInfo);
+    void createNewTagForTemplateIfNotExist(TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 更新模版步骤信息
@@ -229,6 +197,8 @@ public interface TaskTemplateService {
      * @return 新增的模版 ID
      */
     Long insertNewTemplate(TaskTemplateInfoDTO taskTemplateInfo);
+
+    boolean insertNewTemplateWithTemplateId(TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 根据模版 ID 查询模版名称
@@ -266,8 +236,6 @@ public interface TaskTemplateService {
 
     Integer countTemplateSteps(Long appId, TaskStepTypeEnum taskStepType, TaskScriptSourceEnum scriptSource,
                                TaskFileTypeEnum fileType);
-
-    Integer countByTag(Long appId, Long tagId);
 
     Integer countCiteScriptSteps(Long appId, List<String> scriptIdList);
 

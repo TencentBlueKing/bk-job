@@ -86,7 +86,7 @@ public interface WebCronJobResource {
         @ApiParam(value = "分页-开始") @RequestParam(value = "start", required = false) Integer start,
         @ApiParam(value = "分页-每页大小") @RequestParam(value = "pageSize", required = false) Integer pageSize,
         @ApiParam(value = "排序字段") @RequestParam(value = "orderField", required = false) String orderField,
-        @ApiParam(value = "排序顺序 0-逆序 1-正序") @RequestParam(value = "order", required = false) Integer order
+        @ApiParam(value = "排序顺序 0-降序 1-升序") @RequestParam(value = "order", required = false) Integer order
     );
 
     /**

@@ -22,30 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.migration.impl;
+package com.tencent.bk.job.manage.dao;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.manage.api.migration.MigrationResource;
-import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import com.tencent.bk.job.common.exception.DAOException;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 
 import java.util.List;
 
-@Slf4j
-@RestController
-public class MigrationResourceImpl implements MigrationResource {
-    private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
+public interface ResourceTagDAO {
 
-    @Autowired
-    public MigrationResourceImpl(
-        EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask) {
-        this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
-    }
+    boolean batchSaveResourceTags(List<ResourceTagDTO> resourceTags) throws DAOException;
 
-    @Override
-    public ServiceResponse<List<Long>> encryptDbAccountPassword() {
-        return encryptDbAccountPasswordMigrationTask.encryptDbAccountPassword();
-    }
+    List<ResourceTagDTO> listResourceTags(Long tagId);
+
+    List<ResourceTagDTO> listResourceTags(List<Long> tagIds);
+
+    List<ResourceTagDTO> listResourceTags(Long tagId, Integer resourceType);
+
+    List<ResourceTagDTO> listResourceTags(List<Long> tagIds, Integer resourceType);
+
+    List<ResourceTagDTO> listResourceTags(Integer resourceType, List<String> resourceIds);
+
+    List<ResourceTagDTO> listResourceTags(Integer resourceType, String resourceId);
+
+    boolean deleteResourceTags(Integer resourceType, String resourceId, List<Long> tagIds);
+
+    boolean deleteResourceTag(Integer resourceType, String resourceId, Long tagId);
+
+    boolean deleteResourceTags(Integer resourceType, String resourceId);
+
+    boolean deleteResourceTags(List<ResourceTagDTO> resourceTags);
+
+    boolean deleteResourceTags(Long tagId);
+
 }

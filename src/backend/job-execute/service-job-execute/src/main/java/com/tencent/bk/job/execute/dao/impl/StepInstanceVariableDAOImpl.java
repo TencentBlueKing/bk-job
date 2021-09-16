@@ -78,7 +78,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     private StepInstanceVariableValuesDTO extract(Record record) {
-        if (record == null || record.size() == 0) {
+        if (record == null) {
             return null;
         }
 

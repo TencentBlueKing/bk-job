@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,9 +40,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,8 +61,24 @@ public class TagDAOIntegrationTest {
 
     @Test
     public void getTagById() {
-        assertThat(tagDAO.getTagById(1L, 1L)).isEqualTo(new TagDTO(1L, 1L, "测试1", "userC", "userT"));
+        TagDTO tag = tagDAO.getTagById(1L, 1L);
+        assertThat(tag).isNotNull();
+        assertThat(tag.getAppId()).isEqualTo(1L);
+        assertThat(tag.getId()).isEqualTo(1L);
+        assertThat(tag.getName()).isEqualTo("test1");
+        assertThat(tag.getCreator()).isEqualTo("userC");
+        assertThat(tag.getLastModifyUser()).isEqualTo("userT");
+        assertThat(tag.getDescription()).isEqualTo("test1-desc");
+        assertThat(tag.getCreateTime()).isEqualTo(1630648088L);
+        assertThat(tag.getLastModifyTime()).isEqualTo(1630648088L);
+
+    }
+
+    @Test
+    public void whenTagNotExistThenReturnNull() {
+        // id not exist
         assertThat(tagDAO.getTagById(1L, 99999L)).isNull();
+        // app not exist
         assertThat(tagDAO.getTagById(13L, 1L)).isNull();
     }
 
@@ -68,58 +86,53 @@ public class TagDAOIntegrationTest {
     public void listTagsByIds() {
         List<Long> tagIdList = Arrays.asList(1L, 2L, 3L, 5L, 29L, -1L);
         List<TagDTO> result = tagDAO.listTagsByIds(1L, tagIdList);
-        List<TagDTO> expect = new ArrayList<>();
-        expect.add(new TagDTO(1L, 1L, "测试1", "userC", "userT"));
-        expect.add(new TagDTO(2L, 1L, "测试2", "userC", "userT"));
-        assertThat(result).isEqualTo(expect);
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("id").containsOnly(1L, 2L);
     }
 
     @Test
-    public void testListTagsByIds() {
-        List<TagDTO> result = tagDAO.listTagsByIds(1L, 1L, 2L, 3L, 5L, 29L, -1L);
-        List<TagDTO> expect = new ArrayList<>();
-        expect.add(new TagDTO(1L, 1L, "测试1", "userC", "userT"));
-        expect.add(new TagDTO(2L, 1L, "测试2", "userC", "userT"));
-        assertThat(result).isEqualTo(expect);
+    public void listTagsByTagIds() {
+        List<Long> tagIdList = Arrays.asList(1L, 2L, 3L);
+        List<TagDTO> result = tagDAO.listTagsByIds(tagIdList);
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting("id").containsOnly(1L, 2L, 3L);
     }
 
     @Test
     public void listTagsByAppId() {
         List<TagDTO> appTags = tagDAO.listTagsByAppId(1L);
-        List<TagDTO> expect = new ArrayList<>();
-        expect.add(new TagDTO(1L, 1L, "测试1", "userC", "userT"));
-        expect.add(new TagDTO(2L, 1L, "测试2", "userC", "userT"));
-        assertThat(appTags).isEqualTo(expect);
-
-        List<TagDTO> appTags2 = tagDAO.listTagsByAppId(2L);
-        List<TagDTO> expect2 = new ArrayList<>();
-        expect2.add(new TagDTO(5L, 2L, "持续集成", "userC", "userT"));
-        expect2.add(new TagDTO(3L, 2L, "测试1", "userC", "userT"));
-        expect2.add(new TagDTO(4L, 2L, "测试2", "userC", "userT"));
-        assertThat(appTags2).isEqualTo(expect2);
+        assertThat(appTags).extracting("appId").containsOnly(1L);
 
         List<TagDTO> appTagsNull = tagDAO.listTagsByAppId(99999L);
-        assertThat(appTagsNull).isEqualTo(Collections.emptyList());
+        assertThat(appTagsNull).isEmpty();
     }
 
     @Test
     public void insertTag() {
         TagDTO newTag = new TagDTO();
         newTag.setAppId(3L);
-        newTag.setName("测试");
+        newTag.setName("test8");
         newTag.setCreator("userC");
         newTag.setLastModifyUser("userT");
+        newTag.setDescription("test8-desc");
+        newTag.setCreateTime(DateUtils.currentTimeSeconds());
+        newTag.setLastModifyTime(DateUtils.currentTimeSeconds());
         newTag.setId(tagDAO.insertTag(newTag));
-        assertThat(tagDAO.getTagById(3L, newTag.getId())).isEqualTo(newTag);
 
-        TagDTO newTag2 = new TagDTO();
-        newTag2.setAppId(3L);
-        newTag2.setName("测试2");
-        newTag2.setCreator("userC");
-        newTag2.setId(tagDAO.insertTag(newTag2));
+        TagDTO savedTag = tagDAO.getTagById(3L, newTag.getId());
+        assertTag(savedTag, newTag);
+    }
 
-        newTag2.setLastModifyUser(newTag2.getCreator());
-        assertThat(tagDAO.getTagById(3L, newTag2.getId())).isEqualTo(newTag2);
+    private void assertTag(TagDTO tag, TagDTO expected) {
+        assertThat(tag).isNotNull();
+        assertThat(tag.getAppId()).isEqualTo(expected.getAppId());
+        assertThat(tag.getId()).isEqualTo(expected.getId());
+        assertThat(tag.getName()).isEqualTo(expected.getName());
+        assertThat(tag.getCreator()).isEqualTo(expected.getCreator());
+        assertThat(tag.getLastModifyUser()).isEqualTo(expected.getLastModifyUser());
+        assertThat(tag.getDescription()).isEqualTo(expected.getDescription());
+        assertThat(tag.getCreateTime()).isEqualTo(expected.getCreateTime());
+        assertThat(tag.getLastModifyTime()).isEqualTo(expected.getLastModifyTime());
     }
 
     @Test
@@ -128,13 +141,20 @@ public class TagDAOIntegrationTest {
         updateTag.setAppId(2L);
         updateTag.setId(3L);
         updateTag.setName("New Name");
+        updateTag.setDescription("New Description");
         updateTag.setLastModifyUser("userC");
         assertThat(tagDAO.updateTagById(updateTag)).isTrue();
+
         TagDTO result = tagDAO.getTagById(updateTag.getAppId(), updateTag.getId());
         assertThat(result.getName()).isEqualTo(updateTag.getName());
         assertThat(result.getLastModifyUser()).isEqualTo(updateTag.getLastModifyUser());
+        assertThat(result.getDescription()).isEqualTo(updateTag.getDescription());
+
+
+        // Tag not exist in current application
         updateTag.setAppId(1L);
         assertThat(tagDAO.updateTagById(updateTag)).isFalse();
+        // Tag Not exist
         updateTag.setId(9999L);
         assertThat(tagDAO.updateTagById(updateTag)).isFalse();
     }
@@ -143,14 +163,60 @@ public class TagDAOIntegrationTest {
     @DisplayName("验证根据标签查询标签列表")
     public void whenListTagsThenReturnTags() {
         Long appId = 2L;
-        String keyword = "测试";
-        TagDTO searchConditon = new TagDTO();
-        searchConditon.setAppId(appId);
-        searchConditon.setName(keyword);
+        String keyword = "test";
+        TagDTO searchCondition = new TagDTO();
+        searchCondition.setAppId(appId);
+        searchCondition.setName(keyword);
 
-        List<TagDTO> tags = tagDAO.listTags(searchConditon);
+        List<TagDTO> tags = tagDAO.listTags(searchCondition);
 
         assertThat(tags).hasSize(2).extracting("id").containsOnly(3L, 4L);
-        assertThat(tags).extracting("name").contains("测试1", "测试2");
+        assertThat(tags).extracting("name").contains("test1", "test2");
     }
+
+    @Test
+    @DisplayName("验证分页查询")
+    public void listPageTags() {
+        TagDTO tagQuery = new TagDTO();
+        tagQuery.setAppId(2L);
+        tagQuery.setName("test");
+
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(0);
+        baseSearchCondition.setLength(10);
+        baseSearchCondition.setOrder(Order.DESCENDING.getOrder());
+        baseSearchCondition.setOrderField("lastModifyTime");
+
+        PageData<TagDTO> pageData = tagDAO.listPageTags(tagQuery, baseSearchCondition);
+        assertThat(pageData.getData()).hasSize(2);
+
+        TagDTO tag1 = pageData.getData().get(0);
+        assertThat(tag1.getAppId()).isEqualTo(2L);
+        assertThat(tag1.getId()).isGreaterThan(0L);
+        assertThat(tag1.getName()).isEqualTo("test2");
+        assertThat(tag1.getCreator()).isEqualTo("userC");
+        assertThat(tag1.getLastModifyUser()).isEqualTo("userT");
+        assertThat(tag1.getDescription()).isEqualTo("test2-desc");
+        assertThat(tag1.getCreateTime()).isEqualTo(1630648091);
+        assertThat(tag1.getLastModifyTime()).isEqualTo(1630648091);
+
+        TagDTO tag2 = pageData.getData().get(1);
+        assertThat(tag2.getAppId()).isEqualTo(2L);
+        assertThat(tag2.getId()).isGreaterThan(0L);
+        assertThat(tag2.getName()).isEqualTo("test1");
+        assertThat(tag2.getCreator()).isEqualTo("userC");
+        assertThat(tag2.getLastModifyUser()).isEqualTo("userT");
+        assertThat(tag2.getDescription()).isEqualTo("test1-desc");
+        assertThat(tag2.getCreateTime()).isEqualTo(1630648090);
+        assertThat(tag2.getLastModifyTime()).isEqualTo(1630648090);
+    }
+
+    @Test
+    @DisplayName("删除标签")
+    public void deleteTag() {
+        assertThat(tagDAO.deleteTagById(1L)).isEqualTo(true);
+        assertThat(tagDAO.deleteTagById(999999L)).isEqualTo(false);
+    }
+
+
 }

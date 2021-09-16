@@ -139,7 +139,9 @@ public class TaskTemplateInfoDTO {
         TaskTemplateVO templateVO = new TaskTemplateVO();
         templateVO.setId(templateInfo.getId());
         templateVO.setName(templateInfo.getName());
-        templateVO.setTags(templateInfo.getTags().stream().map(TagDTO::toVO).collect(Collectors.toList()));
+        if (CollectionUtils.isNotEmpty(templateInfo.getTags())) {
+            templateVO.setTags(templateInfo.getTags().stream().map(TagDTO::toVO).collect(Collectors.toList()));
+        }
         templateVO.setStatus(templateInfo.getStatus().getStatus());
         templateVO.setCreator(templateInfo.getCreator());
         templateVO.setCreateTime(templateInfo.getCreateTime());

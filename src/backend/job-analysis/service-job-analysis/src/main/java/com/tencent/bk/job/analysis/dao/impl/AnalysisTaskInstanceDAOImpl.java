@@ -132,7 +132,7 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
                 .and(defaultTable.STATUS.eq(AnalysisTaskStatusEnum.RUNNING.getValue()))
         ).fetchOne();
         int runningCount = 0;
-        if (record != null && record.size() > 0) {
+        if (record != null) {
             Long maxId = (Long) record.get(0);
             runningCount = dslContext.deleteFrom(defaultTable).where(
                 defaultTable.ID.notEqual(maxId)

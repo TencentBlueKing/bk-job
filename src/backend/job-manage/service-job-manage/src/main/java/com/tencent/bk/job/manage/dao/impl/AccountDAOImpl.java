@@ -157,7 +157,7 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     private AccountDTO extract(Record record) {
-        if (record == null || record.size() == 0) {
+        if (record == null) {
             return null;
         }
         AccountDTO account = new AccountDTO();
@@ -244,7 +244,7 @@ public class AccountDAOImpl implements AccountDAO {
         } else {
             String orderField = baseSearchCondition.getOrderField();
             if ("alias".equals(orderField)) {
-                //正序
+                //升序
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.ALIAS.asc());
                 } else {
@@ -456,7 +456,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -467,7 +467,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -478,7 +478,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.HOST_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -489,7 +489,7 @@ public class AccountDAOImpl implements AccountDAO {
             .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
