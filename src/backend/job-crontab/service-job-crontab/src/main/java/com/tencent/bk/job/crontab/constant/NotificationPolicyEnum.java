@@ -14,13 +14,13 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum NotificationPolicyEnum {
     /**
-     * 默认，连续失败只通知第一次
+     * 通知次数无限制
      */
-    DEFAULT(0),
+    INFINITE(-1),
     /**
-     * 每次失败都发通知
+     * 不通知
      */
-    EVERYTIME(1),
+    NO_NOTIFY(0),
     ;
 
     @JsonValue

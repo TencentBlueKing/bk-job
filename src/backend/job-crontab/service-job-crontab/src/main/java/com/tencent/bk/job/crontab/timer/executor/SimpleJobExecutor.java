@@ -35,6 +35,7 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.NotifyService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
+import com.tencent.bk.job.crontab.timer.NotificationPolicy;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.Setter;
@@ -43,7 +44,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,8 +69,9 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
     @Autowired
     NotifyService notifyService;
 
-    @Value("${notification-policy.failed.start}")
-    private Integer startFailedNotification;
+    @Autowired
+    NotificationPolicy notificationPolicy;
+
 
     /**
      * 业务 ID 字符串
@@ -201,19 +202,24 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
 
         Integer executeErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
 
+        Integer begin = notificationPolicy.getBegin();
+        Integer frequency = notificationPolicy.getFrequency();
+        Integer totalTimes = notificationPolicy.getTotalTimes();
         if (log.isDebugEnabled()) {
-            log.debug("Start failed notification strategy is {}", startFailedNotification);
+            log.debug("Start failed notification policy|{}", notificationPolicy);
+        }
+        if (begin < 1 || frequency < 1 || totalTimes < -1) {
+            log.error("Policy is wrong, please check the configuration file|{}",notificationPolicy);
         }
 
-        if (startFailedNotification == NotificationPolicyEnum.DEFAULT.getValue()) {
-            if (executeErrorCount == 1) {
-                return true;
-            }
-        } else if (startFailedNotification == NotificationPolicyEnum.EVERYTIME.getValue()) {
-            return true;
-        } else if (executeErrorCount % startFailedNotification == 1) {
-            return true;
+        if (totalTimes == NotificationPolicyEnum.NO_NOTIFY.getValue()) {
+            return false;
+        } else if (totalTimes == NotificationPolicyEnum.INFINITE.getValue()) {
+            return executeErrorCount >= begin && (executeErrorCount - begin) % frequency == 0;
+        } else {
+            return executeErrorCount >= begin && (executeErrorCount - begin) % frequency == 0
+                && (executeErrorCount - begin) / frequency < totalTimes;
         }
-        return false;
+
     }
 }
