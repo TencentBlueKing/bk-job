@@ -498,9 +498,8 @@
              */
             handleBatchEditChange () {
                 this.fetchData();
-                if (this.$refs.tagPanelRef) {
-                    this.$refs.tagPanelRef.init();
-                }
+                this.$refs.list.resetSelect();
+                this.$refs.tagPanelRef.init();
             },
             /**
              * @desc 列表搜索
