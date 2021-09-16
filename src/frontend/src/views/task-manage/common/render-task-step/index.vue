@@ -101,7 +101,12 @@
                     </div>
                 </components>
             </template>
-            <div v-if="isOperation" class="step-create-btn" key="create" @click="handleShowCreate(-1)">
+            <div
+                v-if="isOperation"
+                class="step-create-btn"
+                key="create"
+                v-test="{ type: 'button', value: 'create_step' }"
+                @click="handleShowCreate(-1)">
                 <Icon type="plus" class="action-flag" />
                 {{ $t('template.作业步骤.add') }}
             </div>

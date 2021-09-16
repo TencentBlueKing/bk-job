@@ -28,7 +28,11 @@
 <template>
     <div class="exec-script-page" v-bkloading="{ isLoading }">
         <smart-action offset-target="bk-form-content">
-            <jb-form class="fast-execution-script-form" ref="execScriptForm" :model="formData">
+            <jb-form
+                class="fast-execution-script-form"
+                ref="execScriptForm"
+                v-test="{ type: 'form', value: 'executeScript' }"
+                :model="formData">
                 <item-factory
                     name="scriptName"
                     field="name"
@@ -82,10 +86,15 @@
                         class="w120 mr10"
                         :loading="isSubmiting"
                         theme="primary"
+                        v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }"
                         @click="handleSubmit">
                         {{ $t('execution.执行') }}
                     </bk-button>
-                    <bk-button @click="handleCancel">{{ $t('execution.重置') }}</bk-button>
+                    <bk-button
+                        v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }"
+                        @click="handleCancel">
+                        {{ $t('execution.重置') }}
+                    </bk-button>
                 </div>
             </template>
         </smart-action>
