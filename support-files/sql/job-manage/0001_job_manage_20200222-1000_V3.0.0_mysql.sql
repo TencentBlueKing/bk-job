@@ -472,19 +472,19 @@ REPLACE INTO `action_scope` VALUES (2, 'FILE_DISTRIBUTION', '文件分发', '文
 -- Table structure for white_ip_ip
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `white_ip_ip`  (
-                                              `id`               bigint(20)                                                   NOT NULL AUTO_INCREMENT,
-                                              `record_id`        bigint(20)                                                   NOT NULL,
-                                              `ip`               varchar(16) CHARACTER SET utf8mb4                            NOT NULL,
-                                              `cloud_area_id`    bigint(20)                                                   NOT NULL,
-                                              `row_create_time`  datetime(0)                                                  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                              `row_update_time`  datetime(0)                                                  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
-                                              `creator`          varchar(128) CHARACTER SET utf8mb4                           NOT NULL,
-                                              `last_modify_user` varchar(128) CHARACTER SET utf8mb4                           NULL     DEFAULT NULL,
-                                              `create_time`      bigint(20) UNSIGNED                                          NULL     DEFAULT NULL,
-                                              `last_modify_time` bigint(20) UNSIGNED                                          NULL     DEFAULT NULL,
-                                              PRIMARY KEY (`id`) USING BTREE,
-                                              INDEX `idx_record_id` (`record_id`) USING BTREE,
-                                              INDEX `idx_ip` (`ip`) USING BTREE
+    `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
+    `record_id`        bigint(20)  NOT NULL,
+    `ip`               varchar(16) CHARACTER SET utf8mb4  NOT NULL,
+    `cloud_area_id`    bigint(20)  NOT NULL,
+    `row_create_time`  datetime(0)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  datetime(0)  NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+    `creator`          varchar(128) CHARACTER SET utf8mb4 NOT NULL,
+    `last_modify_user` varchar(128) CHARACTER SET utf8mb4 NULL     DEFAULT NULL,
+    `create_time`      bigint(20) UNSIGNED NULL     DEFAULT NULL,
+    `last_modify_time` bigint(20) UNSIGNED NULL     DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_record_id` (`record_id`) USING BTREE,
+    INDEX `idx_ip` (`ip`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;
 
@@ -596,17 +596,17 @@ CREATE TABLE IF NOT EXISTS `notify_config_status`
 -- Table structure for notify_policy_role_target
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `notify_policy_role_target`  (
-                                                            `id`               bigint(20)                                                    NOT NULL AUTO_INCREMENT,
-                                                            `policy_id`        bigint(20)                                                    NOT NULL COMMENT '策略Id',
-                                                            `role`             varchar(255) CHARACTER SET utf8mb4                            NOT NULL COMMENT '角色编码（RESOURCE_OWNER/EXECUTOR/APP_MANAGER/EXTRA_OBSERVER）（作业平台角色：资源所属者，任务执行人，额外通知人+CMDB业务角色）',
-                                                            `enable`           bit(1)                                                        NOT NULL COMMENT '是否启用',
-                                                            `extra_observers`  text CHARACTER SET utf8mb4                                    NULL COMMENT '额外通知者',
-                                                            `creator`          varchar(128) CHARACTER SET utf8mb4                            NOT NULL,
-                                                            `row_update_time`  datetime(0)                                                   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
-                                                            `last_modify_user` varchar(128) CHARACTER SET utf8mb4                            NULL     DEFAULT NULL,
-                                                            `create_time`      bigint(20) UNSIGNED                                           NULL     DEFAULT NULL,
-                                                            `last_modify_time` bigint(20) UNSIGNED                                           NULL     DEFAULT NULL,
-                                                            PRIMARY KEY (`id`) USING BTREE
+    `id`               bigint(20)                                                    NOT NULL AUTO_INCREMENT,
+    `policy_id`        bigint(20)                                                    NOT NULL COMMENT '策略Id',
+    `role`             varchar(255) CHARACTER SET utf8mb4                            NOT NULL COMMENT '角色编码（RESOURCE_OWNER/EXECUTOR/APP_MANAGER/EXTRA_OBSERVER）（作业平台角色：资源所属者，任务执行人，额外通知人+CMDB业务角色）',
+    `enable`           bit(1)                                                        NOT NULL COMMENT '是否启用',
+    `extra_observers`  text CHARACTER SET utf8mb4                                    NULL COMMENT '额外通知者',
+    `creator`          varchar(128) CHARACTER SET utf8mb4                            NOT NULL,
+    `row_update_time`  datetime(0)                                                   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP(0),
+    `last_modify_user` varchar(128) CHARACTER SET utf8mb4                            NULL     DEFAULT NULL,
+    `create_time`      bigint(20) UNSIGNED                                           NULL     DEFAULT NULL,
+    `last_modify_time` bigint(20) UNSIGNED                                           NULL     DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;
 
@@ -662,22 +662,22 @@ CREATE TABLE IF NOT EXISTS `notify_trigger_policy`
 CREATE TABLE IF NOT EXISTS `global_setting`
 (
     `key`      varchar(255) CHARACTER SET utf8mb4 NOT NULL,
-  `value` text CHARACTER SET utf8mb4 NULL,
-  `decription` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL
+    `value` text CHARACTER SET utf8mb4 NULL,
+    `decription` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4;
 
 
 CREATE TABLE IF NOT EXISTS `dangerous_rule`  (
-                                                 `id`               bigint(20)                                                    NOT NULL AUTO_INCREMENT,
-                                                 `expression`       varchar(255) CHARACTER SET utf8mb4                            NOT NULL COMMENT '表达式',
-                                                 `script_type`      TINYINT                                                            DEFAULT 1 COMMENT '脚本类型',
-                                                 `description`      text CHARACTER SET utf8mb4                                    NULL COMMENT '描述',
-                                                 `priority`         int(11)                                                       NULL DEFAULT NULL COMMENT '优先级',
-                                                 `creator`          varchar(128) CHARACTER SET utf8mb4                            NOT NULL,
-                                                 `last_modify_user` varchar(128) CHARACTER SET utf8mb4                            NULL DEFAULT NULL,
-                                                 `create_time`      bigint(20) UNSIGNED                                           NULL DEFAULT NULL,
-                                                 `last_modify_time` bigint(20) UNSIGNED                                           NULL DEFAULT NULL,
-                                                 PRIMARY KEY (`id`) USING BTREE
+    `id`               bigint(20)                                                    NOT NULL AUTO_INCREMENT,
+    `expression`       varchar(255) CHARACTER SET utf8mb4                            NOT NULL COMMENT '表达式',
+    `script_type`      TINYINT                                                            DEFAULT 1 COMMENT '脚本类型',
+    `description`      text CHARACTER SET utf8mb4                                    NULL COMMENT '描述',
+    `priority`         int(11)                                                       NULL DEFAULT NULL COMMENT '优先级',
+    `creator`          varchar(128) CHARACTER SET utf8mb4                            NOT NULL,
+    `last_modify_user` varchar(128) CHARACTER SET utf8mb4                            NULL DEFAULT NULL,
+    `create_time`      bigint(20) UNSIGNED                                           NULL DEFAULT NULL,
+    `last_modify_time` bigint(20) UNSIGNED                                           NULL DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;
 
@@ -731,23 +731,23 @@ REPLACE INTO `index_greeting`(`id`, `start_seconds`, `end_seconds`, `content`, `
 
 
 CREATE TABLE IF NOT EXISTS `analysis_task`  (
-                                                `id`                          bigint(20)                                                    NOT NULL AUTO_INCREMENT,
-                                                `code`                        varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '任务代码，用于匹配处理器',
-                                                `app_ids`                     text CHARACTER SET utf8mb4         NOT NULL COMMENT '生效的appId，null为全部生效',
-                                                `result_description_template` TEXT COMMENT '任务结果总体描述模板',
-												`result_description_template_en` TEXT NULL COMMENT '英文版分析结果总体描述模板内容',
-                                                `result_item_template`        text CHARACTER SET utf8mb4         NOT NULL COMMENT '每条任务结果描述模板',
-												`result_item_template_en` 	  TEXT NULL COMMENT '英文版分析结果子项模板内容',
-                                                `priority`                    int(10)                                                       NOT NULL COMMENT '优先级',
-                                                `active`                      bit(1)                                                        NOT NULL COMMENT '是否启用',
-                                                `period_seconds`              bigint(20)                                                    NOT NULL COMMENT '触发周期',
-                                                `creator`                     varchar(128) CHARACTER SET utf8mb4        NOT NULL COMMENT '创建者',
-                                                `last_modify_user`            varchar(128) CHARACTER SET utf8mb4        NULL DEFAULT NULL COMMENT '更新者',
-                                                `create_time`                 bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '创建时间',
-                                                `last_modify_time`            bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '更新时间',
-                                                `description`                 TEXT COMMENT '对任务的描述',
-                                                PRIMARY KEY (`id`) USING BTREE,
-                                                UNIQUE INDEX `idx_code` (`code`) USING BTREE
+    `id`                          bigint(20)                                                    NOT NULL AUTO_INCREMENT,
+    `code`                        varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '任务代码，用于匹配处理器',
+    `app_ids`                     text CHARACTER SET utf8mb4         NOT NULL COMMENT '生效的appId，null为全部生效',
+    `result_description_template` TEXT COMMENT '任务结果总体描述模板',
+    `result_description_template_en` TEXT NULL COMMENT '英文版分析结果总体描述模板内容',
+    `result_item_template`        text CHARACTER SET utf8mb4         NOT NULL COMMENT '每条任务结果描述模板',
+    `result_item_template_en` 	  TEXT NULL COMMENT '英文版分析结果子项模板内容',
+    `priority`                    int(10)                                                       NOT NULL COMMENT '优先级',
+    `active`                      bit(1)                                                        NOT NULL COMMENT '是否启用',
+    `period_seconds`              bigint(20)                                                    NOT NULL COMMENT '触发周期',
+    `creator`                     varchar(128) CHARACTER SET utf8mb4        NOT NULL COMMENT '创建者',
+    `last_modify_user`            varchar(128) CHARACTER SET utf8mb4        NULL DEFAULT NULL COMMENT '更新者',
+    `create_time`                 bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '创建时间',
+    `last_modify_time`            bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '更新时间',
+    `description`                 TEXT COMMENT '对任务的描述',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE INDEX `idx_code` (`code`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;
 
@@ -824,21 +824,21 @@ REPLACE INTO `analysis_task`(`id`, `code`, `app_ids`, `result_description_templa
 -- 增加消息通知模板表
 -- ------------------------
 CREATE TABLE IF NOT EXISTS `notify_template`  (
-                                                  `id`               int(11)                                                       NOT NULL AUTO_INCREMENT,
-                                                  `code`             varchar(64) CHARACTER SET utf8        NOT NULL,
-                                                  `name`             varchar(128) CHARACTER SET utf8       NOT NULL,
-                                                  `channel`          varchar(64) CHARACTER SET utf8        NOT NULL,
-                                                  `title`            text CHARACTER SET utf8               NOT NULL,
-                                                  `content`          mediumtext CHARACTER SET utf8         NOT NULL,
-                                                  `title_en`         text CHARACTER SET utf8               NULL,
-                                                  `content_en`       mediumtext CHARACTER SET utf8         NULL,
-                                                  `creator`          varchar(128) CHARACTER SET utf8mb4 NOT NULL,
-                                                  `last_modify_user` varchar(128) CHARACTER SET utf8mb4        NOT NULL,
-                                                  `create_time`      bigint(20) UNSIGNED                                           NOT NULL,
-                                                  `last_modify_time` bigint(20) UNSIGNED                                           NOT NULL,
-                                                  PRIMARY KEY (`id`) USING BTREE,
-                                                  INDEX `idx_code` (`code`) USING BTREE,
-                                                  INDEX `idx_name` (`name`) USING BTREE
+    `id`               int(11)                                                       NOT NULL AUTO_INCREMENT,
+    `code`             varchar(64) CHARACTER SET utf8        NOT NULL,
+    `name`             varchar(128) CHARACTER SET utf8       NOT NULL,
+    `channel`          varchar(64) CHARACTER SET utf8        NOT NULL,
+    `title`            text CHARACTER SET utf8               NOT NULL,
+    `content`          mediumtext CHARACTER SET utf8         NOT NULL,
+    `title_en`         text CHARACTER SET utf8               NULL,
+    `content_en`       mediumtext CHARACTER SET utf8         NULL,
+    `creator`          varchar(128) CHARACTER SET utf8mb4 NOT NULL,
+    `last_modify_user` varchar(128) CHARACTER SET utf8mb4        NOT NULL,
+    `create_time`      bigint(20) UNSIGNED                                           NOT NULL,
+    `last_modify_time` bigint(20) UNSIGNED                                           NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_code` (`code`) USING BTREE,
+    INDEX `idx_name` (`name`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   CHARACTER SET = utf8;

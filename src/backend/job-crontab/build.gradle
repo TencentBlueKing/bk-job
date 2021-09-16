@@ -25,8 +25,8 @@
 ext {
     if (System.getProperty("jobCrontabVersion")) {
         set("jobCrontabVersion", System.getProperty("jobCrontabVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobCrontabVersion", System.getProperty("version"))
+    } else if (System.getProperty("bkjobVersion")) {
+        set("jobCrontabVersion", System.getProperty("bkjobVersion"))
     } else {
         set("jobCrontabVersion", "1.0.0")
     }
@@ -35,17 +35,12 @@ version "${jobCrontabVersion}"
 subprojects {
     version "${jobCrontabVersion}"
     dependencies {
-        compile("org.springframework.boot:spring-boot-autoconfigure")
+        api 'org.springframework.boot:spring-boot-autoconfigure'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
         implementation(group: 'org.apache.commons', name: 'commons-pool2')
-        implementation('ch.qos.logback:logback-core')
-        implementation('ch.qos.logback:logback-classic')
-        implementation('io.springfox:springfox-swagger2')
-        implementation('io.springfox:springfox-swagger-ui')
-        testCompile("org.springframework.boot:spring-boot-starter-test")
-        testImplementation "org.junit.jupiter:junit-jupiter"
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 }
 group 'com.tencent.bk.job'

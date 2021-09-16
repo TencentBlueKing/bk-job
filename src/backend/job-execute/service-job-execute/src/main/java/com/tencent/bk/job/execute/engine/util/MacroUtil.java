@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.util;
 
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.engine.gse.Strftime;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;

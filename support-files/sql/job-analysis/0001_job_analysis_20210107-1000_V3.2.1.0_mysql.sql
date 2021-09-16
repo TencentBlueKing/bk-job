@@ -3,23 +3,23 @@ CREATE DATABASE IF NOT EXISTS job_analysis DEFAULT CHARACTER SET utf8mb4;
 USE job_analysis;
 
 CREATE TABLE IF NOT EXISTS `analysis_task`  (
-                                                `id`                          bigint(20)                                                    NOT NULL AUTO_INCREMENT,
-                                                `code`                        varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '任务代码，用于匹配处理器',
-                                                `app_ids`                     text CHARACTER SET utf8mb4         NOT NULL COMMENT '生效的appId，null为全部生效',
-                                                `result_description_template` TEXT COMMENT '任务结果总体描述模板',
-												`result_description_template_en` TEXT NULL COMMENT '英文版分析结果总体描述模板内容',
-                                                `result_item_template`        text CHARACTER SET utf8mb4         NOT NULL COMMENT '每条任务结果描述模板',
-												`result_item_template_en` 	  TEXT NULL COMMENT '英文版分析结果子项模板内容',
-                                                `priority`                    int(10)                                                       NOT NULL COMMENT '优先级',
-                                                `active`                      bit(1)                                                        NOT NULL COMMENT '是否启用',
-                                                `period_seconds`              bigint(20)                                                    NOT NULL COMMENT '触发周期',
-                                                `creator`                     varchar(128) CHARACTER SET utf8mb4         NOT NULL COMMENT '创建者',
-                                                `last_modify_user`            varchar(128) CHARACTER SET utf8mb4         NULL DEFAULT NULL COMMENT '更新者',
-                                                `create_time`                 bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '创建时间',
-                                                `last_modify_time`            bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '更新时间',
-                                                `description`                 TEXT COMMENT '对任务的描述',
-                                                PRIMARY KEY (`id`) USING BTREE,
-                                                UNIQUE INDEX `idx_code` (`code`) USING BTREE
+    `id`                          bigint(20)                                                    NOT NULL AUTO_INCREMENT,
+    `code`                        varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '任务代码，用于匹配处理器',
+    `app_ids`                     text CHARACTER SET utf8mb4         NOT NULL COMMENT '生效的appId，null为全部生效',
+    `result_description_template` TEXT COMMENT '任务结果总体描述模板',
+    `result_description_template_en` TEXT NULL COMMENT '英文版分析结果总体描述模板内容',
+    `result_item_template`        text CHARACTER SET utf8mb4         NOT NULL COMMENT '每条任务结果描述模板',
+    `result_item_template_en` 	  TEXT NULL COMMENT '英文版分析结果子项模板内容',
+    `priority`                    int(10)                                                       NOT NULL COMMENT '优先级',
+    `active`                      bit(1)                                                        NOT NULL COMMENT '是否启用',
+    `period_seconds`              bigint(20)                                                    NOT NULL COMMENT '触发周期',
+    `creator`                     varchar(128) CHARACTER SET utf8mb4         NOT NULL COMMENT '创建者',
+    `last_modify_user`            varchar(128) CHARACTER SET utf8mb4         NULL DEFAULT NULL COMMENT '更新者',
+    `create_time`                 bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '创建时间',
+    `last_modify_time`            bigint(20) UNSIGNED                                           NULL DEFAULT NULL COMMENT '更新时间',
+    `description`                 TEXT COMMENT '对任务的描述',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE INDEX `idx_code` (`code`) USING BTREE
 ) ENGINE = InnoDB
   CHARACTER SET = utf8mb4;
 
@@ -91,3 +91,4 @@ CREATE TABLE IF NOT EXISTS `statistics`  (
   INDEX `idx_date`(`date`(22)) USING BTREE,
   INDEX `idx_lastModifyTime`(`last_modify_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 ;
+

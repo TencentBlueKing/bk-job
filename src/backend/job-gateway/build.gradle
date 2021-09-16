@@ -25,42 +25,33 @@
 ext {
     if (System.getProperty("jobGatewayVersion")) {
         set("jobGatewayVersion", System.getProperty("jobGatewayVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobGatewayVersion", System.getProperty("version"))
+    } else if (System.getProperty("bkjobVersion")) {
+        set("jobGatewayVersion", System.getProperty("bkjobVersion"))
     } else {
         set("jobGatewayVersion", "1.0.0")
     }
 }
 version "${jobGatewayVersion}"
 dependencies {
-    compile project(':commons:common')
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-security")
-    compile project(":commons:common-spring-ext")
-    compile project(":commons:paas-sdk")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
+    api project(':commons:common')
+    api project(":commons:common-i18n")
+    api project(":commons:common-security")
+    api project(":commons:paas-sdk")
+    api project(":commons:common-service")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.prometheus:simpleclient_pushgateway'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework:spring-webflux'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation 'redis.clients:jedis'
     implementation 'commons-io:commons-io'
-    implementation 'io.jsonwebtoken:jjwt'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'joda-time:joda-time'
+    implementation 'org.apache.httpcomponents:httpclient'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
 }
 
 apply plugin: 'org.springframework.boot'

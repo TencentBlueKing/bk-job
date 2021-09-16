@@ -55,4 +55,6 @@ public interface FileWorkerDAO {
     Long countFileWorkers();
 
     Long countOnlineFileWorkers();
+
+    boolean existsFileWorker(DSLContext dslContext, String accessHost, Integer accessPort);
 }

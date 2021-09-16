@@ -25,36 +25,33 @@
 ext {
     if (System.getProperty("jobConfigVersion")) {
         set("jobConfigVersion", System.getProperty("jobConfigVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobConfigVersion", System.getProperty("version"))
+    } else if (System.getProperty("bkjobVersion")) {
+        set("jobConfigVersion", System.getProperty("bkjobVersion"))
     } else {
         set("jobConfigVersion", "1.0.0")
     }
 }
 version "${jobConfigVersion}"
 dependencies {
-    compile project(':commons:common')
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-spring-ext")
+    api project(':commons:common')
+    api project(":commons:common-i18n")
+    api project(":commons:common-consul")
     implementation 'io.springfox:springfox-swagger2'
     implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.prometheus:simpleclient_pushgateway'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-config-server'
-//    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 apply plugin: 'org.springframework.boot'

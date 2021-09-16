@@ -33,10 +33,12 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CredentialService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,17 +54,19 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     private TaskPlanService planService;
     private AccountService accountService;
     private TagService tagService;
+    private CredentialService credentialService;
 
     @Autowired
     public ResourceNameQueryServiceImpl(ApplicationService applicationService, ScriptService scriptService,
                                         TaskTemplateService templateService, TaskPlanService planService,
-                                        AccountService accountService, TagService tagService, AuthService authService) {
+                                        AccountService accountService, TagService tagService, AuthService authService, CredentialService credentialService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
         this.planService = planService;
         this.accountService = accountService;
         this.tagService = tagService;
+        this.credentialService = credentialService;
         authService.setResourceNameQueryService(this);
     }
 
@@ -122,6 +126,13 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                     }
                 }
                 break;
+            case TICKET:
+                ServiceCredentialDTO serviceCredentialDTO = credentialService.getServiceCredentialById(resourceId);
+                if (serviceCredentialDTO == null) {
+                    log.warn("Cannot find ticket by ticketId {}", resourceId);
+                    return null;
+                }
+                return serviceCredentialDTO.getName();
             default:
                 return null;
         }

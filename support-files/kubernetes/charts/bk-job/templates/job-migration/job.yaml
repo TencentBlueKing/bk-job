@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-migration-{{ .Release.Revision }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-migration"
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.migration.image.tag | quote }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.commonAnnotations }}
+    annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+      helm.sh/hook: pre-install,pre-upgrade
+      helm.sh/hook-weight: "1"
+      helm.sh/hook-delete-policy: hook-succeeded
+    {{- end }}
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-migration"
+    spec:
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      initContainers:
+        - name: wait-mariadb
+          image: busybox:1.28
+          command: ['sh', '-c', "until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done"]
+      containers:
+        - name: "job-migration"
+          image: {{ include "job-migration.image" . }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          command: ["bash"]
+          args: ["/data/job/startup.sh"]
+          env:
+            - name: BK_JOB_MYSQL_HOST
+              value: {{ include "job.mariadb.host" . | quote }}
+            - name: BK_JOB_MYSQL_PORT
+              value: {{ include "job.mariadb.port" . | quote }}
+            - name: BK_JOB_MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mariadb.auth.rootPassword | quote }}
+            - name: BK_IAM_URL
+              value: {{ .Values.iam.baseUrl | quote }}
+            - name: BK_JOB_APP_CODE
+              value: {{ .Values.app.code | quote }}
+            - name: BK_JOB_APP_SECRET
+              value: {{ .Values.app.secret | quote }}
+      restartPolicy: Never

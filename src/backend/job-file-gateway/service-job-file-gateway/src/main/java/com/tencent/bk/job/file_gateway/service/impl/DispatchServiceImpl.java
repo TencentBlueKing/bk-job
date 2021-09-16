@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,8 +52,8 @@ public class DispatchServiceImpl implements DispatchService {
 
     private final AbilityTagService abilityTagService;
     private final MeterRegistry meterRegistry;
-    private DSLContext dslContext;
-    private FileWorkerDAO fileWorkerDAO;
+    private final DSLContext dslContext;
+    private final FileWorkerDAO fileWorkerDAO;
 
     @Autowired
     public DispatchServiceImpl(DSLContext dslContext, FileWorkerDAO fileWorkerDAO,
@@ -111,10 +110,63 @@ public class DispatchServiceImpl implements DispatchService {
         return fileWorkerDTO;
     }
 
+    private FileWorkerDTO findWorkerByAuto(FileSourceDTO fileSourceDTO) {
+        FileWorkerDTO fileWorkerDTO = null;
+        String workerSelectScope = fileSourceDTO.getWorkerSelectScope();
+        List<String> abilityTagList = abilityTagService.getAbilityTagList(fileSourceDTO);
+        List<FileWorkerDTO> fileWorkerDTOList;
+        if (abilityTagList == null || abilityTagList.size() == 0) {
+            // 无能力标签要求，任选一个FileWorker
+            fileWorkerDTOList = getFileWorkerByScope(fileSourceDTO.getAppId(), workerSelectScope);
+            if (fileWorkerDTOList.isEmpty()) {
+                log.error("cannot find any file worker!");
+                return null;
+            }
+        } else {
+            String abilityTag = abilityTagList.get(0);
+            fileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(
+                fileSourceDTO.getAppId(),
+                workerSelectScope,
+                abilityTag
+            );
+            log.debug("abilityTag:{}, workerNum:{}", abilityTag, fileWorkerDTOList.size());
+            // 能力交集
+            for (int i = 1; i < abilityTagList.size(); i++) {
+                List<FileWorkerDTO> tmpFileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(
+                    fileSourceDTO.getAppId(),
+                    workerSelectScope,
+                    abilityTag
+                );
+                log.debug("abilityTag:{}, workerNum:{}", abilityTag, tmpFileWorkerDTOList.size());
+                abilityTag = abilityTagList.get(i);
+                // 取交集
+                fileWorkerDTOList.retainAll(tmpFileWorkerDTOList);
+                log.debug("after intersection of {}, retained workNum={}", abilityTag, fileWorkerDTOList.size());
+            }
+        }
+        if (fileWorkerDTOList.isEmpty()) {
+            log.warn("cannot find any file worker after ability intersection");
+            return null;
+        }
+        // 在线状态过滤
+        fileWorkerDTOList = fileWorkerDTOList.parallelStream().filter(tmpFileWorkerDTO -> {
+            Byte onlineStatus = tmpFileWorkerDTO.getOnlineStatus();
+            return onlineStatus != null && onlineStatus.intValue() == 1;
+        }).collect(Collectors.toList());
+        if (!fileWorkerDTOList.isEmpty()) {
+            // 按策略调度：内存占用最小
+            fileWorkerDTOList.sort(Comparator.comparing(FileWorkerDTO::getMemRate));
+            log.debug("ordered fileWorkerDTOList:{}", fileWorkerDTOList);
+            fileWorkerDTO = fileWorkerDTOList.get(0);
+        } else {
+            log.error("Cannot find available file worker, abilityTagList={}", abilityTagList);
+        }
+        return fileWorkerDTO;
+    }
+
     private FileWorkerDTO findBestFileWorkerIndeed(FileSourceDTO fileSourceDTO) {
         String mode = fileSourceDTO.getWorkerSelectMode();
-        String workerSelectScope = fileSourceDTO.getWorkerSelectScope();
-        FileWorkerDTO fileWorkerDTO = null;
+        FileWorkerDTO fileWorkerDTO;
         log.info("select worker with mode={},fileSourceDTO={}", mode, JsonUtils.toJson(fileSourceDTO));
         if (WorkerSelectModeEnum.MANUAL.name().equals(mode)) {
             Long workerId = fileSourceDTO.getWorkerId();
@@ -124,47 +176,7 @@ public class DispatchServiceImpl implements DispatchService {
                 return null;
             }
         } else if (WorkerSelectModeEnum.AUTO.name().equals(mode)) {
-            List<String> abilityTagList = abilityTagService.getAbilityTagList(fileSourceDTO);
-            List<FileWorkerDTO> fileWorkerDTOList = new ArrayList<>();
-            if (abilityTagList == null || abilityTagList.size() == 0) {
-                // 无能力标签要求，任选一个FileWorker
-                fileWorkerDTOList = getFileWorkerByScope(fileSourceDTO.getAppId(), workerSelectScope);
-                if (fileWorkerDTOList.isEmpty()) {
-                    log.error("cannot find any file worker!");
-                    return null;
-                }
-            } else {
-                fileWorkerDTOList = getFileWorkerByScopeAndAbilityTag(fileSourceDTO.getAppId(), workerSelectScope,
-                    abilityTagList.get(0));
-                // 能力交集
-                for (int i = 1; i < abilityTagList.size(); i++) {
-                    String abilityTag = abilityTagList.get(i);
-                    // 取交集
-                    fileWorkerDTOList.retainAll(getFileWorkerByScopeAndAbilityTag(fileSourceDTO.getAppId(),
-                        workerSelectScope, abilityTag));
-                }
-            }
-            if (fileWorkerDTOList.isEmpty()) {
-                return null;
-            }
-            // 在线状态过滤
-            fileWorkerDTOList = fileWorkerDTOList.parallelStream().filter(tmpFileWorkerDTO -> {
-                Byte onlineStatus = tmpFileWorkerDTO.getOnlineStatus();
-                return onlineStatus != null && onlineStatus.intValue() == 1;
-            }).collect(Collectors.toList());
-            if (!fileWorkerDTOList.isEmpty()) {
-                // 按策略调度：内存占用最小
-                fileWorkerDTOList.sort(Comparator.comparing(new Function<FileWorkerDTO, Float>() {
-                    @Override
-                    public Float apply(FileWorkerDTO fileWorkerDTO) {
-                        return fileWorkerDTO.getMemRate();
-                    }
-                }));
-                log.debug("ordered fileWorkerDTOList:{}", fileWorkerDTOList);
-                fileWorkerDTO = fileWorkerDTOList.get(0);
-            } else {
-                log.error("Cannot find available file worker, abilityTagList={}", abilityTagList);
-            }
+            fileWorkerDTO = findWorkerByAuto(fileSourceDTO);
         } else {
             throw new RuntimeException(String.format("workerSelectMode %s not supported yet", mode));
         }

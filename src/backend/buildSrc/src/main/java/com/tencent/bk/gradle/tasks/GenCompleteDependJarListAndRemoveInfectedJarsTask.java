@@ -53,7 +53,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
 
     @InputFiles
@@ -421,5 +420,45 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
 
     public void remove(String pattern) {
         patternSet.add(pattern);
+    }
+
+    public FileCollection getBootJarOutputFiles() {
+        return bootJarOutputFiles;
+    }
+
+    public void setBootJarOutputFiles(FileCollection bootJarOutputFiles) {
+        this.bootJarOutputFiles = bootJarOutputFiles;
+    }
+
+    public String getCompleteJarListsRootPath() {
+        return completeJarListsRootPath;
+    }
+
+    public void setCompleteJarListsRootPath(String completeJarListsRootPath) {
+        this.completeJarListsRootPath = completeJarListsRootPath;
+    }
+
+    public String getDependJarInfoRootPath() {
+        return dependJarInfoRootPath;
+    }
+
+    public void setDependJarInfoRootPath(String dependJarInfoRootPath) {
+        this.dependJarInfoRootPath = dependJarInfoRootPath;
+    }
+
+    public String getDefaultEdition() {
+        return defaultEdition;
+    }
+
+    public void setDefaultEdition(String defaultEdition) {
+        this.defaultEdition = defaultEdition;
+    }
+
+    public String getDefaultPackageType() {
+        return defaultPackageType;
+    }
+
+    public void setDefaultPackageType(String defaultPackageType) {
+        this.defaultPackageType = defaultPackageType;
     }
 }

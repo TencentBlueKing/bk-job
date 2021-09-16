@@ -1,0 +1,41 @@
+{{- if .Values.fileWorkerConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-file-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-file-worker"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    spring:
+      application:
+        name: {{ include "common.names.fullname" . }}-file-worker
+    job:
+      file-worker:
+        version: {{ .Values.fileWorkerConfig.version }}
+        id: {{ .Values.fileWorkerConfig.id }}
+        token: {{ .Values.fileWorkerConfig.token }}
+        app-id: {{ .Values.fileWorkerConfig.appId }}
+        ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
+        access:
+          host: job-file-worker
+          port: 80
+        cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
+        download-file:
+          dir: {{ .Values.fileWorkerConfig.downloadFile.dir }}
+          expire-days: {{ .Values.fileWorkerConfig.downloadFile.expireDays }}
+        instance-name: {{ .Values.fileWorkerConfig.instanceName }}
+        swagger:
+          url: {{ .Values.fileWorkerConfig.swaggerUrl }}
+
+      file-gateway:
+        api:
+          root-url: http://{{ include "common.names.fullname" . }}-gateway/job-file-gateway
+    server:
+      port: {{ .Values.fileWorkerConfig.containerPort }}
+  {{- end}}

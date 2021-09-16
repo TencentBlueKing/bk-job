@@ -1,0 +1,35 @@
+{{- if .Values.fileWorkerConfig.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: "job-file-worker"
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-file-worker"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+    kind: Deployment
+    name: "job-file-worker"
+  minReplicas: {{ .Values.fileWorkerConfig.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.fileWorkerConfig.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.fileWorkerConfig.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.fileWorkerConfig.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.fileWorkerConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.fileWorkerConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

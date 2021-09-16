@@ -45,7 +45,7 @@ public class ReDispatchTimeoutTask {
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final ReDispatchService reDispatchService;
 
-    @Value("${job.file-gateway.task.timeout.reDispatch.enable:true}")
+    @Value("${job.file-gateway.task.timeout.reDispatch.enabled:true}")
     private final boolean enableTimeoutRedispatch = true;
 
     // 10s无响应且未结束的任务就应当被重调度了

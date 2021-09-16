@@ -1,0 +1,83 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-frontend"
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.frontendConfig.image.tag | quote }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.frontendConfig.autoscaling.enabled }}
+  replicas: {{ .Values.frontendConfig.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-frontend
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-frontend"
+        {{ include "job.labelKeys.imageTag" . }}: {{ .Values.frontendConfig.image.tag | quote }}
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.frontendConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontendConfig.podAffinityPreset "component" "job-frontend" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontendConfig.podAntiAffinityPreset "component" "job-frontend" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.frontendConfig.nodeAffinityPreset.type "key" .Values.frontendConfig.nodeAffinityPreset.key "values" .Values.frontendConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.frontendConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontendConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.frontendConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontendConfig.priorityClassName }}
+      priorityClassName: {{ .Values.frontendConfig.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.frontendConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.frontendConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: "job-frontend"
+          {{- if .Values.frontendConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.frontendConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-frontend.image" . }}
+          imagePullPolicy: {{ .Values.frontendConfig.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              sed -i "s|{{`{{JOB_API_GATEWAY_URL}}`}}|${JOB_API_GATEWAY_URL}|" /data/job/job-frontend/index.html
+              nginx -g 'daemon off;'
+          env:
+            - name: JOB_API_GATEWAY_URL
+              value: {{ printf "%s://%s" .Values.frontendConfig.backend.apiGateway.scheme .Values.frontendConfig.backend.apiGateway.domain }}
+          volumeMounts:
+            - name: web-nginx-config
+              mountPath: /etc/nginx/
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.frontendConfig.resources | nindent 12 }}
+      volumes:
+        - name: web-nginx-config
+          configMap:
+            name: {{ include "common.names.fullname" . }}-frontend

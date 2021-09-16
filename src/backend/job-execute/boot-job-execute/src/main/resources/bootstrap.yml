@@ -1,57 +1,11 @@
 spring:
-  application:
-    name: job-execute
-  profiles:
-    active: prod
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-execute
-        instance-id: job-execute-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
-ribbon:
-  ServerListRefreshInterval: 3000
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
-      base-path: /actuator
-    enabled-by-default: false
-  endpoint:
-    health:
-      enabled: true
-    configprops:
-      enabled: true
-    env:
-      enabled: true
-    beans:
-      enabled: true
-    conditions:
-      enabled: true
-    loggers:
-      enabled: true
-    metrics:
-      enabled: true
-    mappings:
-      enabled: true
-    prometheus:
-      enabled: true
-    scheduledtasks:
-      enabled: true
-    info:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.cloud.consul.discovery.service-name}
-server:
-  port: ${job.execute.server.port:19804}
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-  shutdown: graceful
+    kubernetes:
+      config:
+        name: ${spring.application.name}
+        namespace: ${KUBERNETES_NAMESPACE}
+        sources:
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${JOB_APPLICATION_CONFIGMAP_NAME}
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${JOB_COMMON_CONFIGMAP_NAME}

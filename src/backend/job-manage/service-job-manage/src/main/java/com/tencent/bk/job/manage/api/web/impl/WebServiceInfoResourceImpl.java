@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.web.WebServiceInfoResource;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
-import com.tencent.bk.job.manage.service.ServiceInfoService;
+import com.tencent.bk.job.manage.service.impl.ServiceInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;

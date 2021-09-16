@@ -49,12 +49,12 @@ import java.util.stream.Collectors;
 public class SyncAppHostAndRefreshCacheTask {
     private final HostService hostService;
     private final ApplicationService applicationService;
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
     public SyncAppHostAndRefreshCacheTask(HostService hostService,
                                           ApplicationService applicationService,
-                                          @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate) {
+                                          @Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate) {
         this.hostService = hostService;
         this.applicationService = applicationService;
         this.redisTemplate = redisTemplate;

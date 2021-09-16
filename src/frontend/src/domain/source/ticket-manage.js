@@ -29,7 +29,7 @@ import ModuleBase from './module-base';
 class TicketManage extends ModuleBase {
     constructor () {
         super();
-        this.module = 'job-ticket/web/credentials';
+        this.module = 'job-manage/web/credentials';
     }
 
     // 获取凭证列表

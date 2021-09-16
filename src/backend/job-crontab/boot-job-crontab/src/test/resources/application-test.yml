@@ -24,11 +24,11 @@ spring:
     database: ${job.crontab.redis.database}
     lettuce:
       pool:
-        min-idle: ${job.crontab.redis.lettuce.pool.min-idle}
-        max-idle: ${job.crontab.redis.lettuce.pool.max-idle}
-        max-active: ${job.crontab.redis.lettuce.pool.max-active}
-        max-wait: ${job.crontab.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.crontab.redis.lettuce.shutdown-timeout}
+        min-idle: ${job.crontab.redis.lettuce.pool.min-idle:5}
+        max-idle: ${job.crontab.redis.lettuce.pool.max-idle:10}
+        max-active: ${job.crontab.redis.lettuce.pool.max-idle:8}
+        max-wait: ${job.crontab.redis.lettuce.pool.max-wait:1ms}
+      shutdown-timeout: ${job.crontab.redis.lettuce.shutdown-timeout:100ms}
   cloud:
     config:
       enabled: false
