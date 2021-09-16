@@ -18,7 +18,9 @@
                     <div
                         class="wrapper"
                         style="height: 210px;">
-                        <scroll-faker v-if="renderList.length > 0">
+                        <scroll-faker
+                            v-if="renderList.length > 0"
+                            ref="scrollRef">
                             <bk-checkbox-group
                                 v-model="operationList"
                                 class="tag-list">
@@ -89,6 +91,7 @@
 <script>
     import {
         reactive,
+        ref,
         toRefs,
         computed,
         onBeforeMount,
@@ -125,6 +128,7 @@
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
+            const scrollRef = ref(null);
             // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};
             // 缓存全选
@@ -249,6 +253,9 @@
              * @param { Object } tag
              */
             const handleTagNew = (tag) => {
+                if (scrollRef.value) {
+                    scrollRef.value.scrollTo(0, 0);
+                }
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
                 window.changeAlert = true;
@@ -298,6 +305,7 @@
 
             return {
                 ...toRefs(state),
+                scrollRef,
                 renderList,
                 handleSearch,
                 handleNew,

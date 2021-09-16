@@ -149,7 +149,6 @@
                 width="200">
                 <template slot-scope="{ row }">
                     <auth-button
-                        class="mr10"
                         theme="primary"
                         :permission="row.canManage"
                         auth="tag/edit"
@@ -196,7 +195,7 @@
         <jb-dialog
             v-model="isShowEditRelate"
             :width="480"
-            title="批量流转关联项"
+            :title="$t('tag.批量流转关联项')"
             header-position="left">
             <batch-edit-relate
                 ref="batchEditRelate"

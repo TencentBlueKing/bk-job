@@ -500,6 +500,6 @@ export default {
         新增标签: '',
         编辑标签成功: '',
         搜索结果为空: 'Search Empty',
-        清空搜索: '',
+        清空搜索: 'Clear Search',
     },
 };

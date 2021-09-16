@@ -31,7 +31,9 @@
                         left-icon="bk-icon icon-search"
                         @change="handleSearch" />
                     <div class="wrapper" style="height: 210px;">
-                        <scroll-faker v-if="renderList.length > 0">
+                        <scroll-faker
+                            v-if="renderList.length > 0"
+                            ref="scrollRef">
                             <bk-checkbox-group
                                 v-model="formData.operationList"
                                 class="tag-list">
@@ -61,14 +63,20 @@
                             </bk-button>
                         </Empty>
                     </div>
-                    <div class="tag-create" @click="handleNew">
-                        <auth-component auth="tag/create">
+                    <auth-component auth="tag/create">
+                        <div class="tag-create" @click="handleNew">
                             <bk-icon
                                 type="plus-circle"
                                 style=" margin-right: 8px; font-size: 16px;" />
                             <span>{{ $t('tag.新增标签') }}</span>
-                        </auth-component>
-                    </div>
+                        </div>
+                        <div slot="forbid" class="tag-create">
+                            <bk-icon
+                                type="plus-circle"
+                                style=" margin-right: 8px; font-size: 16px;" />
+                            <span>{{ $t('tag.新增标签') }}</span>
+                        </div>
+                    </auth-component>
                 </div>
             </jb-form-item>
         </jb-form>
@@ -122,6 +130,7 @@
             // 默认选中的 tag
             state.formData.operationList = [props.data.id];
             const formRef = ref(null);
+            const scrollRef = ref(null);
             const isSubmitDisable = computed(() => props.data.relatedTaskTemplateNum + props.data.relatedScriptNum < 1);
             const { proxy } = getCurrentInstance();
             // 表单验证规则
@@ -195,6 +204,9 @@
             const handleTagOperationChange = (tag) => {
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
+                if (scrollRef.value) {
+                    scrollRef.value.scrollTo(0, 0);
+                }
             };
             /**
              * @desc 提交批量流转
@@ -236,6 +248,7 @@
                 ...toRefs(state),
                 isSubmitDisable,
                 formRef,
+                scrollRef,
                 rules,
                 renderList,
                 refresh,

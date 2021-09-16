@@ -173,20 +173,28 @@
                 };
             },
             /**
-             * @desc 内容区跟随滚动
+             * @desc 外部调用，容器滚到指定位置
+             * @param {Number} scrollLeft
              * @param {Number} scrollTop
              */
             scrollTo (scrollLeft, scrollTop) {
+                this.$refs.scrollContent.scrollTo(scrollLeft, scrollTop);
+            },
+            /**
+             * @desc 内容区跟随滚动
+             * @param {Number} scrollLeft
+             * @param {Number} scrollTop
+             */
+            contentScrollTo (scrollLeft, scrollTop) {
                 if (!this.$refs.scrollContent) {
                     return;
                 }
-                if (this.isVerticalScroll || this.isHorizontalScroll) {
-                    if (scrollLeft) {
-                        this.$refs.scrollContent.scrollLeft = scrollLeft;
-                    }
-                    if (scrollTop) {
-                        this.$refs.scrollContent.scrollTop = scrollTop;
-                    }
+                
+                if (this.isHorizontalScroll && typeof scrollLeft !== 'undefined') {
+                    this.$refs.scrollContent.scrollLeft = scrollLeft;
+                }
+                if (this.isVerticalScroll && typeof scrollTop !== 'undefined') {
+                    this.$refs.scrollContent.scrollTop = scrollTop;
                 }
             },
             /**
@@ -249,7 +257,7 @@
              * @param {Object} event 鼠标滚动事件
              */
             eventVerticalScroll (event) {
-                this.scrollTo('', event.target.scrollTop);
+                this.contentScrollTo('', event.target.scrollTop);
             },
             /**
              * @desc 鼠标在水平滚动条区域
@@ -268,7 +276,7 @@
              * @param {Object} event 鼠标滚动事件
              */
             eventHorizontalScroll (event) {
-                this.scrollTo(event.target.scrollLeft);
+                this.contentScrollTo(event.target.scrollLeft);
             },
         },
     };

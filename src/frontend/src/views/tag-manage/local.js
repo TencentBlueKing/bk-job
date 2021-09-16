@@ -26,13 +26,13 @@
 export default {
     namespace: 'tag',
     message: {
-        新建: '',
-        请输入: '',
+        新建: 'New',
+        请输入: 'Search...',
         标签名: {
-            colHead: '',
+            colHead: 'TAG NAME',
         },
         描述: {
-            colHead: '',
+            colHead: 'DESCRIPTION',
         },
         关联作业量: {
             colHead: '',
@@ -40,14 +40,14 @@ export default {
         关联脚本量: {
             colHead: '',
         },
-        创建人: '',
-        创建时间: '',
+        创建人: 'CREATED BY',
+        创建时间: 'CREATED ON',
         更新人: {
-            colHead: '',
+            colHead: 'LAST MODIFIED BY',
         },
-        更新时间: '',
-        操作: '',
-        编辑: '',
+        更新时间: 'LAST MODIFIED ON',
+        操作: 'ACTIONS',
+        编辑: '编辑',
         批量流转关联项: '',
         '确认删除该标签？': '',
         '关联的作业、脚本，将同时移除本标签': '',
