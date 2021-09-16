@@ -101,9 +101,7 @@
 <script>
     import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
-    import {
-        taskExport,
-    } from '@utils/cache-helper';
+    import { taskExport } from '@utils/cache-helper';
     import Empty from '@components/empty';
 
     export default {
@@ -262,7 +260,7 @@
 
         .layout-left,
         .layout-right {
-            height: calc(100vh - 152px);
+            height: calc(100vh - 205px);
         }
 
         .layout-left {

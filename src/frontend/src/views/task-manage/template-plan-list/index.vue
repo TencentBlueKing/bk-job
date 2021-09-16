@@ -58,7 +58,7 @@
         },
         methods: {
             /**
-             * @desc 获取作业模版名
+             * @desc 获取作业模板名
              */
             fetchData () {
                 TaskManageService.taskDetail({

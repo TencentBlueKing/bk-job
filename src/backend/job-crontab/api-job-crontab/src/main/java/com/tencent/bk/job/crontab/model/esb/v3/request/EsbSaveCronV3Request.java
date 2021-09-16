@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,14 @@ public class EsbSaveCronV3Request extends EsbReq {
     private String cronExpression;
 
     /**
+     * 单次执行的指定执行时间（Unix时间戳）
+     * <p>
+     * 不可与 cronExpression 同时为空
+     */
+    @JsonProperty("execute_time")
+    private Long executeTime;
+
+    /**
      * 定时任务的变量信息
      */
     @JsonProperty("global_var_list")
@@ -78,20 +87,23 @@ public class EsbSaveCronV3Request extends EsbReq {
 
     public boolean validate() {
         if (appId == null || appId <= 0) {
-            return false;
+            throw new InvalidParamException("bk_biz_id", "bk_biz_id must be a positive long number");
         }
         if (id != null && id < 0) {
-            return false;
+            throw new InvalidParamException("id", "id must be a positive long number when updating");
         }
         if (id == null || id == 0) {
             if (planId == null || planId <= 0) {
-                return false;
+                throw new InvalidParamException("job_plan_id", "job_plan_id must be a positive long number");
             }
             if (StringUtils.isBlank(name)) {
-                return false;
+                throw new InvalidParamException("name", "name cannot be null or blank when create");
             }
-            if (StringUtils.isBlank(cronExpression)) {
-                return false;
+            if (StringUtils.isBlank(cronExpression) && (executeTime == null || executeTime <= 0)) {
+                throw new InvalidParamException(
+                    "expression/execute_time",
+                    "expression/execute_time cannot both be null or invalid"
+                );
             }
         } else {
             boolean hasChange = false;
@@ -108,8 +120,16 @@ public class EsbSaveCronV3Request extends EsbReq {
             } else {
                 cronExpression = null;
             }
+            if (executeTime != null && executeTime > 0) {
+                hasChange = true;
+            } else {
+                executeTime = null;
+            }
             if (!hasChange) {
-                return false;
+                throw new InvalidParamException(
+                    "job_plan_id/name/expression/execute_time",
+                    "At least one of job_plan_id/name/expression/execute_time must be given to update cron " + id
+                );
             }
         }
         return true;

@@ -287,7 +287,7 @@
     /**
      * @desc 执行方案列表展示公用组件
      *
-     * 用于作业模版详情展示指定作业模板的执行方案（固定搜索项作业模版名称）
+     * 用于作业模板详情展示指定作业模板的执行方案（固定搜索项作业模板名称）
      * 用执行方案列表展示所有执行方案列表
     */
     import I18n from '@/i18n';
@@ -431,7 +431,7 @@
 
             this.listDataSource = ExecPlanService.fetchAllPlan;
             
-            // 查看指定作业模版的执行方案列表，不支持作业模板名称搜索
+            // 查看指定作业模板的执行方案列表，不支持作业模板名称搜索
             this.searchData = [
                 {
                     name: 'ID',
@@ -522,8 +522,8 @@
             /**
              * @desc 执行方案列表
              *
-             * 查看指定作业模版的执行方案列表
-             *  - api请求固定作业模版id，url查询参数需要拼接viewPlanId表示当前正常查看的执行方案
+             * 查看指定作业模板的执行方案列表
+             *  - api请求固定作业模板id，url查询参数需要拼接viewPlanId表示当前正常查看的执行方案
              */
             fetchData () {
                 const searchParams = {
@@ -549,11 +549,11 @@
             parseUrl () {
                 // 查看作业模板的执行方案
                 this.isViewTemplatePlanList = this.$route.name === 'viewPlan';
-                // 执行方案列表所属的作业模版
+                // 执行方案列表所属的作业模板
                 this.templateId = '';
                 
                 if (this.isViewTemplatePlanList) {
-                    // 查看指定作业模版的执行方案列表
+                    // 查看指定作业模板的执行方案列表
 
                     // 解析路由查询参数viewPlanId，没有指定viewPlanId或者viewPlanId不存在列表数据中，默认赋值列表数据的第一个
                     let {
@@ -622,8 +622,8 @@
             /**
              * @desc 创建执行方案
              *
-             * 在查看模版执行方案页面，直接创建当前作业模版下的执行方案
-             * 在查看所有执行方案列表页面，需要先选中作业模版然后才开始创建执行方案
+             * 在查看模板执行方案页面，直接创建当前作业模板下的执行方案
+             * 在查看所有执行方案列表页面，需要先选中作业模板然后才开始创建执行方案
              *
              */
             handleCreatePlan () {
@@ -634,10 +634,10 @@
                 }
             },
             /**
-             * @desc 选择作业模版后显示新建执行方案页面
-             * @param {Number} templateId 作业模版id
+             * @desc 选择作业模板后显示新建执行方案页面
+             * @param {Number} templateId 作业模板id
              *
-             * 需要判断将要新建的执行方案是否是改模版下面的第一个执行方案
+             * 需要判断将要新建的执行方案是否是改模板下面的第一个执行方案
              */
             handleTemplateChange (templateId) {
                 this.selectPlanInfo = {

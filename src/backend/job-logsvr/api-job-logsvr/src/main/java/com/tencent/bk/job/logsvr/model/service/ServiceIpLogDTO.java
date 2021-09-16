@@ -34,10 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-@ApiModel("执行日志")
+@ApiModel("主机执行日志")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceLogDTO {
+public class ServiceIpLogDTO {
     /**
      * 作业步骤实例ID
      */
@@ -73,12 +73,13 @@ public class ServiceLogDTO {
         fileTaskLogs.add(fileTaskDetailLog);
     }
 
-    public String toStringBasic() {
-        StringJoiner joiner = new StringJoiner(", ", ServiceLogDTO.class.getSimpleName() + "[", "]")
+    @Override
+    public String toString() {
+        StringJoiner joiner = new StringJoiner(", ", ServiceIpLogDTO.class.getSimpleName() + "[", "]")
             .add("stepInstanceId=" + stepInstanceId)
             .add("ip='" + ip + "'")
             .add("executeCount=" + executeCount)
-            .add("scriptLog=" +  scriptLog)
+            .add("scriptLog=" + scriptLog)
             .add("fileTaskLogSize=" + (fileTaskLogs == null ? 0 : fileTaskLogs.size()));
         return joiner.toString();
     }

@@ -41,12 +41,12 @@
                         auth="job_template/view"
                         text
                         @click="handleGoTemplate">
-                        <span>{{ $t('template.所属作业模版') }}</span>
+                        <span>{{ $t('template.所属作业模板') }}</span>
                         <Icon type="jump" />
                     </auth-button>
                 </div>
                 <jb-form>
-                    <jb-form-item :label="$t('template.全局变量')">
+                    <jb-form-item :label="$t('template.全局变量.label')">
                         <render-global-var
                             :key="id"
                             :list="planInfo.variableList"
@@ -246,7 +246,7 @@
                 window.open(href);
             },
             /**
-             * @desc 查看执行方案关联的作业模版详情
+             * @desc 查看执行方案关联的作业模板详情
              */
             handleGoTemplate () {
                 const { href } = this.$router.resolve({

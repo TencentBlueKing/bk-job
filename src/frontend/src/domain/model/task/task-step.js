@@ -24,7 +24,7 @@
 */
 
 /**
- * @desc 作业模版步骤模型
+ * @desc 作业模板步骤模型
  *
 */
 import _ from 'lodash';
@@ -59,9 +59,9 @@ export default class TaskStep extends Model {
         [TYPE_APPROVAL]: 'approval',
     }
 
-    constructor (payload, missId = false) {
+    constructor (payload, isClone = false) {
         super();
-        this.id = missId ? 0 : payload.id || 0;
+        this.id = isClone ? -payload.id : payload.id;
         this.name = payload.name;
         this.type = payload.type || 0;
         this.delete = payload.delete || 0;
@@ -73,14 +73,26 @@ export default class TaskStep extends Model {
         this.scriptStepInfo = this.initScriptStepInfo(payload.scriptStepInfo);
     }
 
+    /**
+     * @desc 步骤类型 ICON
+     * @returns { String }
+     */
     get icon () {
         return TaskStep.iconMap[this.type];
     }
 
+    /**
+     * @desc 步骤类型文本描述
+     * @returns { String }
+     */
     get typeText () {
         return TaskStep.typeTextMap[this.type];
     }
 
+    /**
+     * @desc 步骤状态 html
+     * @returns { String }
+     */
     get scriptStatusHtml () {
         return this.scriptStepInfo.scriptStatusHtml;
     }
@@ -107,18 +119,35 @@ export default class TaskStep extends Model {
         return this.scriptStepInfo.isDisabled;
     }
 
+    /**
+     * @desc 脚本类型步骤
+     * @returns { Boolean }
+     */
     get isScript () {
         return this.type === TYPE_SCRIPT;
     }
 
+    /**
+     * @desc 分发文件类型步骤
+     * @returns { Boolean }
+     */
     get isFile () {
         return this.type === TYPE_FILE;
     }
 
+    /**
+     * @desc 人工审核类型步骤
+     * @returns { Boolean }
+     */
     get isApproval () {
         return this.type === TYPE_APPROVAL;
     }
 
+    /**
+     * @desc 初始化人工审核类型步骤
+     * @param { Object } approvalStepInfo
+     * @returns { Object }
+     */
     initApprovalStepInfo (approvalStepInfo) {
         if (!_.isObject(approvalStepInfo)) {
             return {};
@@ -126,6 +155,11 @@ export default class TaskStep extends Model {
         return new TaskApprovalStep(approvalStepInfo);
     }
 
+    /**
+     * @desc 初始化分发文件类型步骤
+     * @param { Object } fileStepInfo
+     * @returns { Object }
+     */
     initFileStepInfo (fileStepInfo) {
         if (!_.isObject(fileStepInfo)) {
             return {};
@@ -133,6 +167,11 @@ export default class TaskStep extends Model {
         return new TaskFileStep(fileStepInfo);
     }
 
+    /**
+     * @desc 初始化执行脚本类型步骤
+     * @param { Object } scriptStepInfo
+     * @returns { Object }
+     */
     initScriptStepInfo (scriptStepInfo) {
         if (!_.isObject(scriptStepInfo)) {
             return {};

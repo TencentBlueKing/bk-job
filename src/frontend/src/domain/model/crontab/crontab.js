@@ -30,6 +30,7 @@ import I18n from '@/i18n';
 import {
     prettyDateTimeFormat,
 } from '@utils/assist';
+import Translate from '@utils/cron/translate';
 
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
@@ -84,6 +85,10 @@ export default class Crontab {
         this.isStatictisLoading = true;
     }
 
+    /**
+     * @desc 执行策略类型（单次执行，周期执行）
+     * @returns { String }
+     */
     get executeStrategy () {
         if (this.cronExpression) {
             return 'period';
@@ -91,6 +96,10 @@ export default class Crontab {
         return 'once';
     }
 
+    /**
+     * @desc 执行策略类型显示文本
+     * @returns { String }
+     */
     get executeStrategyText () {
         if (this.cronExpression) {
             return I18n.t('周期执行');
@@ -98,14 +107,68 @@ export default class Crontab {
         return I18n.t('单次执行');
     }
 
+    /**
+     * @desc 执行事件tips
+     * @returns { String }
+     */
+    get executeTimeTips () {
+        if (this.cronExpression) {
+            const [
+                month,
+                dayOfMonth,
+                dayOfWeek,
+                hour,
+                minute,
+            ] = Translate(this.cronExpression);
+            let text = month;
+            
+            if (dayOfMonth) {
+                text += dayOfMonth;
+            }
+            if (dayOfWeek) {
+                if (month && dayOfWeek) {
+                    if (dayOfMonth) {
+                        text += '以及当月';
+                    } else {
+                        text += '的';
+                    }
+                }
+
+                text += dayOfWeek;
+            }
+            
+            if (hour) {
+                if (dayOfMonth || dayOfWeek) {
+                    text += '的';
+                }
+                text += hour;
+            }
+            text += minute;
+            return text;
+        }
+        return this.executeTime;
+    }
+
+    /**
+     * @desc 执行状态的标记 ICON
+     * @returns { String }
+     */
     get statusIconType () {
         return Crontab.STATUS_ICON_TYPE[this.lastExecuteStatus];
     }
 
+    /**
+     * @desc 执行状态展示文本
+     * @returns { String }
+     */
     get statusText () {
         return Crontab.STATUS_MAP[this.lastExecuteStatus];
     }
 
+    /**
+     * @desc 定时任务的执行策略
+     * @returns { String }
+     */
     get policeText () {
         if (this.cronExpression) {
             return this.cronExpression;
@@ -113,6 +176,10 @@ export default class Crontab {
         return this.executeTime.slice(0, 19);
     }
 
+    /**
+     * @desc 周期执行成功率显示文本
+     * @returns { String }
+     */
     get successRateText () {
         if (!this.failCount && !this.totalCount) {
             return '--';
@@ -141,20 +208,10 @@ export default class Crontab {
         return `<span style="${getStyle(rate)}">${rate}%</span>`;
     }
 
-    get isRateEmpty () {
-        return !this.failCount || !this.totalCount;
-    }
-
-    get lastFailRecordList () {
-        const len = this.lastFailRecord.length;
-        const MAX_LEN = 5;
-        let lastFailRecords = this.lastFailRecord;
-        if (len > MAX_LEN) {
-            lastFailRecords = lastFailRecords.slice(0, MAX_LEN);
-        }
-        return lastFailRecords.map(item => prettyDateTimeFormat(item));
-    }
-
+    /**
+     * @desc 周期执行成功率 tips
+     * @returns { Array }
+     */
     get successRateTips () {
         const tips = `
             <p>
@@ -168,6 +225,32 @@ export default class Crontab {
         }, tips);
     }
 
+    /**
+     * @desc 周期执行成功率数据为空
+     * @returns { Boolean }
+     */
+    get isRateEmpty () {
+        return !this.failCount || !this.totalCount;
+    }
+
+    /**
+     * @desc 最新执行失败记录
+     * @returns { Array }
+     */
+    get lastFailRecordList () {
+        const len = this.lastFailRecord.length;
+        const MAX_LEN = 5;
+        let lastFailRecords = this.lastFailRecord;
+        if (len > MAX_LEN) {
+            lastFailRecords = lastFailRecords.slice(0, MAX_LEN);
+        }
+        return lastFailRecords.map(item => prettyDateTimeFormat(item));
+    }
+
+    /**
+     * @desc 更多失败记录
+     * @returns { Boolean }
+     */
     get showMoreFailAcion () {
         return this.lastFailRecord.length > 0;
     }

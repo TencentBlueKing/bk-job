@@ -32,8 +32,10 @@
         </div>
         <div class="title">
             <span v-if="isImportSuccess">{{ $t('template.作业导入完成！请及时检查。') }}</span>
-            <span v-if="isImportFailed">{{ $t('template.作业导入出现异常，请稍后再试...') }}</span>
-            <span v-else>{{ $t('template.正在导入作业，请稍候') }}<span class="loading" /></span>
+            <template v-else>
+                <span v-if="isImportFailed">{{ $t('template.作业导入出现异常，请稍后再试...') }}</span>
+                <span v-else>{{ $t('template.正在导入作业，请稍候') }}<span class="loading" /></span>
+            </template>
         </div>
         <div class="log-container">
             <div class="log-box" ref="log">
@@ -51,7 +53,11 @@
                     </div>
                 </template>
             </div>
-            <Icon class="log-copy" :tippy-tips="$t('template.复制日志')" type="log-copy" @click="handleCopyLog" />
+            <Icon
+                class="log-copy"
+                :tippy-tips="$t('template.复制日志')"
+                type="log-copy"
+                @click="handleCopyLog" />
         </div>
         <action-bar>
             <bk-button
@@ -66,12 +72,8 @@
 </template>
 <script>
     import BackupService from '@service/backup';
-    import {
-        execCopy,
-    } from '@utils/assist';
-    import {
-        taskImport,
-    } from '@utils/cache-helper';
+    import { execCopy } from '@utils/assist';
+    import { taskImport } from '@utils/cache-helper';
     import ActionBar from '../components/action-bar';
 
     const TASK_STATUS_DEFAULT = 0;
@@ -232,9 +234,9 @@
 
         .log-box {
             width: 680px;
-            max-height: calc(100vh - 410px);
+            max-height: calc(100vh - 460px);
             padding: 12px 16px;
-            overflow-y: scroll;
+            overflow-y: auto;
             font-size: 12px;
             line-height: 20px;
             color: #979ba5;

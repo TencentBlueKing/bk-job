@@ -26,9 +26,9 @@
 -->
 
 <template>
-    <div ref="editorBox" class="jd-ace-editor" :style="{ height: `${height}px` }">
+    <div ref="aceEditor" class="jd-ace-editor" :style="{ height: `${height}px` }">
         <div
-            
+            ref="contentWrapper"
             class="jb-ace-content"
             :class="{ readonly }"
             :style="boxStyle"
@@ -58,9 +58,15 @@
             </div>
             <div class="jb-ace-action" :style="{ height: `${tabHeight}px` }">
                 <slot name="action" />
-                <template v-if="!readonly">
-                    <Icon type="upload" @click="handleUploadScript" v-bk-tooltips="$t('上传脚本')" />
-                    <Icon type="history" @click.stop="handleShowHistory" v-bk-tooltips="$t('历史缓存')" />
+                <template v-if="!readonly && !isFullScreen">
+                    <Icon
+                        type="upload"
+                        @click="handleUploadScript"
+                        v-bk-tooltips="$t('上传脚本')" />
+                    <Icon
+                        type="history"
+                        @click.stop="handleShowHistory"
+                        v-bk-tooltips="$t('历史缓存')" />
                 </template>
                 <Icon
                     v-if="!isFullScreen"
@@ -73,7 +79,11 @@
                     v-bk-tooltips="$t('还原')"
                     @click="handleExitFullScreen" />
             </div>
-            <div v-if="isShowHistoryPanel" class="history-panel" @click.stop="">
+            <div
+                v-if="isShowHistoryPanel"
+                ref="historyPanel"
+                class="jb-ace-history-panel"
+                @click.stop="">
                 <div class="panel-header">
                     <div>{{ $t('历史缓存') }}</div>
                     <div class="save-btn" @click.stop="handleSaveHistory">{{ $t('手动保存') }}</div>
@@ -250,8 +260,9 @@
              * @returns {Object}
             */
             editorStyle () {
+                const tabHeight = this.showTabHeader ? TAB_HEIGHT : 0;
                 return {
-                    height: this.isFullScreen ? `calc(100vh - ${TAB_HEIGHT}px)` : `${this.height - TAB_HEIGHT}px`,
+                    height: this.isFullScreen ? `calc(100vh - ${tabHeight}px)` : `${this.height - tabHeight}px`,
                 };
             },
             /**
@@ -703,8 +714,7 @@
             handleFullScreen () {
                 this.isFullScreen = true;
                 this.messageInfo(I18n.t('按 Esc 即可退出全屏模式'));
-                this.editorClone = this.$refs.editorBox.cloneNode(true);
-                document.body.appendChild(this.editorClone);
+                document.body.appendChild(this.$refs.contentWrapper);
                 this.$nextTick(() => {
                     this.editor.resize();
                 });
@@ -716,10 +726,7 @@
              */
             handleExitFullScreen () {
                 this.isFullScreen = false;
-                if (this.editorClone && this.editorClone.parentNode) {
-                    this.editorClone.parentNode.removeChild(this.editorClone);
-                    this.editorClone = null;
-                }
+                this.$refs.aceEditor.appendChild(this.$refs.contentWrapper);
                 this.$nextTick(() => {
                     this.editor.resize();
                 });
@@ -859,9 +866,9 @@
         }
     }
 
-    .history-panel {
+    .jb-ace-history-panel {
         position: absolute;
-        top: 32px;
+        top: 40px;
         right: 10px;
         width: 350px;
         background: #fff;

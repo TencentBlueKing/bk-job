@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service.impl;
 
 import brave.Tracing;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -80,6 +79,7 @@ import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -1869,23 +1869,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
                                   String operator) throws ServiceException {
         // 人工确认步骤，需要判断操作者
-        Set<String> receivers = new HashSet<>();
-        if (stepInstance.getConfirmUsers() != null && !stepInstance.getConfirmUsers().isEmpty()) {
-            receivers.addAll(stepInstance.getConfirmUsers());
+        if (CollectionUtils.isNotEmpty(stepInstance.getConfirmUsers())
+            && stepInstance.getConfirmUsers().contains(operator)) {
+            return;
         }
+
+        Set<String> confirmUsers = new HashSet<>();
         if (stepInstance.getConfirmRoles() != null && !stepInstance.getConfirmRoles().isEmpty()) {
-            try {
+            if (stepInstance.getConfirmRoles().contains(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
+                confirmUsers.add(taskInstance.getOperator());
+            } else {
+                Set<String> roles = new HashSet<>(stepInstance.getConfirmRoles());
+                // JOB_RESOURCE_TRIGGER_USER should remove
+                roles.remove(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name());
                 ServiceResponse<Set<String>> resp = userResource.getUsersByRoles(stepInstance.getAppId(), operator,
-                    ResourceTypeEnum.JOB.getType(), "" + taskInstance.getTaskId(),
-                    Sets.newHashSet(stepInstance.getConfirmRoles()));
+                    ResourceTypeEnum.JOB.getType(), String.valueOf(taskInstance.getTaskId()), roles);
                 if (resp.isSuccess() && resp.getData() != null) {
-                    receivers.addAll(resp.getData());
+                    confirmUsers.addAll(resp.getData());
                 }
-            } catch (Exception e) {
-                log.warn("Get users by role fail", e);
             }
         }
-        if (receivers.isEmpty() || !receivers.contains(operator)) {
+        if (confirmUsers.isEmpty() || !confirmUsers.contains(operator)) {
             throw new ServiceException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
         }
     }

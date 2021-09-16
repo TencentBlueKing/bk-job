@@ -56,7 +56,7 @@
                 class="variable-guide-btn"
                 @click="handleShowVariableGuide">
                 <Icon type="book" />
-                变量使用指引
+                {{ $t('template.变量使用指引') }}
             </bk-button>
         </div>
         <div v-if="isShowVariableGuide" class="right">
@@ -65,10 +65,10 @@
     </div>
 </template>
 <script>
-    import StepDistroFile from './distro-file';
-    import StepExecScript from './exec-script';
-    import StepArificial from './artificial';
-    import VariableUseGuide from './variable-use-guide.vue';
+    import StepDistroFile from './components/distro-file';
+    import StepExecScript from './components/exec-script';
+    import StepArificial from './components/artificial';
+    import VariableUseGuide from './variable-use-guide';
 
     export default {
         components: {

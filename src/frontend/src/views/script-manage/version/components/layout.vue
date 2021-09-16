@@ -193,11 +193,10 @@
 
         .layout-right {
             position: relative;
-            margin-left: 10px;
+            margin-left: 16px;
             overflow: hidden;
             background: #fff;
             border-radius: 2px;
-            outline: 1px solid #dfe0e5;
             transition: all 0.15s;
             flex: 1;
 
@@ -225,7 +224,7 @@
                 justify-content: center;
 
                 &:hover {
-                    background-color: #f0f1f5;
+                    background-color: #4d4d4d;
                 }
             }
         }

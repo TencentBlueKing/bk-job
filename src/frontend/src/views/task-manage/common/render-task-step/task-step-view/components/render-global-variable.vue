@@ -95,7 +95,7 @@
                 if (this.type) {
                     return this.type;
                 }
-                return `${I18n.t('template.全局变量')} - ${this.name}`;
+                return `${I18n.t('template.全局变量.label')} - ${this.name}`;
             },
             isEmpty () {
                 return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);

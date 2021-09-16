@@ -40,17 +40,32 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.util.*;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.engine.util.FilePathUtils;
+import com.tencent.bk.job.execute.engine.util.IpHelper;
+import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
+import com.tencent.bk.job.execute.engine.util.MacroUtil;
+import com.tencent.bk.job.execute.engine.util.NFSUtils;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * GSE-文件分发执行
@@ -206,17 +221,17 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     private void saveInitialFileTaskLogs(Map<String, String> sourceDestPathMap) {
         try {
             log.debug("[{}] SourceDestPathMap: {}", stepInstanceId, sourceDestPathMap);
-            Map<String, ServiceLogDTO> logs = new HashMap<>();
+            Map<String, ServiceIpLogDTO> logs = new HashMap<>();
             for (JobFile file : sendFiles) {
                 String fileSourceIp = file.isLocalUploadFile() ? IpHelper.fix1To0(localAgentIp) :
                     file.getCloudAreaIdAndIp();
-                ServiceLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileSourceIp);
+                ServiceIpLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileSourceIp);
                 ipTaskLog.addFileTaskLog(new ServiceFileTaskLogDTO(FileDistModeEnum.UPLOAD.getValue(), null, null,
                     fileSourceIp, fileSourceIp, file.getStandardFilePath(), file.getDisplayFilePath(), "--",
                     FileDistStatusEnum.WAITING.getValue(), FileDistStatusEnum.WAITING.getName(), "--", "--", null));
             }
             for (String fileTargetIp : jobIpSet) {
-                ServiceLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileTargetIp);
+                ServiceIpLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileTargetIp);
                 for (JobFile file : sendFiles) {
                     String fileSourceIp = file.isLocalUploadFile() ? IpHelper.fix1To0(localAgentIp) :
                         file.getCloudAreaIdAndIp();
@@ -234,11 +249,11 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         }
     }
 
-    private ServiceLogDTO initServiceLogDTOIfAbsent(Map<String, ServiceLogDTO> logs, long stepInstanceId,
-                                                    int executeCount, String ip) {
-        ServiceLogDTO ipTaskLog = logs.get(ip);
+    private ServiceIpLogDTO initServiceLogDTOIfAbsent(Map<String, ServiceIpLogDTO> logs, long stepInstanceId,
+                                                      int executeCount, String ip) {
+        ServiceIpLogDTO ipTaskLog = logs.get(ip);
         if (ipTaskLog == null) {
-            ipTaskLog = new ServiceLogDTO();
+            ipTaskLog = new ServiceIpLogDTO();
             ipTaskLog.setStepInstanceId(stepInstanceId);
             ipTaskLog.setIp(ip);
             ipTaskLog.setExecuteCount(executeCount);
@@ -247,7 +262,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         return ipTaskLog;
     }
 
-    private void writeLogs(Map<String, ServiceLogDTO> executionLogs) {
+    private void writeLogs(Map<String, ServiceIpLogDTO> executionLogs) {
         log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
         logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
     }

@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <card-layout class="template-count-dashboard" :title="$t('dashboard.作业模版量')">
+    <card-layout class="template-count-dashboard" :title="$t('dashboard.作业模板量')">
         <render-trend metric="TASK_TEMPLATE_COUNT" :date="date" />
         <div slot="extend">
             <Icon type="line-chart-line" v-bk-tooltips="$t('dashboard.查看趋势图')" @click="handleShowTrend" />
@@ -35,13 +35,13 @@
         <trend-dialog
             v-model="isShowTrend"
             metric="TASK_TEMPLATE_COUNT"
-            :title="$t('dashboard.作业模版量趋势图')"
-            :name="$t('dashboard.作业模版量')"
+            :title="$t('dashboard.作业模板量趋势图')"
+            :name="$t('dashboard.作业模板量')"
             :date="date" />
         <lower-component level="custom" :custom="isShowList">
             <jb-dialog
                 v-model="isShowList"
-                :title="$t('dashboard.作业模版量列表')"
+                :title="$t('dashboard.作业模板量列表')"
                 :width="520"
                 :show-footer="false"
                 header-position="left">
@@ -53,7 +53,7 @@
                             key="appName"
                             align="left" />
                         <bk-table-column
-                            :label="$t('dashboard.作业模版量')"
+                            :label="$t('dashboard.作业模板量')"
                             prop="value"
                             key="value"
                             align="left" />

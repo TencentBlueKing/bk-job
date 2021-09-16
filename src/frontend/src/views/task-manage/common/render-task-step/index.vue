@@ -214,35 +214,35 @@
                 return false;
             },
             /**
-             * @desc 操作模版步骤（新建、编辑）
+             * @desc 操作模板步骤（新建、编辑）
              * @return {Boolean}
              */
             isOperation () {
                 return this.mode === 'operation';
             },
             /**
-             * @desc 选择模版步骤（用于编辑执行的场景）
+             * @desc 选择模板步骤（用于编辑执行的场景）
              * @return {Boolean}
              */
             isSelect () {
                 return this.mode === 'select';
             },
             /**
-             * @desc 查看作业模版步骤
+             * @desc 查看作业模板步骤
              * @return {Boolean}
              */
             isView () {
                 return !this.mode || this.mode === 'select';
             },
             /**
-             * @desc 作业模版步骤同比查看差异
+             * @desc 作业模板步骤同比查看差异
              * @return {Boolean}
              */
             isDiff () {
                 return this.mode === 'diff';
             },
             /**
-             * @desc 作业模版步骤可以编辑时需要能拖动排序
+             * @desc 作业模板步骤可以编辑时需要能拖动排序
              * @return {String}
              */
             stepBoxCom () {
@@ -317,8 +317,8 @@
             },
             /**
              * @desc 鼠标点击某个步骤
-             * @param {Object} payload 点击的模版步骤数据
-             * @param {Number} index 点击的模版步骤索引
+             * @param {Object} payload 点击的模板步骤数据
+             * @param {Number} index 点击的模板步骤索引
              */
             handleStepClick (index) {
                 if (this.isOperation) {
@@ -332,15 +332,15 @@
                 this.isShowDetail = true;
             },
             /**
-             * @desc 操作执行方案步骤时，选择作业模版的步骤
-             * @param {Object} step 点击的模版步骤数据
+             * @desc 操作执行方案步骤时，选择作业模板的步骤
+             * @param {Object} step 点击的模板步骤数据
              */
             handleStepSelect (step) {
                 this.$emit('on-select', step);
             },
             /**
-             * @desc 显示编辑作业模版步骤的弹层
-             * @param {Number} index 点击的模版步骤索引
+             * @desc 显示编辑作业模板步骤的弹层
+             * @param {Number} index 点击的模板步骤索引
              */
             handleShowEdit (index) {
                 this.operationType = 'edit';
@@ -350,7 +350,7 @@
             },
             /**
              * @desc 鼠标hover克隆按钮时需要显示克隆步骤的placeholder
-             * @param {Number} index 点击的模版步骤索引
+             * @param {Number} index 点击的模板步骤索引
              * @param {Boolean} isHover 鼠标的hover状态
              */
             handleCloneStepHover (index, isHover) {
@@ -365,8 +365,8 @@
                 }
             },
             /**
-             * @desc 克隆作业模版步骤
-             * @param {Number} index 点击的模版步骤索引
+             * @desc 克隆作业模板步骤
+             * @param {Number} index 点击的模板步骤索引
              */
             handleCloneStep (index) {
                 const steps = [...this.steps];
@@ -384,8 +384,8 @@
                 this.$emit('on-change', steps);
             },
             /**
-             * @desc 点击作业模版新建按钮在对应步骤后面追加一个新步骤
-             * @param {Number} index 点击的模版步骤索引
+             * @desc 点击作业模板新建按钮在对应步骤后面追加一个新步骤
+             * @param {Number} index 点击的模板步骤索引
              */
             handleShowCreate (index) {
                 this.operationType = 'create';
@@ -394,8 +394,8 @@
                 this.isShowOperation = true;
             },
             /**
-             * @desc 删除作业模版新建
-             * @param {Number} index 将要的模版步骤索引
+             * @desc 删除作业模板新建
+             * @param {Number} index 将要的模板步骤索引
              */
             handleDel (index) {
                 this.$bkInfo({
@@ -421,8 +421,8 @@
                 });
             },
             /**
-             * @desc 提交作业模版步骤的操作
-             * @param {Number} payload 将要的模版步骤索引
+             * @desc 提交作业模板步骤的操作
+             * @param {Number} payload 将要的模板步骤索引
              * @param {Boolean} localValidator 表单验证结果
              */
             handleTaskStepSubmit (payload, localValidator) {
@@ -447,14 +447,14 @@
                 this.$emit('on-change', steps);
             },
             /**
-             * @desc 选中拖动的作业模版步骤
-             * @param {Number} index 拖动的模版步骤索引
+             * @desc 选中拖动的作业模板步骤
+             * @param {Number} index 拖动的模板步骤索引
              */
             handleDragStart (index) {
                 this.dragStartIndex = index;
             },
             /**
-             * @desc 拖动作业模版步骤
+             * @desc 拖动作业模板步骤
              * @param {Object} event 拖动事件
              * @return {Boolean}
              */
@@ -464,7 +464,7 @@
             }, 30),
             /**
              * @desc 拖动结束
-             * @param {Number} index 拖动的模版步骤索引
+             * @param {Number} index 拖动的模板步骤索引
              */
             handleDragAdd (index) {
                 if (this.dragStartIndex === index) {

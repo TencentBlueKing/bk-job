@@ -28,18 +28,36 @@
 <template>
     <div class="cron-job-history-record">
         <div class="record-tab-wraper">
-            <div class="tab-item" :class="{ active: listTab === 'launch' }" @click="handleTabChange('launch')">
+            <div
+                class="tab-item"
+                :class="{ active: listTab === 'launch' }"
+                @click="handleTabChange('launch')">
                 <div class="tab-name">{{ $t('cron.任务正常启动') }}</div>
-                <Icon v-if="isLaunchLoading" type="sync-pending" svg class="loading-flag" />
+                <Icon
+                    v-if="isLaunchLoading"
+                    type="sync-pending"
+                    svg
+                    class="loading-flag" />
                 <div v-else class="tab-nums">{{ launchNums }}</div>
             </div>
-            <div class="tab-item" :class="{ active: listTab === 'unlaunch' }" @click="handleTabChange('unlaunch')">
+            <div
+                class="tab-item"
+                :class="{ active: listTab === 'unlaunch' }"
+                @click="handleTabChange('unlaunch')">
                 <div class="tab-name">{{ $t('cron.任务未能启动') }}</div>
-                <Icon v-if="isUnlaunchLoading" type="sync-pending" svg class="loading-flag" />
+                <Icon
+                    v-if="isUnlaunchLoading"
+                    type="sync-pending"
+                    svg
+                    class="loading-flag" />
                 <div v-else class="tab-nums">{{ unLaunchNums }}</div>
             </div>
         </div>
-        <component :is="listCom" :data="data" v-bind="$attrs" v-on="$listeners" />
+        <component
+            :is="listCom"
+            :data="data"
+            v-bind="$attrs"
+            v-on="$listeners" />
     </div>
 </template>
 <script>
@@ -115,30 +133,37 @@
     .cron-job-history-record {
         .record-tab-wraper {
             display: flex;
-            margin-bottom: 20px;
+            padding: 20px 30px 0;
+            margin: -20px -30px 20px;
+            background: #f5f6fa;
+            border-bottom: 1px solid #dcdee5;
 
             .tab-item {
                 display: flex;
                 height: 32px;
                 padding: 0 12px;
                 margin-right: 20px;
-                font-size: 14px;
+                margin-bottom: -1px;
+                font-size: 13px;
                 line-height: 32px;
                 color: #63656e;
                 cursor: pointer;
-                border: 1px solid #c4c6cc;
-                border-radius: 16px;
+                background: #e1e3eb;
+                border: 1px solid #e1e3eb;
+                border-bottom: none;
+                border-top-right-radius: 4px;
+                border-top-left-radius: 4px;
                 transition: all 0.15s;
                 align-items: center;
 
                 &.active {
-                    color: #fff;
-                    background: #3a84ff;
-                    border-color: #3a84ff;
+                    color: ##313238;
+                    background: #fff;
+                    border-color: #dcdee5;
 
                     .tab-nums {
-                        color: #3a84ff;
-                        background: #fff;
+                        color: #63656e;
+                        background: #ebecf0;
                     }
 
                     .loading-flag {
@@ -156,8 +181,8 @@
                 padding: 0 4px;
                 font-size: 12px;
                 line-height: 16px;
-                color: #979ba5;
-                background: #f0f1f5;
+                color: #63656e;
+                background: #ebecf0;
                 border-radius: 8px;
                 transition: all 0.15s;
             }

@@ -37,7 +37,14 @@ import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record1;
+import org.jooq.Record21;
+import org.jooq.Result;
+import org.jooq.TableField;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.CronJob;
 import org.jooq.generated.tables.records.CronJobRecord;
 import org.jooq.types.UByte;
@@ -170,6 +177,14 @@ public class CronJobDAOImpl implements CronJobDAO {
         conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
         return getCronJobByConditions(conditions);
+    }
+
+    @Override
+    public List<CronJobInfoDTO> getCronJobByIds(List<Long> cronJobIdList) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.in(cronJobIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
+        return fetchData(conditions);
     }
 
     @Override
@@ -389,7 +404,7 @@ public class CronJobDAOImpl implements CronJobDAO {
         return context.fetchExists(TABLE, conditions);
     }
 
-    private List<CronJobInfoDTO> fetchData(List<Condition> conditions) {
+    private List<CronJobInfoDTO> fetchData(Collection<Condition> conditions) {
         Result<Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte,
             UByte, ULong, String, ULong, ULong, ULong, String, String>> records =
             context
@@ -401,7 +416,7 @@ public class CronJobDAOImpl implements CronJobDAO {
                 .from(TABLE).where(conditions).fetch();
 
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
-        if (records != null && records.size() >= 1) {
+        if (records.size() >= 1) {
             records.map(record -> cronJobInfoList.add(convertToCronJobDTO(record)));
         }
         return cronJobInfoList;

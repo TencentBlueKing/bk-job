@@ -22,22 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.iam;
+package com.tencent.bk.job.backup.auth;
 
-import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-/**
- * @since 15/6/2020 15:40
- */
-@RequestMapping("/iam/api/v1/resources/task")
-public interface IamTaskCallbackResource {
-    @PostMapping("/template")
-    CallbackBaseResponseDTO templateCallback(@RequestBody CallbackRequestDTO callbackRequest);
+@Slf4j
+@Component
+@Lazy(false)
+public class ResourceServiceRegister implements InitializingBean {
 
-    @PostMapping("/plan")
-    CallbackBaseResponseDTO planCallback(@RequestBody CallbackRequestDTO callbackRequest);
+    private final ResourceAppInfoQueryService resourceAppInfoQueryService;
+    private final AuthService authService;
+
+    @Autowired
+    public ResourceServiceRegister(ResourceAppInfoQueryService resourceAppInfoQueryService,
+                                   AuthService authService) {
+        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
+        this.authService = authService;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
+    }
 }

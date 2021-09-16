@@ -78,7 +78,7 @@
                     class="variable-add"
                     @click="handleCreate">
                     <Icon type="plus" />
-                    <span>{{ $t('template.全局变量') }}</span>
+                    <span>{{ $t('template.全局变量.label') }}</span>
                 </div>
             </div>
             <popover-detail

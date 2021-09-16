@@ -58,6 +58,22 @@ public interface CronJobService {
     CronJobInfoDTO getCronJobInfoById(Long cronJobId);
 
     /**
+     * 根据 IDs 查询定时任务信息，按照传入的id顺序返回结果
+     *
+     * @param cronJobIdList 定时任务 IDs
+     * @return 定时任务信息
+     */
+    List<CronJobInfoDTO> getOrderedCronJobInfoByIds(List<Long> cronJobIdList);
+
+    /**
+     * 根据 IDs 查询定时任务信息，返回Map
+     *
+     * @param cronJobIdList 定时任务 IDs
+     * @return 定时任务信息
+     */
+    Map<Long,CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList);
+
+    /**
      * 根据 ID 查询定时任务信息
      *
      * @param appId     业务 ID

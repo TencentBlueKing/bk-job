@@ -49,7 +49,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -72,7 +71,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
-public class WebBackupResourceImpl extends AbstractJobController implements WebBackupResource {
+public class WebBackupResourceImpl implements WebBackupResource {
 
     private final ImportJobService importJobService;
     private final ExportJobService exportJobService;

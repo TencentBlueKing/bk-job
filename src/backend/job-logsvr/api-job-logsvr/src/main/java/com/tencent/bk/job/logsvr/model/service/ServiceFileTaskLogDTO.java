@@ -107,6 +107,7 @@ public class ServiceFileTaskLogDTO {
      */
     @JsonProperty("content")
     private String content;
+
     public ServiceFileTaskLogDTO(Integer mode, String destIp, String destFile, String srcIp, String displaySrcIp,
                                  String srcFile, String displaySrcFile, String size, Integer status,
                                  String statusDesc, String speed, String process, String content) {

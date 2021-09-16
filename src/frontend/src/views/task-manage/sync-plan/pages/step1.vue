@@ -29,7 +29,7 @@
     <layout>
         <div class="sync-plan-step1">
             <detail-layout>
-                <detail-item :label="$t('template.全局变量')" style="margin-bottom: 20px;">
+                <detail-item :label="$t('template.全局变量.label')" style="margin-bottom: 20px;">
                     <render-global-var
                         :list="templateVariableList"
                         mode="diff"

@@ -22,11 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.constants;
+package com.tencent.bk.job.logsvr.model.service;
 
-public class JobManageConstants {
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.StringJoiner;
+
+@ApiModel("主机执行日志-批量")
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ServiceIpLogsDTO {
     /**
-     * 公共资源对应的业务ID(比如公共脚本)
+     * 作业步骤实例ID
      */
-    public static final long PUBLIC_APP_ID = 0L;
+    @ApiModelProperty("步骤实例ID")
+    private Long stepInstanceId;
+
+    /**
+     * 执行次数
+     */
+    @ApiModelProperty("执行次数")
+    private Integer executeCount;
+
+    /**
+     * 主机执行日志列表
+     */
+    @ApiModelProperty(value = "主机执行日志")
+    @JsonProperty("ipLogs")
+    private List<ServiceIpLogDTO> ipLogs;
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ServiceIpLogsDTO.class.getSimpleName() + "[", "]")
+            .add("stepInstanceId=" + stepInstanceId)
+            .add("executeCount=" + executeCount)
+            .add("ipLogs=" + ipLogs)
+            .toString();
+    }
 }

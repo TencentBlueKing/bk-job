@@ -42,7 +42,7 @@ public class ScriptLogQuery {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip, 最大支持1000
+     * 执行任务的主机ip
      */
     private List<String> ips;
     /**

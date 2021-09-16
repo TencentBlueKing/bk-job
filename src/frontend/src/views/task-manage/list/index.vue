@@ -423,7 +423,7 @@
         },
         methods: {
             /**
-             * @desc 获取作业模版列表
+             * @desc 获取作业模板列表
              */
             fetchData () {
                 // 合并左侧分类和右侧搜索的查询条件
@@ -446,7 +446,7 @@
                     });
             },
             /**
-             * @desc 获取作业模版导出记录信息
+             * @desc 获取作业模板导出记录信息
              */
             fetchBackup () {
                 BackupService.fetchInfo()
@@ -482,7 +482,7 @@
                 this.fetchData();
             },
             /**
-             * @desc 跳转作业模版新建页
+             * @desc 跳转作业模板新建页
              */
             handleCreate () {
                 this.$router.push({
@@ -493,7 +493,7 @@
                 });
             },
             /**
-             * @desc 跳转作业模版导入页
+             * @desc 跳转作业模板导入页
              */
             handleImport () {
                 this.$router.push({
@@ -501,7 +501,7 @@
                 });
             },
             /**
-             * @desc 导出选中的作业模版
+             * @desc 导出选中的作业模板
              *
              * 同时只能存在一个导出任务，如果有导出任务没有结束给出提示
              */
@@ -525,7 +525,7 @@
                 }
             },
             /**
-             * @desc 查看登陆用户的作业模版
+             * @desc 查看登陆用户的作业模板
              */
             handleMyTask () {
                 const currentUserName = this.currentUser.username;
@@ -547,8 +547,8 @@
                 this.fetchData();
             },
             /**
-             * @desc 更新作业模版基本信息
-             * @param {Object} task 作业模版数据
+             * @desc 更新作业模板基本信息
+             * @param {Object} task 作业模板数据
              * @param {Object} tag 标签数据
              */
             handleUpdateTask (task, tag) {
@@ -563,15 +563,15 @@
                 });
             },
             /**
-             * @desc 选择作业模版
-             * @param {Array} selectTemplate 选择的作业模版
+             * @desc 选择作业模板
+             * @param {Array} selectTemplate 选择的作业模板
              */
             handleSelection (selectTemplate) {
                 this.listSelect = Object.freeze(selectTemplate);
             },
             /**
-             * @desc 编辑作业模版
-             * @param {Number} id 选中的作业模版
+             * @desc 编辑作业模板
+             * @param {Number} id 选中的作业模板
              */
             handleEdit (id) {
                 this.$router.push({
@@ -583,8 +583,8 @@
                 });
             },
             /**
-             * @desc 克隆作业模版
-             * @param {Number} id 选中的作业模版
+             * @desc 克隆作业模板
+             * @param {Number} id 选中的作业模板
              */
             handleClone (id) {
                 this.$router.push({
@@ -596,8 +596,8 @@
                 });
             },
             /**
-             * @desc 删除作业模版
-             * @param {Number} id 选中的作业模版
+             * @desc 删除作业模板
+             * @param {Number} id 选中的作业模板
              */
             handleDelete (id) {
                 return TaskService.taskDelete({
@@ -610,8 +610,8 @@
                 });
             },
             /**
-             * @desc 收藏作业模版
-             * @param {Object} task 选中的作业模版
+             * @desc 收藏作业模板
+             * @param {Object} task 选中的作业模板
              */
             handleCollection (task) {
                 const requestHander = task.favored ? TaskService.taskDeleteFavorite : TaskService.taskUpdateFavorite;

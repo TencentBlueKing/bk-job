@@ -76,5 +76,7 @@ test/unit/coverage
 *.njsproj
 *.sln
 dist
+*.local
+.history
 
 !build

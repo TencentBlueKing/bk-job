@@ -125,13 +125,16 @@
                 :render-header="renderHeader"
                 align="left">
                 <template slot-scope="{ row }">
-                    <a :tippy-tips="$t('script.作业模版引用')" @click="handleShowRelated('template', row)">
-                        {{ row.relatedTaskTemplateNum }}
-                    </a>
-                    <span> / </span>
-                    <a :tippy-tips="$t('script.执行方案引用')" @click="handleShowRelated('plan', row)">
-                        {{ row.relatedTaskPlanNum }}
-                    </a>
+                    <bk-button
+                        text
+                        v-bk-tooltips.right.allowHtml="`
+                                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
+                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                        @click="handleShowRelated(row)">
+                        <span>{{ row.relatedTaskTemplateNum }}</span>
+                        <span> / </span>
+                        <span>{{ row.relatedTaskPlanNum }}</span>
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -228,11 +231,10 @@
             :is-show.sync="showRelated"
             :show-footer="false"
             quick-close
-            v-bind="relatedScriptDialogInfo"
+            :title="$t('script.被引用.label')"
             :width="695">
-            <related-script
+            <script-related-info
                 from="scriptList"
-                :mode="showRelateMode"
                 :info="relatedScriptInfo" />
         </jb-sideslider>
     </div>
@@ -259,7 +261,7 @@
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
-    import RelatedScript from '../common/related-script';
+    import ScriptRelatedInfo from '../common/script-related-info';
 
     const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -268,7 +270,7 @@
         components: {
             ListActionLayout,
             RenderList,
-            RelatedScript,
+            ScriptRelatedInfo,
             JbSearchSelect,
             JbEditInput,
             JbEditTag,
@@ -277,7 +279,6 @@
         data () {
             return {
                 showRelated: false,
-                showRelateMode: '',
                 relatedScriptInfo: {
                     id: 0,
                 },
@@ -289,15 +290,6 @@
         computed: {
             isSkeletonLoading () {
                 return this.$refs.list.isLoading;
-            },
-            relatedScriptDialogInfo () {
-                const info = {
-                    title: I18n.t('script.引用脚本的作业模版'),
-                };
-                if (this.showRelateMode === 'plan') {
-                    info.title = I18n.t('script.引用脚本的执行方案');
-                }
-                return info;
             },
             allRenderColumnMap () {
                 return this.selectedTableColumn.reduce((result, item) => {
@@ -550,12 +542,11 @@
             },
             /**
              * @desc 脚本引用数据列表
-             * @param {String} mode 引用的模版、执行方案
+             * @param {String} mode 引用的模板、执行方案
              * @param {Object} scriptData 脚本数据
              */
-            handleShowRelated (mode, scriptData) {
+            handleShowRelated (scriptData) {
                 this.showRelated = true;
-                this.showRelateMode = mode;
                 this.relatedScriptInfo = scriptData;
             },
             /**

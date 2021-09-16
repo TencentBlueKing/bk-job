@@ -45,10 +45,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class BasicJwtManager implements JwtManager {
     private volatile String token = null;
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
+    private final PublicKey publicKey;
+    private final PrivateKey privateKey;
 
-    private Cache<String, Long> tokenCache = CacheBuilder.newBuilder()
+    private final Cache<String, Long> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(9999).expireAfterWrite(5, TimeUnit.MINUTES).build();
 
     public BasicJwtManager(String privateKeyBase64,
@@ -113,14 +113,14 @@ public class BasicJwtManager implements JwtManager {
                 tokenCache.put(token, expireAt.getTime());
             }
         } catch (ExpiredJwtException e) {
-            log.warn("Token is expire!", e);
+            log.error("Token is expire!", e);
             return false;
         } catch (Exception e) {
-            log.warn("Verify jwt caught exception", e);
+            log.error("Verify jwt caught exception", e);
             return false;
         } finally {
             long cost = System.currentTimeMillis() - start;
-            if (cost > 5) {
+            if (cost > 10) {
                 log.warn("Verify jwt cost too much, cost:{}", cost);
             }
         }

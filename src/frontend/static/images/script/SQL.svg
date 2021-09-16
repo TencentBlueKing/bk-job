@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>SQL</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#F7F8FA" offset="0%"></stop>
+            <stop stop-color="#F0F2F5" offset="99.9416965%"></stop>
+        </linearGradient>
+        <linearGradient x1="50.8618335%" y1="0.861833479%" x2="50.8618335%" y2="99.1381665%" id="linearGradient-2">
+            <stop stop-color="#BEBFC2" offset="0%"></stop>
+            <stop stop-color="#D7D8DB" offset="100%"></stop>
+        </linearGradient>
+        <path d="M28,5.42858203 L28,8.82141797 C28,11.8113945 21.7291875,14.25 14,14.25 C6.2708125,14.25 0,11.8113945 0,8.82141797 L0,5.42858203 C0,2.43860547 6.2708125,0 14,0 C21.7291875,0 28,2.43860547 28,5.42858203 Z M28,13.0625 L28,20.696418 C28,23.6863945 21.7291875,26.125 14,26.125 C6.2708125,26.125 0,23.6863945 0,20.696418 L0,13.0625 C3.0078125,15.522332 8.513,16.6674531 14,16.6674531 C19.487,16.6674531 24.992125,15.522332 28,13.0625 Z M28,24.9375 L28,32.571418 C28,35.5613945 21.7291875,38 14,38 C6.2708125,38 0,35.5613945 0,32.571418 L0,24.9375 C3.0078125,27.397332 8.513,28.5424531 14,28.5424531 C19.487,28.5424531 24.992125,27.397332 28,24.9375 Z" id="path-3"></path>
+        <filter x="-23.2%" y="-14.5%" width="146.4%" height="134.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <filter x="-21.4%" y="-13.2%" width="142.9%" height="131.6%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="1.5" in="SourceAlpha" result="shadowBlurInner1"></feGaussianBlur>
+            <feOffset dx="0" dy="1" in="shadowBlurInner1" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.16 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="🦶-脚本" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="LOGO" transform="translate(-45.000000, -125.000000)">
+            <g id="SQL" transform="translate(45.000000, 125.000000)">
+                <circle id="椭圆形" fill="url(#linearGradient-1)" cx="32" cy="32" r="32"></circle>
+                <g id="形状" transform="translate(18.000000, 13.000000)">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                    <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                    <use fill="black" fill-opacity="1" filter="url(#filter-5)" xlink:href="#path-3"></use>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

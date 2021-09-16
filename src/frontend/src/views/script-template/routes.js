@@ -30,7 +30,7 @@ export default {
     name: 'scriptTemplate',
     component: () => import('@views/script-template/'),
     meta: {
-        title: I18n.t('脚本模版'),
+        title: I18n.t('脚本模板'),
         group: 'personal',
     },
     redirect: {
@@ -42,7 +42,7 @@ export default {
             name: 'scriptTemplateIndex',
             component: () => import('@views/script-template/index/index'),
             meta: {
-                title: I18n.t('脚本模版'),
+                title: I18n.t('脚本模板'),
             },
         },
     ],

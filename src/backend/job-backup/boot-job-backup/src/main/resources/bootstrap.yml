@@ -10,6 +10,9 @@ spring:
         instance-id: job-backup-${machine.ip}-${server.port}
         enabled: true
         prefer-ip-address: true
+  mvc:
+    async:
+      request-timeout: 120000
 ribbon:
   ServerListRefreshInterval: 3000
 

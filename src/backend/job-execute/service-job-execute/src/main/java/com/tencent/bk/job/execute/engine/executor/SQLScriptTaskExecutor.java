@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
-import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.model.RunSQLScriptFile;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -120,8 +119,7 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
 
     protected api_script_request getScriptRequest(StepInstanceDTO stepInstance) {
         String sqlScriptContent = stepInstance.getScriptContent();
-        String fileNamePre = (stepInstance.getStepId() > 0 ? "stepId_" + stepInstance.getStepId() :
-            "stepInstanceId_" + stepInstance.getId());
+        String fileNamePre = buildScriptFileNamePrefix(stepInstance);
         String sqlScriptFileName = fileNamePre + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());
@@ -130,7 +128,7 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
 
         RunSQLScriptFile param = new RunSQLScriptFile();
         param.setTimeout(timeout);
-        param.setDownloadPath(GseConstants.SCRIPT_PATH);
+        param.setDownloadPath(scriptFilePath);
         param.setPublicScriptContent(publicScriptContent);
         param.setPublicScriptName(publicScriptName);
         param.setSqlScriptContent(sqlScriptContent);

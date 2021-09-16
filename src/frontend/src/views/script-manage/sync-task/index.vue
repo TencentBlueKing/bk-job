@@ -31,7 +31,7 @@
             <bk-button :disabled="isRetryAllDisable" @click="handleAllRetry">{{ $t('script.全部重试') }}</bk-button>
         </div>
         <div class="table-top">
-            {{ $t('script.同步作业模版') }}
+            {{ $t('script.同步作业模板') }}
             <span class="version-sum">
                 （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个.result') }}）
             </span>
@@ -93,14 +93,14 @@
                 </template>
             </bk-table-column>
         </bk-table>
-        <action-bar>
+        <div class="footer-action">
             <bk-button
                 class="w120"
                 theme="primary"
                 @click="handleFinish">
                 {{ $t('script.完成') }}
             </bk-button>
-        </action-bar>
+        </div>
         <script-detail :is-show.sync="isShowDetail" :script-version-id="selectScriptVersionId" />
         <element-teleport v-if="lastVersionScriptInfo.version">
             <span> - {{ $t('script.同步至') }}</span>
@@ -117,12 +117,10 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import TaskPlanService from '@service/task-plan';
-    import ActionBar from '../common/action-bar';
     import ScriptDetail from './components/script-detail';
 
     export default {
         components: {
-            ActionBar,
             ScriptDetail,
         },
         data () {
@@ -158,7 +156,7 @@
             this.scriptVersionId = this.$route.params.scriptVersionId;
             this.stepList = JSON.parse(localStorage.getItem('SYNC_TEMPLATE_STEP_SCRIPT'));
             if (this.stepList.length < 1) {
-                this.messageError(I18n.t('script.请先选择作业模版步骤'));
+                this.messageError(I18n.t('script.请先选择作业模板步骤'));
                 return;
             }
             this.fetchData();
@@ -346,6 +344,20 @@
 
         .try-hide {
             display: none;
+        }
+
+        .footer-action {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            width: 100%;
+            height: 52px;
+            padding-right: 24px;
+            background: #fff;
+            border-top: 1px solid #e2e2e2;
+            align-items: center;
+            justify-content: flex-end;
         }
     }
 </style>
