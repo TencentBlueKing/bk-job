@@ -26,7 +26,6 @@ package com.tencent.bk.job.crontab.timer.executor;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
-import com.tencent.bk.job.crontab.constant.LastExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -164,7 +163,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                 cronJobInfo.getLastModifyTime());
         }
 
-        if (executeFailed && isNotify(cronJobErrorInfo, cronJobInfo.getLastExecuteStatus())) {
+        if (executeFailed && isNotify(cronJobErrorInfo)) {
             notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
             if (log.isDebugEnabled()) {
                 log.debug("Send cronjob failed notification, execute error count is {}", cronJobErrorInfo.getLastExecuteErrorCount());
@@ -178,7 +177,6 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         Integer lastExecuteErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
 
         if (executeFailed) {
-            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.FAIL.getValue());
             if (errorCode != null) {
                 cronJobErrorInfo.setLastExecuteErrorCode(errorCode.longValue());
                 if (lastExecuteErrorCode == null || errorCode.longValue() == lastExecuteErrorCode) {
@@ -188,7 +186,6 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
                 }
             }
         } else {
-            cronJobErrorInfo.setLastExecuteStatus(LastExecuteStatusEnum.SUCCESS.getValue());
             cronJobErrorInfo.setLastExecuteErrorCode(null);
             cronJobErrorInfo.setLastExecuteErrorCount(0);
         }
@@ -200,9 +197,8 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
     }
 
 
-    private boolean isNotify(CronJobInfoDTO cronJobErrorInfo, Integer lastExecuteStatus) {
+    private boolean isNotify(CronJobInfoDTO cronJobErrorInfo) {
 
-        Integer executeStatus = cronJobErrorInfo.getLastExecuteStatus();
         Integer executeErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
 
         if (log.isDebugEnabled()) {
@@ -210,12 +206,12 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         }
 
         if (startFailedNotification == NotificationPolicyEnum.DEFAULT.getValue()) {
-            if (executeErrorCount == 1 || !lastExecuteStatus.equals(executeStatus)) {
+            if (executeErrorCount == 1) {
                 return true;
             }
         } else if (startFailedNotification == NotificationPolicyEnum.EVERYTIME.getValue()) {
             return true;
-        } else if (executeErrorCount % startFailedNotification == 1 || !lastExecuteStatus.equals(executeStatus)) {
+        } else if (executeErrorCount % startFailedNotification == 1) {
             return true;
         }
         return false;
