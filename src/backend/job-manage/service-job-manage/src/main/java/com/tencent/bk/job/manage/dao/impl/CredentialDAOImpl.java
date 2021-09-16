@@ -41,20 +41,16 @@ import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record10;
-import org.jooq.Result;
 import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Credential;
 import org.jooq.generated.tables.records.CredentialRecord;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -291,120 +287,6 @@ public class CredentialDAOImpl implements CredentialDAO {
         credentialPageData.setData(credentials);
         credentialPageData.setStart(start);
         return credentialPageData;
-    }
-
-    private List<Condition> generateConditions(Long appId, String id, String name, String description, String creator
-        , String lastModifyUser) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(defaultTable.APP_ID.eq(appId));
-        }
-        if (StringUtils.isNotBlank(id)) {
-            conditions.add(defaultTable.ID.eq(id));
-        }
-        if (name != null) {
-            conditions.add(defaultTable.NAME.like("%" + name + "%"));
-        }
-        if (description != null) {
-            conditions.add(defaultTable.DESCRIPTION.like("%" + description + "%"));
-        }
-        if (creator != null) {
-            conditions.add(defaultTable.CREATOR.like("%" + creator + "%"));
-        }
-        if (lastModifyUser != null) {
-            conditions.add(defaultTable.LAST_MODIFY_USER.like("%" + lastModifyUser + "%"));
-        }
-        return conditions;
-    }
-
-    private List<Condition> generateConditions(List<Long> appIdList, List<String> idList) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appIdList != null) {
-            conditions.add(defaultTable.APP_ID.in(appIdList));
-        }
-        if (idList != null) {
-            conditions.add(defaultTable.ID.in(idList));
-        }
-        return conditions;
-    }
-
-    @Override
-    public Integer countCredentials(DSLContext dslContext, Long appId, String id, String name, String description,
-                                    String creator, String lastModifyUser) {
-        List<Condition> conditions = generateConditions(appId, id, name, description, creator, lastModifyUser);
-        return countCredentialByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public Integer countCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList) {
-        List<Condition> conditions = generateConditions(appIdList, idList);
-        return countCredentialByConditions(dslContext, conditions);
-    }
-
-    @Override
-    public List<CredentialDTO> listCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList,
-                                               Integer start, Integer pageSize) {
-        List<Condition> conditions = generateConditions(appIdList, idList);
-        return listCredentialsByConditions(dslContext, conditions, start, pageSize);
-    }
-
-    @Override
-    public List<CredentialDTO> listCredentials(DSLContext dslContext, Long appId, String id, String name,
-                                               String description, String creator, String lastModifyUser,
-                                               Integer start, Integer pageSize) {
-        List<Condition> conditions = generateConditions(appId, id, name, description, creator, lastModifyUser);
-        return listCredentialsByConditions(dslContext, conditions, start, pageSize);
-    }
-
-    private List<CredentialDTO> listCredentialsByConditions(DSLContext dslContext, Collection<Condition> conditions,
-                                                            Integer start, Integer limit) {
-        val query = dslContext.select(
-            defaultTable.ID,
-            defaultTable.APP_ID,
-            defaultTable.NAME,
-            defaultTable.TYPE,
-            defaultTable.DESCRIPTION,
-            defaultTable.VALUE,
-            defaultTable.CREATOR,
-            defaultTable.CREATE_TIME,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        ).from(defaultTable)
-            .where(conditions)
-            .orderBy(defaultTable.LAST_MODIFY_TIME.desc());
-        Result<Record10<String, Long, String, String, String, String, String, Long, String, Long>> records = null;
-        if (start == null || start < 0) {
-            start = 0;
-        }
-        if (limit == null || limit < 0) {
-            limit = -1;
-        }
-        if (limit < 0) {
-            records = query.fetch();
-        } else {
-            records = query.limit(start, limit).fetch();
-        }
-        if (records == null || records.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            return records.map(this::convertRecordToDto);
-        }
-    }
-
-    @Override
-    public Integer countCredentialByAppId(DSLContext dslContext, Long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.APP_ID.eq(appId));
-        return countCredentialByConditions(dslContext, conditions);
-    }
-
-    private Integer countCredentialByConditions(DSLContext dslContext, List<Condition> conditions) {
-        val query = dslContext.select(
-            DSL.countDistinct(defaultTable.ID)
-        ).from(defaultTable)
-            .where(conditions);
-        val count = query.fetchOne(0, Integer.class);
-        return count;
     }
 
     private CredentialDTO convertRecordToDto(

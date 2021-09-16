@@ -31,15 +31,11 @@ import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CredentialServiceImpl implements CredentialService {
@@ -59,46 +55,6 @@ public class CredentialServiceImpl implements CredentialService {
         BaseSearchCondition baseSearchCondition
     ) {
         return credentialDAO.listCredentials(credentialQuery, baseSearchCondition);
-    }
-
-    @Override
-    public PageData<CredentialDTO> listCredentials(List<Long> appIdList, List<String> idList, Integer start,
-                                                   Integer pageSize) {
-        List<CredentialDTO> credentialDTOList = credentialDAO.listCredentials(dslContext, appIdList, idList, start,
-            pageSize);
-        if (credentialDTOList != null) {
-            Integer totalCount = credentialDAO.countCredentials(dslContext, appIdList, idList);
-            PageData<CredentialDTO> pageData = new PageData<>();
-            pageData.setStart(start);
-            pageData.setPageSize(pageSize);
-            pageData.setTotal(totalCount.longValue());
-            pageData.setData(credentialDTOList);
-            return pageData;
-        } else {
-            throw new RuntimeException("get null result when listCredentials");
-        }
-    }
-
-    @Override
-    public PageData<CredentialVO> listCredentials(String username, Long appId, String id, String name,
-                                                  String description, String creator, String lastModifyUser,
-                                                  Integer start, Integer pageSize) {
-        List<CredentialDTO> credentialDTOList = credentialDAO.listCredentials(dslContext, appId, id, name,
-            description, creator, lastModifyUser, start, pageSize);
-        if (credentialDTOList != null) {
-            Integer totalCount = credentialDAO.countCredentials(dslContext, appId, id, name, description, creator,
-                lastModifyUser);
-            List<CredentialVO> credentialVOList =
-                credentialDTOList.parallelStream().map(CredentialDTO::toVO).collect(Collectors.toList());
-            PageData<CredentialVO> pageData = new PageData<>();
-            pageData.setStart(start);
-            pageData.setPageSize(pageSize);
-            pageData.setTotal(totalCount.longValue());
-            pageData.setData(credentialVOList);
-            return pageData;
-        } else {
-            throw new RuntimeException("get null result when listCredentials");
-        }
     }
 
     @Override

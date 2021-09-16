@@ -41,17 +41,4 @@ public interface CredentialDAO {
     CredentialDTO getCredentialById(DSLContext dslContext, String id);
 
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
-
-    List<CredentialDTO> listCredentials(DSLContext dslContext, Long appId, String id, String name, String description
-        , String creator, String lastModifyUser, Integer start, Integer pageSize);
-
-    List<CredentialDTO> listCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList,
-                                        Integer start, Integer pageSize);
-
-    Integer countCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList);
-
-    Integer countCredentials(DSLContext dslContext, Long appId, String id, String name, String description,
-                             String creator, String lastModifyUser);
-
-    Integer countCredentialByAppId(DSLContext dslContext, Long appId);
 }

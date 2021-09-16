@@ -37,11 +37,6 @@ public interface CredentialService {
 
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
-    PageData<CredentialDTO> listCredentials(List<Long> appIdList, List<String> idList, Integer start, Integer pageSize);
-
-    PageData<CredentialVO> listCredentials(String username, Long appId, String id, String name, String description,
-                                           String creator, String lastModifyUser, Integer start, Integer pageSize);
-
     String saveCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
 
     Integer deleteCredentialById(String username, Long appId, String id);

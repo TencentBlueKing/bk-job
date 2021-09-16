@@ -27,11 +27,13 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
+import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
@@ -93,10 +95,26 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     ) {
         log.debug("Input=({},{},{},{},{},{},{},{},{})", username, appId, id, name, description, creator,
             lastModifyUser, start, pageSize);
-        PageData<CredentialVO> pageData = credentialService.listCredentials(username, appId, id, name, description,
-            creator, lastModifyUser, start, pageSize);
-        addPermissionData(username, appId, pageData);
-        return ServiceResponse.buildSuccessResp(pageData);
+        CredentialDTO credentialQuery = new CredentialDTO();
+        credentialQuery.setId(id);
+        credentialQuery.setAppId(appId);
+        credentialQuery.setName(name);
+        credentialQuery.setDescription(description);
+        credentialQuery.setCreator(creator);
+        credentialQuery.setLastModifyUser(lastModifyUser);
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(start);
+        baseSearchCondition.setLength(pageSize);
+        PageData<CredentialDTO> pageData = credentialService.listCredentials(credentialQuery, baseSearchCondition);
+        List<CredentialVO> credentialVOList =
+            pageData.getData().parallelStream().map(CredentialDTO::toVO).collect(Collectors.toList());
+        PageData<CredentialVO> finalPageData = new PageData<>();
+        finalPageData.setStart(pageData.getStart());
+        finalPageData.setPageSize(pageData.getPageSize());
+        finalPageData.setTotal(pageData.getTotal());
+        finalPageData.setData(credentialVOList);
+        addPermissionData(username, appId, finalPageData);
+        return ServiceResponse.buildSuccessResp(finalPageData);
     }
 
     @Override
