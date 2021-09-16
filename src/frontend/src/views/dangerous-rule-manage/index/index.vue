@@ -176,7 +176,9 @@
              */
             fetchData () {
                 this.isLoading = true;
-                DangerousRuleService.fetchList()
+                DangerousRuleService.fetchList({}, {
+                    permission: 'page',
+                })
                     .then((data) => {
                         this.list = data;
                     })
