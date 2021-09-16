@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import org.jooq.DSLContext;
 
@@ -37,6 +39,8 @@ public interface CredentialDAO {
     int deleteCredentialById(DSLContext dslContext, String id);
 
     CredentialDTO getCredentialById(DSLContext dslContext, String id);
+
+    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
     List<CredentialDTO> listCredentials(DSLContext dslContext, Long appId, String id, String name, String description
         , String creator, String lastModifyUser, Integer start, Integer pageSize);

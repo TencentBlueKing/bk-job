@@ -25,6 +25,8 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
@@ -38,8 +40,10 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Record10;
 import org.jooq.Result;
+import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Credential;
@@ -59,10 +63,12 @@ public class CredentialDAOImpl implements CredentialDAO {
 
     private static final Credential defaultTable = Credential.CREDENTIAL;
     private final JobTicketConfig jobTicketConfig;
+    private final DSLContext defaultDSLContext;
 
     @Autowired
-    public CredentialDAOImpl(JobTicketConfig jobTicketConfig) {
+    public CredentialDAOImpl(JobTicketConfig jobTicketConfig, DSLContext dslContext) {
         this.jobTicketConfig = jobTicketConfig;
+        this.defaultDSLContext = dslContext;
     }
 
     @Override
@@ -165,6 +171,126 @@ public class CredentialDAOImpl implements CredentialDAO {
         } else {
             return convertRecordToDto(record);
         }
+    }
+
+    private List<Condition> buildConditionList(
+        CredentialDTO credentialQuery,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        List<Condition> conditions = new ArrayList<>();
+        if (credentialQuery.getId() != null) {
+            conditions.add(defaultTable.ID.eq(credentialQuery.getId()));
+        }
+        if (credentialQuery.getAppId() != null) {
+            conditions.add(defaultTable.APP_ID.eq(credentialQuery.getAppId()));
+        }
+        if (StringUtils.isNotBlank(credentialQuery.getName())) {
+            conditions.add(defaultTable.NAME.like("%" + credentialQuery.getName() + "%"));
+        }
+        if (StringUtils.isNotBlank(credentialQuery.getDescription())) {
+            conditions.add(defaultTable.DESCRIPTION.like("%" + credentialQuery.getDescription() + "%"));
+        }
+        if (StringUtils.isNotBlank(baseSearchCondition.getCreator())) {
+            conditions.add(defaultTable.CREATOR.like("%" + credentialQuery.getName() + "%"));
+        }
+        if (StringUtils.isNotBlank(baseSearchCondition.getLastModifyUser())) {
+            conditions.add(defaultTable.LAST_MODIFY_USER.like("%" + credentialQuery.getName() + "%"));
+        }
+        return conditions;
+    }
+
+    /**
+     * 查询符合条件的凭据数量
+     */
+    private long getPageCredentialCount(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition) {
+        List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
+        Long count = defaultDSLContext
+            .selectCount()
+            .from(defaultTable)
+            .where(conditions)
+            .fetchOne(0, Long.class);
+        if (count != null) {
+            return count;
+        } else {
+            log.error("Fail to count credential from db");
+        }
+        return -1L;
+    }
+
+    @Override
+    public PageData<CredentialDTO> listCredentials(
+        CredentialDTO credentialQuery,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        long count = getPageCredentialCount(credentialQuery, baseSearchCondition);
+        List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
+        return listPageCredentialByConditions(baseSearchCondition, conditions, count);
+    }
+
+    public PageData<CredentialDTO> listPageCredentialByConditions(
+        BaseSearchCondition baseSearchCondition,
+        List<Condition> conditions,
+        long count
+    ) {
+        Collection<SortField<?>> orderFields = new ArrayList<>();
+        if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
+            orderFields.add(defaultTable.LAST_MODIFY_TIME.desc());
+        } else {
+            String orderField = baseSearchCondition.getOrderField();
+            if ("name".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(defaultTable.NAME.asc());
+                } else {
+                    orderFields.add(defaultTable.NAME.desc());
+                }
+            } else if ("createTime".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(defaultTable.CREATE_TIME.asc());
+                } else {
+                    orderFields.add(defaultTable.CREATE_TIME.desc());
+                }
+            } else if ("lastModifyTime".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(defaultTable.LAST_MODIFY_TIME.asc());
+                } else {
+                    orderFields.add(defaultTable.LAST_MODIFY_TIME.desc());
+                }
+            }
+        }
+
+        int start = baseSearchCondition.getStartOrDefault(0);
+        int length = baseSearchCondition.getLengthOrDefault(10);
+        val records =
+            defaultDSLContext.select(
+                defaultTable.ID,
+                defaultTable.APP_ID,
+                defaultTable.NAME,
+                defaultTable.TYPE,
+                defaultTable.DESCRIPTION,
+                defaultTable.VALUE,
+                defaultTable.CREATOR,
+                defaultTable.CREATE_TIME,
+                defaultTable.LAST_MODIFY_USER,
+                defaultTable.LAST_MODIFY_TIME
+            )
+                .from(defaultTable)
+                .where(conditions)
+                .orderBy(orderFields)
+                .limit(start, length).fetch();
+        List<CredentialDTO> credentials = new ArrayList<>();
+        if (records.size() != 0) {
+            records.map(record -> {
+                credentials.add(convertRecordToDto(record));
+                return null;
+            });
+        }
+
+        PageData<CredentialDTO> credentialPageData = new PageData<>();
+        credentialPageData.setTotal(count);
+        credentialPageData.setPageSize(length);
+        credentialPageData.setData(credentials);
+        credentialPageData.setStart(start);
+        return credentialPageData;
     }
 
     private List<Condition> generateConditions(Long appId, String id, String name, String description, String creator
@@ -282,7 +408,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     private CredentialDTO convertRecordToDto(
-        Record10<String, Long, String, String, String, String, String, Long, String, Long> record) {
+        Record record) {
         try {
             String credentialStr = AESUtils.decryptToPlainText(
                 Base64Util.decodeContentToByte(record.get(defaultTable.VALUE)),

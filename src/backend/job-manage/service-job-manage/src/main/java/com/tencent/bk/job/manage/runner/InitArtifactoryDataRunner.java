@@ -43,6 +43,7 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
                 "/"
             );
         } catch (Exception ignore) {
+            log.info("Fail to queryNodeDetail");
         }
         if (localUploadRepoRootNode != null) {
             log.info(

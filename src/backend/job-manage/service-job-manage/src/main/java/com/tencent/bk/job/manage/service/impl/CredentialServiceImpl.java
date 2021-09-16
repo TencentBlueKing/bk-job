@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -50,6 +51,14 @@ public class CredentialServiceImpl implements CredentialService {
     public CredentialServiceImpl(DSLContext dslContext, CredentialDAO credentialDAO) {
         this.dslContext = dslContext;
         this.credentialDAO = credentialDAO;
+    }
+
+    @Override
+    public PageData<CredentialDTO> listCredentials(
+        CredentialDTO credentialQuery,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        return credentialDAO.listCredentials(credentialQuery, baseSearchCondition);
     }
 
     @Override
@@ -99,16 +108,16 @@ public class CredentialServiceImpl implements CredentialService {
         if (StringUtils.isNotBlank(id)) {
             CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(dslContext, id);
             if (oldCredentialDTO == null) {
-                throw new ServiceException(String.format("cannot find credential by id=%d", id));
+                throw new ServiceException(String.format("cannot find credential by id=%s", id));
             }
             String value1 = createUpdateReq.getValue1();
-            if (value1.equals("******")) {
+            if ("******".equals(value1)) {
                 credentialDTO.setFirstValue(oldCredentialDTO.getFirstValue());
             } else {
                 credentialDTO.setFirstValue(value1);
             }
             String value2 = createUpdateReq.getValue2();
-            if (value2.equals("******")) {
+            if ("******".equals(value2)) {
                 credentialDTO.setSecondValue(oldCredentialDTO.getSecondValue());
             } else {
                 credentialDTO.setSecondValue(value2);

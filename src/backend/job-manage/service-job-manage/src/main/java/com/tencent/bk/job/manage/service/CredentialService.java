@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
@@ -33,6 +34,8 @@ import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import java.util.List;
 
 public interface CredentialService {
+
+    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
     PageData<CredentialDTO> listCredentials(List<Long> appIdList, List<String> idList, Integer start, Integer pageSize);
 

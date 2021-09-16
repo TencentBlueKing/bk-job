@@ -76,7 +76,7 @@ public class LocalFilePrepareService {
         long stepInstanceId;
         LocalFilePrepareTaskResultHandler resultHandler;
 
-        public RecordableLocalFilePrepareTaskResultHandler(
+        RecordableLocalFilePrepareTaskResultHandler(
             long stepInstanceId,
             LocalFilePrepareTaskResultHandler resultHandler
         ) {
