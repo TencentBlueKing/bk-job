@@ -383,18 +383,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private List<ActionDTO> buildApplyActions(List<PermissionActionResource> permissionActionResources) {
-        Map<String, List<PermissionResourceGroup>> resourcesGroupByAction = new HashMap<>();
-        permissionActionResources.forEach(actionResource ->
-            resourcesGroupByAction.compute(actionResource.getActionId(), (actionId, resources) -> {
-            if (resources == null) {
-                resources = new ArrayList<>();
-            }
-            resources.addAll(actionResource.getResourceGroups());
-            return resources;
-        }));
+        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType =
+            groupResourcesByActionAndResourceType(permissionActionResources);
 
         List<ActionDTO> actions = new ArrayList<>();
-        resourcesGroupByAction.forEach((actionId, resourceGroups) -> {
+        resourcesGroupByActionAndType.forEach((actionId, resourceGroups) -> {
             ActionDTO action = new ActionDTO();
             action.setId(actionId);
             actions.add(action);
@@ -404,12 +397,13 @@ public class AuthServiceImpl implements AuthService {
             }
 
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-            for (PermissionResourceGroup relatedResourceGroup : resourceGroups) {
+            resourceGroups.forEach((resourceType, relatedResources) -> {
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-                relatedResourceType.setSystemId(relatedResourceGroup.getSystemId());
-                relatedResourceType.setType(relatedResourceGroup.getResourceType().getId());
+                String systemId = relatedResources.get(0).getSystemId();
+                relatedResourceType.setSystemId(systemId);
+                relatedResourceType.setType(resourceType);
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
-                for (PermissionResource relatedResource : relatedResourceGroup.getPermissionResources()) {
+                for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
                     if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
@@ -424,10 +418,32 @@ public class AuthServiceImpl implements AuthService {
                 relatedResourceType.setInstance(instanceList);
 
                 relatedResourceTypes.add(relatedResourceType);
-            }
+            });
             action.setRelatedResourceTypes(relatedResourceTypes);
         });
         return actions;
+    }
+
+    private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
+        List<PermissionActionResource> permissionActionResources) {
+        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
+        permissionActionResources.forEach(actionResource ->
+            resourcesGroupByActionAndType.compute(actionResource.getActionId(), (actionId, resourcesGroupByType) -> {
+                if (resourcesGroupByType == null) {
+                    resourcesGroupByType = new HashMap<>();
+                }
+                for (PermissionResourceGroup resourceGroup : actionResource.getResourceGroups()) {
+                    resourcesGroupByType.compute(resourceGroup.getResourceType().getId(), (resourceType, resources) -> {
+                        if (resources == null) {
+                            resources = new ArrayList<>();
+                        }
+                        resources.addAll(resourceGroup.getPermissionResources());
+                        return resources;
+                    });
+                }
+                return resourcesGroupByType;
+            }));
+        return resourcesGroupByActionAndType;
     }
 
     private InstanceDTO convertPermissionResourceToInstance(PermissionResource permissionResource) {
