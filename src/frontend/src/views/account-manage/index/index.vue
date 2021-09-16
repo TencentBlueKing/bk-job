@@ -32,6 +32,7 @@
                 style="width: 120px;"
                 auth="account/create"
                 theme="primary"
+                v-test="{ type: 'button', value: 'createAccount' }"
                 @click="handleAdd">
                 {{ $t('account.新建') }}
             </auth-button>
@@ -131,6 +132,7 @@
                         auth="account/edit"
                         :resource-id="row.id"
                         text
+                        v-test="{ type: 'button', value: 'editAccount' }"
                         @click="handleEdit(row)">
                         {{ $t('account.编辑') }}
                     </auth-button>
@@ -138,9 +140,11 @@
                         :title="$t('account.确定删除该账号？')"
                         :content="$t('account.删除后不可恢复，请谨慎操作！')"
                         :confirm-handler="() => handleDelete(row.id)">
-                        <auth-button text
+                        <auth-button
+                            text
                             :permission="row.canManage"
                             auth="account/delete"
+                            v-test="{ type: 'button', value: 'deleteAccount' }"
                             :resource-id="row.id">
                             {{ $t('account.删除') }}
                         </auth-button>
@@ -155,8 +159,13 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
-        <jb-sideslider :is-show.sync="showOperation" v-bind="operationSidesliderInfo" :width="540">
-            <operation :data="editData" @on-change="handleOperationSubmit" />
+        <jb-sideslider
+            :is-show.sync="showOperation"
+            v-bind="operationSidesliderInfo"
+            :width="540">
+            <operation
+                :data="editData"
+                @on-change="handleOperationSubmit" />
         </jb-sideslider>
     </div>
 </template>
