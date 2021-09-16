@@ -40,11 +40,11 @@ job:
 
 notification-policy:
   failed:
-    #连续启动失败通知策略：默认 连续失败只通知第一次 begin = 1；frequency = 1；totalTimes = 1
+    #连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
     start:
       #通知开始：默认 1 - 从第一次失败开始通知
       begin: 1
-      #通知频率：默认 1 - 每次通知，2 - 每2次通知
-      frequency: 1
-      #通知次数：默认 1 - 只通知1次，0 - 不通知，-1 - 不限制通知次数
-      totalTimes: 1
+      #通知频率：默认 5 - 每5次通知， 1 - 每次通知
+      frequency: 5
+      #通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
+      totalTimes: -1
