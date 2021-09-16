@@ -53,10 +53,6 @@ data:
     iam:
       base-url: {{ .Values.iam.baseUrl }}
       system-id: {{ .Values.iam.systemId }}
-    license:
-      file: {{ .Values.license.file }}
-      service:
-        url: {{ .Values.license.service.url }}
     paas:
       login:
         url: {{ .Values.paas.login.url }}

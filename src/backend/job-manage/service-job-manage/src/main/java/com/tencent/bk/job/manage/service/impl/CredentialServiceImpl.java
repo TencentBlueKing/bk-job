@@ -25,20 +25,17 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CredentialServiceImpl implements CredentialService {
@@ -53,43 +50,11 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public PageData<CredentialDTO> listCredentials(List<Long> appIdList, List<String> idList, Integer start,
-                                                   Integer pageSize) {
-        List<CredentialDTO> credentialDTOList = credentialDAO.listCredentials(dslContext, appIdList, idList, start,
-            pageSize);
-        if (credentialDTOList != null) {
-            Integer totalCount = credentialDAO.countCredentials(dslContext, appIdList, idList);
-            PageData<CredentialDTO> pageData = new PageData<>();
-            pageData.setStart(start);
-            pageData.setPageSize(pageSize);
-            pageData.setTotal(totalCount.longValue());
-            pageData.setData(credentialDTOList);
-            return pageData;
-        } else {
-            throw new RuntimeException("get null result when listCredentials");
-        }
-    }
-
-    @Override
-    public PageData<CredentialVO> listCredentials(String username, Long appId, String id, String name,
-                                                  String description, String creator, String lastModifyUser,
-                                                  Integer start, Integer pageSize) {
-        List<CredentialDTO> credentialDTOList = credentialDAO.listCredentials(dslContext, appId, id, name,
-            description, creator, lastModifyUser, start, pageSize);
-        if (credentialDTOList != null) {
-            Integer totalCount = credentialDAO.countCredentials(dslContext, appId, id, name, description, creator,
-                lastModifyUser);
-            List<CredentialVO> credentialVOList =
-                credentialDTOList.parallelStream().map(CredentialDTO::toVO).collect(Collectors.toList());
-            PageData<CredentialVO> pageData = new PageData<>();
-            pageData.setStart(start);
-            pageData.setPageSize(pageSize);
-            pageData.setTotal(totalCount.longValue());
-            pageData.setData(credentialVOList);
-            return pageData;
-        } else {
-            throw new RuntimeException("get null result when listCredentials");
-        }
+    public PageData<CredentialDTO> listCredentials(
+        CredentialDTO credentialQuery,
+        BaseSearchCondition baseSearchCondition
+    ) {
+        return credentialDAO.listCredentials(credentialQuery, baseSearchCondition);
     }
 
     @Override
@@ -99,16 +64,16 @@ public class CredentialServiceImpl implements CredentialService {
         if (StringUtils.isNotBlank(id)) {
             CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(dslContext, id);
             if (oldCredentialDTO == null) {
-                throw new ServiceException(String.format("cannot find credential by id=%d", id));
+                throw new ServiceException(String.format("cannot find credential by id=%s", id));
             }
             String value1 = createUpdateReq.getValue1();
-            if (value1.equals("******")) {
+            if ("******".equals(value1)) {
                 credentialDTO.setFirstValue(oldCredentialDTO.getFirstValue());
             } else {
                 credentialDTO.setFirstValue(value1);
             }
             String value2 = createUpdateReq.getValue2();
-            if (value2.equals("******")) {
+            if ("******".equals(value2)) {
                 credentialDTO.setSecondValue(oldCredentialDTO.getSecondValue());
             } else {
                 credentialDTO.setSecondValue(value2);

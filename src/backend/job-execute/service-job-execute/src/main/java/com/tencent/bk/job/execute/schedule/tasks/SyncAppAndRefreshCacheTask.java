@@ -57,6 +57,40 @@ public class SyncAppAndRefreshCacheTask {
         this.redisTemplate = redisTemplate;
     }
 
+    private Map<Long, Set<Long>> getDeptAppMap(List<ApplicationInfoDTO> allApps) {
+        Map<Long, Set<Long>> deptAppMap = new HashMap<>();
+        for (ApplicationInfoDTO app : allApps) {
+            if (app.getAppType() == AppTypeEnum.NORMAL) {
+                if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
+                    Set<Long> deptApps = deptAppMap.computeIfAbsent(app.getOperateDeptId(), k -> new HashSet<>());
+                    deptApps.add(app.getId());
+                }
+            }
+        }
+        return deptAppMap;
+    }
+
+    private void calcRealSubAppIds(List<ApplicationInfoDTO> allApps, Map<Long, Set<Long>> deptAppMap) {
+        for (ApplicationInfoDTO app : allApps) {
+            if (app.getAppType() == AppTypeEnum.APP_SET) {
+                log.info("AppSet:{}, deptId:{}, subAppIds:{}", app.getId(), app.getOperateDeptId(),
+                    app.getSubAppIds());
+                Set<Long> subAppIds = new HashSet<>();
+                if (app.getSubAppIds() != null) {
+                    subAppIds.addAll(app.getSubAppIds());
+                }
+                if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
+                    Set<Long> deptAppIds = deptAppMap.get(app.getOperateDeptId());
+                    if (deptAppIds != null) {
+                        subAppIds.addAll(deptAppIds);
+                    }
+                }
+                app.setSubAppIds(new ArrayList<>(subAppIds));
+                log.info("AppSet:{} contains sub apps:{}", app.getId(), subAppIds);
+            }
+        }
+    }
+
     public void execute() {
         StopWatch watch = new StopWatch("sync-apps");
         try {
@@ -73,41 +107,14 @@ public class SyncAppAndRefreshCacheTask {
             Set<String> allAppIds =
                 allApps.stream().map(app -> String.valueOf(app.getId())).collect(Collectors.toSet());
             log.info("Get all apps from job-manage, appIds:{}", allAppIds);
-            Map<Long, Set<Long>> deptAppMap = new HashMap<>();
-            for (ApplicationInfoDTO app : allApps) {
-                if (app.getAppType() == AppTypeEnum.NORMAL) {
-                    if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
-                        Set<Long> deptApps = deptAppMap.computeIfAbsent(app.getOperateDeptId(), k -> new HashSet<>());
-                        deptApps.add(app.getId());
-                    }
-                }
-            }
+            Map<Long, Set<Long>> deptAppMap = getDeptAppMap(allApps);
             log.info("Dept app map:{}", deptAppMap);
-
-            for (ApplicationInfoDTO app : allApps) {
-                if (app.getAppType() == AppTypeEnum.APP_SET) {
-                    log.info("AppSet:{}, deptId:{}, subAppIds:{}", app.getId(), app.getOperateDeptId(),
-                        app.getSubAppIds());
-                    Set<Long> subAppIds = new HashSet<>();
-                    if (app.getSubAppIds() != null) {
-                        subAppIds.addAll(app.getSubAppIds());
-                    }
-                    if (app.getOperateDeptId() != null && app.getOperateDeptId() > 0) {
-                        Set<Long> deptAppIds = deptAppMap.get(app.getOperateDeptId());
-                        if (deptAppIds != null) {
-                            subAppIds.addAll(deptAppIds);
-                        }
-                    }
-                    app.setSubAppIds(new ArrayList<>(subAppIds));
-                    log.info("AppSet:{} contains sub apps:{}", app.getId(), subAppIds);
-                }
-            }
+            calcRealSubAppIds(allApps, deptAppMap);
 
             watch.start("get-all-cache-apps");
             String appKey = "job:execute:apps";
             Set<String> cacheAppIds = redisTemplate.<String, CacheAppDO>opsForHash().keys(appKey);
             watch.stop();
-
 
             watch.start("delete-cache-app");
             Set<String> deleteAppIds = Sets.difference(cacheAppIds, allAppIds);

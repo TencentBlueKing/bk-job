@@ -36,7 +36,7 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build Backend
         working-directory: src/backend
-        run: ./gradlew clean build -Dversion=${{ steps.variables.outputs.version }} -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="http://maven.aliyun.com/nexus/content/groups/public/"
+        run: ./gradlew clean build -Dversion=${{ steps.variables.outputs.version }} -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
 
       - name: Npm Build Frontend
         run: |

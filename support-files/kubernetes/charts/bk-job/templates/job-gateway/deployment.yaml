@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-gateway"
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.gatewayConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -25,6 +26,7 @@ spec:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-gateway"
+        {{ include "job.labelKeys.imageTag" . }}: {{ .Values.gatewayConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
@@ -58,7 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
           env:
             - name: BK_JOB_JVM_OPTION
-              value: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC "
+              value: {{ .Values.gatewayConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR

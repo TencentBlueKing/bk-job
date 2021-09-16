@@ -24,44 +24,29 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
+import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
+import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.util.CompareUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
-import com.tencent.bk.job.manage.service.ServiceInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Status;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ServiceInfoServiceImpl implements ServiceInfoService {
+public class ServiceInfoService {
 
-    public static final Map<String, Byte> statusMap = new HashMap<>();
-
-    static {
-        statusMap.put(Status.UP.getCode(), (byte) 1);
-        statusMap.put(Status.DOWN.getCode(), (byte) 0);
-        statusMap.put(Status.OUT_OF_SERVICE.getCode(), (byte) 0);
-        statusMap.put(Status.UNKNOWN.getCode(), (byte) -1);
-    }
-
-    private DiscoveryClient discoveryClient;
+    ServiceInfoProvider serviceInfoProvider;
 
     @Autowired
-    public ServiceInfoServiceImpl(DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
+    public ServiceInfoService(ServiceInfoProvider serviceInfoProvider) {
+        this.serviceInfoProvider = serviceInfoProvider;
     }
 
     private static ServiceInstanceInfoVO convert(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
@@ -71,52 +56,13 @@ public class ServiceInfoServiceImpl implements ServiceInfoService {
         serviceInstanceInfoVO.setVersion(serviceInstanceInfoDTO.getVersion());
         serviceInstanceInfoVO.setIp(serviceInstanceInfoDTO.getIp());
         serviceInstanceInfoVO.setPort(serviceInstanceInfoDTO.getPort());
-        serviceInstanceInfoVO.setStatus(statusMap.get(serviceInstanceInfoDTO.getStatusCode()));
+        serviceInstanceInfoVO.setStatus(serviceInstanceInfoDTO.getStatusCode());
         serviceInstanceInfoVO.setStatusMessage(serviceInstanceInfoDTO.getStatusMessage());
         return serviceInstanceInfoVO;
     }
 
-    private boolean checkNodeStatus(String nodeName) {
-        return true;
-    }
-
-    private void fillVersionAndStatus(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
-        serviceInstanceInfoDTO.setVersion("not implemented");
-    }
-
-    private List<ServiceInstanceInfoDTO> listServiceInstanceInfoDTO() {
-        List<String> serviceIdList = discoveryClient.getServices();
-        List<ServiceInstance> serviceInstanceList = new ArrayList<>();
-        for (String serviceId : serviceIdList) {
-            serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
-        }
-        for (ServiceInstance serviceInstance : serviceInstanceList) {
-            log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
-        }
-        return serviceInstanceList.parallelStream().filter(serviceInstance -> {
-            if (serviceInstance.getServiceId().equals("job-gateway-management")) {
-                return false;
-            } else {
-                Map<String, String> tagMap = serviceInstance.getMetadata();
-                return tagMap.containsKey(JobDiscoveryConsts.TAG_KEY_TYPE)
-                    && JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE
-                    .equals(tagMap.get(JobDiscoveryConsts.TAG_KEY_TYPE))
-                    && serviceInstance.getServiceId().startsWith("job");
-            }
-        }).map(serviceInstance -> {
-            ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
-            serviceInstanceInfoDTO.setServiceName(serviceInstance.getServiceId());
-            serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());
-            serviceInstanceInfoDTO.setIp(serviceInstance.getHost());
-            serviceInstanceInfoDTO.setPort(serviceInstance.getPort());
-            fillVersionAndStatus(serviceInstanceInfoDTO);
-            return serviceInstanceInfoDTO;
-        }).collect(Collectors.toList());
-    }
-
-    @Override
     public List<ServiceInfoVO> listServiceInfo() {
-        List<ServiceInstanceInfoDTO> serviceInstanceInfoDTOList = listServiceInstanceInfoDTO();
+        List<ServiceInstanceInfoDTO> serviceInstanceInfoDTOList = serviceInfoProvider.listServiceInfo();
         // groupBy serviceName
         Map<String, List<ServiceInstanceInfoVO>> map = new HashMap<>();
         for (ServiceInstanceInfoDTO serviceInstanceInfoDTO : serviceInstanceInfoDTOList) {

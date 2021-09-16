@@ -22,25 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.processor;
+package com.tencent.bk.job.common.discovery;
 
-import com.tencent.bk.job.common.util.ip.IpUtils;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
+import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-public class MachineInfoEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
-    @Override
-    public void postProcessEnvironment(ConfigurableEnvironment env,
-                                       SpringApplication application) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("machine.ip", IpUtils.getFirstMachineIP());
-        env.getPropertySources().addFirst(
-            new MapPropertySource("machine-info-properties", map));
-    }
+public interface ServiceInfoProvider {
+    List<ServiceInstanceInfoDTO> listServiceInfo();
 }

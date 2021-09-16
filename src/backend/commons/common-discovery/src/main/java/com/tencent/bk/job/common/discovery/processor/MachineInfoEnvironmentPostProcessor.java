@@ -22,38 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.model;
+package com.tencent.bk.job.common.discovery.processor;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.ip.IpUtils;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 
-@Data
-public class ServiceInstanceInfoDTO {
-    /**
-     * 服务名称
-     */
-    private String serviceName;
-    /**
-     * 服务实例名称
-     */
-    private String name;
-    /**
-     * 服务版本号
-     */
-    private String version = "";
-    /**
-     * 服务状态Code
-     */
-    private String statusCode;
-    /**
-     * 状态Message
-     */
-    private String statusMessage;
-    /**
-     * 服务实例所在IP
-     */
-    private String ip;
-    /**
-     * 服务实例所在端口
-     */
-    private Integer port;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MachineInfoEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment env,
+                                       SpringApplication application) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("machine.ip", IpUtils.getFirstMachineIP());
+        env.getPropertySources().addFirst(
+            new MapPropertySource("machine-info-properties", map));
+    }
 }

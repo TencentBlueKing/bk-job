@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.listener;
+package com.tencent.bk.job.common.consul.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +66,7 @@ public class GracefulShutdown implements ApplicationListener<ContextClosedEvent>
         try {
             consulServiceRegistry.setStatus(consulRegistration, OUT_OF_SERVICE.getCode());
         } catch (Exception ignore) {
+            log.info("Fail to set consul status");
         }
         // 2.等待网关刷新consul服务状态
         try {
@@ -77,6 +78,7 @@ public class GracefulShutdown implements ApplicationListener<ContextClosedEvent>
         try {
             consulServiceRegistry.deregister(consulRegistration);
         } catch (Exception ignore) {
+            log.info("Fail to deregister consul");
         }
     }
 }

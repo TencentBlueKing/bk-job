@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import org.jooq.DSLContext;
-
-import java.util.List;
 
 public interface CredentialDAO {
     String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
@@ -38,16 +38,5 @@ public interface CredentialDAO {
 
     CredentialDTO getCredentialById(DSLContext dslContext, String id);
 
-    List<CredentialDTO> listCredentials(DSLContext dslContext, Long appId, String id, String name, String description
-        , String creator, String lastModifyUser, Integer start, Integer pageSize);
-
-    List<CredentialDTO> listCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList,
-                                        Integer start, Integer pageSize);
-
-    Integer countCredentials(DSLContext dslContext, List<Long> appIdList, List<String> idList);
-
-    Integer countCredentials(DSLContext dslContext, Long appId, String id, String name, String description,
-                             String creator, String lastModifyUser);
-
-    Integer countCredentialByAppId(DSLContext dslContext, Long appId);
+    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 }

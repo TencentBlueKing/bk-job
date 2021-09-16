@@ -22,12 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.discovery.model;
 
-import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
+import lombok.Data;
 
-import java.util.List;
+@Data
+public class ServiceInstanceInfoDTO {
 
-public interface ServiceInfoService {
-    List<ServiceInfoVO> listServiceInfo();
+    // 正常
+    public static byte STATUS_OK = 1;
+    // 异常
+    public static byte STATUS_ERROR = 0;
+    // 未知
+    public static byte STATUS_UNKNOWN = -1;
+
+    /**
+     * 服务名称
+     */
+    private String serviceName;
+    /**
+     * 服务实例名称
+     */
+    private String name;
+    /**
+     * 服务版本号
+     */
+    private String version = "";
+    /**
+     * 服务状态Code
+     */
+    private Byte statusCode;
+    /**
+     * 状态Message
+     */
+    private String statusMessage;
+    /**
+     * 服务实例所在IP
+     */
+    private String ip;
+    /**
+     * 服务实例所在端口
+     */
+    private Integer port;
 }

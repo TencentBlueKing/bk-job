@@ -45,6 +45,7 @@ rbac:
 
 ingress:
   enabled: false
+  ingressClassName: ""
 
 ## @section Job common component parameters
 ##
@@ -100,7 +101,7 @@ mariadb:
         - ReadWriteOnce
       ## @param mariadb.primary.persistence.size Database Persistent Volume Size
       ##
-      size: 8Gi
+      size: 10Gi
       ## @param mariadb.primary.persistence.hostPath Set path in case you want to use local host path volumes (not recommended in production)
       ##
       hostPath: ""
@@ -147,6 +148,9 @@ redis:
   ## @param redis.architecture Redis architecture. Allowed values: standalone or replication
   ##
   architecture: standalone
+  master:
+    persistence:
+      size: 10Gi
   ## Redis Authentication parameters
   ##
   auth:
@@ -198,6 +202,8 @@ rabbitmq:
   ## To use an external RabbitMQ set this to false and configure the externalRabbitMQ parameters
   ##
   enabled: true
+  persistence:
+    size: 10Gi
   ## RabbitMQ Authentication parameters
   ##
   auth:
@@ -246,6 +252,8 @@ mongodb:
   # If you need to use an external database, set it to false and configure externalMongoDB
   enabled: true
   architecture: "standalone"
+  persistence:
+    size: 10Gi
   useStatefulSet: true
   auth:
     rootPassword: job
@@ -321,12 +329,6 @@ iam:
   baseUrl: "http://bkiam.example.com"
   ## The system ID of Job in the IAM. Fixed Value
   systemId: bk_job
-
-## License Server Config
-license:
-  file: /data/job/cert/platform.cert
-  service:
-    url: "http://license.example.com"
 
 ## BlueKing PaaS Config
 paas:
@@ -469,6 +471,7 @@ gatewayConfig:
         password: ""
       truststore:
         password: ""
+  jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
 
 ## @section job-manage parameters
 manageConfig:
@@ -512,6 +515,7 @@ manageConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
 ## @section job-execute parameters
@@ -556,6 +560,7 @@ executeConfig:
   service:
     type: ClusterIP
     port: 80
+  jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
 ## @section job-crontab parameters
@@ -600,6 +605,7 @@ crontabConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-logsvr parameters
 logsvrConfig:
@@ -643,6 +649,7 @@ logsvrConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-backup parameters
 backupConfig:
@@ -686,6 +693,7 @@ backupConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-analysis parameters
 analysisConfig:
@@ -729,6 +737,7 @@ analysisConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-file-gateway parameters
 fileGatewayConfig:
@@ -772,6 +781,7 @@ fileGatewayConfig:
   service:
     port: 80
     type: ClusterIP
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-analysis parameters
 fileWorkerConfig:
@@ -828,6 +838,7 @@ fileWorkerConfig:
   downloadFile:
     dir: /tmp/job
     expireDays: 7
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 ## @section job-frontend parameters
 frontendConfig:

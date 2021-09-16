@@ -106,13 +106,18 @@ public class BkConfig {
     /**
      * license 校验服务url
      */
-    @Value("${license.service.url}")
+    @Value("${license.enabled:false}")
+    private boolean enableLicenseValidate;
+    /**
+     * license 校验服务url
+     */
+    @Value("${license.service.url:}")
     private String licenseCheckServiceUrl;
 
     /**
      * license 校验服务url
      */
-    @Value("${license.file}")
+    @Value("${license.file:}")
     private String licenseFilePath;
 
     /**
