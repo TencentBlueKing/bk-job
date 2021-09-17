@@ -85,7 +85,7 @@ public interface WebWhiteIPResource {
         @ApiParam("排序字段,脚本名:name,脚本类型:type,标签:tags,创建人:creator")
         @RequestParam(value = "orderField", required = false)
             String orderField,
-        @ApiParam("排序顺序,0:逆序;1:正序")
+        @ApiParam("排序顺序,0:降序;1:升序")
         @RequestParam(value = "order", required = false)
             Integer order
     );

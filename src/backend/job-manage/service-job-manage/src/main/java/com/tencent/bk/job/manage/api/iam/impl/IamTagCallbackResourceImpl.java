@@ -84,7 +84,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
         tagQuery.setName(callbackRequest.getFilter().getKeyword());
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
+        PageData<TagDTO> tagDTOPageData = tagService.listPageTags(tagQuery, baseSearchCondition);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(tagDTOPageData, this::convert);
     }
@@ -95,7 +95,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
 
         TagDTO tagQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<TagDTO> tagDTOPageData = tagService.listTags(tagQuery, baseSearchCondition);
+        PageData<TagDTO> tagDTOPageData = tagService.listPageTags(tagQuery, baseSearchCondition);
 
         return IamRespUtil.getListInstanceRespFromPageData(tagDTOPageData, this::convert);
     }

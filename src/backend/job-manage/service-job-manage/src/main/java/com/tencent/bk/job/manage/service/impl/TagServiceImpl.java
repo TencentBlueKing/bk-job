@@ -26,32 +26,46 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.util.TagUtils;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.WhiteCharChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.manage.dao.ResourceTagDAO;
 import com.tencent.bk.job.manage.dao.TagDAO;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.service.TagService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * @since 30/9/2019 16:48
- */
 @Slf4j
 @Service
 public class TagServiceImpl implements TagService {
-    private TagDAO tagDAO;
+    private final TagDAO tagDAO;
+    private final ResourceTagDAO resourceTagDAO;
 
     @Autowired
-    public TagServiceImpl(TagDAO tagDAO) {
+    public TagServiceImpl(TagDAO tagDAO, ResourceTagDAO resourceTagDAO) {
         this.tagDAO = tagDAO;
+        this.resourceTagDAO = resourceTagDAO;
     }
 
     @Override
@@ -84,28 +98,23 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Long insertNewTag(Long appId, String tagName, String username) {
-        TagDTO tagDTO = new TagDTO();
-        tagDTO.setAppId(appId);
-        tagDTO.setName(tagName);
-        tagDTO.setCreator(username);
-        tagDTO.setLastModifyUser(username);
-        checkRequiredParam(tagDTO);
-        return tagDAO.insertTag(tagDTO);
+    public Long insertNewTag(String username, TagDTO tag) {
+        tag.setCreator(username);
+        tag.setLastModifyUser(username);
+        checkRequiredParam(tag);
+        return tagDAO.insertTag(tag);
     }
 
     @Override
-    public Boolean updateTagById(Long appId, Long tagId, String tagName, String username) {
-        if (tagId == null || tagId <= 0) {
+    public boolean updateTagById(String username, TagDTO tag) {
+        if (tag.getId() == null || tag.getId() <= 0) {
             throw new ParamErrorException(ErrorCode.ILLEGAL_PARAM);
         }
-        TagDTO tagDTO = new TagDTO();
-        tagDTO.setAppId(appId);
-        tagDTO.setId(tagId);
-        tagDTO.setName(tagName);
-        tagDTO.setLastModifyUser(username);
-        checkRequiredParam(tagDTO);
-        return tagDAO.updateTagById(tagDTO);
+        tag.setAppId(tag.getAppId());
+        tag.setId(tag.getId());
+        tag.setLastModifyUser(username);
+        checkRequiredParam(tag);
+        return tagDAO.updateTagById(tag);
     }
 
     private void checkRequiredParam(TagDTO tag) {
@@ -127,50 +136,6 @@ public class TagServiceImpl implements TagService {
         if (StringUtils.isAllBlank(tag.getCreator(), tag.getLastModifyUser())) {
             throw new ParamErrorException(ErrorCode.MISSING_PARAM);
         }
-    }
-
-    @Override
-    public String getFormattedTagNames(Long appId, String tagIdsStr) {
-        if (StringUtils.isBlank(tagIdsStr)) {
-            return "";
-        }
-        List<Long> tagIds = TagUtils.decodeDbTag(tagIdsStr);
-        List<TagDTO> tagDTOS = tagDAO.listTagsByIds(appId, tagIds);
-        List<String> tagNameList = new ArrayList<>();
-        for (Long tagId : tagIds) {
-            for (TagDTO tagDTO : tagDTOS) {
-                if (tagDTO.getId().equals(tagId)) {
-                    tagNameList.add(tagDTO.getName());
-                }
-            }
-        }
-        String tagNames = String.join(",", tagNameList);
-        return tagNames;
-    }
-
-    @Override
-    public Map<String, String> batchGetFormattedTagNames(Long appId, List<String> tagIdsStrList) {
-        if (tagIdsStrList == null || tagIdsStrList.isEmpty()) {
-            return Collections.EMPTY_MAP;
-        }
-        List<TagDTO> tagsInApp = tagDAO.listTagsByAppId(appId);
-
-        Map<Long, String> tagIdNameMap = new HashMap<>();
-        for (TagDTO tag : tagsInApp) {
-            tagIdNameMap.put(tag.getId(), tag.getName());
-        }
-
-        Map<String, String> tagsAndNamesMap = new HashMap();
-        for (String tagIdsStr : tagIdsStrList) {
-            List<String> tagNameList = new ArrayList();
-            List<Long> tagIdList = TagUtils.decodeDbTag(tagIdsStr);
-            for (Long tagId : tagIdList) {
-                tagNameList.add(tagIdNameMap.get(tagId));
-            }
-            String tagNamesStr = String.join(",", tagNameList);
-            tagsAndNamesMap.put(tagIdsStr, tagNamesStr);
-        }
-        return tagsAndNamesMap;
     }
 
     @Override
@@ -208,7 +173,197 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition){
-        return tagDAO.listTags(tagCondition,baseSearchCondition);
+    public PageData<TagDTO> listPageTags(TagDTO tagQuery, BaseSearchCondition baseSearchCondition) {
+        return tagDAO.listPageTags(tagQuery, baseSearchCondition);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTag(Long tagId) {
+        tagDAO.deleteTagById(tagId);
+        resourceTagDAO.deleteResourceTags(tagId);
+    }
+
+    @Override
+    public List<ResourceTagDTO> listResourceTagsByTagId(Long appId, Long tagId) {
+        TagDTO tag = tagDAO.getTagById(tagId);
+        checkTags(appId, Collections.singletonList(tag));
+
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(Collections.singletonList(tagId));
+        resourceTags.forEach(resourceTag -> resourceTag.setTag(tag));
+        return resourceTags;
+    }
+
+    @Override
+    public List<ResourceTagDTO> listResourceTagsByTagIds(Long appId, List<Long> tagIds) {
+        List<TagDTO> tags = tagDAO.listTagsByIds(tagIds);
+        checkTags(appId, tags);
+
+        Map<Long, TagDTO> tagMap = new HashMap<>();
+        tags.forEach(tag -> tagMap.put(tag.getId(), tag));
+
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(tagIds);
+        resourceTags.forEach(resourceTag -> resourceTag.setTag(tagMap.get(resourceTag.getTagId())));
+
+        return resourceTags;
+    }
+
+    private void checkTags(Long appId, List<TagDTO> tags) {
+        tags.forEach(tag -> {
+            if (!tag.getAppId().equals(appId)) {
+                throw new ServiceException("Tag is not exist");
+            }
+        });
+    }
+
+    @Override
+    public List<ResourceTagDTO> listResourcesTagsByTagIdAndResourceType(Long appId, Long tagId, Integer resourceType) {
+        TagDTO tag = tagDAO.getTagById(tagId);
+        checkTags(appId, Collections.singletonList(tag));
+
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(tagId, resourceType);
+        resourceTags.forEach(resourceTag -> resourceTag.setTag(tag));
+        return resourceTags;
+    }
+
+    @Override
+    public List<ResourceTagDTO> listResourceTagsByResourceTypeAndResourceIds(Long appId,
+                                                                             Integer resourceType,
+                                                                             List<String> resourceIds) {
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(resourceType, resourceIds);
+        setTags(appId, resourceTags);
+        return resourceTags;
+    }
+
+    private void setTags(Long appId, List<ResourceTagDTO> resourceTags) {
+        List<Long> tagIds = resourceTags.stream().map(ResourceTagDTO::getTagId).distinct().collect(Collectors.toList());
+        List<TagDTO> tags = tagDAO.listTagsByIds(tagIds);
+        checkTags(appId, tags);
+
+        Map<Long, TagDTO> tagMap = new HashMap<>();
+        tags.forEach(tag -> tagMap.put(tag.getId(), tag));
+        resourceTags.forEach(resourceTag -> resourceTag.setTag(tagMap.get(resourceTag.getTagId())));
+    }
+
+    @Override
+    public boolean batchDeleteResourceTags(Long appId,
+                                           Integer resourceType,
+                                           String resourceId,
+                                           List<Long> tagIds) {
+        return resourceTagDAO.deleteResourceTags(resourceType, resourceId, tagIds);
+    }
+
+    @Override
+    public boolean batchDeleteResourceTags(Long appId, Integer resourceType, String resourceId) {
+        return resourceTagDAO.deleteResourceTags(resourceType, resourceId);
+    }
+
+    @Override
+    public boolean batchSaveResourceTags(List<ResourceTagDTO> resourceTags) {
+        return resourceTagDAO.batchSaveResourceTags(resourceTags);
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
+    public void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags,
+                                          List<ResourceTagDTO> deleteResourceTags) {
+        StopWatch watch = new StopWatch("batchPatchResourceTags");
+        if (CollectionUtils.isNotEmpty(addResourceTags)) {
+            watch.start("batchSaveResourceTags");
+            resourceTagDAO.batchSaveResourceTags(addResourceTags);
+            watch.stop();
+        }
+        if (CollectionUtils.isNotEmpty(deleteResourceTags)) {
+            watch.start("deleteResourceTags");
+            resourceTagDAO.deleteResourceTags(deleteResourceTags);
+            watch.stop();
+        }
+        if (watch.getTotalTimeMillis() > 1000L) {
+            log.warn("BatchPatchResourceTags cost too much time, cost: {} ms, statistics: {}",
+                watch.getTotalTimeMillis(), watch.prettyPrint());
+        }
+    }
+
+    @Override
+    public void patchResourceTags(Integer resourceType, String resourceId, List<Long> latestTagIds) {
+        List<ResourceTagDTO> tags = resourceTagDAO.listResourceTags(resourceType, resourceId);
+        if (CollectionUtils.isEmpty(tags)) {
+            List<ResourceTagDTO> resourceTags = latestTagIds.stream()
+                .map(tagId -> new ResourceTagDTO(resourceType, resourceId, tagId)).collect(Collectors.toList());
+            resourceTagDAO.batchSaveResourceTags(resourceTags);
+        } else {
+            List<ResourceTagDTO> addTags = new ArrayList<>();
+            List<ResourceTagDTO> deleteTags = new ArrayList<>();
+            List<Long> currentTagIds = tags.stream().map(ResourceTagDTO::getTagId).distinct()
+                .collect(Collectors.toList());
+            latestTagIds.forEach(tagId -> {
+                if (!currentTagIds.contains(tagId)) {
+                    addTags.add(new ResourceTagDTO(resourceType, resourceId, tagId));
+                }
+            });
+            currentTagIds.forEach(tagId -> {
+                if (!latestTagIds.contains(tagId)) {
+                    deleteTags.add(new ResourceTagDTO(resourceType, resourceId, tagId));
+                }
+            });
+            batchPatchResourceTags(addTags, deleteTags);
+        }
+    }
+
+    public List<ResourceTagDTO> buildResourceTags(Integer resourceType, List<String> resourceIds, List<Long> tagIds) {
+        List<ResourceTagDTO> resourceTags = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(tagIds) && CollectionUtils.isNotEmpty(resourceIds)) {
+            resourceIds.forEach(resourceId -> tagIds.forEach(tagId -> resourceTags.add(
+                    new ResourceTagDTO(resourceType, resourceId, tagId))));
+        }
+        return resourceTags;
+    }
+
+    @Override
+    public Map<Long, Long> countResourcesByTag(List<ResourceTagDTO> tags) {
+        Map<Long, Long> tagAndResourceCountMap = new HashMap<>();
+        tags.forEach(tag -> tagAndResourceCountMap.compute(tag.getTagId(), (k, v) -> {
+            if (v == null) {
+                v = 1L;
+            } else {
+                v+= 1L;
+            }
+            return v;
+        }));
+        return tagAndResourceCountMap;
+    }
+
+    @Override
+    public List<String> listAppTaggedResourceIds(Long appId, Integer resourceType) {
+        List<Long> allAppTagIds = tagDAO.listTagsByAppId(appId).stream().map(TagDTO::getId).collect(Collectors.toList());
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(allAppTagIds, resourceType);
+        return resourceTags.stream().map(ResourceTagDTO::getResourceId).distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> listResourceIdsWithAllTagIds(Integer resourceType, List<Long> tagIds) {
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(tagIds, resourceType);
+        if (CollectionUtils.isEmpty(resourceTags)) {
+            return Collections.emptyList();
+        }
+
+        Map<String, Integer> resourceTagCountMap = new HashMap<>();
+        int matchCount = tagIds.size();
+        resourceTags.forEach(resourceTag -> resourceTagCountMap.compute(resourceTag.getResourceId(), (k, v) -> {
+            if (v == null) {
+                v = 1;
+            } else {
+                v += 1;
+            }
+            return v;
+        }));
+
+        List<String> resourceIds = new ArrayList<>();
+        resourceTagCountMap.forEach((resourceId, count) -> {
+            if (count == matchCount) {
+                resourceIds.add(resourceId);
+            }
+        });
+        return resourceIds;
     }
 }

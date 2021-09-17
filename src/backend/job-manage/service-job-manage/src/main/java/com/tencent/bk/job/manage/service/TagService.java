@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
 import java.util.List;
@@ -63,78 +64,86 @@ public interface TagService {
     /**
      * 根据业务ID和tagIdList批量查询标签
      *
-     * @param appId
-     * @param tagIdList
-     * @return
+     * @param appId     业务ID
+     * @param tagIdList 标签ID列表
+     * @return 标签列表
      */
     List<TagDTO> listTagsByAppIdAndTagIdList(Long appId, List<Long> tagIdList);
 
     /**
      * 新增 Tag
      *
-     * @param appId    业务 ID
-     * @param tagName  Tag 名称
      * @param username 操作人
+     * @param tag      Tag
      * @return Tag ID
      */
-    Long insertNewTag(Long appId, String tagName, String username);
+    Long insertNewTag(String username, TagDTO tag);
 
     /**
      * 更新 Tag 信息
      *
-     * @param appId    业务 ID
-     * @param tagId    Tag ID
-     * @param tagName  Tag 名称
      * @param username 操作人
+     * @param tag      Tag
      * @return 是否成功
      */
-    Boolean updateTagById(Long appId, Long tagId, String tagName, String username);
-
-    /**
-     * 根据tag id字符串返回格式化之后的标签名称
-     * 例如：
-     * tagIdsStr="<1>,<2>",返回"tag1,tag2"
-     *
-     * @param appId
-     * @param tagIdsStr
-     * @return
-     */
-    String getFormattedTagNames(Long appId, String tagIdsStr);
-
-    /**
-     * 批量根据tag id字符串返回格式化之后的标签名称
-     * 例如：
-     * tagIdsStrList=["<1>,<2>","<2>,<3>"],返回{"<1>,<2>":"tag1,tag2","<2>,<3>":"tag2,tag3"}
-     *
-     * @param appId
-     * @param tagIdsStrList
-     * @return
-     */
-    Map<String, String> batchGetFormattedTagNames(Long appId, List<String> tagIdsStrList);
+    boolean updateTagById(String username, TagDTO tag);
 
     /**
      * 批量创建不存在的标签
      *
-     * @param tags
-     * @return
      */
     List<TagDTO> createNewTagIfNotExist(List<TagDTO> tags, Long appId, String username);
 
     /**
      * 标签通用查询
      *
-     * @param appId
-     * @param tagNameKeyword
+     * @param appId          业务ID
+     * @param tagNameKeyword 标签名称
      * @return
      */
     List<TagDTO> listTags(Long appId, String tagNameKeyword);
 
     /**
-     * 标签通用分页查询
+     * 分页查询标签列表
      *
-     * @param tagCondition
-     * @param baseSearchCondition
-     * @return
+     * @param tagQuery            查询条件
+     * @param baseSearchCondition 基础查询条件
+     * @return 分页的标签列表
      */
-    PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition);
+    PageData<TagDTO> listPageTags(TagDTO tagQuery, BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 删除标签
+     *
+     * @param tagId 标签ID
+     */
+    void deleteTag(Long tagId);
+
+    List<ResourceTagDTO> listResourceTagsByTagId(Long appId, Long tagId);
+
+    List<ResourceTagDTO> listResourcesTagsByTagIdAndResourceType(Long appId, Long tagId, Integer resourceType);
+
+    List<ResourceTagDTO> listResourceTagsByResourceTypeAndResourceIds(Long appId,
+                                                                      Integer resourceType,
+                                                                      List<String> resourceIds);
+
+    List<ResourceTagDTO> listResourceTagsByTagIds(Long appId, List<Long> tagIds);
+
+    boolean batchDeleteResourceTags(Long appId, Integer resourceType, String resourceId, List<Long> tagIds);
+
+    boolean batchDeleteResourceTags(Long appId, Integer resourceType, String resourceId);
+
+    boolean batchSaveResourceTags(List<ResourceTagDTO> resourceTags);
+
+    void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags, List<ResourceTagDTO> deleteResourceTags);
+
+    void patchResourceTags(Integer resourceType, String resourceId, List<Long> latestTagIds);
+
+    List<ResourceTagDTO> buildResourceTags(Integer resourceType, List<String> resourceIds, List<Long> tagIds);
+
+    Map<Long, Long>  countResourcesByTag(List<ResourceTagDTO> tags);
+
+    List<String> listAppTaggedResourceIds(Long appId, Integer resourceType);
+
+    List<String> listResourceIdsWithAllTagIds(Integer resourceType, List<Long> tagIds);
 }

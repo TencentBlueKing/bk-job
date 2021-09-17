@@ -70,7 +70,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
 
 
         Long appId = request.getAppId();
-        ScriptDTO scriptVersion = scriptService.getByScriptVersionId(request.getScriptVersionId());
+        ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
         if (scriptVersion == null) {
             log.warn("Cannot find scriptVersion by id {}", request.getScriptVersionId());
             return EsbResp.buildCommonFailResp(ErrorCode.SCRIPT_VERSION_NOT_EXIST, i18nService);

@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.template.impl;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -44,7 +42,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -70,9 +69,6 @@ class TaskTemplateDAOImplIntegrationTest {
     private static final TaskTemplateInfoDTO TEMPLATE_INFO_6 = new TaskTemplateInfoDTO();
     private static final TaskTemplateInfoDTO TEMPLATE_INFO_7 = new TaskTemplateInfoDTO();
     private static final TaskTemplateInfoDTO TEMPLATE_INFO_8 = new TaskTemplateInfoDTO();
-    private static final PageData<TaskTemplateInfoDTO> TEMPLATE_INFO_FIRST_PAGE_DATA = new PageData<>();
-    private static final PageData<TaskTemplateInfoDTO> TEMPLATE_INFO_SECOND_PAGE_DATA = new PageData<>();
-    private static final PageData<TaskTemplateInfoDTO> TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA = new PageData<>();
 
     @Autowired
     private TaskTemplateDAO taskTemplateDAO;
@@ -89,7 +85,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_1.setLastModifyUser("userC");
         TEMPLATE_INFO_1
             .setLastModifyTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_1.setTags(Arrays.asList(1L, 2L, 3L).stream().map(tagId -> {
+        TEMPLATE_INFO_1.setTags(Stream.of(1L, 2L, 3L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -109,7 +105,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_2.setLastModifyUser("userT");
         TEMPLATE_INFO_2
             .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_2.setTags(Arrays.asList(2L, 3L, 4L).stream().map(tagId -> {
+        TEMPLATE_INFO_2.setTags(Stream.of(2L, 3L, 4L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -129,7 +125,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_3.setLastModifyUser("userC");
         TEMPLATE_INFO_3
             .setLastModifyTime(LocalDateTime.of(2019, 10, 8, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_3.setTags(Arrays.asList(3L, 4L, 5L).stream().map(tagId -> {
+        TEMPLATE_INFO_3.setTags(Stream.of(3L, 4L, 5L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -149,7 +145,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_4.setLastModifyUser("userT");
         TEMPLATE_INFO_4
             .setLastModifyTime(LocalDateTime.of(2019, 10, 4, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_4.setTags(Arrays.asList(1L, 3L, 5L).stream().map(tagId -> {
+        TEMPLATE_INFO_4.setTags(Stream.of(1L, 3L, 5L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -169,7 +165,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_5.setLastModifyUser("userC");
         TEMPLATE_INFO_5
             .setLastModifyTime(LocalDateTime.of(2019, 10, 5, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_5.setTags(Arrays.asList(2L, 4L, 6L).stream().map(tagId -> {
+        TEMPLATE_INFO_5.setTags(Stream.of(2L, 4L, 6L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -189,7 +185,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_6.setLastModifyUser("userT");
         TEMPLATE_INFO_6
             .setLastModifyTime(LocalDateTime.of(2019, 10, 3, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_6.setTags(Arrays.asList(1L, 4L, 7L).stream().map(tagId -> {
+        TEMPLATE_INFO_6.setTags(Stream.of(1L, 4L, 7L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -209,7 +205,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_7.setLastModifyUser("userC");
         TEMPLATE_INFO_7
             .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_7.setTags(Arrays.asList(2L, 5L, 8L).stream().map(tagId -> {
+        TEMPLATE_INFO_7.setTags(Stream.of(2L, 5L, 8L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -229,7 +225,7 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_8.setLastModifyUser("userT");
         TEMPLATE_INFO_8
             .setLastModifyTime(LocalDateTime.of(2019, 10, 6, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
-        TEMPLATE_INFO_8.setTags(Arrays.asList(3L, 6L, 9L).stream().map(tagId -> {
+        TEMPLATE_INFO_8.setTags(Stream.of(3L, 6L, 9L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
             return tagInfo;
@@ -238,107 +234,20 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_8.setLastStepId(9000L);
         TEMPLATE_INFO_8.setScriptStatus(0);
         TEMPLATE_INFO_8.setVersion("abcd1234");
-
-        List<TaskTemplateInfoDTO> templateInfoListFirstThree =
-            Arrays.asList(TEMPLATE_INFO_3, TEMPLATE_INFO_5, TEMPLATE_INFO_4);
-        TEMPLATE_INFO_FIRST_PAGE_DATA.setStart(0);
-        TEMPLATE_INFO_FIRST_PAGE_DATA.setPageSize(3);
-        TEMPLATE_INFO_FIRST_PAGE_DATA.setTotal(6L);
-        TEMPLATE_INFO_FIRST_PAGE_DATA.setData(templateInfoListFirstThree);
-
-        List<TaskTemplateInfoDTO> templateInfoListSecondThree =
-            Arrays.asList(TEMPLATE_INFO_6, TEMPLATE_INFO_2, TEMPLATE_INFO_1);
-        TEMPLATE_INFO_SECOND_PAGE_DATA.setStart(3);
-        TEMPLATE_INFO_SECOND_PAGE_DATA.setPageSize(3);
-        TEMPLATE_INFO_SECOND_PAGE_DATA.setTotal(6L);
-        TEMPLATE_INFO_SECOND_PAGE_DATA.setData(templateInfoListSecondThree);
-
-        List<TaskTemplateInfoDTO> templateInfoLastModifyUser =
-            Arrays.asList(TEMPLATE_INFO_1, TEMPLATE_INFO_3, TEMPLATE_INFO_5);
-        templateInfoLastModifyUser.sort(Comparator.comparing(TaskTemplateInfoDTO::getId));
-        TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA.setStart(0);
-        TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA.setPageSize(3);
-        TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA.setTotal(6L);
-        TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA.setData(templateInfoLastModifyUser);
-
-    }
-
-    @Test
-    void givenSearchConditionReturnPageTemplateData() {
-        TaskTemplateInfoDTO templateCondition = new TaskTemplateInfoDTO();
-        templateCondition.setAppId(1000L);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(3);
-        assertThat(taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null))
-            .isEqualTo(TEMPLATE_INFO_FIRST_PAGE_DATA);
-
-        baseSearchCondition.setStart(3);
-        assertThat(taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null))
-            .isEqualTo(TEMPLATE_INFO_SECOND_PAGE_DATA);
-
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setOrder(1);
-        baseSearchCondition.setOrderField("last_modify_user");
-        PageData<TaskTemplateInfoDTO> templateInfoLastModifyUserPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null);
-        templateInfoLastModifyUserPageData.getData().sort(Comparator.comparing(TaskTemplateInfoDTO::getId));
-        assertThat(templateInfoLastModifyUserPageData).isEqualTo(TEMPLATE_INFO_LAST_MODIFY_USER_PAGE_DATA);
-
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setOrder(null);
-        baseSearchCondition.setOrderField(null);
-
-        templateCondition.setName("1");
-        assertThat(taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null).getData().get(0))
-            .isEqualTo(TEMPLATE_INFO_1);
-
-        templateCondition.setName(null);
-        templateCondition.setCreator("userT");
-
-        PageData<TaskTemplateInfoDTO> templateInfoCreatorPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null);
-        templateInfoCreatorPageData.getData().sort(Comparator.comparing(TaskTemplateInfoDTO::getId));
-        assertThat(templateInfoCreatorPageData.getData())
-            .isEqualTo(Arrays.asList(TEMPLATE_INFO_4, TEMPLATE_INFO_5, TEMPLATE_INFO_6));
-        assertThat(templateInfoCreatorPageData.getTotal()).isEqualTo(3L);
-
-        templateCondition.setCreator(null);
-        baseSearchCondition.setCreator("userT");
-        templateInfoCreatorPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null);
-        templateInfoCreatorPageData.getData().sort(Comparator.comparing(TaskTemplateInfoDTO::getId));
-        assertThat(templateInfoCreatorPageData.getData())
-            .isEqualTo(Arrays.asList(TEMPLATE_INFO_4, TEMPLATE_INFO_5, TEMPLATE_INFO_6));
-        assertThat(templateInfoCreatorPageData.getTotal()).isEqualTo(3L);
-
-        baseSearchCondition.setCreator(null);
-        templateCondition.setTags(Arrays.asList(1L, 3L).stream().map(tagId -> {
-            TagDTO tagInfo = new TagDTO();
-            tagInfo.setId(tagId);
-            return tagInfo;
-        }).collect(Collectors.toList()));
-        PageData<TaskTemplateInfoDTO> templateInfoTagsPageData =
-            taskTemplateDAO.listPageTaskTemplates(templateCondition, baseSearchCondition, null);
-        templateInfoTagsPageData.getData().sort(Comparator.comparing(TaskTemplateInfoDTO::getId));
-        assertThat(templateInfoTagsPageData.getData()).isEqualTo(Arrays.asList(TEMPLATE_INFO_1, TEMPLATE_INFO_4));
-        assertThat(templateInfoTagsPageData.getTotal()).isEqualTo(2L);
     }
 
     @Test
     void giveNormalTemplateIdReturnTemplateInfo() {
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId()))
-            .isEqualTo(TEMPLATE_INFO_1);
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_2.getAppId(), TEMPLATE_INFO_2.getId()))
-            .isEqualTo(TEMPLATE_INFO_2);
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_3.getAppId(), TEMPLATE_INFO_3.getId()))
-            .isEqualTo(TEMPLATE_INFO_3);
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_4.getAppId(), TEMPLATE_INFO_4.getId()))
-            .isEqualTo(TEMPLATE_INFO_4);
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_7.getAppId(), TEMPLATE_INFO_7.getId()))
-            .isEqualTo(TEMPLATE_INFO_7);
-        assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_8.getAppId(), TEMPLATE_INFO_8.getId()))
-            .isEqualTo(TEMPLATE_INFO_8);
+        TaskTemplateInfoDTO template = taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId());
+        assertThat(template).isNotNull();
+        assertThat(template.getId()).isEqualTo(TEMPLATE_INFO_1.getId());
+        assertThat(template.getAppId()).isEqualTo(TEMPLATE_INFO_1.getAppId());
+        assertThat(template.getName()).isEqualTo(TEMPLATE_INFO_1.getName());
+        assertThat(template.getDescription()).isEqualTo(TEMPLATE_INFO_1.getDescription());
+        assertThat(template.getCreator()).isEqualTo(TEMPLATE_INFO_1.getCreator());
+        assertThat(template.getCreateTime()).isEqualTo(TEMPLATE_INFO_1.getCreateTime());
+        assertThat(template.getLastModifyUser()).isEqualTo(TEMPLATE_INFO_1.getLastModifyUser());
+        assertThat(template.getLastModifyTime()).isEqualTo(TEMPLATE_INFO_1.getLastModifyTime());
     }
 
     @Test
@@ -378,27 +287,37 @@ class TaskTemplateDAOImplIntegrationTest {
         newTaskTemplateInfo.setLastStepId(getRandomPositiveLong());
         Long taskInfoId = taskTemplateDAO.insertTaskTemplate(newTaskTemplateInfo);
         newTaskTemplateInfo.setId(taskInfoId);
-        newTaskTemplateInfo.setScriptStatus(0);
-        assertThat(taskInfoId).isGreaterThan(0L);
-        TaskTemplateInfoDTO taskTemplateById =
+        TaskTemplateInfoDTO savedTaskTemplate =
             taskTemplateDAO.getTaskTemplateById(newTaskTemplateInfo.getAppId(), taskInfoId);
-        assertThat(taskTemplateById).isNotEqualTo(newTaskTemplateInfo);
-        newTaskTemplateInfo.setVersion(taskTemplateById.getVersion());
-        assertThat(taskTemplateById).isEqualTo(newTaskTemplateInfo);
+
+        assertThat(savedTaskTemplate).isNotNull();
+        assertThat(savedTaskTemplate.getId()).isGreaterThan(0L);
+        assertThat(savedTaskTemplate.getAppId()).isEqualTo(newTaskTemplateInfo.getAppId());
+        assertThat(savedTaskTemplate.getName()).isEqualTo(newTaskTemplateInfo.getName());
+        assertThat(savedTaskTemplate.getDescription()).isEqualTo(newTaskTemplateInfo.getDescription());
+        assertThat(savedTaskTemplate.getCreator()).isEqualTo(newTaskTemplateInfo.getCreator());
+        assertThat(savedTaskTemplate.getCreateTime()).isEqualTo(newTaskTemplateInfo.getCreateTime());
+        assertThat(savedTaskTemplate.getLastModifyUser()).isEqualTo(newTaskTemplateInfo.getLastModifyUser());
+        assertThat(savedTaskTemplate.getLastModifyTime()).isEqualTo(newTaskTemplateInfo.getLastModifyTime());
     }
 
     @Test
     void giveTemplateInfoReturnUpdateSuccess() {
-        assertThat(taskTemplateDAO.updateTaskTemplateById(TEMPLATE_INFO_1, true)).isTrue();
         TEMPLATE_INFO_1.setName(UUID.randomUUID().toString());
         TEMPLATE_INFO_1.setLastModifyUser(UUID.randomUUID().toString());
         TEMPLATE_INFO_1.setLastModifyTime(DateUtils.currentTimeSeconds());
         assertThat(taskTemplateDAO.updateTaskTemplateById(TEMPLATE_INFO_1, true)).isTrue();
-        TaskTemplateInfoDTO taskTemplateById =
+        TaskTemplateInfoDTO updatedTemplate =
             taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId());
-        assertThat(taskTemplateById).isNotEqualTo(TEMPLATE_INFO_1);
-        TEMPLATE_INFO_1.setVersion(taskTemplateById.getVersion());
-        assertThat(taskTemplateById).isEqualTo(TEMPLATE_INFO_1);
+        assertThat(updatedTemplate).isNotNull();
+        assertThat(updatedTemplate.getId()).isGreaterThan(0L);
+        assertThat(updatedTemplate.getAppId()).isEqualTo(TEMPLATE_INFO_1.getAppId());
+        assertThat(updatedTemplate.getName()).isEqualTo(TEMPLATE_INFO_1.getName());
+        assertThat(updatedTemplate.getDescription()).isEqualTo(TEMPLATE_INFO_1.getDescription());
+        assertThat(updatedTemplate.getCreator()).isEqualTo(TEMPLATE_INFO_1.getCreator());
+        assertThat(updatedTemplate.getCreateTime()).isEqualTo(TEMPLATE_INFO_1.getCreateTime());
+        assertThat(updatedTemplate.getLastModifyUser()).isEqualTo(TEMPLATE_INFO_1.getLastModifyUser());
+        assertThat(updatedTemplate.getLastModifyTime()).isEqualTo(TEMPLATE_INFO_1.getLastModifyTime());
     }
 
     @Test
@@ -408,18 +327,6 @@ class TaskTemplateDAOImplIntegrationTest {
         assertThat(taskTemplateDAO.deleteTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId()))
             .isFalse();
         assertThat(taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId())).isNull();
-    }
-
-    @Test
-    void giveAppIdReturnTagCount() {
-        Map<Long, Long> tagCount = taskTemplateDAO.getTemplateTagCount(TEMPLATE_INFO_1.getAppId());
-        assertThat(tagCount.get(1L)).isEqualTo(3L);
-        assertThat(tagCount.get(2L)).isEqualTo(3L);
-        assertThat(tagCount.get(3L)).isEqualTo(4L);
-        assertThat(tagCount.get(4L)).isEqualTo(4L);
-        assertThat(tagCount.get(5L)).isEqualTo(2L);
-        assertThat(tagCount.get(6L)).isEqualTo(1L);
-        assertThat(tagCount.get(7L)).isEqualTo(1L);
     }
 
 }

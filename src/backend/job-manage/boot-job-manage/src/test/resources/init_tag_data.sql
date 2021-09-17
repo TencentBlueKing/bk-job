@@ -24,8 +24,8 @@
 
 USE job_manage;
 TRUNCATE TABLE `tag`;
-INSERT INTO `tag` (id, app_id, name, creator, last_modify_user) VALUES (1, 1, '测试1', 'userC', 'userT');
-INSERT INTO `tag` (id, app_id, name, creator, last_modify_user) VALUES (2, 1, '测试2', 'userC', 'userT');
-INSERT INTO `tag` (id, app_id, name, creator, last_modify_user) VALUES (3, 2, '测试1', 'userC', 'userT');
-INSERT INTO `tag` (id, app_id, name, creator, last_modify_user) VALUES (4, 2, '测试2', 'userC', 'userT');
-INSERT INTO `tag` (id, app_id, name, creator, last_modify_user) VALUES (5, 2, '持续集成', 'userC', 'userT');
+INSERT INTO `tag` (id, app_id, name, description, creator, last_modify_user, create_time, last_modify_time) VALUES (1, 1, 'test1', 'test1-desc', 'userC', 'userT', 1630648088, 1630648088);
+INSERT INTO `tag` (id, app_id, name, description, creator, last_modify_user, create_time, last_modify_time) VALUES (2, 1, 'test2', 'test2-desc', 'userC', 'userT', 1630648089, 1630648089);
+INSERT INTO `tag` (id, app_id, name, description, creator, last_modify_user, create_time, last_modify_time) VALUES (3, 2, 'test1', 'test1-desc', 'userC', 'userT', 1630648090, 1630648090);
+INSERT INTO `tag` (id, app_id, name, description, creator, last_modify_user, create_time, last_modify_time) VALUES (4, 2, 'test2', 'test2-desc', 'userC', 'userT', 1630648091, 1630648091);
+INSERT INTO `tag` (id, app_id, name, description, creator, last_modify_user, create_time, last_modify_time) VALUES (5, 2, 'Test3', 'Test3-desc', 'userC', 'userT', 1630648092, 1630648092);

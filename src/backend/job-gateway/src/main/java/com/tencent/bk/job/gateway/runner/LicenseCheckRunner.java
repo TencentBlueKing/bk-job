@@ -163,6 +163,7 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
                     try {
                         Thread.sleep(1000 * retryInterval);
                     } catch (InterruptedException ignored) {
+                        log.info("sleep interrupted");
                     }
                 } else {
                     createFailCheck(licenseCheckResult);
@@ -176,7 +177,9 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
             }
         }
         //证书校验是否通过
-        licenseCheckResult.setOk(licenseCheckResult.isStatus() && licenseCheckResult.getResult() == 0);
+        if (licenseCheckResult != null) {
+            licenseCheckResult.setOk(licenseCheckResult.isStatus() && licenseCheckResult.getResult() == 0);
+        }
         return licenseCheckResult;
     }
 

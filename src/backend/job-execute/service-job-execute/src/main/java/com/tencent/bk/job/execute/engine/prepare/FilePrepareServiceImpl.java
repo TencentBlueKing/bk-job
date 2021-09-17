@@ -100,6 +100,72 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         return false;
     }
 
+    private void startPrepareLocalFileTask(
+        long stepInstanceId,
+        List<FileSourceDTO> fileSourceList,
+        List<TaskResult> resultList,
+        CountDownLatch latch
+    ) {
+        localFilePrepareService.prepareLocalFilesAsync(
+            stepInstanceId,
+            fileSourceList,
+            new LocalFilePrepareTaskResultHandler() {
+                @Override
+                public void onSuccess(JobTaskContext taskContext) {
+                    log.debug("LocalFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onStopped(JobTaskContext taskContext) {
+                    log.debug("LocalFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailed(JobTaskContext taskContext) {
+                    log.debug("LocalFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
+                    latch.countDown();
+                }
+            });
+    }
+
+    private void startPrepareThirdFileTask(
+        StepInstanceDTO stepInstance,
+        List<TaskResult> resultList,
+        CountDownLatch latch
+    ) {
+        thirdFilePrepareService.prepareThirdFileAsync(
+            stepInstance,
+            new ThirdFilePrepareTaskResultHandler() {
+
+                @Override
+                public void onSuccess(JobTaskContext taskContext) {
+                    log.debug("ThirdFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onStopped(JobTaskContext taskContext) {
+                    log.debug("ThirdFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailed(JobTaskContext taskContext) {
+                    log.debug("ThirdFilePrepareTask end");
+                    resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
+                    latch.countDown();
+                }
+            }
+        );
+    }
+
     @Override
     public void prepareFileForGseTask(long stepInstanceId) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
@@ -124,60 +190,11 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         final List<TaskResult> resultList = Collections.synchronizedList(new ArrayList<>(taskCount));
         if (hasLocalFile) {
             // 启动异步准备本地文件任务
-            localFilePrepareService.prepareLocalFilesAsync(
-                stepInstanceId,
-                fileSourceList,
-                new LocalFilePrepareTaskResultHandler() {
-                    @Override
-                    public void onSuccess(JobTaskContext taskContext) {
-                        log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onStopped(JobTaskContext taskContext) {
-                        log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onFailed(JobTaskContext taskContext) {
-                        log.debug("LocalFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
-                        latch.countDown();
-                    }
-                });
+            startPrepareLocalFileTask(stepInstanceId, fileSourceList, resultList, latch);
         }
         if (hasThirdFile) {
             // 启动异步准备第三方源文件任务
-            thirdFilePrepareService.prepareThirdFileAsync(
-                stepInstance,
-                new ThirdFilePrepareTaskResultHandler() {
-
-                    @Override
-                    public void onSuccess(JobTaskContext taskContext) {
-                        log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_SUCCESS, taskContext));
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onStopped(JobTaskContext taskContext) {
-                        log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_STOPPED, taskContext));
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onFailed(JobTaskContext taskContext) {
-                        log.debug("ThirdFilePrepareTask end");
-                        resultList.add(new TaskResult(TaskResult.STATUS_FAILED, taskContext));
-                        latch.countDown();
-                    }
-                }
-            );
+            startPrepareThirdFileTask(stepInstance, resultList, latch);
         }
         FilePrepareControlTask filePrepareControlTask =
             new FilePrepareControlTask(
@@ -199,7 +216,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             log.error("wait prepareTask latch interrupted");
             // 任务失败
             onFailed(stepInstance, null);
-        }finally {
+        } finally {
             filePrepareControlTask.setDoneStatus();
         }
     }
@@ -225,7 +242,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             return taskContext;
         }
 
-        public TaskResult(int status, JobTaskContext taskContext) {
+        TaskResult(int status, JobTaskContext taskContext) {
             this.status = status;
             this.taskContext = taskContext;
         }

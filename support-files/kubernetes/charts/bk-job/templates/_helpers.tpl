@@ -18,6 +18,13 @@ Create the name of the service account for job
 {{- end }}
 
 {{/*
+Return the label key of job image tag
+*/}}
+{{- define "job.labelKeys.imageTag" -}}
+    {{- printf "bk.job.image/tag" -}}
+{{- end -}}
+
+{{/*
 Return the proper job-frontend image name
 */}}
 {{- define "job-frontend.image" -}}

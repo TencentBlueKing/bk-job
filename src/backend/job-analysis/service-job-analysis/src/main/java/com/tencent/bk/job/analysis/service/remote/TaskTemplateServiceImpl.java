@@ -29,13 +29,10 @@ import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceListPageTaskTemplatesRequest;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -48,17 +45,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(ServiceTaskTemplateDTO templateCondition,
-                                                                  BaseSearchCondition baseSearchCondition,
-                                                                  List<Long> favoriteTemplateId) {
+    public PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(Long appId,
+                                                                  BaseSearchCondition baseSearchCondition) {
         val result =
-            taskTemplateResourceClient.listPageTaskTemplates(
-                new ServiceListPageTaskTemplatesRequest(
-                    templateCondition,
-                    baseSearchCondition,
-                    favoriteTemplateId
-                )
-            );
+            taskTemplateResourceClient.listPageTaskTemplates(appId,
+                baseSearchCondition.getStart(), baseSearchCondition.getLength());
         if (result != null) {
             return result.getData();
         } else {

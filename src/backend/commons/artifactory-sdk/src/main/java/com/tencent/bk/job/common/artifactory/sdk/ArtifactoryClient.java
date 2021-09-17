@@ -96,12 +96,14 @@ public class ArtifactoryClient {
     public static final String URL_CREATE_PROJECT = "/repository/api/project/create";
     public static final String URL_CREATE_REPO = "/repository/api/repo/create";
     public static final String URL_CHECK_REPO_EXIST = "/repository/api/repo/exist/{projectId}/{repoName}";
+
+    private final String baseUrl;
+    private final String username;
+    private final String password;
+    private final MeterRegistry meterRegistry;
+
     AbstractHttpHelper httpHelper = new DefaultHttpHelper();
     AbstractHttpHelper longHttpHelper = new LongRetryableHttpHelper();
-    private String baseUrl;
-    private String username;
-    private String password;
-    private MeterRegistry meterRegistry;
 
     public ArtifactoryClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
         this.baseUrl = StringUtil.removeSuffix(baseUrl, "/");
@@ -154,13 +156,53 @@ public class ArtifactoryClient {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private <R> void checkResult(
+        R result,
+        String method,
+        String url,
+        String reqStr,
+        String respStr
+    ) {
+        if (result == null) {
+            log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
+                url, reqStr, respStr);
+            throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
+        }
+        if (result instanceof ArtifactoryResp) {
+            ArtifactoryResp<R> artifactoryResp = (ArtifactoryResp<R>) result;
+            if (artifactoryResp.getCode() != ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
+                log.error(
+                    "fail:artifactoryResp code!={}|artifactoryResp.requestId={}|artifactoryResp" +
+                        ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}",
+                    ArtifactoryInterfaceConsts.RESULT_CODE_OK,
+                    artifactoryResp.getTraceId(),
+                    artifactoryResp.getCode(),
+                    artifactoryResp.getMessage(),
+                    method, url, reqStr, respStr
+                );
+                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
+            }
+            if (artifactoryResp.getData() == null) {
+                log.warn(
+                    "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
+                        ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}",
+                    artifactoryResp.getTraceId(),
+                    artifactoryResp.getCode(),
+                    artifactoryResp.getMessage(),
+                    method, url, reqStr, respStr
+                );
+            }
+        }
+    }
+
     private <T, R> R getArtifactoryRespByReq(
         String method,
         String url,
         ArtifactoryReq reqBody,
         TypeReference<R> typeReference,
         AbstractHttpHelper httpHelper
-    ) throws RuntimeException {
+    ) throws ServiceException {
         // URL模板变量替换
         url = StringUtil.replacePathVariables(url, reqBody);
         url = getCompleteUrl(url);
@@ -186,36 +228,11 @@ public class ArtifactoryClient {
                 log.debug("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
-            if (result instanceof ArtifactoryResp) {
-                ArtifactoryResp artifactoryResp = (ArtifactoryResp) result;
-                if (artifactoryResp == null) {
-                    log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
-                        url, reqStr, respStr);
-                    status = "error";
-                    throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
-                } else if (artifactoryResp.getCode() != ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
-                    log.error(
-                        "fail:artifactoryResp code!={}|artifactoryResp.requestId={}|artifactoryResp" +
-                            ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
-                        , ArtifactoryInterfaceConsts.RESULT_CODE_OK
-                        , artifactoryResp.getTraceId()
-                        , artifactoryResp.getCode()
-                        , artifactoryResp.getMessage()
-                        , method, url, reqStr, respStr
-                    );
-                    status = "error";
-                    throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
-                }
-                if (artifactoryResp.getData() == null) {
-                    log.warn(
-                        "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
-                            ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}"
-                        , artifactoryResp.getTraceId()
-                        , artifactoryResp.getCode()
-                        , artifactoryResp.getMessage()
-                        , method, url, reqStr, respStr
-                    );
-                }
+            try {
+                checkResult(result, method, url, reqStr, respStr);
+            } catch (Exception e) {
+                status = "error";
+                throw e;
             }
             status = "ok";
             return result;

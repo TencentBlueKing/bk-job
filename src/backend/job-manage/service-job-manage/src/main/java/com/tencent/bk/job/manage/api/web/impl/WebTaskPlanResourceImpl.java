@@ -49,6 +49,7 @@ import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
@@ -147,20 +148,14 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             }
         } else {
             if (StringUtils.isNotBlank(templateName)) {
-                TaskTemplateInfoDTO templateQuery = new TaskTemplateInfoDTO();
-                templateQuery.setAppId(appId);
-                templateQuery.setName(templateName);
-
-                BaseSearchCondition templateSearchCondition = new BaseSearchCondition();
-                templateSearchCondition.setStart(-1);
-                templateSearchCondition.setLength(-1);
+                BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+                baseSearchCondition.setStart(-1);
+                baseSearchCondition.setLength(-1);
+                TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).name(templateName)
+                    .baseSearchCondition(baseSearchCondition).build();
 
                 PageData<TaskTemplateInfoDTO> taskTemplateInfoPageData =
-                    templateService.listPageTaskTemplatesBasicInfo(
-                        templateQuery,
-                        templateSearchCondition,
-                        null
-                    );
+                    templateService.listPageTaskTemplatesBasicInfo(query, null);
                 if (taskTemplateInfoPageData != null
                     && CollectionUtils.isNotEmpty(taskTemplateInfoPageData.getData())) {
                     List<Long> templateIdList = new ArrayList<>();

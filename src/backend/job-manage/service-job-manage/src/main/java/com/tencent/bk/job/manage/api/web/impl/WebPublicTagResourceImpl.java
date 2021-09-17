@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.web.WebPublicTagResource;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class WebPublicTagResourceImpl implements WebPublicTagResource {
     }
 
     @Override
-    public ServiceResponse<List<TagVO>> listTags(String username, String tagName) {
-        return tagResourceProxy.listTags(username, PUBLIC_APP_ID, tagName);
+    public ServiceResponse<List<TagVO>> listTags(String username, String name) {
+        return tagResourceProxy.listTagsBasic(username, PUBLIC_APP_ID, name);
     }
 }

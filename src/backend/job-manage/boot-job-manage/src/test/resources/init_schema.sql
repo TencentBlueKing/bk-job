@@ -76,6 +76,23 @@ CREATE TABLE `script_version`
   DEFAULT CHARSET = UTF8MB4;
 
 -- ----------------------------
+-- Table structure for resource_tag
+-- ----------------------------
+CREATE TABLE `resource_tag`
+(
+    `id`                 BIGINT(20)          NOT NULL AUTO_INCREMENT,
+    `row_create_time`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `tag_id`             BIGINT(20)          NOT NULL,
+    `resource_id`        VARCHAR(32)         NOT NULL,
+    `resource_type`      TINYINT(4)          NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY (`resource_id`, `resource_type`, `tag_id`),
+    KEY (`tag_id`, `resource_type`)
+) ENGINE = INNODB
+  DEFAULT CHARSET = UTF8MB4;
+
+-- ----------------------------
 -- Table structure for tag
 -- ----------------------------
 CREATE TABLE `tag`
@@ -85,9 +102,11 @@ CREATE TABLE `tag`
     `row_update_time`  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `app_id`           BIGINT(20) UNSIGNED NOT NULL,
     `name`             VARCHAR(512)        NOT NULL,
+    `description`      VARCHAR(1024)       NULL,
     `creator`          VARCHAR(128)        NOT NULL,
+    `create_time`      BIGINT(20)          NOT NULL DEFAULT '0',
     `last_modify_user` VARCHAR(128)        NOT NULL,
-    `is_deleted`       TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    `last_modify_time` BIGINT(20)          NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     UNIQUE KEY (`app_id`, `name`)
 ) ENGINE = INNODB

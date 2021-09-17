@@ -32,10 +32,12 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationHostService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,17 +56,20 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
     private final ApplicationHostService applicationHostService;
+    private final TagService tagService;
 
     @Autowired
     public ServiceMetricsResourceImpl(ApplicationService applicationService, AccountService accountService,
                                       ScriptService scriptService, TaskTemplateService taskTemplateService,
-                                      TaskPlanService taskPlanService, ApplicationHostService applicationHostService) {
+                                      TaskPlanService taskPlanService, ApplicationHostService applicationHostService,
+                                      TagService tagService) {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.scriptService = scriptService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
         this.applicationHostService = applicationHostService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -126,9 +131,7 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
     @Override
     public ServiceResponse<Long> tagCitedCount(Long appId, Long tagId) {
-        Integer citedScriptCount = scriptService.countByTag(appId, tagId);
-        Integer citedTaskTemplateCount = taskTemplateService.countByTag(appId, tagId);
-        Long tagCitedCount = (long) citedScriptCount + (long) citedTaskTemplateCount;
-        return ServiceResponse.buildSuccessResp(tagCitedCount);
+        List<ResourceTagDTO> scriptResourceTags = tagService.listResourceTagsByTagId(appId, tagId);
+        return ServiceResponse.buildSuccessResp(Long.valueOf(scriptResourceTags.size()));
     }
 }

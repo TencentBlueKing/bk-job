@@ -158,7 +158,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         List<Future<Void>> futureList;
         LocalFilePrepareTaskResultHandler resultHandler;
 
-        public FinalResultHandler(
+        FinalResultHandler(
             ArtifactoryLocalFilePrepareTask artifactoryLocalFilePrepareTask,
             List<Future<Void>> futureList,
             LocalFilePrepareTaskResultHandler resultHandler
@@ -196,7 +196,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
 
         private final FileDetailDTO file;
 
-        public FileDownloadTask(FileDetailDTO file) {
+        FileDownloadTask(FileDetailDTO file) {
             this.file = file;
         }
 

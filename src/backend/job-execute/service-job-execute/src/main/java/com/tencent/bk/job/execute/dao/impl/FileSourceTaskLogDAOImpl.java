@@ -49,7 +49,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     @Override
     public FileSourceTaskLogDTO getStepLastExecuteLog(long stepInstanceId) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        Record result = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
+        Record record = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME,
             t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID)
             .from(t)
@@ -57,23 +57,23 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
             .orderBy(t.EXECUTE_COUNT.desc())
             .limit(1)
             .fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
-    private FileSourceTaskLogDTO extractInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private FileSourceTaskLogDTO extractInfo(Record record) {
+        if (record == null) {
             return null;
         }
         FileSourceTaskLogDTO fileSourceTaskLogDTO = new FileSourceTaskLogDTO();
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
 
-        fileSourceTaskLogDTO.setStepInstanceId(result.get(t.STEP_INSTANCE_ID));
-        fileSourceTaskLogDTO.setExecuteCount(result.get(t.EXECUTE_COUNT));
-        fileSourceTaskLogDTO.setStartTime(result.get(t.START_TIME));
-        fileSourceTaskLogDTO.setEndTime(result.get(t.END_TIME));
-        fileSourceTaskLogDTO.setTotalTime(result.get(t.TOTAL_TIME));
-        fileSourceTaskLogDTO.setStatus(result.get(t.STATUS).intValue());
-        fileSourceTaskLogDTO.setFileSourceBatchTaskId(result.get(t.FILE_SOURCE_BATCH_TASK_ID));
+        fileSourceTaskLogDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
+        fileSourceTaskLogDTO.setExecuteCount(record.get(t.EXECUTE_COUNT));
+        fileSourceTaskLogDTO.setStartTime(record.get(t.START_TIME));
+        fileSourceTaskLogDTO.setEndTime(record.get(t.END_TIME));
+        fileSourceTaskLogDTO.setTotalTime(record.get(t.TOTAL_TIME));
+        fileSourceTaskLogDTO.setStatus(record.get(t.STATUS).intValue());
+        fileSourceTaskLogDTO.setFileSourceBatchTaskId(record.get(t.FILE_SOURCE_BATCH_TASK_ID));
         return fileSourceTaskLogDTO;
     }
 
@@ -100,23 +100,23 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     @Override
     public FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        Record result = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
+        Record record = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME,
             t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
     @Override
     public FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId) {
-        Record result = defaultContext.select(defaultTable.STEP_INSTANCE_ID, defaultTable.EXECUTE_COUNT,
+        Record record = defaultContext.select(defaultTable.STEP_INSTANCE_ID, defaultTable.EXECUTE_COUNT,
             defaultTable.START_TIME, defaultTable.END_TIME, defaultTable.TOTAL_TIME,
             defaultTable.STATUS, defaultTable.FILE_SOURCE_BATCH_TASK_ID).from(defaultTable)
             .where(defaultTable.FILE_SOURCE_BATCH_TASK_ID.eq(fileSourceBatchTaskId))
             .fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
     @Override

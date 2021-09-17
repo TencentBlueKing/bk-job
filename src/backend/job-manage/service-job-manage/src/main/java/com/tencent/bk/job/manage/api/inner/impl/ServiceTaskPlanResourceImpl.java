@@ -331,7 +331,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         scriptStepDTO.setType(scriptStep.getLanguage().getValue());
 
         if (scriptStep.getScriptVersionId() != null && scriptStep.getScriptVersionId() > 0) {
-            ScriptDTO script = scriptService.getByScriptVersionId(scriptStep.getScriptVersionId());
+            ScriptDTO script = scriptService.getScriptVersion(scriptStep.getScriptVersionId());
             if (script == null) {
                 log.warn("Plan related script is not exist, planId={}, scriptVersionId={}", scriptStep.getPlanId(),
                     scriptStep.getScriptVersionId());

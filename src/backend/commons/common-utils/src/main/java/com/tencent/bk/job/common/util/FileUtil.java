@@ -38,19 +38,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class FileUtil {
 
+    private static void tryToCreateFile(File file) {
+        try {
+            boolean flag = file.mkdirs();
+        } catch (Exception e) {
+            //创建目录失败
+            String msg = String.format("Fail to create dir:%s", file.getAbsolutePath());
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
+    }
+
     public static String writeInsToFile(InputStream ins, String targetPath, Long fileSize, AtomicInteger speed,
                                         AtomicInteger process) throws InterruptedException {
         File file = new File(targetPath);
         File parentFile = file.getParentFile();
         if (!parentFile.exists()) {
-            try {
-                boolean flag = parentFile.mkdirs();
-            } catch (Exception e) {
-                //创建目录失败
-                String msg = String.format("Fail to create dir:%s", parentFile.getAbsolutePath());
-                log.error(msg, e);
-                throw new RuntimeException(msg, e);
-            }
+            tryToCreateFile(parentFile);
         }
         FileOutputStream fos = null;
         FileInputStream fis = null;
@@ -99,27 +103,35 @@ public class FileUtil {
             log.info("Download interrupted, targetPath:{}", targetPath);
             throw e;
         } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    log.error("Fail to close fis", e);
-                }
+            closeStreams(ins, fos, fis);
+        }
+    }
+
+    private static void closeStreams(
+        InputStream ins,
+        FileOutputStream fos,
+        FileInputStream fis
+    ) {
+        if (fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                log.error("Fail to close fis", e);
             }
-            if (ins != null) {
-                try {
-                    ins.close();
-                } catch (IOException e) {
-                    log.error("Fail to close ins", e);
-                }
+        }
+        if (ins != null) {
+            try {
+                ins.close();
+            } catch (IOException e) {
+                log.error("Fail to close ins", e);
             }
-            if (fos != null) {
-                try {
-                    fos.flush();
-                    fos.close();
-                } catch (IOException e) {
-                    log.error("Fail to close fos", e);
-                }
+        }
+        if (fos != null) {
+            try {
+                fos.flush();
+                fos.close();
+            } catch (IOException e) {
+                log.error("Fail to close fos", e);
             }
         }
     }

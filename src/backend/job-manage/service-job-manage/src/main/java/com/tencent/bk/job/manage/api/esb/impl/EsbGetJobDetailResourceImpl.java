@@ -43,7 +43,15 @@ import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.task.*;
+import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.esb.EsbJobDetailDTO;
 import com.tencent.bk.job.manage.model.esb.EsbStepDTO;
 import com.tencent.bk.job.manage.model.esb.EsbTaskVariableDTO;
@@ -197,7 +205,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         esbStep.setType(scriptStep.getScriptSource().getType());
 
         if (scriptStep.getScriptVersionId() != null && scriptStep.getScriptVersionId() > 0) {
-            ScriptDTO script = scriptService.getByScriptVersionId(scriptStep.getScriptVersionId());
+            ScriptDTO script = scriptService.getScriptVersion(scriptStep.getScriptVersionId());
             if (script == null) {
                 log.warn("Plan related script is not exist, planId={}, scriptVersionId={}", scriptStep.getPlanId(),
                     scriptStep.getScriptVersionId());
