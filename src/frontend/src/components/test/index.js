@@ -23,37 +23,23 @@
  * IN THE SOFTWARE.
 */
 
-import _ from 'lodash';
-import StepExecutionModel from '@model/execution/step-execution';
-import TaskExecutionModel from '@model/execution/task-execution';
-
-// 作业执行详情页面（包含作业执行状态、作业中步骤执行状态）
-export default class TaskExecutionDetail {
-    constructor (payload) {
-        this.finished = payload.finished;
-        this.taskExecution = this.initTaskExecution(payload.taskExecution);
-        this.stepExecution = this.initStepExecution(payload.stepExecution);
-    }
-
-    get totalStep () {
-        return this.stepExecution.length || 0;
-    }
-
-    get currentStepRunningOrder () {
-        return _.findIndex(this.stepExecution, _ => _.currentStepRunning) + 1;
-    }
-
-    initTaskExecution (taskInstance) {
-        if (!taskInstance || !_.isObject(taskInstance)) {
-            return Object.freeze(new TaskExecutionModel({}));
-        }
-        return Object.freeze(new TaskExecutionModel(taskInstance));
-    }
-
-    initStepExecution (stepExecution) {
-        if (!stepExecution || !_.isArray(stepExecution)) {
-            return [];
-        }
-        return stepExecution.map(_ => Object.freeze(new StepExecutionModel(_)));
-    }
-}
+export default {
+    install (Vue) {
+        Vue.directive('test', {
+            bind (el, binding) {
+                const {
+                    type,
+                    value,
+                } = binding.value;
+                el.setAttribute('data-test-id', `${type}_${value}`);
+            },
+            update (el, binding) {
+                const {
+                    type,
+                    value,
+                } = binding.value;
+                el.setAttribute('data-test-id', `${type}_${value}`);
+            },
+        });
+    },
+};

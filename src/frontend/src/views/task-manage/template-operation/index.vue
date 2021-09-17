@@ -28,9 +28,15 @@
 <template>
     <div class="template-operation">
         <smart-action offset-target="bk-form-content">
-            <jb-form :model="formData" :rules="rules" ref="templateOperateRef">
+            <jb-form
+                :model="formData"
+                :rules="rules"
+                v-test="{ type: 'form', value: 'template' }"
+                ref="templateOperateRef">
                 <bk-alert class="info" :title="$t('template.对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。')" />
-                <jb-form-item :label="$t('template.模板名称')" required property="name">
+                <jb-form-item
+                    :label="$t('template.模板名称')"
+                    required property="name">
                     <jb-input
                         class="input form-item-content"
                         :placeholder="$t('template.输入作业模板名称')"
@@ -38,7 +44,9 @@
                         :maxlength="60" />
                 </jb-form-item>
                 <toggle-display style="margin-bottom: 20px;">
-                    <jb-form-item :label="$t('template.场景标签.label')" property="tags">
+                    <jb-form-item
+                        :label="$t('template.场景标签.label')"
+                        property="tags">
                         <jb-tag-select
                             class="input form-item-content"
                             :placeholder="$t('template.标签对资源的分类管理有很大帮助')"
@@ -53,13 +61,19 @@
                             :placeholder="$t('template.填写该模板的功能介绍等详细描述...')" />
                     </jb-form-item>
                 </toggle-display>
-                <jb-form-item :label="$t('template.全局变量.label')" style="margin-bottom: 30px;">
+                <jb-form-item
+                    :label="$t('template.全局变量.label')"
+                    style="margin-bottom: 30px;">
                     <render-global-var
                         :list="formData.variables"
                         mode="operate"
                         @on-change="handleGlobalVariableChange" />
                 </jb-form-item>
-                <jb-form-item :label="$t('template.作业步骤.label')" required property="steps" style="margin-bottom: 30px;">
+                <jb-form-item
+                    :label="$t('template.作业步骤.label')"
+                    required
+                    property="steps"
+                    style="margin-bottom: 30px;">
                     <render-task-step
                         ref="step"
                         :list="formData.steps"

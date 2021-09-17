@@ -166,6 +166,20 @@ class ScriptManage extends ModuleBase {
     getBasiceInfoById (params = {}) {
         return Request.get(`${this.path}/script/basic/${params.id}`);
     }
+
+    // 批量更新脚本 tag
+    batchUpdateTag (params = {}) {
+        return Request.put(`${this.path}/tag`, {
+            params,
+        });
+    }
+
+    // 获取业务下标签关联的模版数量
+    getTagCount (params = {}) {
+        return Request.get(`${this.path}/tag/count`, {
+            params,
+        });
+    }
 }
 
 export default new ScriptManage();

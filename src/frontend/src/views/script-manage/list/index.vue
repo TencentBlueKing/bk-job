@@ -26,7 +26,12 @@
 -->
 
 <template>
-    <div>
+    <layout>
+        <template #tag>
+            <tag-panel
+                ref="tagPanelRef"
+                @on-change="handleTagPlanChange" />
+        </template>
         <list-action-layout>
             <auth-button
                 theme="primary"
@@ -35,6 +40,11 @@
                 class="w120">
                 {{ $t('script.新建') }}
             </auth-button>
+            <bk-button
+                :disabled="isBatchEditTagDisabled"
+                @click="handleBatchEditTag">
+                {{ $t('script.编辑标签') }}
+            </bk-button>
             <template #right>
                 <jb-search-select
                     ref="search"
@@ -48,7 +58,9 @@
             ref="list"
             :data-source="getScriptList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            selectable
+            :search-control="() => $refs.search"
+            @on-selection-change="handleSelection">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -75,7 +87,11 @@
                             :value="row.name"
                             :remote-hander="val => handleUpdateScript(row.id, val)"
                             v-slot="{ value }">
-                            <span style="color: #3a84ff; cursor: pointer;" @click="handleVersion(row)">{{ value }}</span>
+                            <span
+                                style="color: #3a84ff; cursor: pointer;"
+                                @click="handleVersion(row)">
+                                {{ value }}
+                            </span>
                         </jb-edit-input>
                         <span slot="forbid">{{ row.name }}</span>
                     </auth-component>
@@ -123,10 +139,11 @@
                 key="related"
                 width="100"
                 :render-header="renderHeader"
-                align="left">
+                align="right">
                 <template slot-scope="{ row }">
                     <bk-button
                         text
+                        class="mr20"
                         v-bk-tooltips.right.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
                                     <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
@@ -140,6 +157,7 @@
             <bk-table-column
                 v-if="allRenderColumnMap.version"
                 :label="$t('script.线上版本')"
+                show-overflow-tooltip
                 prop="version"
                 key="version"
                 width="140"
@@ -181,6 +199,7 @@
             <bk-table-column
                 :label="$t('script.操作')"
                 :resizable="false"
+                fixed="right"
                 key="action"
                 width="170"
                 align="left">
@@ -194,7 +213,9 @@
                         @click="handleVersion(row)">
                         {{ $t('script.版本管理') }}
                     </auth-button>
-                    <span class="mr10" :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
+                    <span
+                        class="mr10"
+                        :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
                         <auth-button
                             text
                             :permission="row.canView"
@@ -227,6 +248,17 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
+        <jb-dialog
+            v-model="isShowBatchEditTag"
+            :title="$t('script.编辑标签')"
+            header-position="left"
+            :ok-text="$t('script.确定')"
+            :width="480">
+            <batch-edit-tag
+                v-if="isShowBatchEditTag"
+                :template-list="listSelect"
+                @on-change="handleBatchEditChange" />
+        </jb-dialog>
         <jb-sideslider
             :is-show.sync="showRelated"
             :show-footer="false"
@@ -237,7 +269,7 @@
                 from="scriptList"
                 :info="relatedScriptInfo" />
         </jb-sideslider>
-    </div>
+    </layout>
 </template>
 <script>
     import I18n from '@/i18n';
@@ -246,22 +278,18 @@
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
     import NotifyService from '@service/notify';
-    import {
-        isPublicScript,
-    } from '@utils/assist';
-    import {
-        scriptNameRule,
-    } from '@utils/validator';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { checkPublicScript } from '@utils/assist';
+    import { scriptNameRule } from '@utils/validator';
+    import { listColumnsCache } from '@utils/cache-helper';
     import ListActionLayout from '@components/list-action-layout';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';
     import JbEditInput from '@components/jb-edit/input';
     import JbEditTag from '@components/jb-edit/tag';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import ScriptRelatedInfo from '../common/script-related-info';
+    import Layout from './components/layout';
+    import TagPanel from './components/tag-panel';
+    import BatchEditTag from './components/batch-edit-tag';
 
     const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -274,11 +302,15 @@
             JbSearchSelect,
             JbEditInput,
             JbEditTag,
-            JbPopoverConfirm,
+            Layout,
+            TagPanel,
+            BatchEditTag,
         },
         data () {
             return {
                 showRelated: false,
+                isShowBatchEditTag: false,
+                listSelect: [],
                 relatedScriptInfo: {
                     id: 0,
                 },
@@ -291,6 +323,16 @@
             isSkeletonLoading () {
                 return this.$refs.list.isLoading;
             },
+            isBatchEditTagDisabled () {
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.listSelect.length; i++) {
+                    const current = this.listSelect[i];
+                    if (!current.canManage) {
+                        return true;
+                    }
+                }
+                return this.listSelect.length < 1;
+            },
             allRenderColumnMap () {
                 return this.selectedTableColumn.reduce((result, item) => {
                     result[item.id] = true;
@@ -299,10 +341,13 @@
             },
         },
         created () {
-            this.publicScript = isPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
-            this.tagSericeHandler = this.publicScript ? PublicTagManageService : TagManageService;
+            // 公共脚本
+            this.isPublicScript = checkPublicScript(this.$route);
+            this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
+            this.tagSericeHandler = this.isPublicScript ? PublicTagManageService : TagManageService;
             this.getScriptList = this.serviceHandler.scriptList;
+
+            this.searchClass = {};
 
             this.searchSelect = [
                 {
@@ -404,8 +449,16 @@
             
             this.rules = {
                 name: [
-                    { required: true, message: I18n.t('script.脚本名称必填'), trigger: 'blur' },
-                    { validator: scriptNameRule.validator, message: scriptNameRule.message, trigger: 'blur' },
+                    {
+                        required: true,
+                        message: I18n.t('script.脚本名称必填'),
+                        trigger: 'blur',
+                    },
+                    {
+                        validator: scriptNameRule.validator,
+                        message: scriptNameRule.message,
+                        trigger: 'blur',
+                    },
                 ],
             };
         },
@@ -414,22 +467,39 @@
              * @desc 获取列表数据
              */
             fetchData () {
+                // 合并左侧分类和右侧搜索的查询条件
+                const searchParams = { ...this.searchParams };
+                if (this.searchClass.panelType) {
+                    searchParams.panelType = this.searchClass.panelType;
+                }
+                if (this.searchClass.panelTag) {
+                    searchParams.panelTag = this.searchClass.panelTag;
+                }
                 this.$refs.list.$emit('onFetch', {
-                    ...this.searchParams,
+                    ...searchParams,
                 });
             },
             /**
-             * @desc 通过脚本ID删除脚本
-             * @param {Number} id 脚本id
+             * @desc 切换分类
+             * @param {String} searchClass 最新分类
              */
-            removeScript (id) {
-                return this.serviceHandler.scriptDelete({
-                    id,
-                }).then(() => {
-                    this.fetchData();
-                    this.messageSuccess(I18n.t('script.删除成功'));
-                    return true;
-                });
+            handleTagPlanChange (searchClass) {
+                this.searchClass = searchClass;
+                this.fetchData();
+            },
+            /**
+             * @desc 批量编辑 tag
+             */
+            handleBatchEditTag () {
+                this.isShowBatchEditTag = true;
+            },
+            /**
+             * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
+             */
+            handleBatchEditChange () {
+                this.fetchData();
+                this.$refs.list.resetSelect();
+                this.$refs.tagPanelRef.init();
             },
             /**
              * @desc 列表搜索
@@ -443,7 +513,7 @@
              * @desc 新建脚本
              */
             handleCreate () {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'createPublicScript',
                     });
@@ -463,7 +533,18 @@
                     id,
                     ...payload,
                     updateField: Object.keys(payload)[0],
+                }).then(() => {
+                    if (this.$refs.tagPanelRef) {
+                        this.$refs.tagPanelRef.init();
+                    }
                 });
+            },
+            /**
+             * @desc 选择脚本
+             * @param {Array} selectScriptList 选择的脚本
+             */
+            handleSelection (selectScriptList) {
+                this.listSelect = Object.freeze(selectScriptList);
             },
             /**
              * @desc 自定义列表配置
@@ -481,7 +562,7 @@
              * @param {Object} scriptData 脚本数据
              */
             handleVersion (scriptData) {
-                if (this.publicScript) {
+                if (this.isPublicScript) {
                     this.$router.push({
                         name: 'publicScriptVersion',
                         params: {
@@ -504,7 +585,7 @@
             handleExec (scriptData) {
                 this.serviceHandler.getOneOnlineScript({
                     id: scriptData.id,
-                    publicScript: this.publicScript,
+                    publicScript: this.isPublicScript,
                 }).then((script) => {
                     if (!script) {
                         this.$bkMessage({
@@ -553,29 +634,21 @@
              * @desc 自定义表头
              */
             renderHeader (h, data) {
-                /*  eslint-disable vue/script-indent  */
-            return h('div', {
-                directives: [
-                    {
-                        name: 'bkTooltips',
-                        value: {
-                            content: I18n.t('script.显示被执行方案引用的次数'),
-                            placement: 'bottom',
-                        },
-                    },
-                ],
-            }, [
-                data.column.label,
-                h('Icon', {
-                    props: {
-                        type: 'italic-info',
-                    },
-                    style: {
-                        marginLeft: '4px',
-                    },
-                }),
-            ]);
+                return (
+                    <span>
+                        <span>{ data.column.label }</span>
+                        <bk-popover>
+                            <icon
+                                type="circle-italics-info"
+                                style="margin-left: 8px; font-size: 12px;" />
+                            <div slot="content">
+                                <div>{ I18n.t('script.显示被作业引用的次数') }</div>
+                                <div>{ I18n.t('script.显示被执行方案引用的次数') }</div>
+                            </div>
+                        </bk-popover>
+                    </span>
+                );
+            },
         },
-    },
-};
+    };
 </script>

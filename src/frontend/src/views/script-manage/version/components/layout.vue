@@ -26,7 +26,13 @@
 -->
 
 <template>
-    <div ref="layout" class="script-version-page-layout" :class="{ toggled: isOpen }">
+    <div
+        ref="layout"
+        class="script-version-page-layout"
+        :class="{
+            'is-flod': flod,
+            toggled: isOpen,
+        }">
         <div class="layout-left">
             <div class="left-wraper" :style="styles">
                 <slot />
@@ -79,8 +85,9 @@
                 };
             },
             rightStyles () {
+                const paddingBottom = 20;
                 return {
-                    height: `calc(100vh - 20px - ${this.layoutOffsetTop}px)`,
+                    height: `calc(100vh -  ${this.layoutOffsetTop + paddingBottom}px)`,
                 };
             },
         },
@@ -106,6 +113,9 @@
             });
         },
         methods: {
+            /**
+             * @desc 根据屏幕尺寸动态计算 layout 的位置信息
+             */
             init () {
                 const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
                 this.layoutWidth = `${layoutWidth}px`;
@@ -129,6 +139,12 @@
 <style lang='postcss'>
     .script-version-page-layout {
         display: flex;
+
+        &.is-flod {
+            .bk-table-row {
+                cursor: pointer;
+            }
+        }
 
         &.toggled {
             margin-left: -24px;

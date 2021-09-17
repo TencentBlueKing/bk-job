@@ -33,9 +33,10 @@ class ServiceState extends ModuleBase {
     }
 
     // 获取所有服务信息
-    getList (params = {}) {
+    getList (params = {}, paylaod = {}) {
         return Request.get(`${this.module}/listAll`, {
             params,
+            paylaod,
         });
     }
 }

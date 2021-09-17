@@ -25,7 +25,6 @@
 
 import _ from 'lodash';
 import I18n from '@/i18n';
-// import HostNode from '@model/host-node'
 import TaskHostNodeModel from '@model/task-host-node';
 
 const transferModeMap = {
@@ -34,7 +33,7 @@ const transferModeMap = {
     3: I18n.t('保险模式'),
 };
 
-export default class TaskInstanceStepFileInfo {
+export default class TaskInstanceDetailStepFile {
     constructor (payload = {}) {
         this.timeout = payload.timeout;
         this.uploadSpeedLimit = payload.uploadSpeedLimit || 0;
@@ -48,6 +47,10 @@ export default class TaskInstanceStepFileInfo {
         this.fileSourceList = this.initFileSourceList(payload.fileSourceList);
     }
 
+    /**
+     * @desc 上传限速展示文本
+     * @returns { String }
+     */
     get uploadSpeedLimitText () {
         if (this.uploadSpeedLimit < 1) {
             return I18n.t('否');
@@ -55,6 +58,10 @@ export default class TaskInstanceStepFileInfo {
         return `${this.uploadSpeedLimit} (MB/s)`;
     }
 
+    /**
+     * @desc 下载限速展示文本
+     * @returns { String }
+     */
     get downloadSpeedLimitText () {
         if (this.downloadSpeedLimit < 1) {
             return I18n.t('否');
@@ -62,14 +69,27 @@ export default class TaskInstanceStepFileInfo {
         return `${this.downloadSpeedLimit} (MB/s)`;
     }
 
+    /**
+     * @desc 忽略错误展示文本
+     * @returns { String }
+     */
     get ignoreErrorText () {
         return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
     }
 
+    /**
+     * @desc 传输模式展示文本
+     * @returns { String }
+     */
     get transferModeText () {
         return transferModeMap[this.transferMode];
     }
 
+    /**
+     * @desc 处理文件分发目标
+     * @param { Object } fileDestination
+     * @returns { Object }
+     */
     initFileDestination (fileDestination) {
         const {
             account,
@@ -82,12 +102,17 @@ export default class TaskInstanceStepFileInfo {
             server: new TaskHostNodeModel(server || {}),
         };
     }
-    
-    initFileSourceList (payload) {
-        if (!_.isArray(payload)) {
+
+    /**
+     * @desc 处理文件源
+     * @param { Array } fileSourceList
+     * @returns { Array }
+     */
+    initFileSourceList (fileSourceList) {
+        if (!_.isArray(fileSourceList)) {
             return [];
         }
-        return payload.map(item => ({
+        return fileSourceList.map(item => ({
             id: item.id,
             fileType: item.fileType,
             fileLocation: item.fileLocation || [],
@@ -95,10 +120,6 @@ export default class TaskInstanceStepFileInfo {
             fileSize: parseInt(item.fileSize, 10) || 0,
             fileSourceId: item.fileSourceId || 0,
             host: new TaskHostNodeModel(item.host || {}),
-            // host: {
-            //     hostNodeInfo: new HostNode(item.host.hostNodeInfo || {}),
-            //     variable: item.host.variable || ''
-            // },
             account: item.account || 0,
         }));
     }

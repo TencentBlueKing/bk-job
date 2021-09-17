@@ -27,7 +27,7 @@
 import PermissionCheckSource from '../source/permission-check';
 import AuthResultModel from '@model/auth-result';
 import {
-    isPublicScript,
+    checkPublicScript,
     isScriptPermission,
     isJobManagePermission,
     isJobCrontabPermission,
@@ -72,7 +72,7 @@ const permissionCheckService = {
         }
         params = { ...params };
         // 公共脚本权限需要拼接一个public_
-        if (isScriptPermission(params.operation) && isPublicScript(window.BKApp.$route)) {
+        if (isScriptPermission(params.operation) && checkPublicScript(window.BKApp.$route)) {
             params.operation = `public_${params.operation}`;
         }
 

@@ -116,6 +116,12 @@
             }
         }
 
+        &.ingore {
+            .status-text {
+                color: #abd88a;
+            }
+        }
+
         &.success,
         &.forced {
             .status-text {

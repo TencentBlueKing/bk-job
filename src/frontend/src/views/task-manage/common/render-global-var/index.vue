@@ -76,6 +76,7 @@
                     v-if="isOperation"
                     key="create"
                     class="variable-add"
+                    v-test="{ type: 'button', value: 'create_global_variable' }"
                     @click="handleCreate">
                     <Icon type="plus" />
                     <span>{{ $t('template.全局变量.label') }}</span>

@@ -23,60 +23,28 @@
  * IN THE SOFTWARE.
 */
 
-const getValue = (list, tags) => {
-    const newTagsBak = new Set(tags);
-    const newTags = [];
-    list.forEach((tag) => {
-        if (newTagsBak.has(parseInt(tag.id, 10))) {
-            newTags.push(tag);
-            newTagsBak.delete(parseInt(tag.id, 10));
-        }
-    })
-    ;[
-        ...newTagsBak,
-    ].forEach((tag) => {
-        newTags.push({
-            id: '',
-            name: tag,
-        });
-    });
-    return newTags;
-};
+import I18n from '@/i18n';
 
 export default {
-    name: 'jb-tag-input',
-    props: {
-        list: {
-            type: Array,
-            default: () => [],
-        },
-        value: {
-            type: Array,
-            default: () => [],
-        },
+    path: 'setting',
+    name: 'globalSetting',
+    component: () => import('@views/global-setting/'),
+    meta: {
+        title: I18n.t('全局设置'),
+        group: 'manage',
     },
-    render (h) {
-        return h('bk-tag-input', {
-            on: {
-                ...this.$listeners,
-                change: (tags) => {
-                    const value = getValue(this.list, tags);
-                    this.$emit('change', value);
-                    this.$emit('input', value);
-                },
-            },
-            props: {
-                ...this.$attrs,
-                hasDeleteIcon: true,
-                list: this.list,
-                contentMaxHeight: 180,
-                trigger: 'focus',
-                clearable: false,
-                allowCreate: false,
-                allowAutoMatch: true,
-                value: this.value.map(tag => tag.id || tag.name),
-            },
-            ref: 'bkTagInput',
-        });
+    redirect: {
+        name: 'globalSettingIndex',
     },
+    children: [
+        {
+            path: 'index',
+            name: 'globalSettingIndex',
+            component: () => import('@views/global-setting/index/index'),
+            meta: {
+                title: I18n.t('全局设置'),
+                skeleton: 'globalSetUp',
+            },
+        },
+    ],
 };

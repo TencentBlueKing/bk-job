@@ -109,6 +109,7 @@
                 :resizable="false"
                 prop="action"
                 key="action"
+                fixed="right"
                 width="150"
                 align="left">
                 <template slot-scope="{ row }">

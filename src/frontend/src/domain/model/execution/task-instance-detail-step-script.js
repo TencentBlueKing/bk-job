@@ -26,7 +26,7 @@
 import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
 
-export default class TaskInstanceStepScriptInfo {
+export default class TaskInstanceDetailStepScript {
     static STATUS_SCRIPT_NEED_UPDATE = 1
     static STATUS_SCRIPT_DISABLED = 2
 
@@ -49,34 +49,58 @@ export default class TaskInstanceStepScriptInfo {
         this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
     }
 
+    /**
+     * @desc 脚本内容引用的公共脚本
+     * @returns { Boolean }
+     */
     get isReferPublicScript () {
-        return this.scriptSource === TaskInstanceStepScriptInfo.TYPE_SOURCE_PUBLIC;
+        return this.scriptSource === TaskInstanceDetailStepScript.TYPE_SOURCE_PUBLIC;
     }
 
+    /**
+     * @desc 引用脚本被禁用
+     * @returns { Boolean }
+     */
     get isDisabled () {
-        return this.status === TaskInstanceStepScriptInfo.STATUS_SCRIPT_DISABLED;
+        return this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_DISABLED;
     }
 
+    /**
+     * @desc 引用脚本有更新
+     * @returns { Boolean }
+     */
     get isNeedUpdate () {
-        return this.status === TaskInstanceStepScriptInfo.STATUS_SCRIPT_NEED_UPDATE;
+        return this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_NEED_UPDATE;
     }
 
+    /**
+     * @desc 脚本状态展示文本
+     * @returns { String }
+     */
     get scriptStatusHtml () {
-        if (this.status === TaskInstanceStepScriptInfo.STATUS_SCRIPT_NEED_UPDATE) {
+        if (this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_NEED_UPDATE) {
         // eslint-disable-next-line max-len
             return `<i class="job-icon job-icon-script-update" tippy-tips="${I18n.t('引用脚本待更新')}" style="color: #EA3636"></i>`;
         }
-        if (this.status === TaskInstanceStepScriptInfo.STATUS_SCRIPT_DISABLED) {
+        if (this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_DISABLED) {
         // eslint-disable-next-line max-len
             return `<i class="job-icon job-icon-script-disable" tippy-tips="${I18n.t('引用脚本被禁用')}" style="color: #EA3636"></i>`;
         }
         return '';
     }
 
+    /**
+     * @desc 脚本来源展示文本
+     * @returns { String }
+     */
     get scriptSourceText () {
-        return this.scriptSource === TaskInstanceStepScriptInfo.TYPE_SOURCE_LOCAL ? I18n.t('手工录入') : I18n.t('脚本引用');
+        return this.scriptSource === TaskInstanceDetailStepScript.TYPE_SOURCE_LOCAL ? I18n.t('手工录入') : I18n.t('脚本引用');
     }
 
+    /**
+     * @desc 忽略错误展示文本
+     * @returns { String }
+     */
     get ignoreErrorText () {
         return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
     }
