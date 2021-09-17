@@ -146,7 +146,6 @@ spring:
     password: __BK_JOB_EXECUTE_RABBITMQ_PASSWORD__
     virtual-host: __BK_JOB_EXECUTE_RABBITMQ_VHOST__
   redis:
-    mode: __BK_JOB_EXECUTE_REDIS_MODE__
     host: __BK_JOB_EXECUTE_REDIS_HOST__
     port: __BK_JOB_EXECUTE_REDIS_PORT__
     sentinel:

@@ -24,7 +24,6 @@ spring:
       poolName: "job-file-gateway"
       validationTimeout: 5000
   redis:
-    mode: __BK_JOB_FILE_GATEWAY_REDIS_MODE__
     host: __BK_JOB_FILE_GATEWAY_REDIS_HOST__
     port: __BK_JOB_FILE_GATEWAY_REDIS_PORT__
     sentinel:

@@ -1,9 +1,9 @@
 spring:
   security:
     user:
-      name: __BK_JOB_ACTUATOR_USERNAME__
-      password: __BK_JOB_ACTUATOR_PASSWORD__
-      roles: ENDPOINT_ADMIN
+      name: __BK_JOB_SECURITY_USERNAME__
+      password: __BK_JOB_SECURITY_PASSWORD__
+      roles: ADMIN
 app:
   code: __BK_JOB_APP_CODE__
   secret: __BK_JOB_APP_SECRET__
