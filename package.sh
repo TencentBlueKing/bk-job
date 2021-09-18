@@ -150,7 +150,7 @@ fi
 cp -r support-files/bkiam/ release/job/support-files/
 cp -r support-files/dependJarInfo/ release/job/support-files/
 # Package dependJarLists
-if [[ ! -d "support-files/dependJarLists/" ]]; then
+if [[ -d "support-files/dependJarLists/" ]]; then
   cp -r support-files/dependJarLists/ release/job/support-files/
 fi
 # Package SQL by modules
