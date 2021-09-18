@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <card-layout class="script-version-dashboard" :title="$t('dashboard.脚本版本状态分布')">
+    <card-layout
+        class="script-version-dashboard"
+        :title="$t('dashboard.脚本版本状态分布')">
         <div class="wraper">
             <div ref="dashboard" style="width: 180px; height: 180px;" />
             <div class="item-list">
