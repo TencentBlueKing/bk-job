@@ -36,7 +36,10 @@
                     v-bk-tooltips.right="calcPercentage(data.LINUX)"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="linux" class="platform-flag" style="font-size: 38px;" />
+            <Icon
+                type="linux"
+                class="platform-flag"
+                style="font-size: 38px;" />
         </card-layout>
         <card-layout title="Windows OS">
             <div class="container">
@@ -47,7 +50,10 @@
                     v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="windows" class="platform-flag" style="font-size: 28px;" />
+            <Icon
+                type="windows"
+                class="platform-flag"
+                style="font-size: 28px;" />
         </card-layout>
         <card-layout title="AIX OS">
             <div class="container">
@@ -58,9 +64,12 @@
                     v-bk-tooltips.right="calcPercentage(data.AIX)"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="aix" class="platform-flag" style="font-size: 24px;" />
+            <Icon
+                type="aix"
+                class="platform-flag"
+                style="font-size: 24px;" />
         </card-layout>
-        <card-layout title="其他 OS">
+        <card-layout :title="$t('dashboard.未知 OS')">
             <div class="container">
                 <div class="nums">{{ data.OTHERS | formatNumber }}</div>
                 <div
@@ -69,7 +78,10 @@
                     v-bk-tooltips.right="calcPercentage(data.OTHERS)"
                     style="width: 24px; height: 24px;" />
             </div>
-            <Icon type="others" class="platform-flag" style="font-size: 28px;" />
+            <Icon
+                type="others"
+                class="platform-flag"
+                style="font-size: 28px;" />
         </card-layout>
     </div>
 </template>

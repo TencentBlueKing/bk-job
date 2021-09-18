@@ -316,7 +316,7 @@ export default {
     分组预览: 'Dynamic Group Preview',
     本页全选: 'Page All',
     跨页全选: 'Form All',
-    清除所有数据: 'Uncheck All',
+    清除所有勾选: 'Uncheck All',
     本页已选: 'Page select',
     条: {
         host: 'host(s)',
