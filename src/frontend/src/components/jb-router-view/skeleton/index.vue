@@ -38,17 +38,18 @@
     </transition>
 </template>
 <script>
-    import List from './list';
-    import SetVariable from './set-variable';
-    import TaskList from './task-list';
-    import TaskDetail from './task-detail';
-    import TaskExecutiveDetail from './task-execute-detail';
-    import HistoryStep from './history-step';
-    import TaskStepDetail from './task-step-detail';
-    import ExecutePlan from './execute-plan';
-    import Notify from './notify';
-    import GlobalSetUp from './global-set-up';
-    import Dashboard from './dashboard';
+    import List from './components/list';
+    import SetVariable from './components/set-variable';
+    import TaskList from './components/task-list';
+    import TaskDetail from './components/task-detail';
+    import TaskExecutiveDetail from './components/task-execute-detail';
+    import HistoryStep from './components/history-step';
+    import TaskStepDetail from './components/task-step-detail';
+    import ExecutePlan from './components/execute-plan';
+    import Notify from './components/notify';
+    import GlobalSetUp from './components/global-set-up';
+    import Dashboard from './components/dashboard';
+    import ScriptVersion from './components/script-version';
 
     const comMap = {
         list: List,
@@ -62,6 +63,7 @@
         notify: Notify,
         globalSetUp: GlobalSetUp,
         dashboard: Dashboard,
+        scriptVersion: ScriptVersion,
     };
 
     export default {

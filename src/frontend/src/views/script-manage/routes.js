@@ -61,7 +61,7 @@ export default {
             component: () => import('@views/script-manage/version'),
             meta: {
                 title: I18n.t('版本管理'),
-                skeleton: 'list',
+                skeleton: 'scriptVersion',
             },
         },
         {
