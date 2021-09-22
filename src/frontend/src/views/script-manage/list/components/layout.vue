@@ -74,7 +74,6 @@
             };
         },
         mounted () {
-            console.log(this);
             const {
                 top,
             } = getOffset(this.$refs.handler);

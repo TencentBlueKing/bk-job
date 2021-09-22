@@ -57,7 +57,9 @@ export default {
         脚本: 'Script(s)',
         标签: 'Tags',
         新增标签: 'New',
+        批量流转关联项: 'Convert',
         批量流转关联项成功: 'Convert success',
         范围不能为空: 'Target is required',
+        提交: 'Commit',
     },
 };

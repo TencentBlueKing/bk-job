@@ -196,6 +196,7 @@
             v-model="isShowEditRelate"
             :width="480"
             :title="$t('tag.批量流转关联项')"
+            :ok-text="$t('tag.提交')"
             header-position="left">
             <batch-edit-relate
                 ref="batchEditRelate"

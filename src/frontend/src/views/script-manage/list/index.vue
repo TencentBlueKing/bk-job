@@ -256,7 +256,7 @@
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEditTag"
-                :template-list="listSelect"
+                :script-list="listSelect"
                 @on-change="handleBatchEditChange" />
         </jb-dialog>
         <jb-sideslider
@@ -498,7 +498,6 @@
              */
             handleBatchEditChange () {
                 this.fetchData();
-                this.$refs.list.resetSelect();
                 this.$refs.tagPanelRef.init();
             },
             /**
