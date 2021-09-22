@@ -188,11 +188,13 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
                 matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
             }
+            log.info("matchedFavoredTemplates: {}", matchedFavoredTemplates);
             existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
             if (existAnyMatchedFavoredTemplate && !getAll) {
                 resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);
             }
         }
+
 
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
 
@@ -259,10 +261,12 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (matchedFavoredTemplates.size() <= start) {
             List<TaskTemplateInfoDTO> matchedFavoredTemplatesOnCurrentPage =
                 matchedFavoredTemplates.subList(start, Math.min(matchedFavoredTemplates.size(), start + length));
+            log.info("matchedFavoredTemplatesOnCurrentPage: {}", matchedFavoredTemplatesOnCurrentPage);
             if (CollectionUtils.isNotEmpty(matchedFavoredTemplatesOnCurrentPage)) {
                 templatePageData.getData().addAll(0, matchedFavoredTemplatesOnCurrentPage);
             }
         }
+        log.info("templatePageData: {}", templatePageData);
         if (length < templatePageData.getData().size()) {
             templatePageData.getData().subList(length, templatePageData.getData().size()).clear();
         }
