@@ -188,7 +188,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
                 matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
             }
-            log.info("matchedFavoredTemplates: {}", matchedFavoredTemplates);
             existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
             if (existAnyMatchedFavoredTemplate && !getAll) {
                 resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);

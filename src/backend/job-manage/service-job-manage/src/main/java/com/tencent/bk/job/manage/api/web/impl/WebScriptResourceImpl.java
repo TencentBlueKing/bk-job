@@ -487,7 +487,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                         i18nService.getI18n(String.valueOf(ErrorCode.SCRIPT_NAME_INVALID)));
                 }
                 scriptService.updateScriptName(appId, username, scriptId, scriptInfoUpdateReq.getScriptName());
-            } else if (isUpdateTags) {
+            } else {
                 List<TagDTO> tags = new ArrayList<>();
                 if (scriptInfoUpdateReq.getScriptTags() != null && !scriptInfoUpdateReq.getScriptTags().isEmpty()) {
                     for (TagVO tagVO : scriptInfoUpdateReq.getScriptTags()) {
