@@ -257,7 +257,10 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Override
     public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
-        return scriptDAO.listScripts(scriptQuery);
+        List<ScriptDTO> scripts =  scriptDAO.listScripts(scriptQuery);
+        //设置标签
+        setTags(scripts);
+        return scripts;
     }
 
     @Override
