@@ -353,16 +353,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                                             List<Long> templateIds) {
         List<TaskTemplateInfoDTO> taskTemplateBasicInfo =
             templateService.listTaskTemplateBasicInfoByIds(appId, templateIds);
-        List<TaskTemplateVO> templateBasicInfoVOList = new ArrayList<>();
-        for (TaskTemplateInfoDTO templateInfo : taskTemplateBasicInfo) {
-            if (templateInfo != null) {
-                TaskTemplateVO taskTemplateVO = new TaskTemplateVO();
-                taskTemplateVO.setId(templateInfo.getId());
-                taskTemplateVO.setName(templateInfo.getName());
-
-                templateBasicInfoVOList.add(taskTemplateVO);
-            }
-        }
+        List<TaskTemplateVO> templateBasicInfoVOList = taskTemplateBasicInfo.stream()
+            .map(TaskTemplateInfoDTO::toVO).collect(Collectors.toList());
         return ServiceResponse.buildSuccessResp(templateBasicInfoVOList);
     }
 

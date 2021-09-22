@@ -136,6 +136,7 @@ public interface WebPublicScriptResource {
     ServiceResponse<List<ScriptVO>> listScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
+        @ApiParam(value = "脚本ID列表，多个ID之间用,分隔", required = true)
         @RequestParam("ids") List<String> scriptIds);
 
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
