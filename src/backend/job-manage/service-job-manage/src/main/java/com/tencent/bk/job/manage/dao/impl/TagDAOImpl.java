@@ -297,4 +297,9 @@ public class TagDAOImpl implements TagDAO {
     public boolean deleteTagById(Long tagId) {
         return context.deleteFrom(TABLE).where(TABLE.ID.eq(ULong.valueOf(tagId))).execute() == 1;
     }
+
+    @Override
+    public boolean isExistDuplicateName(Long appId, String tagName) {
+        return context.fetchExists(TABLE, TABLE.NAME.eq(tagName));
+    }
 }

@@ -261,7 +261,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         templatePageData.getData().addAll(0, matchedFavoredTemplates);
         // subList
         int fromIndex = start;
-        int endIndex = Math.max(start + length, templatePageData.getData().size());
+        int endIndex = Math.min(start + length, templatePageData.getData().size());
         List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(fromIndex, endIndex));
         templatePageData.setData(templates);
     }
