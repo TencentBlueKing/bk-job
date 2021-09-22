@@ -371,4 +371,17 @@ public class TagServiceImpl implements TagService {
         });
         return resourceIds;
     }
+
+    public boolean checkTagName(Long appId, Long tagId, String name) {
+        if (tagId == null) {
+            return !tagDAO.isExistDuplicateName(appId, name);
+        } else {
+            TagDTO tag = tagDAO.getTagById(tagId);
+            if (tag != null && tag.getName().equals(name)) {
+                return true;
+            } else {
+                return !tagDAO.isExistDuplicateName(appId, name);
+            }
+        }
+    }
 }

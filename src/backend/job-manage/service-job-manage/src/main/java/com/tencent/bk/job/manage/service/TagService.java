@@ -90,7 +90,6 @@ public interface TagService {
 
     /**
      * 批量创建不存在的标签
-     *
      */
     List<TagDTO> createNewTagIfNotExist(List<TagDTO> tags, Long appId, String username);
 
@@ -141,9 +140,19 @@ public interface TagService {
 
     List<ResourceTagDTO> buildResourceTags(Integer resourceType, List<String> resourceIds, List<Long> tagIds);
 
-    Map<Long, Long>  countResourcesByTag(List<ResourceTagDTO> tags);
+    Map<Long, Long> countResourcesByTag(List<ResourceTagDTO> tags);
 
     List<String> listAppTaggedResourceIds(Long appId, Integer resourceType);
 
     List<String> listResourceIdsWithAllTagIds(Integer resourceType, List<Long> tagIds);
+
+    /**
+     * 检查标签名称
+     *
+     * @param appId 业务ID
+     * @param tagId 标签ID
+     * @param name  标签名称
+     * @return 是否合法
+     */
+    boolean checkTagName(Long appId, Long tagId, String name);
 }
