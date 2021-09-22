@@ -3,14 +3,6 @@ spring:
     name: job-analysis
   profiles:
     active: prod
-  cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-analysis
-        instance-id: job-analysis-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
 
 ribbon:
   ServerListRefreshInterval: 3000
