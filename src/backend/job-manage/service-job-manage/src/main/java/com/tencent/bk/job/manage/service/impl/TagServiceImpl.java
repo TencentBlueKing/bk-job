@@ -119,6 +119,11 @@ public class TagServiceImpl implements TagService {
         tag.setId(tag.getId());
         tag.setLastModifyUser(username);
         checkRequiredParam(tag);
+
+        boolean isTagExist = checkTagName(tag.getAppId(), tag.getId(), tag.getName());
+        if (isTagExist) {
+            throw new ServiceException(ErrorCode.TAG_ALREADY_EXIST);
+        }
         return tagDAO.updateTagById(tag);
     }
 
