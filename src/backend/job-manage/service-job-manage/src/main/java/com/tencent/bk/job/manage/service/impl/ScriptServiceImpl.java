@@ -225,6 +225,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     private List<TagDTO> buildTags(List<ResourceTagDTO> resourceTags) {
+        log.info("Build tags: {}", JsonUtils.toJson(resourceTags));
         return resourceTags.stream().map(ResourceTagDTO::getTag)
             .sorted(Comparator.comparing(TagDTO::getName)).collect(Collectors.toList());
     }
