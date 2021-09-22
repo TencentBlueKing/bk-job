@@ -58,4 +58,8 @@ public class ResourceTagDTO {
         this.resourceId = resourceId;
         this.tagId = tagId;
     }
+
+    public String buildResourceTagKey() {
+        return resourceType + ":" + resourceId + ":" + tagId;
+    }
 }

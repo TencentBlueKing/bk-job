@@ -53,6 +53,14 @@ public class ResourceTagDAOImpl implements ResourceTagDAO {
     }
 
     @Override
+    public List<ResourceTagDTO> listAllResourceTags() {
+        Result<? extends Record> result = context.select(ALL_FIELDS)
+            .from(TABLE)
+            .fetch();
+        return result.map(this::extract);
+    }
+
+    @Override
     public List<ResourceTagDTO> listResourceTags(Long tagId) {
         Result<? extends Record> result = context.select(ALL_FIELDS)
             .from(TABLE)

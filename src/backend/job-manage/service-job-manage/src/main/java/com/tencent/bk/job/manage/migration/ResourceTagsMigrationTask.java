@@ -38,7 +38,12 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * 标签数据迁移，从task_template/script表的tags字段迁移到resource_tag表
+ */
 @Service
 @Slf4j
 public class ResourceTagsMigrationTask {
@@ -60,6 +65,16 @@ public class ResourceTagsMigrationTask {
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
         addTemplateTags(resourceTags);
         addAppScriptTags(resourceTags);
+
+        List<ResourceTagDTO> existResourceTags = resourceTagDAO.listAllResourceTags();
+        if (CollectionUtils.isNotEmpty(existResourceTags)) {
+            Set<String> existResourceTagKeys = existResourceTags.stream().map(ResourceTagDTO::buildResourceTagKey)
+                .collect(Collectors.toSet());
+            resourceTags = resourceTags.stream().filter(resourceTag -> {
+                String resourceTagKey = resourceTag.buildResourceTagKey();
+                return !existResourceTagKeys.contains(resourceTagKey);
+            }).collect(Collectors.toList());
+        }
 
         log.info("Batch save resource tags start...");
         resourceTagDAO.batchSaveResourceTags(resourceTags);
