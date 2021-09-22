@@ -351,11 +351,6 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     @Override
     public ServiceResponse<List<TaskTemplateVO>> listTemplateBasicInfoByIds(String username, Long appId,
                                                                             List<Long> templateIds) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
-        }
         List<TaskTemplateInfoDTO> taskTemplateBasicInfo =
             templateService.listTaskTemplateBasicInfoByIds(appId, templateIds);
         List<TaskTemplateVO> templateBasicInfoVOList = new ArrayList<>();

@@ -256,6 +256,11 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
+    public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
+        return scriptDAO.listScripts(scriptQuery);
+    }
+
+    @Override
     public ScriptDTO saveScript(String operator, Long appId, ScriptDTO script) throws ServiceException {
         log.info("Begin to save script, operator={}, appId={}, scriptName={}", operator, appId, script.getName());
         long targetAppId = appId;

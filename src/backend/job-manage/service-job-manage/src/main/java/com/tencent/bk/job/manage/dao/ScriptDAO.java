@@ -38,13 +38,21 @@ import java.util.Map;
 
 public interface ScriptDAO {
     /**
-     * 根据条件查询脚本
+     * 根据条件查询脚本-分页
      *
      * @param scriptQuery
      * @param baseSearchCondition
      * @return
      */
     PageData<ScriptDTO> listPageScript(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 根据条件查询脚本
+     *
+     * @param scriptQuery 查询条件
+     * @return 脚本列表
+     */
+    List<ScriptDTO> listScripts(ScriptQuery scriptQuery);
 
     /**
      * 根据scriptId获取脚本信息
@@ -369,7 +377,7 @@ public interface ScriptDAO {
     /**
      * 获取脚本标签(兼容老版本)
      *
-     * @return Map<ScriptId, List<TagId>>
+     * @return Map<ScriptId, List < TagId>>
      */
     Map<String, List<Long>> listAllScriptTagsCompatible();
 }

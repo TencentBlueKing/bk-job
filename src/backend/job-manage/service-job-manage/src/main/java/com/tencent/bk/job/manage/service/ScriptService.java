@@ -143,6 +143,14 @@ public interface ScriptService {
     ) throws ServiceException;
 
     /**
+     * 根据条件查询脚本
+     *
+     * @param scriptQuery 查询条件
+     * @return 脚本列表
+     */
+    List<ScriptDTO> listScripts(ScriptQuery scriptQuery);
+
+    /**
      * 保存脚本
      *
      * @param operator 操作者

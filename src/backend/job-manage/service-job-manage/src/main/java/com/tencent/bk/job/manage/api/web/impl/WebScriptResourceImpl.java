@@ -508,6 +508,21 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
+    public ServiceResponse<List<ScriptVO>> listScriptBasicInfo(String username, Long appId, List<String> scriptIds) {
+        ScriptQuery scriptQuery = new ScriptQuery();
+        scriptQuery.setAppId(appId);
+        scriptQuery.setIds(scriptIds);
+        List<ScriptDTO> scripts = scriptService.listScripts(scriptQuery);
+        if (CollectionUtils.isNotEmpty(scripts)) {
+            scripts = scripts.stream().filter(script -> script.getAppId().equals(appId)).collect(Collectors.toList());
+        }
+
+        List<ScriptVO> scriptVOS = scripts.stream().map(ScriptConverter::convertToScriptVO)
+            .collect(Collectors.toList());
+        return ServiceResponse.buildSuccessResp(scriptVOS);
+    }
+
+    @Override
     public ServiceResponse<List<ScriptVO>> listScriptVersion(String username, Long appId, String scriptId) {
         JobContextUtil.setAppId(appId);
         // 鉴权

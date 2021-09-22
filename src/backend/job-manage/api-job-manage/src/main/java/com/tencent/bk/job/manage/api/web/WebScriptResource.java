@@ -159,6 +159,15 @@ public interface WebScriptResource {
         @RequestParam(value = "order", required = false)
             Integer order);
 
+    @ApiOperation(value = "获取脚本列表(仅包含基础信息)", produces = "application/json")
+    @GetMapping("/app/{appId}/script/basic/list")
+    ServiceResponse<List<ScriptVO>> listScriptBasicInfo(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "业务ID", required = true)
+        @PathVariable("appId") Long appId,
+        @RequestParam("ids") List<String> scriptIds);
+
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
     @GetMapping("/app/{appId}/script/{scriptId}/scriptVersion/list")
     ServiceResponse<List<ScriptVO>> listScriptVersion(

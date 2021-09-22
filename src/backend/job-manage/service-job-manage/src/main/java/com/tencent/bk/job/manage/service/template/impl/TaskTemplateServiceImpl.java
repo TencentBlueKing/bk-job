@@ -258,18 +258,12 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                                          List<TaskTemplateInfoDTO> matchedFavoredTemplates,
                                          Integer start,
                                          Integer length) {
-        if (matchedFavoredTemplates.size() <= start) {
-            List<TaskTemplateInfoDTO> matchedFavoredTemplatesOnCurrentPage =
-                matchedFavoredTemplates.subList(start, Math.min(matchedFavoredTemplates.size(), start + length));
-            log.info("matchedFavoredTemplatesOnCurrentPage: {}", matchedFavoredTemplatesOnCurrentPage);
-            if (CollectionUtils.isNotEmpty(matchedFavoredTemplatesOnCurrentPage)) {
-                templatePageData.getData().addAll(0, matchedFavoredTemplatesOnCurrentPage);
-            }
-        }
-        log.info("templatePageData: {}", templatePageData);
-        if (length < templatePageData.getData().size()) {
-            templatePageData.getData().subList(length, templatePageData.getData().size()).clear();
-        }
+        templatePageData.getData().addAll(0, matchedFavoredTemplates);
+        // subList
+        int fromIndex = start;
+        int endIndex = Math.max(start + length, templatePageData.getData().size());
+        List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(fromIndex, endIndex));
+        templatePageData.setData(templates);
     }
 
     private void transformTagConditionToTemplateIds(TaskTemplateQuery query) {
