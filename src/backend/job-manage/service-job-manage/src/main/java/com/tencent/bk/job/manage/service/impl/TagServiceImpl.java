@@ -373,7 +373,7 @@ public class TagServiceImpl implements TagService {
     }
 
     public boolean checkTagName(Long appId, Long tagId, String name) {
-        if (tagId == null) {
+        if (tagId == null || tagId == 0) {
             return !tagDAO.isExistDuplicateName(appId, name);
         } else {
             TagDTO tag = tagDAO.getTagById(tagId);
