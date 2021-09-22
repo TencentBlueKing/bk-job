@@ -137,4 +137,6 @@ public interface TagDAO {
      */
     boolean isExistDuplicateName(Long appId, String tagName);
 
+    List<TagDTO> listAllTags();
+
 }

@@ -512,6 +512,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(appId);
         scriptQuery.setIds(scriptIds);
+        scriptQuery.setPublicScript(appId == PUBLIC_APP_ID);
         List<ScriptDTO> scripts = scriptService.listScripts(scriptQuery);
         if (CollectionUtils.isNotEmpty(scripts)) {
             scripts = scripts.stream().filter(script -> script.getAppId().equals(appId)).collect(Collectors.toList());

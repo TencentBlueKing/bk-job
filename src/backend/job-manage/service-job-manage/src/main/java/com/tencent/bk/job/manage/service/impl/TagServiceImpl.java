@@ -384,4 +384,9 @@ public class TagServiceImpl implements TagService {
             }
         }
     }
+
+    @Override
+    public List<TagDTO> listAllTags() {
+        return tagDAO.listAllTags();
+    }
 }

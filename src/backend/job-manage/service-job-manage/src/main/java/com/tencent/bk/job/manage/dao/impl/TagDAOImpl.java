@@ -302,4 +302,10 @@ public class TagDAOImpl implements TagDAO {
     public boolean isExistDuplicateName(Long appId, String tagName) {
         return context.fetchExists(TABLE, TABLE.NAME.eq(tagName));
     }
+
+    @Override
+    public List<TagDTO> listAllTags() {
+        Result<Record> result = context.select(ALL_FIELDS).from(Tag.TAG).fetch();
+        return result.size() > 0 ? result.map(this::extractRecord) : Collections.emptyList();
+    }
 }

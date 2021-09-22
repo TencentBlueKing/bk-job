@@ -155,4 +155,6 @@ public interface TagService {
      * @return 是否合法
      */
     boolean checkTagName(Long appId, Long tagId, String name);
+
+    List<TagDTO> listAllTags();
 }
