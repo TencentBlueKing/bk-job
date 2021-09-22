@@ -173,9 +173,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(TaskTemplateQuery query,
                                                                         List<Long> favoredTemplateIdList) {
-        boolean matchAnyFavoredTemplate = false;
+        boolean existAnyMatchedFavoredTemplate = false;
         List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
-        List<TaskTemplateInfoDTO> matchedFavoredTemplatesOnCurrentPage = null;
 
         BaseSearchCondition baseSearchCondition = query.getBaseSearchCondition();
         int start = baseSearchCondition.getStartOrDefault(0);
@@ -187,55 +186,28 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             transformTagConditionToTemplateIds(query);
 
             if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
-                TaskTemplateQuery favoredTemplateQuery = query.clone();
-                favoredTemplateQuery.setExcludeTemplateIds(null);
-                if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
-                    // remain common template ids
-                    favoredTemplateQuery.getIds().retainAll(favoredTemplateIdList);
-                } else {
-                    favoredTemplateQuery.setIds(favoredTemplateIdList);
-                }
-                if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
-                    matchedFavoredTemplates = taskTemplateDAO.listTaskTemplates(favoredTemplateQuery);
-                }
-                log.debug("FavoredTemplateQuery: {}, templates: {}", favoredTemplateQuery, matchedFavoredTemplates);
-                if (CollectionUtils.isNotEmpty(matchedFavoredTemplates)) {
-                    matchAnyFavoredTemplate = true;
-                }
+                matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
             }
-
-            if (matchAnyFavoredTemplate && !getAll) {
-                if (matchedFavoredTemplates.size() <= start) {
-                    baseSearchCondition.setStart(start - matchedFavoredTemplates.size());
-                    matchedFavoredTemplatesOnCurrentPage = null;
-                } else {
-                    matchedFavoredTemplatesOnCurrentPage = matchedFavoredTemplates.subList(start,
-                        Math.min(matchedFavoredTemplates.size(), start + length));
-                    baseSearchCondition.setStart(0);
-                    baseSearchCondition.setLength(Math.max(1, start + length - matchedFavoredTemplates.size()));
-                }
+            existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
+            if (existAnyMatchedFavoredTemplate && !getAll) {
+                resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);
             }
         }
 
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
 
-        log.debug("TemplateQuery: {}, templates: {}", query, templatePageData);
-
-        if (matchAnyFavoredTemplate) {
-            if (CollectionUtils.isNotEmpty(matchedFavoredTemplatesOnCurrentPage)) {
-                templatePageData.getData().addAll(0, matchedFavoredTemplatesOnCurrentPage);
-            }
-            if (!getAll) {
-                if (length < templatePageData.getData().size()) {
-                    templatePageData.getData().subList(length, templatePageData.getData().size()).clear();
-                }
+        if (existAnyMatchedFavoredTemplate) {
+            if (getAll) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplates);
+            } else {
+                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, start, length);
             }
         }
 
         if (!getAll) {
             templatePageData.setStart(start);
             templatePageData.setPageSize(length);
-            if (matchAnyFavoredTemplate) {
+            if (existAnyMatchedFavoredTemplate) {
                 templatePageData.setTotal(matchedFavoredTemplates.size() + templatePageData.getTotal());
             }
         }
@@ -246,6 +218,54 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
         setTags(query.getAppId(), templatePageData.getData());
         return templatePageData;
+    }
+
+
+    private List<TaskTemplateInfoDTO> queryFavoredTemplates(TaskTemplateQuery query,
+                                                            List<Long> favoredTemplateIdList) {
+        List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
+        if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
+            TaskTemplateQuery favoredTemplateQuery = query.clone();
+            favoredTemplateQuery.setExcludeTemplateIds(null);
+            if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
+                // remain common template ids
+                favoredTemplateQuery.getIds().retainAll(favoredTemplateIdList);
+            } else {
+                favoredTemplateQuery.setIds(favoredTemplateIdList);
+            }
+            if (CollectionUtils.isNotEmpty(favoredTemplateQuery.getIds())) {
+                matchedFavoredTemplates = taskTemplateDAO.listTaskTemplates(favoredTemplateQuery);
+            }
+        }
+        return matchedFavoredTemplates;
+    }
+
+    private void resetPageConditionWhenExistFavoredTemplate(BaseSearchCondition baseSearchCondition,
+                                                            Integer start,
+                                                            Integer length,
+                                                            List<TaskTemplateInfoDTO> matchedFavoredTemplates) {
+        if (matchedFavoredTemplates.size() <= start) {
+            baseSearchCondition.setStart(start - matchedFavoredTemplates.size());
+        } else {
+            baseSearchCondition.setStart(0);
+            baseSearchCondition.setLength(Math.max(1, start + length - matchedFavoredTemplates.size()));
+        }
+    }
+
+    private void rebuildTemplatePageData(PageData<TaskTemplateInfoDTO> templatePageData,
+                                         List<TaskTemplateInfoDTO> matchedFavoredTemplates,
+                                         Integer start,
+                                         Integer length) {
+        if (matchedFavoredTemplates.size() <= start) {
+            List<TaskTemplateInfoDTO> matchedFavoredTemplatesOnCurrentPage =
+                matchedFavoredTemplates.subList(start, Math.min(matchedFavoredTemplates.size(), start + length));
+            if (CollectionUtils.isNotEmpty(matchedFavoredTemplatesOnCurrentPage)) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplatesOnCurrentPage);
+            }
+        }
+        if (length < templatePageData.getData().size()) {
+            templatePageData.getData().subList(length, templatePageData.getData().size()).clear();
+        }
     }
 
     private void transformTagConditionToTemplateIds(TaskTemplateQuery query) {
