@@ -2,13 +2,6 @@ spring:
   application:
     name: job-execute
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-execute
-        instance-id: job-execute-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     stream:
       bindings:
         taskInput:
@@ -162,8 +155,6 @@ spring:
         max-wait: 1ms
       shutdown-timeout: 100ms
 
-server:
-  port: __BK_JOB_EXECUTE_SERVER_PORT__
 
 feign:
   client:

@@ -2,7 +2,6 @@ server:
   http:
     enabled: __BK_JOB_GATEWAY_SERVER_HTTP_ENABLED__
     port: __BK_JOB_GATEWAY_SERVER_HTTP_PORT__
-  port: __BK_JOB_GATEWAY_SERVER_HTTPS_PORT__
   ssl:
     enabled: true
     key-store-type: __BK_JOB_GATEWAY_SERVER_SSL_KEYSTORE_TYPE__
