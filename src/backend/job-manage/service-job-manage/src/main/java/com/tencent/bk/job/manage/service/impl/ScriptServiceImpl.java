@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -225,7 +226,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     private List<TagDTO> buildTags(List<ResourceTagDTO> resourceTags) {
-        return resourceTags.stream().map(ResourceTagDTO::getTag)
+        return resourceTags.stream().map(ResourceTagDTO::getTag).filter(Objects::nonNull)
             .sorted(Comparator.comparing(TagDTO::getName)).collect(Collectors.toList());
     }
 
@@ -253,6 +254,14 @@ public class ScriptServiceImpl implements ScriptService {
             matchScriptIds = tagService.listResourceIdsWithAllTagIds(resourceType, query.getTagIds());
         }
         query.setIds(matchScriptIds);
+    }
+
+    @Override
+    public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
+        List<ScriptDTO> scripts =  scriptDAO.listScripts(scriptQuery);
+        //设置标签
+        setTags(scripts);
+        return scripts;
     }
 
     @Override

@@ -102,6 +102,11 @@ public class TagServiceImpl implements TagService {
         tag.setCreator(username);
         tag.setLastModifyUser(username);
         checkRequiredParam(tag);
+
+        boolean isTagExist = tagDAO.isExistDuplicateName(tag.getAppId(), tag.getName());
+        if (isTagExist) {
+            throw new ServiceException(ErrorCode.TAG_ALREADY_EXIST);
+        }
         return tagDAO.insertTag(tag);
     }
 
@@ -114,6 +119,11 @@ public class TagServiceImpl implements TagService {
         tag.setId(tag.getId());
         tag.setLastModifyUser(username);
         checkRequiredParam(tag);
+
+        boolean isTagExist = checkTagName(tag.getAppId(), tag.getId(), tag.getName());
+        if (isTagExist) {
+            throw new ServiceException(ErrorCode.TAG_ALREADY_EXIST);
+        }
         return tagDAO.updateTagById(tag);
     }
 
@@ -365,5 +375,23 @@ public class TagServiceImpl implements TagService {
             }
         });
         return resourceIds;
+    }
+
+    public boolean checkTagName(Long appId, Long tagId, String name) {
+        if (tagId == null || tagId == 0) {
+            return !tagDAO.isExistDuplicateName(appId, name);
+        } else {
+            TagDTO tag = tagDAO.getTagById(tagId);
+            if (tag != null && tag.getName().equals(name)) {
+                return true;
+            } else {
+                return !tagDAO.isExistDuplicateName(appId, name);
+            }
+        }
+    }
+
+    @Override
+    public List<TagDTO> listAllTags() {
+        return tagDAO.listAllTags();
     }
 }

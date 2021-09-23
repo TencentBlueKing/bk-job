@@ -320,4 +320,10 @@ public class WebTagResourceImpl implements WebTagResource {
             });
         return resources;
     }
+
+    @Override
+    public ServiceResponse<Boolean> checkTagName(String username, Long appId, Long tagId, String name) {
+        boolean isTagNameValid = tagService.checkTagName(appId, tagId, name);
+        return ServiceResponse.buildSuccessResp(isTagNameValid);
+    }
 }
