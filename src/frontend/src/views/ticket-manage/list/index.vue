@@ -154,7 +154,7 @@
                 :resizable="false"
                 key="action"
                 fixed="right"
-                width="80"
+                width="100"
                 align="left">
                 <template slot-scope="{ row }">
                     <auth-button

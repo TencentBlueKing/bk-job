@@ -137,7 +137,7 @@
                 :label="$t('script.被引用.colHead')"
                 prop="related"
                 key="related"
-                width="100"
+                width="120"
                 :render-header="renderHeader"
                 align="right">
                 <template slot-scope="{ row }">
