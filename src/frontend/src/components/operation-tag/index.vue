@@ -101,7 +101,7 @@
                     {
                         required: true,
                         message: I18n.t('标签名不能为空'),
-                        trigger: 'change',
+                        trigger: 'blur',
                     },
                     {
                         validator: tagNameRule.validator,
