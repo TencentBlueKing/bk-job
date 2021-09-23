@@ -160,6 +160,7 @@
                     <bk-button
                         class="mr10"
                         theme="primary"
+                        :disabled="row.isEditRelateDisabled"
                         text
                         @click="handleEditRelate(row)">
                         {{ $t('tag.批量流转关联项') }}
