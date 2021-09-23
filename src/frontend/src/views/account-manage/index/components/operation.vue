@@ -32,8 +32,8 @@
             :model="formData"
             :rules="rules"
             :key="`${formData.category}_${formData.type}`"
-            v-test="{ type: 'form', value: 'createAccount' }"
-            form-type="vertical">
+            form-type="vertical"
+            v-test="{ type: 'form', value: 'createAccount' }">
             <jb-form-item :label="$t('account.用途')" required style="margin-bottom: 20px;">
                 <div class="radio-button-group-wraper">
                     <bk-radio-group

@@ -32,22 +32,26 @@
             <Icon
                 type="upload"
                 @click="handleUploadScript"
-                v-bk-tooltips="$t('上传脚本')" />
+                v-bk-tooltips="$t('上传脚本')"
+                v-test="{ type: 'button', value: 'uploadScript' }" />
             <Icon
                 type="history"
                 @click.stop="handleShowHistory"
-                v-bk-tooltips="$t('历史缓存')" />
+                v-bk-tooltips="$t('历史缓存')"
+                v-test="{ type: 'button', value: 'scriptEditHistory' }" />
             <Icon
                 type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen" />
+                @click="handleFullScreen"
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
         </template>
         <div slot="left">
             <jb-form
                 ref="form"
                 :model="formData"
                 form-type="vertical"
-                :rules="rules">
+                :rules="rules"
+                v-test="{ type: 'form', value: 'copyCreateScript' }">
                 <jb-form-item
                     :label="$t('script.版本号.label')"
                     required
@@ -86,15 +90,21 @@
                 class="w120 mr10"
                 :loading="isSubmiting"
                 theme="primary"
-                @click="handleSubmit">
+                @click="handleSubmit"
+                v-test="{ type: 'button', value: 'copyCreateScriptSubmit' }">
                 {{ $t('script.提交') }}
             </bk-button>
             <bk-button
                 class="mr10"
-                @click="handleDebugScript">
+                @click="handleDebugScript"
+                v-test="{ type: 'button', value: 'debugScript' }">
                 {{ $t('script.调试') }}
             </bk-button>
-            <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+            <bk-button
+                @click="handleCancel"
+                v-test="{ type: 'button', value: 'copyCreateScriptCancel' }">
+                {{ $t('script.取消') }}
+            </bk-button>
         </template>
     </layout>
 </template>

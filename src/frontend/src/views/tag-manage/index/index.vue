@@ -32,7 +32,8 @@
                 class="w120"
                 auth="tag/create"
                 theme="primary"
-                @click="handleCreate">
+                @click="handleCreate"
+                v-test="{ type: 'button', value: 'createTag' }">
                 {{ $t('tag.新建') }}
             </auth-button>
             <template #right>
@@ -49,7 +50,8 @@
             :data-source="dataSource"
             :size="tableSize"
             :search-control="() => $refs.search"
-            @on-refresh="handleListChange">
+            @on-refresh="handleListChange"
+            v-test="{ type: 'list', value: 'tag' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -154,7 +156,8 @@
                         auth="tag/edit"
                         :resource-id="row.id"
                         text
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'button', value: 'editTag' }">
                         {{ $t('tag.编辑') }}
                     </auth-button>
                     <bk-button
@@ -162,7 +165,8 @@
                         theme="primary"
                         :disabled="row.isEditRelateDisabled"
                         text
-                        @click="handleEditRelate(row)">
+                        @click="handleEditRelate(row)"
+                        v-test="{ type: 'button', value: 'editTagRelate' }">
                         {{ $t('tag.批量流转关联项') }}
                     </bk-button>
                     <jb-popover-confirm
@@ -173,7 +177,8 @@
                             text
                             :permission="row.canManage"
                             auth="tag/delete"
-                            :resource-id="row.id">
+                            :resource-id="row.id"
+                            v-test="{ type: 'button', value: 'deleteTag' }">
                             {{ $t('tag.删除') }}
                         </auth-button>
                     </jb-popover-confirm>

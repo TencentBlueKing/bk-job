@@ -32,15 +32,18 @@
             <Icon
                 type="upload"
                 @click="handleUploadScript"
-                v-bk-tooltips="$t('上传脚本')" />
+                v-bk-tooltips="$t('上传脚本')"
+                v-test="{ type: 'button', value: 'uploadScript' }" />
             <Icon
                 type="history"
                 @click.stop="handleShowHistory"
-                v-bk-tooltips="$t('历史缓存')" />
+                v-bk-tooltips="$t('历史缓存')"
+                v-test="{ type: 'button', value: 'scriptEditHistory' }" />
             <Icon
                 type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen" />
+                @click="handleFullScreen"
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
         </template>
         <div slot="left">
             <jb-form
@@ -48,7 +51,8 @@
                 :model="formData"
                 :rules="rules"
                 form-type="vertical"
-                class="edit-script-form">
+                class="edit-script-form"
+                v-test="{ type: 'form', value: 'editScript' }">
                 <jb-form-item
                     :label="$t('script.版本号.label')"
                     required>
@@ -77,15 +81,21 @@
                 theme="primary"
                 :loading="isSubmiting"
                 @click="handleSubmit"
-                class="w120 mr10">
+                class="w120 mr10"
+                v-test="{ type: 'button', value: 'editScriptSubmit' }">
                 {{ $t('script.提交') }}
             </bk-button>
             <bk-button
                 class="mr10"
-                @click="handleDebugScript">
+                @click="handleDebugScript"
+                v-test="{ type: 'button', value: 'debugScript' }">
                 {{ $t('script.调试') }}
             </bk-button>
-            <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+            <bk-button
+                @click="handleCancel"
+                v-test="{ type: 'button', value: 'editScriptCancel' }">
+                {{ $t('script.取消') }}
+            </bk-button>
         </template>
     </layout>
 </template>

@@ -95,14 +95,14 @@
                 <bk-button
                     class="w120 mr10"
                     theme="primary"
-                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }"
                     :loading="isSubmiting"
-                    @click="handleSubmit">
+                    @click="handleSubmit"
+                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }">
                     {{ $t('execution.执行') }}
                 </bk-button>
                 <bk-button
-                    v-test="{ type: 'button', value: 'fastPushFileSubmit' }"
-                    @click="handleCancel">
+                    @click="handleCancel"
+                    v-test="{ type: 'button', value: 'fastPushFileReset' }">
                     {{ $t('execution.重置') }}
                 </bk-button>
             </template>
