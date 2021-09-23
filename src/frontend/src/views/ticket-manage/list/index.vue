@@ -32,7 +32,8 @@
                 theme="primary"
                 auth="ticket/create"
                 @click="handleCreate"
-                class="w120">
+                class="w120"
+                v-test="{ type: 'button', value: 'createTicket' }">
                 {{ $t('ticket.新建') }}
             </auth-button>
             <template #right>
@@ -48,7 +49,8 @@
             ref="list"
             :data-source="getTicketList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'ticket' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 :label="$t('ticket.凭证ID')"
@@ -163,7 +165,8 @@
                         :permission="row.canManage"
                         text
                         class="mr10"
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'list', value: 'editTicket' }">
                         {{ $t('ticket.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -174,7 +177,8 @@
                             auth="ticket/edit"
                             :permission="row.canManage"
                             :resource-id="row.id"
-                            text>
+                            text
+                            v-test="{ type: 'list', value: 'deleteTicket' }">
                             {{ $t('ticket.删除') }}
                         </auth-button>
                     </jb-popover-confirm>

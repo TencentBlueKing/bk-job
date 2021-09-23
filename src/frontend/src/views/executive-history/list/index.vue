@@ -52,7 +52,8 @@
             ref="list"
             :data-source="fetchExecutionHistoryList"
             :search-control="() => $refs.search"
-            class="executive-history-table">
+            class="executive-history-table"
+            v-test="{ type: 'list', value: 'execHistory' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"

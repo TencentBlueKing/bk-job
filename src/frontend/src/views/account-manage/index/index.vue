@@ -32,8 +32,8 @@
                 style="width: 120px;"
                 auth="account/create"
                 theme="primary"
-                v-test="{ type: 'button', value: 'createAccount' }"
-                @click="handleAdd">
+                @click="handleAdd"
+                v-test="{ type: 'button', value: 'createAccount' }">
                 {{ $t('account.新建') }}
             </auth-button>
             <template #right>
@@ -49,7 +49,8 @@
             ref="list"
             :data-source="dataSource"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'account' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -132,8 +133,8 @@
                         auth="account/edit"
                         :resource-id="row.id"
                         text
-                        v-test="{ type: 'button', value: 'editAccount' }"
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'button', value: 'editAccount' }">
                         {{ $t('account.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -144,8 +145,8 @@
                             text
                             :permission="row.canManage"
                             auth="account/delete"
-                            v-test="{ type: 'button', value: 'deleteAccount' }"
-                            :resource-id="row.id">
+                            :resource-id="row.id"
+                            v-test="{ type: 'button', value: 'deleteAccount' }">
                             {{ $t('account.删除') }}
                         </auth-button>
                     </jb-popover-confirm>

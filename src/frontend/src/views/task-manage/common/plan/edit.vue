@@ -32,8 +32,15 @@
         :title="$t('template.编辑执行方案')"
         :plan-name="name"
         :loading="isLoading">
-        <jb-form ref="editPlanForm" :model="formData" :rules="rules">
-            <jb-form-item :label="$t('template.方案名称')" required property="name">
+        <jb-form
+            ref="editPlanForm"
+            :model="formData"
+            :rules="rules"
+            v-test="{ type: 'form', value: 'editPlan' }">
+            <jb-form-item
+                :label="$t('template.方案名称')"
+                required
+                property="name">
                 <jb-input
                     :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
                     class="input"
@@ -82,10 +89,15 @@
                 theme="primary"
                 class="w120 mr10"
                 :loading="submitLoading"
-                @click="handleSumbit">
+                @click="handleSumbit"
+                v-test="{ type: 'button', value: 'editPlanSave' }">
                 {{ $t('template.保存') }}
             </bk-button>
-            <bk-button @click="handleCancle">{{ $t('template.取消') }}</bk-button>
+            <bk-button
+                @click="handleCancle"
+                v-test="{ type: 'button', value: 'editPlanCancel' }">
+                {{ $t('template.取消') }}
+            </bk-button>
         </template>
     </layout>
 </template>
