@@ -218,5 +218,12 @@ public class TagDAOIntegrationTest {
         assertThat(tagDAO.deleteTagById(999999L)).isEqualTo(false);
     }
 
+    @Test
+    @DisplayName("检查标签名称是否重复")
+    public void testCheckDuplicateTagName() {
+        assertThat(tagDAO.isExistDuplicateName(1L, "test1")).isEqualTo(true);
+        assertThat(tagDAO.isExistDuplicateName(1L, "new-tag")).isEqualTo(false);
+    }
+
 
 }

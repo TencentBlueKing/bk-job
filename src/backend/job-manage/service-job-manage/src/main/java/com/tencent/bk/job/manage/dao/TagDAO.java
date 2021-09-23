@@ -128,4 +128,15 @@ public interface TagDAO {
      */
     boolean deleteTagById(Long tagId);
 
+    /**
+     * 业务下是否存在同名标签
+     *
+     * @param appId   业务ID
+     * @param tagName 标签名称
+     * @return 是否存在
+     */
+    boolean isExistDuplicateName(Long appId, String tagName);
+
+    List<TagDTO> listAllTags();
+
 }

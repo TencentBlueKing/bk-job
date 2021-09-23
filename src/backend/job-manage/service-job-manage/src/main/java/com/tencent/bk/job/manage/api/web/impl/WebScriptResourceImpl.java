@@ -487,7 +487,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                         i18nService.getI18n(String.valueOf(ErrorCode.SCRIPT_NAME_INVALID)));
                 }
                 scriptService.updateScriptName(appId, username, scriptId, scriptInfoUpdateReq.getScriptName());
-            } else if (isUpdateTags) {
+            } else {
                 List<TagDTO> tags = new ArrayList<>();
                 if (scriptInfoUpdateReq.getScriptTags() != null && !scriptInfoUpdateReq.getScriptTags().isEmpty()) {
                     for (TagVO tagVO : scriptInfoUpdateReq.getScriptTags()) {
@@ -505,6 +505,22 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 i18nService.getI18n(String.valueOf(e.getErrorCode())));
         }
         return ServiceResponse.buildSuccessResp(null);
+    }
+
+    @Override
+    public ServiceResponse<List<ScriptVO>> listScriptBasicInfo(String username, Long appId, List<String> scriptIds) {
+        ScriptQuery scriptQuery = new ScriptQuery();
+        scriptQuery.setAppId(appId);
+        scriptQuery.setIds(scriptIds);
+        scriptQuery.setPublicScript(appId == PUBLIC_APP_ID);
+        List<ScriptDTO> scripts = scriptService.listScripts(scriptQuery);
+        if (CollectionUtils.isNotEmpty(scripts)) {
+            scripts = scripts.stream().filter(script -> script.getAppId().equals(appId)).collect(Collectors.toList());
+        }
+
+        List<ScriptVO> scriptVOS = scripts.stream().map(ScriptConverter::convertToScriptVO)
+            .collect(Collectors.toList());
+        return ServiceResponse.buildSuccessResp(scriptVOS);
     }
 
     @Override

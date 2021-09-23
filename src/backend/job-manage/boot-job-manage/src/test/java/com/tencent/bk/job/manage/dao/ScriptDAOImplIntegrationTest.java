@@ -163,6 +163,19 @@ class ScriptDAOImplIntegrationTest {
     }
 
     @Test
+    void whenListScriptThenReturnResult() {
+        ScriptQuery scriptCondition = new ScriptQuery();
+        scriptCondition.setAppId(2L);
+        scriptCondition.setType(1);
+        scriptCondition.setName("test");
+
+        List<ScriptDTO> scripts = scriptDAO.listScripts(scriptCondition);
+        assertThat(scripts).isNotEmpty();
+        assertThat(scripts.size()).isEqualTo(2);
+        assertThat(scripts).extracting("id").containsOnly("dc65a20cd91811e993a2309c2357fc12", "d68700a6db8711e9ac466c92bf62a896");
+    }
+
+    @Test
     public void whenGetScriptByScriptIdThenReturn() {
         ScriptDTO script = scriptDAO.getScriptByScriptId("dc65a20cd91811e993a2309c2357fc12");
         assertThat(script.getId()).isEqualTo("dc65a20cd91811e993a2309c2357fc12");

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.query;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -36,6 +37,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class ScriptQuery {
     /**
      * 脚本版本ID，对应某个版本的脚本的ID

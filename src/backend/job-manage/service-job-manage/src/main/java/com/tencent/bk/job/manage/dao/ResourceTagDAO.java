@@ -33,6 +33,8 @@ public interface ResourceTagDAO {
 
     boolean batchSaveResourceTags(List<ResourceTagDTO> resourceTags) throws DAOException;
 
+    List<ResourceTagDTO> listAllResourceTags();
+
     List<ResourceTagDTO> listResourceTags(Long tagId);
 
     List<ResourceTagDTO> listResourceTags(List<Long> tagIds);

@@ -114,7 +114,7 @@ public class ResourceTagMigrationTask extends BaseUpgradeTask {
                 log.error("Fail: code!=0");
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");
             }
-            log.info("Migration tags successfully!tags: {}", resp.getData());
+            log.info("Migration tags successfully!tags: {}", JsonUtils.toJson(resp.getData()));
         } catch (Exception e) {
             log.error("Fail: caught exception", e);
             throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");

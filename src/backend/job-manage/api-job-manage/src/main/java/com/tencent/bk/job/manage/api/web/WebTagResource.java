@@ -121,4 +121,17 @@ public interface WebTagResource {
             "appId") Long appId,
         @ApiParam(value = "标签 ID", required = true) @PathVariable("tagId") Long tagId,
         @ApiParam("批量修改资源引用的标签的请求") @RequestBody BatchPatchResourceTagReq tagBatchUpdateReq);
+
+    @ApiOperation(value = "检查标签名称是否合法", produces = "application/json")
+    @GetMapping("/tag/{tagId}/checkName")
+    ServiceResponse<Boolean> checkTagName(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId") Long appId,
+        @ApiParam(value = "标签ID，新建时填 0", required = true)
+        @PathVariable("tagId") Long tagId,
+        @ApiParam(value = "名称", required = true)
+        @RequestParam(value = "name") String name);
+
 }
