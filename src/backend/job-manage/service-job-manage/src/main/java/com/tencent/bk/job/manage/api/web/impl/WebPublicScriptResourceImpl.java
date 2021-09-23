@@ -50,7 +50,6 @@ import java.util.List;
 @RestController
 @Slf4j
 public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
-    private static final Long PUBLIC_APP_ID = JobConstants.PUBLIC_APP_ID;
     /**
      * 脚本处理的通用服务，与普通脚本不同的是，公共脚本的业务ID=0
      * 鉴权在通用脚本逻辑中处理
@@ -64,22 +63,23 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
 
     @Override
     public ServiceResponse<ScriptVO> getScriptVersionDetail(String username, Long scriptVersionId) {
-        return scriptResourceProxy.getScriptVersionDetail(username, PUBLIC_APP_ID, scriptVersionId);
+        return scriptResourceProxy.getScriptVersionDetail(username, JobConstants.PUBLIC_APP_ID, scriptVersionId);
     }
 
     @Override
     public ServiceResponse<ScriptVO> getScript(String username, String scriptId) {
-        return scriptResourceProxy.getScript(username, PUBLIC_APP_ID, scriptId);
+        return scriptResourceProxy.getScript(username, JobConstants.PUBLIC_APP_ID, scriptId);
     }
 
     @Override
     public ServiceResponse<ScriptVO> getScriptBasicInfo(String username, String scriptId) {
-        return scriptResourceProxy.getScriptBasicInfo(username, PUBLIC_APP_ID, scriptId);
+        return scriptResourceProxy.getScriptBasicInfo(username, JobConstants.PUBLIC_APP_ID, scriptId);
     }
 
     @Override
     public ServiceResponse<ScriptVO> getOnlineScriptVersionByScriptId(String username, String scriptId) {
-        return scriptResourceProxy.getOnlineScriptVersionByScriptId(username, PUBLIC_APP_ID, scriptId, true);
+        return scriptResourceProxy.getOnlineScriptVersionByScriptId(username, JobConstants.PUBLIC_APP_ID,
+            scriptId, true);
     }
 
     @Override
@@ -87,88 +87,99 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
                                                               String creator, String lastModifyUser, String scriptId,
                                                               Integer start, Integer pageSize, String orderField,
                                                               Integer order) {
-        return scriptResourceProxy.listPageScript(username, PUBLIC_APP_ID, true, name, type, tags, null,
-            null, creator, lastModifyUser, scriptId, start, pageSize, orderField, order);
+        return scriptResourceProxy.listPageScript(username, JobConstants.PUBLIC_APP_ID, true, name,
+            type, tags, null, null, creator, lastModifyUser, scriptId,
+            start, pageSize, orderField, order);
+    }
+
+    @Override
+    public ServiceResponse<List<ScriptVO>> listScriptBasicInfo(String username, List<String> scriptIds) {
+        return scriptResourceProxy.listScriptBasicInfo(username, JobConstants.PUBLIC_APP_ID, scriptIds);
     }
 
     @Override
     public ServiceResponse<List<ScriptVO>> listScriptVersion(String username, String scriptId) {
-        return scriptResourceProxy.listScriptVersion(username, PUBLIC_APP_ID, scriptId);
+        return scriptResourceProxy.listScriptVersion(username, JobConstants.PUBLIC_APP_ID, scriptId);
     }
 
     @Override
     public ServiceResponse listAppScriptNames(String username, String scriptName) {
-        return scriptResourceProxy.listAppScriptNames(username, PUBLIC_APP_ID, scriptName);
+        return scriptResourceProxy.listAppScriptNames(username, JobConstants.PUBLIC_APP_ID, scriptName);
     }
 
     @Override
     public ServiceResponse<List<BasicScriptVO>> listScriptOnline(String username, Boolean publicScript) {
-        return scriptResourceProxy.listScriptOnline(username, PUBLIC_APP_ID, true);
+        return scriptResourceProxy.listScriptOnline(username, JobConstants.PUBLIC_APP_ID, true);
     }
 
     @Override
     public ServiceResponse updateScriptInfo(String username, String scriptId, ScriptInfoUpdateReq scriptInfoUpdateReq) {
-        return scriptResourceProxy.updateScriptInfo(username, PUBLIC_APP_ID, scriptId, scriptInfoUpdateReq);
+        return scriptResourceProxy.updateScriptInfo(username, JobConstants.PUBLIC_APP_ID, scriptId,
+            scriptInfoUpdateReq);
     }
 
     @Override
     public ServiceResponse<ScriptVO> saveScript(String username, ScriptCreateUpdateReq scriptCreateUpdateReq) {
-        return scriptResourceProxy.saveScript(username, PUBLIC_APP_ID, scriptCreateUpdateReq);
+        return scriptResourceProxy.saveScript(username, JobConstants.PUBLIC_APP_ID, scriptCreateUpdateReq);
     }
 
     @Override
     public ServiceResponse publishScriptVersion(String username, String scriptId, Long scriptVersionId) {
-        return scriptResourceProxy.publishScriptVersion(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+        return scriptResourceProxy.publishScriptVersion(username, JobConstants.PUBLIC_APP_ID, scriptId,
+            scriptVersionId);
     }
 
     @Override
     public ServiceResponse disableScriptVersion(String username, String scriptId, Long scriptVersionId) {
-        return scriptResourceProxy.disableScriptVersion(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+        return scriptResourceProxy.disableScriptVersion(username, JobConstants.PUBLIC_APP_ID, scriptId,
+            scriptVersionId);
     }
 
     @Override
     public ServiceResponse deleteScriptByScriptId(String username, String scriptId) {
-        return scriptResourceProxy.deleteScriptByScriptId(username, PUBLIC_APP_ID, scriptId);
+        return scriptResourceProxy.deleteScriptByScriptId(username, JobConstants.PUBLIC_APP_ID, scriptId);
     }
 
     @Override
     public ServiceResponse deleteScriptByScriptVersionId(String username, Long scriptVersionId) {
-        return scriptResourceProxy.deleteScriptByScriptVersionId(username, PUBLIC_APP_ID, scriptVersionId);
+        return scriptResourceProxy.deleteScriptByScriptVersionId(username, JobConstants.PUBLIC_APP_ID, scriptVersionId);
     }
 
     @Override
     public ServiceResponse<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(String username,
                                                                                           String scriptId,
                                                                                           Long scriptVersionId) {
-        return scriptResourceProxy.listScriptSyncTemplateSteps(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+        return scriptResourceProxy.listScriptSyncTemplateSteps(username, JobConstants.PUBLIC_APP_ID, scriptId,
+            scriptVersionId);
     }
 
     @Override
     public ServiceResponse<List<ScriptSyncResultVO>> syncScripts(String username, String scriptId,
                                                                  Long scriptVersionId, ScriptSyncReq scriptSyncReq) {
-        return scriptResourceProxy.syncScripts(username, PUBLIC_APP_ID, scriptId, scriptVersionId, scriptSyncReq);
+        return scriptResourceProxy.syncScripts(username, JobConstants.PUBLIC_APP_ID, scriptId, scriptVersionId,
+            scriptSyncReq);
     }
 
     @Override
     public ServiceResponse<ScriptCiteCountVO> getPublicScriptCiteCount(String username, String scriptId,
                                                                        Long scriptVersionId) {
-        return scriptResourceProxy.getScriptCiteCount(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+        return scriptResourceProxy.getScriptCiteCount(username, JobConstants.PUBLIC_APP_ID, scriptId, scriptVersionId);
     }
 
     @Override
     public ServiceResponse<ScriptCiteInfoVO> getPublicScriptCiteInfo(String username, String scriptId,
                                                                      Long scriptVersionId) {
-        return scriptResourceProxy.getScriptCiteInfo(username, PUBLIC_APP_ID, scriptId, scriptVersionId);
+        return scriptResourceProxy.getScriptCiteInfo(username, JobConstants.PUBLIC_APP_ID, scriptId, scriptVersionId);
     }
 
     @Override
     public ServiceResponse<?> batchUpdatePublicScriptTags(String username,
-                                                                ScriptTagBatchPatchReq tagBatchUpdateReq) {
-        return scriptResourceProxy.batchUpdateScriptTags(username, PUBLIC_APP_ID, tagBatchUpdateReq);
+                                                          ScriptTagBatchPatchReq tagBatchUpdateReq) {
+        return scriptResourceProxy.batchUpdateScriptTags(username, JobConstants.PUBLIC_APP_ID, tagBatchUpdateReq);
     }
 
     @Override
     public ServiceResponse<TagCountVO> getTagPublicScriptCount(String username) {
-        return scriptResourceProxy.getTagScriptCount(username, PUBLIC_APP_ID);
+        return scriptResourceProxy.getTagScriptCount(username, JobConstants.PUBLIC_APP_ID);
     }
 }

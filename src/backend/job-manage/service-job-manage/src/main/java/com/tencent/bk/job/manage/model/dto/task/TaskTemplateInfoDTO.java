@@ -25,9 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
@@ -167,12 +165,7 @@ public class TaskTemplateInfoDTO {
     public static TaskTemplateInfoDTO fromReq(String username, Long appId,
                                               TaskTemplateCreateUpdateReq templateCreateUpdateReq) {
 
-        log.debug("{}|Converting req to dto|{}|{}|{}", JobContextUtil.getRequestId(), username, appId,
-            JsonMapper.nonEmptyMapper().toJson(templateCreateUpdateReq));
         TaskTemplateInfoDTO templateInfo = fromBasicReq(username, appId, templateCreateUpdateReq);
-        if (templateInfo == null) {
-            return null;
-        }
         if (CollectionUtils.isNotEmpty(templateCreateUpdateReq.getSteps())) {
             templateInfo.setStepList(
                 templateCreateUpdateReq.getSteps().stream().map(TaskStepDTO::fromVO).collect(Collectors.toList()));
@@ -186,8 +179,6 @@ public class TaskTemplateInfoDTO {
             templateInfo.setVariableList(Collections.emptyList());
         }
 
-        log.debug("{}|Converting result|{}", JobContextUtil.getRequestId(),
-            JsonMapper.nonEmptyMapper().toJson(templateInfo));
         return templateInfo;
     }
 
@@ -199,8 +190,7 @@ public class TaskTemplateInfoDTO {
         if (appId == null || appId <= 0) {
             throw new InvalidParamException("appId", "appId must be a positive integer");
         }
-        log.debug("{}|Converting req to dto|{}|{}|{}", JobContextUtil.getRequestId(), username, appId,
-            JsonMapper.nonEmptyMapper().toJson(templateBasicInfoUpdateReq));
+
         TaskTemplateInfoDTO templateInfo = new TaskTemplateInfoDTO();
         templateInfo.setAppId(appId);
         templateInfo.setLastModifyUser(username);
@@ -221,8 +211,6 @@ public class TaskTemplateInfoDTO {
             templateInfo.setTags(Collections.emptyList());
         }
 
-        log.debug("{}|Converting result|{}", JobContextUtil.getRequestId(),
-            JsonMapper.nonEmptyMapper().toJson(templateInfo));
         return templateInfo;
     }
 

@@ -143,6 +143,23 @@ public class ScriptDAOImpl implements ScriptDAO {
     }
 
     @Override
+    public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
+        Result<? extends Record> result =
+            create.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
+                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
+                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+                .from(TB_SCRIPT)
+                .where(buildScriptConditionList(scriptQuery, null))
+                .orderBy(TB_SCRIPT.NAME.asc())
+                .fetch();
+        List<ScriptDTO> scripts = new ArrayList<>();
+        if (result.size() != 0) {
+            scripts = result.map(this::extractScriptData);
+        }
+        return scripts;
+    }
+
+    @Override
     public ScriptDTO getScriptByScriptId(String scriptId) {
         Record record = create.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
             TB_SCRIPT.TYPE, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME,
@@ -234,11 +251,14 @@ public class ScriptDAOImpl implements ScriptDAO {
             if (StringUtils.isNotBlank(scriptQuery.getName())) {
                 conditions.add(TB_SCRIPT.NAME.like("%" + scriptQuery.getName() + "%"));
             }
-            if (StringUtils.isNotBlank(baseSearchCondition.getCreator())) {
-                conditions.add(TB_SCRIPT.CREATOR.eq(baseSearchCondition.getCreator()));
-            }
-            if (StringUtils.isNotBlank(baseSearchCondition.getLastModifyUser())) {
-                conditions.add(TB_SCRIPT.LAST_MODIFY_USER.eq(baseSearchCondition.getLastModifyUser()));
+
+            if (baseSearchCondition != null) {
+                if (StringUtils.isNotBlank(baseSearchCondition.getCreator())) {
+                    conditions.add(TB_SCRIPT.CREATOR.eq(baseSearchCondition.getCreator()));
+                }
+                if (StringUtils.isNotBlank(baseSearchCondition.getLastModifyUser())) {
+                    conditions.add(TB_SCRIPT.LAST_MODIFY_USER.eq(baseSearchCondition.getLastModifyUser()));
+                }
             }
             Long appId = scriptQuery.getAppId();
             if (appId != null) {

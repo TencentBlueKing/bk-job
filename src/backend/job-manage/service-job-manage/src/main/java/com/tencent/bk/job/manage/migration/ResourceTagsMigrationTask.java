@@ -30,68 +30,101 @@ import com.tencent.bk.job.manage.dao.ResourceTagDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
+import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.service.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * 标签数据迁移，从task_template/script表的tags字段迁移到resource_tag表
+ */
 @Service
 @Slf4j
 public class ResourceTagsMigrationTask {
     private final ResourceTagDAO resourceTagDAO;
+    private final TagService tagService;
     private final TaskTemplateDAO taskTemplateDAO;
     private final ScriptDAO scriptDAO;
 
     @Autowired
     public ResourceTagsMigrationTask(ResourceTagDAO resourceTagDAO,
+                                     TagService tagService,
                                      TaskTemplateDAO taskTemplateDAO,
                                      ScriptDAO scriptDAO) {
         this.resourceTagDAO = resourceTagDAO;
+        this.tagService = tagService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.scriptDAO = scriptDAO;
     }
 
     public ServiceResponse<List<ResourceTagDTO>> execute() {
         log.info("Get resource tags for script/template start...");
+        List<TagDTO> existingTags = tagService.listAllTags();
+        Set<Long> existingTagIds = existingTags.stream().map(TagDTO::getId).collect(Collectors.toSet());
+
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
-        addTemplateTags(resourceTags);
-        addAppScriptTags(resourceTags);
+        addTemplateTags(resourceTags, existingTagIds);
+        addAppScriptTags(resourceTags, existingTagIds);
+
+        List<ResourceTagDTO> existResourceTags = resourceTagDAO.listAllResourceTags();
+        if (CollectionUtils.isNotEmpty(existResourceTags)) {
+            Set<String> existResourceTagKeys = existResourceTags.stream().map(ResourceTagDTO::buildResourceTagKey)
+                .collect(Collectors.toSet());
+            resourceTags = resourceTags.stream().filter(resourceTag -> {
+                String resourceTagKey = resourceTag.buildResourceTagKey();
+                return !existResourceTagKeys.contains(resourceTagKey);
+            }).collect(Collectors.toList());
+        }
 
         log.info("Batch save resource tags start...");
-        resourceTagDAO.batchSaveResourceTags(resourceTags);
+        saveResourceTags(resourceTags);
         log.info("Batch save resource tags successfully");
 
         return ServiceResponse.buildSuccessResp(resourceTags);
     }
 
-
-    private void addTemplateTags(List<ResourceTagDTO> resourceTags) {
-        Map<Long, List<Long>> templateTags =
-            taskTemplateDAO.listAllTemplateTagsCompatible();
-        int templateCount = templateTags.size();
-        templateTags.forEach((templateId, tagIds) -> {
-            if (CollectionUtils.isNotEmpty(tagIds)) {
-                tagIds.forEach(tagId -> resourceTags.add(
-                    new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(),
-                        String.valueOf(templateId), tagId)));
-
-            }
-        });
-        log.info("Build template tag records successfully, templateSize: {}", templateCount);
+    @Transactional(rollbackFor = {Throwable.class})
+    public void saveResourceTags(List<ResourceTagDTO> resourceTags) {
+        resourceTagDAO.batchSaveResourceTags(resourceTags);
     }
 
-    private void addAppScriptTags(List<ResourceTagDTO> resourceTags) {
+    private void addTemplateTags(List<ResourceTagDTO> resourceTags, Set<Long> existingTagIds) {
+        Map<Long, List<Long>> templateTags =
+            taskTemplateDAO.listAllTemplateTagsCompatible();
+        templateTags.forEach((templateId, tagIds) -> {
+            if (CollectionUtils.isNotEmpty(tagIds)) {
+                tagIds.forEach(tagId -> {
+                    if (existingTagIds.contains(tagId)) {
+                        resourceTags.add(new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(),
+                            String.valueOf(templateId), tagId));
+                    }
+                });
+            }
+        });
+        log.info("Build template tag records successfully");
+    }
+
+    private void addAppScriptTags(List<ResourceTagDTO> resourceTags, Set<Long> existingTagIds) {
         Map<String, List<Long>> scriptTags =
             scriptDAO.listAllScriptTagsCompatible();
         int scriptCount = scriptTags.size();
         scriptTags.forEach((scriptId, tagIds) -> {
             if (CollectionUtils.isNotEmpty(tagIds)) {
-                tagIds.forEach(tagId -> resourceTags.add(
-                    new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), scriptId, tagId)));
+                tagIds.forEach(tagId -> {
+                    if (existingTagIds.contains(tagId)) {
+                        resourceTags.add(new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(),
+                            scriptId, tagId));
+                    }
+                });
             }
         });
         log.info("Build script tag records successfully, scriptSize: {}", scriptCount);
