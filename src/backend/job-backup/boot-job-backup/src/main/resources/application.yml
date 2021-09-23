@@ -3,13 +3,6 @@ spring:
     name: job-backup
   profiles:
     active: prod
-  cloud:
-    consul:
-      discovery:
-        service-name: 'job-backup'
-        instance-id: job-backup-${machine.ip}-${server.port}
-        enabled: true
-        prefer-ip-address: true
 ribbon:
   ServerListRefreshInterval: 3000
 

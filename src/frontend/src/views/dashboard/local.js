@@ -120,5 +120,6 @@ export default {
         最近3天: 'Last 3 days',
         最近7天: 'Last 7 days',
         最近30天: 'Last 30 days',
+        截图: 'Screenshot',
     },
 };

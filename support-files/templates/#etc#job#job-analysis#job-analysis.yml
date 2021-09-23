@@ -2,13 +2,6 @@ spring:
   application:
     name: job-analysis
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-analysis
-        instance-id: job-analysis-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     refresh:
       extra-refreshable: javax.sql.DataSource
   datasource:
@@ -31,7 +24,6 @@ spring:
     password: __BK_JOB_ANALYSIS_RABBITMQ_PASSWORD__
     virtual-host: __BK_JOB_ANALYSIS_RABBITMQ_VHOST__
   redis:
-    mode: __BK_JOB_ANALYSIS_REDIS_MODE__
     host: __BK_JOB_ANALYSIS_REDIS_HOST__
     port: __BK_JOB_ANALYSIS_REDIS_PORT__
     sentinel:
@@ -58,7 +50,4 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 300000
-
-server:
-  port: __BK_JOB_ANALYSIS_SERVER_PORT__
 

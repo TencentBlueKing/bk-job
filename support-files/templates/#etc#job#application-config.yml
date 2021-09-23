@@ -1,0 +1,25 @@
+spring:
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: __CONSUL_HTTP_PORT__
+      scheme: __CONSUL_SCHEME__
+      discovery:
+        service-name: 'job-config'
+        instance-id: job-config-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
+      #tls:
+        #key-store-instance-type:
+        #key-store-path:
+        #key-store-password:
+        #certificate-path:
+        #certificate-password:
+  security:
+    user:
+      name: __BK_JOB_SECURITY_USERNAME__
+      password: __BK_JOB_SECURITY_PASSWORD__
+      role: ADMIN
+
+server:
+  port: __BK_JOB_CONFIG_SERVER_PORT__

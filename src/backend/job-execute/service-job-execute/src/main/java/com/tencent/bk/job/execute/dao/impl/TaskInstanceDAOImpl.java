@@ -101,38 +101,38 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        Record result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
+        Record record = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
             TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,
             TABLE.APP_CODE).from(TABLE)
             .where(TABLE.ID.eq(taskInstanceId)).fetchOne();
-        return extractInfo(result);
+        return extractInfo(record);
     }
 
-    private TaskInstanceDTO extractInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private TaskInstanceDTO extractInfo(Record record) {
+        if (record == null) {
             return null;
         }
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        taskInstance.setId(result.get(TaskInstance.TASK_INSTANCE.ID));
-        taskInstance.setTaskId(result.get(TaskInstance.TASK_INSTANCE.TASK_ID));
-        taskInstance.setCronTaskId(result.get(TaskInstance.TASK_INSTANCE.CRON_TASK_ID));
-        taskInstance.setTaskTemplateId(result.get(TaskInstance.TASK_INSTANCE.TASK_TEMPLATE_ID));
-        taskInstance.setDebugTask(result.get(TaskInstance.TASK_INSTANCE.IS_DEBUG_TASK) == 1);
-        taskInstance.setAppId(result.get(TaskInstance.TASK_INSTANCE.APP_ID));
-        taskInstance.setName(result.get(TaskInstance.TASK_INSTANCE.NAME));
-        taskInstance.setType(JooqDataTypeUtil.getIntegerFromByte(result.get(TaskInstance.TASK_INSTANCE.TYPE)));
-        taskInstance.setOperator(result.get(TaskInstance.TASK_INSTANCE.OPERATOR));
-        taskInstance.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(result.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
-        taskInstance.setCurrentStepId(result.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
-        taskInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(result.get(TaskInstance.TASK_INSTANCE.STATUS)));
-        taskInstance.setStartTime(result.get(TaskInstance.TASK_INSTANCE.START_TIME));
-        taskInstance.setEndTime(result.get(TaskInstance.TASK_INSTANCE.END_TIME));
-        taskInstance.setTotalTime(result.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));
-        taskInstance.setCreateTime(result.get(TaskInstance.TASK_INSTANCE.CREATE_TIME));
-        taskInstance.setCallbackUrl(result.get(TaskInstance.TASK_INSTANCE.CALLBACK_URL));
-        taskInstance.setAppCode(result.get(TaskInstance.TASK_INSTANCE.APP_CODE));
+        taskInstance.setId(record.get(TaskInstance.TASK_INSTANCE.ID));
+        taskInstance.setTaskId(record.get(TaskInstance.TASK_INSTANCE.TASK_ID));
+        taskInstance.setCronTaskId(record.get(TaskInstance.TASK_INSTANCE.CRON_TASK_ID));
+        taskInstance.setTaskTemplateId(record.get(TaskInstance.TASK_INSTANCE.TASK_TEMPLATE_ID));
+        taskInstance.setDebugTask(record.get(TaskInstance.TASK_INSTANCE.IS_DEBUG_TASK) == 1);
+        taskInstance.setAppId(record.get(TaskInstance.TASK_INSTANCE.APP_ID));
+        taskInstance.setName(record.get(TaskInstance.TASK_INSTANCE.NAME));
+        taskInstance.setType(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.TYPE)));
+        taskInstance.setOperator(record.get(TaskInstance.TASK_INSTANCE.OPERATOR));
+        taskInstance.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
+        taskInstance.setCurrentStepId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
+        taskInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
+        taskInstance.setStartTime(record.get(TaskInstance.TASK_INSTANCE.START_TIME));
+        taskInstance.setEndTime(record.get(TaskInstance.TASK_INSTANCE.END_TIME));
+        taskInstance.setTotalTime(record.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));
+        taskInstance.setCreateTime(record.get(TaskInstance.TASK_INSTANCE.CREATE_TIME));
+        taskInstance.setCallbackUrl(record.get(TaskInstance.TASK_INSTANCE.CALLBACK_URL));
+        taskInstance.setAppCode(record.get(TaskInstance.TASK_INSTANCE.APP_CODE));
         return taskInstance;
     }
 
@@ -239,7 +239,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         orderFields.add(TABLE.CREATE_TIME.desc());
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        Result result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
+        Result<?> result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
             TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,

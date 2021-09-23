@@ -4,9 +4,6 @@ spring:
   profiles:
     active: prod,native
   cloud:
-    consul:
-      discovery:
-        instance-id: job-config-${machine.ip}-${server.port}
     config:
       server:
         native:

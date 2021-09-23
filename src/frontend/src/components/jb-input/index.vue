@@ -33,7 +33,12 @@
             @blur="handleBlur"
             @keyup="handleKeyup"
             v-bind="$attrs" />
-        <span v-if="maxlength > 0" ref="number" class="number">{{ inputLength }}/{{ maxlength }}</span>
+        <span
+            v-if="maxlength > 0"
+            ref="number"
+            class="jb-input-number">
+            {{ inputLength }}/{{ maxlength }}
+        </span>
     </div>
 </template>
 <script>
@@ -134,10 +139,11 @@
     .jb-input {
         position: relative;
 
-        .number {
+        .jb-input-number {
             position: absolute;
             top: 50%;
             right: 9px;
+            font-size: 12px;
             color: #979ba5;
             transform: translateY(-50%);
         }

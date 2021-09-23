@@ -76,6 +76,7 @@
                 :label="$t('history.任务名称.colHead')"
                 prop="name"
                 key="name"
+                min-width="200"
                 align="left"
                 show-overflow-tooltip />
             <bk-table-column
@@ -133,6 +134,7 @@
                 :label="$t('history.操作')"
                 width="150"
                 key="action"
+                fixed="right"
                 align="left">
                 <template slot-scope="{ row }">
                     <auth-button

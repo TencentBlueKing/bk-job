@@ -158,7 +158,7 @@
                     prop="cronJobCount"
                     key="cronJobCount"
                     width="160"
-                    align="left">
+                    align="right">
                     <template slot-scope="{ row }">
                         <bk-button
                             text
@@ -201,6 +201,7 @@
                     :resizable="false"
                     :label="$t('template.操作')"
                     prop="statusText"
+                    fixed="right"
                     key="action"
                     width="120"
                     align="left">

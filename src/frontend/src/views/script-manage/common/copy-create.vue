@@ -92,7 +92,7 @@
             <bk-button
                 class="mr10"
                 @click="handleDebugScript">
-                调试
+                {{ $t('script.调试') }}
             </bk-button>
             <bk-button @click="handleCancel">{{ $t('script.取消') }}</bk-button>
         </template>
@@ -107,7 +107,7 @@
     import AceEditor from '@components/ace-editor';
     import {
         formatScriptTypeValue,
-        getScriptVersion,
+        genDefaultScriptVersion,
         checkPublicScript,
         getOffset,
         leaveConfirm,
@@ -120,7 +120,7 @@
     const genDefaultFormData = () => ({
         id: '',
         typeName: 'Shell',
-        version: getScriptVersion(),
+        version: genDefaultScriptVersion(),
         versionDesc: '',
         type: 1,
         content: '',

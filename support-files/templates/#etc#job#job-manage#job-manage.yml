@@ -2,13 +2,6 @@ spring:
   application:
     name: job-manage
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-manage
-        instance-id: job-manage-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     refresh:
       extra-refreshable: javax.sql.DataSource
   datasource:
@@ -31,7 +24,6 @@ spring:
     password: __BK_JOB_MANAGE_RABBITMQ_PASSWORD__
     virtual-host: __BK_JOB_MANAGE_RABBITMQ_VHOST__
   redis:
-    mode: __BK_JOB_MANAGE_REDIS_MODE__
     host: __BK_JOB_MANAGE_REDIS_HOST__
     port: __BK_JOB_MANAGE_REDIS_PORT__
     sentinel:
@@ -77,5 +69,3 @@ notify:
     channels:
       available: mail
 
-server:
-  port: __BK_JOB_MANAGE_SERVER_PORT__

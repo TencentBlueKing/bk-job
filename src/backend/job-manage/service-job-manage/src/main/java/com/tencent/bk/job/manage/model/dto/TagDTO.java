@@ -24,21 +24,19 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
+import com.tencent.bk.job.common.model.dto.BasicDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * @since 29/9/2019 16:04
- */
-@Data
-@EqualsAndHashCode
+@Getter
+@Setter
+@ToString(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-public class TagDTO {
+public class TagDTO extends BasicDTO implements Cloneable {
     /**
      * 标签 ID
      */
@@ -55,23 +53,40 @@ public class TagDTO {
     private String name;
 
     /**
-     * 创建者
+     * 描述
      */
-    private String creator;
+    private String description;
 
-    /**
-     * 最后修改者
-     */
-    private String lastModifyUser;
+    public TagDTO(Long id, Long appId, String name, String description, String creator, String lastModifyUser) {
+        this.id = id;
+        this.appId = appId;
+        this.name = name;
+        this.description = description;
+        this.setCreator(creator);
+        this.setLastModifyUser(lastModifyUser);
+    }
 
     public static TagVO toVO(TagDTO tagInfo) {
-        return new TagVO(tagInfo.getId(), tagInfo.getName());
+        TagVO vo = new TagVO();
+        vo.setId(tagInfo.getId());
+        vo.setName(tagInfo.getName());
+        vo.setCreator(tagInfo.getCreator());
+        vo.setLastModifyUser(tagInfo.getLastModifyUser());
+        vo.setDescription(tagInfo.getDescription());
+        vo.setCreateTime(tagInfo.getCreateTime());
+        vo.setLastModifyTime(tagInfo.getLastModifyTime());
+        return vo;
     }
 
     public static TagDTO fromVO(TagVO tagVO) {
         TagDTO tagInfo = new TagDTO();
         tagInfo.setId(tagVO.getId());
         tagInfo.setName(tagVO.getName());
+        tagInfo.setCreator(tagVO.getCreator());
+        tagInfo.setCreateTime(tagVO.getCreateTime());
+        tagInfo.setLastModifyUser(tagVO.getLastModifyUser());
+        tagInfo.setLastModifyTime(tagVO.getLastModifyTime());
+        tagInfo.setDescription(tagVO.getDescription());
         return tagInfo;
     }
 
@@ -83,5 +98,19 @@ public class TagDTO {
         serviceTag.setId(tagDTO.getId());
         serviceTag.setName(tagDTO.getName());
         return serviceTag;
+    }
+
+    @Override
+    public TagDTO clone() {
+        TagDTO tag = new TagDTO();
+        tag.setId(id);
+        tag.setAppId(appId);
+        tag.setName(name);
+        tag.setDescription(description);
+        tag.setCreator(getCreator());
+        tag.setLastModifyUser(getLastModifyUser());
+        tag.setCreateTime(getCreateTime());
+        tag.setLastModifyTime(getLastModifyTime());
+        return tag;
     }
 }

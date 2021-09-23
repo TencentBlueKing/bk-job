@@ -6,13 +6,6 @@ spring:
   profiles:
     active: default
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-gateway
-        instance-id: job-gateway-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     ssl:
       useInsecureTrustManager: true
     gateway:

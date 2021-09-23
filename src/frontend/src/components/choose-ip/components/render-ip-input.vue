@@ -70,9 +70,17 @@
                         @click="handleRemoveError" />
                 </div>
             </div>
-            <bk-button class="submit-btn" theme="primary" outline :loading="isSubmiting" @click="handleAddHost">
+            <bk-button
+                class="submit-btn"
+                theme="primary"
+                outline
+                :loading="isSubmiting"
+                @click="handleAddHost">
                 <span>{{ $t('添加到已选择') }}</span>
-                <div v-if="inputItemList.length > 0" ref="inputNumber" class="server-input-number">
+                <div
+                    v-if="inputItemList.length > 0"
+                    ref="inputNumber"
+                    class="server-input-number">
                     <span class="text">{{ inputItemList.length }}</span>
                 </div>
             </bk-button>
@@ -232,7 +240,7 @@
                     document.body.removeChild($moveTarget);
                     this.$emit('on-input-animate', false);
                     callback();
-                }, 825);
+                }, 525);
             },
             /**
              * @desc 提交输入结果
@@ -375,7 +383,7 @@
 
     .server-input-number,
     .server-input-number .text {
-        transition: transform 0.8s;
+        transition: transform 0.5s;
     }
 
     .server-input-number {

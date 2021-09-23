@@ -95,10 +95,11 @@
                             prop="relatedTaskNum"
                             key="relatedTaskNum"
                             :render-header="renderHeader"
-                            align="left"
+                            align="right"
                             width="150">
                             <template slot-scope="{ row }">
                                 <bk-button
+                                    class="mr20"
                                     text
                                     v-bk-tooltips.allowHtml="`
                                     <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
@@ -318,7 +319,7 @@
         checkPublicScript,
         leaveConfirm,
         getOffset,
-        getScriptVersion,
+        genDefaultScriptVersion,
         encodeRegexp,
     } from '@utils/assist';
     import { listColumnsCache } from '@utils/cache-helper';
@@ -824,7 +825,7 @@
                     ...currentScriptVersion,
                     scriptVersionId: -1,
                     status: -1,
-                    version: getScriptVersion().slice(0, 30),
+                    version: genDefaultScriptVersion().slice(0, 30),
                 });
                 this.isListFlod = true;
                 this.lastSelectScriptVersionId = this.selectVersionId;
@@ -915,13 +916,18 @@
              */
             renderHeader (h, data) {
                 return (
-                <span>
-                    <span>{ data.column.label }</span>
-                    <icon
-                        tippy-tips={ I18n.t('script.显示被作业引用的次数') }
-                        type="circle-italics-info"
-                        style="margin-left: 8px; font-size: 12px;" />
-                </span>
+                    <span>
+                        <span>{ data.column.label }</span>
+                        <bk-popover>
+                            <icon
+                                type="circle-italics-info"
+                                style="margin-left: 8px; font-size: 12px;" />
+                            <div slot="content">
+                                <div>{ I18n.t('script.显示被作业引用的次数') }</div>
+                                <div>{ I18n.t('script.显示被执行方案引用的次数') }</div>
+                            </div>
+                        </bk-popover>
+                    </span>
                 );
             },
             /**
@@ -970,7 +976,8 @@
             }
 
             .select-flag {
-                margin-left: 10px;
+                float: right;
+                margin-top: 3px;
                 color: #a3c5fd;
             }
         }

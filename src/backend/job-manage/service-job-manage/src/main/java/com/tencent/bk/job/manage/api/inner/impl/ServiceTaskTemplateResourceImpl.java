@@ -29,10 +29,10 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
-import com.tencent.bk.job.common.util.ClassUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
@@ -43,7 +43,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceListPageTaskTemplatesRequest;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
@@ -192,11 +192,18 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
 
     @Override
     public ServiceResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
-        ServiceListPageTaskTemplatesRequest request
-    ) {
-        PageData<TaskTemplateInfoDTO> templateListPage =
-            templateService.listPageTaskTemplates(ClassUtil.copyAttrsBetweenClasses(request.getTemplateCondition(),
-                TaskTemplateInfoDTO.class), request.getBaseSearchCondition(), request.getFavoriteTemplateId());
+        Long appId,
+        Integer start,
+        Integer pageSize) {
+
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(start);
+        baseSearchCondition.setLength(pageSize);
+
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId)
+            .baseSearchCondition(baseSearchCondition).build();
+        PageData<TaskTemplateInfoDTO> templateListPage = templateService.listPageTaskTemplates(query);
+
         PageData<ServiceTaskTemplateDTO> resultData = new PageData<>();
         resultData.setTotal(templateListPage.getTotal());
         resultData.setStart(templateListPage.getStart());

@@ -41,7 +41,7 @@ import Home from '@views/home/routes';
 import AccountManage from '@views/account-manage/routes';
 import NotifyManage from '@views/notify-manage/routes';
 import PublicScriptManage from '@views/public-script-manage/routes';
-import Setting from '@views/setting/routes';
+import GlobalSetting from '@views/global-setting/routes';
 import WhiteIP from '@views/white-ip/routes';
 import TaskManage from '@views/task-manage/routes';
 import PlanManage from '@views/plan-manage/routes';
@@ -56,6 +56,7 @@ import TicketManage from '@views/ticket-manage/routes';
 import ServiceState from '@views/service-state/routes';
 import DetectRecords from '@views/detect-records/routes';
 import DangerousRuleManage from '@views/dangerous-rule-manage/routes';
+import TagManage from '@views/tag-manage/routes';
 
 Vue.use(VueRouter);
 
@@ -120,7 +121,7 @@ export default ({ appList, isAdmin, appId }) => {
                 ExecutiveHistory,
                 FileManage,
                 TicketManage,
-                
+                TagManage,
             ],
         },
         {
@@ -148,7 +149,7 @@ export default ({ appList, isAdmin, appId }) => {
     if (isAdmin) {
         routes[0].children.push(PublicScriptManage);
         routes[0].children.push(WhiteIP);
-        routes[0].children.push(Setting);
+        routes[0].children.push(GlobalSetting);
         routes[0].children.push(ServiceState);
         routes[0].children.push(DangerousRuleManage);
         routes[0].children.push(DetectRecords);

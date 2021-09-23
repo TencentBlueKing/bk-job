@@ -126,27 +126,27 @@ public class DangerousRecordDAOImpl implements DangerousRecordDAO {
         return pageData;
     }
 
-    private DangerousRecordDTO extractInfo(Record result) {
-        if (result == null || result.size() == 0) {
+    private DangerousRecordDTO extractInfo(Record record) {
+        if (record == null) {
             return null;
         }
         DangerousRecordDTO dangerousRecord = new DangerousRecordDTO();
-        dangerousRecord.setId(result.get(T.ID));
-        dangerousRecord.setRuleId(result.get(T.RULE_ID));
-        dangerousRecord.setRuleExpression(result.get(T.RULE_EXPRESSION));
-        dangerousRecord.setAppId(result.get(T.APP_ID));
-        dangerousRecord.setAppName(result.get(T.APP_NAME));
-        dangerousRecord.setOperator(result.get(T.OPERATOR));
-        dangerousRecord.setCreateTime(result.get(T.CREATE_TIME));
-        dangerousRecord.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(result.get(T.STARTUP_MODE)));
-        dangerousRecord.setClient(result.get(T.CLIENT));
-        dangerousRecord.setAction(JooqDataTypeUtil.getIntegerFromByte(result.get(T.ACTION)));
-        dangerousRecord.setScriptLanguage(JooqDataTypeUtil.getIntegerFromByte(result.get(T.SCRIPT_LANGUAGE)));
-        dangerousRecord.setScriptContent(result.get(T.SCRIPT_CONTENT));
-        dangerousRecord.setCheckResult(JsonUtils.fromJson(result.get(T.CHECK_RESULT),
+        dangerousRecord.setId(record.get(T.ID));
+        dangerousRecord.setRuleId(record.get(T.RULE_ID));
+        dangerousRecord.setRuleExpression(record.get(T.RULE_EXPRESSION));
+        dangerousRecord.setAppId(record.get(T.APP_ID));
+        dangerousRecord.setAppName(record.get(T.APP_NAME));
+        dangerousRecord.setOperator(record.get(T.OPERATOR));
+        dangerousRecord.setCreateTime(record.get(T.CREATE_TIME));
+        dangerousRecord.setStartupMode(JooqDataTypeUtil.getIntegerFromByte(record.get(T.STARTUP_MODE)));
+        dangerousRecord.setClient(record.get(T.CLIENT));
+        dangerousRecord.setAction(JooqDataTypeUtil.getIntegerFromByte(record.get(T.ACTION)));
+        dangerousRecord.setScriptLanguage(JooqDataTypeUtil.getIntegerFromByte(record.get(T.SCRIPT_LANGUAGE)));
+        dangerousRecord.setScriptContent(record.get(T.SCRIPT_CONTENT));
+        dangerousRecord.setCheckResult(JsonUtils.fromJson(record.get(T.CHECK_RESULT),
             new TypeReference<ScriptCheckResultDTO>() {
         }));
-        String extData = result.get(T.EXT_DATA);
+        String extData = record.get(T.EXT_DATA);
         if (StringUtils.isNotEmpty(extData)) {
             dangerousRecord.setExtData(JsonUtils.fromJson(extData, new TypeReference<Map<String, String>>() {
             }));

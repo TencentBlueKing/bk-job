@@ -27,7 +27,11 @@
 
 <template>
     <smart-action class="create-script-page" offset-target="bk-form-content">
-        <jb-form :model="formData" :rules="rules" ref="form">
+        <jb-form
+            :model="formData"
+            :rules="rules"
+            v-test="{ type: 'form', value: 'create_script' }"
+            ref="form">
             <jb-form-item :label="$t('script.脚本名称.label')" required property="name">
                 <div class="script-name input">
                     <jb-input
@@ -69,8 +73,18 @@
             </jb-form-item>
         </jb-form>
         <template #action>
-            <bk-button class="w120 mr10" :loading="isSbumiting" theme="primary" @click="handleSubmit">{{ $t('script.提交') }}</bk-button>
-            <bk-button theme="default" @click="handleCancel">{{ $t('script.取消') }}</bk-button>
+            <bk-button
+                class="w120 mr10"
+                :loading="isSbumiting"
+                theme="primary"
+                @click="handleSubmit">
+                {{ $t('script.提交') }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                @click="handleCancel">
+                {{ $t('script.取消') }}
+            </bk-button>
         </template>
     </smart-action>
 </template>
@@ -80,7 +94,7 @@
     import PublicScriptService from '@service/public-script-manage';
     import {
         formatScriptTypeValue,
-        isPublicScript,
+        checkPublicScript,
         getOffset,
         scriptErrorAlert,
     } from '@utils/assist';
@@ -116,7 +130,7 @@
             };
         },
         created () {
-            this.publicScript = isPublicScript(this.$route);
+            this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
             this.rules = {

@@ -6,7 +6,7 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
+import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -36,7 +36,7 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
     }
 
     public interface IGetBasicInfo {
-        Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest);
+        Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest);
 
         boolean isPublicScript();
     }
@@ -51,10 +51,10 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
 
     @Override
     protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<ScriptQueryDTO, BaseSearchCondition> basicQueryCond =
+        Pair<ScriptQuery, BaseSearchCondition> basicQueryCond =
             basicInfoInterface.getBasicQueryCondition(callbackRequest);
 
-        ScriptQueryDTO scriptQuery = basicQueryCond.getLeft();
+        ScriptQuery scriptQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
         PageData<ScriptDTO> accountDTOPageData = scriptService.listPageScript(scriptQuery,
             baseSearchCondition);
@@ -65,9 +65,9 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
     @Override
     protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
 
-        Pair<ScriptQueryDTO, BaseSearchCondition> basicQueryCond =
+        Pair<ScriptQuery, BaseSearchCondition> basicQueryCond =
             basicInfoInterface.getBasicQueryCondition(callbackRequest);
-        ScriptQueryDTO scriptQuery = basicQueryCond.getLeft();
+        ScriptQuery scriptQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
         scriptQuery.setName(callbackRequest.getFilter().getKeyword());

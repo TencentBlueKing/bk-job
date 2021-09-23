@@ -48,10 +48,18 @@ export default class AgentTask extends Model {
         this.cloudAreaName = payload.cloudAreaName;
     }
 
+    /**
+     * @desc 表示 agent 的唯一 key
+     * @returns { String }
+     */
     get key () {
         return `${this.cloudAreaId}:${this.displayIp}`;
     }
 
+    /**
+     * @desc agent 的状态
+     * @returns { String }
+     */
     get result () {
         if ([
             AGENT_STATUS_SUCCESS,

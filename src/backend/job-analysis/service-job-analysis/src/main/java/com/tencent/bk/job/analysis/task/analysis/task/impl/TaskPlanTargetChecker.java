@@ -47,7 +47,14 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.model.inner.*;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskNodeInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -110,7 +117,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                 Long appId = applicationInfoDTO.getId();
                 appCounter.addOne();
                 log.info(
-                    "beigin to analysis app:" + appCounter.getValue()
+                    "begin to analysis app:" + appCounter.getValue()
                         + "/" + appInfoList.size()
                         + "," + appId
                         + "," + applicationInfoDTO.getName()
@@ -146,11 +153,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                     baseSearchCondition.setStart(0);
                     baseSearchCondition.setLength(Integer.MAX_VALUE);
                     PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-                        templateService.listPageTaskTemplates(
-                            taskTemplateCondition,
-                            baseSearchCondition,
-                            null
-                        );
+                        templateService.listPageTaskTemplates(appId, baseSearchCondition);
                     List<ServiceTaskTemplateDTO> taskTemplateInfoDTOList = taskTemplateInfoDTOPageData.getData();
                     //2.遍历所有作业模板
                     String finalUsername = username;

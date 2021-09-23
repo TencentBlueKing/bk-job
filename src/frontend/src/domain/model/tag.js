@@ -29,11 +29,24 @@ export default class Tag extends Model {
     constructor (payload) {
         super();
         this.id = payload.id;
-        this.name = this.getDefaultValue(payload.name);
-        this.count = -1;
+        this.name = payload.name;
+        this.description = payload.description || '';
+        this.relatedScriptNum = Number(payload.relatedScriptNum);
+        this.relatedTaskTemplateNum = Number(payload.relatedTaskTemplateNum);
+        this.creator = payload.creator;
+        this.createTime = payload.createTime;
+        this.lastModifyUser = payload.lastModifyUser;
+        this.lastModifyTime = payload.lastModifyTime;
+        
+        // 权限
+        this.canManage = payload.canManage || true;
     }
 
-    get isLoading () {
-        return this.count < 0;
+    /**
+     * @desc 描述展示文本
+     * @returns { String }
+     */
+    get descriptionText () {
+        return this.getDefaultValue(this.description);
     }
 }

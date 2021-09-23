@@ -26,8 +26,8 @@
 /* eslint-disable no-param-reassign */
 import TaskExecuteSource from '../source/task-execute';
 import TaskInstanceModel from '@model/execution/task-instance';
-import StepExecutionDetailModel from '@model/execution/step-execution-detail';
-import TaskExecutionDetailModel from '@model/execution/task-execution-detail';
+import StepExecutionResultModel from '@model/execution/step-execution-result';
+import TaskExecutionResultModel from '@model/execution/task-execution-result';
 import TaskInstanceDetailModel from '@model/execution/task-instance-detail';
 import OperationLogModel from '@model/execution/operation-log';
 import GlobalVariableModel from '@model/task/global-variable';
@@ -58,7 +58,7 @@ export default {
     },
     fetchTaskExecutionResult (params, payload) {
         return TaskExecuteSource.getOneTaskById(params, payload)
-            .then(({ data }) => Object.freeze(new TaskExecutionDetailModel(data)));
+            .then(({ data }) => Object.freeze(new TaskExecutionResultModel(data)));
     },
     fetchTaskInstance (params) {
         return TaskExecuteSource.getOneTaskInstanceById(params)
@@ -66,7 +66,7 @@ export default {
     },
     fetchStepExecutionResult (params, payload) {
         return TaskExecuteSource.getOneStep(params, payload)
-            .then(({ data }) => new StepExecutionDetailModel(data));
+            .then(({ data }) => new StepExecutionResultModel(data));
     },
     fetchLogContentOfIp (params) {
         return TaskExecuteSource.getLogByIp(params)

@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import io.swagger.annotations.Api;
@@ -57,7 +58,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "获取模版基本信息列表", produces = "application/json")
     @GetMapping
-    ServiceResponse<PageData<TaskTemplateVO>> listTemplates(
+    ServiceResponse<PageData<TaskTemplateVO>> listPageTemplates(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -84,7 +85,7 @@ public interface WebTaskTemplateResource {
         @RequestParam(value = "pageSize", required = false) Integer pageSize,
         @ApiParam(value = "排序字段")
         @RequestParam(value = "orderField", required = false) String orderField,
-        @ApiParam(value = "排序顺序 0-逆序 1-正序")
+        @ApiParam(value = "排序顺序 0-降序 1-升序")
         @RequestParam(value = "order", required = false) Integer order
     );
 
@@ -189,6 +190,17 @@ public interface WebTaskTemplateResource {
         @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID 列表，逗号分隔")
         @RequestParam("ids") List<Long> templateIds
+    );
+
+    @ApiOperation(value = "批量更新模板标签-Patch方式", produces = "application/json")
+    @PutMapping("/tag")
+    ServiceResponse<Boolean> batchPatchTemplateTags(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "业务ID", required = true, example = "2")
+        @PathVariable("appId") Long appId,
+        @ApiParam(value = "模版标签批量更新请求报文", name = "tagBatchPatchReq", required = true)
+        @RequestBody TemplateTagBatchPatchReq req
     );
 
 }

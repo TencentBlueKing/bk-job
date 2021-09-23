@@ -25,13 +25,18 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.base.CaseFormat;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -39,15 +44,20 @@ import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -74,22 +84,27 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     private final TaskFavoriteService taskFavoriteService;
     private final WebAuthService authService;
     private final TaskTemplateAuthService taskTemplateAuthService;
+    private final TagService tagService;
+    private final MessageI18nService i18nService;
 
     @Autowired
     public WebTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         WebAuthService webAuthService,
-        TaskTemplateAuthService taskTemplateAuthService
-    ) {
+        TaskTemplateAuthService taskTemplateAuthService,
+        TagService tagService,
+        MessageI18nService i18nService) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.authService = webAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
+        this.tagService = tagService;
+        this.i18nService = i18nService;
     }
 
     @Override
-    public ServiceResponse<PageData<TaskTemplateVO>> listTemplates(
+    public ServiceResponse<PageData<TaskTemplateVO>> listPageTemplates(
         String username,
         Long appId,
         Long templateId,
@@ -113,63 +128,53 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         List<Long> favoriteList = taskFavoriteService.listFavorites(appId, username);
 
-        TaskTemplateInfoDTO taskTemplateCondition = new TaskTemplateInfoDTO();
-        taskTemplateCondition.setAppId(appId);
-        taskTemplateCondition.setName(name);
-        if (templateId != null && templateId > 0) {
-            taskTemplateCondition.setId(templateId);
-            tags = null;
-            panelTag = null;
-            type = null;
-        }
-        if (status != null) {
-            taskTemplateCondition.setStatus(TaskTemplateStatusEnum.valueOf(status));
-        }
-        if (StringUtils.isNotBlank(tags)) {
-            taskTemplateCondition.setTags(Arrays.stream(tags.split(",")).map(tag -> {
-                TagDTO tagInfo = new TagDTO();
-                long tagId;
-                try {
-                    tagId = Long.parseLong(tag);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-                tagInfo.setId(tagId);
-                return tagInfo;
-            }).filter(Objects::nonNull).collect(Collectors.toList()));
-        }
-        if (panelTag != null && panelTag > 0) {
-            // Frontend need additional param to tell where the tag from
-            TagDTO tagInfo = new TagDTO();
-            tagInfo.setId(panelTag);
-            if (CollectionUtils.isEmpty(taskTemplateCondition.getTags())) {
-                taskTemplateCondition.setTags(Collections.singletonList(tagInfo));
-            } else {
-                taskTemplateCondition.getTags().add(tagInfo);
-            }
+        TaskTemplateQuery query = buildTaskTemplateQuery(appId, name, templateId, status, tags, panelTag, type,
+            start, pageSize, creator, lastModifyUser, orderField, order);
+
+        PageData<TaskTemplateInfoDTO> templateInfoPageData =
+            templateService.listPageTaskTemplatesBasicInfo(query, favoriteList);
+        List<TaskTemplateVO> resultTemplates = new ArrayList<>();
+        if (templateInfoPageData != null) {
+            templateInfoPageData.getData().forEach(templateInfo ->
+                resultTemplates.add(TaskTemplateInfoDTO.toVO(templateInfo)));
+        } else {
+            return ServiceResponse.buildCommonFailResp("No template info found!");
         }
 
+        resultTemplates.forEach(taskTemplate ->
+            taskTemplate.setFavored(favoriteList.contains(taskTemplate.getId()) ? 1 : 0));
+
+        PageData<TaskTemplateVO> resultPageData = new PageData<>();
+        resultPageData.setStart(templateInfoPageData.getStart());
+        resultPageData.setPageSize(templateInfoPageData.getPageSize());
+        resultPageData.setTotal(templateInfoPageData.getTotal());
+        resultPageData.setData(resultTemplates);
+        resultPageData.setExistAny(templateService.isExistAnyAppTemplate(appId));
+
+        taskTemplateAuthService.processTemplatePermission(username, appId, resultPageData);
+
+        return ServiceResponse.buildSuccessResp(resultPageData);
+    }
+
+    private TaskTemplateQuery buildTaskTemplateQuery(Long appId, String name, Long templateId, Integer status,
+                                                     String tags,
+                                                     Long panelTag, Integer type, Integer start, Integer pageSize,
+                                                     String creator,
+                                                     String lastModifyUser, String orderField, Integer order) {
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).name(name).id(templateId).build();
+
+        if (status != null) {
+            query.setStatus(TaskTemplateStatusEnum.valueOf(status));
+        }
+        addTagCondition(query, tags, panelTag);
+
         // Process type
-        taskTemplateCondition.setScriptStatus(null);
+        query.setScriptStatus(null);
         if (type != null) {
-            if (TemplateTypeEnum.ALL_TEMPLATE.getValue() == type) {
-                // Delete by request
-                // taskTemplateCondition.setTags(null);
-            } else if (TemplateTypeEnum.UNCLASSIFIED.getValue() == type) {
-                TagDTO tagDTO = new TagDTO();
-                tagDTO.setId(0L);
-                if (CollectionUtils.isNotEmpty(taskTemplateCondition.getTags())) {
-                    PageData<TaskTemplateVO> emptyResult = new PageData<>();
-                    emptyResult.setStart(start);
-                    emptyResult.setPageSize(pageSize);
-                    emptyResult.setTotal(0L);
-                    emptyResult.setData(Collections.emptyList());
-                    return ServiceResponse.buildSuccessResp(emptyResult);
-                } else {
-                    taskTemplateCondition.setTags(Collections.singletonList(tagDTO));
-                }
+            if (TemplateTypeEnum.UNCLASSIFIED.getValue() == type) {
+                query.setUntaggedTemplate(true);
             } else if (TemplateTypeEnum.NEED_UPDATE.getValue() == type) {
-                taskTemplateCondition.setScriptStatus(0b11);
+                query.setScriptStatus(0b11);
             }
         }
 
@@ -186,32 +191,34 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             baseSearchCondition.setOrderField(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, orderField));
         }
         baseSearchCondition.setOrder(order);
-        PageData<TaskTemplateInfoDTO> templateInfoPageData =
-            templateService.listPageTaskTemplatesBasicInfo(taskTemplateCondition, baseSearchCondition, favoriteList);
-        List<TaskTemplateVO> resultTemplates = new ArrayList<>();
-        if (templateInfoPageData != null) {
-            templateInfoPageData.getData().forEach(templateInfo ->
-                resultTemplates.add(TaskTemplateInfoDTO.toVO(templateInfo)));
-        } else {
-            return ServiceResponse.buildCommonFailResp("No template info found!");
+        query.setBaseSearchCondition(baseSearchCondition);
+        return query;
+    }
+
+    private void addTagCondition(TaskTemplateQuery query, String tags, Long panelTagId) {
+        if (StringUtils.isNotBlank(tags)) {
+            query.setTags(Arrays.stream(tags.split(",")).map(tag -> {
+                TagDTO tagInfo = new TagDTO();
+                long tagId;
+                try {
+                    tagId = Long.parseLong(tag);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                tagInfo.setId(tagId);
+                return tagInfo;
+            }).filter(Objects::nonNull).collect(Collectors.toList()));
         }
-
-        resultTemplates.forEach(taskTemplate -> {
-            taskTemplate.setFavored(favoriteList.contains(taskTemplate.getId()) ? 1 : 0);
-        });
-
-        PageData<TaskTemplateVO> resultPageData = new PageData<>();
-        resultPageData.setStart(templateInfoPageData.getStart());
-        resultPageData.setPageSize(templateInfoPageData.getPageSize());
-        resultPageData.setTotal(templateInfoPageData.getTotal());
-        resultPageData.setData(resultTemplates);
-        resultPageData.setExistAny(templateService.isExistAnyAppTemplate(appId));
-
-        taskTemplateAuthService.processTemplatePermission(username, appId, resultPageData);
-
-        ServiceResponse<PageData<TaskTemplateVO>> resp = ServiceResponse.buildSuccessResp(resultPageData);
-
-        return resp;
+        if (panelTagId != null && panelTagId > 0) {
+            // Frontend need additional param to tell where the tag from
+            TagDTO tagInfo = new TagDTO();
+            tagInfo.setId(panelTagId);
+            if (CollectionUtils.isEmpty(query.getTags())) {
+                query.setTags(Collections.singletonList(tagInfo));
+            } else {
+                query.getTags().add(tagInfo);
+            }
+        }
     }
 
     @Override
@@ -238,8 +245,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                 ResourceTypeEnum.BUSINESS, appId.toString(), null)
             .isPass());
 
-        ServiceResponse<TaskTemplateVO> resp = ServiceResponse.buildSuccessResp(taskTemplateVO);
-        return resp;
+        return ServiceResponse.buildSuccessResp(taskTemplateVO);
     }
 
     @Override
@@ -345,24 +351,70 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     @Override
     public ServiceResponse<List<TaskTemplateVO>> listTemplateBasicInfoByIds(String username, Long appId,
                                                                             List<Long> templateIds) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
-        }
         List<TaskTemplateInfoDTO> taskTemplateBasicInfo =
             templateService.listTaskTemplateBasicInfoByIds(appId, templateIds);
-        List<TaskTemplateVO> templateBasicInfoVOList = new ArrayList<>();
-        for (TaskTemplateInfoDTO templateInfo : taskTemplateBasicInfo) {
-            if (templateInfo != null) {
-                TaskTemplateVO taskTemplateVO = new TaskTemplateVO();
-                taskTemplateVO.setId(templateInfo.getId());
-                taskTemplateVO.setName(templateInfo.getName());
-
-                templateBasicInfoVOList.add(taskTemplateVO);
-            }
-        }
+        List<TaskTemplateVO> templateBasicInfoVOList = taskTemplateBasicInfo.stream()
+            .map(TaskTemplateInfoDTO::toVO).collect(Collectors.toList());
         return ServiceResponse.buildSuccessResp(templateBasicInfoVOList);
     }
 
+    @Override
+    public ServiceResponse<Boolean> batchPatchTemplateTags(String username, Long appId,
+                                                           TemplateTagBatchPatchReq req) {
+        ValidateResult validateResult = checkTemplateTagBatchPatchReq(req);
+        if (!validateResult.isPass()) {
+            return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
+        }
+
+        AuthResultVO authResultVO = batchAuthTemplate(username, ActionId.EDIT_JOB_TEMPLATE, appId,
+            req.getIdList().stream().map(String::valueOf).collect(Collectors.toList()));
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
+
+        List<Long> templateIdList = req.getIdList();
+        List<ResourceTagDTO> addResourceTags = null;
+        List<ResourceTagDTO> deleteResourceTags = null;
+        if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
+            addResourceTags = tagService.buildResourceTags(JobResourceTypeEnum.TEMPLATE.getValue(),
+                templateIdList.stream().map(String::valueOf).collect(Collectors.toList()),
+                req.getAddTagIdList());
+        }
+        if (CollectionUtils.isNotEmpty(req.getDeleteTagIdList())) {
+            deleteResourceTags = tagService.buildResourceTags(JobResourceTypeEnum.TEMPLATE.getValue(),
+                templateIdList.stream().map(String::valueOf).collect(Collectors.toList()),
+                req.getDeleteTagIdList());
+        }
+        tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
+
+        return ServiceResponse.buildSuccessResp(null);
+    }
+
+    private AuthResultVO batchAuthTemplate(String username, String actionId, Long appId, List<String> templateIdList) {
+        List<PermissionResource> resources = templateIdList.stream().map(templateId -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(templateId);
+            resource.setResourceType(ResourceTypeEnum.TEMPLATE);
+            resource.setPathInfo(PathBuilder.newBuilder(
+                ResourceTypeEnum.BUSINESS.getId(),
+                appId.toString()
+            ).build());
+            return resource;
+        }).collect(Collectors.toList());
+        return authService.batchAuthResources(username, actionId, appId, resources);
+    }
+
+    private ValidateResult checkTemplateTagBatchPatchReq(TemplateTagBatchPatchReq req) {
+        if (CollectionUtils.isEmpty(req.getIdList())) {
+            log.warn("TemplateTagBatchPatchReq->idList is empty");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "idList");
+        }
+
+        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
+            log.warn("TemplateTagBatchPatchReq->No template tags changed!");
+            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                "addTagIdList|deleteTagIdList");
+        }
+        return ValidateResult.pass();
+    }
 }

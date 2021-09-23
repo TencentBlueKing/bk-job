@@ -131,7 +131,7 @@ public interface WebTaskExecutionResultResource {
         @RequestParam(value = "searchIp", required = false) String searchIp,
         @ApiParam(value = "排序字段，当前支持totalTime|cloudAreaId|exitCode", name = "orderField")
         @RequestParam(value = "orderField", required = false) String orderField,
-        @ApiParam(value = "排序顺序,0:逆序;1:正序", name = "order")
+        @ApiParam(value = "排序顺序,0:降序;1:升序", name = "order")
         @RequestParam(value = "order", required = false) Integer order);
 
     @ApiOperation(value = "获取快速作业的步骤执行信息", produces = "application/json")
@@ -151,7 +151,7 @@ public interface WebTaskExecutionResultResource {
         @RequestParam(value = "maxIpsPerResultGroup", required = false) Integer maxIpsPerResultGroup,
         @ApiParam(value = "排序字段，当前支持totalTime|cloudAreaId|exitCode", name = "orderField")
         @RequestParam(value = "orderField", required = false) String orderField,
-        @ApiParam(value = "排序顺序,0:逆序;1:正序", name = "searchIp")
+        @ApiParam(value = "排序顺序,0:降序;1:升序", name = "searchIp")
         @RequestParam(value = "order", required = false) Integer order);
 
     @ApiOperation(value = "获取IP对应的脚本日志内容", produces = "application/json")

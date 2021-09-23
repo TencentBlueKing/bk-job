@@ -29,13 +29,13 @@
     <div class="job-empty">
         <template v-if="type === 'search'">
             <img :style="styles" src="/static/images/search-empty.svg">
-            <div style="margin-top: 20px;">
+            <div class="job-empty-text">
                 <slot>{{ $t('搜索结果为空') }}</slot>
             </div>
         </template>
         <template v-else>
             <img :style="styles" src="/static/images/empty.svg">
-            <div style="margin-top: 20px;">
+            <div class="job-empty-text">
                 <slot>{{ title }}</slot>
                 <slot name="desc" />
             </div>
@@ -81,5 +81,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+
+        .job-empty-text {
+            margin-top: 20px;
+
+            * {
+                font-size: 12px !important;
+            }
+        }
     }
 </style>

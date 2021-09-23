@@ -27,7 +27,7 @@
 import DangerousRuleSource from '../source/dangerous-rule';
 
 export default {
-    fetchList (params) {
+    fetchList (params = {}, payload = {}) {
         return DangerousRuleSource.getData(params)
             .then(({ data }) => data);
     },

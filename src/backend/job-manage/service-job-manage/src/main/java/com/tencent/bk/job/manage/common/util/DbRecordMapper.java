@@ -33,16 +33,37 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.*;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.model.dto.task.*;
+import com.tencent.bk.job.manage.common.consts.task.TaskApprovalTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
+import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
-import org.jooq.generated.tables.*;
+import org.jooq.Record11;
+import org.jooq.Record12;
+import org.jooq.Record13;
+import org.jooq.Record15;
+import org.jooq.Record6;
+import org.jooq.Record8;
+import org.jooq.Record9;
+import org.jooq.generated.tables.Application;
+import org.jooq.generated.tables.Host;
+import org.jooq.generated.tables.TaskPlan;
+import org.jooq.generated.tables.TaskTemplate;
+import org.jooq.generated.tables.TaskTemplateStepFileList;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 
@@ -246,8 +267,8 @@ public class DbRecordMapper {
         return taskFileInfo;
     }
 
-    public static TaskTemplateInfoDTO convertRecordToTemplateInfo(Record14<ULong, ULong, String, String, String, UByte,
-        ULong, String, ULong, String, ULong, ULong, String, UByte> record) {
+    public static TaskTemplateInfoDTO convertRecordToTemplateInfo(Record13<ULong, ULong, String, String, String, UByte,
+        ULong, String, ULong, ULong, ULong, String, UByte> record) {
         if (record == null) {
             return null;
         }
@@ -263,11 +284,6 @@ public class DbRecordMapper {
         taskTemplateInfo.setCreateTime(record.get(table.CREATE_TIME).longValue());
         taskTemplateInfo.setLastModifyUser(record.get(table.LAST_MODIFY_USER));
         taskTemplateInfo.setLastModifyTime(record.get(table.LAST_MODIFY_TIME).longValue());
-        taskTemplateInfo.setTags(TagUtils.decodeDbTag(record.get(table.TAGS)).stream().map(tagId -> {
-            TagDTO tagInfo = new TagDTO();
-            tagInfo.setId(tagId);
-            return tagInfo;
-        }).collect(Collectors.toList()));
         taskTemplateInfo.setFirstStepId(record.get(table.FIRST_STEP_ID).longValue());
         taskTemplateInfo.setLastStepId(record.get(table.LAST_STEP_ID).longValue());
         taskTemplateInfo.setVersion(record.get(table.VERSION));

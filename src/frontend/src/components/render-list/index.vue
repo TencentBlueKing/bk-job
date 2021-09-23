@@ -26,7 +26,11 @@
 -->
 
 <template>
-    <div ref="renderList" class="jb-render-list" v-bkloading="{ isLoading }">
+    <div
+        ref="renderList"
+        class="jb-render-list"
+        v-test="{ type: 'data', value: 'table' }"
+        v-bkloading="{ isLoading }">
         <bk-table
             v-if="isRendered"
             v-bind="$attrs"
@@ -64,10 +68,14 @@
                 <div>
                     <div style="font-size: 14px; color: #63656e;">{{ $t('搜索结果为空') }}</div>
                     <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
-                        <span>可以尝试调整关键词</span>
+                        <span>{{ $t('可以尝试调整关键词') }}</span>
                         <template v-if="searchControl">
-                            <span>或</span>
-                            <bk-button text @click="handleClearSearch">清空搜索条件</bk-button>
+                            <span>{{ $t('或') }}</span>
+                            <bk-button
+                                text
+                                @click="handleClearSearch">
+                                {{ $t('清空搜索条件') }}
+                            </bk-button>
                         </template>
                     </div>
                 </div>
@@ -206,6 +214,7 @@
             }
         },
         mounted () {
+            this.init();
             this.$on('onFetch', (params) => {
                 if (params) {
                     this.params = Object.freeze(params);
@@ -262,7 +271,6 @@
                         this.isRequesting = false;
                     });
             });
-            this.init();
         },
         methods: {
             /**
@@ -271,7 +279,7 @@
             init () {
                 const { top } = getOffset(this.$refs.renderList);
                 const windowHeight = window.innerHeight;
-                const tableHeadHeight = 43;
+                const tableHeadHeight = 42;
                 const paginationHeight = 63;
                 const windownOffsetBottom = 20;
                 const listTotalHeight = windowHeight - top - tableHeadHeight - paginationHeight - windownOffsetBottom;
@@ -289,7 +297,7 @@
                 if (!this.waitingInit) {
                     this.pagination.limit = limit;
                 }
-                this.tableMaxHeight = tableHeadHeight + listTotalHeight + paginationHeight;
+                this.tableMaxHeight = tableHeadHeight * (limit + 1) + paginationHeight + 1;
                 this.isRendered = true;
             },
             /**

@@ -31,8 +31,11 @@ class DangerousRule {
     }
 
     // 获取高危语句规则列表
-    getData () {
-        return Request.get(`${this.module}/list`);
+    getData (params = {}, payload = {}) {
+        return Request.get(`${this.module}/list`, {
+            params,
+            payload,
+        });
     }
 
     // 添加/修改高危语句规则

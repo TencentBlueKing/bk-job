@@ -37,12 +37,11 @@
         @click.stop="">
         <Icon :type="icon" class="tag-flag" />
         <template v-if="!isEditable">
-            <div class="tag-name" @click="handleClick">
+            <div class="tag-name" @click="handleSelect">
                 <div class="name-text" v-bk-overflow-tips>{{ displayName }}</div>
             </div>
             <div class="tag-num-box">
-                <Icon v-if="loading" type="loading" class="tag-loading" />
-                <span v-else class="tag-num">{{ count }}</span>
+                <span class="tag-num">{{ count }}</span>
             </div>
             <auth-component
                 v-if="canEdit"
@@ -73,16 +72,14 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import {
-        tagNameRule,
-    } from '@utils/validator';
+    import { tagNameRule } from '@utils/validator';
 
     export default {
         name: '',
         props: {
             icon: {
                 type: String,
-                required: 'tag',
+                default: 'tag',
             },
             loading: {
                 type: Boolean,
@@ -98,10 +95,6 @@
             },
             value: {
                 type: Number,
-            },
-            width: {
-                type: String,
-                default: 'auto',
             },
             id: {
                 type: Number,
@@ -123,14 +116,17 @@
             };
         },
         computed: {
-            styles () {
-                return {
-                    width: this.width,
-                };
-            },
+            /**
+             * @desc 重名检测
+             * @returns { Array }
+             */
             checkRenameList () {
                 return this.tagList.filter(_ => _.name !== this.name);
             },
+            /**
+             * @desc 编辑时错误信息提示
+             * @returns { Object }
+             */
             errorTipsConfig () {
                 const errorMap = {
                     1: I18n.t('template.标签名不可为空'),
@@ -151,9 +147,16 @@
             });
         },
         methods: {
-            handleClick () {
-                this.$emit('on-change', this.id, this.name);
+            /**
+             * @desc 选中当前 TAG
+             * @returns { viod }
+             */
+            handleSelect () {
+                this.$emit('on-select', this.id, this.name);
             },
+            /**
+             * @desc 编辑状态值更新
+             */
             triggerChange () {
                 if (this.displayName === this.name) {
                     this.isEditable = false;
@@ -180,6 +183,9 @@
                     name: this.displayName,
                 });
             },
+            /**
+             * @desc 开始编辑
+             */
             handleEdit () {
                 document.body.click();
                 this.isEditable = true;
@@ -187,18 +193,30 @@
                     this.$refs.input.focus();
                 });
             },
+            /**
+             * @desc 输入框值更新
+             */
             handleChange (value) {
                 this.displayName = value.trim();
             },
+            /**
+             * @desc 输入框失去焦点
+             */
             handleBlur () {
                 this.triggerChange();
             },
+            /**
+             * @desc Enter 触发值更新
+             */
             handleEnter (value, event) {
                 if (!this.isEditable) return;
                 if (event.key === 'Enter' && event.keyCode === 13) {
                     this.triggerChange();
                 }
             },
+            /**
+             * @desc 取消编辑状态
+             */
             hideEdit () {
                 if (!this.isEditable) {
                     return;

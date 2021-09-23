@@ -66,10 +66,10 @@ public class CustomScriptTemplateDAOImpl implements CustomScriptTemplateDAO {
         return scriptTemplates;
     }
 
-    private ScriptTemplateDTO extractScriptTemplate(Record result) {
+    private ScriptTemplateDTO extractScriptTemplate(Record record) {
         ScriptTemplateDTO scriptTemplate = new ScriptTemplateDTO();
-        scriptTemplate.setScriptLanguage(result.get(TB.SCRIPT_LANGUAGE).intValue());
-        scriptTemplate.setScriptContent(result.get(TB.SCRIPT_CONTENT, String.class));
+        scriptTemplate.setScriptLanguage(record.get(TB.SCRIPT_LANGUAGE).intValue());
+        scriptTemplate.setScriptContent(record.get(TB.SCRIPT_CONTENT, String.class));
         return scriptTemplate;
     }
 
