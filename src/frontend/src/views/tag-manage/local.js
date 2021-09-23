@@ -47,7 +47,7 @@ export default {
         },
         更新时间: 'LAST MODIFIED ON',
         操作: 'ACTIONS',
-        编辑: 'Editing',
+        编辑: 'Edit',
         '确认删除该标签？': 'Are you sure to delete it?',
         '关联的作业、脚本，将同时移除本标签': 'This action will also remove the tag from those associated job templates and scripts',
         删除: 'Delete',
