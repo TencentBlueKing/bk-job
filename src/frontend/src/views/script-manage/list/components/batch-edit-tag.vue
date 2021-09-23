@@ -120,7 +120,7 @@
             OperationTag,
         },
         props: {
-            templateList: {
+            scriptList: {
                 type: Array,
                 required: true,
             },
@@ -135,14 +135,15 @@
                 newTagList: [],
                 wholeTagList: [],
                 renderList: [],
-                templateNums: props.templateList.length,
+                templateNums: props.scriptList.length,
                 operationList: [],
                 tagRelateNumMap: {},
                 tagCheckInfoMap: {},
             });
             const scrollRef = ref(null);
             const isPublicScript = checkPublicScript(proxy.$route);
-            
+            const scriptRequestService = isPublicScript ? PublicScriptManageService : ScriptManageService;
+            const tagRequestHandler = isPublicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
             // 初始统计 tag 被模板使用的数量
             const tagRelateNumMap = {};
             // 缓存全选
@@ -151,35 +152,6 @@
             const memoIndeterminateMap = {};
             // 所选作业关联 tag 的默认选中状态
             const tagCheckInfoMap = {};
-            props.templateList.forEach(({ tags }) => {
-                tags.forEach(({ id }) => {
-                    // 计算每个被使用到的 tag 数量
-                    if (tagRelateNumMap[id]) {
-                        tagRelateNumMap[id] += 1;
-                    } else {
-                        tagRelateNumMap[id] = 1;
-                    }
-                    // tag 的 checkbox 选中状态
-                    if (!tagCheckInfoMap[id]) {
-                        tagCheckInfoMap[id] = {
-                            indeterminate: true,
-                        };
-                        memoIndeterminateMap[id] = true;
-                    }
-                    // 如果所有作业都使用了该 tag 则默认被选中
-                    if (tagRelateNumMap[id] === state.templateNums) {
-                        delete memoIndeterminateMap[id];
-                        memoCheckedMap[id] = id;
-                        tagCheckInfoMap[id] = {
-                            checked: true,
-                        };
-                    }
-                });
-            });
-            
-            state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
-            state.operationList = Object.values(memoCheckedMap);
-            state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
 
             // 展示的 tag 列表
             const renderList = computed(() => {
@@ -191,14 +163,45 @@
                 const result = allTagList.filter(item => searchReg.test(item.name));
                 return Object.freeze(result);
             });
+            
+            const fetchScriptList = () => scriptRequestService.fetchBatchBasicInfo({
+                ids: props.scriptList.map(({ id }) => id).join(','),
+            }).then((data) => {
+                data.forEach(({ tags }) => {
+                    tags.forEach(({ id }) => {
+                        // 计算每个被使用到的 tag 数量
+                        if (tagRelateNumMap[id]) {
+                            tagRelateNumMap[id] += 1;
+                        } else {
+                            tagRelateNumMap[id] = 1;
+                        }
+                        // tag 的 checkbox 选中状态
+                        if (!tagCheckInfoMap[id]) {
+                            tagCheckInfoMap[id] = {
+                                indeterminate: true,
+                            };
+                            memoIndeterminateMap[id] = true;
+                        }
+                        // 如果所有作业都使用了该 tag 则默认被选中
+                        if (tagRelateNumMap[id] === state.templateNums) {
+                            delete memoIndeterminateMap[id];
+                            memoCheckedMap[id] = id;
+                            tagCheckInfoMap[id] = {
+                                checked: true,
+                            };
+                        }
+                    });
+                });
+            
+                state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
+                state.operationList = Object.values(memoCheckedMap);
+                state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
+            });
             /**
              * @desc 获取 tag 列表数据
              */
-            const fetchData = () => {
-                const requestHandler = isPublicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
-                proxy.$request(requestHandler(), () => {
-                    state.isLoading = true;
-                }).then((data) => {
+            const fetchWholeTagList = () => tagRequestHandler()
+                .then((data) => {
                     // 排序
                     // 已经被使用的 tag 在前面
                     state.wholeTagList = Object.freeze(data.reduce((result, item) => {
@@ -209,11 +212,7 @@
                         }
                         return result;
                     }, []));
-                })
-                    .finally(() => {
-                        state.isLoading = false;
-                    });
-            };
+                });
             /**
              * @desc 过滤 tag
              * @param { String } search
@@ -297,13 +296,11 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
-
-                const requestHander = isPublicScript ? PublicScriptManageService.batchUpdateTag : ScriptManageService.batchUpdateTag;
                 
-                return requestHander({
+                return scriptRequestService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,
-                    idList: props.templateList.map(({ id }) => id),
+                    idList: props.scriptList.map(({ id }) => id),
                 }).then(() => {
                     proxy.messageSuccess(I18n.t('script.编辑标签成功'));
                     ctx.emit('on-change');
@@ -311,7 +308,13 @@
             };
 
             onBeforeMount(() => {
-                fetchData();
+                state.isLoading = true;
+                Promise.all([
+                    fetchScriptList(),
+                    fetchWholeTagList(),
+                ]).finally(() => {
+                    state.isLoading = false;
+                });
             });
 
             return {

@@ -108,6 +108,14 @@
                         message: tagNameRule.message,
                         trigger: 'blur',
                     },
+                    {
+                        validator: name => TagManageService.checkName({
+                            id: props.data.id || 0,
+                            name,
+                        }),
+                        message: I18n.t('标签名已存在，请重新输入'),
+                        trigger: 'blur',
+                    },
                 ],
             };
             // props.data 有更新时同步最新的值

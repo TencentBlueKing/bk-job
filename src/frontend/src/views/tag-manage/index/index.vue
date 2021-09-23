@@ -78,7 +78,7 @@
                 :label="$t('tag.关联作业量.colHead')"
                 prop="relatedTaskTemplateNum"
                 key="relatedTaskTemplateNum"
-                width="120"
+                width="150"
                 align="right">
                 <template slot-scope="{ row }">
                     <router-link
@@ -98,7 +98,7 @@
                 :label="$t('tag.关联脚本量.colHead')"
                 prop="relatedScriptNum"
                 key="relatedScriptNum"
-                width="120"
+                width="170"
                 align="right">
                 <template slot-scope="{ row }">
                     <router-link
@@ -132,7 +132,7 @@
                 :label="$t('tag.更新人.colHead')"
                 prop="lastModifyUser"
                 key="lastModifyUser"
-                width="120"
+                width="160"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
@@ -196,6 +196,7 @@
             v-model="isShowEditRelate"
             :width="480"
             :title="$t('tag.批量流转关联项')"
+            :ok-text="$t('tag.提交')"
             header-position="left">
             <batch-edit-relate
                 ref="batchEditRelate"

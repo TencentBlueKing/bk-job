@@ -142,8 +142,14 @@
                     @setting-change="handleSettingChange" />
             </bk-table-column>
         </render-list>
-        <jb-sideslider :is-show.sync="isShowCreateWhiteIp" v-bind="operationSidesliderInfo" :width="552">
-            <operation ref="whiteIp" :data="editInfo" @on-update="handleWhiteIpUpdate" />
+        <jb-sideslider
+            :is-show.sync="isShowCreateWhiteIp"
+            v-bind="operationSidesliderInfo"
+            :width="552">
+            <operation
+                ref="whiteIp"
+                :data="editInfo"
+                @on-update="handleWhiteIpUpdate" />
         </jb-sideslider>
     </div>
 </template>

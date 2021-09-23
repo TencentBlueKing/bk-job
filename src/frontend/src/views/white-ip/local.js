@@ -56,5 +56,6 @@ export default {
         },
         操作: 'ACTIONS',
         删除: 'Delete',
+        保存: 'Save',
     },
 };

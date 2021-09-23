@@ -83,4 +83,8 @@ export default {
         return TagManageSource.create(params)
             .then(({ data }) => data);
     },
+    checkName (params = {}) {
+        return TagManageSource.checkName(params)
+            .then(({ data }) => data);
+    },
 };

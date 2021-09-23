@@ -586,7 +586,6 @@
              */
             handleBatchEditChange () {
                 this.fetchData();
-                this.$refs.list.resetSelect();
                 this.$refs.tagPanelRef.init();
             },
             /**

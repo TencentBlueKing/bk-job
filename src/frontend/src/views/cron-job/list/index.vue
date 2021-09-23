@@ -143,7 +143,7 @@
                 sortable
                 prop="lastModifyUser"
                 key="lastModifyUser"
-                width="120"
+                width="140"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
@@ -158,7 +158,7 @@
                 sortable
                 prop="lastExecuteStatus"
                 key="lastExecuteStatus"
-                width="140"
+                width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <Icon
@@ -173,7 +173,7 @@
                 :label="$t('cron.周期成功率')"
                 :render-header="renderHeader"
                 key="successRateText"
-                width="120"
+                width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <div v-if="row.isStatictisLoading" class="sync-fetch">
