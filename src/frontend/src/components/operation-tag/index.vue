@@ -101,7 +101,7 @@
                     {
                         required: true,
                         message: I18n.t('标签名不能为空'),
-                        trigger: 'change',
+                        trigger: 'blur',
                     },
                     {
                         validator: tagNameRule.validator,
@@ -118,12 +118,15 @@
                     },
                 ],
             };
-            // props.data 有更新时同步最新的值
-            watch(() => props.data, (data) => {
+            // value 有更新时显示最新的值
+            watch(() => props.value, (value) => {
+                if (!value) {
+                    return;
+                }
                 const {
                     name,
                     description,
-                } = data;
+                } = props.data;
                 state.formData = {
                     name,
                     description,
