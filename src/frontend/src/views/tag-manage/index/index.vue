@@ -201,6 +201,7 @@
             <batch-edit-relate
                 ref="batchEditRelate"
                 :data="editData"
+                @on-change="handleRelateChange"
                 @on-create="handleCreate" />
         </jb-dialog>
     </div>
@@ -374,6 +375,15 @@
              * @desc 标签有更新重新获取列表数据
              */
             handleOperationChange () {
+                this.fetchData();
+                if (this.$refs.batchEditRelate) {
+                    this.$refs.batchEditRelate.refresh();
+                }
+            },
+            /**
+             * @desc 批量流转重新获取列表数据
+             */
+            handleRelateChange () {
                 this.fetchData();
                 if (this.$refs.batchEditRelate) {
                     this.$refs.batchEditRelate.refresh();
