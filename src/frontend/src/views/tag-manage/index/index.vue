@@ -199,6 +199,7 @@
             :ok-text="$t('tag.提交')"
             header-position="left">
             <batch-edit-relate
+                v-if="isShowEditRelate"
                 ref="batchEditRelate"
                 :data="editData"
                 @on-change="handleRelateChange"
