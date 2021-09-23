@@ -57,4 +57,6 @@ public interface FileWorkerDAO {
     Long countOnlineFileWorkers();
 
     boolean existsFileWorker(DSLContext dslContext, String accessHost, Integer accessPort);
+
+    FileWorkerDTO getFileWorker(DSLContext dslContext, String accessHost, Integer accessPort);
 }

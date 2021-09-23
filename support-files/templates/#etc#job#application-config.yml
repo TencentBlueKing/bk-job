@@ -4,6 +4,11 @@ spring:
       host: 127.0.0.1
       port: __CONSUL_HTTP_PORT__
       scheme: __CONSUL_SCHEME__
+      discovery:
+        service-name: 'job-config'
+        instance-id: job-config-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
       #tls:
         #key-store-instance-type:
         #key-store-path:

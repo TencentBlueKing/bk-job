@@ -5,6 +5,11 @@ spring:
       port: __CONSUL_HTTP_PORT__
       scheme: __CONSUL_SCHEME__
       enabled: true
+      discovery:
+        service-name: 'job-backup'
+        instance-id: job-backup-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
         #tls:
         #key-store-instance-type:
         #key-store-path:
@@ -19,3 +24,6 @@ spring:
       password: __BK_JOB_SECURITY_PASSWORD__
       enabled: true
       fail-fast: true
+
+server:
+  port: __BK_JOB_BACKUP_SERVER_PORT__
