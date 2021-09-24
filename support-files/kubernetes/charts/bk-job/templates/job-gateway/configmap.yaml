@@ -226,6 +226,7 @@ data:
         enabled: true
         port: {{ .Values.gatewayConfig.containerPort.http }}
       ssl:
+        enabled: true
         keystore:
           type: PKCS12
           path: "file:/data/job/cert/job_server.p12"
