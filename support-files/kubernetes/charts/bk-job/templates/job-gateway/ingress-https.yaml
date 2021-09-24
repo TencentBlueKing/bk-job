@@ -52,7 +52,7 @@ spec:
     {{- if .Values.gatewayConfig.ingress.tls }}
     - hosts:
         - {{ .Values.gatewayConfig.ingress.hostname }}
-      secretName: {{ printf "%s-tls" .Values.gatewayConfig.ingress.hostname }}
+      secretName: {{ printf "%s-ingress-tls" .Values.gatewayConfig.ingress.hostname }}
     {{- end }}
     {{- if .Values.gatewayConfig.ingress.extraTls }}
     {{- toYaml .Values.gatewayConfig.ingress.extraTls | nindent 4 }}
