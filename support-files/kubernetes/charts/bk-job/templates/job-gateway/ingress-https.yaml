@@ -2,9 +2,9 @@
 apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ include "common.names.fullname" . }}-gateway-http
+  name: {{ include "common.names.fullname" . }}-gateway-https
   labels: {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: job-gateway-http
+    app.kubernetes.io/component: job-gateway-https
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -35,7 +35,7 @@ spec:
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
             pathType: {{ .Values.gatewayConfig.ingress.pathType }}
             {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.https "context" $)  | nindent 14 }}
     {{- end }}
     {{- range .Values.gatewayConfig.ingress.extraHosts }}
     - host: {{ .name }}
@@ -45,7 +45,7 @@ spec:
             {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
             {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "https" "context" $)  | nindent 14 }}
     {{- end }}
   {{- if or .Values.gatewayConfig.ingress.tls .Values.gatewayConfig.ingress.extraTls }}
   tls:
