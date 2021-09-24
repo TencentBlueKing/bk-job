@@ -99,7 +99,7 @@
     <appender name="task-monitor-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${TASK_MONITOR_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${TASK_MONITOR_LOG_FILE}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${TASK_MONITOR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>3</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>
