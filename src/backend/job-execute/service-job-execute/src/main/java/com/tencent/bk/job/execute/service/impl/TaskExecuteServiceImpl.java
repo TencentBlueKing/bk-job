@@ -77,6 +77,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
+import com.tencent.bk.job.execute.util.LoggerFactory;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
@@ -104,6 +105,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -151,6 +153,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
     private final JobExecuteConfig jobExecuteConfig;
+
+    private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
     @Autowired
     public TaskExecuteServiceImpl(ApplicationService applicationService,
@@ -823,6 +827,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkStepInstanceConstraint(List<StepInstanceDTO> stepInstanceList) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
+            String operator = stepInstance.getOperator();
             if (stepInstance.isFileStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();
                 int totalSourceFileSize = 0;
@@ -837,13 +842,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 }
                 int totalFileTaskSize = totalSourceFileSize * targetServerSize;
                 if (totalFileTaskSize > 10000) {
-                    log.warn("Step contains a large number of file tasks, size: {}, step: {}",
-                        totalFileTaskSize, stepInstance);
+                    TASK_MONITOR_LOGGER.info("LargeTask|type:file|fileTaskSize:{}|operator:{}|step:{}",
+                        totalFileTaskSize, operator, stepInstance);
                 }
                 if (totalFileTaskSize > jobExecuteConfig.getFileTasksMax()) {
-                    log.warn("Too much file tasks, reject the task. step: {}, size: {}, maxAllowedSize: {}",
-                        stepInstance, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
+                    log.info("Too much file tasks, reject the task. operator: {}, step: {}, size: {}, maxAllowedSize:" +
+                            " {}",
+                        operator, stepInstance, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
                     throw new ServiceException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
+                }
+            } else if (stepInstance.isScriptStep()) {
+                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                if (targetServerSize > 10000) {
+                    TASK_MONITOR_LOGGER.info("LargeTask|type:script|targetServerSize:{}|operator:{}|step:{}",
+                        targetServerSize, operator, stepInstance);
+                }
+                if (targetServerSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
+                    log.info("Too much target servers, reject the task. operator: {}, step: {}, size: {}, " +
+                            "maxAllowedSize: {}",
+                        operator, stepInstance, targetServerSize, jobExecuteConfig.getFileTasksMax());
+                    throw new ServiceException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
+                        jobExecuteConfig.getScriptTaskMaxTargetServer());
                 }
             }
         }
