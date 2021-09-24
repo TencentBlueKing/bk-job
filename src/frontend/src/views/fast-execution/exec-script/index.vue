@@ -86,13 +86,13 @@
                         class="w120 mr10"
                         :loading="isSubmiting"
                         theme="primary"
-                        v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }"
-                        @click="handleSubmit">
+                        @click="handleSubmit"
+                        v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }">
                         {{ $t('execution.执行') }}
                     </bk-button>
                     <bk-button
-                        v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }"
-                        @click="handleCancel">
+                        @click="handleCancel"
+                        v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }">
                         {{ $t('execution.重置') }}
                     </bk-button>
                 </div>

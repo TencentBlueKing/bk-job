@@ -126,6 +126,10 @@ export default {
         return ScriptManageSource.getBasiceInfoById(params)
             .then(({ data }) => new ScriptModel(data));
     },
+    fetchBatchBasicInfo (params = {}) {
+        return ScriptManageSource.getBatchBasiceInfoByIds(params)
+            .then(({ data }) => data.map(item => new ScriptModel(item)));
+    },
     batchUpdateTag (params = {}) {
         return ScriptManageSource.batchUpdateTag(params)
             .then(({ data }) => data);

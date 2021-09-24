@@ -137,35 +137,6 @@
             const memoIndeterminateMap = {};
             // 所选作业关联 tag 的默认选中状态
             const tagCheckInfoMap = {};
-            props.templateList.forEach(({ tags }) => {
-                tags.forEach(({ id }) => {
-                    // 计算每个被使用到的 tag 数量
-                    if (tagRelateNumMap[id]) {
-                        tagRelateNumMap[id] += 1;
-                    } else {
-                        tagRelateNumMap[id] = 1;
-                    }
-                    // tag 的 checkbox 选中状态
-                    if (!tagCheckInfoMap[id]) {
-                        tagCheckInfoMap[id] = {
-                            indeterminate: true,
-                        };
-                        memoIndeterminateMap[id] = true;
-                    }
-                    // 如果所有作业都使用了该 tag 则默认被选中
-                    if (tagRelateNumMap[id] === state.templateNums) {
-                        delete memoIndeterminateMap[id];
-                        memoCheckedMap[id] = id;
-                        tagCheckInfoMap[id] = {
-                            checked: true,
-                        };
-                    }
-                });
-            });
-            
-            state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
-            state.operationList = Object.values(memoCheckedMap);
-            state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
 
             const { proxy } = getCurrentInstance();
 
@@ -181,12 +152,46 @@
                 return Object.freeze(result);
             });
             /**
+             * @desc 获取作业模板的数据
+             */
+            const fetchTaskBasicsData = () => TaskManageService.fetchBasic({
+                ids: props.templateList.map(({ id }) => id).join(','),
+            }).then((data) => {
+                data.forEach(({ tags }) => {
+                    tags.forEach(({ id }) => {
+                        // 计算每个被使用到的 tag 数量
+                        if (tagRelateNumMap[id]) {
+                            tagRelateNumMap[id] += 1;
+                        } else {
+                            tagRelateNumMap[id] = 1;
+                        }
+                        // tag 的 checkbox 选中状态
+                        if (!tagCheckInfoMap[id]) {
+                            tagCheckInfoMap[id] = {
+                                indeterminate: true,
+                            };
+                            memoIndeterminateMap[id] = true;
+                        }
+                        // 如果所有作业都使用了该 tag 则默认被选中
+                        if (tagRelateNumMap[id] === state.templateNums) {
+                            delete memoIndeterminateMap[id];
+                            memoCheckedMap[id] = id;
+                            tagCheckInfoMap[id] = {
+                                checked: true,
+                            };
+                        }
+                    });
+                });
+                    
+                state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
+                state.operationList = Object.values(memoCheckedMap);
+                state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
+            });
+            /**
              * @desc 获取 tag 列表数据
              */
-            const fetchData = () => {
-                proxy.$request(TagManageService.fetchWholeList(), () => {
-                    state.isLoading = true;
-                }).then((data) => {
+            const fetchWholeTagList = () => TagManageService.fetchWholeList()
+                .then((data) => {
                     // 排序
                     // 已经被使用的 tag 在前面
                     state.wholeTagList = Object.freeze(data.reduce((result, item) => {
@@ -197,11 +202,7 @@
                         }
                         return result;
                     }, []));
-                })
-                    .finally(() => {
-                        state.isLoading = false;
-                    });
-            };
+                });
             /**
              * @desc 过滤 tag
              * @param { String } search
@@ -300,7 +301,13 @@
             };
 
             onBeforeMount(() => {
-                fetchData();
+                state.isLoading = true;
+                Promise.all([
+                    fetchWholeTagList(),
+                    fetchTaskBasicsData(),
+                ]).then(() => {
+                    state.isLoading = false;
+                });
             });
 
             return {

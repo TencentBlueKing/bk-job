@@ -73,10 +73,15 @@
                 theme="primary"
                 class="w120 mr10"
                 :loading="submitLoading"
-                @click="handleSumbit">
+                @click="handleSumbit"
+                v-test="{ type: 'button', value: 'createPlanSubmit' }">
                 {{ $t('template.提交') }}
             </bk-button>
-            <bk-button @click="handleReset">{{ $t('template.重置') }}</bk-button>
+            <bk-button
+                @click="handleReset"
+                v-test="{ type: 'button', value: 'createPlanReset' }">
+                {{ $t('template.重置') }}
+            </bk-button>
         </template>
     </layout>
 </template>

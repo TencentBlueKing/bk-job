@@ -27,7 +27,7 @@ spec:
       initContainers:
         - name: wait-mariadb
           image: busybox:1.28
-          command: ['sh', '-c', "until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done"]
+          command: ['sh', '-c', 'until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done']
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
@@ -40,7 +40,7 @@ spec:
             - name: BK_JOB_MYSQL_PORT
               value: {{ include "job.mariadb.port" . | quote }}
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mariadb.auth.rootPassword | quote }}
+              value: {{ include "job.mariadb.rootPassword" . | quote }}
             - name: BK_IAM_URL
               value: {{ .Values.iam.baseUrl | quote }}
             - name: BK_JOB_APP_CODE
