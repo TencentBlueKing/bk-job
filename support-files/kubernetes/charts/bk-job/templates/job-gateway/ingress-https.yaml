@@ -24,38 +24,38 @@ spec:
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
-    {{- if .Values.gatewayConfig.ingress.hostname }}
-    - host: {{ .Values.gatewayConfig.ingress.hostname }}
-      http:
-        paths:
-          {{- if .Values.gatewayConfig.ingress.extraPaths }}
-            {{- toYaml .Values.gatewayConfig.ingress.extraPaths | nindent 10 }}
-          {{- end }}
-          - path: {{ .Values.gatewayConfig.ingress.path }}
-            {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
-            pathType: {{ .Values.gatewayConfig.ingress.pathType }}
-            {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.https "context" $)  | nindent 14 }}
-    {{- end }}
-    {{- range .Values.gatewayConfig.ingress.extraHosts }}
-    - host: {{ .name }}
-      http:
-        paths:
-          - path: {{ default "/" .path }}
-            {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
-            pathType: {{ default "ImplementationSpecific" .pathType }}
-            {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "https" "context" $)  | nindent 14 }}
-    {{- end }}
+  {{- if .Values.gatewayConfig.ingress.hostname }}
+  - host: {{ .Values.gatewayConfig.ingress.hostname }}
+    http:
+      paths:
+      {{- if .Values.gatewayConfig.ingress.extraPaths }}
+        {{- toYaml .Values.gatewayConfig.ingress.extraPaths | nindent 10 }}
+      {{- end }}
+      - path: {{ .Values.gatewayConfig.ingress.path }}
+        {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
+        pathType: {{ .Values.gatewayConfig.ingress.pathType }}
+        {{- end }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.https "context" $)  | nindent 14 }}
+  {{- end }}
+  {{- range .Values.gatewayConfig.ingress.extraHosts }}
+  - host: {{ .name }}
+    http:
+      paths:
+      - path: {{ default "/" .path }}
+        {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
+        pathType: {{ default "ImplementationSpecific" .pathType }}
+        {{- end }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "https" "context" $)  | nindent 14 }}
+  {{- end }}
   {{- if or .Values.gatewayConfig.ingress.tls .Values.gatewayConfig.ingress.extraTls }}
   tls:
-    {{- if .Values.gatewayConfig.ingress.tls }}
-    - hosts:
-        - {{ .Values.gatewayConfig.ingress.hostname }}
-      secretName: {{ printf "%s-ingress-tls" .Values.gatewayConfig.ingress.hostname }}
-    {{- end }}
-    {{- if .Values.gatewayConfig.ingress.extraTls }}
-    {{- toYaml .Values.gatewayConfig.ingress.extraTls | nindent 4 }}
-    {{- end }}
+  {{- if .Values.gatewayConfig.ingress.tls }}
+  - hosts:
+      - {{ .Values.gatewayConfig.ingress.hostname }}
+    secretName: {{ printf "%s-ingress-tls" .Values.gatewayConfig.ingress.hostname }}
+  {{- end }}
+  {{- if .Values.gatewayConfig.ingress.extraTls }}
+  {{- toYaml .Values.gatewayConfig.ingress.extraTls | nindent 4 }}
+  {{- end }}
   {{- end }}
 {{- end }}
