@@ -74,6 +74,15 @@ class TagManage extends ModuleBase {
             params: realParams,
         });
     }
+
+    checkName (params = {}) {
+        const realParams = { ...params };
+        delete realParams.id;
+
+        return Request.get(`${this.path}/tag/${params.id}/checkName`, {
+            params: realParams,
+        });
+    }
 }
 
 export default new TagManage();

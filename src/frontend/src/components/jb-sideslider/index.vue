@@ -31,6 +31,7 @@
         ref="bkSideslider"
         v-bind="$attrs"
         :is-show="isShow"
+        @update:isShow="close"
         quick-close
         transfer
         :width="mediaWidth"

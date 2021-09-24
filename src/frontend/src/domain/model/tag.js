@@ -49,4 +49,8 @@ export default class Tag extends Model {
     get descriptionText () {
         return this.getDefaultValue(this.description);
     }
+
+    get isEditRelateDisabled () {
+        return this.relatedScriptNum < 1 && this.relatedTaskTemplateNum < 1;
+    }
 }

@@ -29,6 +29,7 @@ import com.ecwid.consul.v1.QueryParams;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.health.HealthChecksForServiceRequest;
 import com.ecwid.consul.v1.health.model.Check;
+import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -39,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.consul.discovery.ConsulServiceInstance;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -145,13 +147,10 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
             log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
         }
         return serviceInstanceList.parallelStream().filter(serviceInstance -> {
-            if (serviceInstance.getServiceId().equals("job-gateway-management")) {
-                return false;
-            } else {
-                Map<String, String> metaData = serviceInstance.getMetadata();
-                log.debug("metaData={}", JsonUtils.toJson(metaData));
-                return serviceInstance.getServiceId().startsWith("job");
-            }
+            ConsulServiceInstance consulServiceInstance = (ConsulServiceInstance) serviceInstance;
+            return consulServiceInstance.getTags().contains(
+                JobDiscoveryConsts.TAG_KEY_TYPE + "=" + JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE
+            );
         }).map(serviceInstance -> {
             ServiceInstanceInfoDTO serviceInstanceInfoDTO = new ServiceInstanceInfoDTO();
             serviceInstanceInfoDTO.setServiceName(serviceInstance.getServiceId());

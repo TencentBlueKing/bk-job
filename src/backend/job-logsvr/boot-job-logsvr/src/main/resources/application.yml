@@ -3,13 +3,6 @@ spring:
     name: job-logsvr
   profiles:
     active: prod
-  cloud:
-    consul:
-      discovery:
-        service-name: 'job-logsvr'
-        instance-id: job-logsvr-${machine.ip}-${server.port}
-        enabled: true
-        prefer-ip-address: true
   data:
     mongodb:
       uri: ${job.logsvr.mongodb.uri}

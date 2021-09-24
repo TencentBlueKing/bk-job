@@ -128,6 +128,10 @@ export default {
         return PublicScriptManageSource.getBasiceInfoById(params)
             .then(({ data }) => new ScriptModel(data));
     },
+    fetchBatchBasicInfo (params = {}) {
+        return PublicScriptManageSource.getBatchBasiceInfoByIds(params)
+            .then(({ data }) => data.map(item => new ScriptModel(item)));
+    },
     batchUpdateTag (params = {}) {
         return PublicScriptManageSource.batchUpdateTag(params)
             .then(({ data }) => data);

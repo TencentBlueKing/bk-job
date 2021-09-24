@@ -47,9 +47,9 @@
         <scroll-faker
             v-if="!isLoading"
             ref="scroll"
-            class="container"
+            class="dashboard-container"
             style="height: calc(100vh - 161px);">
-            <div ref="content" class="wraper">
+            <div ref="content" class="dashboard-wraper">
                 <div class="section-block">
                     <div class="section-title">{{ $t('dashboard.业务类') }}</div>
                     <div class="section-content">
@@ -104,9 +104,7 @@
 <script>
     import html2canvas from 'html2canvas';
     import StatisticsService from '@service/statistics';
-    import {
-        prettyDateFormat,
-    } from '@utils/assist';
+    import { prettyDateFormat } from '@utils/assist';
     import AppDashboard from './components/app';
     import PlatformDashboard from './components/platform';
     import TemplateDashboard from './components/template';
@@ -185,7 +183,7 @@
         },
     };
 </script>
-<style lang='postcss'>
+<style lang='postcss' scoped>
     .dashboard-page {
         .operation-bar {
             position: relative;
@@ -246,8 +244,8 @@
             }
         }
 
-        .container {
-            .wraper {
+        .dashboard-container {
+            .dashboard-wraper {
                 padding: 20px 24px;
             }
         }

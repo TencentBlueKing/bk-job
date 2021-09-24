@@ -121,5 +121,6 @@ export default {
         最近7天: 'Last 7 days',
         最近30天: 'Last 30 days',
         截图: 'Screenshot',
+        '未知 OS': 'Unknown OS',
     },
 };

@@ -31,8 +31,8 @@
             <jb-form
                 :model="formData"
                 :rules="rules"
-                v-test="{ type: 'form', value: 'template' }"
-                ref="templateOperateRef">
+                ref="templateOperateRef"
+                v-test="{ type: 'form', value: 'template' }">
                 <bk-alert class="info" :title="$t('template.对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。')" />
                 <jb-form-item
                     :label="$t('template.模板名称')"
@@ -87,10 +87,15 @@
                     class="w120 mr10"
                     theme="primary"
                     :loading="isSubmiting"
-                    @click="handlerSubmit">
+                    @click="handlerSubmit"
+                    v-test="{ type: 'button', value: 'operationTemplateSubmit' }">
                     {{ submitText }}
                 </bk-button>
-                <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
+                <bk-button
+                    @click="handleCancel"
+                    v-test="{ type: 'button', value: 'operationTemplateCancel' }">
+                    {{ $t('template.取消') }}
+                </bk-button>
             </template>
         </smart-action>
         <back-top />

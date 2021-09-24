@@ -123,7 +123,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.LAST_MODIFY_TIME,
             defaultTable.CONFIG_STR
         ).values(
-            (Long) null,
+            fileWorkerDTO.getId(),
             fileWorkerDTO.getAppId(),
             fileWorkerDTO.getName(),
             fileWorkerDTO.getDescription(),
@@ -428,6 +428,19 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
         conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
         return existsFileWorkerByConditions(dslContext, conditions);
+    }
+
+    @Override
+    public FileWorkerDTO getFileWorker(DSLContext dslContext, String accessHost, Integer accessPort) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
+        conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
+        List<FileWorkerDTO> fileWorkerDTOList = listFileWorkersByConditions(dslContext, conditions);
+        if (fileWorkerDTOList.isEmpty()) {
+            return null;
+        } else {
+            return fileWorkerDTOList.get(0);
+        }
     }
 
     private boolean existsFileWorkerByConditions(DSLContext dslContext, Collection<Condition> conditions) {

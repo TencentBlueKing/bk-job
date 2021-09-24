@@ -3,14 +3,6 @@ spring:
     name: job-manage
   profiles:
     active: prod
-  cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-manage
-        instance-id: job-manage-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
 
 ribbon:
   ServerListRefreshInterval: 3000

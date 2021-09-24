@@ -137,7 +137,7 @@
                 :label="$t('script.被引用.colHead')"
                 prop="related"
                 key="related"
-                width="100"
+                width="120"
                 :render-header="renderHeader"
                 align="right">
                 <template slot-scope="{ row }">
@@ -256,7 +256,7 @@
             :width="480">
             <batch-edit-tag
                 v-if="isShowBatchEditTag"
-                :template-list="listSelect"
+                :script-list="listSelect"
                 @on-change="handleBatchEditChange" />
         </jb-dialog>
         <jb-sideslider
@@ -498,7 +498,6 @@
              */
             handleBatchEditChange () {
                 this.fetchData();
-                this.$refs.list.resetSelect();
                 this.$refs.tagPanelRef.init();
             },
             /**
