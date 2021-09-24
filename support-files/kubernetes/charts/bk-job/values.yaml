@@ -135,6 +135,9 @@ externalMariaDB:
   ## @param externalMariaDB.password Password for the above username
   ##
   password: ""
+  ## @param externalMariaDB.rootPassword Password for the MariaDB `root` user
+  ##
+  rootPassword: ""
 
 
 ## Redis chart configuration
@@ -243,6 +246,9 @@ externalRabbitMQ:
   ## @param externalRabbitMQ.password Password
   ##
   password: "job"
+  ## @param externalRabbitMQ.vhost vhost
+  ##
+  vhost: "job"
 
 
 ## mongodb charts Config
