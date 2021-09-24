@@ -36,6 +36,16 @@ spec:
             pathType: {{ .Values.gatewayConfig.ingress.pathType }}
             {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+      https:
+        paths:
+          {{- if .Values.gatewayConfig.ingress.extraPaths }}
+            {{- toYaml .Values.gatewayConfig.ingress.extraPaths | nindent 10 }}
+          {{- end }}
+          - path: {{ .Values.gatewayConfig.ingress.path }}
+            {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
+            pathType: {{ .Values.gatewayConfig.ingress.pathType }}
+            {{- end }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.https "context" $)  | nindent 14 }}
     {{- end }}
     {{- range .Values.gatewayConfig.ingress.extraHosts }}
     - host: {{ .name }}
