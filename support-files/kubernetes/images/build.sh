@@ -243,6 +243,8 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    log "$SERVICE"
 	    if [[ "$SERVICE" == "job-frontend" ]]; then
 		    build_frontend_module
+	    elif [[ "$SERVICE" == "job-migration" ]]; then
+		    build_migration_image	
 		else
 		    build_backend_module $SERVICE
 		fi
