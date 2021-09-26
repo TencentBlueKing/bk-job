@@ -474,9 +474,9 @@ gatewayConfig:
   server:
     ssl:
       keystore:
-        password: ""
+        password: "mLnuob1**4D74c@F"
       truststore:
-        password: ""
+        password: "mLnuob1**4D74c@F"
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
 
 ## @section job-manage parameters
