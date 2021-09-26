@@ -39,8 +39,7 @@ Usage:
             [ --frontend            [Optional] Build frontend image ]
             [ --backend             [Optional] Build backend image ]
             [ --migration           [Optional] Build migration image ]
-			      [ --modules             [Optional] Build specified module images, modules are separated by commas.
- values:job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-frontend. Example: job-manage,job-execute ]
+			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
             [ -r, --registry        [Optional] docker repository, default docker.io ]
@@ -94,11 +93,12 @@ while (( $# > 0 )); do
             BUILD_ALL=0
             BUILD_MIGRATION=1
             ;;
-        --modules )
-		        shift
+        -m | --modules )
+		    shift
             BUILD_ALL=0
-			      BUILD_FRONTEND=0
+			BUILD_FRONTEND=0
             BUILD_BACKEND=0
+			BUILD_MIGRATION=0
 			modules_str=$1
 			BUILD_MODULES=(${modules_str//,/ })
             ;;
@@ -185,9 +185,6 @@ build_frontend_module () {
         docker push $REGISTRY/job-frontend:$VERSION
     fi
 }
-if [[ $BUILD_ALL -eq 1 || $BUILD_FRONTEND -eq 1 ]] ; then
-    build_frontend_module
-fi
 
 # Build backend image
 build_backend_module () {
@@ -224,18 +221,20 @@ build_migration_image(){
         docker push $REGISTRY/job-migration:$VERSION
     fi
 }
+
+# Building
+if [[ $BUILD_ALL -eq 1 || $BUILD_FRONTEND -eq 1 ]] ; then
+    build_frontend_module
+fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
     build_migration_image
 fi
-
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
     for SERVICE in ${BACKENDS[@]};
     do
         build_backend_module $SERVICE
     done
 fi
-
-
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
     for SERVICE in ${BUILD_MODULES[@]};
