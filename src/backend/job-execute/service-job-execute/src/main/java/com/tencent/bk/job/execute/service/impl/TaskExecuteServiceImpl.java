@@ -233,7 +233,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查步骤约束
             watch.start("checkStepInstanceConstraint");
-            checkStepInstanceConstraint(Collections.singletonList(stepInstance));
+            checkStepInstanceConstraint(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
             watch.start("authFastExecute");
@@ -825,7 +825,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return notInAppHosts;
     }
 
-    private void checkStepInstanceConstraint(List<StepInstanceDTO> stepInstanceList) {
+    private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+        String appCode = taskInstance.getAppCode();
+        Long appId = taskInstance.getAppId();
+        String taskName = taskInstance.getName();
+
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             String operator = stepInstance.getOperator();
             if (stepInstance.isFileStep()) {
@@ -842,25 +846,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 }
                 int totalFileTaskSize = totalSourceFileSize * targetServerSize;
                 if (totalFileTaskSize > 10000) {
-                    TASK_MONITOR_LOGGER.info("LargeTask|type:file|fileTaskSize:{}|operator:{}|step:{}",
-                        totalFileTaskSize, operator, stepInstance);
+                    TASK_MONITOR_LOGGER.info("LargeTask|type:file|taskName:{}|appCode:{}|appId:{}|operator:{}"
+                            + "|fileTaskSize:{}",
+                        taskName, appCode, appId, operator, totalFileTaskSize);
                 }
                 if (totalFileTaskSize > jobExecuteConfig.getFileTasksMax()) {
-                    log.info("Too much file tasks, reject the task. operator: {}, step: {}, size: {}, maxAllowedSize:" +
-                            " {}",
-                        operator, stepInstance, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
+                    log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
+                            ":{}|totalFileTaskSize:{}|maxAllowedSize:{}",
+                        taskName, appCode, appId, operator, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
                     throw new ServiceException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
                 }
             } else if (stepInstance.isScriptStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();
                 if (targetServerSize > 10000) {
-                    TASK_MONITOR_LOGGER.info("LargeTask|type:script|targetServerSize:{}|operator:{}|step:{}",
-                        targetServerSize, operator, stepInstance);
+                    TASK_MONITOR_LOGGER.info("LargeTask|type:script|taskName:{}|appCode:{}|appId:{}|operator:{}"
+                            + "|targetServerSize:{}",
+                        taskName, appCode, appId, operator, targetServerSize);
                 }
                 if (targetServerSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
-                    log.info("Too much target servers, reject the task. operator: {}, step: {}, size: {}, " +
-                            "maxAllowedSize: {}",
-                        operator, stepInstance, targetServerSize, jobExecuteConfig.getFileTasksMax());
+                    log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
+                            ":{}|targetServerSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
+                        targetServerSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
                     throw new ServiceException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
                         jobExecuteConfig.getScriptTaskMaxTargetServer());
                 }
@@ -915,7 +921,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查步骤约束
             watch.start("checkStepInstanceConstraint");
-            checkStepInstanceConstraint(stepInstanceList);
+            checkStepInstanceConstraint(taskInstance, stepInstanceList);
             watch.stop();
 
             if (!executeParam.isSkipAuth()) {
@@ -1258,7 +1264,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         checkHosts(stepInstanceList, shouldIgnoreInvalidHost(taskInstance));
 
         // 检查步骤约束
-        checkStepInstanceConstraint(stepInstanceList);
+        checkStepInstanceConstraint(taskInstance, stepInstanceList);
 
         authRedoJob(operator, appId, originTaskInstance);
 
