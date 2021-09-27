@@ -369,21 +369,22 @@ nodeman:
   server:
     url: http://nodeman.example.com
 
-## BlueKing Artifactory Config
-artifactory:
-  enabled: true
-  baseUrl: http://bkrepo.example.com
-  download:
-    concurrency: 10
-  admin:
-    username: admin
-    password: blueking
-  job:
-    username: bkjob
-    password: bkjob
-    project: bkjob
-    repo:
-      localUpload: localupload
+## Job LocalFile Config
+localFile:
+  storageBackend: artifactory
+  artifactory:
+    baseUrl: http://bkrepo.example.com
+    download:
+      concurrency: 10
+    admin:
+      username: admin
+      password: blueking
+    job:
+      username: bkjob
+      password: bkjob
+      project: bkjob
+      repo:
+        localUpload: localupload
 
 ## Swagger Doc
 swagger:

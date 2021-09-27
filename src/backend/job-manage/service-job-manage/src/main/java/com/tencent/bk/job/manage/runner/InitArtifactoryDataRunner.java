@@ -7,7 +7,7 @@ import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.manage.config.ArtifactoryConfigForManage;
+import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -19,27 +19,27 @@ import java.util.List;
 @Component
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
-    private final ArtifactoryConfigForManage artifactoryConfig;
+    private final LocalFileConfigForManage localFileConfigForManage;
 
     @Autowired
-    public InitArtifactoryDataRunner(ArtifactoryConfigForManage artifactoryConfig) {
-        this.artifactoryConfig = artifactoryConfig;
+    public InitArtifactoryDataRunner(LocalFileConfigForManage localFileConfigForManage) {
+        this.localFileConfigForManage = localFileConfigForManage;
     }
 
     @Override
     public void run(String... args) throws Exception {
         // 1.检查用户、仓库是否存在
         ArtifactoryClient jobClient = new ArtifactoryClient(
-            artifactoryConfig.getBaseUrl(),
-            artifactoryConfig.getJobUsername(),
-            artifactoryConfig.getJobPassword(),
+            localFileConfigForManage.getArtifactoryBaseUrl(),
+            localFileConfigForManage.getArtifactoryJobUsername(),
+            localFileConfigForManage.getArtifactoryJobPassword(),
             null
         );
         NodeDTO localUploadRepoRootNode = null;
         try {
             localUploadRepoRootNode = jobClient.queryNodeDetail(
-                artifactoryConfig.getJobPassword(),
-                artifactoryConfig.getJobLocalUploadRepo(),
+                localFileConfigForManage.getArtifactoryJobPassword(),
+                localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
                 "/"
             );
         } catch (Exception ignore) {
@@ -48,22 +48,22 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
         if (localUploadRepoRootNode != null) {
             log.info(
                 "user {} project {} repo {} already initialized",
-                artifactoryConfig.getJobUsername(),
-                artifactoryConfig.getJobProject(),
-                artifactoryConfig.getJobLocalUploadRepo()
+                localFileConfigForManage.getArtifactoryJobUsername(),
+                localFileConfigForManage.getArtifactoryJobProject(),
+                localFileConfigForManage.getArtifactoryJobLocalUploadRepo()
             );
             return;
         }
         ArtifactoryClient adminClient = new ArtifactoryClient(
-            artifactoryConfig.getBaseUrl(),
-            artifactoryConfig.getAdminUsername(),
-            artifactoryConfig.getAdminPassword(),
+            localFileConfigForManage.getArtifactoryBaseUrl(),
+            localFileConfigForManage.getArtifactoryAdminUsername(),
+            localFileConfigForManage.getArtifactoryAdminPassword(),
             null
         );
         // 2.项目不存在则创建
         CreateProjectReq req = new CreateProjectReq();
-        req.setName(artifactoryConfig.getJobProject());
-        req.setDisplayName(artifactoryConfig.getJobProject());
+        req.setName(localFileConfigForManage.getArtifactoryJobProject());
+        req.setDisplayName(localFileConfigForManage.getArtifactoryJobProject());
         String PROJECT_DESCRIPTION = "BlueKing bk-job official project, " +
             "which is used to save job data produced by users. " +
             "Do not delete me unless you know what you are doing";
@@ -73,28 +73,28 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
         } else {
             log.info(
                 "project {} created",
-                artifactoryConfig.getJobProject()
+                localFileConfigForManage.getArtifactoryJobProject()
             );
         }
         // 3.用户不存在则创建
         CreateUserToProjectReq createUserToProjectReq = new CreateUserToProjectReq();
-        createUserToProjectReq.setUserId(artifactoryConfig.getJobUsername());
-        createUserToProjectReq.setName(artifactoryConfig.getJobUsername());
-        createUserToProjectReq.setPwd(artifactoryConfig.getJobPassword());
+        createUserToProjectReq.setUserId(localFileConfigForManage.getArtifactoryJobUsername());
+        createUserToProjectReq.setName(localFileConfigForManage.getArtifactoryJobUsername());
+        createUserToProjectReq.setPwd(localFileConfigForManage.getArtifactoryJobPassword());
         createUserToProjectReq.setAdmin(true);
-        createUserToProjectReq.setProjectId(artifactoryConfig.getJobProject());
+        createUserToProjectReq.setProjectId(localFileConfigForManage.getArtifactoryJobProject());
         if (!createUserToProjectIfNotExist(adminClient, createUserToProjectReq)) {
             return;
         } else {
             log.info(
                 "user {} created",
-                artifactoryConfig.getJobUsername()
+                localFileConfigForManage.getArtifactoryJobUsername()
             );
         }
         // 4.本地文件上传仓库不存在则创建
         CreateRepoReq createRepoReq = new CreateRepoReq();
-        createRepoReq.setProjectId(artifactoryConfig.getJobProject());
-        createRepoReq.setName(artifactoryConfig.getJobLocalUploadRepo());
+        createRepoReq.setProjectId(localFileConfigForManage.getArtifactoryJobProject());
+        createRepoReq.setName(localFileConfigForManage.getArtifactoryJobLocalUploadRepo());
         String REPO_LOCALUPLOAD_DESCRIPTION = "BlueKing bk-job official project localupload repo," +
             " which is used to save job data produced by users. " +
             "Do not delete me unless you know what you are doing";
@@ -102,7 +102,7 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
         if (createRepoIfNotExist(adminClient, createRepoReq)) {
             log.info(
                 "repo {} created",
-                artifactoryConfig.getJobLocalUploadRepo()
+                localFileConfigForManage.getArtifactoryJobLocalUploadRepo()
             );
         }
     }

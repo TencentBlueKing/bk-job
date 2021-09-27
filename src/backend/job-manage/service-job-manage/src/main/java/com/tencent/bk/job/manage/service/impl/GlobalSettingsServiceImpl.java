@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -38,8 +39,8 @@ import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.RelatedUrlKeys;
 import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
-import com.tencent.bk.job.manage.config.ArtifactoryConfigForManage;
 import com.tencent.bk.job.manage.config.JobManageConfig;
+import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
@@ -116,7 +117,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private NotifyTemplateDAO notifyTemplateDAO;
     private MessageI18nService i18nService;
     private JobManageConfig jobManageConfig;
-    private ArtifactoryConfigForManage artifactoryConfig;
+    private LocalFileConfigForManage localFileConfigForManage;
     private NotifyTemplateConverter notifyTemplateConverter;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
@@ -131,7 +132,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , NotifyService notifyService
         , GlobalSettingDAO globalSettingDAO
         , NotifyTemplateDAO notifyTemplateDAO, MessageI18nService i18nService, JobManageConfig jobManageConfig,
-        ArtifactoryConfigForManage artifactoryConfig, NotifyTemplateConverter notifyTemplateConverter) {
+        LocalFileConfigForManage localFileConfigForManage, NotifyTemplateConverter notifyTemplateConverter) {
         this.dslContext = dslContext;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
@@ -140,7 +141,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyTemplateDAO = notifyTemplateDAO;
         this.i18nService = i18nService;
         this.jobManageConfig = jobManageConfig;
-        this.artifactoryConfig = artifactoryConfig;
+        this.localFileConfigForManage = localFileConfigForManage;
         this.notifyTemplateConverter = notifyTemplateConverter;
     }
 
@@ -268,7 +269,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         if (currentNameRulesDTO != null) {
             currentNameRules = JsonUtils.fromJson(currentNameRulesDTO.getValue(),
                 new TypeReference<List<AccountNameRule>>() {
-            });
+                });
             for (AccountNameRule rule : currentNameRules) {
                 if (rule.getOsType() == osType) {
                     return rule;
@@ -311,7 +312,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             } else {
                 defaultNameRules = JsonUtils.fromJson(defaultNameRulesDTO.getValue(),
                     new TypeReference<List<AccountNameRule>>() {
-                });
+                    });
                 currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
                     GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN);
             }
@@ -340,7 +341,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             } else {
                 defaultNameRules = JsonUtils.fromJson(defaultNameRulesDTO.getValue(),
                     new TypeReference<List<AccountNameRule>>() {
-                });
+                    });
                 currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
                     GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
             }
@@ -349,7 +350,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         if (currentNameRulesDTO != null) {
             currentNameRules = JsonUtils.fromJson(currentNameRulesDTO.getValue(),
                 new TypeReference<List<AccountNameRule>>() {
-            });
+                });
         } else {
             currentNameRules = defaultNameRules;
         }
@@ -478,7 +479,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         } else {
             Map<String, TitleFooter> titleFooterLanguageMap = JsonUtils.fromJson(titleFooterDTO.getValue(),
                 new TypeReference<TitleFooterDTO>() {
-            }).getTitleFooterLanguageMap();
+                }).getTitleFooterLanguageMap();
             titleFooterLanguageMap.put(
                 LocaleUtils.getNormalLang(lang), new TitleFooter(
                     req.getTitleHead()
@@ -539,7 +540,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
         TitleFooterDTO titleFooterDTO = JsonUtils.fromJson(titleFooterSettingDTO.getValue(),
             new TypeReference<TitleFooterDTO>() {
-        });
+            });
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         log.info("normalLang={}", normalLang);
         TitleFooter titleFooter = titleFooterDTO.getTitleFooterLanguageMap().get(normalLang);
@@ -738,7 +739,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private void addEnableUploadToArtifactoryConfig(String username, Map<String, Object> configMap) {
-        configMap.put(GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY, artifactoryConfig.isEnable());
+        configMap.put(
+            GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY,
+            JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())
+        );
     }
 
     @Override
