@@ -54,7 +54,9 @@ public class LocalFilePrepareService {
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler
     ) {
-        if (JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForExecute.getStorageBackend())) {
+        if (!JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+            localFileConfigForExecute.getStorageBackend()
+        )) {
             log.info("artifactory is not enable, not need to prepare local file");
             resultHandler.onSuccess(new NFSLocalFilePrepareTask(false));
             return;
