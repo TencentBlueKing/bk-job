@@ -37,6 +37,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -203,13 +204,18 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         @Override
         public Void call() throws Exception {
             String filePath = file.getFilePath();
+            // 本地存储路径
+            String localPath = PathUtil.joinFilePath(jobStorageRootPath, "localupload");
+            localPath = PathUtil.joinFilePath(localPath, filePath);
+            File localFile = new File(localPath);
+            // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段
+            if (localFile.exists()) {
+                return null;
+            }
             // 制品库的完整路径
             String fullFilePath = PathUtil.joinFilePath(jobLocalUploadRootPath, filePath);
             NodeDTO nodeDTO = artifactoryClient.getFileNode(fullFilePath);
             InputStream ins = artifactoryClient.getFileInputStream(fullFilePath);
-            // 本地存储路径
-            String localPath = PathUtil.joinFilePath(jobStorageRootPath, "localupload");
-            localPath = PathUtil.joinFilePath(localPath, filePath);
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);

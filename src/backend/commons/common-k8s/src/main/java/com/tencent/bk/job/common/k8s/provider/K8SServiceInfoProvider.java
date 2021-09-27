@@ -52,7 +52,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
 
     public final String KEY_HELM_NAMESPACE = "meta.helm.sh/release-namespace";
     public final String KEY_JOB_MS_VERSION = "bk.job.image/tag";
-    public final String VERSION_UNKNOWN = "Unknown";
+    public final String VERSION_UNKNOWN = "-";
     public final String NAMESPACE_DEFAULT = "default";
     public final String PHASE_RUNNING = "Running";
     private final DiscoveryClient discoveryClient;
