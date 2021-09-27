@@ -32,7 +32,8 @@
                 theme="primary"
                 auth="whitelist/create"
                 @click="handleCreate"
-                style="width: 120px;">
+                class="w120"
+                v-test="{ type: 'button', value: 'createWhiteIP' }">
                 {{ $t('whiteIP.新建') }}
             </auth-button>
             <template #right>
@@ -48,7 +49,8 @@
             ref="list"
             :data-source="getWhiteList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'whiteIP' }">
             <bk-table-column
                 v-if="allRenderColumnMap.ip"
                 label="IP"
@@ -118,7 +120,8 @@
                         :permission="row.canManage"
                         auth="whitelist/edit"
                         text
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'button', value: 'createWhiteIP' }">
                         {{ $t('whiteIP.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -128,7 +131,8 @@
                         <auth-button
                             :permission="row.canManage"
                             auth="whitelist/delete"
-                            text>
+                            text
+                            v-test="{ type: 'button', value: 'deleteWhiteIP' }">
                             {{ $t('whiteIP.删除') }}
                         </auth-button>
                     </jb-popover-confirm>

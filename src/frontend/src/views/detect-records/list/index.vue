@@ -51,7 +51,8 @@
         <render-list
             ref="list"
             :data-source="fetchDetectRecordsList"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'detectRecord' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -148,7 +149,8 @@
                 <template slot-scope="{ row }">
                     <bk-button
                         text
-                        @click="handleShowScriptContent(row)">
+                        @click="handleShowScriptContent(row)"
+                        v-test="{ type: 'button', value: 'viewDetectScript' }">
                         {{ $t('detectRecords.查看脚本') }}
                     </bk-button>
                 </template>

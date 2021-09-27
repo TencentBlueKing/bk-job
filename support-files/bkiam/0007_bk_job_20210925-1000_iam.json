@@ -1,0 +1,797 @@
+{
+  "system_id": "bk_job",
+  "operations": [
+    {
+      "operation": "upsert_resource_type",
+      "data": {
+        "id": "file_source",
+        "name": "文件源",
+        "name_en": "File Sources",
+        "description": "用于文件分发时的文件来源",
+        "description_en": "Provides the file source for file transfer",
+        "parents": [
+          {
+            "system_id": "bk_cmdb",
+            "id": "biz"
+          }
+        ],
+        "provider_config": {
+          "path": "/iam/api/v1/resources/file_source"
+        },
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_instance_selection",
+      "data": {
+        "id": "file_source_list",
+        "name": "文件源列表",
+        "name_en": "File-source List",
+        "resource_type_chain": [
+          {
+            "system_id": "bk_cmdb",
+            "id": "biz"
+          },
+          {
+            "system_id": "bk_job",
+            "id": "file_source"
+          }
+        ]
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "view_file_source",
+        "name": "文件源查看",
+        "name_en": "View File-source",
+        "description": "是否允许用户进入查看某个文件源内的文件列表或详情信息",
+        "description_en": "Permission of access File-source's file list or even information details",
+        "type": "view",
+        "related_actions": [
+          "access_business"
+        ],
+        "related_resource_types": [
+          {
+            "id": "file_source",
+            "system_id": "bk_job",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_job",
+                "id": "file_source_list",
+                "ignore_iam_path": true
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "create_file_source",
+        "name": "文件源新建",
+        "name_en": "Create File-source",
+        "description": "是否允许用户在业务下创建新的文件源",
+        "description_en": "Permission of create new File-source under the business",
+        "type": "create",
+        "related_actions": [
+          "access_business"
+        ],
+        "related_resource_types": [
+          {
+            "id": "biz",
+            "system_id": "bk_cmdb",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_cmdb",
+                "id": "business"
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "manage_file_source",
+        "name": "文件源管理",
+        "name_en": "Manage File-source",
+        "description": "是否允许用户可编辑或删除指定的文件源",
+        "description_en": "Permission of manage File-source, including modify configuration or delete",
+        "type": "manage",
+        "related_actions": [
+          "access_business",
+          "view_file_source"
+        ],
+        "related_resource_types": [
+          {
+            "id": "file_source",
+            "system_id": "bk_job",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_job",
+                "id": "file_source_list",
+                "ignore_iam_path": true
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_resource_type",
+      "data": {
+        "id": "ticket",
+        "name": "凭证",
+        "name_en": "Tickets",
+        "description": "用于文件源访问认证的凭据",
+        "description_en": "Tickets for file-source access authentication",
+        "parents": [
+          {
+            "system_id": "bk_cmdb",
+            "id": "biz"
+          }
+        ],
+        "provider_config": {
+          "path": "/iam/api/v1/resources/ticket"
+        },
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_instance_selection",
+      "data": {
+        "id": "ticket_list",
+        "name": "凭证列表",
+        "name_en": "Ticket List",
+        "resource_type_chain": [
+          {
+            "system_id": "bk_cmdb",
+            "id": "biz"
+          },
+          {
+            "system_id": "bk_job",
+            "id": "ticket"
+          }
+        ]
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "use_ticket",
+        "name": "凭证使用",
+        "name_en": "Use Ticket",
+        "description": "用于是否允许用户在文件源配置中使用该凭证的授权",
+        "description_en": "Permission of using specific ticket on file-source configuration",
+        "type": "view",
+        "related_actions": [
+          "access_business"
+        ],
+        "related_resource_types": [
+          {
+            "id": "ticket",
+            "system_id": "bk_job",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_job",
+                "id": "ticket_list",
+                "ignore_iam_path": true
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "create_ticket",
+        "name": "凭证新建",
+        "name_en": "Create Ticket",
+        "description": "用于是否允许用户在作业平台创建新凭证文件的鉴权",
+        "description_en": "Permission of creating new ticket",
+        "type": "create",
+        "related_actions": [
+          "access_business"
+        ],
+        "related_resource_types": [
+          {
+            "id": "biz",
+            "system_id": "bk_cmdb",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_cmdb",
+                "id": "business"
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
+        "id": "manage_ticket",
+        "name": "凭证管理",
+        "name_en": "Manage Ticket",
+        "description": "用于是否允许用户管理（编辑/查看/删除）具体的凭证文件的鉴权",
+        "description_en": "Permission of manage specific ticket",
+        "type": "manage",
+        "related_actions": [
+          "access_business",
+          "use_ticket"
+        ],
+        "related_resource_types": [
+          {
+            "id": "ticket",
+            "system_id": "bk_job",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "bk_job",
+                "id": "ticket_list",
+                "ignore_iam_path": true
+              }
+            ]
+          }
+        ],
+        "version": 1
+      }
+    },
+    {
+      "operation": "upsert_action_groups",
+      "data": [
+        {
+          "name": "业务",
+          "name_en": "Business",
+          "actions": [
+            {
+              "id": "access_business"
+            }
+          ],
+          "sub_groups": [
+            {
+              "name": "快速执行",
+              "name_en": "Quick Launch",
+              "actions": [
+                {
+                  "id": "quick_execute_script"
+                },
+                {
+                  "id": "quick_transfer_file"
+                }
+              ]
+            },
+            {
+              "name": "脚本",
+              "name_en": "Script",
+              "actions": [
+                {
+                  "id": "execute_script"
+                },
+                {
+                  "id": "create_script"
+                },
+                {
+                  "id": "view_script"
+                },
+                {
+                  "id": "manage_script"
+                }
+              ]
+            },
+            {
+              "name": "作业",
+              "name_en": "Job",
+              "actions": [
+                {
+                  "id": "create_job_template"
+                },
+                {
+                  "id": "view_job_template"
+                },
+                {
+                  "id": "edit_job_template"
+                },
+                {
+                  "id": "delete_job_template"
+                },
+                {
+                  "id": "debug_job_template"
+                },
+                {
+                  "id": "launch_job_plan"
+                },
+                {
+                  "id": "create_job_plan"
+                },
+                {
+                  "id": "view_job_plan"
+                },
+                {
+                  "id": "edit_job_plan"
+                },
+                {
+                  "id": "delete_job_plan"
+                },
+                {
+                  "id": "sync_job_plan"
+                }
+              ]
+            },
+            {
+              "name": "标签",
+              "name_en": "Tag",
+              "actions": [
+                {
+                  "id": "create_tag"
+                },
+                {
+                  "id": "manage_tag"
+                }
+              ]
+            },
+            {
+              "name": "定时任务",
+              "name_en": "Cron",
+              "actions": [
+                {
+                  "id": "create_cron"
+                },
+                {
+                  "id": "manage_cron"
+                }
+              ]
+            },
+            {
+              "name": "执行历史",
+              "name_en": "History",
+              "actions": [
+                {
+                  "id": "view_history"
+                }
+              ]
+            },
+            {
+              "name": "消息通知",
+              "name_en": "Notification",
+              "actions": [
+                {
+                  "id": "notification_setting"
+                }
+              ]
+            },
+            {
+              "name": "执行账号",
+              "name_en": "Account",
+              "actions": [
+                {
+                  "id": "create_account"
+                },
+                {
+                  "id": "manage_account"
+                },
+                {
+                  "id": "use_account"
+                }
+              ]
+            },
+            {
+              "name": "文件源",
+              "name_en": "File Source",
+              "actions": [
+                {
+                  "id": "view_file_source"
+                },
+                {
+                  "id": "create_file_source"
+                },
+                {
+                  "id": "manage_file_source"
+                }
+              ]
+            },
+            {
+              "name": "凭证",
+              "name_en": "Ticket",
+              "actions": [
+                {
+                  "id": "use_ticket"
+                },
+                {
+                  "id": "create_ticket"
+                },
+                {
+                  "id": "manage_ticket"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "全局",
+          "name_en": "Global",
+          "sub_groups": [
+            {
+              "name": "运营视图",
+              "name_en": "Dashboard",
+              "actions": [
+                {
+                  "id": "dashboard_view"
+                }
+              ]
+            },
+            {
+              "name": "服务状态",
+              "name_en": "Service State",
+              "actions": [
+                {
+                  "id": "service_state_access"
+                }
+              ]
+            },
+            {
+              "name": "IP白名单",
+              "name_en": "IP whitelist",
+              "actions": [
+                {
+                  "id": "create_whitelist"
+                },
+                {
+                  "id": "manage_whitelist"
+                }
+              ]
+            },
+            {
+              "name": "公共脚本",
+              "name_en": "Public Script",
+              "actions": [
+                {
+                  "id": "execute_public_script"
+                },
+                {
+                  "id": "create_public_script"
+                },
+                {
+                  "id": "manage_public_script_instance"
+                }
+              ]
+            },
+            {
+              "name": "全局设置",
+              "name_en": "Global Settings",
+              "actions": [
+                {
+                  "id": "global_settings"
+                }
+              ]
+            },
+            {
+              "name": "高危语句检测",
+              "name_en": "High-risk Detect",
+              "actions": [
+                {
+                  "id": "high-risk_detect_rule"
+                },
+                {
+                  "id": "high-risk_detect_record"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "operation": "upsert_common_actions",
+      "data": [
+        {
+          "name": "业务运维",
+          "name_en": "Operator",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "quick_execute_script"
+            },
+            {
+              "id": "quick_transfer_file"
+            },
+            {
+              "id": "execute_script"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "create_script"
+            },
+            {
+              "id": "manage_script"
+            },
+            {
+              "id": "create_job_template"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "edit_job_template"
+            },
+            {
+              "id": "delete_job_template"
+            },
+            {
+              "id": "debug_job_template"
+            },
+            {
+              "id": "launch_job_plan"
+            },
+            {
+              "id": "create_job_plan"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "edit_job_plan"
+            },
+            {
+              "id": "delete_job_plan"
+            },
+            {
+              "id": "sync_job_plan"
+            },
+            {
+              "id": "create_tag"
+            },
+            {
+              "id": "manage_tag"
+            },
+            {
+              "id": "create_cron"
+            },
+            {
+              "id": "manage_cron"
+            },
+            {
+              "id": "view_history"
+            },
+            {
+              "id": "notification_setting"
+            },
+            {
+              "id": "use_account"
+            },
+            {
+              "id": "create_account"
+            },
+            {
+              "id": "manage_account"
+            },
+            {
+              "id": "view_file_source"
+            },
+            {
+              "id": "create_file_source"
+            },
+            {
+              "id": "manage_file_source"
+            },
+            {
+              "id": "use_ticket"
+            },
+            {
+              "id": "create_ticket"
+            },
+            {
+              "id": "manage_ticket"
+            }
+          ]
+        },
+        {
+          "name": "业务只读",
+          "name_en": "Visitor",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "view_history"
+            },
+            {
+              "id": "view_file_source"
+            }
+          ]
+        },
+        {
+          "name": "平台管理员",
+          "name_en": "Administrator",
+          "actions": [
+            {
+              "id": "dashboard_view"
+            },
+            {
+              "id": "service_state_access"
+            },
+            {
+              "id": "create_whitelist"
+            },
+            {
+              "id": "manage_whitelist"
+            },
+            {
+              "id": "execute_public_script"
+            },
+            {
+              "id": "create_public_script"
+            },
+            {
+              "id": "manage_public_script_instance"
+            },
+            {
+              "id": "global_settings"
+            },
+            {
+              "id": "high-risk_detect_rule"
+            },
+            {
+              "id": "high-risk_detect_record"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "operation": "upsert_resource_creator_actions",
+      "data": {
+        "config": [
+          {
+            "id": "job_template",
+            "actions": [
+              {
+                "id": "view_job_template",
+                "required": false
+              },
+              {
+                "id": "edit_job_template",
+                "required": false
+              },
+              {
+                "id": "delete_job_template",
+                "required": false
+              },
+              {
+                "id": "create_job_plan",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "job_plan",
+            "actions": [
+              {
+                "id": "view_job_plan",
+                "required": false
+              },
+              {
+                "id": "edit_job_plan",
+                "required": false
+              },
+              {
+                "id": "delete_job_plan",
+                "required": false
+              },
+              {
+                "id": "sync_job_plan",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "script",
+            "actions": [
+              {
+                "id": "view_script",
+                "required": false
+              },
+              {
+                "id": "manage_script",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "public_script",
+            "actions": [
+              {
+                "id": "manage_public_script_instance",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "cron",
+            "actions": [
+              {
+                "id": "manage_cron",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "account",
+            "actions": [
+              {
+                "id": "manage_account",
+                "required": false
+              },
+              {
+                "id": "use_account",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "tag",
+            "actions": [
+              {
+                "id": "manage_tag",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "file_source",
+            "actions": [
+              {
+                "id": "view_file_source",
+                "required": false
+              },
+              {
+                "id": "manage_file_source",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "ticket",
+            "actions": [
+              {
+                "id": "use_ticket",
+                "required": false
+              },
+              {
+                "id": "manage_ticket",
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

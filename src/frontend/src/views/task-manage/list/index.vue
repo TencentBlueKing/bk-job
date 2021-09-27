@@ -35,8 +35,8 @@
                 theme="primary"
                 auth="job_template/create"
                 class="w120 mr10"
-                v-test="{ type: 'button', value: 'templateCreate' }"
-                @click="handleCreate">
+                @click="handleCreate"
+                v-test="{ type: 'button', value: 'templateCreate' }">
                 {{ $t('template.新建') }}
             </auth-button>
             <bk-badge
@@ -47,8 +47,8 @@
                 <span :tippy-tips="backupInfo.importJob.length > 0 ? $t('template.有一项导入任务正在进行中') : ''">
                     <auth-button
                         auth="job_template/create"
-                        v-test="{ type: 'button', value: 'templateImport' }"
-                        @click="handleImport">
+                        @click="handleImport"
+                        v-test="{ type: 'button', value: 'templateImport' }">
                         {{ $t('template.导入') }}
                     </auth-button>
                 </span>
@@ -61,15 +61,16 @@
                 <span :tippy-tips="backupInfo.exportJob.length > 0 ? $t('template.有一项导出任务正在进行中') : ''">
                     <bk-button
                         @click="handleExport"
-                        v-test="{ type: 'button', value: 'templateExport' }"
-                        :disabled="isExportJobDisable">
+                        :disabled="isExportJobDisable"
+                        v-test="{ type: 'button', value: 'templateExport' }">
                         {{ $t('template.导出') }}
                     </bk-button>
                 </span>
             </bk-badge>
             <bk-button
                 :disabled="isBatchEditTagDisabled"
-                @click="handleBatchEditTag">
+                @click="handleBatchEditTag"
+                v-test="{ type: 'button', value: 'templateTagEdit' }">
                 {{ $t('template.编辑标签') }}
             </bk-button>
             <template #right>
@@ -90,7 +91,8 @@
                 selectable
                 :size="tableSize"
                 :search-control="() => $refs.search"
-                @on-selection-change="handleSelection">
+                @on-selection-change="handleSelection"
+                v-test="{ type: 'list', value: 'template' }">
                 <bk-table-column
                     v-if="allRenderColumnMap.id"
                     label="ID"
@@ -215,7 +217,8 @@
                             :to="{
                                 name: 'viewPlan',
                                 params: { templateId: row.id },
-                            }">
+                            }"
+                            v-test="{ type: 'link', value: 'planDetail' }">
                             {{ $t('template.执行方案.label') }}
                         </router-link>
                         <router-link
@@ -224,7 +227,8 @@
                                 name: 'debugPlan',
                                 params: { id: row.id },
                                 query: { from: 'taskList' },
-                            }">
+                            }"
+                            v-test="{ type: 'link', value: 'debugTemplate' }">
                             {{ $t('template.调试') }}
                         </router-link>
                         <list-operation-extend>
@@ -232,15 +236,35 @@
                                 :permission="row.canEdit"
                                 auth="job_template/edit"
                                 :resource-id="row.id">
-                                <div class="action-item" @click="handleEdit(row.id)">{{ $t('template.编辑') }}</div>
-                                <div class="action-item" slot="forbid">{{ $t('template.编辑') }}</div>
+                                <div
+                                    class="action-item"
+                                    @click="handleEdit(row.id)"
+                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
+                                <div
+                                    class="action-item"
+                                    slot="forbid"
+                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
                             </auth-component>
                             <auth-component
                                 :permission="row.canCreate && row.canView"
                                 auth="job_template/clone"
                                 :resource-id="row.id">
-                                <div class="action-item" @click="handleClone(row.id)">{{ $t('template.克隆') }}</div>
-                                <div class="action-item" slot="forbid">{{ $t('template.克隆') }}</div>
+                                <div
+                                    class="action-item"
+                                    @click="handleClone(row.id)"
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    {{ $t('template.克隆') }}
+                                </div>
+                                <div
+                                    class="action-item"
+                                    slot="forbid"
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    {{ $t('template.克隆') }}
+                                </div>
                             </auth-component>
                             <jb-popover-confirm
                                 :title="$t('template.确定删除该作业？')"
@@ -250,8 +274,17 @@
                                     :permission="row.canDelete"
                                     auth="job_template/delete"
                                     :resource-id="row.id">
-                                    <div class="action-item">{{ $t('template.删除') }}</div>
-                                    <div class="action-item" slot="forbid">{{ $t('template.删除') }}</div>
+                                    <div
+                                        class="action-item"
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
+                                    <div
+                                        class="action-item"
+                                        slot="forbid"
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
                                 </auth-component>
                             </jb-popover-confirm>
                         </list-operation-extend>

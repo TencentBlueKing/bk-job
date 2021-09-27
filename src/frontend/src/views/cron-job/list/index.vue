@@ -33,7 +33,8 @@
                 theme="primary"
                 auth="cron/create"
                 @click="handleCreate"
-                class="w120">
+                class="w120"
+                v-test="{ type: 'button', value: 'createCrontab' }">
                 {{ $t('cron.新建') }}
             </auth-button>
             <template #right>
@@ -49,7 +50,8 @@
             ref="list"
             :data-source="getCronJobList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'crontab' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -216,14 +218,16 @@
                         size="small"
                         theme="primary"
                         class="mr10"
-                        @change="value => handleStatusChange(value, row)" />
+                        @change="value => handleStatusChange(value, row)"
+                        v-test="{ type: 'button', value: 'toggleCrontabStatus' }" />
                     <auth-button
                         auth="cron/edit"
                         :resource-id="row.id"
                         :permission="row.canManage"
                         class="time-task-edit mr10"
                         text
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'button', value: 'editCrontab' }">
                         {{ $t('cron.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -234,13 +238,15 @@
                             auth="cron/delete"
                             :resource-id="row.id"
                             :permission="row.canManage"
-                            text>
+                            text
+                            v-test="{ type: 'button', value: 'deleteCrontab' }">
                             {{ $t('cron.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
                     <bk-button
                         text
-                        @click="handleHistoryRecord(row)">
+                        @click="handleHistoryRecord(row)"
+                        v-test="{ type: 'button', value: 'crontabExecRecord' }">
                         {{ $t('cron.执行记录') }}
                     </bk-button>
                 </template>
@@ -271,7 +277,8 @@
             <template #footer>
                 <bk-button
                     theme="primary"
-                    @click="handleToggelEdit">
+                    @click="handleToggelEdit"
+                    v-test="{ type: 'button', value: 'showCrontabDetail' }">
                     {{ $t('cron.编辑') }}
                 </bk-button>
             </template>
