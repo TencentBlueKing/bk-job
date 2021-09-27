@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.StopWatch;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -252,6 +253,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         // 本次解析的ip列表
         Set<String> analysedIpSet = new HashSet<>();
 
+        StopWatch watch = new StopWatch("analyse-gse-file-task");
+        watch.start("analyse");
         for (Map.Entry<String, String> ipResult : ipResults) {
             CopyFileRsp copyFileRsp = parseCopyFileRspFromGSELog(ipResult);
             if (copyFileRsp == null) {
@@ -282,13 +285,19 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
             analyseFileResult(cloudIp, copyFileRsp, executionLogs, isDownloadLog);
         }
+        watch.stop();
+
         // 保存文件分发日志
+        watch.start("saveFileLog");
         writeFileTaskLogContent(executionLogs);
+        watch.stop();
 
         // 保存任务执行结果
+        watch.start("saveIpLogs");
         List<GseTaskIpLogDTO> ipLogList = analysedIpSet.stream().map(analysedIp -> ipLogMap.get(analysedIp))
             .collect(Collectors.toList());
         gseTaskLogService.batchSaveIpLog(new ArrayList<>(ipLogList));
+        watch.stop();
 
         log.info("Analyse gse task log [{}] -> targetIpSet={}, fileSourceIpSet={}, runningTargetIpSet={}, " +
                 "notStartedTargetIpSet={}, runningFileSourceIpSet={}, notStartedFileSourceIpSet={}, " +
@@ -302,6 +311,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             this.successUploadFileMap,
             this.fileUploadTaskNumMap);
 
+        if (watch.getTotalTimeMillis() > 1000L) {
+            log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
+        }
         return analyseExecuteResult();
     }
 

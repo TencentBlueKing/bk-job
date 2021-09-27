@@ -410,10 +410,10 @@ public class GseRequestUtils {
     private static api_host convertToApiHost(String cloudIp) {
         String[] ipArray = cloudIp.split(":");
 
-        int source = 0;
+        int cloudAreaId = 0;
         String ip;
         if (ipArray.length > 1) {
-            source = Integer.parseInt(ipArray[0]);
+            cloudAreaId = Integer.parseInt(ipArray[0]);
             ip = ipArray[1];
         } else {
             ip = ipArray[0];
@@ -421,8 +421,8 @@ public class GseRequestUtils {
 
         api_host apiHost = new api_host();
         apiHost.setIp(ip);
-        if (source > 1) {
-            apiHost.setGse_composite_id(source);
+        if (cloudAreaId > 1) {
+            apiHost.setGse_composite_id(cloudAreaId);
         } else {
             apiHost.setGse_composite_id(0);
         }
@@ -436,7 +436,7 @@ public class GseRequestUtils {
         return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
             @Override
             public api_map_rsp callback(GseClient gseClient) throws TException {
-                log.info("[{}]: copyFileTaskLogRequest_gseTaskId={}", id, gseTaskId);
+                log.info("[{}]: copyFileTaskLogRequest|gseTaskId={}", id, gseTaskId);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient().get_copy_file_result(gseTaskId);
                 log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
                 return copyFileTaskLog;
@@ -458,7 +458,7 @@ public class GseRequestUtils {
             public api_map_rsp callback(GseClient gseClient) throws TException {
                 List<api_host> hosts = cloudIps.stream()
                     .map(GseRequestUtils::convertToApiHost).collect(Collectors.toList());
-                log.info("[{}]: copyFileTaskLogRequest|gseTaskId={}|hosts={}", id, gseTaskId, cloudIps);
+                log.info("[{}]: copyFileTaskLogRequest|gseTaskId={}|hosts={}", id, gseTaskId, hosts);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient()
                     .get_copy_file_result_by_ip_v2(gseTaskId, hosts);
                 log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
