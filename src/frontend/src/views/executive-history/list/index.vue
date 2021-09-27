@@ -614,7 +614,7 @@
                     }).then(({ variables }) => {
                         // 有变量，去设置变量
                         if (variables.length > 0) {
-                            // this.redoRequestMap[taskInstance.id] = false;
+                            this.redoRequestMap[taskInstance.id] = false;
                             this.$router.push({
                                 name: 'redoTask',
                                 params: {
@@ -644,13 +644,13 @@
                                     });
                                 })
                                     .finally(() => {
-                                        // this.redoRequestMap[taskInstance.id] = false;
+                                        this.redoRequestMap[taskInstance.id] = false;
                                     });
                             },
                         });
                     })
                         .catch(() => {
-                            // this.redoRequestMap[taskInstance.id] = false;
+                            this.redoRequestMap[taskInstance.id] = false;
                         });
                 }
                 // 快速执行脚本
