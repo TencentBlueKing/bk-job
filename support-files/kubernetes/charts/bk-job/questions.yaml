@@ -23,7 +23,7 @@ questions:
     default: "http://bkiam.example.com"
     description: "对接的蓝鲸权限中心地址"
     group: "蓝鲸公共组件配置"
-  - variable: artifactory.baseUrl
+  - variable: localFile.artifactory.baseUrl
     label: "对接的蓝鲸制品库地址"
     type: string
     default: "http://bkrepo.example.com"

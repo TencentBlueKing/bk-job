@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,26 +30,33 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class ArtifactoryConfigForExecute {
+public class LocalFileConfigForManage {
 
-    @Value("${artifactory.enabled:false}")
-    private boolean enable;
+    @Value("${local-file.storage-backend:local}")
+    private String storageBackend;
 
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
+    @Value("${local-file.artifactory.base-url:}")
+    private String artifactoryBaseUrl;
 
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
+    @Value("${local-file.artifactory.admin.username:admin}")
+    private String artifactoryAdminUsername;
 
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
+    @Value("${local-file.artifactory.admin.password:blueking}")
+    private String artifactoryAdminPassword;
 
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
+    @Value("${local-file.artifactory.job.username:bkjob}")
+    private String artifactoryJobUsername;
 
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
+    @Value("${local-file.artifactory.job.password:bkjob}")
+    private String artifactoryJobPassword;
 
-    @Value("${artifactory.download.concurrency:10}")
-    private Integer downloadConcurrency;
+    @Value("${local-file.artifactory.job.project:bkjob}")
+    private String artifactoryJobProject;
+
+    @Value("${local-file.artifactory.job.repo.local-upload:localupload}")
+    private String artifactoryJobLocalUploadRepo;
+
+    public String getJobLocalUploadRootPath() {
+        return artifactoryJobProject + "/" + artifactoryJobLocalUploadRepo;
+    }
 }
