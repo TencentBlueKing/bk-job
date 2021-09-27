@@ -155,6 +155,17 @@ Return the MariaDB username
 {{- end -}}
 
 {{/*
+Return the MariaDB root password
+*/}}
+{{- define "job.mariadb.rootPassword" -}}
+{{- if .Values.mariadb.enabled }}
+    {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the MariaDB secret name
 */}}
 {{- define "job.mariadb.secretName" -}}
@@ -275,7 +286,11 @@ Return the RabbitMQ secret name
 Return the RabbitMQ vhost
 */}}
 {{- define "job.rabbitmq.vhost" -}}
+{{- if .Values.rabbitmq.enabled }}
     {{- printf "job" -}}
+{{- else -}}
+    {{- default "job" (printf "%s" .Values.externalRabbitMQ.vhost) -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
