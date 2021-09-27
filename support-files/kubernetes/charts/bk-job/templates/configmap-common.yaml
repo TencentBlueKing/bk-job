@@ -96,7 +96,7 @@ data:
       server:
         url: {{ .Values.nodeman.server.url }}
     local-file:
-      storage-backend: {{ .Values.localFile.artifactory.storageBackend }}
+      storage-backend: {{ .Values.localFile.storageBackend }}
       artifactory:
         base-url: {{ .Values.localFile.artifactory.baseUrl }}
         download:
