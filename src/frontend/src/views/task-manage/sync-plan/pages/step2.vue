@@ -98,7 +98,13 @@
         <template #footer>
             <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
             <bk-button @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-            <bk-button v-if="!isView" theme="primary" class="w120" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                v-if="!isView"
+                theme="primary"
+                class="w120"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </template>
     </layout>
 </template>
