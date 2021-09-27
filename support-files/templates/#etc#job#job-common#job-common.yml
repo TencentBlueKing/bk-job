@@ -52,21 +52,28 @@ job:
       enabled: true
   storage:
     root-path: __BK_HOME__/public/job
-# 制品库相关配置
-artifactory:
-  enabled: true
-  base-url: __BK_REPO_PUBLIC_URL__
-  download:
-    concurrency: 10
-  admin:
-    username: __BK_REPO_ADMIN_USERNAME__
-    password: __BK_REPO_ADMIN_PASSWORD__
-  job:
-    username: __BK_REPO_JOB_USERNAME__
-    password: __BK_REPO_JOB_PASSWORD__
-    project: __BK_REPO_JOB_PROJECT__
-    repo:
-      local-upload: localupload
+# 本地文件上传相关配置
+local-file:
+  # 存储后端：
+  # local表示存储于本地，需要部署Job的多台机器间使用NFS共享job.storage.root-path
+  # artifactory表示存储于蓝鲸制品库，需要环境中部署有蓝鲸制品库
+  storage-backend: local
+  artifactory:
+    base-url: __BK_REPO_PUBLIC_URL__
+    download:
+      # 用于从蓝鲸制品库下载用户上传的本地文件的并发线程数
+      concurrency: 10
+    admin:
+      username: __BK_REPO_ADMIN_USERNAME__
+      password: __BK_REPO_ADMIN_PASSWORD__
+    job:
+      username: __BK_REPO_JOB_USERNAME__
+      password: __BK_REPO_JOB_PASSWORD__
+      # Job使用的项目名
+      project: __BK_REPO_JOB_PROJECT__
+      repo:
+        # 存储用户上传的本地文件的仓库名称
+        local-upload: localupload
 # cmdb 配置
 cmdb:
   app:
