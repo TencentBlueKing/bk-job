@@ -77,7 +77,7 @@ module.exports = function (env) {
     }
     return {
         mode: env.development ? 'development' : 'production',
-        devtool: 'none',
+        devtool: env.development ? 'eval-source-map' : 'none',
         cache: env.development
             ? {
                 type: 'filesystem',
