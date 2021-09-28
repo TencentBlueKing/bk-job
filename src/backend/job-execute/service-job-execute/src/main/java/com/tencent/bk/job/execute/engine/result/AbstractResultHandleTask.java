@@ -31,16 +31,34 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.engine.model.*;
+import com.tencent.bk.job.execute.engine.model.GseLog;
+import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.IpHelper;
-import com.tencent.bk.job.execute.model.*;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -87,9 +105,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected long taskInstanceId;
     /**
-     * 步骤实例ID
+     * 业务ID
      */
     protected long stepInstanceId;
+    /**
+     * 步骤实例ID
+     */
+    protected long appId;
     /**
      * GSE 任务执行结果
      */
@@ -196,6 +218,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
+        this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.ipLogMap = ipLogMap;
@@ -537,6 +560,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.info("ResultHandleTask-onStop, task is running now, will stop when idle. stepInstanceId: {}",
                 stepInstanceId);
         }
+    }
+
+    public long getAppId() {
+        return appId;
     }
 
     @Override

@@ -35,9 +35,21 @@ import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.gse.GseRequestPrinter;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
-import com.tencent.bk.job.execute.engine.model.*;
+import com.tencent.bk.job.execute.engine.model.GseLog;
+import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.LogPullProgress;
+import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.util.Utils;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +59,14 @@ import org.springframework.util.StopWatch;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -114,13 +133,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
      */
-    public ScriptResultHandleTask(TaskInstanceDTO taskInstance,
-                                  StepInstanceDTO stepInstance,
-                                  TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                  Map<String, GseTaskIpLogDTO> ipLogMap,
-                                  GseTaskLogDTO gseTaskLog,
-                                  Set<String> targetIps,
-                                  String requestId) {
+    public ScriptResultHandleTask(
+        TaskInstanceDTO taskInstance,
+        StepInstanceDTO stepInstance,
+        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+        Map<String, GseTaskIpLogDTO> ipLogMap,
+        GseTaskLogDTO gseTaskLog,
+        Set<String> targetIps,
+        String requestId
+    ) {
         super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, targetIps, requestId);
         initLogPullProcess(ipLogMap.values());
     }

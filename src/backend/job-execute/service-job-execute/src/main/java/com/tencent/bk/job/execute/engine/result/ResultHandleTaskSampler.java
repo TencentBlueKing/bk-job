@@ -24,42 +24,227 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.ToDoubleFunction;
 
 /**
  * 任务结果处理采样
  */
+@Slf4j
 @Component
 public class ResultHandleTaskSampler {
     private final MeterRegistry meterRegistry;
     /**
      * 正在处理任务结果的文件任务数
      */
-    private AtomicLong handlingFileTasks = new AtomicLong(0);
+    private final AtomicLong handlingFileTasks = new AtomicLong(0);
+    /**
+     * 正在处理任务结果的文件任务数（各业务）
+     */
+    private final ConcurrentHashMap<Long, AtomicLong> handlingFileTasksMap = new ConcurrentHashMap<>();
     /**
      * 正在处理任务结果的脚本任务数
      */
-    private AtomicLong handlingScriptTasks = new AtomicLong(0);
+    private final AtomicLong handlingScriptTasks = new AtomicLong(0);
+    /**
+     * 正在处理任务结果的脚本任务数（各业务）
+     */
+    private final ConcurrentHashMap<Long, AtomicLong> handlingScriptTasksMap = new ConcurrentHashMap<>();
     /**
      * 接收的结果处理任务数
      */
-    private AtomicLong receiveTaskCounter = new AtomicLong(0);
+    private final AtomicLong receiveTaskCounter = new AtomicLong(0);
+    /**
+     * 接收的结果处理任务数（各业务）
+     */
+    private final ConcurrentHashMap<Long, AtomicLong> receiveTaskCounterMap = new ConcurrentHashMap<>();
     /**
      * 完成的文件任务数
      */
-    private AtomicLong finishedFileTaskCounter = new AtomicLong(0);
+    private final AtomicLong finishedFileTaskCounter = new AtomicLong(0);
+    /**
+     * 完成的文件任务数（各业务）
+     */
+    private final ConcurrentHashMap<Long, AtomicLong> finishedFileTaskCounterMap = new ConcurrentHashMap<>();
     /**
      * 完成的脚本任务数
      */
-    private AtomicLong finishedScriptTaskCounter = new AtomicLong(0);
+    private final AtomicLong finishedScriptTaskCounter = new AtomicLong(0);
+    /**
+     * 完成的脚本任务数（各业务）
+     */
+    private final ConcurrentHashMap<Long, AtomicLong> finishedScriptTaskCounterMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ResultHandleTaskSampler(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
+    }
+
+    class UpdateStatisticsThread extends Thread {
+
+        boolean runFlag = true;
+
+        private ToDoubleFunction<AtomicLong> getFunctionByCounter(AtomicLong counter) {
+            return new ToDoubleFunction() {
+                @Override
+                public double applyAsDouble(Object value) {
+                    return counter.doubleValue();
+                }
+            };
+        }
+
+        private void measureHandlingFileTasksByApp() {
+            handlingFileTasksMap.forEach((appId, counter) -> {
+                meterRegistry.gauge(
+                    ExecuteMetricNames.GSE_RUNNING_TASKS_APP,
+                    Arrays.asList(
+                        Tag.of("appId", appId.toString()),
+                        Tag.of("stage", "result-handle"),
+                        Tag.of("type", "file")
+                    ),
+                    counter,
+                    getFunctionByCounter(counter)
+                );
+            });
+        }
+
+        private void measureHandlingScriptTasksByApp() {
+            handlingScriptTasksMap.forEach((appId, counter) -> {
+                meterRegistry.gauge(
+                    ExecuteMetricNames.GSE_RUNNING_TASKS_APP,
+                    Arrays.asList(
+                        Tag.of("appId", appId.toString()),
+                        Tag.of("stage", "result-handle"),
+                        Tag.of("type", "script")
+                    ),
+                    counter,
+                    getFunctionByCounter(counter)
+                );
+            });
+        }
+
+        private void measureReceiveTasksByApp() {
+            receiveTaskCounterMap.forEach((appId, counter) -> {
+                meterRegistry.gauge(
+                    ExecuteMetricNames.GSE_RUNNING_TASKS_APP,
+                    Arrays.asList(
+                        Tag.of("appId", appId.toString()),
+                        Tag.of("stage", "result-handle"),
+                        Tag.of("type", "all-since-job-boot")
+                    ),
+                    counter,
+                    getFunctionByCounter(counter)
+                );
+            });
+        }
+
+        private void measureFinishedFileTasksByApp() {
+            finishedFileTaskCounterMap.forEach((appId, counter) -> {
+                meterRegistry.gauge(
+                    ExecuteMetricNames.GSE_FINISHED_TASKS_APP,
+                    Arrays.asList(
+                        Tag.of("appId", appId.toString()),
+                        Tag.of("type", "file")
+                    ),
+                    counter,
+                    getFunctionByCounter(counter)
+                );
+            });
+        }
+
+        private void measureFinishedScriptTasksByApp() {
+            finishedScriptTaskCounterMap.forEach((appId, counter) -> {
+                meterRegistry.gauge(
+                    ExecuteMetricNames.GSE_FINISHED_TASKS_APP,
+                    Arrays.asList(
+                        Tag.of("appId", appId.toString()),
+                        Tag.of("type", "script")
+                    ),
+                    counter,
+                    getFunctionByCounter(counter)
+                );
+            });
+        }
+
+        @Override
+        public void run() {
+            while (runFlag) {
+                measureHandlingFileTasksByApp();
+                measureHandlingScriptTasksByApp();
+                measureReceiveTasksByApp();
+                measureFinishedFileTasksByApp();
+                measureFinishedScriptTasksByApp();
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    log.info("sleep interrupted");
+                }
+            }
+        }
+    }
+
+    @PostConstruct
+    private void init() {
+        new UpdateStatisticsThread().start();
+    }
+
+    private long incrementAppReceiveTask(long appId) {
+        AtomicLong appTaskCounter = receiveTaskCounterMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appTaskCounter.incrementAndGet();
+    }
+
+    private long incrementAppHandlingFileTask(long appId) {
+        AtomicLong appFileTaskCounter = handlingFileTasksMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appFileTaskCounter.incrementAndGet();
+    }
+
+    private long incrementAppHandlingScriptTask(long appId) {
+        AtomicLong appTaskCounter = handlingScriptTasksMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appTaskCounter.incrementAndGet();
+    }
+
+    private long decrementAppHandlingFileTask(long appId) {
+        AtomicLong appFileTaskCounter = handlingFileTasksMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appFileTaskCounter.decrementAndGet();
+    }
+
+    private long decrementAppHandlingScriptTask(long appId) {
+        AtomicLong appTaskCounter = handlingScriptTasksMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appTaskCounter.decrementAndGet();
+    }
+
+    private long incrementAppFinishedFileTask(long appId) {
+        AtomicLong appFinishedFileTaskCounter = finishedFileTaskCounterMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appFinishedFileTaskCounter.incrementAndGet();
+    }
+
+    private long incrementAppFinishedScriptTask(long appId) {
+        AtomicLong appFinishedScriptTaskCounter = finishedScriptTaskCounterMap.computeIfAbsent(
+            appId, pAppId -> new AtomicLong(0)
+        );
+        return appFinishedScriptTaskCounter.incrementAndGet();
     }
 
     /**
@@ -67,8 +252,10 @@ public class ResultHandleTaskSampler {
      *
      * @return 当前运行的文件任务数
      */
-    public long incrementFileTask() {
+    public long incrementFileTask(long appId) {
+        incrementAppReceiveTask(appId);
         receiveTaskCounter.incrementAndGet();
+        incrementAppHandlingFileTask(appId);
         return this.handlingFileTasks.incrementAndGet();
     }
 
@@ -77,8 +264,10 @@ public class ResultHandleTaskSampler {
      *
      * @return 当前运行的脚本任务数
      */
-    public long incrementScriptTask() {
+    public long incrementScriptTask(long appId) {
+        incrementAppReceiveTask(appId);
         receiveTaskCounter.incrementAndGet();
+        incrementAppHandlingScriptTask(appId);
         return this.handlingScriptTasks.incrementAndGet();
     }
 
@@ -87,8 +276,10 @@ public class ResultHandleTaskSampler {
      *
      * @return 当前运行的文件任务数
      */
-    public long decrementFileTask() {
+    public long decrementFileTask(long appId) {
+        incrementAppFinishedFileTask(appId);
         finishedFileTaskCounter.incrementAndGet();
+        decrementAppHandlingFileTask(appId);
         return this.handlingFileTasks.decrementAndGet();
     }
 
@@ -97,8 +288,10 @@ public class ResultHandleTaskSampler {
      *
      * @return 当前运行的脚本任务数
      */
-    public long decrementScriptTask() {
+    public long decrementScriptTask(long appId) {
+        incrementAppFinishedScriptTask(appId);
         finishedScriptTaskCounter.incrementAndGet();
+        decrementAppHandlingScriptTask(appId);
         return this.handlingScriptTasks.decrementAndGet();
     }
 
