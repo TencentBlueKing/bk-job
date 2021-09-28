@@ -159,7 +159,7 @@
                 const sameStack = [];
                 const largeStack = [];
                 
-                files.forEach((curFile) => {
+                Array.from(files).forEach((curFile) => {
                     const { name, size } = curFile;
                     // 重名检测
                     if (this.fileList.some(_ => _.fileLocationText === name)) {
