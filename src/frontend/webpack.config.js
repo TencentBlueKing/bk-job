@@ -77,7 +77,7 @@ module.exports = function (env) {
     }
     return {
         mode: env.development ? 'development' : 'production',
-        devtool: env.development ? 'eval-source-map' : 'none',
+        devtool: 'none',
         cache: env.development
             ? {
                 type: 'filesystem',
@@ -259,10 +259,8 @@ module.exports = function (env) {
                 '@': resolve('src'),
                 ace: 'ace-builds/src-noconflict',
                 lib: resolve('lib'),
-                '@api': resolve('src/api'),
                 '@common': resolve('src/common'),
                 '@components': resolve('src/components'),
-                '@doc': resolve('doc'),
                 '@domain': resolve('src/domain'),
                 '@router': resolve('src/router'),
                 '@model': resolve('src/domain/model'),
