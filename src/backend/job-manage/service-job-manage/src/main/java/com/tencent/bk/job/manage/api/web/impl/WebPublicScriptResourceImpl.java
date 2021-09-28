@@ -84,11 +84,11 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
 
     @Override
     public ServiceResponse<PageData<ScriptVO>> listPageScript(String username, String name, Integer type, String tags,
-                                                              String creator, String lastModifyUser, String scriptId,
-                                                              Integer start, Integer pageSize, String orderField,
-                                                              Integer order) {
+                                                              Long panelTag, Integer panelType, String creator,
+                                                              String lastModifyUser, String scriptId, Integer start,
+                                                              Integer pageSize, String orderField, Integer order) {
         return scriptResourceProxy.listPageScript(username, JobConstants.PUBLIC_APP_ID, true, name,
-            type, tags, null, null, creator, lastModifyUser, scriptId,
+            type, tags, panelTag, panelType, creator, lastModifyUser, scriptId,
             start, pageSize, orderField, order);
     }
 
