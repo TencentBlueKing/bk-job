@@ -186,7 +186,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
             if (query.isExistTagCondition()) {
                 List<Long> tagMatchedTemplateIds = queryTemplateIdsByTags(query);
-                log.info("tagMatchedTemplateIds:{}", tagMatchedTemplateIds);
                 if (CollectionUtils.isEmpty(tagMatchedTemplateIds)) {
                     // none match, return empty page data
                     return PageData.emptyPageData(start, length);
@@ -204,11 +203,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
 
-        log.info("matchedFavoredTemplates:{}", matchedFavoredTemplates);
-
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
-
-        log.info("query:{}, templatePageData:{}", query, templatePageData);
 
         if (existAnyMatchedFavoredTemplate) {
             if (getAll) {
