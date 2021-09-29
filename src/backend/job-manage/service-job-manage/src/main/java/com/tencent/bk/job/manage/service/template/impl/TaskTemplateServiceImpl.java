@@ -184,8 +184,10 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (!query.isExistIdCondition()) {
             query.setExcludeTemplateIds(favoredTemplateIdList);
 
+            log.info("isExistTagCondition:{}", query.isExistIdCondition());
             if (query.isExistTagCondition()) {
                 List<Long> tagMatchedTemplateIds = queryTemplateIdsByTags(query);
+                log.info("tagMatchedTemplateIds:{}", tagMatchedTemplateIds);
                 if (CollectionUtils.isEmpty(tagMatchedTemplateIds)) {
                     // none match, return empty page data
                     return PageData.emptyPageData(start, length);
