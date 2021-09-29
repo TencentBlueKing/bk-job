@@ -195,9 +195,9 @@ if [[ -d "support-files/templates" ]]; then
   done
   # Copy job-common.yml
   simpleName='common'
-  propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.yml"
+  propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#*"
   if [[ -f "${propertiesFilePath}" ]]; then
-    cp "${propertiesFilePath}" release/job/support-files/templates
+    cp ${propertiesFilePath} release/job/support-files/templates
   fi
   # Copy upgrader.properties
   upgraderPropertiesFile="support-files/templates/#etc#job#upgrader#upgrader.properties"
