@@ -184,7 +184,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (!query.isExistIdCondition()) {
             query.setExcludeTemplateIds(favoredTemplateIdList);
 
-            log.info("isExistTagCondition:{}", query.isExistIdCondition());
             if (query.isExistTagCondition()) {
                 List<Long> tagMatchedTemplateIds = queryTemplateIdsByTags(query);
                 log.info("tagMatchedTemplateIds:{}", tagMatchedTemplateIds);
@@ -205,8 +204,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
 
+        log.info("matchedFavoredTemplates:{}", matchedFavoredTemplates);
 
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
+
+        log.info("query:{}, templatePageData:{}", query, templatePageData);
 
         if (existAnyMatchedFavoredTemplate) {
             if (getAll) {
