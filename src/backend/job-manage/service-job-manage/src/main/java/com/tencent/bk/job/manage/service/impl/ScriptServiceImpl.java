@@ -233,14 +233,22 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public PageData<ScriptDTO> listPageScript(ScriptQuery scriptCondition,
                                               BaseSearchCondition baseSearchCondition) throws ServiceException {
-        transformTagConditionToScriptIds(scriptCondition);
+        if (scriptCondition.isExistTagCondition()) {
+            List<String> tagMatchedScriptIds = queryTemplateIdsByTags(scriptCondition);
+            if (CollectionUtils.isEmpty(tagMatchedScriptIds)) {
+                // none match, return empty page data
+                return PageData.emptyPageData(baseSearchCondition.getStart(), baseSearchCondition.getLength());
+            } else {
+                scriptCondition.setIds(tagMatchedScriptIds);
+            }
+        }
         PageData<ScriptDTO> pageData = scriptDAO.listPageScript(scriptCondition, baseSearchCondition);
         //设置标签
         setTags(pageData.getData());
         return pageData;
     }
 
-    private void transformTagConditionToScriptIds(ScriptQuery query) {
+    private List<String> queryTemplateIdsByTags(ScriptQuery query) {
         List<String> matchScriptIds = new ArrayList<>();
         Integer resourceType = query.getPublicScript() ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
@@ -253,7 +261,7 @@ public class ScriptServiceImpl implements ScriptService {
         } else if (CollectionUtils.isNotEmpty(query.getTagIds())) {
             matchScriptIds = tagService.listResourceIdsWithAllTagIds(resourceType, query.getTagIds());
         }
-        query.setIds(matchScriptIds);
+        return matchScriptIds;
     }
 
     @Override
@@ -641,9 +649,7 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public Map<String, ScriptDTO> batchGetOnlineScriptVersionByScriptIds(List<String> scriptIdList) {
         Map<String, ScriptDTO> scripts = scriptDAO.batchGetOnlineByScriptIds(scriptIdList);
-        scripts.forEach((scriptId, script) -> {
-            setTags(script);
-        });
+        scripts.forEach((scriptId, script) -> setTags(script));
         return scripts;
     }
 
@@ -723,7 +729,15 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public PageData<ScriptDTO> listPageOnlineScript(ScriptQuery scriptCondition,
                                                     BaseSearchCondition baseSearchCondition) throws ServiceException {
-        transformTagConditionToScriptIds(scriptCondition);
+        if (scriptCondition.isExistTagCondition()) {
+            List<String> tagMatchedScriptIds = queryTemplateIdsByTags(scriptCondition);
+            if (CollectionUtils.isEmpty(tagMatchedScriptIds)) {
+                // none match, return empty page data
+                return PageData.emptyPageData(baseSearchCondition.getStart(), baseSearchCondition.getLength());
+            } else {
+                scriptCondition.setIds(tagMatchedScriptIds);
+            }
+        }
         return scriptDAO.listPageOnlineScript(scriptCondition, baseSearchCondition);
     }
 
@@ -776,9 +790,7 @@ public class ScriptServiceImpl implements ScriptService {
         }
 
         Map<Long, ScriptDTO> scripts = new HashMap<>();
-        scriptVersions.forEach(scriptVersion -> {
-            scripts.put(scriptVersion.getScriptVersionId(), scriptVersion);
-        });
+        scriptVersions.forEach(scriptVersion -> scripts.put(scriptVersion.getScriptVersionId(), scriptVersion));
         templateSteps.forEach(step -> fillScriptInfo(step, scripts));
         return templateSteps;
     }
@@ -897,13 +909,11 @@ public class ScriptServiceImpl implements ScriptService {
                 scriptVersionId);
         }
         //填充scriptStatusDesc
-        scriptCitedTaskTemplateDTOList.forEach(scriptCitedTaskTemplateDTO -> {
-            scriptCitedTaskTemplateDTO.setScriptStatusDesc(
-                i18nService.getI18n(
-                    scriptCitedTaskTemplateDTO.getScriptStatus().getStatusI18nKey()
-                )
-            );
-        });
+        scriptCitedTaskTemplateDTOList.forEach(scriptCitedTaskTemplateDTO ->
+            scriptCitedTaskTemplateDTO.setScriptStatusDesc(i18nService.getI18n(
+                scriptCitedTaskTemplateDTO.getScriptStatus().getStatusI18nKey()
+            )
+        ));
         return scriptCitedTaskTemplateDTOList;
     }
 

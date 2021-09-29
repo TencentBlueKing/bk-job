@@ -183,7 +183,16 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
         if (!query.isExistIdCondition()) {
             query.setExcludeTemplateIds(favoredTemplateIdList);
-            transformTagConditionToTemplateIds(query);
+
+            if (query.isExistTagCondition()) {
+                List<Long> tagMatchedTemplateIds = queryTemplateIdsByTags(query);
+                if (CollectionUtils.isEmpty(tagMatchedTemplateIds)) {
+                    // none match, return empty page data
+                    return PageData.emptyPageData(start, length);
+                } else {
+                    query.setIds(tagMatchedTemplateIds);
+                }
+            }
 
             if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
                 matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
@@ -265,7 +274,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         templatePageData.setData(templates);
     }
 
-    private void transformTagConditionToTemplateIds(TaskTemplateQuery query) {
+    private List<Long> queryTemplateIdsByTags(TaskTemplateQuery query) {
         List<Long> matchTemplateIds = new ArrayList<>();
         if (query.isUntaggedTemplate()) {
             // untagged template
@@ -279,7 +288,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             matchTemplateIds = tagService.listResourceIdsWithAllTagIds(JobResourceTypeEnum.TEMPLATE.getValue(),
                 tagIds).stream().map(Long::valueOf).collect(Collectors.toList());
         }
-        query.setIds(matchTemplateIds);
+        return matchTemplateIds;
     }
 
     @Override
