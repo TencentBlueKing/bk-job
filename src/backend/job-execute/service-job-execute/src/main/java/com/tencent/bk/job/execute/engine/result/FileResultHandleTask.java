@@ -62,7 +62,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.StopWatch;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -175,6 +174,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         initFileTaskNumMap();
         initSourceServerIp();
         initFileSourceIntIpMapping();
+
+        log.info("[{}]Init file result handle task|fileSourceIpSet:{}|targetIpSet:{}|fileUploadTaskNumMap" +
+                ":{}|fileDownloadTaskNumMap:{}",
+            stepInstance.getId(), fileSourceIPSet, targetIpSet, fileUploadTaskNumMap, fileDownloadTaskNumMap);
     }
 
 
@@ -296,20 +299,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         watch.start("saveIpLogs");
         List<GseTaskIpLogDTO> ipLogList = analysedIpSet.stream().map(analysedIp -> ipLogMap.get(analysedIp))
             .collect(Collectors.toList());
-        gseTaskLogService.batchSaveIpLog(new ArrayList<>(ipLogList));
+        gseTaskLogService.batchSaveIpLog(ipLogList);
         watch.stop();
 
-        log.info("Analyse gse task log [{}] -> targetIpSet={}, fileSourceIpSet={}, runningTargetIpSet={}, " +
+        log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
                 "notStartedTargetIpSet={}, runningFileSourceIpSet={}, notStartedFileSourceIpSet={}, " +
-                "analyseFinishedIPSet={}, fileDownloadTaskNumMap={}, successDownloadFileMap={}, " +
-                "finishedDownloadFileMap={}, fileUploadTaskNumMap={}, successUploadFileMap={}, " +
-                "finishedUploadFileMap={}",
-            this.stepInstanceId, this.targetIpSet, this.fileSourceIPSet, this.runningIpSet, this.notStartedIpSet,
-            this.runningFileSourceIpSet, this.notStartedFileSourceIpSet, this.analyseFinishedIpSet,
-            this.fileDownloadTaskNumMap,
-            this.successDownloadFileMap, this.finishedDownloadFileMap, this.fileUploadTaskNumMap,
-            this.successUploadFileMap,
-            this.fileUploadTaskNumMap);
+                "analyseFinishedIPSet={}, successDownloadFileMap={}, " +
+                "finishedDownloadFileMap={}, fileUploadTaskNumMap={}, successUploadFileMap={}",
+            this.stepInstanceId, this.runningIpSet, this.notStartedIpSet, this.runningFileSourceIpSet,
+            this.notStartedFileSourceIpSet, this.analyseFinishedIpSet, this.successDownloadFileMap,
+            this.finishedDownloadFileMap, this.successUploadFileMap, this.finishedUploadFileMap);
 
         if (watch.getTotalTimeMillis() > 1000L) {
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
@@ -610,12 +609,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     if (isAddSuccess) {
                         addFileTaskLog(executionLogs, destCloudIp,
                             new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
-                            destCloudIp, taskResult.getStandardDestFilePath(), fileSourceIp, fileSourceIp,
-                            taskResult.getStandardSourceFilePath(),
-                            taskResult.getStandardSourceFilePath() == null ? null :
-                                sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
-                            null, FileDistStatusEnum.FAILED.getValue(),
-                            FileDistStatusEnum.FAILED.getName(),
+                                destCloudIp, taskResult.getStandardDestFilePath(), fileSourceIp, fileSourceIp,
+                                taskResult.getStandardSourceFilePath(),
+                                taskResult.getStandardSourceFilePath() == null ? null :
+                                    sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
+                                null, FileDistStatusEnum.FAILED.getValue(),
+                                FileDistStatusEnum.FAILED.getName(),
                                 null, null, copyFileRsp.getFinalErrorMsg()));
                         affectIps.add(fileSourceIp);
                     }
@@ -628,13 +627,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 if (isAddSuccess) {
                     addFileTaskLog(executionLogs, destCloudIp,
                         new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
-                        destCloudIp, taskResult.getStandardDestFilePath(), taskResult.getSourceCloudIp(),
+                            destCloudIp, taskResult.getStandardDestFilePath(), taskResult.getSourceCloudIp(),
                             taskResult.getSourceCloudIp(),
-                        taskResult.getStandardSourceFilePath(),
-                        taskResult.getStandardSourceFilePath() == null ? null :
-                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()), null,
+                            taskResult.getStandardSourceFilePath(),
+                            taskResult.getStandardSourceFilePath() == null ? null :
+                                sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()), null,
                             FileDistStatusEnum.FAILED.getValue(),
-                        FileDistStatusEnum.FAILED.getName(), null, null, copyFileRsp.getFinalErrorMsg()));
+                            FileDistStatusEnum.FAILED.getName(), null, null, copyFileRsp.getFinalErrorMsg()));
                     affectIps.add(sourceCloudIp);
                 }
             }
@@ -715,8 +714,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             }
             addFinishedFile(false, true, targetIp,
                 buildTaskId(taskResult.getMode(), taskResult.getSourceCloudIp(),
-                taskResult.getStandardSourceFilePath(),
-                targetIp, destFilePath));
+                    taskResult.getStandardSourceFilePath(),
+                    targetIp, destFilePath));
             addFileTaskLog(executionLogs, targetIp, new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
                 targetIp, destFilePath,
                 sourceCloudIp, sourceCloudIp, sourceFilePath, displayFilePath, null,
