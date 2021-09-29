@@ -84,6 +84,7 @@
                 align="right">
                 <template slot-scope="{ row }">
                     <router-link
+                        v-if="row.relatedTaskTemplateNum > 0"
                         target="_blank"
                         :to="{
                             name: 'taskList',
@@ -93,6 +94,12 @@
                         }">
                         {{ row.relatedTaskTemplateNum }}
                     </router-link>
+                    <bk-button
+                        v-else
+                        text
+                        disabled>
+                        {{ row.relatedTaskTemplateNum }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
@@ -104,6 +111,7 @@
                 align="right">
                 <template slot-scope="{ row }">
                     <router-link
+                        v-if="row.relatedScriptNum > 0"
                         target="_blank"
                         :to="{
                             name: 'scriptList',
@@ -113,6 +121,12 @@
                         }">
                         {{ row.relatedScriptNum }}
                     </router-link>
+                    <bk-button
+                        v-else
+                        text
+                        disabled>
+                        {{ row.relatedScriptNum }}
+                    </bk-button>
                 </template>
             </bk-table-column>
             <bk-table-column
