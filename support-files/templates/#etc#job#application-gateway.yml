@@ -9,7 +9,7 @@ spring:
         prefer-ip-address: true
         service-name: job-gateway
         instance-id: job-gateway-${machine.ip}-${server.port}
-        scheme: https
+        scheme: http
         enabled: true
       #tls:
         #key-store-instance-type:
