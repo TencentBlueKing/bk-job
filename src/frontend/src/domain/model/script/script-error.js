@@ -36,10 +36,18 @@ export default class ScriptError {
         this.column = 1;
         this.level = payload.level;
         this.type = ERROR_MAP[payload.level];
-        this.text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n${payload.description}`;
+        this.text = this.initText(payload);
     }
 
     get isDangerous () {
         return this.level === 3;
+    }
+
+    initText (payload) {
+        let text = '';
+        if (this.level === 3) {
+            text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n`;
+        }
+        return `${text}${payload.description}`;
     }
 }
