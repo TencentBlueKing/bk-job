@@ -214,7 +214,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (getAll) {
                 templatePageData.getData().addAll(0, matchedFavoredTemplates);
             } else {
-                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, length);
+                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, start, length);
             }
         }
 
@@ -268,8 +268,16 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private void rebuildTemplatePageData(PageData<TaskTemplateInfoDTO> templatePageData,
                                          List<TaskTemplateInfoDTO> matchedFavoredTemplates,
+                                         Integer start,
                                          Integer length) {
-        templatePageData.getData().addAll(0, matchedFavoredTemplates);
+        // 前置的模板
+        if (CollectionUtils.isNotEmpty(matchedFavoredTemplates)) {
+            if (matchedFavoredTemplates.size() > start) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplates.stream().skip(start).limit(length)
+                    .collect(Collectors.toList()));
+            }
+        }
+
         // subList
         if (templatePageData.getData().size() > length) {
             List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(0, length));
