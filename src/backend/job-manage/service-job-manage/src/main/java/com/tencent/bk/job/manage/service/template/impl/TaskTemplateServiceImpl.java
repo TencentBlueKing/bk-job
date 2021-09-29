@@ -214,7 +214,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (getAll) {
                 templatePageData.getData().addAll(0, matchedFavoredTemplates);
             } else {
-                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, start, length);
+                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, length);
             }
         }
 
@@ -268,14 +268,13 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private void rebuildTemplatePageData(PageData<TaskTemplateInfoDTO> templatePageData,
                                          List<TaskTemplateInfoDTO> matchedFavoredTemplates,
-                                         Integer start,
                                          Integer length) {
         templatePageData.getData().addAll(0, matchedFavoredTemplates);
         // subList
-        int fromIndex = start;
-        int endIndex = Math.min(start + length, templatePageData.getData().size());
-        List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(fromIndex, endIndex));
-        templatePageData.setData(templates);
+        if (templatePageData.getData().size() > length) {
+            List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(0, length));
+            templatePageData.setData(templates);
+        }
     }
 
     private List<Long> queryTemplateIdsByTags(TaskTemplateQuery query) {
