@@ -38,8 +38,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.requestMatcher(AnyRequestMatcher.INSTANCE).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers("/actuator/info").permitAll()
+            .antMatchers("/actuator/health/**", "/actuator/info").permitAll()
             .and()
             .httpBasic()
             .and()
