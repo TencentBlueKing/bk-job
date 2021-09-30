@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -83,5 +84,9 @@ public class ScriptQuery {
      * @see com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum
      */
     private Integer status;
+
+    public boolean isExistTagCondition() {
+        return this.untaggedScript || CollectionUtils.isNotEmpty(this.tagIds);
+    }
 
 }

@@ -121,7 +121,7 @@
         },
         computed: {
             isEdit () {
-                return this.data && !!this.data.type;
+                return !!this.data.name;
             },
         },
         watch: {

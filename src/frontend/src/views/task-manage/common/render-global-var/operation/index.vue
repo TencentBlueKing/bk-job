@@ -139,7 +139,7 @@
                     } else {
                         // 新建变量
                         // 初始化默认值
-                        this.formData = createVariable();
+                        this.formData = createVariable(null, '');
                     }
                     this.globalType = this.formData.typeDescription;
                 },

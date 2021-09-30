@@ -210,6 +210,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             File localFile = new File(localPath);
             // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段
             if (localFile.exists()) {
+                log.debug("push config file, use generated file");
                 return null;
             }
             // 制品库的完整路径
