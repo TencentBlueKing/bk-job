@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -1793,7 +1794,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Map<String, QueryAgentStatusClient.AgentStatus> statusMap = queryAgentStatusClient.batchGetAgentStatus(ipList);
         for (IpDTO ip : ips) {
             String fullIp = ip.convertToStrIp();
-            ip.setAlive(statusMap.get(fullIp) == null ? 0 : statusMap.get(fullIp).status);
+            ip.setAlive(statusMap.get(fullIp) == null ?
+                AgentStatusEnum.UNKNOWN.getValue() : statusMap.get(fullIp).status);
         }
     }
 
@@ -2112,9 +2114,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<IpDTO>>> {
-        private long appId;
-        private DynamicServerTopoNodeDTO topoNode;
-        private CountDownLatch latch;
+        private final long appId;
+        private final DynamicServerTopoNodeDTO topoNode;
+        private final CountDownLatch latch;
 
         public GetTopoHostTask(long appId, DynamicServerTopoNodeDTO topoNode, CountDownLatch latch) {
             this.appId = appId;
@@ -2127,10 +2129,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             try {
                 List<IpDTO> topoIps = serverService.getIpByTopoNodes(appId,
                     Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
-                return new ImmutablePair(topoNode, topoIps);
+                return new ImmutablePair<>(topoNode, topoIps);
             } catch (Throwable e) {
                 log.warn("Get hosts by topo fail", e);
-                return new ImmutablePair(topoNode, Collections.EMPTY_LIST);
+                return new ImmutablePair<>(topoNode, Collections.EMPTY_LIST);
             } finally {
                 latch.countDown();
             }

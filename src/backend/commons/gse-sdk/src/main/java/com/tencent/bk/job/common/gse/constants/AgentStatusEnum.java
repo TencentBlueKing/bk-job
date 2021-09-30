@@ -22,29 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.model;
+package com.tencent.bk.job.common.gse.constants;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@Data
-public class AgentStatusDTO {
-    @JsonProperty("businessid")
-    private String businessId;
+/**
+ * Agent 状态
+ */
+public enum AgentStatusEnum {
     /**
-     * Agent是否存在，1: 存在，0: 不存在
+     * 异常
      */
-    private Integer exist;
-
-    private String ip;
-
+    NOT_ALIVE(0),
     /**
-     * 云区域ID
+     * 正常
      */
-    private String region;
-
+    ALIVE(1),
     /**
-     * Agent版本
+     * 未知
      */
-    private String version;
+    UNKNOWN(2);
+    @JsonValue
+    private final int status;
+
+    AgentStatusEnum(int status) {
+        this.status = status;
+    }
+
+    @JsonCreator
+    public static AgentStatusEnum valOf(int status) {
+        for (AgentStatusEnum agentStatus : values()) {
+            if (agentStatus.status == status) {
+                return agentStatus;
+            }
+        }
+        return null;
+    }
+
+    public int getValue() {
+        return status;
+    }
 }
