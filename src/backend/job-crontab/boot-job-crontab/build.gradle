@@ -28,7 +28,6 @@ dependencies {
     api project(":job-crontab:service-job-crontab")
     api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-quartz')
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
