@@ -30,7 +30,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-/**
+/**AddTraceResponseHeaderGlobalFilter
  * Actuator spring security config
  */
 @Configuration
@@ -39,6 +39,8 @@ public class ActuatorSecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
+            .cors()
+            .disable()
             .authorizeExchange()
             .pathMatchers("/actuator/health", "/actuator/info")
             .permitAll()
