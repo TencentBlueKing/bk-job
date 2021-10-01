@@ -5,6 +5,9 @@ spring:
     allow-bean-definition-overriding: true
   profiles:
     active: default
+  sleuth:
+    web:
+      filter-order: 0
   cloud:
     ssl:
       useInsecureTrustManager: true
