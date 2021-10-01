@@ -109,6 +109,12 @@ public interface WebPublicScriptResource {
         @ApiParam("脚本标签")
         @RequestParam(value = "tags", required = false)
             String tags,
+        @ApiParam(value = "左侧模版标签")
+        @RequestParam(value = "panelTag", required = false)
+            Long panelTag,
+        @ApiParam(value = "脚本在导航栏的分类,1-全部,2-未分类")
+        @RequestParam(value = "panelType", required = false)
+            Integer panelType,
         @ApiParam("创建人")
         @RequestParam(value = "creator", required = false)
             String creator,

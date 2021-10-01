@@ -90,6 +90,10 @@ public class TaskTemplateQuery implements Cloneable {
         return this.id != null && this.id > 0;
     }
 
+    public boolean isExistTagCondition() {
+        return this.untaggedTemplate || CollectionUtils.isNotEmpty(this.tags);
+    }
+
     public TaskTemplateQuery clone() {
         TaskTemplateQuery cloneQuery =  TaskTemplateQuery.builder().id(id).appId(appId).name(name)
             .scriptStatus(scriptStatus).status(status).untaggedTemplate(untaggedTemplate).build();

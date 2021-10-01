@@ -47,6 +47,6 @@ spec:
               value: {{ .Values.app.code | quote }}
             - name: BK_JOB_APP_SECRET
               value: {{ .Values.app.secret | quote }}
-            - name: BK_JOB_GATEWAY_URL
-              value: https://{{ include "common.names.fullname" . }}-gateway:443
+            - name: BK_JOB_API_URL
+              value: http://{{ .Values.gatewayConfig.ingress.hostname }}
       restartPolicy: Never
