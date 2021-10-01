@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
@@ -64,11 +63,9 @@ import org.springframework.util.StopWatch;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * 文件任务执行结果处理
@@ -249,12 +246,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     @Override
     GseTaskExecuteResult analyseGseTaskLog(GseLog<api_map_rsp> taskDetail) {
-        long currentTime = DateUtils.currentTimeMillis();
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
         // 执行日志, Map<ip, 日志>
         Map<String, ServiceIpLogDTO> executionLogs = new HashMap<>();
-        // 本次解析的ip列表
-        Set<String> analysedIpSet = new HashSet<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -272,13 +266,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             boolean isDownloadLog = fileTaskResult.isDownloadMode();
             String cloudIp = isDownloadLog ?
                 fileTaskResult.getDestCloudIp() : fileTaskResult.getSourceCloudIp();
-            analysedIpSet.add(cloudIp);
-
-            GseTaskIpLogDTO ipLog = this.ipLogMap.get(cloudIp);
-            if (ipLog.getStartTime() == null) {
-                ipLog.setStartTime(currentTime);
-            }
-            ipLog.setErrCode(copyFileRsp.getFinalErrorCode());
 
             if (isDownloadLog && this.targetIpSet.contains(cloudIp)) {
                 this.runningIpSet.add(cloudIp);
@@ -297,9 +284,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         // 保存任务执行结果
         watch.start("saveIpLogs");
-        List<GseTaskIpLogDTO> ipLogList = analysedIpSet.stream().map(analysedIp -> ipLogMap.get(analysedIp))
-            .collect(Collectors.toList());
-        gseTaskLogService.batchSaveIpLog(ipLogList);
+        batchSaveChangedIpLogs();
         watch.stop();
 
         log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
