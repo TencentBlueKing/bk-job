@@ -30,14 +30,12 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(FeatureToggleConfig.class)
 @ConfigurationProperties(prefix = "job.feature")
 @ToString
