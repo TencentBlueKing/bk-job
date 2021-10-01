@@ -85,7 +85,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected GseTaskLogService gseTaskLogService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
-    // ---------------- dependent service --------------------
     protected TaskExecuteControlMsgSender taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     /**
