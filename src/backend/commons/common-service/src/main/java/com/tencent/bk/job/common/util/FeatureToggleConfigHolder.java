@@ -37,6 +37,7 @@ public class FeatureToggleConfigHolder {
     public static FeatureToggleConfig get() {
         FeatureToggleConfig config = FeatureToggleConfigHolder.Inner.instance;
         log.info("FeatureToggleConfig:{}", config);
+        return config;
     }
 
     private static class Inner {
