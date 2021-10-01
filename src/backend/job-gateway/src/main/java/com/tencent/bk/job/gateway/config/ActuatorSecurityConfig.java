@@ -39,14 +39,15 @@ public class ActuatorSecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-            .cors()
+            .csrf()
             .disable()
             .authorizeExchange()
             .pathMatchers("/actuator/health", "/actuator/info")
             .permitAll()
             .pathMatchers("/actuator/**")
             .authenticated()
-            .pathMatchers("/**")
+            // check in filter
+            .anyExchange()
             .permitAll()
             .and()
             .httpBasic();
