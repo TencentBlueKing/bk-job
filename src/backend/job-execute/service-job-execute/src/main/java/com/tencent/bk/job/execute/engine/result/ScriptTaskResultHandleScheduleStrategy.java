@@ -36,7 +36,7 @@ public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy 
     /**
      * 任务累计执行次数
      */
-    private volatile AtomicInteger times = new AtomicInteger(0);
+    private final AtomicInteger times = new AtomicInteger(0);
 
     @Override
     public long getDelay() {

@@ -79,19 +79,19 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 任务结果处理的任务队列
      */
-    private DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue = new DelayQueue<>();
+    private final DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue = new DelayQueue<>();
     /**
      * 调度的所有的任务
      */
-    private Map<String, ScheduledContinuousResultHandleTask> scheduledTasks = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledContinuousResultHandleTask> scheduledTasks = new ConcurrentHashMap<>();
     /**
      * 任务消费者
      */
-    private Set<TaskWorker> workers = new HashSet<>();
+    private final Set<TaskWorker> workers = new HashSet<>();
     /**
      * 异步任务执行器，用于启动消费者线程
      */
-    private Executor taskExecutor = new SimpleAsyncTaskExecutor("task-result-handle-");
+    private final Executor taskExecutor = new SimpleAsyncTaskExecutor("task-result-handle-");
     /**
      * 最小任务处理线程
      */
@@ -132,8 +132,9 @@ public class ResultHandleManager implements SmartLifecycle {
      * whether this component is currently running(Spring Lifecycle isRunning method)
      */
     private volatile boolean running = false;
-    private ExecutorService shutdownExecutorService = new ThreadPoolExecutor(10, 20, 120, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>());
+    private final ExecutorService shutdownExecutorService =
+        new ThreadPoolExecutor(10, 20, 120, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>());
 
     @Autowired
     public ResultHandleManager(Tracing tracing, ExecuteMonitor counters,
@@ -201,7 +202,7 @@ public class ResultHandleManager implements SmartLifecycle {
     private boolean isWorkerActive(TaskWorker worker) {
         boolean workerActive;
         synchronized (this.workersMonitor) {
-            workerActive = this.workers != null && this.workers.contains(worker);
+            workerActive = this.workers.contains(worker);
         }
         return workerActive && this.isActive();
     }
@@ -288,7 +289,7 @@ public class ResultHandleManager implements SmartLifecycle {
      */
     private void considerAddingAConsumer() {
         synchronized (this.workersMonitor) {
-            if (this.workers != null && this.workers.size() < this.MAX_WORKERS) {
+            if (this.workers.size() < this.MAX_WORKERS) {
                 long now = System.currentTimeMillis();
                 if (this.lastWorkerStartedAt + this.startConsumerMinInterval < now) {
                     TaskWorker worker = new TaskWorker();
@@ -306,7 +307,7 @@ public class ResultHandleManager implements SmartLifecycle {
      */
     private void considerStoppingAConsumer(TaskWorker worker) {
         synchronized (this.workersMonitor) {
-            if (this.workers != null && this.workers.size() > this.CORE_WORKERS) {
+            if (this.workers.size() > this.CORE_WORKERS) {
                 long now = System.currentTimeMillis();
                 if (this.lastWorkerStoppedAt + this.stopConsumerMinInterval < now) {
                     workers.remove(worker);
@@ -379,8 +380,8 @@ public class ResultHandleManager implements SmartLifecycle {
     }
 
     private static final class StopTask implements Runnable {
-        private ScheduledContinuousResultHandleTask task;
-        private Tracing tracing;
+        private final ScheduledContinuousResultHandleTask task;
+        private final Tracing tracing;
 
         StopTask(ScheduledContinuousResultHandleTask task, Tracing tracing) {
             this.task = task;

@@ -368,7 +368,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         gseTaskLogService.batchSaveIpLog(notFinishedIpLogs);
     }
 
-    private boolean checkGseLogWaitingTimeout(GseLog gseLog) {
+    private boolean checkGseLogWaitingTimeout(GseLog<?> gseLog) {
         // 超时处理
         if (latestPullGseLogSuccessTimeMillis == 0) {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();

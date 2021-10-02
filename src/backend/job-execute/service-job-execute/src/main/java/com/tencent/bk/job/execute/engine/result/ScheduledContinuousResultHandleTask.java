@@ -58,11 +58,11 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     /**
      * 任务队列
      */
-    private DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue;
+    private final DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue;
     /**
      * 任务
      */
-    private volatile ContinuousScheduledTask task;
+    private final ContinuousScheduledTask task;
     /**
      * 延时任务
      */

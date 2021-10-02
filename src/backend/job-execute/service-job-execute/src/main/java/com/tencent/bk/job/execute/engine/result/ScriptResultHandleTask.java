@@ -562,7 +562,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @return 任务执行结果
      */
     private GseTaskExecuteResult analyseExecuteResult() {
-        GseTaskExecuteResult rst = null;
+        GseTaskExecuteResult rst;
         if (this.notStartedIpSet.isEmpty() && this.runningIpSet.isEmpty()) {
             int targetIPNum = this.targetIpSet.size();
             int successTargetIpNum = this.successIpSet.size();

@@ -39,23 +39,23 @@ public class ResultHandleTaskSampler {
     /**
      * 正在处理任务结果的文件任务数
      */
-    private AtomicLong handlingFileTasks = new AtomicLong(0);
+    private final AtomicLong handlingFileTasks = new AtomicLong(0);
     /**
      * 正在处理任务结果的脚本任务数
      */
-    private AtomicLong handlingScriptTasks = new AtomicLong(0);
+    private final AtomicLong handlingScriptTasks = new AtomicLong(0);
     /**
      * 接收的结果处理任务数
      */
-    private AtomicLong receiveTaskCounter = new AtomicLong(0);
+    private final AtomicLong receiveTaskCounter = new AtomicLong(0);
     /**
      * 完成的文件任务数
      */
-    private AtomicLong finishedFileTaskCounter = new AtomicLong(0);
+    private final AtomicLong finishedFileTaskCounter = new AtomicLong(0);
     /**
      * 完成的脚本任务数
      */
-    private AtomicLong finishedScriptTaskCounter = new AtomicLong(0);
+    private final AtomicLong finishedScriptTaskCounter = new AtomicLong(0);
 
     @Autowired
     public ResultHandleTaskSampler(MeterRegistry meterRegistry) {
