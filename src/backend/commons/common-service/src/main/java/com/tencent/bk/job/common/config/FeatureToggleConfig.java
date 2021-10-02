@@ -24,34 +24,54 @@
 
 package com.tencent.bk.job.common.config;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@EnableConfigurationProperties(FeatureToggleConfig.class)
 @ConfigurationProperties(prefix = "job.feature")
 @ToString
+@Slf4j
 public class FeatureToggleConfig {
 
-    private final ToggleConfig pullFileResultByIp = new ToggleConfig();
+    private ToggleConfig pullFileResultByIp = new ToggleConfig();
 
-    @Getter
-    @Setter
+    public void setPullFileResultByIp(ToggleConfig pullFileResultByIp) {
+        this.pullFileResultByIp = pullFileResultByIp;
+        log.info("FeatureToggleConfig.pullFileResultByIp:{}", pullFileResultByIp);
+    }
+
     @ToString
     public static class ToggleConfig {
         private boolean enabled;
         private boolean gray;
         private String grayApps;
+        private final List<Long> grayAppList = new ArrayList<>();
 
-        private List<Long> grayAppList = new ArrayList<>();
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isGray() {
+            return gray;
+        }
+
+        public void setGray(boolean gray) {
+            this.gray = gray;
+        }
+
+        public String getGrayApps() {
+            return grayApps;
+        }
 
         public void setGrayApps(String grayApps) {
             if (StringUtils.isNotEmpty(grayApps)) {
@@ -67,4 +87,5 @@ public class FeatureToggleConfig {
         return pullFileResultByIp.enabled
             && (!pullFileResultByIp.gray || pullFileResultByIp.grayAppList.contains(appId));
     }
+
 }

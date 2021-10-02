@@ -436,9 +436,9 @@ public class GseRequestUtils {
         return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
             @Override
             public api_map_rsp callback(GseClient gseClient) throws TException {
-                log.info("[{}]: copyFileTaskLogRequest|gseTaskId={}", id, gseTaskId);
+                log.info("[{}]: pullCopyFileTaskLog|gseTaskId:{}", id, gseTaskId);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient().get_copy_file_result(gseTaskId);
-                log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
+                log.info("[{}]: pullCopyFileTaskLog|response:{}", id, copyFileTaskLog);
                 return copyFileTaskLog;
             }
 
@@ -458,10 +458,10 @@ public class GseRequestUtils {
             public api_map_rsp callback(GseClient gseClient) throws TException {
                 List<api_host> hosts = cloudIps.stream()
                     .map(GseRequestUtils::convertToApiHost).collect(Collectors.toList());
-                log.info("[{}]: copyFileTaskLogRequest|gseTaskId={}|hosts={}", id, gseTaskId, hosts);
+                log.info("[{}]: pullCopyFileTaskLogByIp|gseTaskId:{}|hosts:{}", id, gseTaskId, hosts);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient()
                     .get_copy_file_result_by_ip_v2(gseTaskId, hosts);
-                log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
+                log.info("[{}]: pullCopyFileTaskLogByIp|response:{}", id, copyFileTaskLog);
                 return copyFileTaskLog;
             }
 

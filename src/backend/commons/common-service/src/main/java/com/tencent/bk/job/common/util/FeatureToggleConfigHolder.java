@@ -25,19 +25,14 @@
 package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class FeatureToggleConfigHolder {
 
     private FeatureToggleConfigHolder() {
-
     }
 
     public static FeatureToggleConfig get() {
-        FeatureToggleConfig config = FeatureToggleConfigHolder.Inner.instance;
-        log.info("FeatureToggleConfig:{}", config);
-        return config;
+        return Inner.instance;
     }
 
     private static class Inner {
