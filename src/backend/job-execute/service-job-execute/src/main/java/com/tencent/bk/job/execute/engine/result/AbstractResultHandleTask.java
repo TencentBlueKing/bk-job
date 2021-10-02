@@ -138,7 +138,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     // ---------------- analysed task execution result for server --------------------
     /**
-     * 已经分析结果完成的服务器
+     * 已经分析结果完成的目标服务器
      */
     protected Set<String> analyseFinishedIpSet = new HashSet<>();
     /**

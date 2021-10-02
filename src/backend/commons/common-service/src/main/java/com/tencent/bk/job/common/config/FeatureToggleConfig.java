@@ -48,7 +48,7 @@ public class FeatureToggleConfig {
 
     @ToString
     public static class ToggleConfig {
-        private boolean enabled;
+        private boolean enabled = true;
         private boolean gray;
         private String grayApps;
         private final List<Long> grayAppList = new ArrayList<>();

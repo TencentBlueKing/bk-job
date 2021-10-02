@@ -84,6 +84,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      */
     private final Set<String> fileSourceIPSet = new HashSet<>();
     /**
+     * 已经分析结果完成的源服务器
+     */
+    protected Set<String> analyseFinishedSourceIpSet = new HashSet<>();
+    /**
      * 成功的文件下载任务，key: ip, value: 成功的文件任务名称
      */
     private final Map<String, Set<String>> successDownloadFileMap = new HashMap<>();
@@ -225,7 +229,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     GseLogBatchPullResult<api_map_rsp> pullGseTaskLogInBatches() {
         api_map_rsp gseLog;
         if (FeatureToggleConfigHolder.get().enablePullFileResultByIp(taskInstance.getAppId())
-            && CollectionUtils.isNotEmpty(this.analyseFinishedIpSet)) {
+            && (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
+            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet))) {
             Set<String> notFinishedIps = new HashSet<>();
             notFinishedIps.addAll(notStartedFileSourceIpSet);
             notFinishedIps.addAll(runningFileSourceIpSet);
@@ -291,11 +296,19 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
                 "notStartedTargetIpSet={}, runningFileSourceIpSet={}, notStartedFileSourceIpSet={}, " +
-                "analyseFinishedIPSet={}, successDownloadFileMap={}, " +
+                "analyseFinishedTargetIpSet={}, analyseFinishedSourceIpSet={}, successDownloadFileMap={}, " +
                 "finishedDownloadFileMap={}, fileUploadTaskNumMap={}, successUploadFileMap={}",
-            this.stepInstanceId, this.runningIpSet, this.notStartedIpSet, this.runningFileSourceIpSet,
-            this.notStartedFileSourceIpSet, this.analyseFinishedIpSet, this.successDownloadFileMap,
-            this.finishedDownloadFileMap, this.successUploadFileMap, this.finishedUploadFileMap);
+            this.stepInstanceId,
+            this.runningIpSet,
+            this.notStartedIpSet,
+            this.runningFileSourceIpSet,
+            this.notStartedFileSourceIpSet,
+            this.analyseFinishedIpSet,
+            this.analyseFinishedSourceIpSet,
+            this.successDownloadFileMap,
+            this.finishedDownloadFileMap,
+            this.successUploadFileMap,
+            this.finishedUploadFileMap);
 
         if (watch.getTotalTimeMillis() > 1000L) {
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
@@ -768,6 +781,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     private void dealUploadIpFinished(String sourceCloudIp) {
         this.runningFileSourceIpSet.remove(sourceCloudIp);
         this.notStartedFileSourceIpSet.remove(sourceCloudIp);
+        this.analyseFinishedSourceIpSet.add(sourceCloudIp);
     }
 
     /*
