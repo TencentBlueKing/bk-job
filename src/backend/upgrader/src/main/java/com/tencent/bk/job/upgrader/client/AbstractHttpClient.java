@@ -72,7 +72,7 @@ public abstract class AbstractHttpClient {
             responseBody = httpHelper.get(url, getBasicHeaders());
             return responseBody;
         } catch (Exception e) {
-            log.warn("Get url {}| params={}| exception={}", hostUrl + uri,
+            log.error("Get url {}| params={}| exception={}", hostUrl + uri,
                 JsonUtils.toJsonWithoutSkippedFields(params),
                 e.getMessage());
             error = true;

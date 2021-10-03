@@ -104,7 +104,7 @@ public class TaskListener {
             }
         } catch (Exception e) {
             String errorMsg = "Handling task control message error,taskInstanceId=" + taskInstanceId;
-            log.warn(errorMsg, e);
+            log.error(errorMsg, e);
         }
     }
 
