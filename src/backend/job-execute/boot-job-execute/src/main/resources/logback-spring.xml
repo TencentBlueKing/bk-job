@@ -80,6 +80,11 @@
             <pattern>${LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
     </appender>
     <appender name="iam-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${IAM_LOG_FILE}</file>
@@ -95,7 +100,7 @@
         </encoder>
     </appender>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
             <charset>utf8</charset>
@@ -103,99 +108,82 @@
     </appender>
 
     <springProfile name="local">
-        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <root level="DEBUG">
-            <appender-ref ref="CONSOLE"/>
+        <root level="DEBUG" additivity="false">
+            <appender-ref ref="STDOUT"/>
         </root>
     </springProfile>
     <springProfile name="dev &amp; !kubernetes">
-        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false" >
             <appender-ref ref="async-execute-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.execute.schedule" level="DEBUG" additivity="false">
             <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="DEBUG" additivity="false">
             <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
             <appender-ref ref="esb-client-appender"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="execute-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
             <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
-        <root level="ERROR">
-            <appender-ref ref="execute-appender"/>
+        <root level="INFO" additivity="false">
+            <appender-ref ref="async-execute-appender"/>
             <appender-ref ref="error-appender"/>
         </root>
     </springProfile>
     <springProfile name="prod &amp; !kubernetes">
-        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false" >
             <appender-ref ref="async-execute-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
             <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
             <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.esb" level="INFO" additivity="false">
             <appender-ref ref="esb-client-appender"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="async-execute-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
             <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
-        <root level="ERROR">
-            <appender-ref ref="execute-appender"/>
+        <root level="INFO">
+            <appender-ref ref="async-execute-appender"/>
             <appender-ref ref="error-appender"/>
         </root>
     </springProfile>
     <springProfile name="dev &amp; kubernetes">
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="STDOUT"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="STDOUT"/>
         </logger>
-        <root level="ERROR">
-            <appender-ref ref="CONSOLE"/>
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
         </root>
     </springProfile>
     <springProfile name="prod &amp; kubernetes">
         <logger name="com.tencent.bk.job" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="STDOUT"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="STDOUT"/>
         </logger>
-        <root level="ERROR">
-            <appender-ref ref="CONSOLE"/>
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
         </root>
     </springProfile>
 </configuration>
