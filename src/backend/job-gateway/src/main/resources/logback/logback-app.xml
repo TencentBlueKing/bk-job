@@ -1,0 +1,26 @@
+<included>
+    <property name="ACCESS_LOG" value="${APP_LOG_DIR}/access.log"/>
+    <appender name="accessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ACCESS_LOG}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev &amp; !kubernetes">
+        <logger name="reactor.netty.http.server.AccessLog" level="DEBUG" additivity="false">
+            <appender-ref ref="accessLog"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; !kubernetes">
+        <logger name="reactor.netty.http.server.AccessLog" level="DEBUG" additivity="false">
+            <appender-ref ref="accessLog"/>
+        </logger>
+    </springProfile>
+</included>
