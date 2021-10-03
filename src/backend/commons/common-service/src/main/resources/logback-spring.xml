@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
-    <property name="LOG_PATTERN"
-              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{traceId}|%X{spanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
-    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="BK_LOG_DIR_EXECUTE" value="${BK_LOG_DIR}/job-execute"/>
-    <property name="EXECUTE_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/execute.log"/>
-    <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/error.log"/>
-    <property name="ESB_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/esb_client.log"/>
-    <property name="SCHEDULE_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/schedule.log"/>
-    <property name="ESB_JOB_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/esb_job.log"/>
-    <property name="IAM_LOG_FILE" value="${BK_LOG_DIR_EXECUTE}/iam.log"/>
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+
+    <include resource="logback/logback-app-props.xml"/>
+    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
+    <property name="ERROR_LOG_FILE" value="${APP_LOG_DIR}/error.log"/>
+    <property name="ESB_LOG_FILE" value="${APP_LOG_DIR}/esb_client.log"/>
+    <property name="ESB_JOB_LOG_FILE" value="${APP_LOG_DIR}/esb_job.log"/>
+    <property name="IAM_LOG_FILE" value="${APP_LOG_DIR}/iam.log"/>
     <contextName>logback</contextName>
 
-    <appender name="execute-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${EXECUTE_LOG_FILE}</file>
+    <appender name="app-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${APP_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${EXECUTE_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <fileNamePattern>${APP_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>168</maxHistory>
             <totalSizeCap>100GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-    <appender name="async-execute-appender" class="ch.qos.logback.classic.AsyncAppender">
+    <appender name="async-app-appender" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>10240</queueSize>
-        <appender-ref ref="execute-appender"/>
-    </appender>
-    <appender name="schedule-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${SCHEDULE_LOG_FILE}</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${SCHEDULE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <maxHistory>24</maxHistory>
-            <totalSizeCap>24GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
+        <appender-ref ref="app-appender"/>
     </appender>
     <appender name="esb-job-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ESB_JOB_LOG_FILE}</file>
@@ -51,7 +40,7 @@
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -64,10 +53,10 @@
             <totalSizeCap>100GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-    </appender>
+    </appender>1
     <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ERROR_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -77,7 +66,7 @@
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -95,30 +84,28 @@
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
             <charset>utf8</charset>
         </encoder>
     </appender>
 
     <springProfile name="local">
         <root level="DEBUG" additivity="false">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="async-app-appender"/>
         </root>
     </springProfile>
+
     <springProfile name="dev &amp; !kubernetes">
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false" >
-            <appender-ref ref="async-execute-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
-        <logger name="com.tencent.bk.job.execute.schedule" level="DEBUG" additivity="false">
-            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="async-app-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="DEBUG" additivity="false">
@@ -134,17 +121,13 @@
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO" additivity="false">
-            <appender-ref ref="async-execute-appender"/>
+            <appender-ref ref="async-app-appender"/>
             <appender-ref ref="error-appender"/>
         </root>
     </springProfile>
     <springProfile name="prod &amp; !kubernetes">
         <logger name="com.tencent.bk.job" level="INFO" additivity="false" >
-            <appender-ref ref="async-execute-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
-        <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
-            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="async-app-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
@@ -160,30 +143,32 @@
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO">
-            <appender-ref ref="async-execute-appender"/>
+            <appender-ref ref="async-app-appender"/>
             <appender-ref ref="error-appender"/>
         </root>
     </springProfile>
     <springProfile name="dev &amp; kubernetes">
         <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="INFO">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
     <springProfile name="prod &amp; kubernetes">
         <logger name="com.tencent.bk.job" level="INFO" additivity="false">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="INFO">
-            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
+
+    <include resource="logback/logback-app.xml"/>
 </configuration>
