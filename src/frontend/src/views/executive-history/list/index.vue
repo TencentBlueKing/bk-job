@@ -106,6 +106,7 @@
                         svg
                         :type="row.statusIconType"
                         class="execute-task-status"
+                        :class="row.statusClass"
                         style="font-size: 16px; color: #3a84ff; vertical-align: middle;" />
                     <span style="vertical-align: middle;">{{ row.statusDesc }}</span>
                 </template>
@@ -667,7 +668,9 @@
 <style lang="postcss">
     .executive-history-page {
         .execute-task-status {
-            animation: rotate-loading 1s linear infinite;
+            &.loading {
+                animation: rotate-loading 1s linear infinite;
+            }
         }
     }
 </style>
