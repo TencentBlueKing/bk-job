@@ -105,7 +105,9 @@
                     <Icon
                         svg
                         :type="row.statusIconType"
-                        class="rotate-loading"
+                        :class="{
+                            'rotate-loading': row.isDoing,
+                        }"
                         style="font-size: 16px; color: #3a84ff; vertical-align: middle;" />
                     <span style="vertical-align: middle;">{{ row.statusDesc }}</span>
                 </template>
