@@ -42,7 +42,7 @@ public class ActuatorSecurityConfig {
             .csrf()
             .disable()
             .authorizeExchange()
-            .pathMatchers("/actuator/health", "/actuator/info")
+            .pathMatchers("/actuator/health/**", "/actuator/info")
             .permitAll()
             .pathMatchers("/actuator/**")
             .authenticated()
