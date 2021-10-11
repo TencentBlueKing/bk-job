@@ -424,7 +424,7 @@ gatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-gateway
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -491,7 +491,7 @@ manageConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-manage
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -536,7 +536,7 @@ executeConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-execute
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -581,7 +581,7 @@ crontabConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-crontab
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -625,7 +625,7 @@ logsvrConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-logsvr
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -669,7 +669,7 @@ backupConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-backup
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -713,7 +713,7 @@ analysisConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-analysis
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -757,7 +757,7 @@ fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-gateway
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -801,7 +801,7 @@ fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-worker
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -858,7 +858,7 @@ frontendConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-frontend
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -918,5 +918,5 @@ migration:
   image:
     registry: "mirrors.tencent.com"
     repository: "bkce/job-migration"
-    tag: 3.4.0-beta.6
+    tag: 3.4.0-beta.10
     pullPolicy: IfNotPresent
