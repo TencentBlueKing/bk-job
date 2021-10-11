@@ -13,14 +13,6 @@ BEGIN
     SET AUTOCOMMIT = 0;
     SELECT DATABASE() INTO db;
     
-    IF EXISTS(SELECT 1
-                  FROM information_schema.columns
-                  WHERE TABLE_SCHEMA = db
-                    AND TABLE_NAME = 'tag'
-                    AND COLUMN_NAME = 'is_deleted') THEN
-        ALTER TABLE tag DROP COLUMN is_deleted;
-    END IF;
-    
     IF NOT EXISTS(SELECT 1
                   FROM information_schema.columns
                   WHERE TABLE_SCHEMA = db
