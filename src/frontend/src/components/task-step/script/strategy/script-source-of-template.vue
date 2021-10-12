@@ -78,17 +78,17 @@
                                 :permission="option.canView"
                                 :resource-id="option.id"
                                 :auth="authView" />
-                            <template slot="extension">
-                                <auth-component :auth="authCreate">
-                                    <div @click="handleGoCreate" style="cursor: pointer;">
-                                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
-                                    </div>
-                                    <div slot="forbid">
-                                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
-                                    </div>
-                                </auth-component>
-                            </template>
                         </component>
+                        <template slot="extension">
+                            <auth-component :auth="authCreate">
+                                <div @click="handleGoCreate" style="cursor: pointer;">
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                </div>
+                                <div slot="forbid">
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                </div>
+                            </auth-component>
+                        </template>
                     </bk-select>
                 </compose-form-item>
                 <Icon
