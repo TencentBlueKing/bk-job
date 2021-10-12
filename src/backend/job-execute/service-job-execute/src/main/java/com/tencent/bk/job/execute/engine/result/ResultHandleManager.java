@@ -321,24 +321,6 @@ public class ResultHandleManager implements SmartLifecycle {
     }
 
     /**
-     * 返回正在执行的文件任务数量
-     *
-     * @return 任务数量
-     */
-    public long getRunningFileTaskCount() {
-        return this.resultHandleTaskSampler.getHandlingFileTaskCount();
-    }
-
-    /**
-     * 返回正在执行的脚本任务数量
-     *
-     * @return 任务数量
-     */
-    public long getRunningScriptTaskCount() {
-        return this.resultHandleTaskSampler.getHandlingScriptTaskCount();
-    }
-
-    /**
      * 任务结果处理线程正在工作的线程数
      *
      * @return 正在工作的线程数

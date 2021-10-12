@@ -37,10 +37,6 @@ public class ExecuteMetricNames {
      */
     public static final String GSE_FINISHED_TASKS_TOTAL = "job.gse.finished.tasks.total";
     /**
-     * 完成任务数（各业务）
-     */
-    public static final String GSE_FINISHED_TASKS_APP = "job.gse.finished.tasks.app";
-    /**
      * 异常任务数
      */
     public static final String GSE_TASKS_EXCEPTION_TOTAL = "job.exception.gse.tasks.total";
@@ -48,10 +44,6 @@ public class ExecuteMetricNames {
      * 正在处理的gse任务数
      */
     public static final String GSE_RUNNING_TASKS = "job.gse.running.tasks";
-    /**
-     * 正在处理的gse任务数（各业务）
-     */
-    public static final String GSE_RUNNING_TASKS_APP = "job.gse.running.tasks.app";
     /**
      * 任务结果处理线worker数
      */
