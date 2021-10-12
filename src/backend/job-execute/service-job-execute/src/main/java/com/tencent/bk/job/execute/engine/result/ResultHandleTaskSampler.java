@@ -223,14 +223,22 @@ public class ResultHandleTaskSampler {
         AtomicLong appFileTaskCounter = handlingFileTasksMap.computeIfAbsent(
             appId, pAppId -> new AtomicLong(0)
         );
-        return appFileTaskCounter.decrementAndGet();
+        long value = appFileTaskCounter.decrementAndGet();
+        if (value == 0) {
+            handlingFileTasksMap.remove(appId);
+        }
+        return value;
     }
 
     private long decrementAppHandlingScriptTask(long appId) {
         AtomicLong appTaskCounter = handlingScriptTasksMap.computeIfAbsent(
             appId, pAppId -> new AtomicLong(0)
         );
-        return appTaskCounter.decrementAndGet();
+        long value = appTaskCounter.decrementAndGet();
+        if (value == 0) {
+            handlingScriptTasksMap.remove(appId);
+        }
+        return value;
     }
 
     private long incrementAppFinishedFileTask(long appId) {
