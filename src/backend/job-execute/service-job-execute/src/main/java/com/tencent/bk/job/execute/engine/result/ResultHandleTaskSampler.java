@@ -25,8 +25,11 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,11 +50,11 @@ public class ResultHandleTaskSampler {
     /**
      * 正在处理任务结果的文件任务数（各业务）
      */
-    private final ConcurrentHashMap<Long, AtomicLong> handlingFileTasksMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, StatisticsUnit> handlingFileTasksMap = new ConcurrentHashMap<>();
     /**
      * 正在处理任务结果的脚本任务数（各业务）
      */
-    private final ConcurrentHashMap<Long, AtomicLong> handlingScriptTasksMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, StatisticsUnit> handlingScriptTasksMap = new ConcurrentHashMap<>();
     /**
      * 接收的结果处理任务数（各业务）
      */
@@ -70,9 +73,31 @@ public class ResultHandleTaskSampler {
         this.meterRegistry = meterRegistry;
     }
 
+    @Getter
+    @Setter
+    static
+    class StatisticsUnit {
+        private AtomicLong counter;
+        private Gauge gauge;
+
+        public StatisticsUnit(AtomicLong counter, Gauge gauge) {
+            this.counter = counter;
+            this.gauge = gauge;
+        }
+    }
+
     class UpdateStatisticsThread extends Thread {
 
         boolean runFlag = true;
+
+        private ToDoubleFunction<AtomicLong> debugFunctionByCounter(AtomicLong counter) {
+            return new ToDoubleFunction() {
+                @Override
+                public double applyAsDouble(Object value) {
+                    return counter.doubleValue();
+                }
+            };
+        }
 
         private ToDoubleFunction<AtomicLong> getFunctionByCounter(AtomicLong counter) {
             return new ToDoubleFunction() {
@@ -84,39 +109,41 @@ public class ResultHandleTaskSampler {
         }
 
         private void measureHandlingFileTasksByApp() {
-            handlingFileTasksMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            handlingFileTasksMap.forEach((appId, statisticsUnit) -> {
+                AtomicLong counter = statisticsUnit.getCounter();
+                Gauge handlingFileTasksGauge = Gauge.builder(
                     ExecuteMetricNames.GSE_RUNNING_TASKS,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("stage", "result-handle"),
-                        Tag.of("type", "file")
-                    ),
                     counter,
                     getFunctionByCounter(counter)
-                );
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("stage", "result-handle"),
+                    Tag.of("type", "file")
+                )).register(meterRegistry);
+                statisticsUnit.setGauge(handlingFileTasksGauge);
             });
         }
 
         private void measureHandlingScriptTasksByApp() {
-            handlingScriptTasksMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            handlingScriptTasksMap.forEach((appId, statisticsUnit) -> {
+                AtomicLong counter = statisticsUnit.getCounter();
+                Gauge handlingScriptTasksGauge = Gauge.builder(
                     ExecuteMetricNames.GSE_RUNNING_TASKS,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("stage", "result-handle"),
-                        Tag.of("type", "script")
-                    ),
                     counter,
-                    getFunctionByCounter(counter)
-                );
+                    debugFunctionByCounter(counter)
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("stage", "result-handle"),
+                    Tag.of("type", "script")
+                )).register(meterRegistry);
+                statisticsUnit.setGauge(handlingScriptTasksGauge);
             });
         }
 
         private void measureReceiveTasksByApp() {
             receiveTaskCounterMap.forEach((appId, counter) -> {
                 meterRegistry.gauge(
-                    ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL,
+                    ExecuteMetricNames.GSE_RUNNING_TASKS,
                     Arrays.asList(
                         Tag.of("appId", appId.toString()),
                         Tag.of("stage", "result-handle"),
@@ -159,15 +186,18 @@ public class ResultHandleTaskSampler {
         @Override
         public void run() {
             while (runFlag) {
-                measureHandlingFileTasksByApp();
-                measureHandlingScriptTasksByApp();
-                measureReceiveTasksByApp();
-                measureFinishedFileTasksByApp();
-                measureFinishedScriptTasksByApp();
                 try {
                     sleep(1000);
+                    log.debug("UpdateStatisticsThread run");
+                    measureHandlingFileTasksByApp();
+                    measureHandlingScriptTasksByApp();
+                    measureReceiveTasksByApp();
+                    measureFinishedFileTasksByApp();
+                    measureFinishedScriptTasksByApp();
                 } catch (InterruptedException e) {
                     log.info("sleep interrupted");
+                } catch (Exception e) {
+                    log.warn("UpdateStatisticsThread error", e);
                 }
             }
         }
@@ -175,64 +205,75 @@ public class ResultHandleTaskSampler {
 
     @PostConstruct
     private void init() {
+        log.debug("UpdateStatisticsThread init");
         new UpdateStatisticsThread().start();
     }
 
-    private long incrementAppReceiveTask(long appId) {
+    private void incrementAppReceiveTask(long appId) {
         AtomicLong appTaskCounter = receiveTaskCounterMap.computeIfAbsent(
             appId, pAppId -> new AtomicLong(0)
         );
-        return appTaskCounter.incrementAndGet();
+        appTaskCounter.incrementAndGet();
     }
 
-    private long incrementAppHandlingFileTask(long appId) {
-        AtomicLong appFileTaskCounter = handlingFileTasksMap.computeIfAbsent(
-            appId, pAppId -> new AtomicLong(0)
+    private void incrementAppHandlingFileTask(long appId) {
+        StatisticsUnit statisticsUnit = handlingFileTasksMap.computeIfAbsent(
+            appId, pAppId -> new StatisticsUnit(new AtomicLong(0), null)
         );
-        return appFileTaskCounter.incrementAndGet();
+        AtomicLong appFileTaskCounter = statisticsUnit.getCounter();
+        appFileTaskCounter.incrementAndGet();
     }
 
-    private long incrementAppHandlingScriptTask(long appId) {
-        AtomicLong appTaskCounter = handlingScriptTasksMap.computeIfAbsent(
-            appId, pAppId -> new AtomicLong(0)
+    private void incrementAppHandlingScriptTask(long appId) {
+        StatisticsUnit statisticsUnit = handlingScriptTasksMap.computeIfAbsent(
+            appId, pAppId -> new StatisticsUnit(new AtomicLong(0), null)
         );
-        return appTaskCounter.incrementAndGet();
+        AtomicLong appTaskCounter = statisticsUnit.getCounter();
+        appTaskCounter.incrementAndGet();
     }
 
-    private long decrementAppHandlingFileTask(long appId) {
-        AtomicLong appFileTaskCounter = handlingFileTasksMap.computeIfAbsent(
-            appId, pAppId -> new AtomicLong(0)
+    private void decrementAppHandlingFileTask(long appId) {
+        StatisticsUnit statisticsUnit = handlingFileTasksMap.computeIfAbsent(
+            appId, pAppId -> new StatisticsUnit(new AtomicLong(0), null)
         );
+        AtomicLong appFileTaskCounter = statisticsUnit.getCounter();
         long value = appFileTaskCounter.decrementAndGet();
         if (value == 0) {
-            handlingFileTasksMap.remove(appId);
+            Gauge gauge = statisticsUnit.getGauge();
+            if (gauge != null) {
+                handlingFileTasksMap.remove(appId);
+                meterRegistry.remove(gauge);
+            }
         }
-        return value;
     }
 
-    private long decrementAppHandlingScriptTask(long appId) {
-        AtomicLong appTaskCounter = handlingScriptTasksMap.computeIfAbsent(
-            appId, pAppId -> new AtomicLong(0)
+    private void decrementAppHandlingScriptTask(long appId) {
+        StatisticsUnit statisticsUnit = handlingScriptTasksMap.computeIfAbsent(
+            appId, pAppId -> new StatisticsUnit(new AtomicLong(0), null)
         );
+        AtomicLong appTaskCounter = statisticsUnit.getCounter();
         long value = appTaskCounter.decrementAndGet();
         if (value == 0) {
-            handlingScriptTasksMap.remove(appId);
+            Gauge gauge = statisticsUnit.getGauge();
+            if (gauge != null) {
+                handlingScriptTasksMap.remove(appId);
+                meterRegistry.remove(gauge);
+            }
         }
-        return value;
     }
 
-    private long incrementAppFinishedFileTask(long appId) {
+    private void incrementAppFinishedFileTask(long appId) {
         AtomicLong appFinishedFileTaskCounter = finishedFileTaskCounterMap.computeIfAbsent(
             appId, pAppId -> new AtomicLong(0)
         );
-        return appFinishedFileTaskCounter.incrementAndGet();
+        appFinishedFileTaskCounter.incrementAndGet();
     }
 
-    private long incrementAppFinishedScriptTask(long appId) {
+    private void incrementAppFinishedScriptTask(long appId) {
         AtomicLong appFinishedScriptTaskCounter = finishedScriptTaskCounterMap.computeIfAbsent(
             appId, pAppId -> new AtomicLong(0)
         );
-        return appFinishedScriptTaskCounter.incrementAndGet();
+        appFinishedScriptTaskCounter.incrementAndGet();
     }
 
     /**
