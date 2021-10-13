@@ -43,7 +43,6 @@ public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/actuator/health/**", "/actuator/info").permitAll()
             .antMatchers("/actuator/**").authenticated()
             .and()
-            .httpBasic()
-            .disable();
+            .httpBasic();
     }
 }
