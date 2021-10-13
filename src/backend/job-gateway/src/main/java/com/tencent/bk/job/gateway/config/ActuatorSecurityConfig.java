@@ -50,7 +50,8 @@ public class ActuatorSecurityConfig {
             .anyExchange()
             .permitAll()
             .and()
-            .httpBasic();
+            .httpBasic()
+            .disable();
         return http.build();
     }
 }
