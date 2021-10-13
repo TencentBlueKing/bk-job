@@ -105,11 +105,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected long taskInstanceId;
     /**
-     * 业务ID
+     * 步骤实例ID
      */
     protected long stepInstanceId;
     /**
-     * 步骤实例ID
+     * 业务ID
      */
     protected long appId;
     /**

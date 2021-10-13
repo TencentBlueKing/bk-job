@@ -80,7 +80,7 @@ public class ResultHandleTaskSampler {
         private AtomicLong counter;
         private Gauge gauge;
 
-        public StatisticsUnit(AtomicLong counter, Gauge gauge) {
+        StatisticsUnit(AtomicLong counter, Gauge gauge) {
             this.counter = counter;
             this.gauge = gauge;
         }
