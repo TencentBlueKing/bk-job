@@ -325,24 +325,27 @@ public class ScriptServiceImpl implements ScriptService {
         script.setId(scriptId);
         script.setScriptVersionId(scriptVersionId);
 
-        saveScriptTags(script);
+        saveScriptTags(appId, script);
 
         return scriptDAO.getScriptVersionById(scriptVersionId);
     }
 
-    private void saveScriptTags(ScriptDTO script) {
-        Integer resourceType = script.isPublicScript() ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
-            JobResourceTypeEnum.APP_SCRIPT.getValue();
-        tagService.patchResourceTags(resourceType, script.getId(),
-            script.getTags().stream().map(TagDTO::getId).collect(Collectors.toList()));
+    private void saveScriptTags(Long appId, ScriptDTO script) {
+        saveScriptTags(script.getLastModifyUser(), appId, script.getId(), script.getTags());
     }
 
-    private void saveScriptTags(Long appId, String scriptId, List<TagDTO> tags) {
+    private void saveScriptTags(String operator, Long appId, String scriptId, List<TagDTO> tags) {
+        List<TagDTO> newTags = tags;
+        if (tags != null && !tags.isEmpty()) {
+            newTags = tagService.createNewTagIfNotExist(tags, appId, operator);
+        }
+
         Integer resourceType = appId == (JobConstants.PUBLIC_APP_ID) ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
-        tagService.patchResourceTags(resourceType, scriptId,
-            tags.stream().map(TagDTO::getId).collect(Collectors.toList()));
+
+        tagService.patchResourceTags(resourceType, scriptId, CollectionUtils.isEmpty(newTags) ?
+            Collections.emptyList() : newTags.stream().map(TagDTO::getId).collect(Collectors.toList()));
     }
 
     private Long getTimeOrDefault(Long time) {
@@ -428,7 +431,7 @@ public class ScriptServiceImpl implements ScriptService {
                 script.setScriptVersionId(scriptVersionId);
             });
         }
-        saveScriptTags(script);
+        saveScriptTags(appId, script);
         return Pair.of(script.getId(), script.getScriptVersionId());
     }
 
@@ -702,7 +705,7 @@ public class ScriptServiceImpl implements ScriptService {
         if (script.isPublicScript()) {
             targetAppId = JobConstants.PUBLIC_APP_ID;
         }
-        saveScriptTags(targetAppId, scriptId, tags);
+        saveScriptTags(operator, targetAppId, scriptId, tags);
     }
 
     @Override
