@@ -26,21 +26,43 @@
 -->
 
 <template>
-    <div class="time-task-operation" :class="{ loading: isLoading }" v-bkloading="{ isLoading }">
-        <jb-form v-if="!isLoading" :model="formData" :rules="rules" form-type="vertical" ref="timeTaskForm">
-            <jb-form-item :label="$t('cron.任务名称.label')" required property="name">
+    <div
+        class="time-task-operation"
+        :class="{ loading: isLoading }"
+        v-bkloading="{ isLoading }">
+        <jb-form
+            v-if="!isLoading"
+            :model="formData"
+            :rules="rules"
+            form-type="vertical"
+            ref="timeTaskForm">
+            <jb-form-item
+                :label="$t('cron.任务名称.label')"
+                required
+                property="name">
                 <jb-input
                     :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名...')"
                     v-model="formData.name"
                     :maxlength="60" />
             </jb-form-item>
-            <jb-form-item :label="$t('cron.执行策略.label')" required :property="strategyField">
-                <bk-radio-group :value="strategy" @change="handleStrategyChange">
-                    <bk-radio-button value="once">{{ $t('cron.单次执行') }}</bk-radio-button>
-                    <bk-radio-button value="period">{{ $t('cron.周期执行') }}</bk-radio-button>
+            <jb-form-item
+                :label="$t('cron.执行策略.label')"
+                required
+                :property="strategyField">
+                <bk-radio-group
+                    :value="strategy"
+                    @change="handleStrategyChange">
+                    <bk-radio-button value="once">
+                        {{ $t('cron.单次执行') }}
+                    </bk-radio-button>
+                    <bk-radio-button value="period">
+                        {{ $t('cron.周期执行') }}
+                    </bk-radio-button>
                 </bk-radio-group>
                 <div class="strategy-wraper">
-                    <render-strategy v-if="strategy === 'once'" left="40">
+                    <render-strategy
+                        v-if="strategy === 'once'"
+                        left="40">
                         <bk-date-picker
                             style="width: 100%;"
                             v-model="formData.executeTime"
@@ -50,8 +72,12 @@
                             type="datetime"
                             :placeholder="$t('cron.选择日期时间')" />
                     </render-strategy>
-                    <render-strategy v-else left="135">
-                        <cron-job v-model="formData.cronExpression" class="cron-task" />
+                    <render-strategy
+                        v-else
+                        left="135">
+                        <cron-job
+                            v-model="formData.cronExpression"
+                            class="cron-task" />
                     </render-strategy>
                 </div>
             </jb-form-item>
@@ -61,7 +87,10 @@
                 :key="item"
                 :form-data="formData"
                 @on-change="handleFormItemChange" />
-            <jb-form-item :label="$t('cron.作业模板')" required property="taskTemplateId">
+            <jb-form-item
+                :label="$t('cron.作业模板')"
+                required
+                property="taskTemplateId">
                 <bk-select
                     v-model="formData.taskTemplateId"
                     :placeholder="$t('cron.选择作业模板')"
@@ -79,8 +108,13 @@
                         auth="job_template/view" />
                 </bk-select>
             </jb-form-item>
-            <jb-form-item :label="$t('cron.执行方案')" required property="taskPlanId">
-                <div class="plan-select" :class="hasPlan ? 'new-width' : ''">
+            <jb-form-item
+                :label="$t('cron.执行方案')"
+                required
+                property="taskPlanId">
+                <div
+                    class="plan-select"
+                    :class="hasPlan ? 'new-width' : ''">
                     <bk-select
                         v-model="formData.taskPlanId"
                         :placeholder="$t('cron.选择执行方案')"
@@ -100,17 +134,28 @@
                     </bk-select>
                 </div>
                 <div class="plan-icon" v-if="hasPlan">
-                    <Icon type="audit" v-bk-tooltips="$t('cron.查看执行方案')" @click="handleGoPlan" />
+                    <Icon
+                        type="audit"
+                        v-bk-tooltips="$t('cron.查看执行方案')"
+                        @click="handleGoPlan" />
                 </div>
             </jb-form-item>
-            <div class="global-variable-content" v-if="hasPlan" v-bkloading="{ isLoading: isVariableLoading }">
+            <div
+                v-if="hasPlan"
+                class="global-variable-content"
+                v-bkloading="{ isLoading: isVariableLoading }">
                 <render-strategy left="70">
-                    <span v-if="isVariabelEmpty" class="plan-variable-empty">{{ $t('cron.该执行方案无全局变量') }}</span>
+                    <span
+                        v-if="isVariabelEmpty"
+                        class="plan-variable-empty">
+                        {{ $t('cron.该执行方案无全局变量') }}
+                    </span>
                     <global-variable-layout v-else type="vertical">
                         <global-variable
                             ref="variable"
                             v-for="variable in currentPlanVariableList"
                             value-width="100%"
+                            readonly
                             :type="variable.type"
                             :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
                             :data="variable" />

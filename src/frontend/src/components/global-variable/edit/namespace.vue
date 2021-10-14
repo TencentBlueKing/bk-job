@@ -27,8 +27,17 @@
 
 <template>
     <div :class="{ 'variable-value-error': isError }">
-        <bk-input ref="input" :value="value" :readonly="readonly" @change="handleChange" v-bk-tooltips="descPopover" />
-        <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
+        <bk-input
+            ref="input"
+            :value="value"
+            :readonly="readonly"
+            @change="handleChange"
+            v-bk-tooltips="descPopover" />
+        <p
+            v-if="isError"
+            class="variable-error">
+            {{ $t('该变量的值必填') }}
+        </p>
     </div>
 </template>
 <script>
