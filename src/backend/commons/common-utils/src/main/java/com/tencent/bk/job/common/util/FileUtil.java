@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -59,7 +60,7 @@ public class FileUtil {
         FileOutputStream fos = null;
         FileInputStream fis = null;
         try {
-            fos = new FileOutputStream(targetPath);
+            fos = new FileOutputStream(new String(targetPath.getBytes(StandardCharsets.UTF_8)));
             int batchSize = 20480;
             byte[] content = new byte[batchSize];
             long totalLength = 0;
