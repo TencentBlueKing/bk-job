@@ -10,9 +10,9 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
     chmod +x /data/job/startup.sh
 
-ENV LANG zh_CN.utf8
-ENV LANGUAGE zh_CN.utf8
-ENV LC_ALL zh_CN.utf8
+ENV LANG en_US.utf8
+ENV LANGUAGE en_US.utf8
+ENV LC_ALL en_US.utf8
 
 WORKDIR /data/job
 CMD /data/job/startup.sh

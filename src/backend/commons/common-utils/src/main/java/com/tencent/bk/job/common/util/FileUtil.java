@@ -60,7 +60,7 @@ public class FileUtil {
         FileOutputStream fos = null;
         FileInputStream fis = null;
         try {
-            fos = new FileOutputStream(new String(targetPath.getBytes(StandardCharsets.UTF_8)));
+            fos = new FileOutputStream(targetPath);
             int batchSize = 20480;
             byte[] content = new byte[batchSize];
             long totalLength = 0;
