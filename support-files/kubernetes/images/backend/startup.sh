@@ -10,6 +10,9 @@ chmod 777 "$BK_JOB_LOG_DIR"
 
 ls $BK_JOB_LOG_BASE_DIR
 
+export LC=zh_CN.UTF-8
+export LANG=zh_CN.UTF-8
+
 java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
