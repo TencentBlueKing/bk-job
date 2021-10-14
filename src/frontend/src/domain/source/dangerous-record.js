@@ -32,9 +32,10 @@ class DangerousRecord extends ModuleBase {
         this.module = '/job-execute/web/dangerous-record';
     }
 
-    getDangerousRecordList (params) {
+    getDangerousRecordList (params, payload = {}) {
         return Request.get(`${this.module}/list`, {
             params,
+            payload,
         });
     }
 }

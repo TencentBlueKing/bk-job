@@ -27,22 +27,34 @@
 
 <template>
     <div class="jb-edit-tag" :class="{ shortcurt }" @click.stop="">
-        <div v-if="!isEditing" class="render-value-box" @click.stop="handleTextClick">
-            <div ref="content" class="value-text" v-bk-overflow-tips>
+        <div
+            v-if="!isEditing"
+            class="render-value-box"
+            @click.stop="handleTextClick">
+            <div ref="content" class="value-text" v-bk-overflow-tips tag-edit-tag>
                 <slot v-bind:value="text">{{ text || '--' }}</slot>
             </div>
             <template v-if="!isLoading">
-                <div v-if="shortcurt" class="tag-shortcurt-box" @click.stop="">
+                <div
+                    v-if="shortcurt"
+                    class="tag-shortcurt-box"
+                    @click.stop="">
                     <div class="shortcurt-action-btn">
                         <Icon type="copy" @click="handleCopy" />
                         <Icon type="paste" class="paste-btn" @click="handlePaste" />
                     </div>
                 </div>
                 <div v-else class="tag-normal-box">
-                    <Icon type="edit-2" class="edit-action" @click.self.stop="handleEdit" />
+                    <Icon
+                        type="edit-2"
+                        class="edit-action"
+                        @click.self.stop="handleEdit" />
                 </div>
             </template>
-            <Icon v-if="isLoading" type="loading-circle" class="tag-edit-loading" />
+            <Icon
+                v-if="isLoading"
+                type="loading-circle"
+                class="tag-edit-loading" />
         </div>
         <div v-else class="edit-value-box">
             <jb-tag-select

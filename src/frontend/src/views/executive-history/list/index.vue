@@ -105,7 +105,9 @@
                     <Icon
                         svg
                         :type="row.statusIconType"
-                        class="execute-task-status"
+                        :class="{
+                            'rotate-loading': row.isDoing,
+                        }"
                         style="font-size: 16px; color: #3a84ff; vertical-align: middle;" />
                     <span style="vertical-align: middle;">{{ row.statusDesc }}</span>
                 </template>
@@ -147,14 +149,23 @@
                         {{ $t('history.查看详情') }}
                     </auth-button>
                     <auth-button
+                        v-if="!redoRequestMap[row.id]"
                         :permission="row.canExecute"
                         auth="task_instance/redo"
                         :resource-id="row.id"
-                        :disabled="redoRequestMap[row.id]"
                         text
                         @click="handleGoRetry(row)">
                         {{ $t('history.去重做') }}
                     </auth-button>
+                    <span
+                        v-else
+                        class="task-redo-loading ml10"
+                        :data-text="$t('history.去重做')">
+                        <Icon
+                            svg
+                            type="sync-pending"
+                            class="rotate-loading" />
+                    </span>
                 </template>
             </bk-table-column>
             <bk-table-column type="setting">
@@ -591,9 +602,8 @@
              *  —— 跳转到快速分发文件页面
              */
             handleGoRetry (taskInstance) {
+                // 作业执行
                 if (taskInstance.isTask) {
-                    // 作业执行
-
                     // 当重做接口比较慢时页面可能存在多个重做请求，避免重复操作需要禁用正在重做的任务操作
                     this.redoRequestMap = {
                         ...this.redoRequestMap,
@@ -606,6 +616,7 @@
                     }).then(({ variables }) => {
                         // 有变量，去设置变量
                         if (variables.length > 0) {
+                            this.redoRequestMap[taskInstance.id] = false;
                             this.$router.push({
                                 name: 'redoTask',
                                 params: {
@@ -633,12 +644,20 @@
                                             id: taskInstanceId,
                                         },
                                     });
-                                });
+                                })
+                                    .finally(() => {
+                                        this.redoRequestMap[taskInstance.id] = false;
+                                    });
                             },
                         });
-                    });
-                } else if (taskInstance.isScript) {
-                    // 脚本执行，去快速执行脚本页面重做
+                    })
+                        .catch(() => {
+                            this.redoRequestMap[taskInstance.id] = false;
+                        });
+                }
+                // 快速执行脚本
+                // 去快速执行脚本页面重做
+                if (taskInstance.isScript) {
                     this.$router.push({
                         name: 'fastExecuteScript',
                         params: {
@@ -648,8 +667,11 @@
                             from: 'executiveHistory',
                         },
                     });
-                } else if (taskInstance.isFile) {
-                    // 分发文件，去快速执行分发文件页面重做
+                    return;
+                }
+                // 快速分发文件
+                // 去快速执行分发文件页面重做
+                if (taskInstance.isFile) {
                     this.$router.push({
                         name: 'fastPushFile',
                         params: {
@@ -666,8 +688,25 @@
 </script>
 <style lang="postcss">
     .executive-history-page {
-        .execute-task-status {
-            animation: rotate-loading 1s linear infinite;
+        .task-redo-loading {
+            position: relative;
+            font-size: 14px;
+            color: #3a84ff;
+
+            &::after {
+                z-index: -1;
+                text-align: center;
+                word-break: keep-all;
+                content: attr(data-text);
+                opacity: 0;
+            }
+
+            .rotate-loading {
+                position: absolute;
+                top: 2px;
+                left: 50%;
+                margin-left: -9px;
+            }
         }
     }
 </style>
