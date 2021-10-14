@@ -12,6 +12,7 @@ ls $BK_JOB_LOG_BASE_DIR
 
 java -server \
      -Dfile.encoding=UTF-8 \
+     -Dsun.jnu.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
      -Xloggc:$BK_JOB_LOG_DIR/gc.log \
      -XX:+UseGCLogFileRotation \
