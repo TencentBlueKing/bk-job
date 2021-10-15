@@ -57,6 +57,7 @@
                         :max-height="tableHeight"
                         @row-click="handleRowSelect"
                         @sort-change="handleSortChange"
+                        :size="tableSize"
                         :row-class-name="rowClassName">
                         <bk-table-column
                             key="selection"
