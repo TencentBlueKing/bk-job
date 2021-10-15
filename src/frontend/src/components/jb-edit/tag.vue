@@ -151,7 +151,7 @@
                 this.isLoading = true;
                 
                 this.remoteHander({
-                    [this.field]: this.localValue,
+                    [this.field]: this.localValue.map(({ id }) => ({ id })),
                 }).then(() => {
                     this.memoValue = this.localValue;
                     this.messageSuccess(I18n.t('编辑成功'));
