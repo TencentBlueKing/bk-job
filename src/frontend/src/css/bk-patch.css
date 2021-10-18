@@ -88,11 +88,11 @@
 .bk-table-fixed-right {
     border-bottom: none;
 
-    .bk-table-row-last {
+    /* .bk-table-row-last {
         td {
             border-bottom: none;
         }
-    }
+    } */
 }
 
 .bk-table-setting-popover-content-theme.tippy-tooltip {
