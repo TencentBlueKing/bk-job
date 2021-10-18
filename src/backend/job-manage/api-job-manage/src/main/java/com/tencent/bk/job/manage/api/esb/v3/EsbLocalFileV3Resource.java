@@ -22,20 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.constants;
+package com.tencent.bk.job.manage.api.esb.v3;
 
-public class EsbConsts {
-    /**
-     * esb请求语言header
-     */
-    public static final String HEADER_BK_LANG = "blueking-language";
-    /**
-     * esb请求request-id header
-     */
-    public static final String HEADER_REQ_ID = "request-id";
-    public static final String BK_LANG_CN = "zh-cn";
-    public static final String BK_LANG_EN = "en";
-    public static final String BK_LANG_ALL = "all";
-    public static final String PARAM_BK_BIZ_ID = "bk_biz_id";
-    public static final String PARAM_FILE_NAME_LIST = "file_name_list";
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 本地文件API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbLocalFileV3Resource {
+
+    @PostMapping("/generate_local_file_upload_url")
+    EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(
+        @RequestBody EsbGenLocalFileUploadUrlV3Req req);
+
 }

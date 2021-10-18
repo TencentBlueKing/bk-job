@@ -22,20 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.constants;
+package com.tencent.bk.job.common.util.check;
 
-public class EsbConsts {
-    /**
-     * esb请求语言header
-     */
-    public static final String HEADER_BK_LANG = "blueking-language";
-    /**
-     * esb请求request-id header
-     */
-    public static final String HEADER_REQ_ID = "request-id";
-    public static final String BK_LANG_CN = "zh-cn";
-    public static final String BK_LANG_EN = "en";
-    public static final String BK_LANG_ALL = "all";
-    public static final String PARAM_BK_BIZ_ID = "bk_biz_id";
-    public static final String PARAM_FILE_NAME_LIST = "file_name_list";
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
+
+public class FileNameChecker {
+
+    public static FileNameChecker instance;
+
+    public static FileNameChecker getInstance() {
+        return instance;
+    }
+
+    static {
+        instance = new FileNameChecker();
+    }
+
+    public void checkFileName(String fileName, String paramName) {
+        if (StringUtils.isBlank(fileName)) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+        }
+        if (fileName.length() > 1024) {
+            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+        }
+    }
 }
