@@ -61,6 +61,7 @@ export default {
         名称必填: 'Account name is required',
         别名必填: 'Account alias is required',
         密码不一致: 'The passwords are not equal',
+        密码不支持中文: 'Password does not support Chinese',
         端口必填: 'Database port is required',
         依赖系统账号必填: 'Dependent System Account is required',
         密码必填: 'Password is required',
