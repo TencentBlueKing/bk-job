@@ -58,7 +58,7 @@ public abstract class EventsHandler<T> extends Thread {
                 this.appId = appId;
             }
         } catch (Exception e) {
-            log.warn("Fail to commitEvent:{}", event, e);
+            log.warn("Fail to commitEvent:" + event, e);
         }
     }
 
@@ -74,7 +74,7 @@ public abstract class EventsHandler<T> extends Thread {
             } catch (InterruptedException e) {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {
-                log.warn("Fail to handleOneEvent:{}", event, t);
+                log.warn("Fail to handleOneEvent:" + event, t);
             } finally {
                 if (queue.size() == 0) {
                     this.idle = true;

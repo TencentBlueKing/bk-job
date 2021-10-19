@@ -109,7 +109,7 @@
         },
         methods: {
             submit () {
-                this.$emit('on-change', {
+                return Promise.resolve({
                     ...this.formData,
                     type: 1,
                 });

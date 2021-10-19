@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
@@ -73,7 +74,14 @@ module.exports = function (env) {
         }
     };
     if (env.development) {
-        require('dotenv').config({ path: path.resolve(__dirname, '.env.local') });
+        const localENVPath = path.resolve(__dirname, '.env.local');
+        if (!fs.existsSync(localENVPath)) {
+            console.error('\n\n**** 本地开发需提供 .env.local 配置文件，可查看 README.MD 或联系管理员****\n\n');
+            process.exit(1);
+        }
+        require('dotenv').config({
+            path: localENVPath,
+        });
     }
     return {
         mode: env.development ? 'development' : 'production',
