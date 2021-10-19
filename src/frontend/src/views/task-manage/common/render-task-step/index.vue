@@ -405,7 +405,7 @@
                         const steps = [...this.steps];
 
                         const currentStep = steps[index];
-                        if (currentStep.id) {
+                        if (currentStep.id > 0) {
                             // 删除已存在的步骤
                             //  —设置delete
                             currentStep.delete = 1;
