@@ -50,6 +50,7 @@
         </list-action-layout>
         <render-list
             ref="list"
+            :size="tableSize"
             :data-source="fetchDetectRecordsList"
             :search-control="() => $refs.search">
             <bk-table-column
