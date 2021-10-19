@@ -826,6 +826,98 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return applicationHostInfoDTOList;
     }
 
+    private void fillAgentInfo(
+        ApplicationHostInfoDTO applicationHostInfoDTO,
+        FindModuleHostRelationResult.HostProp host
+    ) {
+        String multiIp = host.getIp();
+        multiIp = multiIp.trim();
+        if (queryAgentStatusClient != null) {
+            if (multiIp.contains(",")) {
+                Pair<String, Boolean> pair = queryAgentStatusClient.getHostIpWithAgentStatus(multiIp,
+                    host.getCloudAreaId());
+                if (pair != null) {
+                    log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
+                    String ipWithCloudId = pair.getLeft();
+                    applicationHostInfoDTO.setGseAgentAlive(pair.getRight());
+                    if (ipWithCloudId.contains(":")) {
+                        String[] arr = ipWithCloudId.split(":");
+                        applicationHostInfoDTO.setCloudAreaId(Long.parseLong(arr[0]));
+                        applicationHostInfoDTO.setIp(arr[1]);
+                    } else {
+                        applicationHostInfoDTO.setIp(ipWithCloudId);
+                    }
+                } else {
+                    log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
+                }
+            } else {
+                applicationHostInfoDTO.setGseAgentAlive(false);
+                applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
+                applicationHostInfoDTO.setIp(multiIp);
+            }
+        } else {
+            log.warn("queryAgentStatusClient==null, please check!");
+            List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
+            if (ipList.size() > 0) {
+                applicationHostInfoDTO.setIp(ipList.get(0));
+            } else {
+                log.warn("no available ip after queryAgentStatusClient");
+            }
+        }
+    }
+
+    private ApplicationHostInfoDTO convertToHostInfoDTO(
+        Long appId,
+        FindModuleHostRelationResult.HostWithModules hostWithModules
+    ) {
+        FindModuleHostRelationResult.HostProp host = hostWithModules.getHost();
+        String multiIp = host.getIp();
+        if (multiIp != null) {
+            multiIp = multiIp.trim();
+        } else {
+            log.warn("multiIp is null, appId={}, host={}", appId, hostWithModules);
+        }
+        //包装为ApplicationHostInfoDTO
+        ApplicationHostInfoDTO applicationHostInfoDTO = new ApplicationHostInfoDTO();
+        applicationHostInfoDTO.setAppId(appId);
+        applicationHostInfoDTO.setDisplayIp(multiIp);
+        applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
+        applicationHostInfoDTO.setHostId(host.getHostId());
+        fillAgentInfo(applicationHostInfoDTO, host);
+        List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
+        for (FindModuleHostRelationResult.ModuleProp module : modules) {
+            if (module == null || null == module.getModuleId()) {
+                log.warn("invalid host:" + JsonUtils.toJson(applicationHostInfoDTO));
+            }
+        }
+        List<FindModuleHostRelationResult.ModuleProp> validModules =
+            hostWithModules.getModules().stream().filter(Objects::nonNull).collect(Collectors.toList());
+        applicationHostInfoDTO.setModuleId(
+            validModules.stream()
+                .map(FindModuleHostRelationResult.ModuleProp::getModuleId)
+                .collect(Collectors.toList()));
+        applicationHostInfoDTO.setSetId(
+            validModules.stream()
+                .map(FindModuleHostRelationResult.ModuleProp::getSetId)
+                .collect(Collectors.toList()));
+        applicationHostInfoDTO.setModuleType(validModules.stream().map(it -> {
+            try {
+                return Long.parseLong(it.getModuleType());
+            } catch (Exception e) {
+                return 0L;
+            }
+        }).collect(Collectors.toList()));
+        applicationHostInfoDTO.setIpDesc(host.getHostName());
+        String os = host.getOs();
+        if (os != null && os.length() > 512) {
+            applicationHostInfoDTO.setOs(os.substring(0, 512));
+        } else {
+            applicationHostInfoDTO.setOs(os);
+        }
+        applicationHostInfoDTO.setOsType(host.getOsType());
+        return applicationHostInfoDTO;
+    }
+
     private List<ApplicationHostInfoDTO> convertToHostInfoDTOList(
         long appId,
         List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList) {
@@ -840,76 +932,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             ipSet.add(host.getCloudAreaId() + ":" + host.getIp());
             String multiIp = host.getIp();
             if (!StringUtils.isBlank(multiIp)) {
-                multiIp = multiIp.trim();
-                //包装为ApplicationHostInfoDTO
-                ApplicationHostInfoDTO applicationHostInfoDTO = new ApplicationHostInfoDTO();
-                applicationHostInfoDTO.setAppId(appId);
-                applicationHostInfoDTO.setDisplayIp(multiIp);
-                applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
-                applicationHostInfoDTO.setHostId(host.getHostId());
-                if (queryAgentStatusClient != null) {
-                    if (multiIp.contains(",")) {
-                        Pair<String, Boolean> pair = queryAgentStatusClient.getHostIpWithAgentStatus(host.getIp(),
-                            host.getCloudAreaId());
-                        if (pair != null) {
-                            log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
-                            String ipWithCloudId = pair.getLeft();
-                            applicationHostInfoDTO.setGseAgentAlive(pair.getRight());
-                            if (ipWithCloudId.contains(":")) {
-                                String[] arr = ipWithCloudId.split(":");
-                                applicationHostInfoDTO.setCloudAreaId(Long.parseLong(arr[0]));
-                                applicationHostInfoDTO.setIp(arr[1]);
-                            } else {
-                                applicationHostInfoDTO.setIp(ipWithCloudId);
-                            }
-                        } else {
-                            log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
-                        }
-                    } else {
-                        applicationHostInfoDTO.setGseAgentAlive(false);
-                        applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
-                        applicationHostInfoDTO.setIp(multiIp);
-                    }
-                } else {
-                    log.warn("queryAgentStatusClient==null, please check!");
-                    List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-                    if (ipList.size() > 0) {
-                        applicationHostInfoDTO.setIp(ipList.get(0));
-                    } else {
-                        log.warn("no available ip after queryAgentStatusClient");
-                    }
-                }
-                List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
-                for (FindModuleHostRelationResult.ModuleProp module : modules) {
-                    if (module == null || null == module.getModuleId()) {
-                        log.warn("invalid host:" + JsonUtils.toJson(applicationHostInfoDTO));
-                    }
-                }
-                List<FindModuleHostRelationResult.ModuleProp> validModules =
-                    hostWithModules.getModules().stream().filter(Objects::nonNull).collect(Collectors.toList());
-                applicationHostInfoDTO.setModuleId(
-                    validModules.stream()
-                        .map(FindModuleHostRelationResult.ModuleProp::getModuleId)
-                        .collect(Collectors.toList()));
-                applicationHostInfoDTO.setSetId(
-                    validModules.stream()
-                        .map(FindModuleHostRelationResult.ModuleProp::getSetId)
-                        .collect(Collectors.toList()));
-                applicationHostInfoDTO.setModuleType(validModules.stream().map(it -> {
-                    try {
-                        return Long.parseLong(it.getModuleType());
-                    } catch (Exception e) {
-                        return 0L;
-                    }
-                }).collect(Collectors.toList()));
-                applicationHostInfoDTO.setIpDesc(host.getHostName());
-                String os = host.getOs();
-                if (os != null && os.length() > 512) {
-                    applicationHostInfoDTO.setOs(os.substring(0, 512));
-                } else {
-                    applicationHostInfoDTO.setOs(os);
-                }
-                applicationHostInfoDTO.setOsType(host.getOsType());
+                ApplicationHostInfoDTO applicationHostInfoDTO = convertToHostInfoDTO(appId, hostWithModules);
                 applicationHostInfoDTOList.add(applicationHostInfoDTO);
             } else {
                 log.info("bk_host_innerip is blank, ignore, hostId={},host={}", host.getHostId(),
