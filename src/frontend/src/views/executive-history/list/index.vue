@@ -50,6 +50,7 @@
         </list-action-layout>
         <render-list
             ref="list"
+            :size="tableSize"
             :data-source="fetchExecutionHistoryList"
             :search-control="() => $refs.search"
             class="executive-history-table"
