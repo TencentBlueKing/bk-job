@@ -429,6 +429,7 @@
              * @param {Array} steps 最新的步骤列表
              */
             handleTaskStepChange (steps) {
+                console.log('from task sep change = ', steps);
                 this.formData.steps = steps;
                 this.$refs.templateOperateRef.clearError();
             },
@@ -441,7 +442,8 @@
             handlerSubmit () {
                 // eslint-disable-next-line no-plusplus
                 for (let i = 0; i < this.formData.steps.length; i++) {
-                    if (this.formData.steps[i].localValidator === false) {
+                    if (this.formData.steps[i].delete !== 1
+                        && this.formData.steps[i].localValidator === false) {
                         this.messageError(I18n.t('template.请将「待补全」的步骤信息完善后提交重试'));
                         return;
                     }
