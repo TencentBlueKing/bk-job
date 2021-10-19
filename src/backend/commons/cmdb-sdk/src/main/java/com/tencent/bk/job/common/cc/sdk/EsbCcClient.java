@@ -29,11 +29,53 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.config.CcConfig;
-import com.tencent.bk.job.common.cc.model.*;
-import com.tencent.bk.job.common.cc.model.req.*;
+import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.cc.model.BaseConditionDTO;
+import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
+import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
+import com.tencent.bk.job.common.cc.model.ConditionDTO;
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
+import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
+import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
+import com.tencent.bk.job.common.cc.model.req.FindModuleHostRelationReq;
+import com.tencent.bk.job.common.cc.model.req.GetAppReq;
+import com.tencent.bk.job.common.cc.model.req.GetBizInstTopoReq;
+import com.tencent.bk.job.common.cc.model.req.GetBizInternalModuleReq;
+import com.tencent.bk.job.common.cc.model.req.GetBriefCacheTopoReq;
+import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
+import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
+import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
+import com.tencent.bk.job.common.cc.model.req.ListBizHostsTopoReq;
+import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
+import com.tencent.bk.job.common.cc.model.req.Page;
+import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
+import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
-import com.tencent.bk.job.common.cc.model.result.*;
+import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
+import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
+import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
+import com.tencent.bk.job.common.cc.model.result.GetBizInternalModuleResult;
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ListBizHostResult;
+import com.tencent.bk.job.common.cc.model.result.ListBizHostsTopoResult;
+import com.tencent.bk.job.common.cc.model.result.ListHostsWithoutBizResult;
+import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
+import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
+import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
@@ -66,8 +108,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.springframework.util.StopWatch;
 
 import java.net.UnknownHostException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -363,7 +419,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         String key = "" + appId + ":" + owner + ":" + uin;
         ReentrantLock lock = null;
         if (bizInstTopoMap.containsKey(key)
-                && bizInstTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
+            && bizInstTopoMap.get(key).getRight() > System.currentTimeMillis() - 30 * 1000) {
             return bizInstTopoMap.get(key).getLeft();
         } else {
             lock = bizInstTopoLockMap.computeIfAbsent(key, s -> new ReentrantLock());
@@ -429,7 +485,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                     TypeReference<R> typeReference) throws RuntimeException {
+                                    TypeReference<R> typeReference) throws RuntimeException {
         if (ccConfig.getEnableInterfaceRetry()) {
             log.debug("using RetryableHttpHelper");
             return getEsbRespByReq(method, uri, reqBody, typeReference, new RetryableHttpHelper());
@@ -440,7 +496,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<R> typeReference,
-                                     AbstractHttpHelper httpHelper) throws RuntimeException {
+                                    AbstractHttpHelper httpHelper) throws RuntimeException {
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
                 String resourceId = uri;
@@ -823,15 +879,23 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                         log.warn("no available ip after queryAgentStatusClient");
                     }
                 }
+                List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
+                for (FindModuleHostRelationResult.ModuleProp module : modules) {
+                    if (module == null || null == module.getModuleId()) {
+                        log.warn("invalid host:" + JsonUtils.toJson(applicationHostInfoDTO));
+                    }
+                }
+                List<FindModuleHostRelationResult.ModuleProp> validModules =
+                    hostWithModules.getModules().stream().filter(Objects::nonNull).collect(Collectors.toList());
                 applicationHostInfoDTO.setModuleId(
-                    hostWithModules.getModules().stream()
+                    validModules.stream()
                         .map(FindModuleHostRelationResult.ModuleProp::getModuleId)
                         .collect(Collectors.toList()));
                 applicationHostInfoDTO.setSetId(
-                    hostWithModules.getModules().stream()
+                    validModules.stream()
                         .map(FindModuleHostRelationResult.ModuleProp::getSetId)
                         .collect(Collectors.toList()));
-                applicationHostInfoDTO.setModuleType(hostWithModules.getModules().stream().map(it -> {
+                applicationHostInfoDTO.setModuleType(validModules.stream().map(it -> {
                     try {
                         return Long.parseLong(it.getModuleType());
                     } catch (Exception e) {
