@@ -429,7 +429,6 @@
 
                         const currentStep = steps[index];
                         if (currentStep.id > 0) {
-                            console.log('from tag delete');
                             // 删除已存在的步骤
                             //  —设置delete
                             currentStep.delete = 1;
@@ -438,8 +437,6 @@
                             //  —直接删除
                             steps.splice(index, 1);
                         }
-
-                        console.log('from delte = ', currentStep);
 
                         this.steps = Object.freeze(steps);
                         this.$emit('on-change', steps);
