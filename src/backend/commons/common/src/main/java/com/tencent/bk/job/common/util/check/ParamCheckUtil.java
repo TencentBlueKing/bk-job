@@ -27,19 +27,24 @@ package com.tencent.bk.job.common.util.check;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import org.apache.commons.lang3.StringUtils;
 
-public class FileNameChecker {
+public class ParamCheckUtil {
 
-    public static FileNameChecker instance;
-
-    public static FileNameChecker getInstance() {
-        return instance;
+    public static void checkAppId(Long appId, String paramName) {
+        if (appId == null) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " cannot be null"}
+            );
+        }
+        if (appId <= 0) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " must be a positive number"}
+            );
+        }
     }
 
-    static {
-        instance = new FileNameChecker();
-    }
-
-    public void checkFileName(String fileName, String paramName) {
+    public static void checkLocalUploadFileName(String fileName, String paramName) {
         if (StringUtils.isBlank(fileName)) {
             throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
         }

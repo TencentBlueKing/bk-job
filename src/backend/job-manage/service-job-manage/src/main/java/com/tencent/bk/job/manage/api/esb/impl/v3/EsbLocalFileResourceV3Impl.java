@@ -30,8 +30,7 @@ import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.check.AppIdChecker;
-import com.tencent.bk.job.common.util.check.FileNameChecker;
+import com.tencent.bk.job.common.util.check.ParamCheckUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbLocalFileV3Resource;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
@@ -69,7 +68,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
         // 参数检查
         // appId
         Long appId = req.getAppId();
-        AppIdChecker.getInstance().checkAppId(appId, EsbConsts.PARAM_BK_BIZ_ID);
+        ParamCheckUtil.checkAppId(appId, EsbConsts.PARAM_BK_BIZ_ID);
         // fileNameList
         List<String> fileNameList = req.getFileNameList();
         String fileNameDesc = "fileName in " + EsbConsts.PARAM_FILE_NAME_LIST;
@@ -77,8 +76,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             throw new InvalidParamException(EsbConsts.PARAM_FILE_NAME_LIST, fileNameDesc + " cannot be null");
         }
         fileNameList.forEach(fileName -> {
-            FileNameChecker.getInstance()
-                .checkFileName(fileName, fileNameDesc);
+            ParamCheckUtil.checkLocalUploadFileName(fileName, fileNameDesc);
         });
         // 权限校验：在切面层已实现
         List<String> filePathList = new ArrayList<>();
@@ -99,17 +97,26 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             filePathList.add(fullFilePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(filePathList);
+        Map<String, TempUrlInfo> urlInfoMap = new HashMap<>();
+        urlInfoList.forEach(urlInfo -> {
+            urlInfoMap.put(urlInfo.getFullPath(), urlInfo);
+        });
         EsbUploadUrlV3DTO esbUploadUrlV3DTO = new EsbUploadUrlV3DTO();
         Map<String, Map<String, String>> urlMap = new HashMap<>();
         int size = fileNameList.size();
         for (int i = 0; i < size; i++) {
             String fileName = fileNameList.get(i);
-            String uploadUrl = urlInfoList.get(i).getUrl();
             String filePath = filePathList.get(i);
-            Map<String, String> map = new HashMap<>();
-            map.put("upload_url", uploadUrl);
-            map.put("path", filePath);
-            urlMap.put(fileName, map);
+            TempUrlInfo urlInfo = urlInfoMap.get(filePath);
+            if (urlInfo != null) {
+                String uploadUrl = urlInfo.getUrl();
+                Map<String, String> map = new HashMap<>();
+                map.put("upload_url", uploadUrl);
+                map.put("path", filePath);
+                urlMap.put(fileName, map);
+            } else {
+                log.error("Fail to create uploadUrl for {}", filePath);
+            }
         }
         esbUploadUrlV3DTO.setUrlMap(urlMap);
         return EsbResp.buildSuccessResp(esbUploadUrlV3DTO);
