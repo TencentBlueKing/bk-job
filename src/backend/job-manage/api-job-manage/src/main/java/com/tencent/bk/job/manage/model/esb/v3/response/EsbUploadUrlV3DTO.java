@@ -22,20 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.constants;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-public class EsbConsts {
-    /**
-     * esb请求语言header
-     */
-    public static final String HEADER_BK_LANG = "blueking-language";
-    /**
-     * esb请求request-id header
-     */
-    public static final String HEADER_REQ_ID = "request-id";
-    public static final String BK_LANG_CN = "zh-cn";
-    public static final String BK_LANG_EN = "en";
-    public static final String BK_LANG_ALL = "all";
-    public static final String PARAM_BK_BIZ_ID = "bk_biz_id";
-    public static final String PARAM_FILE_NAME_LIST = "file_name_list";
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("上传地址信息")
+public class EsbUploadUrlV3DTO {
+
+    @JsonProperty("url_map")
+    private Map<String, Map<String, String>> urlMap;
+
 }

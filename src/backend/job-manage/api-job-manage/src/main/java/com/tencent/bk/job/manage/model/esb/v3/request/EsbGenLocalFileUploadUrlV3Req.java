@@ -22,20 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.constants;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-public class EsbConsts {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@ApiModel("生成本地文件上传URL请求报文")
+public class EsbGenLocalFileUploadUrlV3Req extends EsbReq {
+
     /**
-     * esb请求语言header
+     * 业务ID
      */
-    public static final String HEADER_BK_LANG = "blueking-language";
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
     /**
-     * esb请求request-id header
+     * 文件名列表
      */
-    public static final String HEADER_REQ_ID = "request-id";
-    public static final String BK_LANG_CN = "zh-cn";
-    public static final String BK_LANG_EN = "en";
-    public static final String BK_LANG_ALL = "all";
-    public static final String PARAM_BK_BIZ_ID = "bk_biz_id";
-    public static final String PARAM_FILE_NAME_LIST = "file_name_list";
+    @JsonProperty("file_name_list")
+    private List<String> fileNameList;
+
 }
