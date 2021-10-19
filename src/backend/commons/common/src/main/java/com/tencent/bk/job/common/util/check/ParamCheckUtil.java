@@ -31,16 +31,10 @@ public class ParamCheckUtil {
 
     public static void checkAppId(Long appId, String paramName) {
         if (appId == null) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{paramName, paramName + " cannot be null"}
-            );
+            throw new InvalidParamException(paramName, paramName + " cannot be null");
         }
         if (appId <= 0) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{paramName, paramName + " must be a positive number"}
-            );
+            throw new InvalidParamException(paramName, paramName + " must be a positive number");
         }
     }
 
