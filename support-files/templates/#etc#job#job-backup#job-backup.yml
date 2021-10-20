@@ -27,17 +27,18 @@ spring:
       idle-timeout: 6000
       poolName: "job-execute-db"
       validationTimeout: 5000
-    job-execute-archive:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
-      username: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_USERNAME__
-      password: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_PASSWORD__
-      maximum-pool-size: 10
-      minimum-idle: 2
-      idle-timeout: 6000
-      poolName: "job-execute-archive"
-      validationTimeout: 5000
+    # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
+    #job-execute-archive:
+      #driver-class-name: com.mysql.cj.jdbc.Driver
+      #type: com.zaxxer.hikari.HikariDataSource
+      #jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      #username: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_USERNAME__
+      #password: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_PASSWORD__
+      #maximum-pool-size: 10
+      #minimum-idle: 2
+      #idle-timeout: 6000
+      #poolName: "job-execute-archive"
+      #validationTimeout: 5000
 
   rabbitmq:
     host: __BK_JOB_BACKUP_RABBITMQ_HOST__

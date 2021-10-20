@@ -22,34 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.common.web.config;
 
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 /**
  * Actuator spring security config
  */
 @Configuration
+@EnableWebSecurity
 public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers("/actuator/info").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").authenticated()
-            .antMatchers("/actuator/configprops/**").authenticated()
-            .antMatchers("/actuator/env/**").authenticated()
-            .antMatchers("/actuator/mappings/**").authenticated()
-            .antMatchers("/actuator/metrics/**").authenticated()
-            .antMatchers("/actuator/prometheus/**").authenticated()
-            .antMatchers("/actuator/beans/**").authenticated()
-            .antMatchers("/actuator/conditions/**").authenticated()
-            .antMatchers("/actuator/scheduledtasks/**").authenticated()
+            .antMatchers("/actuator/health/**", "/actuator/info").permitAll()
+            .antMatchers("/actuator/**").authenticated()
             .and()
             .httpBasic();
     }

@@ -188,7 +188,8 @@
              */
             handleConfirm () {
                 this.isSubmiting = true;
-                this.checkHandle().submit()
+                // submit 有可能返回不是 Promise, 用 Promise 包裹兼容这种情况
+                Promise.resolve(this.checkHandle().submit())
                     .then(() => {
                         window.changeAlert = false;
                         this.close();

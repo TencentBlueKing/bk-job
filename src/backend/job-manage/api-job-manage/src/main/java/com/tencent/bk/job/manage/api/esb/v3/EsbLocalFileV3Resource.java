@@ -22,41 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-analysis:service-job-analysis")
-    api project(":commons:common-redis")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
-    implementation 'org.springframework:spring-webmvc'
-    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    runtimeOnly('mysql:mysql-connector-java')
+package com.tencent.bk.job.manage.api.esb.v3;
 
-    testImplementation("com.h2database:h2")
-}
-springBoot {
-    mainClassName = "com.tencent.bk.job.analysis.JobAnalysisBootApplication"
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-analysis-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-analysis-${version}.jar", "job-analysis-${version}.jar"
-}
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-analysis-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-analysis-${version}.jar", "job-analysis.jar"
-}
-copyToLatestJar.dependsOn assemble
+/**
+ * 本地文件API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbLocalFileV3Resource {
 
-apply from: "$rootDir/task_job_package.gradle"
+    @PostMapping("/generate_local_file_upload_url")
+    EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(
+        @RequestBody EsbGenLocalFileUploadUrlV3Req req);
+
+}

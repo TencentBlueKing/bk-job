@@ -67,18 +67,18 @@ bitnami/rabbitmq
 | `cmdb.server.url`   | CMDB首页地址  | `http://cmdb.example.com`      |
 | `nodeman.server.url`   | 节点管理首页地址  | `http://nodeman.example.com`      |
 
-### 制品库配置
+### 本地文件上传配置
 |参数|描述|默认值 |
 |---|---|---|
-| `artifactory.enable`    | 是否启用制品库存储上传的本地文件    | `true`       |
-| `artifactory.baseUrl`    | 制品库根地址    | `http://bkrepo.example.com`       |
-| `artifactory.download.concurrency`  | 制品库单机下载并发数   | `10`       |
-| `artifactory.admin.username`  | 制品库管理员账号   | `admin`       |
-| `artifactory.admin.password`  | 制品库管理员密码   | `blueking`       |
-| `artifactory.job.username`  | 作业平台账号   | `bkjob`       |
-| `artifactory.job.password`  | 作业平台密码   | `bkjob`       |
-| `artifactory.job.project`  | 作业平台使用的项目   | `bkjob`       |
-| `artifactory.repo.localUpload`  | 作业平台存储本地上传文件使用的仓库   | `localupload`       |
+| `localFile.storageBackend`    | 本地文件存储后端（local:本地，artifactory:蓝鲸制品库）    | `artifactory`       |
+| `localFile.artifactory.baseUrl`    | 制品库根地址    | `http://bkrepo.example.com`       |
+| `localFile.artifactory.download.concurrency`  | 制品库单机下载并发数   | `10`       |
+| `localFile.artifactory.admin.username`  | 制品库管理员账号   | `admin`       |
+| `localFile.artifactory.admin.password`  | 制品库管理员密码   | `blueking`       |
+| `localFile.artifactory.job.username`  | 作业平台账号   | `bkjob`       |
+| `localFile.artifactory.job.password`  | 作业平台密码   | `bkjob`       |
+| `localFile.artifactory.job.project`  | 作业平台使用的项目   | `bkjob`       |
+| `localFile.artifactory.repo.localUpload`  | 作业平台存储本地上传文件使用的仓库   | `localupload`       |
 
 ### 作业平台公共配置
 |参数|描述|默认值 |

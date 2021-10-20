@@ -33,7 +33,11 @@
                     v-if="step.delete !== 1"
                     :is="stepBoxCom"
                     :list="[step]"
-                    :group="{ name: 'step', pull: 'clone', put: dragStartIndex !== index }"
+                    :group="{
+                        name: 'step',
+                        pull: 'clone',
+                        put: dragStartIndex !== index,
+                    }"
                     :key="`${index}_${step.id}`"
                     @start="handleDragStart(index)"
                     :move="handleDragMove"
@@ -51,7 +55,7 @@
                             'not-select': isSelect && !selectValue.includes(step.id),
                             active: index === currentIndex,
                         }"
-                        :order="index + 1">
+                        :order="genOrder()">
                         <div
                             class="render-task-step"
                             :class="[diff[step.id] && diff[step.id].type]">
@@ -67,9 +71,18 @@
                                 <Icon v-if="isOperation" type="move" class="draggable-flag" />
                             </div>
                             <div v-if="isOperation" class="step-operation">
-                                <Icon type="plus-circle" class="operation" @click="handleShowCreate(index)" />
-                                <Icon type="minus-circle" class="operation" @click="handleDel(index)" />
-                                <Icon type="edit-2" class="operation" @click="handleShowEdit(index)" />
+                                <Icon
+                                    type="plus-circle"
+                                    class="operation"
+                                    @click="handleShowCreate(index)" />
+                                <Icon
+                                    type="minus-circle"
+                                    class="operation"
+                                    @click="handleDel(index)" />
+                                <Icon
+                                    type="edit-2"
+                                    class="operation"
+                                    @click="handleShowEdit(index)" />
                                 <Icon
                                     type="step-copy"
                                     class="operation"
@@ -312,6 +325,12 @@
                 },
                 immediate: true,
             },
+            steps: {
+                handler () {
+                    this.order = 0;
+                },
+                immediate: true,
+            },
         },
         methods: {
             /**
@@ -319,6 +338,10 @@
              */
             clickStepByIndex (index) {
                 this.handleStepClick(index);
+            },
+            genOrder () {
+                this.order += 1;
+                return this.order;
             },
             /**
              * @desc 鼠标点击某个步骤
@@ -410,7 +433,7 @@
                         const steps = [...this.steps];
 
                         const currentStep = steps[index];
-                        if (currentStep.id) {
+                        if (currentStep.id > 0) {
                             // 删除已存在的步骤
                             //  —设置delete
                             currentStep.delete = 1;

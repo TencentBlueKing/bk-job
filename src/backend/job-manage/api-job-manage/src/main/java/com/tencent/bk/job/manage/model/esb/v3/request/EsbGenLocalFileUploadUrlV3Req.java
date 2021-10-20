@@ -22,41 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-analysis:service-job-analysis")
-    api project(":commons:common-redis")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
-    implementation 'org.springframework:spring-webmvc'
-    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    runtimeOnly('mysql:mysql-connector-java')
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-    testImplementation("com.h2database:h2")
-}
-springBoot {
-    mainClassName = "com.tencent.bk.job.analysis.JobAnalysisBootApplication"
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-analysis-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-analysis-${version}.jar", "job-analysis-${version}.jar"
-}
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-analysis-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-analysis-${version}.jar", "job-analysis.jar"
-}
-copyToLatestJar.dependsOn assemble
+import java.util.List;
 
-apply from: "$rootDir/task_job_package.gradle"
+@Data
+@ApiModel("生成本地文件上传URL请求报文")
+public class EsbGenLocalFileUploadUrlV3Req extends EsbReq {
+
+    /**
+     * 业务ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
+    /**
+     * 文件名列表
+     */
+    @JsonProperty("file_name_list")
+    private List<String> fileNameList;
+
+}

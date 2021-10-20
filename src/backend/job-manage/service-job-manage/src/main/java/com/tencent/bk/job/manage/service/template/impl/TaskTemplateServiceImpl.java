@@ -173,54 +173,59 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public PageData<TaskTemplateInfoDTO> listPageTaskTemplatesBasicInfo(TaskTemplateQuery query,
                                                                         List<Long> favoredTemplateIdList) {
-        boolean existAnyMatchedFavoredTemplate = false;
-        List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
+        if (query.isExistIdCondition()) {
+            return getTemplateById(query);
+        }
 
         BaseSearchCondition baseSearchCondition = query.getBaseSearchCondition();
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         boolean getAll = baseSearchCondition.isGetAll();
 
-        if (!query.isExistIdCondition()) {
-            query.setExcludeTemplateIds(favoredTemplateIdList);
-            transformTagConditionToTemplateIds(query);
+        if (query.isExistTagCondition()) {
+            List<Long> tagMatchedTemplateIds = queryTemplateIdsByTags(query);
+            if (CollectionUtils.isEmpty(tagMatchedTemplateIds)) {
+                // none match, return empty page data
+                return PageData.emptyPageData(start, length);
+            } else {
+                query.setIds(tagMatchedTemplateIds);
+            }
+        }
 
-            if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
-                matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
-            }
-            existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
-            if (existAnyMatchedFavoredTemplate && !getAll) {
-                resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);
-            }
+        boolean existAnyMatchedFavoredTemplate;
+        List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
+        if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
+            matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
+            query.setExcludeTemplateIds(favoredTemplateIdList);
+        }
+        existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
+        if (existAnyMatchedFavoredTemplate && !getAll) {
+            resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);
         }
 
 
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
 
-        if (existAnyMatchedFavoredTemplate) {
-            if (getAll) {
-                templatePageData.getData().addAll(0, matchedFavoredTemplates);
-            } else {
-                rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, start, length);
-            }
-        }
+        rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, getAll, existAnyMatchedFavoredTemplate,
+            start, length);
+        setAdditionalAttributesForTemplates(query.getAppId(), templatePageData);
 
-        if (!getAll) {
-            templatePageData.setStart(start);
-            templatePageData.setPageSize(length);
-            if (existAnyMatchedFavoredTemplate) {
-                templatePageData.setTotal(matchedFavoredTemplates.size() + templatePageData.getTotal());
-            }
-        }
+        return templatePageData;
+    }
 
+    private PageData<TaskTemplateInfoDTO> getTemplateById(TaskTemplateQuery query) {
+        PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
+        setAdditionalAttributesForTemplates(query.getAppId(), templatePageData);
+        return templatePageData;
+    }
+
+    private void setAdditionalAttributesForTemplates(Long appId, PageData<TaskTemplateInfoDTO> templatePageData) {
         if (CollectionUtils.isNotEmpty(templatePageData.getData())) {
             templatePageData.getData().forEach(TaskTemplateServiceImpl::setUpdateFlag);
         }
 
-        setTags(query.getAppId(), templatePageData.getData());
-        return templatePageData;
+        setTags(appId, templatePageData.getData());
     }
-
 
     private List<TaskTemplateInfoDTO> queryFavoredTemplates(TaskTemplateQuery query,
                                                             List<Long> favoredTemplateIdList) {
@@ -255,17 +260,47 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private void rebuildTemplatePageData(PageData<TaskTemplateInfoDTO> templatePageData,
                                          List<TaskTemplateInfoDTO> matchedFavoredTemplates,
+                                         boolean getAll,
+                                         boolean existAnyMatchedFavoredTemplate,
                                          Integer start,
                                          Integer length) {
-        templatePageData.getData().addAll(0, matchedFavoredTemplates);
-        // subList
-        int fromIndex = start;
-        int endIndex = Math.min(start + length, templatePageData.getData().size());
-        List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(fromIndex, endIndex));
-        templatePageData.setData(templates);
+        if (existAnyMatchedFavoredTemplate) {
+            if (getAll) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplates);
+            } else {
+                putFavoredTemplateInFrontIfExist(templatePageData, matchedFavoredTemplates, start, length);
+            }
+        }
+
+        if (!getAll) {
+            templatePageData.setStart(start);
+            templatePageData.setPageSize(length);
+            if (existAnyMatchedFavoredTemplate) {
+                templatePageData.setTotal(matchedFavoredTemplates.size() + templatePageData.getTotal());
+            }
+        }
     }
 
-    private void transformTagConditionToTemplateIds(TaskTemplateQuery query) {
+    private void putFavoredTemplateInFrontIfExist(PageData<TaskTemplateInfoDTO> templatePageData,
+                                         List<TaskTemplateInfoDTO> matchedFavoredTemplates,
+                                         Integer start,
+                                         Integer length) {
+        // 前置的模板
+        if (CollectionUtils.isNotEmpty(matchedFavoredTemplates)) {
+            if (matchedFavoredTemplates.size() > start) {
+                templatePageData.getData().addAll(0, matchedFavoredTemplates.stream().skip(start).limit(length)
+                    .collect(Collectors.toList()));
+            }
+        }
+
+        // subList
+        if (templatePageData.getData().size() > length) {
+            List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(0, length));
+            templatePageData.setData(templates);
+        }
+    }
+
+    private List<Long> queryTemplateIdsByTags(TaskTemplateQuery query) {
         List<Long> matchTemplateIds = new ArrayList<>();
         if (query.isUntaggedTemplate()) {
             // untagged template
@@ -275,11 +310,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             matchTemplateIds.addAll(taskTemplateDAO.listAllAppTemplateId(query.getAppId()));
             matchTemplateIds.removeAll(taggedTemplateIds);
         } else if (CollectionUtils.isNotEmpty(query.getTags())) {
-            List<Long> tagIds = query.getTags().stream().map(TagDTO::getId).collect(Collectors.toList());
+            List<Long> tagIds = query.getTags().stream().distinct().map(TagDTO::getId).collect(Collectors.toList());
             matchTemplateIds = tagService.listResourceIdsWithAllTagIds(JobResourceTypeEnum.TEMPLATE.getValue(),
                 tagIds).stream().map(Long::valueOf).collect(Collectors.toList());
         }
-        query.setIds(matchTemplateIds);
+        return matchTemplateIds;
     }
 
     @Override

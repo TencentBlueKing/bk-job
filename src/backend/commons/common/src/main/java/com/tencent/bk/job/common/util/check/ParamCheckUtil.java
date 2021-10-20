@@ -22,34 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.util.check;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
 
-@Data
-@Component
-public class ArtifactoryConfigForExecute {
+public class ParamCheckUtil {
 
-    @Value("${artifactory.enabled:false}")
-    private boolean enable;
+    public static void checkAppId(Long appId, String paramName) {
+        if (appId == null) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null");
+        }
+        if (appId <= 0) {
+            throw new InvalidParamException(paramName, paramName + " must be a positive number");
+        }
+    }
 
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
-
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
-
-    @Value("${artifactory.download.concurrency:10}")
-    private Integer downloadConcurrency;
+    public static void checkLocalUploadFileName(String fileName, String paramName) {
+        if (StringUtils.isBlank(fileName)) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+        }
+        if (fileName.length() > 1024) {
+            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+        }
+    }
 }

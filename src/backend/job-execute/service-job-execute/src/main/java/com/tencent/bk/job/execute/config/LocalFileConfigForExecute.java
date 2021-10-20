@@ -24,33 +24,32 @@
 
 package com.tencent.bk.job.execute.config;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/**
- * Actuator spring security config
- */
-@Configuration
-public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers("/actuator/info").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").authenticated()
-            .antMatchers("/actuator/configprops/**").authenticated()
-            .antMatchers("/actuator/env/**").authenticated()
-            .antMatchers("/actuator/mappings/**").authenticated()
-            .antMatchers("/actuator/metrics/**").authenticated()
-            .antMatchers("/actuator/prometheus/**").authenticated()
-            .antMatchers("/actuator/beans/**").authenticated()
-            .antMatchers("/actuator/conditions/**").authenticated()
-            .antMatchers("/actuator/scheduledtasks/**").authenticated()
-            .and()
-            .httpBasic();
-    }
+@Data
+@Component
+public class LocalFileConfigForExecute {
+
+    @Value("${local-file.storage-backend:local}")
+    private String storageBackend;
+
+    @Value("${local-file.artifactory.base-url:}")
+    private String artifactoryBaseUrl;
+
+    @Value("${local-file.artifactory.job.username:bkjob}")
+    private String artifactoryJobUsername;
+
+    @Value("${local-file.artifactory.job.password:bkjob}")
+    private String artifactoryJobPassword;
+
+    @Value("${local-file.artifactory.job.project:bkjob}")
+    private String artifactoryJobProject;
+
+    @Value("${local-file.artifactory.job.repo.local-upload:localupload}")
+    private String artifactoryJobLocalUploadRepo;
+
+    @Value("${local-file.artifactory.download.concurrency:10}")
+    private Integer artifactoryDownloadConcurrency;
 }

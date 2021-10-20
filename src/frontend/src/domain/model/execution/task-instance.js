@@ -140,6 +140,17 @@ export default class TaskInstance {
     }
 
     /**
+     * @desc 任务正在执行
+     * @returns { Boolean }
+     */
+    get isDoing () {
+        return [
+            STATUS_DOING,
+            STATUS_FORCEDING,
+        ].includes(this.status);
+    }
+
+    /**
      * @desc 表示任务状态 css 的 class
      * @returns { String }
      */

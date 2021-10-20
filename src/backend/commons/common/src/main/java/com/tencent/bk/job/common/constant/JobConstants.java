@@ -29,4 +29,12 @@ public class JobConstants {
      * 公共资源对应的业务ID(比如公共脚本)
      */
     public static final long PUBLIC_APP_ID = 0L;
+    /**
+     * 本地文件存储后端：本地
+     */
+    public static final String LOCAL_FILE_STORAGE_BACKEND_LOCAL = "local";
+    /**
+     * 本地文件存储后端：制品库
+     */
+    public static final String LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
 }

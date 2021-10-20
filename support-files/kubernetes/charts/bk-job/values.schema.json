@@ -113,13 +113,18 @@
         }
       }
     },
-    "artifactory": {
+    "localFile": {
       "type": "object",
       "properties": {
-        "baseUrl": {
-          "type": "string",
-          "title": "蓝鲸制品库访问地址",
-          "form": true
+        "artifactory": {
+          "type": "object",
+          "properties": {
+            "baseUrl": {
+              "type": "string",
+              "title": "蓝鲸制品库访问地址",
+              "form": true
+            }
+          }
         }
       }
     },

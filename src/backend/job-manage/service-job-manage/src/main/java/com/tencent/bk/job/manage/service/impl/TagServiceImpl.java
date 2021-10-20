@@ -248,6 +248,11 @@ public class TagServiceImpl implements TagService {
     private void setTags(Long appId, List<ResourceTagDTO> resourceTags) {
         List<Long> tagIds = resourceTags.stream().map(ResourceTagDTO::getTagId).distinct().collect(Collectors.toList());
         List<TagDTO> tags = tagDAO.listTagsByIds(tagIds);
+
+        if (tags.size() != tagIds.size()) {
+            log.warn("Inconsistent tag data. tadIds: {}, tags: {}", tagIds, tags);
+        }
+
         checkTags(appId, tags);
 
         Map<Long, TagDTO> tagMap = new HashMap<>();
@@ -352,13 +357,14 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<String> listResourceIdsWithAllTagIds(Integer resourceType, List<Long> tagIds) {
-        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(tagIds, resourceType);
+        List<Long> distinctTagIds = tagIds.stream().distinct().collect(Collectors.toList());
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(distinctTagIds, resourceType);
         if (CollectionUtils.isEmpty(resourceTags)) {
             return Collections.emptyList();
         }
 
         Map<String, Integer> resourceTagCountMap = new HashMap<>();
-        int matchCount = tagIds.size();
+        int matchCount = distinctTagIds.size();
         resourceTags.forEach(resourceTag -> resourceTagCountMap.compute(resourceTag.getResourceId(), (k, v) -> {
             if (v == null) {
                 v = 1;

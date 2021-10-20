@@ -297,7 +297,7 @@
                 if (!this.waitingInit) {
                     this.pagination.limit = limit;
                 }
-                this.tableMaxHeight = tableHeadHeight * (limit + 1) + paginationHeight + 1;
+                this.tableMaxHeight = tableHeadHeight + tableRowHeight * limit + paginationHeight;
                 this.isRendered = true;
             },
             /**

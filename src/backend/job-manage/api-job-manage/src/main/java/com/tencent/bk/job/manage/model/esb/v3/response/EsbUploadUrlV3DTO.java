@@ -22,41 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 @Data
-@Component
-public class ArtifactoryConfigForManage {
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("上传地址信息")
+public class EsbUploadUrlV3DTO {
 
-    @Value("${artifactory.enabled:false}")
-    private boolean enable;
+    @JsonProperty("url_map")
+    private Map<String, Map<String, String>> urlMap;
 
-    @Value("${artifactory.base-url:}")
-    private String baseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String adminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String adminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String jobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String jobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String jobProject;
-
-    @Value("${artifactory.job.repo.local-upload:localupload}")
-    private String jobLocalUploadRepo;
-
-    public String getJobLocalUploadRootPath() {
-        return jobProject + "/" + jobLocalUploadRepo;
-    }
 }

@@ -35,7 +35,7 @@
         </jb-form-item>
         <jb-form-item
             ref="scriptId"
-            v-show="isScriptRefer"
+            v-if="isScriptRefer"
             :label="$t('脚本引用')"
             required
             property="scriptId"
@@ -51,6 +51,7 @@
                         <bk-option :id="3" :name="$t('公共脚本')">{{ $t('公共脚本') }}</bk-option>
                     </bk-select>
                     <bk-select
+                        :key="referType"
                         :placeholder="$t('选择引用脚本')"
                         class="refer-script-list"
                         :value="formData[scriptVersionIdField]"
@@ -64,7 +65,17 @@
                             :permission="option.canView"
                             :resource-id="option.id"
                             :name="option.name"
-                            :auth="auth" />
+                            :auth="authView" />
+                        <template slot="extension">
+                            <auth-component :auth="authCreate">
+                                <div @click="handleGoCreate" style="cursor: pointer;">
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                </div>
+                                <div slot="forbid">
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                </div>
+                            </auth-component>
+                        </template>
                     </bk-select>
                 </compose-form-item>
                 <div
@@ -89,21 +100,26 @@
             ComposeFormItem,
         },
         props: {
+            // 脚本来源字段名
             scriptSourceField: {
                 type: String,
                 required: true,
             },
+            // 脚本id字段名
             scriptIdField: {
                 type: String,
                 required: true,
             },
+            // 脚本版本id字段名
             scriptVersionIdField: {
                 type: String,
             },
+            // 脚本内容字段名
             contentField: {
                 type: String,
                 required: true,
             },
+            // 脚本语言字段名
             languageField: {
                 type: String,
                 required: true,
@@ -124,15 +140,33 @@
         computed: {
             /**
              * @desc 使用脚本资源需要的权限
+             * @returns {String}
              */
-            auth () {
+            authView () {
                 return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
                     ? 'script/view'
                     : 'public_script/view';
             },
+            /**
+             * @desc 脚本新建的权限
+             * @returns { String }
+             */
+            authCreate () {
+                return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+                    ? 'script/create'
+                    : 'public_script/create';
+            },
+            /**
+             * @desc 引用脚本类型
+             * @returns { Boolean }
+             */
             isScriptRefer () {
                 return this.scriptSource === 'refer';
             },
+            /**
+             * @desc 脚本列表
+             * @returns { Array }
+             */
             scripListDisplay () {
                 const scriptSource = this.formData[this.scriptSourceField];
                 
@@ -144,6 +178,12 @@
                 }
                 return [];
             },
+            /**
+             * @desc 表单想验证规则
+             * @returns { Array }
+             *
+             * 引用类型的脚本时 scriptId 不能为空
+             */
             rules () {
                 if (this.isScriptRefer) {
                     return [{
@@ -285,6 +325,20 @@
                     query: {
                         scriptVersionId: this.formData[this.scriptVersionIdField],
                     },
+                });
+                
+                window.open(href);
+            },
+            /**
+             * @desc 跳转新建脚本页面
+             */
+            handleGoCreate () {
+                const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+                    ? 'createPublicScript'
+                    : 'createScript';
+
+                const { href } = this.$router.resolve({
+                    name: routerName,
                 });
                 
                 window.open(href);
