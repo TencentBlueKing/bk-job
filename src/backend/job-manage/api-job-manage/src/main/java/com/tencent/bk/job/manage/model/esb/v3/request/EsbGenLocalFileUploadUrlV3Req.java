@@ -22,49 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
+import java.util.List;
+
 @Data
-public class JobExecuteConfig {
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+@ApiModel("生成本地文件上传URL请求报文")
+public class EsbGenLocalFileUploadUrlV3Req extends EsbReq {
 
     /**
-     * 功能开关 - 启用账号鉴权
+     * 业务ID
      */
-    @Value("${feature.toggle.auth-account.mode:enabled}")
-    private String enableAuthAccountMode;
+    @JsonProperty("bk_biz_id")
+    private Long appId;
 
     /**
-     * 账号鉴权灰度业务(用,分隔)
+     * 文件名列表
      */
-    @Value("${feature.toggle.auth-account.gray.apps:}")
-    private String accountAuthGrayApps;
+    @JsonProperty("file_name_list")
+    private List<String> fileNameList;
 
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
-    private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    /**
-     * Symmetric encryption password
-     */
-    @Value("${job.encrypt.password}")
-    private String encryptPassword;
-
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
-    private Integer fileTasksMax;
-
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
-    private Integer scriptTaskMaxTargetServer;
 }

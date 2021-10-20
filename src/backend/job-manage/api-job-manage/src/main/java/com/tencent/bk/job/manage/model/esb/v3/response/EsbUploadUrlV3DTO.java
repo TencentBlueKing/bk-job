@@ -22,49 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import lombok.NoArgsConstructor;
 
-@Configuration
+import java.util.Map;
+
 @Data
-public class JobExecuteConfig {
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("上传地址信息")
+public class EsbUploadUrlV3DTO {
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+    @JsonProperty("url_map")
+    private Map<String, Map<String, String>> urlMap;
 
-    /**
-     * 功能开关 - 启用账号鉴权
-     */
-    @Value("${feature.toggle.auth-account.mode:enabled}")
-    private String enableAuthAccountMode;
-
-    /**
-     * 账号鉴权灰度业务(用,分隔)
-     */
-    @Value("${feature.toggle.auth-account.gray.apps:}")
-    private String accountAuthGrayApps;
-
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
-    private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    /**
-     * Symmetric encryption password
-     */
-    @Value("${job.encrypt.password}")
-    private String encryptPassword;
-
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
-    private Integer fileTasksMax;
-
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
-    private Integer scriptTaskMaxTargetServer;
 }

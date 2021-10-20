@@ -22,49 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.util.check;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
 
-@Configuration
-@Data
-public class JobExecuteConfig {
+public class ParamCheckUtil {
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+    public static void checkAppId(Long appId, String paramName) {
+        if (appId == null) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null");
+        }
+        if (appId <= 0) {
+            throw new InvalidParamException(paramName, paramName + " must be a positive number");
+        }
+    }
 
-    /**
-     * 功能开关 - 启用账号鉴权
-     */
-    @Value("${feature.toggle.auth-account.mode:enabled}")
-    private String enableAuthAccountMode;
-
-    /**
-     * 账号鉴权灰度业务(用,分隔)
-     */
-    @Value("${feature.toggle.auth-account.gray.apps:}")
-    private String accountAuthGrayApps;
-
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
-    private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    /**
-     * Symmetric encryption password
-     */
-    @Value("${job.encrypt.password}")
-    private String encryptPassword;
-
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
-    private Integer fileTasksMax;
-
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
-    private Integer scriptTaskMaxTargetServer;
+    public static void checkLocalUploadFileName(String fileName, String paramName) {
+        if (StringUtils.isBlank(fileName)) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+        }
+        if (fileName.length() > 1024) {
+            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+        }
+    }
 }

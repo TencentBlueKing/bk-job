@@ -328,21 +328,21 @@ public class SyncServiceImpl implements SyncService {
                         try {
                             addAppToDb(applicationInfoDTO, Collections.emptyList());
                         } catch (Throwable t) {
-                            log.error("FATAL: insertApp fail:appId={}", applicationInfoDTO.getId(), t);
+                            log.error("FATAL: insertApp fail:appId=" + applicationInfoDTO.getId(), t);
                         }
                     });
                     updateList.forEach(applicationInfoDTO -> {
                         try {
                             applicationInfoDAO.updateAppInfo(dslContext, applicationInfoDTO);
                         } catch (Throwable t) {
-                            log.error("FATAL: updateApp fail:appId={}", applicationInfoDTO.getId(), t);
+                            log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
                         }
                     });
                     deleteList.forEach(applicationInfoDTO -> {
                         try {
                             deleteAppFromDb(applicationInfoDTO);
                         } catch (Throwable t) {
-                            log.error("FATAL: deleteApp fail:appId={}", applicationInfoDTO.getId(), t);
+                            log.error("FATAL: deleteApp fail:appId=" + applicationInfoDTO.getId(), t);
                         }
                     });
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
@@ -427,7 +427,7 @@ public class SyncServiceImpl implements SyncService {
             appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
             return syncAppHostsIndeed(applicationInfoDTO);
         } catch (Throwable t) {
-            log.error("Fail to syncAppHosts of appId {}", appId, t);
+            log.error("Fail to syncAppHosts of appId " + appId, t);
             return null;
         } finally {
             appHostsUpdateHelper.endToUpdateAppHosts(appId);
@@ -549,7 +549,7 @@ public class SyncServiceImpl implements SyncService {
                             writeToDBTimeConsuming += timeConsumingPair.getSecond();
                         } catch (Throwable t) {
                             appHostFailQueue.add(Pair.of(applicationInfoDTO, MAX_RETRY_COUNT));
-                            log.error("syncHost of app fail:appId={}", applicationInfoDTO.getId(), t);
+                            log.error("syncHost of app fail:appId=" + applicationInfoDTO.getId(), t);
                         }
                     }
                     log.info(Thread.currentThread().getName() + ":Finished:sync host from cc," +
@@ -739,7 +739,7 @@ public class SyncServiceImpl implements SyncService {
                             gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
                             writeToDBTimeConsuming += timeConsumingPair.getSecond();
                         } catch (Throwable t) {
-                            log.error("syncAgentStatus of app fail:appId={}", applicationInfoDTO.getId(), t);
+                            log.error("syncAgentStatus of app fail:appId=" + applicationInfoDTO.getId(), t);
                         }
                     }
                     log.info(Thread.currentThread().getName() + ":Finished:sync agentStatus from GSE," +
@@ -835,7 +835,7 @@ public class SyncServiceImpl implements SyncService {
                         notChangeCount += 1;
                     }
                 } catch (Throwable t) {
-                    log.error("updateHost fail:appId={},hostInfo={}", appId, hostInfoDTO, t);
+                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", appId, hostInfoDTO), t);
                     errorCount += 1;
                     errorHostIds.add(hostInfoDTO.getHostId());
                 }
@@ -900,22 +900,24 @@ public class SyncServiceImpl implements SyncService {
         } catch (DataAccessException e) {
             String errorMessage = e.getMessage();
             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                log.warn("insertHost fail, try to update:Duplicate entry:appId={},insert hostInfo={}, old " +
-                        "hostInfo={}", appId, infoDTO,
-                    applicationHostDAO.getHostById(infoDTO.getHostId()), e);
+                log.warn(String.format(
+                    "insertHost fail, try to update:Duplicate entry:appId=%d," +
+                        "insert hostInfo=%s, old " +
+                        "hostInfo=%s", appId, infoDTO,
+                    applicationHostDAO.getHostById(infoDTO.getHostId())), e);
                 try {
                     // 插入失败了就应当更新，以后来的数据为准
                     applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
                 } catch (Throwable t) {
-                    log.error("update after insert fail:appId={},hostInfo={}", appId, infoDTO, t);
+                    log.error(String.format("update after insert fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
                     return false;
                 }
             } else {
-                log.error("insertHost fail:appId={},hostInfo={}", appId, infoDTO, e);
+                log.error(String.format("insertHost fail:appId=%d,hostInfo=%s", appId, infoDTO), e);
                 return false;
             }
         } catch (Throwable t) {
-            log.error("insertHost fail:appId={},hostInfo={}", appId, infoDTO, t);
+            log.error(String.format("insertHost fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
             return false;
         }
         return true;

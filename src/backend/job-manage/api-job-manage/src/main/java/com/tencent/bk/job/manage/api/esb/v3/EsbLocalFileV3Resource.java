@@ -22,49 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.api.esb.v3;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Configuration
-@Data
-public class JobExecuteConfig {
+/**
+ * 本地文件API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbLocalFileV3Resource {
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+    @PostMapping("/generate_local_file_upload_url")
+    EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(
+        @RequestBody EsbGenLocalFileUploadUrlV3Req req);
 
-    /**
-     * 功能开关 - 启用账号鉴权
-     */
-    @Value("${feature.toggle.auth-account.mode:enabled}")
-    private String enableAuthAccountMode;
-
-    /**
-     * 账号鉴权灰度业务(用,分隔)
-     */
-    @Value("${feature.toggle.auth-account.gray.apps:}")
-    private String accountAuthGrayApps;
-
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
-    private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    /**
-     * Symmetric encryption password
-     */
-    @Value("${job.encrypt.password}")
-    private String encryptPassword;
-
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
-    private Integer fileTasksMax;
-
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
-    private Integer scriptTaskMaxTargetServer;
 }
