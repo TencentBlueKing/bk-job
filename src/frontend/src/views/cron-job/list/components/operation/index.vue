@@ -155,7 +155,6 @@
                             ref="variable"
                             v-for="variable in currentPlanVariableList"
                             value-width="100%"
-                            readonly
                             :type="variable.type"
                             :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
                             :data="variable" />
