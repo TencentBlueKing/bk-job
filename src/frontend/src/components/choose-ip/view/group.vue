@@ -57,10 +57,10 @@
                     </tbody>
                     <tbody class="valid-list">
                         <tr v-for="(row, index) in list" :key="index" :class="diff[row.id]">
-                            <td style="width: 40%; cursor: pointer;" @click="handleView(row.id)">
+                            <td style="width: 35%; cursor: pointer;" @click="handleView(row.id)">
                                 {{ row.name }}
                             </td>
-                            <td style="width: 15%;">
+                            <td style="width: 150px;">
                                 <div class="cell-text">共<span class="number strong">{{ row.total }}</span>台主机</div>
                             </td>
                             <td @click="handleView(row.id)">

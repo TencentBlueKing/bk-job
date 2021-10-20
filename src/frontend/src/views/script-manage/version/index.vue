@@ -826,7 +826,7 @@
                     ...currentScriptVersion,
                     scriptVersionId: -1,
                     status: -1,
-                    version: genDefaultScriptVersion().slice(0, 30),
+                    version: genDefaultScriptVersion(),
                 });
                 this.isListFlod = true;
                 this.lastSelectScriptVersionId = this.selectVersionId;

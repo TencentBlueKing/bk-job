@@ -69,13 +69,13 @@
                             :key="row.key"
                             :class="diff[row.key]">
                             <td
-                                style="width: 40%; cursor: pointer;"
+                                style="width: 35%; cursor: pointer;"
                                 @click="handleViewHostList(row.key)">
                                 <div class="cell-text">
                                     {{ wholePathMap[row.key] || row.name }}
                                 </div>
                             </td>
-                            <td style="width: 15%;">
+                            <td style="width: 150px;">
                                 <Icon
                                     v-if="row.isHostLoading"
                                     class="loading-status"
