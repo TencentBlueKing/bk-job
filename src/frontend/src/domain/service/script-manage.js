@@ -24,7 +24,7 @@
 */
 
 /* eslint-disable no-param-reassign */
-import ScriptSource from '../source/script-manage';
+import ScriptManageSource from '../source/script-manage';
 import ScriptModel from '@model/script/script';
 import ScriptErrorModel from '@model/script/script-error';
 import ScriptSyncModel from '@model/script/script-sync';
@@ -32,49 +32,49 @@ import ScriptRelatedModel from '@model/script/script-related';
 
 export default {
     scriptList (params, payload) {
-        return ScriptSource.getAll(params, payload)
+        return ScriptManageSource.getAll(params, payload)
             .then(({ data }) => {
                 data.data = data.data.map(script => Object.freeze(new ScriptModel(script)));
                 return data;
             });
     },
     scriptDetail (params, config) {
-        return ScriptSource.getDataByScriptId(params, config)
+        return ScriptManageSource.getDataByScriptId(params, config)
             .then(({ data }) => Object.freeze(new ScriptModel(data)));
     },
     scriptName (params) {
-        return ScriptSource.getName(params)
+        return ScriptManageSource.getName(params)
             .then(({ data }) => data.map(item => ({
                 id: item,
                 name: item,
             })));
     },
     scriptVersionList (params, config) {
-        return ScriptSource.getAllVersion(params, config)
+        return ScriptManageSource.getAllVersion(params, config)
             .then(({ data }) => data.map(script => Object.freeze(new ScriptModel(script))));
     },
     scriptUpdate (params) {
-        return ScriptSource.update(params)
+        return ScriptManageSource.update(params)
             .then(({ data }) => data);
     },
     scriptUpdateMeta (params) {
-        return ScriptSource.updateMeta(params);
+        return ScriptManageSource.updateMeta(params);
     },
     scriptDelete (params) {
-        return ScriptSource.deleteById(params);
+        return ScriptManageSource.deleteById(params);
     },
     versionDetail (params, config) {
-        return ScriptSource.getDataByVersionId(params, config)
+        return ScriptManageSource.getDataByVersionId(params, config)
             .then(({ data }) => new ScriptModel(data));
     },
     scriptVersionOnline (params) {
-        return ScriptSource.updateVersionStatusOnline(params);
+        return ScriptManageSource.updateVersionStatusOnline(params);
     },
     scriptVersionOffline (params) {
-        return ScriptSource.updateVersionStatusOffline(params);
+        return ScriptManageSource.updateVersionStatusOffline(params);
     },
     scriptVersionRemove (params) {
-        return ScriptSource.deleteVersionByVersionId(params);
+        return ScriptManageSource.deleteVersionByVersionId(params);
     },
     scriptTypeList () {
         return Promise.resolve([
@@ -87,19 +87,19 @@ export default {
         ]);
     },
     getScriptValidation (params) {
-        return ScriptSource.getValidation(params)
+        return ScriptManageSource.getValidation(params)
             .then(({ data }) => data.map(item => new ScriptErrorModel(item)));
     },
     getUploadContent (params) {
-        return ScriptSource.uploadGetContent(params)
+        return ScriptManageSource.uploadGetContent(params)
             .then(({ data }) => Object.freeze(data));
     },
     getOnlineScriptList (params = {}) {
-        return ScriptSource.getAllOnline(params)
+        return ScriptManageSource.getAllOnline(params)
             .then(({ data }) => data);
     },
     getOneOnlineScript (params = {}) {
-        return ScriptSource.getOneOnlineByScriptId(params)
+        return ScriptManageSource.getOneOnlineByScriptId(params)
             .then(({ data }) => {
                 if (data) {
                     return new ScriptModel(data);
@@ -108,22 +108,35 @@ export default {
             });
     },
     scriptRefTemplateSteps (params = {}) {
-        return ScriptSource.getRefTemplateSteps(params)
+        return ScriptManageSource.getRefTemplateSteps(params)
             .then(({ data }) => data.map(script => Object.freeze(new ScriptSyncModel(script))));
     },
     scriptVersionSync (params = {}) {
-        return ScriptSource.syncScriptVersion(params)
+        return ScriptManageSource.syncScriptVersion(params)
             .then(({ data }) => data.map(script => Object.freeze(new ScriptSyncModel(script))));
     },
     citeInfo (params) {
-        return ScriptSource.getCiteInfo(params)
+        return ScriptManageSource.getCiteInfo(params)
             .then(({ data }) => ({
                 citedTaskPlanList: data.citedTaskPlanList.map(_ => new ScriptRelatedModel(_)),
                 citedTemplateList: data.citedTemplateList.map(_ => new ScriptRelatedModel(_)),
             }));
     },
     fetchBasicInfo (params) {
-        return ScriptSource.getBasiceInfoById(params)
+        return ScriptManageSource.getBasiceInfoById(params)
             .then(({ data }) => new ScriptModel(data));
+    },
+    fetchBatchBasicInfo (params = {}) {
+        return ScriptManageSource.getBatchBasiceInfoByIds(params)
+            .then(({ data }) => data.map(item => new ScriptModel(item)));
+    },
+    batchUpdateTag (params = {}) {
+        return ScriptManageSource.batchUpdateTag(params)
+            .then(({ data }) => data);
+    },
+    // 获取业务下标签关联的脚本数量
+    fetchTagCount (params = {}) {
+        return ScriptManageSource.getTagCount(params)
+            .then(({ data }) => data);
     },
 };

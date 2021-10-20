@@ -25,8 +25,8 @@
 ext {
     if (System.getProperty("jobBackupVersion")) {
         set("jobBackupVersion", System.getProperty("jobBackupVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobBackupVersion", System.getProperty("version"))
+    } else if (System.getProperty("bkjobVersion")) {
+        set("jobBackupVersion", System.getProperty("bkjobVersion"))
     } else {
         set("jobBackupVersion", "1.0.0")
     }
@@ -35,17 +35,11 @@ version "${jobBackupVersion}"
 subprojects {
     version "${jobBackupVersion}"
     dependencies {
-        compile("org.springframework.boot:spring-boot-autoconfigure")
+        api 'org.springframework.boot:spring-boot-autoconfigure'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        implementation 'ch.qos.logback:logback-core'
-        implementation 'ch.qos.logback:logback-classic'
-        implementation 'io.springfox:springfox-swagger2'
-        implementation 'io.springfox:springfox-swagger-ui'
-        implementation "org.hibernate.validator:hibernate-validator"
-        testCompile("org.springframework.boot:spring-boot-starter-test")
-        testImplementation "org.junit.jupiter:junit-jupiter"
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.junit.jupiter:junit-jupiter'
     }
 }
 

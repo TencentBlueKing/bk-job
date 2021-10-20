@@ -53,7 +53,7 @@
                 @change="value => props.change('alias', value)"
                 :maxlength="32" />
         </jb-form-item>
-        <jb-form-item :label="parent.$t('account.密码')">
+        <jb-form-item :label="parent.$t('account.密码')" property="dbPassword">
             <bk-input
                 :placeholder="parent.$t('account.输入密码')"
                 key="database-password"

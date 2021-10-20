@@ -164,7 +164,9 @@
              * @desc 获取服务运行状态数据,每三秒轮询一次
              */
             fetchData () {
-                ServiceStateService.serviceList()
+                ServiceStateService.serviceList({}, {
+                    permission: 'page',
+                })
                     .then((data) => {
                         if (data.length < 1) {
                             return;

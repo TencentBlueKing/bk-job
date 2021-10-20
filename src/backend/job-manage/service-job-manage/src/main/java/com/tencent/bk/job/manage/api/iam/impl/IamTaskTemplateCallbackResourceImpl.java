@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -41,7 +42,6 @@ import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -67,44 +67,34 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
         return instanceInfo;
     }
 
-    private Pair<TaskTemplateInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+    private TaskTemplateQuery getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
-        TaskTemplateInfoDTO templateQuery = new TaskTemplateInfoDTO();
-        templateQuery.setAppId(searchCondition.getAppIdList().get(0));
-        return Pair.of(templateQuery, baseSearchCondition);
+        return TaskTemplateQuery.builder()
+            .appId(searchCondition.getAppIdList().get(0))
+            .baseSearchCondition(baseSearchCondition)
+            .build();
     }
 
     @Override
     protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
-            getBasicQueryCondition(callbackRequest);
+        TaskTemplateQuery query = getBasicQueryCondition(callbackRequest);
 
-        TaskTemplateInfoDTO templateQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(
-            templateQuery,
-            baseSearchCondition,
-            null
-        );
+        PageData<TaskTemplateInfoDTO> templateInfoPageData =
+            templateService.listPageTaskTemplatesBasicInfo(query, null);
 
-        return IamRespUtil.getListInstanceRespFromPageData(templateDTOPageData, this::convert);
+        return IamRespUtil.getListInstanceRespFromPageData(templateInfoPageData, this::convert);
     }
 
     @Override
     protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<TaskTemplateInfoDTO, BaseSearchCondition> basicQueryCond =
-            getBasicQueryCondition(callbackRequest);
-
-        TaskTemplateInfoDTO templateQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-
-        templateQuery.setName(callbackRequest.getFilter().getKeyword());
-        PageData<TaskTemplateInfoDTO> templateDTOPageData = templateService.listPageTaskTemplatesBasicInfo(templateQuery,
-            baseSearchCondition, null);
+        TaskTemplateQuery query = getBasicQueryCondition(callbackRequest);
+        query.setName(callbackRequest.getFilter().getKeyword());
+        PageData<TaskTemplateInfoDTO> templateDTOPageData =
+            templateService.listPageTaskTemplatesBasicInfo(query, null);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(templateDTOPageData, this::convert);
     }

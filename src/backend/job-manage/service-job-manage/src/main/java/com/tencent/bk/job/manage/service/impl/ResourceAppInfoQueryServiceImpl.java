@@ -34,8 +34,10 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CredentialService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -53,24 +55,32 @@ import java.util.List;
 @Service("ResourceAppInfoQueryService")
 public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryService {
 
-    private ApplicationService applicationService;
-    private ScriptService scriptService;
-    private TaskTemplateService templateService;
-    private TaskPlanService planService;
-    private AccountService accountService;
-    private TagService tagService;
+    private final ApplicationService applicationService;
+    private final ScriptService scriptService;
+    private final TaskTemplateService templateService;
+    private final TaskPlanService planService;
+    private final AccountService accountService;
+    private final TagService tagService;
+    private final CredentialService credentialService;
 
     @Autowired
-    public ResourceAppInfoQueryServiceImpl(ApplicationService applicationService, ScriptService scriptService,
-                                           TaskTemplateService templateService, TaskPlanService planService,
-                                           AccountService accountService, TagService tagService,
-                                           AuthService authService) {
+    ResourceAppInfoQueryServiceImpl(
+        ApplicationService applicationService,
+        ScriptService scriptService,
+        TaskTemplateService templateService,
+        TaskPlanService planService,
+        AccountService accountService,
+        TagService tagService,
+        AuthService authService,
+        CredentialService credentialService
+    ) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
         this.planService = planService;
         this.accountService = accountService;
         this.tagService = tagService;
+        this.credentialService = credentialService;
         authService.setResourceAppInfoQueryService(this);
     }
 
@@ -99,6 +109,73 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
         return convert(applicationService.getAppInfoById(appId));
     }
 
+    private ResourceAppInfo getScriptApp(String resourceId) {
+        ScriptDTO script = scriptService.getScriptByScriptId(resourceId);
+        if (script != null) {
+            return getResourceAppInfoById(script.getAppId());
+        }
+        return null;
+    }
+
+    private ResourceAppInfo getTemplateApp(String resourceId) {
+        long templateId = Long.parseLong(resourceId);
+        if (templateId > 0) {
+            TaskTemplateInfoDTO templateInfoDTO = templateService.getTemplateById(templateId);
+            if (templateInfoDTO != null) {
+                return getResourceAppInfoById(templateInfoDTO.getAppId());
+            }
+        }
+        return null;
+    }
+
+    private ResourceAppInfo getPlanApp(String resourceId) {
+        long planId = Long.parseLong(resourceId);
+        if (planId > 0) {
+            TaskPlanInfoDTO taskPlanInfoDTO = planService.getTaskPlanById(planId);
+            if (taskPlanInfoDTO == null) {
+                log.warn("Cannot find taskPlanInfoDTO by id {}", planId);
+                return null;
+            }
+            return getResourceAppInfoById(taskPlanInfoDTO.getAppId());
+        }
+        return null;
+    }
+
+    private ResourceAppInfo getAccountApp(String resourceId) {
+        long accountId = Long.parseLong(resourceId);
+        if (accountId > 0) {
+            AccountDTO accountDTO = accountService.getAccountById(accountId);
+            if (accountDTO != null) {
+                return getResourceAppInfoById(accountDTO.getAppId());
+            }
+        }
+        return null;
+    }
+
+    private ResourceAppInfo getTagApp(String resourceId) {
+        long tagId = Long.parseLong(resourceId);
+        if (tagId > 0) {
+            TagDTO tagDTO = tagService.getTagInfoById(tagId);
+            if (tagDTO != null) {
+                return getResourceAppInfoById(tagDTO.getAppId());
+            }
+        }
+        return null;
+    }
+
+    private ResourceAppInfo getTicketApp(String resourceId) {
+        ServiceCredentialDTO credentialDTO = credentialService.getServiceCredentialById(resourceId);
+        if (credentialDTO == null) {
+            log.warn("Cannot find credential by id {}", resourceId);
+            return null;
+        }
+        Long appId = credentialDTO.getAppId();
+        if (appId > 0) {
+            return getResourceAppInfoById(appId);
+        }
+        return null;
+    }
+
     @Override
     public ResourceAppInfo getResourceAppInfo(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
@@ -107,52 +184,19 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
                 return getResourceAppInfoById(appId);
             case PUBLIC_SCRIPT:
             case SCRIPT:
-                ScriptDTO script = scriptService.getScriptByScriptId(resourceId);
-                if (script != null) {
-                    return getResourceAppInfoById(script.getAppId());
-                }
-                break;
+                return getScriptApp(resourceId);
             case TEMPLATE:
-                long templateId = Long.parseLong(resourceId);
-                if (templateId > 0) {
-                    TaskTemplateInfoDTO templateInfoDTO = templateService.getTemplateById(templateId);
-                    if (templateInfoDTO != null) {
-                        return getResourceAppInfoById(templateInfoDTO.getAppId());
-                    }
-                }
-                break;
+                return getTemplateApp(resourceId);
             case PLAN:
-                long planId = Long.parseLong(resourceId);
-                if (planId > 0) {
-                    TaskPlanInfoDTO taskPlanInfoDTO = planService.getTaskPlanById(planId);
-                    if (taskPlanInfoDTO == null) {
-                        log.warn("Cannot find taskPlanInfoDTO by id {}", planId);
-                        return null;
-                    }
-                    return getResourceAppInfoById(taskPlanInfoDTO.getAppId());
-                }
-                break;
+                return getPlanApp(resourceId);
             case ACCOUNT:
-                long accountId = Long.parseLong(resourceId);
-                if (accountId > 0) {
-                    AccountDTO accountDTO = accountService.getAccountById(accountId);
-                    if (accountDTO != null) {
-                        return getResourceAppInfoById(accountDTO.getAppId());
-                    }
-                }
-                break;
+                return getAccountApp(resourceId);
             case TAG:
-                long tagId = Long.parseLong(resourceId);
-                if (tagId > 0) {
-                    TagDTO tagDTO = tagService.getTagInfoById(tagId);
-                    if (tagDTO != null) {
-                        return getResourceAppInfoById(tagDTO.getAppId());
-                    }
-                }
-                break;
+                return getTagApp(resourceId);
+            case TICKET:
+                return getTicketApp(resourceId);
             default:
                 return null;
         }
-        return null;
     }
 }

@@ -1,0 +1,50 @@
+{{- if .Values.gatewayConfig.ingress.enabled -}}
+apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "common.names.fullname" . }}-gateway-http
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: job-gateway-http
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- if .Values.gatewayConfig.ingress.certManager }}
+    kubernetes.io/tls-acme: "true"
+    {{- end }}
+    {{- if .Values.gatewayConfig.ingress.annotations }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.gatewayConfig.ingress.annotations "context" $) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- if .Values.gatewayConfig.ingress.hostname }}
+  - host: {{ .Values.gatewayConfig.ingress.hostname }}
+    http:
+      paths:
+      {{- if .Values.gatewayConfig.ingress.extraPaths }}
+        {{- toYaml .Values.gatewayConfig.ingress.extraPaths | nindent 10 }}
+      {{- end }}
+      - path: {{ .Values.gatewayConfig.ingress.path }}
+        {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
+        pathType: {{ .Values.gatewayConfig.ingress.pathType }}
+        {{- end }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+  {{- end }}
+  {{- range .Values.gatewayConfig.ingress.extraHosts }}
+  - host: {{ .name }}
+    http:
+      paths:
+      - path: {{ default "/" .path }}
+        {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
+        pathType: {{ default "ImplementationSpecific" .pathType }}
+        {{- end }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
+  {{- end }}
+{{- end }}

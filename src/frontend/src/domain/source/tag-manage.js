@@ -40,13 +40,47 @@ class TagManage extends ModuleBase {
         });
     }
 
+    getAllWithBasic (params = {}) {
+        return Request.get(`${this.path}/tag/basic/list`, {
+            params,
+            cache: 2000,
+        });
+    }
+
     update (params = {}) {
-        return Request.put(`${this.path}/tag/${params.id}?tagName=${params.name}`);
+        const realParams = { ...params };
+        delete realParams.id;
+
+        return Request.put(`${this.path}/tag/${params.id}`, {
+            params: realParams,
+        });
     }
 
     create (params = {}) {
         return Request.post(`${this.path}/tag`, {
             params,
+        });
+    }
+
+    remove (params = {}) {
+        return Request.delete(`${this.path}/tag/${params.id}`);
+    }
+
+    batchUpdate (params = {}) {
+        const realParams = { ...params };
+        delete realParams.id;
+
+        return Request.put(`${this.path}/tag/${params.id}/resources`, {
+            params: realParams,
+        });
+    }
+
+    checkName (params = {}) {
+        const realParams = { ...params };
+        delete realParams.id;
+
+        return Request.get(`${this.path}/tag/${params.id}/checkName`, {
+            params: realParams,
         });
     }
 }

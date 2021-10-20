@@ -172,12 +172,10 @@ public class ServiceResponse<T> {
     }
 
     public static <T> ServiceResponse<T> buildCommonFailResp(ServiceException e, MessageI18nService i18nService) {
-        log.info("exception: {}|{}|{}", e.getErrorCode(), e.getErrorMsg(), e.getErrorParams());
         int errorCode = e.getErrorCode();
         String errorMsg = e.getErrorMsg();
         if (StringUtils.isEmpty(errorMsg)) {
             errorMsg = i18nService.getI18nWithArgs(String.valueOf(errorCode), e.getErrorParams());
-            log.info("{}", errorMsg);
         }
         if (StringUtils.isEmpty(errorMsg)) {
             errorMsg = String.valueOf(errorCode);

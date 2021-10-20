@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.api.iam.IamScriptCallbackResource;
-import com.tencent.bk.job.manage.model.dto.ScriptQueryDTO;
+import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -45,7 +45,7 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
     public IamScriptCallbackResourceImpl(ScriptService scriptService) {
         this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
             @Override
-            public Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
+            public Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
                 return getBasicQueryConditionImpl(callbackRequest);
             }
 
@@ -56,13 +56,13 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
         });
     }
 
-    private Pair<ScriptQueryDTO, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {
+    private Pair<ScriptQuery, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
-        ScriptQueryDTO scriptQuery = new ScriptQueryDTO();
+        ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(searchCondition.getAppIdList().get(0));
         return Pair.of(scriptQuery, baseSearchCondition);
     }

@@ -32,7 +32,8 @@
             :model="formData"
             :rules="rules"
             :key="`${formData.category}_${formData.type}`"
-            form-type="vertical">
+            form-type="vertical"
+            v-test="{ type: 'form', value: 'createAccount' }">
             <jb-form-item :label="$t('account.用途')" required style="margin-bottom: 20px;">
                 <div class="radio-button-group-wraper">
                     <bk-radio-group
@@ -179,6 +180,13 @@
                     });
                     return {
                         ...baseRule,
+                        dbPassword: [
+                            {
+                                validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                                message: I18n.t('account.密码不支持中文'),
+                                trigger: 'blur',
+                            },
+                        ],
                         rePassword: [
                             {
                                 validator: value => this.formData.rePassword === this.formData.dbPassword,
@@ -229,6 +237,11 @@
                         {
                             required: true,
                             message: I18n.t('account.密码必填'),
+                            trigger: 'blur',
+                        },
+                        {
+                            validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                            message: I18n.t('account.密码不支持中文'),
                             trigger: 'blur',
                         },
                     ],

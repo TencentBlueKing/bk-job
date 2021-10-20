@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: job-logsvr
+  profiles:
+    active: prod
+  data:
+    mongodb:
+      uri: __BK_JOB_LOGSVR_MONGODB_URI__
+job:
+  logsvr:
+    mongodb:
+      shard:
+        enabled: false

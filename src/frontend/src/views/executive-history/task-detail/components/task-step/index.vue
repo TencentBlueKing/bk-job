@@ -373,6 +373,12 @@
             }
         }
 
+        &.ingore {
+            .step-icon {
+                background: #abd88a;
+            }
+        }
+
         &.disabled {
             color: #c4c6cc;
             cursor: default;

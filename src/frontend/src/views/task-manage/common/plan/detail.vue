@@ -65,7 +65,8 @@
                             theme="primary"
                             class="w120 mr10"
                             :loading="execLoading"
-                            @click="handleExec">
+                            @click="handleExec"
+                            v-test="{ type: 'button', value: 'execPlan' }">
                             {{ $t('template.去执行') }}
                         </bk-button>
                         <bk-popover placement="top">
@@ -74,7 +75,8 @@
                                 :permission="planInfo.canEdit"
                                 :resource-id="id"
                                 auth="job_plan/edit"
-                                @click="handleEdit">
+                                @click="handleEdit"
+                                v-test="{ type: 'button', value: 'editPlan' }">
                                 <span>{{ $t('template.编辑') }}</span>
                                 <span style="font-size: 12px; color: #979ba5;">
                                     ({{ planInfo.enableStepNums }}/{{ planInfo.templateStepNums }})
@@ -89,7 +91,8 @@
                         <auth-button
                             class="mr10"
                             auth="cron/create"
-                            @click="handleGoCron">
+                            @click="handleGoCron"
+                            v-test="{ type: 'button', value: 'createCrontab' }">
                             {{ $t('template.定时执行') }}
                         </auth-button>
                         <span :tippy-tips="!planInfo.needUpdate ? $t('template.无需同步') : ''">
@@ -98,7 +101,8 @@
                                 :disabled="!planInfo.needUpdate"
                                 :resource-id="id"
                                 auth="job_plan/sync"
-                                @click="handleSync">
+                                @click="handleSync"
+                                v-test="{ type: 'button', value: 'syncPlan' }">
                                 <span>{{ $t('template.去同步') }}</span>
                                 <div v-if="planInfo.needUpdate" class="update-flag">
                                     <Icon type="sync" :tippy-tips="$t('template.未同步')" />
@@ -114,7 +118,8 @@
                                 class="delete-btn"
                                 :permission="planInfo.canDelete"
                                 :resource-id="id"
-                                auth="job_plan/delete">
+                                auth="job_plan/delete"
+                                v-test="{ type: 'button', value: 'deletePlan' }">
                                 {{ $t('template.删除') }}
                             </auth-button>
                         </jb-popover-confirm>

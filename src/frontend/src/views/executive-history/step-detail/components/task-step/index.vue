@@ -205,6 +205,12 @@
             }
         }
 
+        &.ingore {
+            .step-icon {
+                background: #abd88a;
+            }
+        }
+
         &.disabled {
             cursor: default;
             background: transparent;
@@ -234,7 +240,6 @@
 
         .step-wraper {
             position: relative;
-            z-index: 1;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -258,7 +263,6 @@
         .step-next {
             position: absolute;
             left: 50%;
-            z-index: 0;
             font-size: 31px;
             color: #c4c6cc;
             transform: translate(-50%, -18px);

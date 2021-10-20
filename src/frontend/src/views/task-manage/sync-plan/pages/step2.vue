@@ -42,11 +42,11 @@
                         <div class="sync-layout">
                             <div class="sync-before block-title">
                                 {{ $t('template.全局变量.label') }}
-                                <span class="global-variable-tips">{{ $t('template.全局变量.label的 “初始值” 不会被同步到执行方案') }}</span>
+                                <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
                             </div>
                             <div class="sync-after block-title">
                                 {{ $t('template.全局变量.label') }}
-                                <span class="global-variable-tips">{{ $t('template.全局变量.label的 “初始值” 不会被同步到执行方案') }}</span>
+                                <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
                             </div>
                         </div>
                         <template v-for="index in templateVariableList.length">
@@ -98,7 +98,13 @@
         <template #footer>
             <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
             <bk-button @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-            <bk-button v-if="!isView" theme="primary" class="w120" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                v-if="!isView"
+                theme="primary"
+                class="w120"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </template>
     </layout>
 </template>

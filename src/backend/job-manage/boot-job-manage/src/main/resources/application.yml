@@ -1,61 +1,62 @@
 spring:
-  cloud:
-    refresh:
-      extra-refreshable: javax.sql.DataSource
-  datasource:
-    job-manage:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: ${job.manage.db.url}
-      username: ${job.manage.db.username}
-      password: ${job.manage.db.password}
-      maximum-pool-size: 20
-      minimum-idle: 5
-      idle-timeout: 600000
-      poolName: "job-manage"
-      validationTimeout: 5000
+  application:
+    name: job-manage
+  profiles:
+    active: prod
 
-  redis:
-    mode: ${job.manage.redis.mode:sentinel}
-    host: ${job.manage.redis.host:}
-    port: ${job.manage.redis.port:6379}
-    sentinel:
-      password: ${job.manage.redis.sentinel.password:}
-      master: ${job.manage.redis.sentinel.master:}
-      nodes: ${job.manage.redis.sentinel.nodes:}
-    cluster:
-      nodes: ${job.manage.redis.cluster.nodes:}
-    password: ${job.manage.redis.password:}
-    database: ${job.manage.redis.database}
-    lettuce:
-      pool:
-        min-idle: ${job.manage.redis.lettuce.pool.min-idle}
-        max-idle: ${job.manage.redis.lettuce.pool.max-idle}
-        max-active: ${job.manage.redis.lettuce.pool.max-active}
-        max-wait: ${job.manage.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.manage.redis.lettuce.shutdown-timeout}
-  rabbitmq:
-    host: ${job.manage.rabbitmq.host}
-    port: ${job.manage.rabbitmq.port}
-    username: ${job.manage.rabbitmq.username}
-    password: ${job.manage.rabbitmq.password}
-    virtual-host: ${job.manage.rabbitmq.vhost:job}
-  security:
-    user:
-      name: ${job.security.actuator.user.name}
-      password: ${job.security.actuator.user.password}
-      roles: ENDPOINT_ADMIN
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: when_authorized
+      probes:
+        enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+server:
+  port: 19803
+  shutdown: graceful
   servlet:
-    multipart:
-      max-file-size: ${job.manage.upload.filesize.max:5GB}
-      max-request-size: ${job.manage.upload.filesize.max:5GB}
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
-job:
-  security:
-    service:
-      private-key-base64: ${job.security.private-key-base64}
-      public-key-base64: ${job.security.public-key-base64}
-  edition: ce
 
 
 

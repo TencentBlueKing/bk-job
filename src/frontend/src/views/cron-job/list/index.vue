@@ -33,7 +33,8 @@
                 theme="primary"
                 auth="cron/create"
                 @click="handleCreate"
-                class="w120">
+                class="w120"
+                v-test="{ type: 'button', value: 'createCrontab' }">
                 {{ $t('cron.新建') }}
             </auth-button>
             <template #right>
@@ -49,7 +50,8 @@
             ref="list"
             :data-source="getCronJobList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'crontab' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -64,6 +66,7 @@
                 prop="name"
                 key="name"
                 align="left"
+                min-width="200"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <auth-component
@@ -81,6 +84,7 @@
                 v-if="allRenderColumnMap.planName"
                 :label="$t('cron.执行方案名称')"
                 key="planName"
+                min-width="200"
                 align="left"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
@@ -111,6 +115,7 @@
                 :label="$t('cron.执行策略.colHead')"
                 prop="policeText"
                 key="policeText"
+                width="180"
                 align="left">
                 <template slot-scope="{ row }">
                     <span
@@ -125,7 +130,7 @@
                 :label="$t('cron.创建人')"
                 prop="creator"
                 key="creator"
-                width="180"
+                width="120"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
@@ -140,6 +145,7 @@
                 sortable
                 prop="lastModifyUser"
                 key="lastModifyUser"
+                width="140"
                 align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
@@ -154,6 +160,7 @@
                 sortable
                 prop="lastExecuteStatus"
                 key="lastExecuteStatus"
+                width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <Icon
@@ -168,6 +175,7 @@
                 :label="$t('cron.周期成功率')"
                 :render-header="renderHeader"
                 key="successRateText"
+                width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <div v-if="row.isStatictisLoading" class="sync-fetch">
@@ -202,6 +210,7 @@
                 :resizable="false"
                 width="200"
                 key="action"
+                fixed="right"
                 align="left">
                 <template slot-scope="{ row }">
                     <bk-switcher
@@ -209,14 +218,16 @@
                         size="small"
                         theme="primary"
                         class="mr10"
-                        @change="value => handleStatusChange(value, row)" />
+                        @change="value => handleStatusChange(value, row)"
+                        v-test="{ type: 'button', value: 'toggleCrontabStatus' }" />
                     <auth-button
                         auth="cron/edit"
                         :resource-id="row.id"
                         :permission="row.canManage"
                         class="time-task-edit mr10"
                         text
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'button', value: 'editCrontab' }">
                         {{ $t('cron.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -227,13 +238,15 @@
                             auth="cron/delete"
                             :resource-id="row.id"
                             :permission="row.canManage"
-                            text>
+                            text
+                            v-test="{ type: 'button', value: 'deleteCrontab' }">
                             {{ $t('cron.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
                     <bk-button
                         text
-                        @click="handleHistoryRecord(row)">
+                        @click="handleHistoryRecord(row)"
+                        v-test="{ type: 'button', value: 'crontabExecRecord' }">
                         {{ $t('cron.执行记录') }}
                     </bk-button>
                 </template>
@@ -264,7 +277,8 @@
             <template #footer>
                 <bk-button
                     theme="primary"
-                    @click="handleToggelEdit">
+                    @click="handleToggelEdit"
+                    v-test="{ type: 'button', value: 'showCrontabDetail' }">
                     {{ $t('cron.编辑') }}
                 </bk-button>
             </template>

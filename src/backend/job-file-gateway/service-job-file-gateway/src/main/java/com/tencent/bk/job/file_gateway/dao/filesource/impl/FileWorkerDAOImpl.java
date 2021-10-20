@@ -31,7 +31,15 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.*;
+import org.jooq.BatchBindStep;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record22;
+import org.jooq.Result;
+import org.jooq.UpdateConditionStep;
+import org.jooq.UpdateSetFirstStep;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.FileWorker;
 import org.jooq.generated.tables.FileWorkerAbility;
@@ -76,6 +84,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     private static final FileWorker defaultTable = FileWorker.FILE_WORKER;
     private static final FileWorkerAbility tFileWorkerAbility = FileWorkerAbility.FILE_WORKER_ABILITY;
     private final DSLContext defaultContext;
+
     @Autowired
     public FileWorkerDAOImpl(DSLContext dslContext) {
         this.defaultContext = dslContext;
@@ -114,7 +123,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.LAST_MODIFY_TIME,
             defaultTable.CONFIG_STR
         ).values(
-            (Long) null,
+            fileWorkerDTO.getId(),
             fileWorkerDTO.getAppId(),
             fileWorkerDTO.getName(),
             fileWorkerDTO.getDescription(),
@@ -412,6 +421,33 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ONLINE_STATUS.eq(FileWorkerOnlineStatusEnum.ONLINE.getStatus()));
         return countFileWorkersByConditions(conditions);
+    }
+
+    public boolean existsFileWorker(DSLContext dslContext, String accessHost, Integer accessPort) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
+        conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
+        return existsFileWorkerByConditions(dslContext, conditions);
+    }
+
+    @Override
+    public FileWorkerDTO getFileWorker(DSLContext dslContext, String accessHost, Integer accessPort) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
+        conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
+        List<FileWorkerDTO> fileWorkerDTOList = listFileWorkersByConditions(dslContext, conditions);
+        if (fileWorkerDTOList.isEmpty()) {
+            return null;
+        } else {
+            return fileWorkerDTOList.get(0);
+        }
+    }
+
+    private boolean existsFileWorkerByConditions(DSLContext dslContext, Collection<Condition> conditions) {
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+        }
+        return dslContext.fetchExists(dslContext.selectOne().from(defaultTable).where(conditions));
     }
 
     public List<FileWorkerDTO> listFileWorkersByConditions(DSLContext dslContext, Collection<Condition> conditions) {

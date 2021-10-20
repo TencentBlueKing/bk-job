@@ -1,0 +1,35 @@
+{{- if .Values.manageConfig.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: "job-manage"
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-manage"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+    kind: Deployment
+    name: "job-manage"
+  minReplicas: {{ .Values.manageConfig.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.manageConfig.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.manageConfig.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.manageConfig.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.manageConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.manageConfig.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

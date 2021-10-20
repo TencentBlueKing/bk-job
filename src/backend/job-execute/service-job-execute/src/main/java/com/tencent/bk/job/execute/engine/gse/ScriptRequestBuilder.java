@@ -24,8 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.gse;
 
-import com.tencent.bk.gse.taskapi.*;
-import org.apache.commons.lang.StringUtils;
+import com.tencent.bk.gse.taskapi.api_agent;
+import com.tencent.bk.gse.taskapi.api_auto_task;
+import com.tencent.bk.gse.taskapi.api_script_file;
+import com.tencent.bk.gse.taskapi.api_script_request;
+import com.tencent.bk.gse.taskapi.api_task_relation;
+import com.tencent.bk.gse.taskapi.api_task_request;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

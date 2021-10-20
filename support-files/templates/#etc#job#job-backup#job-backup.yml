@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: job-backup
+  cloud:
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-backup:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:mysql://__BK_JOB_BACKUP_MYSQL_HOST__:__BK_JOB_BACKUP_MYSQL_PORT__/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_BACKUP_MYSQL_USERNAME__
+      password: __BK_JOB_BACKUP_MYSQL_PASSWORD__
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      poolName: "job-backup"
+      validationTimeout: 5000
+    job-execute-db:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      username: __BK_JOB_EXECUTE_MYSQL_USERNAME__
+      password: __BK_JOB_EXECUTE_MYSQL_PASSWORD__
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 6000
+      poolName: "job-execute-db"
+      validationTimeout: 5000
+    # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
+    #job-execute-archive:
+      #driver-class-name: com.mysql.cj.jdbc.Driver
+      #type: com.zaxxer.hikari.HikariDataSource
+      #jdbc-url: jdbc:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      #username: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_USERNAME__
+      #password: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_PASSWORD__
+      #maximum-pool-size: 10
+      #minimum-idle: 2
+      #idle-timeout: 6000
+      #poolName: "job-execute-archive"
+      #validationTimeout: 5000
+
+  rabbitmq:
+    host: __BK_JOB_BACKUP_RABBITMQ_HOST__
+    port: __BK_JOB_BACKUP_RABBITMQ_PORT__
+    username: __BK_JOB_BACKUP_RABBITMQ_USERNAME__
+    password: __BK_JOB_BACKUP_RABBITMQ_PASSWORD__
+    virtual-host: __BK_JOB_BACKUP_RABBITMQ_VHOST__
+  redis:
+    host: __BK_JOB_BACKUP_REDIS_HOST__
+    port: __BK_JOB_BACKUP_REDIS_PORT__
+    sentinel:
+      password: __BK_JOB_BACKUP_REDIS_SENTINEL_PASSWORD__
+      master: __BK_JOB_BACKUP_REDIS_SENTINEL_MASTER__
+      nodes: __BK_JOB_BACKUP_REDIS_SENTINEL_NODES__
+    password: __BK_JOB_BACKUP_REDIS_PASSWORD__
+    database: 0
+    lettuce:
+      pool:
+        min-idle: 5
+        max-idle: 10
+        max-active: 8
+        max-wait: 1ms
+      shutdown-timeout: 100ms
+  servlet:
+    multipart:
+      max-file-size: 5GB
+      max-request-size: 5GB
+
+ribbon:
+  ReadTimeout: 60000
+  ConnectTimeout: 10000
+  eureka:
+    enabled: false
+
+job:
+  backup:
+    upload:
+      filesize:
+        max: 2GB
+  execute:
+    archive:
+      enabled: false
+      cron: 0 0 4 * * *
+      data:
+        keep_days: 365
+      delete:
+        enabled: false
+
+

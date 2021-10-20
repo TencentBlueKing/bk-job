@@ -29,12 +29,13 @@
     <bk-sideslider
         class="jb-sideslider"
         ref="bkSideslider"
+        v-bind="$attrs"
         :is-show="isShow"
+        @update:isShow="close"
         quick-close
         transfer
         :width="mediaWidth"
-        @update:isShow="handleCancel"
-        v-bind="$attrs">
+        :before-close="beforeClose">
         <template slot="header">
             <slot name="header">
                 {{ title }}
@@ -53,7 +54,7 @@
                             theme="primary"
                             class="mr10"
                             :loading="isSubmiting"
-                            @click="handleSave">
+                            @click="handleSubmit">
                             {{ okText }}
                         </bk-button>
                         <bk-button @click="handleCancel">{{ cancelText }}</bk-button>
@@ -145,7 +146,7 @@
                             this.isRender = true;
                             // 当页面可以进行编辑时，其中一项是通过sideslider来编辑的，需要先记录页面的编辑状态
                             this.pageChangeAlertMemo = window.changeAlert;
-                            window.changeAlert = 'jbSidesider';
+                            window.changeAlert = 'dialog';
                             this.getMediaWidth();
                             this.$nextTick(() => {
                                 observer.observe(this.$refs.bkSideslider.$el, {
@@ -168,7 +169,6 @@
             },
         },
         created () {
-            this.handle = null;
             this.pageChangeAlertMemo = false;
         },
         beforeDestroy () {
@@ -241,12 +241,24 @@
              * 判断条件为有没有提供submit方法
              */
             checkHandle () {
+                // 可以绑定子组件的唯一判断条件——子组件有提供submit methods
+                const handle = {
+                    submit: () => Promise.resolve(),
+                    reset: () => Promise.resolve(),
+                };
                 const [{ $children }] = this.$children;
-                $children.forEach((handle) => {
-                    if (handle.submit && typeof handle.submit === 'function') {
-                        this.handle = handle;
+                $children.forEach((child) => {
+                    if (typeof child.submit === 'function') {
+                        handle.submit = child.submit;
+                        if (typeof child.reset === 'function') {
+                            handle.reset = child.reset;
+                        }
                     }
                 });
+                return handle;
+            },
+            beforeClose () {
+                return leaveConfirm();
             },
             /**
              * @desc 关闭弹层
@@ -258,50 +270,25 @@
             /**
              * @desc 弹框的确认操作如果子组件有配置submit方案就执行
              */
-            handleSave () {
-                this.checkHandle();
-                if (!this.handle) return;
-                const submitResult = this.handle.submit();
-                if (submitResult && typeof submitResult.then === 'function') {
-                    this.isSubmiting = true;
-                    submitResult.then(() => {
+            handleSubmit () {
+                this.isSubmiting = true;
+                Promise.resolve(this.checkHandle().submit())
+                    .then(() => {
                         window.changeAlert = false;
                         this.close();
-                    }).catch((error) => {
-                        console.log(error.message);
                     })
-                        .finally(() => {
-                            this.isSubmiting = false;
-                        });
-                } else {
-                    this.close();
-                }
+                    .finally(() => {
+                        this.isSubmiting = false;
+                    });
             },
             /**
              * @desc 关闭弹框时如果子组件有配置reset方案就执行
              */
             handleCancel () {
-                let cancelHandler = Promise.resolve();
-                if (window.changeAlert) {
-                    cancelHandler = leaveConfirm();
-                }
-                cancelHandler.then(() => {
-                    this.checkHandle();
-                    if (!this.handle || !this.handle.reset || typeof this.handle.reset !== 'function') {
-                        this.close();
-                        return;
-                    }
-                    const resetResult = this.handle.reset();
-                    if (resetResult && typeof resetResult.then === 'function') {
-                        resetResult.then(() => {
-                            this.close();
-                        }).catch((error) => {
-                            console.log(error.message);
-                        });
-                    } else {
-                        this.close();
-                    }
-                }, _ => _);
+                leaveConfirm()
+                    .then(() => this.checkHandle().reset())
+                    .then(() => this.close())
+                    .catch(_ => _);
             },
         },
     };

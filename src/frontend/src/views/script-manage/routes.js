@@ -43,7 +43,8 @@ export default {
             component: () => import('@views/script-manage/list/'),
             meta: {
                 pageTitle: I18n.t('脚本管理'),
-                skeleton: 'list',
+                skeleton: 'taskList',
+                full: true,
             },
         },
         {
@@ -60,7 +61,7 @@ export default {
             component: () => import('@views/script-manage/version'),
             meta: {
                 title: I18n.t('版本管理'),
-                skeleton: 'list',
+                skeleton: 'scriptVersion',
             },
         },
         {

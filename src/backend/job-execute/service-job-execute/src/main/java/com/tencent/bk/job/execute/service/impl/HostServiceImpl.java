@@ -263,7 +263,7 @@ public class HostServiceImpl implements HostService {
         return "job:execute:host:" + cloudAreaId + ":" + ip;
     }
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void syncWhiteIpConfig() {
         log.info("Sync white ip config!");
         isWhiteIpConfigLoaded = true;

@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: job-analysis
+  cloud:
+    refresh:
+      extra-refreshable: javax.sql.DataSource
+  datasource:
+    job-analysis:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:mysql://__BK_JOB_ANALYSIS_MYSQL_HOST__:__BK_JOB_ANALYSIS_MYSQL_PORT__/job_analysis?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_ANALYSIS_MYSQL_USERNAME__
+      password: __BK_JOB_ANALYSIS_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-analysis"
+      validationTimeout: 5000
+
+  rabbitmq:
+    host: __BK_JOB_ANALYSIS_RABBITMQ_HOST__
+    port: __BK_JOB_ANALYSIS_RABBITMQ_PORT__
+    username: __BK_JOB_ANALYSIS_RABBITMQ_USERNAME__
+    password: __BK_JOB_ANALYSIS_RABBITMQ_PASSWORD__
+    virtual-host: __BK_JOB_ANALYSIS_RABBITMQ_VHOST__
+  redis:
+    host: __BK_JOB_ANALYSIS_REDIS_HOST__
+    port: __BK_JOB_ANALYSIS_REDIS_PORT__
+    sentinel:
+      password: __BK_JOB_ANALYSIS_REDIS_SENTINEL_PASSWORD__
+      master: __BK_JOB_ANALYSIS_REDIS_SENTINEL_MASTER__
+      nodes: __BK_JOB_ANALYSIS_REDIS_SENTINEL_NODES__
+    password: __BK_JOB_ANALYSIS_REDIS_PASSWORD__
+    database: 0
+    lettuce:
+      pool:
+        min-idle: 5
+        max-idle: 10
+        max-active: 8
+        max-wait: 1ms
+      shutdown-timeout: 100ms
+  servlet:
+    multipart:
+      max-file-size: 5GB
+      max-request-size: 5GB
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 300000
+

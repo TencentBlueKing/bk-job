@@ -31,20 +31,23 @@
             <bk-button
                 theme="primary"
                 class="w120"
-                @click="handleCreatePlan">
+                @click="handleCreatePlan"
+                v-test="{ type: 'button', value: 'createPlan' }">
                 {{ $t('template.新建') }}
             </bk-button>
             <span v-bk-tooltips="batchSyncDisableTips">
                 <bk-button
                     :disabled="!!batchSyncDisableTips"
-                    @click="handleSyncBatch">
+                    @click="handleSyncBatch"
+                    v-test="{ type: 'button', value: 'batchSyncPlan' }">
                     {{ $t('template.批量同步') }}
                 </bk-button>
             </span>
             <span v-bk-tooltips="batchEditGlobalVariableTips">
                 <bk-button
                     :disabled="!!batchEditGlobalVariableTips"
-                    @click="handleBatchEditGlobalVariable">
+                    @click="handleBatchEditGlobalVariable"
+                    v-test="{ type: 'button', value: 'batchEditPlanValue' }">
                     {{ $t('template.批量编辑变量值') }}
                 </bk-button>
             </span>
@@ -69,7 +72,8 @@
                 :size="tableSize"
                 :row-class-name="caclRowClassName"
                 :pagination-small="paginationSmall"
-                @on-selection-change="handleSelection">
+                @on-selection-change="handleSelection"
+                v-test="{ type: 'list', value: 'plan' }">
                 <div
                     v-if="isCreatePlan"
                     slot="prepend"
@@ -101,10 +105,16 @@
                             :resource-id="row.id">
                             <div
                                 class="plan-name-box"
-                                :class="{ active: selectPlanInfo.id === row.id }"
+                                :class="{
+                                    active: selectPlanInfo.id === row.id,
+                                }"
                                 @click="handlePlanSelect(row)">
                                 <div class="name-wraper">
-                                    <div class="name-text" v-bk-overflow-tips>{{ row.name }}</div>
+                                    <div
+                                        class="name-text"
+                                        v-bk-overflow-tips>
+                                        {{ row.name }}
+                                    </div>
                                     <Icon
                                         v-if="row.needUpdate"
                                         class="update-flag"
@@ -158,12 +168,13 @@
                     prop="cronJobCount"
                     key="cronJobCount"
                     width="160"
-                    align="left">
+                    align="right">
                     <template slot-scope="{ row }">
                         <bk-button
                             text
                             :disabled="!row.hasCronJob"
-                            @click="handleGoCronJobList(row)">
+                            @click="handleGoCronJobList(row)"
+                            v-test="{ type: 'link', value: 'crontabList' }">
                             {{ row.cronJobCount }}
                         </bk-button>
                     </template>
@@ -201,11 +212,16 @@
                     :resizable="false"
                     :label="$t('template.操作')"
                     prop="statusText"
+                    fixed="right"
                     key="action"
                     width="120"
                     align="left">
                     <template slot-scope="{ row }">
-                        <bk-button text @click="handleExecute(row)" class="mr10">
+                        <bk-button
+                            text
+                            @click="handleExecute(row)"
+                            class="mr10"
+                            v-test="{ type: 'button', value: 'execPlan' }">
                             {{ $t('template.去执行') }}
                         </bk-button>
                         <span :tippy-tips="row.needUpdate ? '' : $t('template.无需同步')">
@@ -216,22 +232,34 @@
                                 text
                                 @click="handleUpdate(row)"
                                 :disabled="!row.needUpdate"
-                                class="mr10">
+                                class="mr10"
+                                v-test="{ type: 'button', value: 'syncPlan' }">
                                 {{ $t('template.去同步') }}
                             </auth-button>
                         </span>
                         <list-operation-extend>
                             <div
                                 class="action-item"
-                                @click="handleGoCreateCronJob(row)">
+                                @click="handleGoCreateCronJob(row)"
+                                v-test="{ type: 'link', value: 'createCrontab' }">
                                 {{ $t('template.定时执行') }}
                             </div>
                             <auth-component
                                 :permission="row.canEdit"
                                 auth="job_plan/edit"
                                 :resource-id="row.id">
-                                <div class="action-item" @click="handleEdit(row)">{{ $t('template.编辑') }}</div>
-                                <div class="action-item" slot="forbid">{{ $t('template.编辑') }}</div>
+                                <div
+                                    class="action-item"
+                                    @click="handleEdit(row)"
+                                    v-test="{ type: 'button', value: 'editPlan' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
+                                <div
+                                    class="action-item"
+                                    slot="forbid"
+                                    v-test="{ type: 'button', value: 'editPlan' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
                             </auth-component>
                             <jb-popover-confirm
                                 class="action-del"
@@ -242,8 +270,17 @@
                                     :permission="row.canDelete"
                                     auth="job_plan/delete"
                                     :resource-id="row.id">
-                                    <div class="action-item">{{ $t('template.删除') }}</div>
-                                    <div class="action-item" slot="forbid">{{ $t('template.删除') }}</div>
+                                    <div
+                                        class="action-item"
+                                        v-test="{ type: 'button', value: 'deletePlan' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
+                                    <div
+                                        slot="forbid"
+                                        class="action-item"
+                                        v-test="{ type: 'button', value: 'deletePlan' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
                                 </auth-component>
                             </jb-popover-confirm>
                         </list-operation-extend>
@@ -273,7 +310,9 @@
             </template>
         </layout>
         <lower-component level="custom" :custom="isShowTemplateSelect">
-            <template-select v-model="isShowTemplateSelect" @on-change="handleTemplateChange" />
+            <template-select
+                v-model="isShowTemplateSelect"
+                @on-change="handleTemplateChange" />
         </lower-component>
         <lower-component level="custom" :custom="isShowBatchGlobalVariable">
             <batch-edit-global-variable

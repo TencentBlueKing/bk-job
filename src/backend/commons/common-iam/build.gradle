@@ -22,13 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
-    compile(files("libs/iam-sdk-1.0.0.jar"))
-    implementation 'org.aspectj:aspectjweaver'
-    implementation(group: 'org.springframework', name: 'spring-context')
-    implementation(project(":commons:esb-sdk"))
-    compile(project(":commons:common"))
+    api files("libs/iam-sdk-1.0.0.jar")
+    api project(":commons:common")
+    api project(":commons:esb-sdk")
+    api 'org.springframework:spring-context'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
+    implementation 'org.apache.httpcomponents:httpclient'
+    implementation 'org.aspectj:aspectjweaver'
 }

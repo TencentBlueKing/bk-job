@@ -50,8 +50,10 @@
         </list-action-layout>
         <render-list
             ref="list"
+            :size="tableSize"
             :data-source="fetchDetectRecordsList"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'detectRecord' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 label="ID"
@@ -142,12 +144,14 @@
             <bk-table-column
                 :label="$t('detectRecords.操作')"
                 key="action"
+                fixed="right"
                 align="left"
                 width="100">
                 <template slot-scope="{ row }">
                     <bk-button
                         text
-                        @click="handleShowScriptContent(row)">
+                        @click="handleShowScriptContent(row)"
+                        v-test="{ type: 'button', value: 'viewDetectScript' }">
                         {{ $t('detectRecords.查看脚本') }}
                     </bk-button>
                 </template>

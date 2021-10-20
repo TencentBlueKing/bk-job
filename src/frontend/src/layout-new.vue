@@ -42,18 +42,21 @@
             <div class="top-menu-box">
                 <div
                     class="top-menu-item"
+                    v-test="{ type: 'navigation', value: 'home' }"
                     :class="{ active: routerGroup === 'business' }"
                     @click="handleRouterChange('home')">
                     {{ $t('作业管理') }}
                 </div>
                 <div
                     class="top-menu-item"
+                    v-test="{ type: 'navigation', value: 'dashboard' }"
                     :class="{ active: routerGroup === 'operation' }"
                     @click="handleRouterChange('dashboard')">
                     {{ $t('运营分析') }}
                 </div>
                 <div
                     class="top-menu-item"
+                    v-test="{ type: 'navigation', value: 'scriptTemplate' }"
                     :class="{ active: routerGroup === 'personal' }"
                     @click="handleRouterChange('scriptTemplate')">
                     {{ $t('个性化') }}
@@ -61,6 +64,7 @@
                 <div
                     v-if="isAdmin"
                     class="top-menu-item"
+                    v-test="{ type: 'navigation', value: 'publicScriptList' }"
                     :class="{ active: routerGroup === 'manage' }"
                     @click="handleRouterChange('publicScriptList')">
                     {{ $t('平台管理') }}
@@ -148,6 +152,10 @@
                     <jb-item-group>
                         <div slot="title">{{ $t('管理.menuGroup') }}</div>
                         <div slot="flod-title">{{ $t('管理.flodTitle') }}</div>
+                        <jb-item index="tagManage">
+                            <Icon type="tag" />
+                            {{ $t('标签') }}
+                        </jb-item>
                         <jb-item index="notifyManage">
                             <Icon type="job-message" />
                             {{ $t('消息通知') }}
@@ -217,7 +225,7 @@
                 <div v-once id="siteHeaderStatusBar" />
             </div>
         </template>
-        <div>
+        <div v-test="{ type: 'page', value: $route.name }">
             <slot />
         </div>
     </site-frame>

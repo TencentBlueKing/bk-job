@@ -23,6 +23,11 @@
  * IN THE SOFTWARE.
 */
 
+/**
+ * @desc 字节数展示文本
+ * @param { Number } value 字节数
+ * @returns { String }
+ */
 export const bytePretty = (value) => {
     if (value === null || value === '' || value === 0) {
         return '0 Bytes';

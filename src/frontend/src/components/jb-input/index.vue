@@ -28,12 +28,18 @@
 <template>
     <div class="jb-input" ref="jbInput">
         <bk-input
+            ref="input"
             :value="localValue"
             @input="handleInput"
             @blur="handleBlur"
             @keyup="handleKeyup"
             v-bind="$attrs" />
-        <span v-if="maxlength > 0" ref="number" class="number">{{ inputLength }}/{{ maxlength }}</span>
+        <span
+            v-if="maxlength > 0"
+            ref="number"
+            class="jb-input-number">
+            {{ inputLength }}/{{ maxlength }}
+        </span>
     </div>
 </template>
 <script>
@@ -96,7 +102,7 @@
             },
             handleBlur () {
                 setTimeout(() => {
-                    this.inputHander.value = this.localValue;
+                    this.$refs.input.setCurValue(this.localValue);
                 });
             },
             handleKeyup (value, event) {
@@ -119,6 +125,7 @@
                     value = value.slice(0, this.maxlength);
                     this.$nextTick(() => {
                         this.inputHander.value = value;
+                        this.$refs.input.setCurValue(value);
                     });
                 }
                 this.inputLength = value.length;
@@ -134,10 +141,11 @@
     .jb-input {
         position: relative;
 
-        .number {
+        .jb-input-number {
             position: absolute;
             top: 50%;
             right: 9px;
+            font-size: 12px;
             color: #979ba5;
             transform: translateY(-50%);
         }

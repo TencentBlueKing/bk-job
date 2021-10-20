@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-common
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-common"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    spring:
+      security:
+        user:
+          name: {{ .Values.job.security.actuator.user.name }}
+          password: {{ .Values.job.security.actuator.user.password }}
+          roles: ENDPOINT_ADMIN
+    app:
+      code: {{ .Values.app.code }}
+      secret: {{ .Values.app.secret }}
+    esb:
+      service:
+        url: {{ .Values.esb.service.url }}
+    gse:
+      cache:
+        apiserver:
+          host: {{ .Values.gse.cacheApiServer.host }}
+          port: {{ .Values.gse.cacheApiServer.port }}
+      ssl:
+        keystore:
+          password: ${gse.keystore.password}
+          path: "/data/job/cert/gse_job_api_client.keystore"
+        truststore:
+          manager-type: SunX509
+          password: ${gse.truststore.password}
+          store-type: JKS
+          path: "/data/job/cert/gse_job_api_client.truststore"
+      taskserver:
+        host: {{ .Values.gse.taskserver.host }}
+        port: {{ .Values.gse.taskserver.port }}
+      server:
+        discovery:
+          type: {{ .Values.gse.server.discovery.type }}
+        zookeeper:
+          connect:
+            string: {{ .Values.gse.server.zookeeper.connect.string }}
+      query:
+        threads:
+          num: {{ .Values.gse.query.threads.num }}
+        batchSize: {{ .Values.gse.query.batchSize }}
+    iam:
+      base-url: {{ .Values.iam.baseUrl }}
+      system-id: {{ .Values.iam.systemId }}
+    paas:
+      login:
+        url: {{ .Values.paas.login.url }}
+    job:
+      security:
+        service:
+          private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
+          public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+      edition: {{ .Values.job.edition }}
+      encrypt:
+        password: {{ .Values.job.encrypt.password }}
+      web:
+        url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
+      feature:
+        file-manage:
+          enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
+      storage:
+        root-path: {{ .Values.job.storage.rootPath }}
+    cmdb:
+     app:
+       index:
+         path: {{ .Values.cmdb.app.index.path }}
+     interface:
+       briefCacheTopo:
+         enabled: {{ .Values.cmdb.interface.briefCacheTopo.enabled }}
+       findHostRelation:
+         longTerm:
+           concurrency: {{ .Values.cmdb.interface.findHostRelation.longTerm.concurrency }}
+       flowControl:
+         default:
+           limit: {{ .Values.cmdb.interface.flowControl.default.limit }}
+         enabled: {{ .Values.cmdb.interface.flowControl.enabled }}
+       retry:
+         enabled: {{ .Values.cmdb.interface.retry.enabled }}
+     query:
+       threads:
+         num: {{ .Values.cmdb.query.threads.num }}
+     server:
+       url: {{ .Values.cmdb.server.url }}
+    nodeman:
+      server:
+        url: {{ .Values.nodeman.server.url }}
+    local-file:
+      storage-backend: {{ .Values.localFile.storageBackend }}
+      artifactory:
+        base-url: {{ .Values.localFile.artifactory.baseUrl }}
+        download:
+          concurrency: {{ .Values.localFile.artifactory.download.concurrency }}
+        admin:
+          username: {{ .Values.localFile.artifactory.admin.username }}
+          password: {{ .Values.localFile.artifactory.admin.password }}
+        job:
+          username: {{ .Values.localFile.artifactory.job.username }}
+          password: {{ .Values.localFile.artifactory.job.password }}
+          project: {{ .Values.localFile.artifactory.job.project }}
+          repo:
+            local-upload: {{ .Values.localFile.artifactory.job.repo.localUpload }}
+    swagger:
+      url: {{ .Values.swagger.url }}

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import com.tencent.bk.job.ticket.model.credential.CommonCredential;
+import com.tencent.bk.job.manage.model.credential.CommonCredential;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

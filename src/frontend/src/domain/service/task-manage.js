@@ -74,6 +74,14 @@ export default {
     },
     fetchBasic (params) {
         return TaskManageSource.getBasicById(params)
+            .then(({ data }) => data.map(item => new TaskModel(item)));
+    },
+    batchUpdateTag (params = {}) {
+        return TaskManageSource.batchUpdateTag(params)
+            .then(({ data }) => data);
+    },
+    fetchTagCount (params = {}) {
+        return TaskManageSource.getTagCount(params)
             .then(({ data }) => data);
     },
 };

@@ -23,6 +23,11 @@
  * IN THE SOFTWARE.
 */
 
+/**
+ * @desc DOM 元素 offset
+ * @param { DomElement } target
+ * @returns { Object }
+ */
 export const getOffset = (target) => {
     let totalLeft = null;
     let totalTop = null;
@@ -42,6 +47,11 @@ export const getOffset = (target) => {
     return { left: totalLeft, top: totalTop };
 };
 
+/**
+ * @desc DOM 节点的 scrollParent
+ * @param { DomElement } node
+ * @returns { DomElement }
+ */
 export const getScrollParent = (node) => {
     if (node === null) {
         return null;
@@ -53,7 +63,12 @@ export const getScrollParent = (node) => {
     return getScrollParent(node.parentNode);
 };
 
-export const scrollTopSmooth = function (target, position) {
+/**
+ * @desc 滚动动画
+ * @param { DomElement } target
+ * @param { Number } destScrollTop
+ */
+export const scrollTopSmooth = function (target, destScrollTop) {
     if (!window.requestAnimationFrame) {
         window.requestAnimationFrame = function (cb) {
             return setTimeout(cb, 20);
@@ -61,10 +76,10 @@ export const scrollTopSmooth = function (target, position) {
     }
     let { scrollTop } = target;
     const step = function () {
-        const distance = position - scrollTop;
+        const distance = destScrollTop - scrollTop;
         scrollTop = scrollTop + distance / 5;
         if (Math.abs(distance) < 1) {
-            target.scrollTo(0, position);
+            target.scrollTo(0, destScrollTop);
         } else {
             target.scrollTo(0, scrollTop);
             requestAnimationFrame(step);

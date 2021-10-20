@@ -1,42 +1,51 @@
 spring:
-  datasource:
-    job-file-gateway:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      type: com.zaxxer.hikari.HikariDataSource
-      jdbc-url: ${job.file-gateway.db.url}
-      username: ${job.file-gateway.db.username}
-      password: ${job.file-gateway.db.password}
-      maximum-pool-size: 20
-      minimum-idle: 5
-      idle-timeout: 600000
-      poolName: "job-file-gateway"
-      validationTimeout: 5000
-  redis:
-    mode: ${job.file-gateway.redis.mode:sentinel}
-    host: ${job.file-gateway.redis.host:}
-    port: ${job.file-gateway.redis.port:6379}
-    sentinel:
-      password: ${job.file-gateway.redis.sentinel.password:}
-      master: ${job.file-gateway.redis.sentinel.master:}
-      nodes: ${job.file-gateway.redis.sentinel.nodes:}
-    cluster:
-      nodes: ${job.file-gateway.redis.cluster.nodes:}
-    password: ${job.file-gateway.redis.password:}
-    database: ${job.file-gateway.redis.database}
-    lettuce:
-      pool:
-        min-idle: ${job.file-gateway.redis.lettuce.pool.min-idle}
-        max-idle: ${job.file-gateway.redis.lettuce.pool.max-idle}
-        max-active: ${job.file-gateway.redis.lettuce.pool.max-active}
-        max-wait: ${job.file-gateway.redis.lettuce.pool.max-wait}
-      shutdown-timeout: ${job.file-gateway.redis.lettuce.shutdown-timeout}
-  servlet:
-    multipart:
-      max-file-size: ${job.file-gateway.upload.filesize.max:5GB}
-      max-request-size: ${job.file-gateway.upload.filesize.max:5GB}
+  application:
+    name: ${SPRING_APPLICATION_NAME:job-file-gateway}
+  profiles:
+    active: prod
+ribbon:
+  ServerListRefreshInterval: 3000
 
-job:
-  security:
-    service:
-      private-key-base64: ${job.security.private-key-base64}
-      public-key-base64: ${job.security.public-key-base64}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: shutdown,health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+server:
+  port: 19809
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

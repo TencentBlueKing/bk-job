@@ -1,6 +1,13 @@
 spring:
+  application:
+    name: job-gateway
   main:
     allow-bean-definition-overriding: true
+  profiles:
+    active: default
+  sleuth:
+    web:
+      filter-order: 0
   cloud:
     ssl:
       useInsecureTrustManager: true
@@ -62,7 +69,7 @@ spring:
             - StripPrefix=1
             - AddWebLangHeader
         - id: job-ticket-web
-          uri: lb://job-ticket
+          uri: lb://job-manage
           predicates:
             - Path= /job-ticket/web/**
           filters:
@@ -167,7 +174,7 @@ spring:
             - AddEsbLangHeader
 
         - id: job-ticket-iam
-          uri: lb://job-ticket
+          uri: lb://job-manage
           predicates:
             - Path=/iam/api/v1/resources/ticket
           filters:
@@ -205,28 +212,60 @@ spring:
           filters:
             - RecordIamAccessLog
             - AddEsbLangHeader
-  security:
-    user:
-      name: ${job.security.actuator.user.name}
-      password: ${job.security.actuator.user.password}
-      roles: ENDPOINT_ADMIN
 server:
-  http:
-    enabled: ${job.gateway.server.http.enabled:true}
-    port: ${job.gateway.server.http.port:9802}
-  port: ${job.gateway.server.port:19802}
   shutdown: graceful
-  ssl:
-    enabled: true
-    key-store-type: ${job.gateway.server.ssl.keystore.type}
-    key-store: ${job.gateway.server.ssl.keystore.path}
-    key-store-password: ${job.gateway.server.ssl.keystore.password}
-    key-alias: ${job.gateway.server.ssl.key.alias}
-    trust-store: ${job.gateway.server.ssl.truststore.path}
-    trust-store-password: ${job.gateway.server.ssl.truststore.password}
+
+ribbon:
+  ServerListRefreshInterval: 3000
+
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  server:
+    port: 19876
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: when_authorized
+      probes:
+        enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.cloud.consul.discovery.service-name}
+
 job:
-  security:
-    service:
-      private-key-base64: ${job.security.private-key-base64}
-      public-key-base64: ${job.security.public-key-base64}
-  edition: ce
+  gateway:
+    login-exemption:
+      enabled: false
+      default-user: admin

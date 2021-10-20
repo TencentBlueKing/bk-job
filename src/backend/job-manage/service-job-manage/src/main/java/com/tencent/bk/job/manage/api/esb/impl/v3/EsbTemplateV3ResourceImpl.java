@@ -40,6 +40,7 @@ import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbTemplateBasicInfoV3DTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,8 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
 
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_template_list"})
-    public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(EsbGetTemplateListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
+        EsbGetTemplateListV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get template list, request is illegal!");
@@ -107,10 +109,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
-
-        TaskTemplateInfoDTO taskTemplateCondition = new TaskTemplateInfoDTO();
-        taskTemplateCondition.setAppId(appId);
-        taskTemplateCondition.setName(request.getName());
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         if (request.getStart() != null) {
@@ -131,9 +129,11 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         baseSearchCondition.setLastModifyTimeStart(request.getLastModifyTimeStart());
         baseSearchCondition.setLastModifyTimeEnd(request.getLastModifyTimeEnd());
 
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).name(request.getName())
+            .baseSearchCondition(baseSearchCondition).build();
+
         PageData<TaskTemplateInfoDTO> pageTemplates =
-            taskTemplateService.listPageTaskTemplatesBasicInfo(taskTemplateCondition, baseSearchCondition,
-            null);
+            taskTemplateService.listPageTaskTemplatesBasicInfo(query, null);
         EsbPageDataV3<EsbTemplateBasicInfoV3DTO> esbPageData = EsbPageDataV3.from(pageTemplates,
             this::convertToEsbTemplateBasicInfo);
         return EsbResp.buildSuccessResp(esbPageData);

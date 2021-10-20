@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -103,7 +103,7 @@ public class AppWatchThread extends Thread {
                             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
                                 // 若已存在则忽略
                             } else {
-                                log.error("insertApp fail:appInfo={}", appInfoDTO, e);
+                                log.error("insertApp fail:appInfo=" + appInfoDTO, e);
                             }
                         }
                     }

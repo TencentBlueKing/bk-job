@@ -23,11 +23,16 @@
  * IN THE SOFTWARE.
 */
 
-export const findUsedVariable = (list) => {
+/**
+ * @desc 遍历查找step中使用到的全局变量
+ * @param { Array } stepList
+ * @returns { Array } 被使用了得全局变量列表
+ */
+export const findUsedVariable = (stepList) => {
     const variableSet = new Set();
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < list.length; i++) {
-        const step = list[i];
+    for (let i = 0; i < stepList.length; i++) {
+        const step = stepList[i];
         if (step.isScript) {
             // 执行脚本步骤
             const { executeTarget, scriptParam } = step.scriptStepInfo;
@@ -87,17 +92,11 @@ export const findUsedVariable = (list) => {
     ];
 };
 
-export const isPublicScript = (route) => {
-    const { meta } = route;
-    if (!meta) {
-        return false;
-    }
-    if (meta.public) {
-        return true;
-    }
-    return false;
-};
-
+/**
+ * @desc 通过路由检测是否是功能脚本名模块
+ * @param { Object } route
+ * @returns { Boolean }
+ */
 export const checkPublicScript = (route) => {
     const { meta } = route;
     if (!meta) {
@@ -109,6 +108,12 @@ export const checkPublicScript = (route) => {
     return false;
 };
 
+/**
+ * @desc 比较主机节点
+ * @param { Object } preHost
+ * @param { Object } nextHost
+ * @returns { Boolean }
+ */
 export const compareHost = (preHost, nextHost) => {
     // 全都使用了主机变量
     if (nextHost.variable && nextHost.variable === preHost.variable) {
@@ -177,6 +182,11 @@ export const compareHost = (preHost, nextHost) => {
     return true;
 };
 
+/**
+ * @desc 检测分发文件源路径重复
+ * @param { Array } fileSourceList
+ * @returns { Boolean }
+ */
 export const detectionSourceFileDupLocation = (fileSourceList) => {
     const fileLocationMap = {};
     const pathReg = /([^/]+\/?)\*?$/;

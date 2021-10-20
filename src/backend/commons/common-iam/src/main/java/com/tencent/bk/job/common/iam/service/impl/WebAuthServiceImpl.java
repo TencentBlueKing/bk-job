@@ -98,6 +98,12 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
+    public AuthResultVO batchAuthResources(String username, String actionId, Long appId,
+                                           List<PermissionResource> resources) {
+        return toAuthResultVO(authService.batchAuthResources(username, actionId, appId, resources));
+    }
+
+    @Override
     public AppIdResult getAppIdList(String username, List<Long> allAppIdList) {
         return authService.getAppIdList(username, allAppIdList);
     }

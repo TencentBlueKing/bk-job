@@ -27,7 +27,9 @@
 
 <template>
     <div class="dangerous-rule-manage-page">
-        <table class="rule-table">
+        <table
+            class="rule-table"
+            v-test="{ type: 'list', value: 'dangerousRule' }">
             <thead>
                 <tr>
                     <th style="width: 20%;">{{ $t('dangerousRule.语法检测表达式') }}</th>
@@ -106,13 +108,15 @@
                                 @update="status => handleUpdate(rule, { status })"
                                 class="mr10"
                                 theme="primary"
-                                size="small" />
+                                size="small"
+                                v-test="{ type: 'button', value: 'toggleRuleStatus' }" />
                             <bk-button
                                 class="arrow-btn mr10"
                                 text
                                 :disabled="index === 0"
                                 v-bk-tooltips.top="$t('dangerousRule.上移')"
-                                @click="handleMove(index, -1)">
+                                @click="handleMove(index, -1)"
+                                v-test="{ type: 'button', value: 'upMoveRule' }">
                                 <Icon type="increase-line" />
                             </bk-button>
                             <bk-button
@@ -120,14 +124,19 @@
                                 text
                                 :disabled="index + 1 === list.length"
                                 v-bk-tooltips.top="$t('dangerousRule.下移')"
-                                @click="handleMove(index, 1)">
+                                @click="handleMove(index, 1)"
+                                v-test="{ type: 'button', value: 'downMoveRule' }">
                                 <Icon type="decrease-line" />
                             </bk-button>
                             <jb-popover-confirm
                                 :title="$t('dangerousRule.确定删除该规则？')"
                                 :content="$t('dangerousRule.脚本编辑器中匹配该规则将不会再收到提醒')"
                                 :confirm-handler="() => handleDelete(rule.id)">
-                                <bk-button text>{{ $t('dangerousRule.删除') }}</bk-button>
+                                <bk-button
+                                    text
+                                    v-test="{ type: 'button', value: 'deleteRule' }">
+                                    {{ $t('dangerousRule.删除') }}
+                                </bk-button>
                             </jb-popover-confirm>
                         </div>
                     </td>
@@ -176,7 +185,9 @@
              */
             fetchData () {
                 this.isLoading = true;
-                DangerousRuleService.fetchList()
+                DangerousRuleService.fetchList({}, {
+                    permission: 'page',
+                })
                     .then((data) => {
                         this.list = data;
                     })

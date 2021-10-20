@@ -26,7 +26,7 @@ package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.gateway.config.BkConfig;
+import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,17 +46,26 @@ import org.springframework.stereotype.Component;
 public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthorizeGatewayFilterFactory.Config> {
 
     private final LoginService loginService;
-    private final BkConfig bkConfig;
+    private final LoginExemptionConfig loginExemptionConfig;
 
     @Autowired
-    public AuthorizeGatewayFilterFactory(LoginService loginService, BkConfig bkConfig) {
+    public AuthorizeGatewayFilterFactory(LoginService loginService, LoginExemptionConfig loginExemptionConfig) {
         super(Config.class);
         this.loginService = loginService;
-        this.bkConfig = bkConfig;
+        this.loginExemptionConfig = loginExemptionConfig;
     }
 
-    @Override
-    public GatewayFilter apply(Config config) {
+    private GatewayFilter getLoginExemptionFilter() {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            String username = loginExemptionConfig.getDefaultUser();
+            log.info("loginExemption enabled, use default user:{}", username);
+            request.mutate().header("username", new String[]{username}).build();
+            return chain.filter(exchange.mutate().request(request).build());
+        };
+    }
+
+    private GatewayFilter getLoginFilter() {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
@@ -77,9 +86,18 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 return response.setComplete();
             }
             String username = user.getUsername();
+
             request.mutate().header("username", new String[]{username}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    @Override
+    public GatewayFilter apply(Config config) {
+        if (loginExemptionConfig.isEnableLoginExemption()) {
+            return getLoginExemptionFilter();
+        }
+        return getLoginFilter();
     }
 
     static class Config {

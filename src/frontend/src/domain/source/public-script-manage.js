@@ -163,6 +163,27 @@ class PublicScriptManage {
     getBasiceInfoById (params = {}) {
         return Request.get(`${this.module}/script/basic/${params.id}`);
     }
+
+    // 通过ID批量获取脚本基本信息
+    getBatchBasiceInfoByIds (params = {}) {
+        return Request.get(`${this.module}/script/basic/list`, {
+            params,
+        });
+    }
+
+    // 批量更新脚本 tag
+    batchUpdateTag (params = {}) {
+        return Request.put(`${this.module}/tag`, {
+            params,
+        });
+    }
+
+    // 获取业务下标签关联的模版数量
+    getTagCount (params = {}) {
+        return Request.get(`${this.module}/tag/count`, {
+            params,
+        });
+    }
 }
 
 export default new PublicScriptManage();

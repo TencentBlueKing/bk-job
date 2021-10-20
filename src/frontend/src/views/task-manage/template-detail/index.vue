@@ -82,21 +82,24 @@
                 <bk-button
                     theme="primary"
                     class="w120 mr10"
-                    @click="handleGoExec">
+                    @click="handleGoExec"
+                    v-test="{ type: 'button', value: 'planList' }">
                     {{ $t('template.选择方案') }}
                 </bk-button>
                 <auth-button
                     class="mr10"
                     :resource-id="taskId"
                     auth="job_template/debug"
-                    @click="handleGoDebug">
+                    @click="handleGoDebug"
+                    v-test="{ type: 'button', value: 'debugTemplate' }">
                     {{ $t('template.调试') }}
                 </auth-button>
                 <auth-button
                     class="mr10"
                     :resource-id="taskId"
                     auth="job_template/edit"
-                    @click="handleGoEdit">
+                    @click="handleGoEdit"
+                    v-test="{ type: 'button', value: 'editTemplate' }">
                     {{ $t('template.编辑') }}
                 </auth-button>
                 <span v-bk-tooltips="notNeedUpdateTips">
@@ -104,7 +107,8 @@
                         class="action-sync mr10"
                         :disabled="isNotNeedUpdate"
                         :loading="isPlanListLoading"
-                        @click="handleGoSyncPlan">
+                        @click="handleGoSyncPlan"
+                        v-test="{ type: 'button', value: 'syncPlan' }">
                         {{ $t('template.同步方案') }}
                         <div v-if="!isNotNeedUpdate" class="update-flag" v-bk-tooltips="$t('template.待同步')">
                             <Icon type="sync-small" />
@@ -119,7 +123,8 @@
                     <auth-button
                         class="delete-btn"
                         :resource-id="taskId"
-                        auth="job_template/delete">
+                        auth="job_template/delete"
+                        v-test="{ type: 'button', value: 'deleteTemplate' }">
                         {{ $t('template.删除') }}
                     </auth-button>
                 </jb-popover-confirm>

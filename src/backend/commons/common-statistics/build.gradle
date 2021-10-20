@@ -22,9 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'java'
 dependencies {
-    implementation project(":commons:common")
+    implementation project(':commons:common')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'

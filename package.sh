@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 echo 'Begin to package job'
-BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis)
+BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis)
 FRONTEND_MODULES=(job-frontend)
-ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-ticket job-file-worker job-analysis job-frontend)
+ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis job-frontend)
 JOB_EDITION=ce
 
 if [[ ! -d "release" ]]; then
@@ -149,6 +149,10 @@ if [[ ! -d "release/job/support-files" ]]; then
 fi
 cp -r support-files/bkiam/ release/job/support-files/
 cp -r support-files/dependJarInfo/ release/job/support-files/
+# Package dependJarLists
+if [[ -d "support-files/dependJarLists/" ]]; then
+  cp -r support-files/dependJarLists/ release/job/support-files/
+fi
 # Package SQL by modules
 if [[ ! -d "release/job/support-files/sql" ]]; then
   mkdir -p release/job/support-files/sql
@@ -169,26 +173,30 @@ if [[ -d "support-files/templates" ]]; then
     fi
     simpleName=${m:4}
     # Copy yml templates
-    ymlFilePath="support-files/templates/#etc#job#application-${simpleName}.yml"
-    if [[ -f "${ymlFilePath}" ]]; then
-      cp "${ymlFilePath}" release/job/support-files/templates
+    moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.yml"
+    if [[ -f "${moduleConfigFilePath}" ]]; then
+      cp "${moduleConfigFilePath}" release/job/support-files/templates
     else
       if [[ "${simpleName}" != "config" && "${simpleName}" != "file-worker" ]];then
         echo "cannot find yml template of job-${simpleName}"
         exit 1
       fi
     fi
-    # Copy properties templates
-    propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.properties"
-    if [[ -f "${propertiesFilePath}" ]]; then
-      cp "${propertiesFilePath}" release/job/support-files/templates
+	# Copy application-{module}.yml templates
+    moduleConfigFilePath="support-files/templates/#etc#job#application-${simpleName}.yml"
+    if [[ -f "${moduleConfigFilePath}" ]]; then
+      cp "${moduleConfigFilePath}" release/job/support-files/templates
     else
-      if [[ "${simpleName}" != "config" && "${simpleName}" != "file-worker" ]];then
-        echo "cannot find properties template of job-${simpleName}"
+      if [[ "${simpleName}" != "file-worker" ]];then
+        echo "cannot find yml template of application-${simpleName}"
         exit 1
       fi
     fi
   done
+  # Copy job-common.yml
+  simpleName='common'
+  propertiesFilePath="support-files/templates/#etc#job#job-${simpleName}#*"
+  cp ${propertiesFilePath} release/job/support-files/templates
   # Copy upgrader.properties
   upgraderPropertiesFile="support-files/templates/#etc#job#upgrader#upgrader.properties"
   if [[ -f "${upgraderPropertiesFile}" ]]; then

@@ -59,12 +59,12 @@ public class GseZkServer extends GseServer {
                 gseServerPath = DEFAULT_GSE_SERVER_PATH;
             }
 
-            cache = new PathChildrenCache(client, gseServerPath, true);
             try {
+                cache = new PathChildrenCache(client, gseServerPath, true);
                 cache.start();
                 addListener(cache);
             } catch (Exception e) {
-                log.error("gse Monitor Start failed!", e);
+                log.error("Gse zk listener start failed!", e);
             }
         }
     }

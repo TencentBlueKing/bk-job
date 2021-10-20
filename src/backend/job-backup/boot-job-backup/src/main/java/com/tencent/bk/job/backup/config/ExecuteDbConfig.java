@@ -48,21 +48,21 @@ public class ExecuteDbConfig {
     @Qualifier("job-execute-source")
     @Bean(name = "job-execute-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute-db")
-    @ConditionalOnProperty("job.execute.db.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
     public DataSource executeDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Qualifier("job-execute-dsl-context")
     @Bean(name = "job-execute-dsl-context")
-    @ConditionalOnProperty("job.execute.db.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
     public DSLContext executeDslContext(@Qualifier("job-execute-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
     }
 
     @Qualifier("job-execute-jooq-conf")
     @Bean(name = "job-execute-jooq-conf")
-    @ConditionalOnProperty("job.execute.db.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
     public org.jooq.Configuration
     executeJooqConf(@Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider) {
         return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
@@ -70,7 +70,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-conn-provider")
     @Bean(name = "job-execute-conn-provider")
-    @ConditionalOnProperty("job.execute.db.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
     public ConnectionProvider executeConnectionProvider(@Qualifier("job-execute-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }
@@ -79,14 +79,14 @@ public class ExecuteDbConfig {
     @Qualifier("job-execute-archive-source")
     @Bean(name = "job-execute-archive-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive")
-    @ConditionalOnProperty("job.execute.db.archive.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public DataSource executeArchiveDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Qualifier("job-execute-archive-dsl-context")
     @Bean(name = "job-execute-archive-dsl-context")
-    @ConditionalOnProperty("job.execute.db.archive.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public DSLContext executeArchiveDslContext(
         @Qualifier("job-execute-archive-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
@@ -94,7 +94,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-archive-jooq-conf")
     @Bean(name = "job-execute-archive-jooq-conf")
-    @ConditionalOnProperty("job.execute.db.archive.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public org.jooq.Configuration
     executeArchiveJooqConf(@Qualifier("job-execute-archive-conn-provider") ConnectionProvider connectionProvider) {
         return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
@@ -102,7 +102,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-archive-conn-provider")
     @Bean(name = "job-execute-archive-conn-provider")
-    @ConditionalOnProperty("job.execute.db.archive.url")
+    @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public ConnectionProvider executeArchiveConnectionProvider(
         @Qualifier("job-execute-archive-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);

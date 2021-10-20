@@ -36,43 +36,46 @@ import java.util.List;
 @Component
 public class WorkerConfig {
 
-    @Value("${job.file.worker.swagger.url:file-worker.swagger.com}")
+    @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
-    @Value("${job.file.worker.version:0.0.1}")
+    @Value("${job.file-worker.version:0.0.1}")
     private String version;
 
-    @Value("${job.file.worker.id:-1}")
+    @Value("${job.file-worker.id:-1}")
     private Long id;
 
-    @Value("${job.file.worker.token}")
+    @Value("${job.file-worker.name:anon}")
+    private String name;
+
+    @Value("${job.file-worker.token}")
     private String token;
 
-    @Value("${job.file.worker.appId}")
+    @Value("${job.file-worker.app-id}")
     private Long appId;
 
-    @Value("${job.file.worker.abilityTags:}")
+    @Value("${job.file-worker.ability-tags:}")
     private String abilityTagStr;
 
-    @Value("${job.file.worker.access.host:}")
+    @Value("${job.file-worker.access.host:}")
     private String accessHost;
 
-    @Value("${job.file.worker.access.port:19810}")
+    @Value("${job.file-worker.access.port:19810}")
     private Integer accessPort;
 
-    @Value("${job.file.worker.cloudArea.id:0}")
+    @Value("${job.file-worker.cloud-area-id:0}")
     private Long cloudAreaId;
 
-    @Value("${job.file.worker.innerIp:}")
+    @Value("${job.file-worker.inner-ip:}")
     private String innerIp;
 
-    @Value("${job.file.worker.download.file.dir:/tmp/job}")
+    @Value("${job.file-worker.download-file.dir:/tmp/job}")
     private String downloadFileDir;
 
-    @Value("${job.file.worker.download.file.expire.days:7}")
+    @Value("${job.file-worker.download-file.expire-days:7}")
     private Integer downloadFileExpireDays;
 
-    @Value("${job.file.gateway.api.root.url:http://api.job.com}")
+    @Value("${job.file-gateway.api.root-url:http://api.job.com}")
     private String jobApiRootUrl;
 
     private String workSpaceName = "JobFileWorkerWorkspace";

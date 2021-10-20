@@ -72,7 +72,7 @@ public class ScheduledTasks {
     /**
      * 业务同步：1min/次
      */
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void appSyncTask() {
         log.info(Thread.currentThread().getId() + ":appSyncTask start");
         try {

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceListPageTaskTemplatesRequest;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -106,8 +105,15 @@ public interface ServiceTaskTemplateResource {
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
 
     @ApiOperation(value = "获取模版信息列表", produces = "application/json")
-    @PostMapping("/list")
+    @GetMapping("/app/{appId}/template/list")
     ServiceResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
-        @RequestBody ServiceListPageTaskTemplatesRequest request
-    );
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId")
+            Long appId,
+        @ApiParam("分页-开始")
+        @RequestParam(value = "start", required = false)
+            Integer start,
+        @ApiParam("分页-每页大小")
+        @RequestParam(value = "pageSize", required = false)
+            Integer pageSize);
 }

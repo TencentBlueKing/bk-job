@@ -26,7 +26,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.ticket.model.credential.CommonCredential;
+import com.tencent.bk.job.manage.model.credential.CommonCredential;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

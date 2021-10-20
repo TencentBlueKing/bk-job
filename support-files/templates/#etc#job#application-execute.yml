@@ -5,6 +5,12 @@ spring:
       port: __CONSUL_HTTP_PORT__
       scheme: __CONSUL_SCHEME__
       enabled: true
+      discovery:
+        prefer-ip-address: true
+        service-name: job-execute
+        instance-id: job-execute-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
       #tls:
         #key-store-instance-type:
         #key-store-path:
@@ -19,5 +25,6 @@ spring:
       password: __BK_JOB_SECURITY_PASSWORD__
       enabled: true
       fail-fast: true
+
 server:
   port: __BK_JOB_EXECUTE_SERVER_PORT__

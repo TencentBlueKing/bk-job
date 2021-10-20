@@ -37,7 +37,15 @@ import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record1;
+import org.jooq.Record5;
+import org.jooq.Record21;
+import org.jooq.Result;
+import org.jooq.TableField;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.CronJob;
 import org.jooq.generated.tables.records.CronJobRecord;
 import org.jooq.types.UByte;
@@ -104,7 +112,6 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-
 
         Result<Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte,
             UByte, ULong, String, ULong, ULong, ULong, String, String>> records =

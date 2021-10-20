@@ -30,9 +30,16 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.model.dto.*;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
+import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
+import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
+import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -44,14 +51,6 @@ import java.util.Map;
  * @date 2019/09/19
  */
 public interface ScriptService {
-    /**
-     * 根据ID查询脚本版本
-     *
-     * @param scriptVersionId 脚本版本ID
-     * @return 脚本版本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getByScriptVersionId(Long scriptVersionId) throws ServiceException;
 
     /**
      * 根据ID查询脚本版本
@@ -139,9 +138,17 @@ public interface ScriptService {
      * @throws ServiceException 业务异常
      */
     PageData<ScriptDTO> listPageScript(
-        ScriptQueryDTO scriptCondition,
+        ScriptQuery scriptCondition,
         BaseSearchCondition baseSearchCondition
     ) throws ServiceException;
+
+    /**
+     * 根据条件查询脚本
+     *
+     * @param scriptQuery 查询条件
+     * @return 脚本列表
+     */
+    List<ScriptDTO> listScripts(ScriptQuery scriptQuery);
 
     /**
      * 保存脚本
@@ -303,7 +310,7 @@ public interface ScriptService {
      * @return 脚本列表
      * @throws ServiceException 业务异常
      */
-    PageData<ScriptDTO> listPageOnlineScript(ScriptQueryDTO scriptCondition,
+    PageData<ScriptDTO> listPageOnlineScript(ScriptQuery scriptCondition,
                                              BaseSearchCondition baseSearchCondition) throws ServiceException;
 
     /**
@@ -332,7 +339,7 @@ public interface ScriptService {
      * @param baseSearchCondition 基本查询条件
      * @return
      */
-    PageData<ScriptDTO> listPageScriptVersion(ScriptQueryDTO scriptQuery, BaseSearchCondition baseSearchCondition);
+    PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition);
 
     /**
      * 获取引用脚本的模板与步骤
@@ -421,10 +428,16 @@ public interface ScriptService {
 
     Integer countScriptVersions(Long appId, ScriptTypeEnum scriptTypeEnum, JobResourceStatusEnum jobResourceStatusEnum);
 
-    Integer countByTag(Long appId, Long tagId);
-
     List<String> listScriptIds(Long appId);
 
     Integer countCiteScripts(Long appId);
+
+    /**
+     * 获取标签关联的模版数量
+     *
+     * @param appId 业务 ID
+     * @return 标签模版数量
+     */
+    TagCountVO getTagScriptCount(Long appId);
 
 }

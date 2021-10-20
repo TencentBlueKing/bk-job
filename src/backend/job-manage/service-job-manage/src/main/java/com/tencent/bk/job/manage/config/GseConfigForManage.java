@@ -38,7 +38,7 @@ public class GseConfigForManage {
     @Value("${gse.cache.apiserver.port:59313}")
     private int gseCacheApiServerPort;
 
-    @Value("${gse.ssl.enable:true}")
+    @Value("${gse.ssl.enabled:true}")
     private boolean enableSsl;
 
     @Value("${gse.ssl.keystore.path:/data/bkee/cert/gse_job_api_client.keystore}")

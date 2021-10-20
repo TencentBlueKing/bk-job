@@ -32,7 +32,8 @@
                 theme="primary"
                 auth="ticket/create"
                 @click="handleCreate"
-                class="w120">
+                class="w120"
+                v-test="{ type: 'button', value: 'createTicket' }">
                 {{ $t('ticket.新建') }}
             </auth-button>
             <template #right>
@@ -48,7 +49,8 @@
             ref="list"
             :data-source="getTicketList"
             :size="tableSize"
-            :search-control="() => $refs.search">
+            :search-control="() => $refs.search"
+            v-test="{ type: 'list', value: 'ticket' }">
             <bk-table-column
                 v-if="allRenderColumnMap.id"
                 :label="$t('ticket.凭证ID')"
@@ -66,6 +68,7 @@
                 prop="name"
                 key="name"
                 align="left"
+                min-width="200"
                 show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <span class="ticket-name">{{ row.name }}</span>
@@ -76,6 +79,7 @@
                 prop="type"
                 key="type"
                 align="left"
+                width="180"
                 :filters="sourceFilters"
                 :filter-method="handelFilterType">
                 <template slot-scope="{ row }">
@@ -87,6 +91,7 @@
                 :label="$t('ticket.描述')"
                 prop="description"
                 key="description"
+                min-width="150"
                 align="left">
                 <template slot-scope="{ row }">
                     <span>{{ row.description }}</span>
@@ -98,11 +103,16 @@
                 prop="related"
                 key="related"
                 width="100"
-                align="left">
+                align="right">
                 <template slot-scope="{ row }">
-                    <div v-if="row.isRelatedLoading" class="sync-fetch-relate-nums">
+                    <div
+                        v-if="row.isRelatedLoading"
+                        class="sync-fetch-relate-nums">
                         <div class="related-nums-loading">
-                            <Icon type="sync-pending" svg style="color: #3a84ff;" />
+                            <Icon
+                                type="sync-pending"
+                                svg
+                                style="color: #3a84ff;" />
                         </div>
                     </div>
                     <bk-button
@@ -132,26 +142,21 @@
                 :label="$t('ticket.更新人')"
                 prop="lastModifyUser"
                 key="lastModifyUser"
-                align="left">
-                <template slot-scope="{ row }">
-                    <span>{{ row.lastModifyUser }}</span>
-                </template>
-            </bk-table-column>
+                width="120"
+                align="left" />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('ticket.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
-                align="left">
-                <template slot-scope="{ row }">
-                    <span style="display: block;">{{ row.lastModifyTime }}</span>
-                </template>
-            </bk-table-column>
+                width="180"
+                align="left" />
             <bk-table-column
                 :label="$t('ticket.操作')"
                 :resizable="false"
                 key="action"
-                width="80"
+                fixed="right"
+                width="100"
                 align="left">
                 <template slot-scope="{ row }">
                     <auth-button
@@ -160,7 +165,8 @@
                         :permission="row.canManage"
                         text
                         class="mr10"
-                        @click="handleEdit(row)">
+                        @click="handleEdit(row)"
+                        v-test="{ type: 'list', value: 'editTicket' }">
                         {{ $t('ticket.编辑') }}
                     </auth-button>
                     <jb-popover-confirm
@@ -171,7 +177,8 @@
                             auth="ticket/edit"
                             :permission="row.canManage"
                             :resource-id="row.id"
-                            text>
+                            text
+                            v-test="{ type: 'list', value: 'deleteTicket' }">
                             {{ $t('ticket.删除') }}
                         </auth-button>
                     </jb-popover-confirm>
@@ -207,9 +214,7 @@
     import I18n from '@/i18n';
     import TicketService from '@service/ticket-manage';
     import NotifyService from '@service/notify';
-    import {
-        listColumnsCache,
-    } from '@utils/cache-helper';
+    import { listColumnsCache } from '@utils/cache-helper';
     import RenderList from '@components/render-list';
     import JbSearchSelect from '@components/jb-search-select';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
@@ -256,22 +261,35 @@
                 if (!this.ticketDetailInfo.id) {
                     return {
                         title: I18n.t('ticket.新建凭证'),
-                        okText: I18n.t('ticket.保存'),
+                        okText: I18n.t('ticket.提交'),
+                        
                     };
                 }
                 return {
                     title: I18n.t('ticket.编辑凭证'),
-                    okText: I18n.t('ticket.提交'),
+                    okText: I18n.t('ticket.保存'),
                 };
             },
         },
         created () {
             this.getTicketList = TicketService.fetchListWithRelate;
             this.sourceFilters = [
-                { value: 'APP_ID_SECRET_KEY', text: I18n.t('AppID+SecretKey') },
-                { value: 'PASSWORD', text: I18n.t('单一密码') },
-                { value: 'USERNAME_PASSWORD', text: I18n.t('用户名+密码') },
-                { value: 'SECRET_KEY', text: I18n.t('单一SecretKey') },
+                {
+                    value: 'APP_ID_SECRET_KEY',
+                    text: I18n.t('AppID+SecretKey'),
+                },
+                {
+                    value: 'PASSWORD',
+                    text: I18n.t('单一密码'),
+                },
+                {
+                    value: 'USERNAME_PASSWORD',
+                    text: I18n.t('用户名+密码'),
+                },
+                {
+                    value: 'SECRET_KEY',
+                    text: I18n.t('单一SecretKey'),
+                },
             ];
             this.searchSelect = [
                 {

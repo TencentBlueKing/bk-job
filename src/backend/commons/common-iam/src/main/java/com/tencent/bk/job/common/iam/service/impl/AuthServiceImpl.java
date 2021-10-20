@@ -61,6 +61,7 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,8 +69,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -118,15 +121,13 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
+    public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
                                                String resourceId) {
         // 业务集、全业务特殊鉴权
         if (resourceAppInfoQueryService != null) {
             ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
             if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return true;
-                }
+                return resourceAppInfo.getMaintainerList().contains(username);
             }
         } else {
             log.warn("appInfoQueryService not set, cannot auth special business");
@@ -202,21 +203,32 @@ public class AuthServiceImpl implements AuthService {
             } else {
                 // Job当前的场景，暂时只需要支持操作依赖一个资源
                 ResourceTypeEnum resourceType = relatedResourceGroups.get(0).getResourceType();
-                PermissionResource resource = relatedResourceGroups.get(0).getPermissionResources().get(0);
-                if (authSpecialAppByMaintainer(username, resourceType, resource.getResourceId())) {
+                List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
+                // All resources are under one application, so choose any one for authentication
+                if (authSpecialAppByMaintainer(username, resourceType, resources.get(0).getResourceId())) {
                     authResult.setPass(true);
-                } else if (!authHelper.isAllowed(username, actionId, buildInstance(resourceType,
-                    resource.getResourceId(), resource.getPathInfo()))) {
-                    authResult.setPass(false);
-                    if (isReturnApplyUrl) {
-                        resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
-                            resource.getResourceId()));
+                } else {
+                    List<String> allowedResourceIds =
+                        authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+                    List<String> notAllowResourceIds =
+                        resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
+                            .map(PermissionResource::getResourceId).collect(Collectors.toList());
+                    if (CollectionUtils.isNotEmpty(notAllowResourceIds)) {
+                        authResult.setPass(false);
+                        resources.forEach(resource -> {
+                            if (notAllowResourceIds.contains(resource.getResourceId())) {
+                                if (isReturnApplyUrl) {
+                                    resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
+                                        resource.getResourceId()));
+                                }
+                                PermissionActionResource requiredActionResource = new PermissionActionResource();
+                                requiredActionResource.setActionId(actionId);
+                                requiredActionResource.addResource(resource);
+                                requiredActionResources.add(requiredActionResource);
+                                authResult.addRequiredPermission(actionId, resource);
+                            }
+                        });
                     }
-                    PermissionActionResource requiredActionResource = new PermissionActionResource();
-                    requiredActionResource.setActionId(actionId);
-                    requiredActionResource.addResource(resource);
-                    requiredActionResources.add(requiredActionResource);
-                    authResult.addRequiredPermission(actionId, resource);
                 }
             }
         }
@@ -371,31 +383,32 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private List<ActionDTO> buildApplyActions(List<PermissionActionResource> permissionActionResources) {
+        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType =
+            groupResourcesByActionAndResourceType(permissionActionResources);
+
         List<ActionDTO> actions = new ArrayList<>();
-        for (PermissionActionResource permissionActionResource : permissionActionResources) {
+        resourcesGroupByActionAndType.forEach((actionId, resourceGroups) -> {
             ActionDTO action = new ActionDTO();
-            String actionId = permissionActionResource.getActionId();
             action.setId(actionId);
             actions.add(action);
 
-            List<PermissionResourceGroup> relatedResourceGroups = permissionActionResource.getResourceGroups();
-            if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                continue;
+            if (resourceGroups == null || resourceGroups.isEmpty()) {
+                return;
             }
 
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-            for (PermissionResourceGroup relatedResourceGroup : relatedResourceGroups) {
+            resourceGroups.forEach((resourceType, relatedResources) -> {
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-                relatedResourceType.setSystemId(relatedResourceGroup.getSystemId());
-                relatedResourceType.setType(relatedResourceGroup.getResourceType().getId());
+                String systemId = relatedResources.get(0).getSystemId();
+                relatedResourceType.setSystemId(systemId);
+                relatedResourceType.setType(resourceType);
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
-                for (PermissionResource relatedResource : relatedResourceGroup.getPermissionResources()) {
+                for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
                     if (!CustomCollectionUtils.isEmptyCollection(relatedResource.getParentHierarchicalResources())) {
                         List<InstanceDTO> hierarchicalInstance = new ArrayList<>();
-                        relatedResource.getParentHierarchicalResources().forEach(resource -> {
-                            hierarchicalInstance.add(convertPermissionResourceToInstance(resource));
-                        });
+                        relatedResource.getParentHierarchicalResources().forEach(
+                            resource -> hierarchicalInstance.add(convertPermissionResourceToInstance(resource)));
                         hierarchicalInstance.add(instance);
                         instanceList.add(hierarchicalInstance);
                     } else {
@@ -405,10 +418,32 @@ public class AuthServiceImpl implements AuthService {
                 relatedResourceType.setInstance(instanceList);
 
                 relatedResourceTypes.add(relatedResourceType);
-            }
+            });
             action.setRelatedResourceTypes(relatedResourceTypes);
-        }
+        });
         return actions;
+    }
+
+    private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
+        List<PermissionActionResource> permissionActionResources) {
+        Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
+        permissionActionResources.forEach(actionResource ->
+            resourcesGroupByActionAndType.compute(actionResource.getActionId(), (actionId, resourcesGroupByType) -> {
+                if (resourcesGroupByType == null) {
+                    resourcesGroupByType = new HashMap<>();
+                }
+                for (PermissionResourceGroup resourceGroup : actionResource.getResourceGroups()) {
+                    resourcesGroupByType.compute(resourceGroup.getResourceType().getId(), (resourceType, resources) -> {
+                        if (resources == null) {
+                            resources = new ArrayList<>();
+                        }
+                        resources.addAll(resourceGroup.getPermissionResources());
+                        return resources;
+                    });
+                }
+                return resourcesGroupByType;
+            }));
+        return resourcesGroupByActionAndType;
     }
 
     private InstanceDTO convertPermissionResourceToInstance(PermissionResource permissionResource) {

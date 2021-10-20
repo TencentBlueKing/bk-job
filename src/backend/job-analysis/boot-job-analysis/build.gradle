@@ -25,21 +25,14 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-analysis:service-job-analysis")
-    compile project(":commons:common-redis")
-    compile project(":commons:common-i18n")
+    api project(":job-analysis:service-job-analysis")
+    api project(":commons:common-redis")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     implementation 'org.springframework:spring-webmvc'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    implementation 'io.prometheus:simpleclient_pushgateway'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
     runtimeOnly('mysql:mysql-connector-java')
 
     testImplementation("com.h2database:h2")

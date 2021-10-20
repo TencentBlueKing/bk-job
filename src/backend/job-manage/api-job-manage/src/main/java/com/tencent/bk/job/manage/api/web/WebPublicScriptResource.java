@@ -30,8 +30,10 @@ import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
+import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteCountVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptCiteInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO;
@@ -107,6 +109,12 @@ public interface WebPublicScriptResource {
         @ApiParam("脚本标签")
         @RequestParam(value = "tags", required = false)
             String tags,
+        @ApiParam(value = "左侧模版标签")
+        @RequestParam(value = "panelTag", required = false)
+            Long panelTag,
+        @ApiParam(value = "脚本在导航栏的分类,1-全部,2-未分类")
+        @RequestParam(value = "panelType", required = false)
+            Integer panelType,
         @ApiParam("创建人")
         @RequestParam(value = "creator", required = false)
             String creator,
@@ -125,9 +133,17 @@ public interface WebPublicScriptResource {
         @ApiParam("排序字段,脚本名:name,脚本类型:type,标签:tags,创建人:creator")
         @RequestParam(value = "orderField", required = false)
             String orderField,
-        @ApiParam("排序顺序,0:逆序;1:正序")
+        @ApiParam("排序顺序,0:降序;1:升序")
         @RequestParam(value = "order", required = false)
             Integer order);
+
+    @ApiOperation(value = "获取脚本列表(仅包含基础信息)", produces = "application/json")
+    @GetMapping("/script/basic/list")
+    ServiceResponse<List<ScriptVO>> listScriptBasicInfo(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "脚本ID列表，多个ID之间用,分隔", required = true)
+        @RequestParam("ids") List<String> scriptIds);
 
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
     @GetMapping("/script/{scriptId}/scriptVersion/list")
@@ -260,5 +276,21 @@ public interface WebPublicScriptResource {
         @RequestParam("scriptId") String scriptId,
         @ApiParam(value = "脚本版本ID", required = false, example = "1")
         @RequestParam(value = "scriptVersionId", required = false) Long scriptVersionId
+    );
+
+    @ApiOperation(value = "批量更新脚本标签-Patch方式", produces = "application/json")
+    @PutMapping("/tag")
+    ServiceResponse<?> batchUpdatePublicScriptTags(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "脚本标签批量更新请求报文", name = "tagBatchUpdateReq", required = true)
+        @RequestBody ScriptTagBatchPatchReq tagBatchUpdateReq
+    );
+
+    @ApiOperation(value = "获取业务下标签关联的脚本数量", produces = "application/json")
+    @GetMapping("/tag/count")
+    ServiceResponse<TagCountVO> getTagPublicScriptCount(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username
     );
 }

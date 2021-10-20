@@ -29,28 +29,33 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.manage.api.tmp.TmpMigrationResource;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
-import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.tmp.MigrationPlanBasic;
+import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 public class TmpMigrationResourceImpl implements TmpMigrationResource {
-    private final TaskTemplateDAO taskTemplateDAO;
+    private final TaskTemplateService taskTemplateService;
     private final TaskPlanDAO taskPlanDAO;
 
     @Autowired
-    public TmpMigrationResourceImpl(TaskTemplateDAO taskTemplateDAO,
+    public TmpMigrationResourceImpl(TaskTemplateService taskTemplateService,
                                     TaskPlanDAO taskPlanDAO) {
-        this.taskTemplateDAO = taskTemplateDAO;
+        this.taskTemplateService = taskTemplateService;
         this.taskPlanDAO = taskPlanDAO;
     }
 
@@ -60,10 +65,9 @@ public class TmpMigrationResourceImpl implements TmpMigrationResource {
         // Get all
         baseSearchCondition.setLength(Integer.MAX_VALUE);
 
-        TaskTemplateInfoDTO templateCondition = new TaskTemplateInfoDTO();
-        templateCondition.setAppId(appId);
-        PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(templateCondition,
-            baseSearchCondition, Collections.emptyList());
+        TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).baseSearchCondition(baseSearchCondition)
+            .build();
+        PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateService.listPageTaskTemplates(query);
         if (templatePageData == null || CollectionUtils.isEmpty(templatePageData.getData())) {
             log.info("Template is empty, appId: {}", appId);
             return ServiceResponse.buildSuccessResp(Collections.emptyList());

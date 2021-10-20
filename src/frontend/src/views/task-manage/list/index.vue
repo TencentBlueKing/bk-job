@@ -35,7 +35,8 @@
                 theme="primary"
                 auth="job_template/create"
                 class="w120 mr10"
-                @click="handleCreate">
+                @click="handleCreate"
+                v-test="{ type: 'button', value: 'templateCreate' }">
                 {{ $t('template.新建') }}
             </auth-button>
             <bk-badge
@@ -46,7 +47,8 @@
                 <span :tippy-tips="backupInfo.importJob.length > 0 ? $t('template.有一项导入任务正在进行中') : ''">
                     <auth-button
                         auth="job_template/create"
-                        @click="handleImport">
+                        @click="handleImport"
+                        v-test="{ type: 'button', value: 'templateImport' }">
                         {{ $t('template.导入') }}
                     </auth-button>
                 </span>
@@ -59,11 +61,18 @@
                 <span :tippy-tips="backupInfo.exportJob.length > 0 ? $t('template.有一项导出任务正在进行中') : ''">
                     <bk-button
                         @click="handleExport"
-                        :disabled="isExportJobDisable">
+                        :disabled="isExportJobDisable"
+                        v-test="{ type: 'button', value: 'templateExport' }">
                         {{ $t('template.导出') }}
                     </bk-button>
                 </span>
             </bk-badge>
+            <bk-button
+                :disabled="isBatchEditTagDisabled"
+                @click="handleBatchEditTag"
+                v-test="{ type: 'button', value: 'templateTagEdit' }">
+                {{ $t('template.编辑标签') }}
+            </bk-button>
             <template #right>
                 <jb-search-select
                     ref="search"
@@ -82,7 +91,8 @@
                 selectable
                 :size="tableSize"
                 :search-control="() => $refs.search"
-                @on-selection-change="handleSelection">
+                @on-selection-change="handleSelection"
+                v-test="{ type: 'list', value: 'template' }">
                 <bk-table-column
                     v-if="allRenderColumnMap.id"
                     label="ID"
@@ -152,7 +162,7 @@
                             :resource-id="row.id">
                             <jb-edit-tag
                                 :key="row.id"
-                                field="scriptTags"
+                                field="tags"
                                 :value="row.tags"
                                 shortcurt
                                 :remote-hander="val => handleUpdateTask(row, val)" />
@@ -198,6 +208,7 @@
                 <bk-table-column
                     key="action"
                     :resizable="false"
+                    fixed="right"
                     :label="$t('template.操作')"
                     width="130">
                     <template slot-scope="{ row }">
@@ -206,7 +217,8 @@
                             :to="{
                                 name: 'viewPlan',
                                 params: { templateId: row.id },
-                            }">
+                            }"
+                            v-test="{ type: 'link', value: 'planDetail' }">
                             {{ $t('template.执行方案.label') }}
                         </router-link>
                         <router-link
@@ -215,7 +227,8 @@
                                 name: 'debugPlan',
                                 params: { id: row.id },
                                 query: { from: 'taskList' },
-                            }">
+                            }"
+                            v-test="{ type: 'link', value: 'debugTemplate' }">
                             {{ $t('template.调试') }}
                         </router-link>
                         <list-operation-extend>
@@ -223,15 +236,35 @@
                                 :permission="row.canEdit"
                                 auth="job_template/edit"
                                 :resource-id="row.id">
-                                <div class="action-item" @click="handleEdit(row.id)">{{ $t('template.编辑') }}</div>
-                                <div class="action-item" slot="forbid">{{ $t('template.编辑') }}</div>
+                                <div
+                                    class="action-item"
+                                    @click="handleEdit(row.id)"
+                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
+                                <div
+                                    class="action-item"
+                                    slot="forbid"
+                                    v-test="{ type: 'button', value: 'editTemplate' }">
+                                    {{ $t('template.编辑') }}
+                                </div>
                             </auth-component>
                             <auth-component
                                 :permission="row.canCreate && row.canView"
                                 auth="job_template/clone"
                                 :resource-id="row.id">
-                                <div class="action-item" @click="handleClone(row.id)">{{ $t('template.克隆') }}</div>
-                                <div class="action-item" slot="forbid">{{ $t('template.克隆') }}</div>
+                                <div
+                                    class="action-item"
+                                    @click="handleClone(row.id)"
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    {{ $t('template.克隆') }}
+                                </div>
+                                <div
+                                    class="action-item"
+                                    slot="forbid"
+                                    v-test="{ type: 'button', value: 'cloneTemplate' }">
+                                    {{ $t('template.克隆') }}
+                                </div>
                             </auth-component>
                             <jb-popover-confirm
                                 :title="$t('template.确定删除该作业？')"
@@ -241,8 +274,17 @@
                                     :permission="row.canDelete"
                                     auth="job_template/delete"
                                     :resource-id="row.id">
-                                    <div class="action-item">{{ $t('template.删除') }}</div>
-                                    <div class="action-item" slot="forbid">{{ $t('template.删除') }}</div>
+                                    <div
+                                        class="action-item"
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
+                                    <div
+                                        class="action-item"
+                                        slot="forbid"
+                                        v-test="{ type: 'button', value: 'deleteTemplate' }">
+                                        {{ $t('template.删除') }}
+                                    </div>
                                 </auth-component>
                             </jb-popover-confirm>
                         </list-operation-extend>
@@ -257,6 +299,17 @@
                 </bk-table-column>
             </render-list>
         </div>
+        <jb-dialog
+            v-model="isShowBatchEdit"
+            :title="$t('template.编辑标签')"
+            header-position="left"
+            :ok-text="$t('template.确定')"
+            :width="480">
+            <batch-edit-tag
+                v-if="isShowBatchEdit"
+                :template-list="listSelect"
+                @on-change="handleBatchEditChange" />
+        </jb-dialog>
     </Layout>
 </template>
 <script>
@@ -278,6 +331,7 @@
     import JbPopoverConfirm from '@components/jb-popover-confirm';
     import Layout from './components/layout';
     import TagPanel from './components/tag-panel';
+    import BatchEditTag from './components/batch-edit-tag.vue';
 
     const TABLE_COLUMN_CACHE = 'task_list_columns';
     
@@ -286,17 +340,18 @@
         components: {
             JbEditTag,
             ListActionLayout,
-            ListOperationExtend,
-            Layout,
-            TagPanel,
             RenderList,
+            ListOperationExtend,
             JbSearchSelect,
             JbPopoverConfirm,
+            Layout,
+            TagPanel,
+            BatchEditTag,
         },
         data () {
             return {
+                isShowBatchEdit: false,
                 currentUser: {},
-                data: [],
                 searchValue: [],
                 listSelect: [],
                 backupInfo: {
@@ -308,9 +363,21 @@
             };
         },
         computed: {
+            /**
+             * @desc 列表骨架屏 loading
+             * @returns { Boolean }
+             */
             isSkeletonLoading () {
                 return this.$refs.list.isLoading;
             },
+            /**
+             * @desc 导出功能禁用
+             * @returns { Boolean }
+             *
+             * 1，有导入任务未完成，继续上一次的任务
+             * 2，未选中作业
+             * 3，选中的作业没用查看权限
+             */
             isExportJobDisable () {
                 if (this.backupInfo.exportJob.length > 0) {
                     return false;
@@ -319,6 +386,23 @@
                 for (let i = 0; i < this.listSelect.length; i++) {
                     const current = this.listSelect[i];
                     if (!current.canView) {
+                        return true;
+                    }
+                }
+                return this.listSelect.length < 1;
+            },
+            /**
+             * @desc 导出功能禁用
+             * @returns { Boolean }
+             *
+             * 1，未选中作业
+             * 2，选中的作业没用查看权限
+             */
+            isBatchEditTagDisabled () {
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < this.listSelect.length; i++) {
+                    const current = this.listSelect[i];
+                    if (!current.canEdit) {
                         return true;
                     }
                 }
@@ -525,6 +609,19 @@
                 }
             },
             /**
+             * @desc 批量编辑 TAG
+             */
+            handleBatchEditTag () {
+                this.isShowBatchEdit = true;
+            },
+            /**
+             * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
+             */
+            handleBatchEditChange () {
+                this.fetchData();
+                this.$refs.tagPanelRef.init();
+            },
+            /**
              * @desc 查看登陆用户的作业模板
              */
             handleMyTask () {
@@ -549,15 +646,15 @@
             /**
              * @desc 更新作业模板基本信息
              * @param {Object} task 作业模板数据
-             * @param {Object} tag 标签数据
+             * @param {Object} payload 编辑的数据
              */
-            handleUpdateTask (task, tag) {
+            handleUpdateTask (task, payload) {
                 const { id, name, description } = task;
                 return TaskService.taskUpdateBasic({
                     id,
                     name,
                     description,
-                    tags: tag.scriptTags,
+                    tags: payload.tags,
                 }).then(() => {
                     this.$refs.tagPanelRef.init();
                 });

@@ -91,7 +91,8 @@ const calcStatusGroup = (status) => {
     return 'disabled';
 };
 
-// 执行历史列表——任务实例信息
+// 执行历史列表
+// 任务实例信息
 export default class TaskInstance {
     static STATUS_ICON_TYPE = {
 
@@ -121,6 +122,10 @@ export default class TaskInstance {
         this.canView = payload.canView;
     }
 
+    /**
+     * @desc 任务状态的 icon
+     * @returns { String }
+     */
     get statusIconType () {
         const iconMap = {
             fail: 'sync-failed',
@@ -134,10 +139,29 @@ export default class TaskInstance {
         return iconMap[calcStatusGroup(this.status)];
     }
 
+    /**
+     * @desc 任务正在执行
+     * @returns { Boolean }
+     */
+    get isDoing () {
+        return [
+            STATUS_DOING,
+            STATUS_FORCEDING,
+        ].includes(this.status);
+    }
+
+    /**
+     * @desc 表示任务状态 css 的 class
+     * @returns { String }
+     */
     get statusClass () {
         return calcStatusGroup(this.status);
     }
 
+    /**
+     * @desc 表示任务状态文本描述
+     * @returns { String }
+     */
     get statusDescHtml () {
         const statusColorMap = {
             fail: '#EA3636',
@@ -151,18 +175,34 @@ export default class TaskInstance {
         return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
     }
 
+    /**
+     * @desc 任务执行总耗时
+     * @returns { String }
+     */
     get totalTimeText () {
         return transformTimeFriendly(this.totalTime);
     }
 
+    /**
+     * @desc 任务类型为作业执行
+     * @returns { Boolean }
+     */
     get isTask () {
         return this.type === TASK_TYPE_TASK;
     }
 
+    /**
+     * @desc 任务类型为快速执行脚本
+     * @returns { Boolean }
+     */
     get isScript () {
         return this.type === TASK_TYPE_SCRIPT;
     }
 
+    /**
+     * @desc 任务类型为快速分发文件
+     * @returns { Boolean }
+     */
     get isFile () {
         return this.type === TASK_TYPE_FILE;
     }

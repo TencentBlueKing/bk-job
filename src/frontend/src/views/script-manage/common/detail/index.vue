@@ -41,19 +41,22 @@
                 v-if="contentTab === 'content'"
                 type="full-screen"
                 v-bk-tooltips="$t('全屏')"
-                @click="handleFullScreen" />
+                @click="handleFullScreen"
+                v-test="{ type: 'button', value: 'scriptEditFullscreen' }" />
         </template>
         <div class="content-tab">
             <div
                 class="content-tab-item"
                 :class="{ active: contentTab === 'content' }"
-                @click="handleChangeDispaly('content')">
+                @click="handleChangeDispaly('content')"
+                v-test="{ type: 'button', value: 'scriptContentTab' }">
                 {{ $t('script.脚本内容') }}
             </div>
             <div
                 class="content-tab-item"
                 :class="{ active: contentTab === 'log' }"
-                @click="handleChangeDispaly('log')">
+                @click="handleChangeDispaly('log')"
+                v-test="{ type: 'button', value: 'scriptVersionLogTab' }">
                 {{ $t('script.版本日志') }}
             </div>
         </div>
@@ -82,7 +85,8 @@
                 class="w120 mr10"
                 theme="primary"
                 :loading="isExceLoading"
-                @click="handleGoExce">
+                @click="handleGoExce"
+                v-test="{ type: 'button', value: 'execScript' }">
                 {{ $t('script.去执行') }}
             </auth-button>
             <jb-popover-confirm
@@ -99,7 +103,8 @@
                     auth="script/edit"
                     theme="primary"
                     class="w120"
-                    :disabled="scriptInfo.isDisabledOnline">
+                    :disabled="scriptInfo.isDisabledOnline"
+                    v-test="{ type: 'button', value: 'onlineScript' }">
                     {{ $t('script.上线') }}
                 </auth-button>
             </jb-popover-confirm>
@@ -110,10 +115,16 @@
                 :resource-id="scriptInfo.id"
                 auth="script/clone"
                 class="w120 mr10"
-                @click="handleCopyAndCreate(scriptInfo)">
+                @click="handleCopyAndCreate(scriptInfo)"
+                v-test="{ type: 'button', value: 'copyCreateScript' }">
                 {{ $t('script.复制并新建') }}
             </auth-button>
-            <bk-button class="mr10" @click="handleDebugScript">调试</bk-button>
+            <bk-button
+                class="mr10"
+                @click="handleDebugScript"
+                v-test="{ type: 'button', value: 'debugScript' }">
+                {{ $t('script.调试') }}
+            </bk-button>
             <auth-button
                 v-if="scriptInfo.isOnline"
                 key="sync"
@@ -122,7 +133,8 @@
                 auth="script/edit"
                 class="mr10"
                 :disabled="!scriptInfo.syncEnabled"
-                @click="handleGoSync">
+                @click="handleGoSync"
+                v-test="{ type: 'button', value: 'syncScript' }">
                 {{ $t('script.同步') }}
             </auth-button>
             <auth-button
@@ -132,7 +144,8 @@
                 :resource-id="scriptInfo.id"
                 auth="script/edit"
                 class="mr10"
-                @click="handleEdit(scriptInfo)">
+                @click="handleEdit(scriptInfo)"
+                v-test="{ type: 'button', value: 'editScript' }">
                 {{ $t('script.编辑') }}
             </auth-button>
             <jb-popover-confirm
@@ -145,7 +158,8 @@
                 <auth-button
                     :permission="scriptInfo.canManage"
                     :resource-id="scriptInfo.id"
-                    auth="script/delete">
+                    auth="script/delete"
+                    v-test="{ type: 'button', value: 'deleteScript' }">
                     {{ $t('script.删除') }}
                 </auth-button>
             </jb-popover-confirm>
@@ -159,7 +173,8 @@
                 <auth-button
                     :permission="scriptInfo.canManage"
                     :resource-id="scriptInfo.id"
-                    auth="script/edit">
+                    auth="script/edit"
+                    v-test="{ type: 'button', value: 'offlineScript' }">
                     {{ $t('script.禁用') }}
                 </auth-button>
             </jb-popover-confirm>

@@ -28,7 +28,11 @@
 <template>
     <div class="exec-script-page" v-bkloading="{ isLoading }">
         <smart-action offset-target="bk-form-content">
-            <jb-form class="fast-execution-script-form" ref="execScriptForm" :model="formData">
+            <jb-form
+                class="fast-execution-script-form"
+                ref="execScriptForm"
+                v-test="{ type: 'form', value: 'executeScript' }"
+                :model="formData">
                 <item-factory
                     name="scriptName"
                     field="name"
@@ -82,10 +86,15 @@
                         class="w120 mr10"
                         :loading="isSubmiting"
                         theme="primary"
-                        @click="handleSubmit">
+                        @click="handleSubmit"
+                        v-test="{ type: 'button', value: 'fastExecuteScriptSubmit' }">
                         {{ $t('execution.执行') }}
                     </bk-button>
-                    <bk-button @click="handleCancel">{{ $t('execution.重置') }}</bk-button>
+                    <bk-button
+                        @click="handleCancel"
+                        v-test="{ type: 'button', value: 'fastExecuteScriptCancel' }">
+                        {{ $t('execution.重置') }}
+                    </bk-button>
                 </div>
             </template>
         </smart-action>
@@ -114,7 +123,7 @@
     import TaskHostNodeModel from '@model/task-host-node';
     import ItemFactory from '@components/task-step/script/item-factory';
     import {
-        getScriptName,
+        genDefaultName,
         scriptErrorAlert,
     } from '@utils/assist';
     import {
@@ -125,7 +134,7 @@
     const getDefaultData = () => ({
         isScriptContentLoading: false,
         // 快速执行name
-        name: getScriptName(I18n.t('execution.快速执行脚本')),
+        name: genDefaultName(I18n.t('execution.快速执行脚本')),
         // 脚本来源
         scriptSource: TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL,
         // 脚本类型，默认shell

@@ -33,8 +33,16 @@ import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import lombok.val;
-import org.apache.commons.lang.StringUtils;
-import org.jooq.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.SelectConditionStep;
+import org.jooq.SortField;
+import org.jooq.TableField;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.Account;
 import org.jooq.generated.tables.TaskTemplateStepFile;
 import org.jooq.generated.tables.TaskTemplateStepFileList;
@@ -149,7 +157,7 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     private AccountDTO extract(Record record) {
-        if (record == null || record.size() == 0) {
+        if (record == null) {
             return null;
         }
         AccountDTO account = new AccountDTO();
@@ -236,7 +244,7 @@ public class AccountDAOImpl implements AccountDAO {
         } else {
             String orderField = baseSearchCondition.getOrderField();
             if ("alias".equals(orderField)) {
-                //正序
+                //升序
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.ALIAS.asc());
                 } else {
@@ -448,7 +456,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -459,7 +467,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.EXECUTE_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -470,7 +478,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(tb.HOST_ACCOUNT.eq(ULong.valueOf(accountId)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override
@@ -481,7 +489,7 @@ public class AccountDAOImpl implements AccountDAO {
             .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
             .limit(1)
             .fetchOne();
-        return (record != null && record.size() > 0);
+        return record != null;
     }
 
     @Override

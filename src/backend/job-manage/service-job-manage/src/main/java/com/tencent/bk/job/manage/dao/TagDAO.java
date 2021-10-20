@@ -62,6 +62,14 @@ public interface TagDAO {
     List<TagDTO> listTagsByIds(long appId, List<Long> tagIds);
 
     /**
+     * 根据标签 ID 列表获取标签信息
+     *
+     * @param tagIds 标签 ID 列表
+     * @return 标签信息列表或空列表
+     */
+    List<TagDTO> listTagsByIds(List<Long> tagIds);
+
+    /**
      * 根据业务 ID 和标签 ID 列表获取标签信息
      *
      * @param appId  业务 ID
@@ -93,22 +101,42 @@ public interface TagDAO {
      * @param tag Tag 信息
      * @return 更新是否成功
      */
-    Boolean updateTagById(TagDTO tag);
+    boolean updateTagById(TagDTO tag);
 
     /**
      * 标签通用查询
      *
-     * @param searchCondition
-     * @return
+     * @param searchCondition 查询条件
+     * @return 标签列表
      */
     List<TagDTO> listTags(TagDTO searchCondition);
 
     /**
      * 标签通用查询
      *
-     * @param tagCondition
-     * @param baseSearchCondition
-     * @return
+     * @param tagQuery            查询条件
+     * @param baseSearchCondition 基本查询条件
+     * @return 分页标签列表
      */
-    PageData<TagDTO> listTags(TagDTO tagCondition, BaseSearchCondition baseSearchCondition);
+    PageData<TagDTO> listPageTags(TagDTO tagQuery, BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 根据标签ID删除标签
+     *
+     * @param tagId 标签ID
+     * @return 是否删除成功
+     */
+    boolean deleteTagById(Long tagId);
+
+    /**
+     * 业务下是否存在同名标签
+     *
+     * @param appId   业务ID
+     * @param tagName 标签名称
+     * @return 是否存在
+     */
+    boolean isExistDuplicateName(Long appId, String tagName);
+
+    List<TagDTO> listAllTags();
+
 }

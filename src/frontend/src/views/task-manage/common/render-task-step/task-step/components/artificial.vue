@@ -73,14 +73,12 @@
     import QueryGlobalSettingService from '@service/query-global-setting';
     import JbUserSelector from '@components/jb-user-selector';
     import ItemFactory from '@components/task-step/file/item-factory';
-    import {
-        getScriptName,
-    } from '@utils/assist';
+    import { genDefaultName } from '@utils/assist';
 
     const getDefaultData = () => ({
         id: 0,
         // 步骤名称
-        name: getScriptName(I18n.t('template.步骤人工确认')),
+        name: genDefaultName(I18n.t('template.步骤人工确认')),
         // 删除标记
         delete: 0,
         // 审批消息
