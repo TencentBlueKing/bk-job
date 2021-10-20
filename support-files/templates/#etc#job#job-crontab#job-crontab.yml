@@ -76,6 +76,7 @@ job:
       url: jdbc:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       username: __BK_JOB_CRONTAB_MYSQL_USERNAME__
       password: __BK_JOB_CRONTAB_MYSQL_PASSWORD__
+
 notification-policy:
   failed:
     #连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
