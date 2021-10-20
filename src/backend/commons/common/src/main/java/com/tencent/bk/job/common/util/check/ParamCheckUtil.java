@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,21 +20,30 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-/* eslint-disable no-param-reassign */
-import dangerousRecord from '../source/dangerous-record';
-import DangerousRecordModel from '@model/dangerous-record';
+package com.tencent.bk.job.common.util.check;
 
-export default {
-    recordList (params, payload) {
-        return dangerousRecord.getDangerousRecordList(params, payload)
-            .then(({ data }) => {
-                if (data.data) {
-                    data.data = data.data.map(item => Object.freeze(new DangerousRecordModel(item)));
-                    return data;
-                }
-                return [];
-            });
-    },
-};
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
+
+public class ParamCheckUtil {
+
+    public static void checkAppId(Long appId, String paramName) {
+        if (appId == null) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null");
+        }
+        if (appId <= 0) {
+            throw new InvalidParamException(paramName, paramName + " must be a positive number");
+        }
+    }
+
+    public static void checkLocalUploadFileName(String fileName, String paramName) {
+        if (StringUtils.isBlank(fileName)) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+        }
+        if (fileName.length() > 1024) {
+            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+        }
+    }
+}

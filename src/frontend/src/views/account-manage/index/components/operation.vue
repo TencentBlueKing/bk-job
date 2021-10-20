@@ -180,6 +180,13 @@
                     });
                     return {
                         ...baseRule,
+                        dbPassword: [
+                            {
+                                validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                                message: I18n.t('account.密码不支持中文'),
+                                trigger: 'blur',
+                            },
+                        ],
                         rePassword: [
                             {
                                 validator: value => this.formData.rePassword === this.formData.dbPassword,
@@ -230,6 +237,11 @@
                         {
                             required: true,
                             message: I18n.t('account.密码必填'),
+                            trigger: 'blur',
+                        },
+                        {
+                            validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                            message: I18n.t('account.密码不支持中文'),
                             trigger: 'blur',
                         },
                     ],

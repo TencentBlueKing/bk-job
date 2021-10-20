@@ -103,7 +103,7 @@ public class AppWatchThread extends Thread {
                             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
                                 // 若已存在则忽略
                             } else {
-                                log.error("insertApp fail:appInfo={}", appInfoDTO, e);
+                                log.error("insertApp fail:appInfo=" + appInfoDTO, e);
                             }
                         }
                     }

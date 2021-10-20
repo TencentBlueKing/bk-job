@@ -470,6 +470,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         result.setGlobalParams(changeableGlobalVariableValues);
         result.setTaskInstanceId(stepInstance.getTaskInstanceId());
         result.setStepInstanceId(stepInstance.getId());
+        result.setExecuteCount(stepInstance.getExecuteCount());
         result.setType(VariableValueTypeEnum.OUTPUT.getValue());
         return result;
     }

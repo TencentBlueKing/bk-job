@@ -24,33 +24,29 @@
 
 package com.tencent.bk.job.gateway.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-
 /**
  * Actuator spring security config
  */
-@Configuration
-@EnableWebFluxSecurity
+//@Configuration
+//@EnableWebFluxSecurity
 public class ActuatorSecurityConfig {
-    @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http
-            .csrf()
-            .disable()
-            .authorizeExchange()
-            .pathMatchers("/actuator/health", "/actuator/info")
-            .permitAll()
-            .pathMatchers("/actuator/**")
-            .authenticated()
-            // check in filter
-            .anyExchange()
-            .permitAll()
-            .and()
-            .httpBasic();
-        return http.build();
-    }
+//    @Bean
+//    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+//        http
+//            .csrf()
+//            .disable()
+//            .authorizeExchange()
+//            .pathMatchers("/actuator/health/**", "/actuator/info")
+//            .permitAll()
+//            .pathMatchers("/actuator/**")
+//            .authenticated()
+//            .pathMatchers("/iam/api/**")
+//            .permitAll()
+//            // check in filter
+//            .anyExchange()
+//            .permitAll()
+//            .and()
+//            .httpBasic();
+//        return http.build();
+//    }
 }

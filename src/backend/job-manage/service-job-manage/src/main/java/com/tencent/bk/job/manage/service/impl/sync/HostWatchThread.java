@@ -145,7 +145,7 @@ public class HostWatchThread extends Thread {
             appHostsUpdateHelper.waitAndStartAppHostsUpdating(appId);
             handleOneEventIndeed(event);
         } catch (Throwable t) {
-            log.error("Fail to handle hostEvent of appId {}, event:{}", appId, event, t);
+            log.error(String.format("Fail to handle hostEvent of appId %d, event:%s", appId, event), t);
         } finally {
             appHostsUpdateHelper.endToUpdateAppHosts(appId);
         }
@@ -205,7 +205,7 @@ public class HostWatchThread extends Thread {
                             if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
                                 // 若已存在则忽略
                             } else {
-                                log.error("insertHost fail:hostInfo={}", hostInfoDTO, e);
+                                log.error("insertHost fail:hostInfo=" + hostInfoDTO, e);
                             }
                         }
                     }

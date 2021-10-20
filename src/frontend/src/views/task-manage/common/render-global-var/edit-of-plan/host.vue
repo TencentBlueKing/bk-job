@@ -125,7 +125,7 @@
                 this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
             },
             submit () {
-                this.$emit('on-change', {
+                return Promise.resolve({
                     ...this.formData,
                     type: TaskGlobalVariableModel.TYPE_HOST,
                 });

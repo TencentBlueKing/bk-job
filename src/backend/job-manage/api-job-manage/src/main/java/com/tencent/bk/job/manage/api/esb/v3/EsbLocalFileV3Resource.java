@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,21 +20,29 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-/* eslint-disable no-param-reassign */
-import dangerousRecord from '../source/dangerous-record';
-import DangerousRecordModel from '@model/dangerous-record';
+package com.tencent.bk.job.manage.api.esb.v3;
 
-export default {
-    recordList (params, payload) {
-        return dangerousRecord.getDangerousRecordList(params, payload)
-            .then(({ data }) => {
-                if (data.data) {
-                    data.data = data.data.map(item => Object.freeze(new DangerousRecordModel(item)));
-                    return data;
-                }
-                return [];
-            });
-    },
-};
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 本地文件API-V3
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbLocalFileV3Resource {
+
+    @PostMapping("/generate_local_file_upload_url")
+    EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(
+        @RequestBody EsbGenLocalFileUploadUrlV3Req req);
+
+}

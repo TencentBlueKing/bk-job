@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,21 +20,31 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-/* eslint-disable no-param-reassign */
-import dangerousRecord from '../source/dangerous-record';
-import DangerousRecordModel from '@model/dangerous-record';
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-export default {
-    recordList (params, payload) {
-        return dangerousRecord.getDangerousRecordList(params, payload)
-            .then(({ data }) => {
-                if (data.data) {
-                    data.data = data.data.map(item => Object.freeze(new DangerousRecordModel(item)));
-                    return data;
-                }
-                return [];
-            });
-    },
-};
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@ApiModel("生成本地文件上传URL请求报文")
+public class EsbGenLocalFileUploadUrlV3Req extends EsbReq {
+
+    /**
+     * 业务ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+
+    /**
+     * 文件名列表
+     */
+    @JsonProperty("file_name_list")
+    private List<String> fileNameList;
+
+}

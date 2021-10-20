@@ -45,7 +45,7 @@ dependencies {
     implementation 'redis.clients:jedis'
     implementation 'commons-io:commons-io'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'joda-time:joda-time'
     implementation 'org.apache.httpcomponents:httpclient'
     compileOnly 'org.projectlombok:lombok'
