@@ -111,6 +111,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected long stepInstanceId;
     /**
+     * 业务ID
+     */
+    protected long appId;
+    /**
      * GSE 任务执行结果
      */
     protected GseTaskLogDTO gseTaskLog;
@@ -216,6 +220,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
+        this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.ipLogMap = ipLogMap;
@@ -315,6 +320,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.stop();
         } catch (Exception e) {
             log.error("[" + stepInstanceId + "]: result handle error.", e);
+            this.executeResult = GseTaskExecuteResult.EXCEPTION;
+            handleExecuteResult(this.executeResult);
             exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
         } finally {
             this.isRunning = false;
@@ -561,6 +568,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.info("ResultHandleTask-onStop, task is running now, will stop when idle. stepInstanceId: {}",
                 stepInstanceId);
         }
+    }
+
+    public long getAppId() {
+        return appId;
     }
 
     @Override

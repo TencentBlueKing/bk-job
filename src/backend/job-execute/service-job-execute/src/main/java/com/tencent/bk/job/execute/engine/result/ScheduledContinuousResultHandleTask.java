@@ -137,11 +137,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         } finally {
             if (isDone) {
                 if (task instanceof ScriptResultHandleTask) {
-                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(task.getTaskId());
-                    sampler.decrementScriptTask();
+                    ScriptResultHandleTask scriptTask = (ScriptResultHandleTask) task;
+                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(scriptTask.getTaskId());
+                    sampler.decrementScriptTask(scriptTask.getAppId());
                 } else if (task instanceof FileResultHandleTask) {
-                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(task.getTaskId());
-                    sampler.decrementFileTask();
+                    FileResultHandleTask fileTask = (FileResultHandleTask) task;
+                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(fileTask.getTaskId());
+                    sampler.decrementFileTask(fileTask.getAppId());
                 }
                 resultHandleManager.getScheduledTasks().remove(task.getTaskId());
             }

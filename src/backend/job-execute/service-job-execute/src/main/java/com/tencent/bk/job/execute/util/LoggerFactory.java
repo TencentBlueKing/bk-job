@@ -22,31 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.execute.util;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.slf4j.Logger;
 
-@Configuration
-public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").authenticated()
-            .antMatchers("/actuator/configprops/**").authenticated()
-            .antMatchers("/actuator/env/**").authenticated()
-            .antMatchers("/actuator/mappings/**").authenticated()
-            .antMatchers("/actuator/metrics/**").authenticated()
-            .antMatchers("/actuator/prometheus/**").authenticated()
-            .antMatchers("/actuator/beans/**").authenticated()
-            .antMatchers("/actuator/conditions/**").authenticated()
-            .antMatchers("/actuator/scheduledtasks/**").authenticated()
-            .and()
-            .httpBasic();
-    }
+public class LoggerFactory {
+    public static final Logger TASK_MONITOR_LOGGER = org.slf4j.LoggerFactory.getLogger("TaskMonitorLogger");
 }

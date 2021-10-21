@@ -65,7 +65,11 @@
                 </bk-radio-button>
             </bk-radio-group>
         </jb-form-item>
-        <component ref="handler" :is="globalVarCom" @on-change="handleGetValue" :variable="variable" :data="data" />
+        <component
+            ref="handler"
+            :is="globalVarCom"
+            :variable="variable"
+            :data="data" />
     </jb-form>
 </template>
 <script>
@@ -141,17 +145,14 @@
         },
         methods: {
             submit () {
-                return this.$refs.handler.submit && this.$refs.handler.submit();
+                return this.$refs.handler.submit()
+                    .then((data) => {
+                        this.$emit('on-change', data);
+                    });
             },
             reset () {
-                this.resetGlobalType();
-                return this.$refs.handler.reset && this.$refs.handler.reset();
-            },
-            resetGlobalType () {
                 this.globalType = 1;
-            },
-            handleGetValue (payload) {
-                this.$emit('on-change', payload);
+                return this.$refs.handler.reset();
             },
         },
     };

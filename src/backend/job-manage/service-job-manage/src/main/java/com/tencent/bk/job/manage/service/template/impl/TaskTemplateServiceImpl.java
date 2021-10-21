@@ -310,7 +310,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             matchTemplateIds.addAll(taskTemplateDAO.listAllAppTemplateId(query.getAppId()));
             matchTemplateIds.removeAll(taggedTemplateIds);
         } else if (CollectionUtils.isNotEmpty(query.getTags())) {
-            List<Long> tagIds = query.getTags().stream().map(TagDTO::getId).collect(Collectors.toList());
+            List<Long> tagIds = query.getTags().stream().distinct().map(TagDTO::getId).collect(Collectors.toList());
             matchTemplateIds = tagService.listResourceIdsWithAllTagIds(JobResourceTypeEnum.TEMPLATE.getValue(),
                 tagIds).stream().map(Long::valueOf).collect(Collectors.toList());
         }
