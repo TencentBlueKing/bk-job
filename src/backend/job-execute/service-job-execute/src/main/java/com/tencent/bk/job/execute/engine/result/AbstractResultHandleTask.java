@@ -322,7 +322,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.error("[" + stepInstanceId + "]: result handle error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
             handleExecuteResult(this.executeResult);
-            exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
         } finally {
             this.isRunning = false;
             LockUtils.releaseDistributedLock("job:result:handle:", String.valueOf(stepInstanceId), requestId);
@@ -486,7 +485,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         } else {
             int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
-            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
+            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
+                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
+                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
+            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
                     startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
                     successTargetIpNum, failTargetIpNum + invalidIpNum);
