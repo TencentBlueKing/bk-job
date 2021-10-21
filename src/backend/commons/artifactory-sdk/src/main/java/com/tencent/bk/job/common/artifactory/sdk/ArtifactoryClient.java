@@ -409,19 +409,14 @@ public class ArtifactoryClient {
         }
     }
 
-    public List<TempUrlInfo> createTempUrls(List<String> filePathList) {
+    public List<TempUrlInfo> createTempUrls(String projectId, String repoName, List<String> filePathList) {
         CreateTempUrlReq req = new CreateTempUrlReq();
-        List<String> fullPathSet = new ArrayList<>();
-        filePathList.forEach(filePath -> {
-            List<String> pathList = parsePath(filePath);
-            req.setProjectId(pathList.get(0));
-            req.setRepoName(pathList.get(1));
-            fullPathSet.add(pathList.get(2));
-        });
+        req.setProjectId(projectId);
+        req.setRepoName(repoName);
         req.setExpireSeconds(30 * 60L);
         req.setPermits(1);
         req.setType("UPLOAD");
-        req.setFullPathSet(fullPathSet);
+        req.setFullPathSet(filePathList);
         ArtifactoryResp<List<TempUrlInfo>> resp = getArtifactoryRespByReq(
             HttpPost.METHOD_NAME,
             URL_CREATE_TEMP_ACCESS_URL,
