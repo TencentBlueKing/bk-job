@@ -71,7 +71,7 @@ public class ExceptionStatusManager {
                 taskInstance.getTotalTime());
             taskInstanceService.updateTaskExecutionInfo(
                 taskInstanceId,
-                RunStatusEnum.FAIL,
+                RunStatusEnum.ABNORMAL_STATE,
                 null,
                 null,
                 endTime,
