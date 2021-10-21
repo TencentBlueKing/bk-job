@@ -69,7 +69,7 @@
     import JbInput from '@components/jb-input';
     import AccountSelect from '@components/account-select';
     import AccountDatabase from './account-strategy/database-account';
-    import AccountSystem from './account-strategy/system-account';
+    import AccountOS from './account-strategy/os-account';
 
     const generatorDefault = () => ({
         id: '',
@@ -125,7 +125,7 @@
              */
             accountCom () {
                 const comMap = {
-                    [AccountModel.OS]: AccountSystem,
+                    [AccountModel.OS]: AccountOS,
                     [AccountModel.DB]: AccountDatabase,
                 };
                 return comMap[this.formData.category];
