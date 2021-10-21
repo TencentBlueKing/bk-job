@@ -25,7 +25,9 @@
 package com.tencent.bk.job.execute.engine.exception;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,17 +46,42 @@ public class ExceptionStatusManager {
 
     public void setAbnormalStatusForStep(long stepInstanceId) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        long endTime = System.currentTimeMillis();
+        Long taskInstanceId = stepInstance.getTaskInstanceId();
         if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
-            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.ABNORMAL_STATE.getValue());
-            taskInstanceService.updateTaskStatus(
-                stepInstance.getTaskInstanceId(),
-                RunStatusEnum.ABNORMAL_STATE.getValue()
+            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
+                stepInstance.getTotalTime());
+            taskInstanceService.updateStepExecutionInfo(
+                stepInstanceId,
+                RunStatusEnum.ABNORMAL_STATE,
+                null,
+                endTime,
+                totalTime
             );
         } else {
             log.info(
                 "stepInstance {} already enter a final state:{}",
                 stepInstance.getId(),
                 stepInstance.getStatus()
+            );
+        }
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        if (!RunStatusEnum.getFinishedStatusValueList().contains(taskInstance.getStatus())) {
+            long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
+                taskInstance.getTotalTime());
+            taskInstanceService.updateTaskExecutionInfo(
+                taskInstanceId,
+                RunStatusEnum.FAIL,
+                null,
+                null,
+                endTime,
+                totalTime
+            );
+        } else {
+            log.info(
+                "taskInstance {} already enter a final state:{}",
+                taskInstanceId,
+                taskInstance.getStatus()
             );
         }
     }
