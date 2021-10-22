@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
-import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -92,7 +91,16 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                               JobBuildInVariableResolver jobBuildInVariableResolver) {
         super(requestId, gseTasksExceptionCounter, taskInstance, stepInstance, executeIps);
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
-        scriptFilePath = GseConstants.SCRIPT_PATH + "/" + stepInstance.getAccount();
+        scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
+            stepInstance.getAccount());
+    }
+
+    private String buildScriptFilePath(String gseScriptFileRootPath, String account) {
+        if (gseScriptFileRootPath.endsWith("/")) {
+            return gseScriptFileRootPath + account;
+        } else {
+            return gseScriptFileRootPath + "/" + account;
+        }
     }
 
     @Override

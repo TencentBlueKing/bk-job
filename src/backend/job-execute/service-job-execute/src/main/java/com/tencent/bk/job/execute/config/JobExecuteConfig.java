@@ -67,4 +67,7 @@ public class JobExecuteConfig {
 
     @Value("${job.execute.limit.script-task.max-target-server:50000}")
     private Integer scriptTaskMaxTargetServer;
+
+    @Value("${gse.script.root-path:/tmp/bkjob}")
+    private String gseScriptFileRootPath;
 }
