@@ -31,7 +31,7 @@
             <table>
                 <template v-if="!$slots.default">
                     <thead>
-                        <th style="width: 15%;">{{ $t('主机IP') }}</th>
+                        <th style="width: 20%;">{{ $t('主机IP') }}</th>
                         <th style="width: 20%;">{{ $t('云区域') }}</th>
                         <th style="width: 150px;">{{ $t('Agent 状态') }}</th>
                         <th>{{ $t('主机名') }}</th>
@@ -222,6 +222,7 @@
                 .repeat,
                 .invalid {
                     position: absolute;
+                    top: 10px;
                     height: 18px;
                     padding: 0 5px;
                     margin-left: -6px;
