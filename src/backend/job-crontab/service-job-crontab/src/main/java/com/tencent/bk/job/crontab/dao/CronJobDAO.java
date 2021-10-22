@@ -71,6 +71,15 @@ public interface CronJobDAO {
     CronJobInfoDTO getCronJobById(long appId, long cronJobId);
 
     /**
+     * 根据定时任务 ID 查询定时任务错误信息，上次执行状态，错误码，错误次数
+     *
+     * @param appId     业务 ID
+     * @param cronJobId 定时任务 ID
+     * @return 定时任务错误信息
+     */
+    CronJobInfoDTO getCronJobErrorById(long appId, long cronJobId);
+
+    /**
      * 新增定时任务信息
      *
      * @param cronJob 定时任务信息
@@ -85,6 +94,14 @@ public interface CronJobDAO {
      * @return 是否更新成功
      */
     boolean updateCronJobById(CronJobInfoDTO cronJob);
+
+    /**
+     * 根据 ID 和定时任务 ID 更新定时任务错误信息
+     *
+     * @param cronJobErrorInfo 定时任务错误信息
+     * @return 是否更新成功
+     */
+    boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo);
 
     /**
      * 根据定时任务 ID 删除定时任务
