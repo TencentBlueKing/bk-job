@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -88,6 +89,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     // ---------------- dependent service --------------------
     protected TaskExecuteControlMsgSender taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    protected ExceptionStatusManager exceptionStatusManager;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -244,7 +246,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
                                      TaskExecuteControlMsgSender taskManager,
-                                     ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager) {
+                                     ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                     ExceptionStatusManager exceptionStatusManager
+    ) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskLogService = gseTaskLogService;
         this.logService = logService;
@@ -252,6 +256,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskManager = taskManager;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.exceptionStatusManager = exceptionStatusManager;
     }
 
     public void execute() {
@@ -306,15 +311,17 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                     watch.stop();
                 } catch (Exception e) {
                     log.error("[" + stepInstanceId + "]: analyse gse task log result error.", e);
-                    this.executeResult = GseTaskExecuteResult.FAILED;
-                    handleExecuteResult(this.executeResult);
-                    return;
+                    throw e;
                 }
             } while (!gseLogBatchPullResult.isLastBatch());
 
             watch.start("handle-execute-result");
             handleExecuteResult(this.executeResult);
             watch.stop();
+        } catch (Exception e) {
+            log.error("[" + stepInstanceId + "]: result handle error.", e);
+            this.executeResult = GseTaskExecuteResult.EXCEPTION;
+            handleExecuteResult(this.executeResult);
         } finally {
             this.isRunning = false;
             LockUtils.releaseDistributedLock("job:result:handle:", String.valueOf(stepInstanceId), requestId);
@@ -478,7 +485,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         } else {
             int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
-            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
+            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
+                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
+                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
+            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
                     startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
                     successTargetIpNum, failTargetIpNum + invalidIpNum);

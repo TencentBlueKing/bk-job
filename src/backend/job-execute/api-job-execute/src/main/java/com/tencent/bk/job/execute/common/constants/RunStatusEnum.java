@@ -58,16 +58,16 @@ public enum RunStatusEnum {
      *
      * @return
      */
-    public static List<Byte> getFinishedStatusValueList() {
-        List<Byte> finishedStatusValueList = new ArrayList<>();
-        finishedStatusValueList.add(SUCCESS.value.byteValue());
-        finishedStatusValueList.add(FAIL.value.byteValue());
-        finishedStatusValueList.add(SKIPPED.value.byteValue());
-        finishedStatusValueList.add(IGNORE_ERROR.value.byteValue());
-        finishedStatusValueList.add(TERMINATED.value.byteValue());
-        finishedStatusValueList.add(ABNORMAL_STATE.value.byteValue());
-        finishedStatusValueList.add(STOP_SUCCESS.value.byteValue());
-        finishedStatusValueList.add(CONFIRM_TERMINATED.value.byteValue());
+    public static List<Integer> getFinishedStatusValueList() {
+        List<Integer> finishedStatusValueList = new ArrayList<>();
+        finishedStatusValueList.add(SUCCESS.value);
+        finishedStatusValueList.add(FAIL.value);
+        finishedStatusValueList.add(SKIPPED.value);
+        finishedStatusValueList.add(IGNORE_ERROR.value);
+        finishedStatusValueList.add(TERMINATED.value);
+        finishedStatusValueList.add(ABNORMAL_STATE.value);
+        finishedStatusValueList.add(STOP_SUCCESS.value);
+        finishedStatusValueList.add(CONFIRM_TERMINATED.value);
         return finishedStatusValueList;
     }
 
