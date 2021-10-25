@@ -77,3 +77,13 @@ job:
       username: __BK_JOB_CRONTAB_MYSQL_USERNAME__
       password: __BK_JOB_CRONTAB_MYSQL_PASSWORD__
 
+# 连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
+notification-policy:
+  failed:
+    start:
+      # 通知开始：默认 1 - 从第一次失败开始通知
+      begin: 1
+      # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
+      frequency: 5
+      # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
+      totalTimes: -1

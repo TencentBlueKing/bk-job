@@ -64,22 +64,18 @@
     import I18n from '@/i18n';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import AccountManageService from '@service/account-manage';
-    import {
-        accountAliasNameRule,
-    } from '@utils/validator';
+    import AccountModel from '@model/account';
+    import { accountAliasNameRule } from '@utils/validator';
     import JbInput from '@components/jb-input';
     import AccountSelect from '@components/account-select';
     import AccountDatabase from './account-strategy/database-account';
-    import AccountSystem from './account-strategy/system-account';
+    import AccountOS from './account-strategy/os-account';
 
-    const ACCOUNT_TYPE_SYSTEM = 1;
-    const ACCOUNT_TYPE_DATABASE = 2;
-    
     const generatorDefault = () => ({
         id: '',
         account: '',
         alias: '',
-        category: ACCOUNT_TYPE_SYSTEM,
+        category: AccountModel.OS,
         dbPassword: '',
         dbPort: '',
         dbSystemAccountId: '',
@@ -87,7 +83,7 @@
         os: '',
         password: '',
         remark: '',
-        type: 1,
+        type: AccountModel.TYPE_LINUX,
         rePassword: '',
     });
 
@@ -123,23 +119,34 @@
             };
         },
         computed: {
+            /**
+             * @desc 账号分类对应的表单
+             * @returns { Object }
+             */
             accountCom () {
                 const comMap = {
-                    1: AccountSystem,
-                    2: AccountDatabase,
+                    [AccountModel.OS]: AccountOS,
+                    [AccountModel.DB]: AccountDatabase,
                 };
                 return comMap[this.formData.category];
             },
+            /**
+             * @desc 账号名称 Input 输入框的placeholder, 读账号名称规则的配置
+             * @returns { Boolean }
+             */
             namePlaceholder () {
                 if (this.isLoading) {
                     return '';
                 }
-                if (this.formData.category === ACCOUNT_TYPE_DATABASE) {
+                // DB 账号的命名规则
+                if (this.formData.category === AccountModel.DB) {
                     return this.currentRules.db.description;
                 }
-                if (this.formData.type === 1) {
+                // linux 账号的命名规则
+                if (this.formData.type === AccountModel.TYPE_LINUX) {
                     return this.currentRules.linux.description;
                 }
+                // windows 账号的命名规则
                 return this.currentRules.windows.description;
             },
             rules () {
@@ -169,7 +176,8 @@
                     ],
                 };
                 // db账号
-                if (this.formData.category === ACCOUNT_TYPE_DATABASE) {
+                if (this.formData.category === AccountModel.DB) {
+                    // DB 账号管理员配置规则
                     baseRule.account.push({
                         validator: (value) => {
                             const regx = new RegExp(this.currentRules.db.expression);
@@ -180,6 +188,13 @@
                     });
                     return {
                         ...baseRule,
+                        dbPassword: [
+                            {
+                                validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                                message: I18n.t('account.密码不支持中文'),
+                                trigger: 'blur',
+                            },
+                        ],
                         rePassword: [
                             {
                                 validator: value => this.formData.rePassword === this.formData.dbPassword,
@@ -204,7 +219,8 @@
                     };
                 }
                 // Linux系统账号不需要密码
-                if (this.formData.type === 1) {
+                if (this.formData.type === AccountModel.TYPE_LINUX) {
+                    // linux 管理源配置账号规则
                     baseRule.account.push({
                         validator: (value) => {
                             const regx = new RegExp(this.currentRules.linux.expression);
@@ -215,7 +231,8 @@
                     });
                     return baseRule;
                 }
-                // 非Linux系统账号需要密码
+
+                // windows 系统管理员配置规则
                 baseRule.account.push({
                     validator: (value) => {
                         const regx = new RegExp(this.currentRules.windows.expression);
@@ -232,6 +249,11 @@
                             message: I18n.t('account.密码必填'),
                             trigger: 'blur',
                         },
+                        {
+                            validator: value => !/[\u4e00-\u9fa5]/.test(value),
+                            message: I18n.t('account.密码不支持中文'),
+                            trigger: 'blur',
+                        },
                     ],
                     rePassword: [
                         {
@@ -244,10 +266,19 @@
             },
         },
         created () {
+            this.fetchRules();
+            
             this.categoryList = [
-                { value: ACCOUNT_TYPE_SYSTEM, name: I18n.t('account.系统账号') },
-                { value: ACCOUNT_TYPE_DATABASE, name: I18n.t('account.数据库账号') },
+                {
+                    value: AccountModel.OS,
+                    name: I18n.t('account.系统账号'),
+                },
+                {
+                    value: AccountModel.DB,
+                    name: I18n.t('account.数据库账号'),
+                },
             ];
+
             if (this.data.id) {
                 this.isEdit = true;
                 const {
@@ -264,6 +295,7 @@
                     remark,
                     type,
                 } = this.data;
+                // 确认密码字段，优先判断 password 字段优先级高，然后是 dbPassword
                 let rePassword = dbPassword;
                 if (password) {
                     rePassword = password;
@@ -284,9 +316,11 @@
                     rePassword,
                 };
             }
-            this.fetchRules();
         },
         methods: {
+            /**
+             * @desc 获取管理员配置的账号命名规则
+             */
             fetchRules () {
                 if (this.data.id) {
                     this.isLoading = false;
@@ -307,7 +341,9 @@
                         this.isLoading = false;
                     });
             },
-            
+            /**
+             * @desc 提交新建账号
+             */
             createAccount () {
                 const params = { ...this.formData };
                 delete params.rePassword;
@@ -317,11 +353,10 @@
                         this.$emit('on-change');
                     });
             },
+            /**
+             * @desc 提交编辑账号
+             */
             updateAccount () {
-                if (this.isRulesLoadingError) {
-                    this.messageWarn(I18n.t('account.命名规则请求失败无法执行当前操作，请刷新页面'));
-                    return Promise.reject(Error('rule error'));
-                }
                 const params = { ...this.formData };
                 delete params.rePassword;
                 return AccountManageService.updateAccount(params)
@@ -330,16 +365,38 @@
                         this.$emit('on-change');
                     });
             },
-            handleCategoryChange (value) {
+            /**
+             * @desc 账号分类切换
+             * @param { Number } category
+             *
+             * 切换账号分类重置表单验证
+             */
+            handleCategoryChange (category) {
                 this.formData = generatorDefault();
-                this.formData.category = value;
-                this.formData.type = value === ACCOUNT_TYPE_SYSTEM ? 1 : 9;
+                this.formData.category = category;
+                const defaultType = {
+                    [AccountModel.OS]: AccountModel.TYPE_LINUX,
+                    [AccountModel.DB]: AccountModel.TYPE_MYSQL,
+                };
+                this.formData.type = defaultType[category];
                 this.$refs.operateAccountForm.clearError();
             },
+            /**
+             * @desc 表单字段更新
+             * @param { String } key
+             * @param { Any } value
+             */
             handleFieldChange (key, value) {
                 this.formData[key] = value;
             },
+            /**
+             * @desc 表单提交
+             */
             submit () {
+                if (this.isRulesLoadingError) {
+                    this.messageWarn(I18n.t('account.命名规则请求失败无法执行当前操作，请刷新页面'));
+                    return Promise.reject(Error('rule error'));
+                }
                 return this.$refs.operateAccountForm.validate()
                     .then(() => {
                         if (this.formData.id) {
@@ -353,6 +410,8 @@
 </script>
 <style lang="postcss">
     .operation-account {
+        margin-bottom: -20px;
+
         .radio-button-group-wraper {
             position: relative;
             z-index: 1;

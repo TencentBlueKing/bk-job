@@ -25,12 +25,18 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * gse 任务IPLog
  */
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 public class GseTaskIpLogDTO {
 
     private long stepInstanceId;
@@ -96,6 +102,46 @@ public class GseTaskIpLogDTO {
     private int offset;
 
     private String logContent;
+
+    /**
+     * 结果是否发生变化
+     */
+    private volatile boolean changed;
+
+    public void setStatus(int status) {
+        this.changed = this.status != status;
+        this.status = status;
+    }
+
+    public void setStartTime(Long startTime) {
+        this.changed = true;
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(Long endTime) {
+        this.changed = true;
+        this.endTime = endTime;
+    }
+
+    public void setTotalTime(Long totalTime) {
+        this.changed = true;
+        this.totalTime = totalTime;
+    }
+
+    public void setErrCode(int errCode) {
+        this.changed = true;
+        this.errCode = errCode;
+    }
+
+    public void setExitCode(Integer exitCode) {
+        this.changed = true;
+        this.exitCode = exitCode;
+    }
+
+    public void setOffset(int offset) {
+        this.changed = this.offset != offset;
+        this.offset = offset;
+    }
 
     /**
      * 任务是否结束

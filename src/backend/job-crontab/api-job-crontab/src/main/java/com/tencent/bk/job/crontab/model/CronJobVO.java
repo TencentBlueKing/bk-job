@@ -121,6 +121,18 @@ public class CronJobVO {
     private Integer lastExecuteStatus;
 
     /**
+     * 上次执行错误码
+     */
+    @ApiModelProperty("上次执行错误码")
+    private Long lastExecuteErrorCode;
+
+    /**
+     * 上次执行错误次数
+     */
+    @ApiModelProperty("上次执行错误次数")
+    private Integer lastExecuteErrorCount;
+
+    /**
      * 是否启用
      */
     @ApiModelProperty("是否启用")

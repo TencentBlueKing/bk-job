@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * GSE请求构建工具类
@@ -406,26 +407,9 @@ public class GseRequestUtils {
                                                                  Map<String, LogPullProgress> runBushOffsetMap) {
         List<api_query_agent_info_v2> queryAgentList = new ArrayList<>();
         for (String cloudIp : cloudIps) {
-            String[] ipArray = cloudIp.split(":");
-
-            int source = 0;
-            String ip;
-            if (ipArray.length > 1) {
-                source = Integer.parseInt(ipArray[0]);
-                ip = ipArray[1];
-            } else {
-                ip = ipArray[0];
-            }
-
             api_query_agent_info_v2 queryAgentInfo = new api_query_agent_info_v2();
-            api_host apiHost = new api_host();
-            apiHost.setIp(ip);
-            if (source > 1) {
-                apiHost.setGse_composite_id(source);
-            } else {
-                apiHost.setGse_composite_id(0);
-            }
 
+            api_host apiHost = convertToApiHost(cloudIp);
             queryAgentInfo.setHost(apiHost);
 
             LogPullProgress process = runBushOffsetMap.get(cloudIp);
@@ -445,6 +429,28 @@ public class GseRequestUtils {
         return queryTaskInfo;
     }
 
+    private static api_host convertToApiHost(String cloudIp) {
+        String[] ipArray = cloudIp.split(":");
+
+        int cloudAreaId = 0;
+        String ip;
+        if (ipArray.length > 1) {
+            cloudAreaId = Integer.parseInt(ipArray[0]);
+            ip = ipArray[1];
+        } else {
+            ip = ipArray[0];
+        }
+
+        api_host apiHost = new api_host();
+        apiHost.setIp(ip);
+        if (cloudAreaId > 1) {
+            apiHost.setGse_composite_id(cloudAreaId);
+        } else {
+            apiHost.setGse_composite_id(0);
+        }
+        return apiHost;
+    }
+
     /**
      * 获取文件任务执行结果
      *
@@ -456,15 +462,38 @@ public class GseRequestUtils {
         return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
             @Override
             public api_map_rsp callback(GseClient gseClient) throws TException {
-                log.info("[{}]: copyFileTaskLogRequest_gseTaskId={}", id, gseTaskId);
+                log.info("[{}]: pullCopyFileTaskLog|gseTaskId:{}", id, gseTaskId);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient().get_copy_file_result(gseTaskId);
-                log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
+                log.info("[{}]: pullCopyFileTaskLog|response:{}", id, copyFileTaskLog);
                 return copyFileTaskLog;
             }
 
             @Override
             public String getApiName() {
                 return "get_copy_file_result";
+            }
+        });
+    }
+
+    /**
+     * 拉取文件任务执行结果-根据IP
+     */
+    public static api_map_rsp pullCopyFileTaskLog(long id, String gseTaskId, Collection<String> cloudIps) {
+        return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
+            @Override
+            public api_map_rsp callback(GseClient gseClient) throws TException {
+                List<api_host> hosts = cloudIps.stream()
+                    .map(GseRequestUtils::convertToApiHost).collect(Collectors.toList());
+                log.info("[{}]: pullCopyFileTaskLogByIp|gseTaskId:{}|hosts:{}", id, gseTaskId, hosts);
+                api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient()
+                    .get_copy_file_result_by_ip_v2(gseTaskId, hosts);
+                log.info("[{}]: pullCopyFileTaskLogByIp|response:{}", id, copyFileTaskLog);
+                return copyFileTaskLog;
+            }
+
+            @Override
+            public String getApiName() {
+                return "get_copy_file_result_by_ip_v2";
             }
         });
     }

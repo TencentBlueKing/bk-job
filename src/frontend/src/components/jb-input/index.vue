@@ -28,6 +28,7 @@
 <template>
     <div class="jb-input" ref="jbInput">
         <bk-input
+            ref="input"
             :value="localValue"
             @input="handleInput"
             @blur="handleBlur"
@@ -101,7 +102,7 @@
             },
             handleBlur () {
                 setTimeout(() => {
-                    this.inputHander.value = this.localValue;
+                    this.$refs.input.setCurValue(this.localValue);
                 });
             },
             handleKeyup (value, event) {
@@ -124,6 +125,7 @@
                     value = value.slice(0, this.maxlength);
                     this.$nextTick(() => {
                         this.inputHander.value = value;
+                        this.$refs.input.setCurValue(value);
                     });
                 }
                 this.inputLength = value.length;

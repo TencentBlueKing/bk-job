@@ -22,35 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
-
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+package com.tencent.bk.job.gateway.config;
 
 /**
  * Actuator spring security config
  */
-@Configuration
-public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers("/actuator/info").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").authenticated()
-            .antMatchers("/actuator/configprops/**").authenticated()
-            .antMatchers("/actuator/env/**").authenticated()
-            .antMatchers("/actuator/mappings/**").authenticated()
-            .antMatchers("/actuator/metrics/**").authenticated()
-            .antMatchers("/actuator/prometheus/**").authenticated()
-            .antMatchers("/actuator/beans/**").authenticated()
-            .antMatchers("/actuator/conditions/**").authenticated()
-            .antMatchers("/actuator/scheduledtasks/**").authenticated()
-            .and()
-            .httpBasic();
-    }
+//@Configuration
+//@EnableWebFluxSecurity
+public class ActuatorSecurityConfig {
+//    @Bean
+//    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+//        http
+//            .csrf()
+//            .disable()
+//            .authorizeExchange()
+//            .pathMatchers("/actuator/health/**", "/actuator/info")
+//            .permitAll()
+//            .pathMatchers("/actuator/**")
+//            .authenticated()
+//            .pathMatchers("/iam/api/**")
+//            .permitAll()
+//            // check in filter
+//            .anyExchange()
+//            .permitAll()
+//            .and()
+//            .httpBasic();
+//        return http.build();
+//    }
 }

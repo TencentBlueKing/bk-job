@@ -22,31 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.common.util.check;
 
-import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import org.apache.commons.lang3.StringUtils;
 
-@Configuration
-public class ActuatorSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint()).authorizeRequests()
-            .antMatchers("/actuator/health/**").permitAll()
-            .antMatchers(HttpMethod.POST, "/actuator/loggers/**").authenticated()
-            .antMatchers("/actuator/configprops/**").authenticated()
-            .antMatchers("/actuator/env/**").authenticated()
-            .antMatchers("/actuator/mappings/**").authenticated()
-            .antMatchers("/actuator/metrics/**").authenticated()
-            .antMatchers("/actuator/prometheus/**").authenticated()
-            .antMatchers("/actuator/beans/**").authenticated()
-            .antMatchers("/actuator/conditions/**").authenticated()
-            .antMatchers("/actuator/scheduledtasks/**").authenticated()
-            .and()
-            .httpBasic();
+public class ParamCheckUtil {
+
+    public static void checkAppId(Long appId, String paramName) {
+        if (appId == null) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null");
+        }
+        if (appId <= 0) {
+            throw new InvalidParamException(paramName, paramName + " must be a positive number");
+        }
+    }
+
+    public static void checkLocalUploadFileName(String fileName, String paramName) {
+        if (StringUtils.isBlank(fileName)) {
+            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+        }
+        if (fileName.length() > 1024) {
+            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+        }
     }
 }

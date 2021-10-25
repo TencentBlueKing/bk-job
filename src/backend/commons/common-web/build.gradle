@@ -27,5 +27,6 @@ dependencies {
     api project(':commons:esb-sdk')
     api project(':commons:common-iam')
     api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

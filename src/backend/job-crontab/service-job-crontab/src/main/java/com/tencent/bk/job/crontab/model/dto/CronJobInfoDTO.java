@@ -124,6 +124,16 @@ public class CronJobInfoDTO {
     private Integer lastExecuteStatus;
 
     /**
+     * 上次执行错误码
+     */
+    private Long lastExecuteErrorCode;
+
+    /**
+     * 上次执行错误次数
+     */
+    private Integer lastExecuteErrorCount;
+
+    /**
      * 是否启用
      */
     private Boolean enable;
@@ -195,6 +205,8 @@ public class CronJobInfoDTO {
             cronJobVO.setVariableValue(Collections.emptyList());
         }
         cronJobVO.setLastExecuteStatus(cronJobInfo.getLastExecuteStatus());
+        cronJobVO.setLastExecuteErrorCode(cronJobInfo.getLastExecuteErrorCode());
+        cronJobVO.setLastExecuteErrorCount(cronJobInfo.getLastExecuteErrorCount());
         cronJobVO.setEnable(cronJobInfo.getEnable());
         cronJobVO.setLastModifyUser(cronJobInfo.getLastModifyUser());
         cronJobVO.setLastModifyTime(cronJobInfo.getLastModifyTime());

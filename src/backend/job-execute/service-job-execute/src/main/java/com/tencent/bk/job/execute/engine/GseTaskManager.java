@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.executor.AbstractGseTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.FileTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.SQLScriptTaskExecutor;
@@ -50,7 +51,13 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +67,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -83,6 +95,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final AgentService agentService;
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
+    private final ExceptionStatusManager exceptionStatusManager;
     private final Tracing tracing;
     private final ExecuteMonitor executeMonitor;
     private final StorageSystemConfig storageSystemConfig;
@@ -138,6 +151,7 @@ public class GseTaskManager implements SmartLifecycle {
                           StorageSystemConfig storageSystemConfig,
                           AgentService agentService,
                           ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                          ExceptionStatusManager exceptionStatusManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracing tracing,
                           ExecuteMonitor executeMonitor,
@@ -154,6 +168,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.tracing = tracing;
         this.executeMonitor = executeMonitor;
@@ -183,7 +198,11 @@ public class GseTaskManager implements SmartLifecycle {
         try {
             watch.start("get-running-lock");
             // 可重入锁，如果任务正在执行，则放弃
-            if (!LockUtils.tryGetReentrantLock("job:running:gse:task:" + stepInstanceId, startTaskRequestId, 30000L)) {
+            if (!LockUtils.tryGetReentrantLock(
+                "job:running:gse:task:" + stepInstanceId,
+                startTaskRequestId,
+                30000L
+            )) {
                 log.info("Fail to get running lock, stepInstanceId: {}", stepInstanceId);
                 return;
             }
@@ -308,6 +327,7 @@ public class GseTaskManager implements SmartLifecycle {
         gseTaskExecutor.initDependentService(resultHandleManager, taskInstanceService, gseTaskLogService,
             accountService, taskInstanceVariableService, stepInstanceVariableValueService, agentService, logService,
             taskManager, resultHandleTaskKeepaliveManager, executeMonitor, jobExecuteConfig);
+        gseTaskExecutor.setExceptionStatusManager(exceptionStatusManager);
         gseTaskExecutor.setTracing(tracing);
         return gseTaskExecutor;
     }

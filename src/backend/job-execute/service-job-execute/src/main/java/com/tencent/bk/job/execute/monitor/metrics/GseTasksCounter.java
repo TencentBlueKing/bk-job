@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.monitor.metrics;
 
 import com.tencent.bk.job.execute.engine.GseTaskManager;
-import com.tencent.bk.job.execute.engine.result.ResultHandleTaskSampler;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,17 +39,10 @@ import org.springframework.stereotype.Component;
 public class GseTasksCounter {
 
     @Autowired
-    public GseTasksCounter(MeterRegistry meterRegistry, GseTaskManager gseTaskManager,
-                           ResultHandleTaskSampler resultHandleTaskSampler) {
+    public GseTasksCounter(MeterRegistry meterRegistry, GseTaskManager gseTaskManager) {
         FunctionCounter.builder(ExecuteMetricNames.GSE_TASKS_TOTAL, gseTaskManager, GseTaskManager::getScriptTaskCount)
             .tags(Tags.of("type", "script")).register(meterRegistry);
         FunctionCounter.builder(ExecuteMetricNames.GSE_TASKS_TOTAL, gseTaskManager, GseTaskManager::getFileTaskCount)
-            .tags(Tags.of("type", "file")).register(meterRegistry);
-        FunctionCounter.builder(ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL, resultHandleTaskSampler,
-            ResultHandleTaskSampler::getFinishedScriptTaskCount)
-            .tags(Tags.of("type", "script")).register(meterRegistry);
-        FunctionCounter.builder(ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL, resultHandleTaskSampler,
-            ResultHandleTaskSampler::getFinishedFileTaskCount)
             .tags(Tags.of("type", "file")).register(meterRegistry);
     }
 }

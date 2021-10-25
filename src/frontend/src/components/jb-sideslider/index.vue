@@ -241,7 +241,7 @@
              * 判断条件为有没有提供submit方法
              */
             checkHandle () {
-                // 可以绑定子组件的条件是子组件有提供submit methods
+                // 可以绑定子组件的唯一判断条件——子组件有提供submit methods
                 const handle = {
                     submit: () => Promise.resolve(),
                     reset: () => Promise.resolve(),
@@ -272,7 +272,7 @@
              */
             handleSubmit () {
                 this.isSubmiting = true;
-                this.checkHandle().submit()
+                Promise.resolve(this.checkHandle().submit())
                     .then(() => {
                         window.changeAlert = false;
                         this.close();

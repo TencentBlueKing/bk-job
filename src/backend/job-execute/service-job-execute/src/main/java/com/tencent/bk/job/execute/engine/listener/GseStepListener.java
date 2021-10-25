@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.engine.GseTaskManager;
 import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
 import com.tencent.bk.job.execute.engine.model.StepControlMessage;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
@@ -46,15 +47,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GseStepListener {
     private final GseTaskManager gseTaskManager;
+    private final ExceptionStatusManager exceptionStatusManager;
     /**
      * 任务执行异常Counter
      */
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
 
     @Autowired
-    public GseStepListener(GseTaskManager gseTaskManager,
-                           GseTasksExceptionCounter gseTasksExceptionCounter) {
+    public GseStepListener(
+        GseTaskManager gseTaskManager,
+        ExceptionStatusManager exceptionStatusManager,
+        GseTasksExceptionCounter gseTasksExceptionCounter
+    ) {
         this.gseTaskManager = gseTaskManager;
+        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
     }
 
@@ -81,15 +87,17 @@ public class GseStepListener {
         } catch (Throwable e) {
             String errorMsg = "Handling gse step control message error,stepInstanceId:" + stepInstanceId;
             log.error(errorMsg, e);
-            handleException(e);
+            handleException(stepInstanceId, e);
         }
     }
 
-    private void handleException(Throwable e) throws MessageHandleException {
+    private void handleException(long stepInstanceId, Throwable e) throws MessageHandleException {
         // 服务关闭，消息被拒绝，重新入队列
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;
         }
         gseTasksExceptionCounter.increment();
+        // 任务状态应当置为异常状态
+        exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
     }
 }
