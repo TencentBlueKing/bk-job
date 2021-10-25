@@ -2118,7 +2118,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         private final DynamicServerTopoNodeDTO topoNode;
         private final CountDownLatch latch;
 
-        public GetTopoHostTask(long appId, DynamicServerTopoNodeDTO topoNode, CountDownLatch latch) {
+        private GetTopoHostTask(long appId, DynamicServerTopoNodeDTO topoNode, CountDownLatch latch) {
             this.appId = appId;
             this.topoNode = topoNode;
             this.latch = latch;
