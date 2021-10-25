@@ -204,7 +204,7 @@ public class ResultHandleManager implements SmartLifecycle {
     private boolean isWorkerActive(TaskWorker worker) {
         boolean workerActive;
         synchronized (this.workersMonitor) {
-            workerActive = this.workers != null && this.workers.contains(worker);
+            workerActive = this.workers.contains(worker);
         }
         return workerActive && this.isActive();
     }
@@ -291,7 +291,7 @@ public class ResultHandleManager implements SmartLifecycle {
      */
     private void considerAddingAConsumer() {
         synchronized (this.workersMonitor) {
-            if (this.workers != null && this.workers.size() < this.MAX_WORKERS) {
+            if (this.workers.size() < this.MAX_WORKERS) {
                 long now = System.currentTimeMillis();
                 if (this.lastWorkerStartedAt + this.startConsumerMinInterval < now) {
                     TaskWorker worker = new TaskWorker();
@@ -309,7 +309,7 @@ public class ResultHandleManager implements SmartLifecycle {
      */
     private void considerStoppingAConsumer(TaskWorker worker) {
         synchronized (this.workersMonitor) {
-            if (this.workers != null && this.workers.size() > this.CORE_WORKERS) {
+            if (this.workers.size() > this.CORE_WORKERS) {
                 long now = System.currentTimeMillis();
                 if (this.lastWorkerStoppedAt + this.stopConsumerMinInterval < now) {
                     workers.remove(worker);
@@ -364,8 +364,8 @@ public class ResultHandleManager implements SmartLifecycle {
     }
 
     private static final class StopTask implements Runnable {
-        private ScheduledContinuousResultHandleTask task;
-        private Tracing tracing;
+        private final ScheduledContinuousResultHandleTask task;
+        private final Tracing tracing;
 
         StopTask(ScheduledContinuousResultHandleTask task, Tracing tracing) {
             this.task = task;

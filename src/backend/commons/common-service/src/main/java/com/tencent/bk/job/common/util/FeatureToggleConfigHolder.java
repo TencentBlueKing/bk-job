@@ -22,37 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.common.util;
 
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 
-import java.util.concurrent.atomic.AtomicInteger;
+public class FeatureToggleConfigHolder {
 
-/**
- * 脚本任务调度策略
- */
-@Slf4j
-public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy {
-    /**
-     * 任务累计执行次数
-     */
-    private final AtomicInteger times = new AtomicInteger(0);
+    private FeatureToggleConfigHolder() {
+    }
 
-    @Override
-    public long getDelay() {
-        int handleCount = times.addAndGet(1);
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 35) {
-            // 10s-1min,周期为2s
-            return 2000;
-        } else if (handleCount <= 88) {
-            // 1min-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
+    public static FeatureToggleConfig get() {
+        return Inner.instance;
+    }
+
+    private static class Inner {
+        private static final FeatureToggleConfig instance =
+            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
     }
 }

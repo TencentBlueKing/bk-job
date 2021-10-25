@@ -75,7 +75,7 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
         int batchSize = gseConfig.getQueryBatchSize();
         int threadNum = gseConfig.getQueryThreadsNum();
         int start = 0;
-        int end = 0;
+        int end;
         int size = ips.size();
         List<List<String>> ipSubListList = new ArrayList<>();
         while (start < size) {
@@ -87,12 +87,7 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
         }
         // 并发查询
         Collection<Map<String, AgentStatus>> maps = ConcurrencyUtil.getResultWithThreads(ipSubListList, threadNum,
-            new ConcurrencyUtil.Handler<List<String>, Map<String, AgentStatus>>() {
-            @Override
-            public Collection<Map<String, AgentStatus>> handle(List<String> ipList1) {
-                return Collections.singletonList(batchGetAgentStatusWithoutLimit(ipList1));
-            }
-        });
+            ipList1 -> Collections.singletonList(batchGetAgentStatusWithoutLimit(ipList1)));
         maps.forEach(resultMap::putAll);
         Long endTime = System.currentTimeMillis();
         if (endTime - startTime > 100L) {
@@ -136,11 +131,11 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
             request.setUser(user);
             request.setIpinfos(ipInfoList);
 
-            log.debug("queryAgentStatus request: " + request.toString());
+            log.debug("queryAgentStatus request: " + request);
             Long startTime = System.currentTimeMillis();
             AgentStatusResponse response = gseClient.getCacheClient().quireAgentStatus(request);
             Long endTime = System.currentTimeMillis();
-            log.debug("queryAgentStatus response: " + response.toString());
+            log.debug("queryAgentStatus response: " + response);
             log.info("batchGetAgentStatus {} ips, time consuming:{}ms", ips.size(), (endTime - startTime));
 
             Map<String, String> responseMap = response.getResult();
@@ -197,8 +192,8 @@ public class QueryAgentStatusClientImpl implements QueryAgentStatusClient {
     /**
      * 传入的multiIp为逗号分隔的不带云区域ID的IP
      *
-     * @param multiIp
-     * @param cloudAreaId
+     * @param multiIp     多个IP
+     * @param cloudAreaId 云区域ID
      * @return 返回的单个IP不带云区域ID
      */
     public String getHostIpByAgentStatus(String multiIp, long cloudAreaId) {

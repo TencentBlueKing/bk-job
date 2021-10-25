@@ -86,7 +86,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected GseTaskLogService gseTaskLogService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
-    // ---------------- dependent service --------------------
     protected TaskExecuteControlMsgSender taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
@@ -145,7 +144,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     // ---------------- analysed task execution result for server --------------------
     /**
-     * 已经分析结果完成的服务器
+     * 已经分析结果完成的目标服务器
      */
     protected Set<String> analyseFinishedIpSet = new HashSet<>();
     /**
@@ -176,13 +175,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 拉取执行结果次数
      */
-    private AtomicInteger pullLogTimes = new AtomicInteger(0);
+    private final AtomicInteger pullLogTimes = new AtomicInteger(0);
 
     // ---------------- task lifecycle properties --------------------
     /**
      * 拉取执行结果失败次数
      */
-    private AtomicInteger pullLogFailCount = new AtomicInteger(0);
+    private final AtomicInteger pullLogFailCount = new AtomicInteger(0);
     /**
      * 最近一次成功拉取GSE执行结果的时间
      */
@@ -381,7 +380,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         gseTaskLogService.batchSaveIpLog(notFinishedIpLogs);
     }
 
-    private boolean checkGseLogWaitingTimeout(GseLog gseLog) {
+    private boolean checkGseLogWaitingTimeout(GseLog<?> gseLog) {
         // 超时处理
         if (latestPullGseLogSuccessTimeMillis == 0) {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
@@ -518,6 +517,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         gseTaskLog.setEndTime(endTime);
         gseTaskLog.setTotalTime(totalTime);
         gseTaskLogService.saveGseTaskLog(gseTaskLog);
+    }
+
+    protected void batchSaveChangedIpLogs() {
+        List<GseTaskIpLogDTO> changedIpLogs =
+            this.ipLogMap.values().stream().filter(GseTaskIpLogDTO::isChanged).collect(Collectors.toList());
+        gseTaskLogService.batchSaveIpLog(changedIpLogs);
+        changedIpLogs.forEach(ipLog -> ipLog.setChanged(false));
     }
 
     protected void saveFailInfoForUnfinishedIpTask(int errorType, String errorMsg) {
