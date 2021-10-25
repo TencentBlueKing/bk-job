@@ -61,10 +61,6 @@ public class ExecuteMetricNames {
      */
     public static final String EXECUTE_TASK_PREFIX = "job.execute.task";
     /**
-     * GSE-API
-     */
-    public static final String GSE_API_PREFIX = "gse.api";
-    /**
      * 未被调度的任务数
      */
     public static final String NOT_ALIVE_TASKS_TOTAL = "job.not.alive.tasks.total";

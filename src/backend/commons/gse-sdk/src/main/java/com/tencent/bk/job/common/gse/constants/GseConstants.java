@@ -22,20 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.common.gse.constants;
 
-public final class AgentUtils {
-
-    private AgentUtils() {
-    }
+public interface GseConstants {
+    /**
+     * 直连云区域ID
+     */
+    int DEFAULT_CLOUD_ID = 0;
 
     /**
-     * 返回Agent的状态是否正常
-     *
-     * @param status agent的状态
-     * @return 正常1
+     * GSE API 度量指标名称前缀
      */
-    public static boolean isAgentOkByStatus(int status) {
-        return status == 1;
-    }
+    String GSE_API_METRICS_NAME_PREFIX = "gse.api";
 }
