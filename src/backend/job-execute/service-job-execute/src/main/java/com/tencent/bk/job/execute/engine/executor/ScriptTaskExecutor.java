@@ -70,7 +70,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     /**
      * 下发到gse的脚本文件根目录
      */
-    protected final String scriptFilePath;
+    protected String scriptFilePath;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -91,8 +91,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                               JobBuildInVariableResolver jobBuildInVariableResolver) {
         super(requestId, gseTasksExceptionCounter, taskInstance, stepInstance, executeIps);
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
-        scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
-            stepInstance.getAccount());
+
     }
 
     private String buildScriptFilePath(String gseScriptFileRootPath, String account) {
@@ -105,6 +104,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
     @Override
     protected void initExecutionContext() {
+        scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
+            stepInstance.getAccount());
         super.initExecutionContext();
     }
 
