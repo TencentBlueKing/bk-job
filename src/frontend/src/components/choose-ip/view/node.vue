@@ -53,7 +53,7 @@
                                 </span>
                                 <span>{{ row.type }}#{{ row.id }}</span>
                             </td>
-                            <td>--</td>
+                            <td colspan="2">--</td>
                             <td v-if="editable" class="action-column">
                                 <bk-button
                                     text
@@ -75,7 +75,7 @@
                                     {{ wholePathMap[row.key] || row.name }}
                                 </div>
                             </td>
-                            <td style="width: 15%;">
+                            <td style="width: 150px;">
                                 <Icon
                                     v-if="row.isHostLoading"
                                     class="loading-status"

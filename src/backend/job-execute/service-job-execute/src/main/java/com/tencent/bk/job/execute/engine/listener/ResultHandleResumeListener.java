@@ -29,8 +29,13 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
-import com.tencent.bk.job.execute.engine.model.*;
+import com.tencent.bk.job.execute.engine.model.FileDest;
+import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.engine.model.StepControlMessage;
+import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
@@ -42,7 +47,12 @@ import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
 import com.tencent.bk.job.execute.model.GseTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +61,11 @@ import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -81,17 +95,22 @@ public class ResultHandleResumeListener {
 
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
 
+    private final ExceptionStatusManager exceptionStatusManager;
+
     @Autowired
-    public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
-                                      ResultHandleManager resultHandleManager,
-                                      TaskInstanceVariableService taskInstanceVariableService,
-                                      GseTaskLogService gseTaskLogService,
-                                      StorageSystemConfig storageSystemConfig,
-                                      AgentService agentService,
-                                      LogService logService,
-                                      StepInstanceVariableValueService stepInstanceVariableValueService,
-                                      TaskExecuteControlMsgSender taskExecuteControlMsgSender,
-                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager) {
+    public ResultHandleResumeListener(
+        TaskInstanceService taskInstanceService,
+        ResultHandleManager resultHandleManager,
+        TaskInstanceVariableService taskInstanceVariableService,
+        GseTaskLogService gseTaskLogService,
+        StorageSystemConfig storageSystemConfig,
+        AgentService agentService,
+        LogService logService,
+        StepInstanceVariableValueService stepInstanceVariableValueService,
+        TaskExecuteControlMsgSender taskExecuteControlMsgSender,
+        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+        ExceptionStatusManager exceptionStatusManager
+    ) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -103,6 +122,7 @@ public class ResultHandleResumeListener {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteControlMsgSender = taskExecuteControlMsgSender;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.exceptionStatusManager = exceptionStatusManager;
     }
 
 
@@ -149,7 +169,7 @@ public class ResultHandleResumeListener {
                     requestId);
                 scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
-                    resultHandleTaskKeepaliveManager);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager);
                 resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
             } else if (stepInstance.isFileStep()) {
                 Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
@@ -171,7 +191,7 @@ public class ResultHandleResumeListener {
                     requestId);
                 fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
-                    resultHandleTaskKeepaliveManager);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager);
                 resultHandleManager.handleDeliveredTask(fileResultHandleTask);
             } else {
                 log.warn("Not support resume step type! stepType: {}", stepInstance.getExecuteType());

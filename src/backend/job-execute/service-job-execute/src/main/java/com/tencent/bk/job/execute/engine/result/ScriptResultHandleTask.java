@@ -132,13 +132,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
      */
-    public ScriptResultHandleTask(TaskInstanceDTO taskInstance,
-                                  StepInstanceDTO stepInstance,
-                                  TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                  Map<String, GseTaskIpLogDTO> ipLogMap,
-                                  GseTaskLogDTO gseTaskLog,
-                                  Set<String> targetIps,
-                                  String requestId) {
+    public ScriptResultHandleTask(
+        TaskInstanceDTO taskInstance,
+        StepInstanceDTO stepInstance,
+        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+        Map<String, GseTaskIpLogDTO> ipLogMap,
+        GseTaskLogDTO gseTaskLog,
+        Set<String> targetIps,
+        String requestId
+    ) {
         super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, targetIps, requestId);
         initLogPullProcess(ipLogMap.values());
     }

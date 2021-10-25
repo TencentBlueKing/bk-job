@@ -43,7 +43,7 @@
                             ref="variable"
                             :type="variable.type"
                             :key="variable.id"
-                            readonly
+                            :readonly="readonly"
                             :data="variable" />
                     </global-variable-layout>
                     <empty v-if="isEmpty">
@@ -122,12 +122,12 @@
             };
         },
         computed: {
-            // readonly () {
-            //     if (!this.data.enable) {
-            //         return true;
-            //     }
-            //     return this.isEditing ? false : this.info.hasConfirm;
-            // },
+            readonly () {
+                if (!this.data.enable) {
+                    return true;
+                }
+                return this.isEditing ? false : this.info.hasConfirm;
+            },
         },
         created () {
             if (!this.data.id) {

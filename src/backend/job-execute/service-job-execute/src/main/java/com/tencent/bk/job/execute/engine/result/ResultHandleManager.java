@@ -95,19 +95,19 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 最小任务处理线程
      */
-    private int CORE_WORKERS = 50;
+    private final int CORE_WORKERS = 50;
     /**
      * 最大任务处理线程
      */
-    private int MAX_WORKERS = 100;
+    private final int MAX_WORKERS = 100;
     /**
      * 触发新增worker阈值：worker连续处理的任务数
      */
-    private int consecutiveActiveTrigger = 10;
+    private final int consecutiveActiveTrigger = 10;
     /**
      * 触发回收worker阈值：worker连续空闲的周期数
      */
-    private int consecutiveIdleTrigger = 10;
+    private final int consecutiveIdleTrigger = 10;
     /**
      * 最近一次worker启动时间
      */
@@ -132,9 +132,9 @@ public class ResultHandleManager implements SmartLifecycle {
      * whether this component is currently running(Spring Lifecycle isRunning method)
      */
     private volatile boolean running = false;
-    private final ExecutorService shutdownExecutorService =
-        new ThreadPoolExecutor(10, 20, 120, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>());
+    private final ExecutorService shutdownExecutorService = new ThreadPoolExecutor(
+        10, 20, 120, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>());
 
     @Autowired
     public ResultHandleManager(Tracing tracing, ExecuteMonitor counters,
@@ -171,9 +171,11 @@ public class ResultHandleManager implements SmartLifecycle {
         }
         this.tasksQueue.add(scheduleTask);
         if (task instanceof ScriptResultHandleTask) {
-            resultHandleTaskSampler.incrementScriptTask();
-        } else {
-            resultHandleTaskSampler.incrementFileTask();
+            ScriptResultHandleTask scriptResultHandleTask = (ScriptResultHandleTask) task;
+            resultHandleTaskSampler.incrementScriptTask(scriptResultHandleTask.getAppId());
+        } else if (task instanceof FileResultHandleTask) {
+            FileResultHandleTask fileResultHandleTask = (FileResultHandleTask) task;
+            resultHandleTaskSampler.incrementFileTask(fileResultHandleTask.getAppId());
         }
     }
 
@@ -316,24 +318,6 @@ public class ResultHandleManager implements SmartLifecycle {
                 }
             }
         }
-    }
-
-    /**
-     * 返回正在执行的文件任务数量
-     *
-     * @return 任务数量
-     */
-    public long getRunningFileTaskCount() {
-        return this.resultHandleTaskSampler.getHandlingFileTaskCount();
-    }
-
-    /**
-     * 返回正在执行的脚本任务数量
-     *
-     * @return 任务数量
-     */
-    public long getRunningScriptTaskCount() {
-        return this.resultHandleTaskSampler.getHandlingScriptTaskCount();
     }
 
     /**

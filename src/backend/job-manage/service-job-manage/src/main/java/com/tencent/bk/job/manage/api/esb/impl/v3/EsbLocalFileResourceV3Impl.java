@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.ParamCheckUtil;
-import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbLocalFileV3Resource;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
@@ -90,16 +90,19 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             sb.append(File.separatorChar);
             sb.append(fileName);
             String filePath = sb.toString();
-            String fullFilePath = PathUtil.joinFilePath(
-                localFileConfigForManage.getJobLocalUploadRootPath(),
-                filePath
-            );
-            filePathList.add(fullFilePath);
+            filePathList.add(filePath);
         });
-        List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(filePathList);
+        List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
+            localFileConfigForManage.getArtifactoryJobProject(),
+            localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
+            filePathList
+        );
         Map<String, TempUrlInfo> urlInfoMap = new HashMap<>();
         urlInfoList.forEach(urlInfo -> {
-            urlInfoMap.put(urlInfo.getFullPath(), urlInfo);
+            urlInfoMap.put(
+                StringUtil.removePrefix(urlInfo.getFullPath(), "/"),
+                urlInfo
+            );
         });
         EsbUploadUrlV3DTO esbUploadUrlV3DTO = new EsbUploadUrlV3DTO();
         Map<String, Map<String, String>> urlMap = new HashMap<>();
@@ -107,7 +110,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
         for (int i = 0; i < size; i++) {
             String fileName = fileNameList.get(i);
             String filePath = filePathList.get(i);
-            TempUrlInfo urlInfo = urlInfoMap.get(filePath);
+            TempUrlInfo urlInfo = urlInfoMap.get(StringUtil.removePrefix(filePath, "/"));
             if (urlInfo != null) {
                 String uploadUrl = urlInfo.getUrl();
                 Map<String, String> map = new HashMap<>();

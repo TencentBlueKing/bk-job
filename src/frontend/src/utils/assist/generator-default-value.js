@@ -85,5 +85,5 @@ export const genDefaultScriptVersion = () => {
         millSeconds,
     ];
     
-    return `${uid}.${temp.join('')}`;
+    return `${uid}.${temp.join('')}`.slice(0, 30);
 };

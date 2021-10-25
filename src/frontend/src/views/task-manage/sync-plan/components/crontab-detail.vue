@@ -46,7 +46,7 @@
                         ref="variable"
                         :type="variable.type"
                         :key="variable.id"
-                        readonly
+                        :readonly="readonly"
                         :data="variable" />
                 </div>
                 <div class="global-variable-action">
@@ -122,14 +122,14 @@
                 },
             };
         },
-        // computed: {
-        //     readonly () {
-        //         if (!this.data.enable) {
-        //             return true;
-        //         }
-        //         return this.isEditing ? false : this.info.hasConfirm;
-        //     },
-        // },
+        computed: {
+            readonly () {
+                if (!this.data.enable) {
+                    return true;
+                }
+                return this.isEditing ? false : this.info.hasConfirm;
+            },
+        },
         created () {
             if (!this.data.id) {
                 return;

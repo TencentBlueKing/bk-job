@@ -199,10 +199,13 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         fileNameList.forEach(fileName -> {
             String filePath = Utils.getUUID() +
                 File.separatorChar + username + File.separatorChar + fileName;
-            String fullFilePath = PathUtil.joinFilePath(localFileConfigForManage.getJobLocalUploadRootPath(), filePath);
-            filePathList.add(fullFilePath);
+            filePathList.add(filePath);
         });
-        List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(filePathList);
+        List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
+            localFileConfigForManage.getArtifactoryJobProject(),
+            localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
+            filePathList
+        );
         return ServiceResponse.buildSuccessResp(
             new UploadTargetVO(
                 urlInfoList
