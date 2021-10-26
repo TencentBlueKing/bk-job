@@ -38,6 +38,7 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -128,9 +129,65 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     }
 
     @Override
+    public void afterDailyStatisticsUpdated(String dayTimeStr) {
+        // 1.统计脚本总数
+        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+            null,
+            Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+            StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
+            StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
+            StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT,
+            dayTimeStr);
+        long totalValue = 0L;
+        for (StatisticsDTO dto : statisticsDTOList) {
+            totalValue += Long.parseLong(dto.getValue());
+        }
+        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
+        statisticsDTO.setCreateTime(System.currentTimeMillis());
+        statisticsDTO.setDate(dayTimeStr);
+        statisticsDTO.setValue(Long.toString(totalValue));
+        statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);
+        statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
+        statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT);
+        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        // 2.统计被引用的脚本总数
+        statisticsDTOList = statisticsDAO.getStatisticsList(
+            null,
+            Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+            StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
+            StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
+            StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT,
+            dayTimeStr);
+        totalValue = 0L;
+        for (StatisticsDTO dto : statisticsDTOList) {
+            totalValue += Long.parseLong(dto.getValue());
+        }
+        statisticsDTO.setCreateTime(System.currentTimeMillis());
+        statisticsDTO.setValue(Long.toString(totalValue));
+        statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT);
+        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        // 3.统计引用脚本的步骤总数
+        statisticsDTOList = statisticsDAO.getStatisticsList(
+            null,
+            Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+            StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
+            StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
+            StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT,
+            dayTimeStr);
+        totalValue = 0L;
+        for (StatisticsDTO dto : statisticsDTOList) {
+            totalValue += Long.parseLong(dto.getValue());
+        }
+        statisticsDTO.setCreateTime(System.currentTimeMillis());
+        statisticsDTO.setValue(Long.toString(totalValue));
+        statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT);
+        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+    }
+
+    @Override
     public List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app, Long fromTime, Long toTime,
                                                  String timeTag) {
-        List<StatisticsDTO> statisticsDTOList = new ArrayList<>(calcAppScriptCiteInfo(timeTag, app.getId()));
-        return statisticsDTOList;
+        return new ArrayList<>(calcAppScriptCiteInfo(timeTag, app.getId()));
     }
 }

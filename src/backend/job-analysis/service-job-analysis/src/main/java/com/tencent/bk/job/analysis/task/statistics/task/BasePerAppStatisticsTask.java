@@ -50,6 +50,12 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
 
     public void afterAppDailyStatisticsUpdated(Long appId, LocalDateTime dateTime) {
         // 默认无任何行为，待子类重写
+        // 可用于汇总单个业务在一段时间内的数据
+    }
+
+    public void afterDailyStatisticsUpdated(String dayTimeStr) {
+        // 默认无任何行为，待子类重写
+        // 可用于汇总多个业务的数据
     }
 
     @Override
@@ -86,5 +92,6 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
                 log.warn("Fail to genStatisticsByDay, dateTime={}, app={}", dateTime, app, t);
             }
         });
+        afterDailyStatisticsUpdated(dayTimeStr);
     }
 }
