@@ -164,6 +164,7 @@ public class StatisticsConstants {
     // 维度取值：步骤运行状态
     public static final String DIMENSION_VALUE_STEP_RUN_STATUS_SUCCESS = "SUCCESS";
     public static final String DIMENSION_VALUE_STEP_RUN_STATUS_FAIL = "FAIL";
+    public static final String DIMENSION_VALUE_STEP_RUN_STATUS_EXCEPTION = "EXCEPTION";
     // 维度取值前缀：作业模板步骤类型
     public static final String DIMENSION_VALUE_STEP_TYPE_PREFIX = "";
     // 维度取值前缀：脚本类型

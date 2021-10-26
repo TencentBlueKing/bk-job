@@ -17,12 +17,6 @@ spring:
       poolName: "job-analysis"
       validationTimeout: 5000
 
-  rabbitmq:
-    host: __BK_JOB_ANALYSIS_RABBITMQ_HOST__
-    port: __BK_JOB_ANALYSIS_RABBITMQ_PORT__
-    username: __BK_JOB_ANALYSIS_RABBITMQ_USERNAME__
-    password: __BK_JOB_ANALYSIS_RABBITMQ_PASSWORD__
-    virtual-host: __BK_JOB_ANALYSIS_RABBITMQ_VHOST__
   redis:
     host: __BK_JOB_ANALYSIS_REDIS_HOST__
     port: __BK_JOB_ANALYSIS_REDIS_PORT__

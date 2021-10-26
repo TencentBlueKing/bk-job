@@ -25,14 +25,15 @@
 package com.tencent.bk.job.execute.statistics;
 
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.List;
 
 public interface StatisticsService {
 
-    void updateStartJobStatistics(long taskInstanceId);
+    void updateStartJobStatistics(TaskInstanceDTO taskInstanceDTO);
 
-    void updateEndJobStatistics(long taskInstanceId);
+    void updateEndJobStatistics(TaskInstanceDTO taskInstanceDTO);
 
     StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue, String dateStr);
 
