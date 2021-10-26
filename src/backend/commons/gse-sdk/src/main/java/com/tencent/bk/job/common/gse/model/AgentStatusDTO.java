@@ -27,19 +27,24 @@ package com.tencent.bk.job.common.gse.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-/**
- * @since 11/11/2019 17:54
- */
 @Data
 public class AgentStatusDTO {
     @JsonProperty("businessid")
     private String businessId;
-
+    /**
+     * Agent是否存在，1: 存在，0: 不存在
+     */
     private Integer exist;
 
     private String ip;
 
+    /**
+     * 云区域ID
+     */
     private String region;
 
+    /**
+     * Agent版本
+     */
     private String version;
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.timer.executor;
 
 import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
+import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
@@ -34,6 +35,7 @@ import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.NotifyService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
+import com.tencent.bk.job.crontab.timer.NotificationPolicy;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.Setter;
@@ -66,6 +68,10 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
 
     @Autowired
     NotifyService notifyService;
+
+    @Autowired
+    NotificationPolicy notificationPolicy;
+
 
     /**
      * 业务 ID 字符串
@@ -109,6 +115,11 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             log.debug("Get cronjob info return|{}", cronJobInfo);
         }
 
+        CronJobInfoDTO cronJobErrorInfo = cronJobService.getCronJobErrorInfoById(appId, cronJobId);
+        if (log.isDebugEnabled()) {
+            log.debug("Get cronjob Error info return|{}", cronJobErrorInfo);
+        }
+
         List<CronJobVariableDTO> variables = cronJobInfo.getVariableValue();
         List<ServiceTaskVariable> taskVariables = null;
         if (CollectionUtils.isNotEmpty(variables)) {
@@ -146,13 +157,69 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             }
         }
 
+        updateCronJobErrorInfo(cronJobErrorInfo, executeFailed, errorCode);
+
         if (context.getNextFireTime() == null) {
             cronJobService.disableExpiredCronJob(appId, cronJobId, cronJobInfo.getLastModifyUser(),
                 cronJobInfo.getLastModifyTime());
         }
 
-        if (executeFailed) {
+        if (executeFailed && isNotify(cronJobErrorInfo)) {
             notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
+            if (log.isDebugEnabled()) {
+                log.debug("Send cronjob failed notification, execute error count is {}", cronJobErrorInfo.getLastExecuteErrorCount());
+            }
         }
+    }
+
+    private void updateCronJobErrorInfo(CronJobInfoDTO cronJobErrorInfo, boolean executeFailed, Integer errorCode) {
+
+        Long lastExecuteErrorCode = cronJobErrorInfo.getLastExecuteErrorCode();
+        Integer lastExecuteErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
+
+        if (executeFailed) {
+            if (errorCode != null) {
+                cronJobErrorInfo.setLastExecuteErrorCode(errorCode.longValue());
+                if (lastExecuteErrorCode == null || errorCode.longValue() == lastExecuteErrorCode) {
+                    cronJobErrorInfo.setLastExecuteErrorCount(lastExecuteErrorCount + 1);
+                } else {
+                    cronJobErrorInfo.setLastExecuteErrorCount(1);
+                }
+            }
+        } else {
+            cronJobErrorInfo.setLastExecuteErrorCode(null);
+            cronJobErrorInfo.setLastExecuteErrorCount(0);
+        }
+        if (cronJobService.updateCronJobErrorById(cronJobErrorInfo)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Update success! New cronjob simple info|{}", cronJobErrorInfo);
+            }
+        }
+    }
+
+
+    private boolean isNotify(CronJobInfoDTO cronJobErrorInfo) {
+
+        Integer executeErrorCount = cronJobErrorInfo.getLastExecuteErrorCount();
+
+        Integer begin = notificationPolicy.getBegin();
+        Integer frequency = notificationPolicy.getFrequency();
+        Integer totalTimes = notificationPolicy.getTotalTimes();
+        if (log.isDebugEnabled()) {
+            log.debug("Start failed notification policy|{}", notificationPolicy);
+        }
+        if (begin < 1 || frequency < 1 || totalTimes < -1) {
+            log.error("Policy is wrong, please check the configuration file|{}", notificationPolicy);
+        }
+
+        if (totalTimes == NotificationPolicyEnum.NO_NOTIFY.getValue()) {
+            return false;
+        } else if (totalTimes == NotificationPolicyEnum.INFINITE.getValue()) {
+            return executeErrorCount >= begin && (executeErrorCount - begin) % frequency == 0;
+        } else {
+            return executeErrorCount >= begin && (executeErrorCount - begin) % frequency == 0
+                && (executeErrorCount - begin) / frequency < totalTimes;
+        }
+
     }
 }

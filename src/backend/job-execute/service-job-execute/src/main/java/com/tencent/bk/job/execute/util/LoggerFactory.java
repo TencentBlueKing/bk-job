@@ -22,20 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.execute.util;
 
-public final class AgentUtils {
+import org.slf4j.Logger;
 
-    private AgentUtils() {
-    }
-
-    /**
-     * 返回Agent的状态是否正常
-     *
-     * @param status agent的状态
-     * @return 正常1
-     */
-    public static boolean isAgentOkByStatus(int status) {
-        return status == 1;
-    }
+public class LoggerFactory {
+    public static final Logger TASK_MONITOR_LOGGER = org.slf4j.LoggerFactory.getLogger("TaskMonitorLogger");
 }

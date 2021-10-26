@@ -23,6 +23,11 @@
  * IN THE SOFTWARE.
 */
 
+// 账号分类
+const OS = 1;
+const DB = 2;
+
+// 账号类型
 const TYPE_LINUX = 1;
 const TYPE_WINDOWS = 2;
 const TYPE_MYSQL = 9;
@@ -30,6 +35,15 @@ const TYPE_ORACLE = 10;
 const TYPE_DB2 = 11;
 
 export default class Account {
+    static OS = OS
+    static DB = DB
+
+    static TYPE_LINUX = TYPE_LINUX
+    static TYPE_WINDOWS = TYPE_WINDOWS
+    static TYPE_MYSQL = TYPE_MYSQL
+    static TYPE_ORACLE = TYPE_ORACLE
+    static TYPE_DB2 = TYPE_DB2
+
     static accountType = {
         liunx: TYPE_LINUX,
         windows: TYPE_WINDOWS,
