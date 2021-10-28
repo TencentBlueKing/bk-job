@@ -26,6 +26,9 @@ package com.tencent.bk.job.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class CompareUtil {
 
     public static int compareIntegerStr(String str1, String str2) {
@@ -42,7 +45,38 @@ public class CompareUtil {
         return Integer.compare(value1, value2);
     }
 
+    public static boolean isNumberStr(String str) {
+        Pattern p = Pattern.compile("[0-9]+");
+        Matcher m = p.matcher(str);
+        return m.matches();
+    }
+
+    public static int compareElement(String ele1, String ele2) {
+        if (isNumberStr(ele1)) {
+            if (isNumberStr(ele2)) {
+                return compareIntegerStr(ele1, ele2);
+            } else {
+                // 数字比alpha,beta,rc等版本大
+                return 1;
+            }
+        }
+        // ele1为非数字
+        if (isNumberStr(ele2)) {
+            return -1;
+        }
+        int result = ele1.compareTo(ele2);
+        if (result < 0) {
+            return -1;
+        } else if (result > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
     public static int compareVersion(String version1, String version2) {
+        // 标准化为点分形式
+        version1 = version1.replace("-", ".").toLowerCase();
+        version2 = version2.replace("-", ".").toLowerCase();
         String[] arr1 = version1.split("\\.");
         String[] arr2 = version2.split("\\.");
         int len1 = arr1.length;
@@ -57,7 +91,7 @@ public class CompareUtil {
         }
         int shortLen = Math.min(len1, len2);
         for (int i = 0; i < shortLen; i++) {
-            int result = compareIntegerStr(arr1[i], arr2[i]);
+            int result = compareElement(arr1[i].trim(), arr2[i].trim());
             if (result != 0) return result;
         }
         if (len1 < len2) return -1;
