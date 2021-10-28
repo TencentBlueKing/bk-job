@@ -25,15 +25,19 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ActionInfo;
+import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
@@ -396,12 +400,20 @@ public class AuthServiceImpl implements AuthService {
                 return;
             }
 
+            ActionInfo actionInfo = Actions.getActionInfo(actionId);
+            if (actionInfo == null || actionInfo.getRelatedResourceTypes().size() != resourceGroups.size()) {
+                log.error("Invalid Action");
+                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            }
+
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-            resourceGroups.forEach((resourceType, relatedResources) -> {
+            // IAM 鉴权API对于依赖资源类型的顺序有要求，需要按照注册资源时候的顺序
+            for (ResourceTypeEnum resourceType : actionInfo.getRelatedResourceTypes()) {
+                List<PermissionResource> relatedResources = resourceGroups.get(resourceType.getId());
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
                 String systemId = relatedResources.get(0).getSystemId();
                 relatedResourceType.setSystemId(systemId);
-                relatedResourceType.setType(resourceType);
+                relatedResourceType.setType(resourceType.getId());
                 List<List<InstanceDTO>> instanceList = new ArrayList<>();
                 for (PermissionResource relatedResource : relatedResources) {
                     InstanceDTO instance = convertPermissionResourceToInstance(relatedResource);
@@ -418,7 +430,7 @@ public class AuthServiceImpl implements AuthService {
                 relatedResourceType.setInstance(instanceList);
 
                 relatedResourceTypes.add(relatedResourceType);
-            });
+            }
             action.setRelatedResourceTypes(relatedResourceTypes);
         });
         return actions;
