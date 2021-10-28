@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component;
 @ToString
 @Component
 public class NotificationPolicy {
-    @Value("${notification-policy.failed.start.begin}")
+    @Value("${notification-policy.failed.start.begin:1}")
     private Integer begin;
-    @Value("${notification-policy.failed.start.frequency}")
+    @Value("${notification-policy.failed.start.frequency:5}")
     private Integer frequency;
-    @Value("${notification-policy.failed.start.totalTimes}")
+    @Value("${notification-policy.failed.start.total:-1}")
     private Integer totalTimes;
 }

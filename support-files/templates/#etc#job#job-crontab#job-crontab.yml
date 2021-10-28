@@ -86,4 +86,4 @@ notification-policy:
       # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
       frequency: 5
       # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
-      totalTimes: -1
+      total: -1

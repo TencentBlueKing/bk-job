@@ -424,7 +424,7 @@ gatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-gateway
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -491,7 +491,7 @@ manageConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-manage
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -536,7 +536,7 @@ executeConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-execute
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -581,7 +581,7 @@ crontabConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-crontab
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -614,6 +614,16 @@ crontabConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  # 连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
+  notificationPolicy:
+    failed:
+      start:
+        # 通知开始：默认 1 - 从第一次失败开始通知
+        begin: 1
+        # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
+        frequency: 5
+        # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
+        total: -1
   containerPort: 19805
   service:
     port: 80
@@ -625,7 +635,7 @@ logsvrConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-logsvr
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -669,7 +679,7 @@ backupConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-backup
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -713,7 +723,7 @@ analysisConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-analysis
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -757,7 +767,7 @@ fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-gateway
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -801,7 +811,7 @@ fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-worker
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -858,7 +868,7 @@ frontendConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-frontend
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -918,5 +928,5 @@ migration:
   image:
     registry: "mirrors.tencent.com"
     repository: "bkce/job-migration"
-    tag: 3.4.0-beta.15
+    tag: 3.4.0-beta.16
     pullPolicy: IfNotPresent

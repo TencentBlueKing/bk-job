@@ -107,6 +107,12 @@ data:
           {{- else -}}
           password: ${mariadb-password}
           {{- end }}
+    notification-policy:
+      failed:
+        start:
+          begin: {{ .Values.crontabConfig.notificationPolicy.failed.start.begin | default 1 }}
+          frequency: {{ .Values.crontabConfig.notificationPolicy.failed.start.frequency | default 5 }}
+          total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}
     server:
       port: {{ .Values.crontabConfig.containerPort }}
   {{- end}}
