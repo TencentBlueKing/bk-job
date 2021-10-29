@@ -37,10 +37,7 @@ export default {
     fetchTagList (params = {}) {
         return TagManageSource.getAll(params)
             .then(({ data }) => {
-                data.data = data.data.map(tag => new TagModel({
-                    ...tag,
-                    canManage: data.canManage,
-                }));
+                data.data = data.data.map(tag => new TagModel(tag));
                 return data;
             });
     },
