@@ -401,8 +401,8 @@ public class AuthServiceImpl implements AuthService {
             }
 
             ActionInfo actionInfo = Actions.getActionInfo(actionId);
-            if (actionInfo == null || actionInfo.getRelatedResourceTypes().size() != resourceGroups.size()) {
-                log.error("Invalid Action");
+            if (actionInfo == null) {
+                log.error("Invalid Action, actionId: {}", actionId);
                 throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
             }
 
@@ -410,6 +410,10 @@ public class AuthServiceImpl implements AuthService {
             // IAM 鉴权API对于依赖资源类型的顺序有要求，需要按照注册资源时候的顺序
             for (ResourceTypeEnum resourceType : actionInfo.getRelatedResourceTypes()) {
                 List<PermissionResource> relatedResources = resourceGroups.get(resourceType.getId());
+                if (CollectionUtils.isEmpty(relatedResources)) {
+                    log.error("Action related resources is empty");
+                    throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                }
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
                 String systemId = relatedResources.get(0).getSystemId();
                 relatedResourceType.setSystemId(systemId);
