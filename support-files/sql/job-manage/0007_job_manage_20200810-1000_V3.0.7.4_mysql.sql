@@ -1,5 +1,32 @@
+SET NAMES utf8mb4;
 USE job_manage;
-ALTER TABLE notify_template ADD UNIQUE INDEX uniq_code_channel_isDefault(code,channel,is_default);
+
+DROP PROCEDURE IF EXISTS job_schema_update;
+
+DELIMITER <JOB_UBF>
+
+CREATE PROCEDURE job_schema_update()
+BEGIN
+
+    DECLARE db VARCHAR(100);
+    SET AUTOCOMMIT = 0;
+    SELECT DATABASE() INTO db;
+
+    IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'notify_template'
+                    AND INDEX_NAME = 'uniq_code_channel_isDefault') THEN
+        ALTER TABLE notify_template ADD UNIQUE INDEX uniq_code_channel_isDefault(code,channel,is_default);
+    END IF;
+
+    COMMIT;
+END <JOB_UBF>
+DELIMITER ;
+CALL job_schema_update();
+
+DROP PROCEDURE IF EXISTS job_schema_update;
+
 
 REPLACE INTO `job_manage`.`notify_template`(`code`, `name`, `channel`, `title`, `content`, `title_en`, `content_en`, `creator`, `last_modify_user`, `create_time`, `last_modify_time`, `is_default`) VALUES ('beforeCronJobExecute', '定时任务执行前通知模板', 'common', '定时任务执行前提醒：您的业务[{{ APP_NAME }}]有一个定时任务[{{ cron_name }}]将在{{ notify_time }}分钟后执行，请知悉。【蓝鲸作业平台】', '定时任务执行前提醒：您的业务[{{ APP_NAME }}]有一个定时任务[{{ cron_name }}]将在{{ notify_time }}分钟后执行，请知悉。【蓝鲸作业平台】', 'Cron Pre-Launch Notification: There\'s a task of [{{ APP_NAME }}] will launch automatically after {{ notify_time }} mins, more details: {{BASE_HOST}}{{cron_uri}}【BlueKing JOB】', 'Cron Pre-Launch Notification: There\'s a task of [{{ APP_NAME }}] will launch automatically after {{ notify_time }} mins, more details: {{BASE_HOST}}{{cron_uri}}【BlueKing JOB】', 'admin', 'admin', 0, 0, b'1');
 REPLACE INTO `job_manage`.`notify_template`(`code`, `name`, `channel`, `title`, `content`, `title_en`, `content_en`, `creator`, `last_modify_user`, `create_time`, `last_modify_time`, `is_default`) VALUES ('beforeCronJobEnd', '定时任务结束前通知模板', 'common', '定时任务结束前提醒：您的业务[{{ APP_NAME }}]有一个定时任务[{{ cron_name }}]将在{{ notify_time }}分钟后结束并关闭，请知悉。【蓝鲸作业平台】', '定时任务结束前提醒：您的业务[{{ APP_NAME }}]有一个定时任务[{{ cron_name }}]将在{{ notify_time }}分钟后结束并关闭，请知悉。【蓝鲸作业平台】', 'Cron End-time Notification: There\'s a task of [{{ APP_NAME }}] will Turn-Off automatically after {{ notify_time }} mins, more details: {{BASE_HOST}}{{cron_uri}}【BlueKing JOB】', 'Cron End-time Notification: There\'s a task of [{{ APP_NAME }}] will Turn-Off automatically after {{ notify_time }} mins, more details: {{BASE_HOST}}{{cron_uri}}【BlueKing JOB】', 'admin', 'admin', 0, 0, b'1');
