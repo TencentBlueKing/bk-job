@@ -32,6 +32,8 @@ import EventBus from '@utils/event-bus';
 import AuthResultModel from '@model/auth-result';
 import RequestError from '../lib/request-error';
 
+// 标记已经登录过状态
+// 第一次登录跳转登录页面，之后弹框登录
 let hasLogined = false;
 
 // 监听用户主动退出登录事件
@@ -60,9 +62,16 @@ export default (interceptors) => {
         }
         // 处理 http 错误响应逻辑
         if (error.response) {
+            // 登录状态失效
             if (error.response.status === 401
                 && error.response.headers['x-login-url']) {
                 return Promise.reject(new RequestError(401, error.response.headers['x-login-url']));
+            }
+            if (error.response.data) {
+                return Promise.reject(new RequestError(
+                    error.response.status || -1,
+                    error.response.data.errorMsg || error.response.statusText,
+                ));
             }
             return Promise.reject(new RequestError(error.response.status || -1, error.response.statusText));
         }
