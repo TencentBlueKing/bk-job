@@ -45,28 +45,94 @@ public class ScriptStatisticService extends CommonStatisticService {
         super(statisticsDAO, statisticConfig, metricResourceReslover, appService);
     }
 
-    public ScriptCiteStatisticVO scriptCiteInfo(List<Long> appIdList, String date) {
+    private ScriptCiteStatisticVO getGlobalScriptCiteInfo(String date) {
+        StatisticsDTO statisticsDTO;
+        long scriptCount;
+        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+            StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT,
+            date);
+        if (statisticsDTO != null) {
+            scriptCount = Long.parseLong(statisticsDTO.getValue());
+        } else {
+            // 访问时离线统计可能未完成
+            log.warn(
+                "statisticsDTO==null,appId={}," +
+                    "resource={},dimension={},dimensionValue={},date={}",
+                StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+                StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT,
+                date
+            );
+            return null;
+        }
+        long citedScriptCount;
+        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+            StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT,
+            date);
+        if (statisticsDTO != null) {
+            citedScriptCount = Long.parseLong(statisticsDTO.getValue());
+        } else {
+            log.warn(
+                "statisticsDTO==null,appId={}," +
+                    "resource={},dimension={},dimensionValue={},date={}",
+                StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+                StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT,
+                date
+            );
+            return null;
+        }
+        long citedScriptStepCount;
+        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+            StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT,
+            date);
+        if (statisticsDTO != null) {
+            citedScriptStepCount = Long.parseLong(statisticsDTO.getValue());
+        } else {
+            log.warn(
+                "statisticsDTO==null,appId={}," +
+                    "resource={},dimension={},dimensionValue={},date={}",
+                StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+                StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT,
+                date
+            );
+            return null;
+        }
+        return new ScriptCiteStatisticVO(citedScriptCount, scriptCount, citedScriptStepCount);
+    }
+
+    private ScriptCiteStatisticVO getMultiAppScriptCiteInfo(List<Long> appIdList, String date) {
         List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT, date);
-        int scriptCount = 0;
+        long scriptCount = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             scriptCount += Integer.parseInt(statisticsDTO.getValue());
         }
         statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT, date);
-        int citedScriptCount = 0;
+        long citedScriptCount = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             citedScriptCount += Integer.parseInt(statisticsDTO.getValue());
         }
         statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT, date);
-        int citedScriptStepCount = 0;
+        long citedScriptStepCount = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             citedScriptStepCount += Integer.parseInt(statisticsDTO.getValue());
         }
         return new ScriptCiteStatisticVO(citedScriptCount, scriptCount, citedScriptStepCount);
+    }
+
+    public ScriptCiteStatisticVO scriptCiteInfo(List<Long> appIdList, String date) {
+        ScriptCiteStatisticVO result;
+        if (appIdList == null) {
+            result = getGlobalScriptCiteInfo(date);
+            // 离线数据未生成时访问则实时统计结果
+            if (result != null) {
+                return result;
+            }
+        }
+        return getMultiAppScriptCiteInfo(appIdList, date);
     }
 }

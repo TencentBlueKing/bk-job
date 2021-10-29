@@ -26,8 +26,20 @@ package com.tencent.bk.job.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class CompareUtil {
 
+    /**
+     * 比较由数字组成的字符串所代表数字的实际大小
+     *
+     * @param str1
+     * @param str2
+     * @return 1：str1所含数>str2所含数字
+     * 0：str1所含数==str2所含数字
+     * -1：str1所含数<str2所含数字
+     */
     public static int compareIntegerStr(String str1, String str2) {
         if (StringUtils.isBlank(str1)) {
             if (StringUtils.isBlank(str2))
@@ -42,7 +54,53 @@ public class CompareUtil {
         return Integer.compare(value1, value2);
     }
 
+    /**
+     * 判断字符串是否由纯数字组成
+     *
+     * @param str
+     * @return
+     */
+    public static boolean isNumberStr(String str) {
+        Pattern p = Pattern.compile("[0-9]+");
+        Matcher m = p.matcher(str);
+        return m.matches();
+    }
+
+    private static int compareElement(String ele1, String ele2) {
+        if (isNumberStr(ele1)) {
+            if (isNumberStr(ele2)) {
+                return compareIntegerStr(ele1, ele2);
+            } else {
+                // 数字比alpha,beta,rc等版本大
+                return 1;
+            }
+        }
+        // ele1为非数字
+        if (isNumberStr(ele2)) {
+            return -1;
+        }
+        int result = ele1.compareTo(ele2);
+        if (result < 0) {
+            return -1;
+        } else if (result > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * 比较版本号（含语义化版本号）用于确定先后顺序（如作业平台版本号，3.3.3.0，3.3.3-alpha.1等）
+     *
+     * @param version1 版本号1
+     * @param version2 版本号2
+     * @return 1 ： version1在version2之后
+     * 0 ： version1与version2位置相同
+     * -1 ： version1在version2之前
+     */
     public static int compareVersion(String version1, String version2) {
+        // 标准化为点分形式
+        version1 = version1.replace("-", ".").toLowerCase();
+        version2 = version2.replace("-", ".").toLowerCase();
         String[] arr1 = version1.split("\\.");
         String[] arr2 = version2.split("\\.");
         int len1 = arr1.length;
@@ -57,7 +115,7 @@ public class CompareUtil {
         }
         int shortLen = Math.min(len1, len2);
         for (int i = 0; i < shortLen; i++) {
-            int result = compareIntegerStr(arr1[i], arr2[i]);
+            int result = compareElement(arr1[i].trim(), arr2[i].trim());
             if (result != 0) return result;
         }
         if (len1 < len2) return -1;

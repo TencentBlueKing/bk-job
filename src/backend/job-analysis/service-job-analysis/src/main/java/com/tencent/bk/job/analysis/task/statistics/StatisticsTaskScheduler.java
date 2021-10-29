@@ -143,7 +143,7 @@ public class StatisticsTaskScheduler {
         );
     }
 
-    public static void findStatisticsTask() {
+    public static synchronized void findStatisticsTask() {
         ApplicationContext context = ApplicationContextRegister.getContext();
         List<String> beanNames = Arrays.asList(context.getBeanDefinitionNames());
         beanNames.forEach(beanName -> {
@@ -173,11 +173,11 @@ public class StatisticsTaskScheduler {
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(2000),
                 new RejectedExecutionHandler() {
-                @Override
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                    log.error("statisticsTask runnable rejected!");
-                }
-            });
+                    @Override
+                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                        log.error("statisticsTask runnable rejected!");
+                    }
+                });
             reconfiged = true;
         } else {
             log.info("Invalid currentStatisticThreadsNum:{}", currentStatisticThreadsNum);
@@ -196,11 +196,11 @@ public class StatisticsTaskScheduler {
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(200000),
                 new RejectedExecutionHandler() {
-                @Override
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                    log.error("pastStatisticsTaskExecutor runnable rejected!");
-                }
-            });
+                    @Override
+                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                        log.error("pastStatisticsTaskExecutor runnable rejected!");
+                    }
+                });
             pastStatisticsMakeupTask.setExecutor(pastStatisticsTaskExecutor);
             reconfiged = true;
         } else {
@@ -305,6 +305,9 @@ public class StatisticsTaskScheduler {
 
     // 补全历史统计数据
     public void makeupPastStatistics() {
+        if (statisticsTaskList.isEmpty()) {
+            findStatisticsTask();
+        }
         String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_STATISTIC_JOB_INIT_MACHINE);
         if (StringUtils.isNotBlank(runningMachine)) {
             //已有初始化线程在跑，不再重复初始化

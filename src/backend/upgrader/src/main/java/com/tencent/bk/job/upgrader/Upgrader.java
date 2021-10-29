@@ -238,9 +238,9 @@ public class Upgrader {
             usage();
             return;
         }
-        String fromVersion = args[0];
-        String toVersion = args[1];
-        String executeTime = args[2];
+        String fromVersion = args[0].trim();
+        String toVersion = args[1].trim();
+        String executeTime = args[2].trim();
         log.info("fromVersion={}", fromVersion);
         log.info("toVersion={}", toVersion);
         log.info("executeTime={}", executeTime);
@@ -251,7 +251,7 @@ public class Upgrader {
             BufferedReader br = null;
             try {
                 br = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(configFilePath), StandardCharsets.UTF_8)
+                    new InputStreamReader(new FileInputStream(configFilePath.trim()), StandardCharsets.UTF_8)
                 );
                 properties.load(br);
             } catch (IOException e) {

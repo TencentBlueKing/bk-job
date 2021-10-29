@@ -34,16 +34,6 @@ data:
           idle-timeout: 600000
           poolName: "job-analysis"
           validationTimeout: 5000
-      rabbitmq:
-        host: {{ include "job.rabbitmq.host" . }}
-        port: {{ include "job.rabbitmq.port" . }}
-        username: {{ include "job.rabbitmq.username" . }}
-        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${rabbitmq-password}
-        {{- end }}
-        virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
         mode: standalone
         host: {{ include "job.redis.host" . }}

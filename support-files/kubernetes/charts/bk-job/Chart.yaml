@@ -2,8 +2,8 @@ apiVersion: v2
 name: "bk-job"
 description: A Helm Chart for Blueking Job
 type: application
-version: 0.1.16
-appVersion: "3.4.0-beta.13"
+version: 0.1.19
+appVersion: "3.4.0-beta.16"
 
 dependencies:
 - name: common

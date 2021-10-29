@@ -222,6 +222,8 @@ public class ErrorCode {
     public static final int TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS = 1244020;
     public static final int FILE_TASKS_EXCEEDS_LIMIT = 1244021;
     public static final int SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT = 1244022;
+    // 本地文件{0}在后台不存在（本地/制品库）
+    public static final int LOCAL_FILE_NOT_EXIST_IN_BACKEND = 1244023;
     // 作业执行 end
 
     // 定时作业 start

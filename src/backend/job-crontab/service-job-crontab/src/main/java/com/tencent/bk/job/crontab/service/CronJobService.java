@@ -71,7 +71,7 @@ public interface CronJobService {
      * @param cronJobIdList 定时任务 IDs
      * @return 定时任务信息
      */
-    Map<Long,CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList);
+    Map<Long, CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList);
 
     /**
      * 根据 ID 查询定时任务信息
@@ -81,6 +81,23 @@ public interface CronJobService {
      * @return 定时任务信息
      */
     CronJobInfoDTO getCronJobInfoById(Long appId, Long cronJobId);
+
+    /**
+     * 根据 ID 查询定时任务错误信息，上次执行状态，错误码，错误次数
+     *
+     * @param appId     业务 ID
+     * @param cronJobId 定时任务 ID
+     * @return 定时任务错误信息
+     */
+    CronJobInfoDTO getCronJobErrorInfoById(Long appId, Long cronJobId);
+
+    /**
+     * 根据 ID 和定时任务 ID 更新定时任务上次执行状态，错误码，错误次数简单信息
+     *
+     * @param cronJobErrorInfo 定时任务错误信息
+     * @return 是否更新成功
+     */
+    boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo);
 
     /**
      * 新增、保存定时任务信息

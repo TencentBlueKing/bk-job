@@ -22,34 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.statistics;
+package com.tencent.bk.job.common.gse.constants;
 
-import com.tencent.bk.job.execute.statistics.message.TaskStatisticsProcessor;
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@Service
-@Slf4j
-public class TaskStatisticsMsgSenderImpl implements TaskStatisticsMsgSender {
+/**
+ * Agent 状态
+ */
+public enum AgentStatusEnum {
+    /**
+     * 异常
+     */
+    NOT_ALIVE(0),
+    /**
+     * 正常
+     */
+    ALIVE(1),
+    /**
+     * 未知
+     */
+    UNKNOWN(2);
+    @JsonValue
+    private final int status;
 
-    private final MessageChannel taskStatisticsOutput;
-
-    @Autowired
-    public TaskStatisticsMsgSenderImpl(@Qualifier(TaskStatisticsProcessor.OUTPUT) MessageChannel taskStatisticsOutput) {
-        this.taskStatisticsOutput = taskStatisticsOutput;
+    AgentStatusEnum(int status) {
+        this.status = status;
     }
 
-    @Override
-    public void sendTaskStatisticsCmd(TaskStatisticsCmd taskStatisticsCmd) {
-        log.info("Begin to send taskStatisticsCmd, taskInstanceId={}, action={}",
-            taskStatisticsCmd.getTaskInstanceId(), taskStatisticsCmd.getAction());
-        taskStatisticsOutput.send(MessageBuilder.withPayload(taskStatisticsCmd).build());
-        log.info("Send taskStatisticsCmd message successfully, taskInstanceId={}, action={}",
-            taskStatisticsCmd.getTaskInstanceId(), taskStatisticsCmd.getAction());
+    @JsonCreator
+    public static AgentStatusEnum valOf(int status) {
+        for (AgentStatusEnum agentStatus : values()) {
+            if (agentStatus.status == status) {
+                return agentStatus;
+            }
+        }
+        return null;
+    }
+
+    public int getValue() {
+        return status;
     }
 }

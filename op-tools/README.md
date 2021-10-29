@@ -12,7 +12,7 @@ batch-invoke
 > 运行环境要求：python3
 
 > 输入：  
-> 数据集合：data_1.txt,data_2.txt,...,data_n.txt，每个文件每行一个数据  
+> 数据集合：execute_data_1.txt,execute_data_2.txt,...,execute_data_n.txt，每个文件每行一个数据  
 > 执行模板：execute.sh，脚本内可引用由数据集合传入的变量：${1},${2},...,${n}
 > 
   
@@ -23,3 +23,4 @@ batch-invoke
 
 #### 适用场景   
 - 强制终止一批异常作业
+- 批量开启/关闭一批定时任务

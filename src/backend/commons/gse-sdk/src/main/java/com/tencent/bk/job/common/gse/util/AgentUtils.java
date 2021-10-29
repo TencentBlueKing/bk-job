@@ -22,19 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.statistics;
+package com.tencent.bk.job.common.gse.util;
 
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
+import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 
-/**
- * 作业执行统计消息发送
- */
-public interface TaskStatisticsMsgSender {
+public final class AgentUtils {
+
+    private AgentUtils() {
+    }
 
     /**
-     * 发送任务统计指令
+     * 返回Agent的状态是否正常
      *
-     * @param taskStatisticsCmd
+     * @param status agent的状态
+     * @return 正常: true, 异常: false
      */
-    void sendTaskStatisticsCmd(TaskStatisticsCmd taskStatisticsCmd);
+    public static boolean isAgentOkByStatus(int status) {
+        return status == AgentStatusEnum.ALIVE.getValue();
+    }
 }

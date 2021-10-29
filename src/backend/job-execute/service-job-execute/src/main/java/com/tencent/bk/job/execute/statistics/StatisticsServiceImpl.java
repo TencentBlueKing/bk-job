@@ -39,8 +39,6 @@ import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.statistics.consts.StatisticsActionEnum;
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -64,7 +62,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final Object writeLock = new Object();
     private final TaskInstanceService taskInstanceService;
     private final ApplicationService applicationService;
-    private final TaskStatisticsMsgSender taskStatisticsMsgSender;
     private final StepInstanceDAO stepInstanceDAO;
     private final DSLContext dslContext;
     private final StatisticsDAO statisticsDAO;
@@ -77,7 +74,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     public StatisticsServiceImpl(
         TaskInstanceService taskInstanceService,
         ApplicationService applicationService,
-        TaskStatisticsMsgSender taskStatisticsMsgSender,
         StepInstanceDAO stepInstanceDAO,
         DSLContext dslContext,
         StatisticsDAO statisticsDAO,
@@ -85,7 +81,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     ) {
         this.taskInstanceService = taskInstanceService;
         this.applicationService = applicationService;
-        this.taskStatisticsMsgSender = taskStatisticsMsgSender;
         this.stepInstanceDAO = stepInstanceDAO;
         this.dslContext = dslContext;
         this.statisticsDAO = statisticsDAO;
@@ -286,6 +281,15 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastScriptCountValue = failedFastScriptCount.incrementAndGet();
                 log.debug("failedFastScriptCount={}", failedFastScriptCountValue);
+            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+                // 状态异常的快速脚本统计
+                StatisticsKey keyExceptionFastScriptCount = new StatisticsKey(taskInstanceDTO.getAppId(),
+                    StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
+                    StatisticsConstants.DIMENSION_VALUE_STEP_RUN_STATUS_EXCEPTION);
+                AtomicInteger exceptionFastScriptCount = metricsMap.computeIfAbsent(keyExceptionFastScriptCount,
+                    statisticsKey -> new AtomicInteger(0));
+                int exceptionFastScriptCountValue = exceptionFastScriptCount.incrementAndGet();
+                log.debug("exceptionFastScriptCount={}", exceptionFastScriptCountValue);
             }
         }
     }
@@ -313,6 +317,15 @@ public class StatisticsServiceImpl implements StatisticsService {
                     statisticsKey -> new AtomicInteger(0));
                 int failedFastFileCountValue = failedFastFileCount.incrementAndGet();
                 log.debug("failedFastFileCount={}", failedFastFileCountValue);
+            } else if (RunStatusEnum.ABNORMAL_STATE.getValue().equals(taskInstanceDTO.getStatus())) {
+                // 执行失败的快速文件统计
+                StatisticsKey keyExceptionFastFileCount = new StatisticsKey(taskInstanceDTO.getAppId(),
+                    StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
+                    StatisticsConstants.DIMENSION_VALUE_STEP_RUN_STATUS_EXCEPTION);
+                AtomicInteger exceptionFastFileCount = metricsMap.computeIfAbsent(keyExceptionFastFileCount,
+                    statisticsKey -> new AtomicInteger(0));
+                int exceptionFastFileCountValue = exceptionFastFileCount.incrementAndGet();
+                log.debug("exceptionFastFileCount={}", exceptionFastFileCountValue);
             }
         }
     }
@@ -356,8 +369,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public void updateStartJobStatistics(long taskInstanceId) {
-        TaskInstanceDTO taskInstanceDTO = taskInstanceService.getTaskInstance(taskInstanceId);
+    public void updateStartJobStatistics(TaskInstanceDTO taskInstanceDTO) {
         String createDateStr = DateUtils.getDateStrFromUnixTimeMills(taskInstanceDTO.getCreateTime());
         synchronized (writeLock) {
             Map<StatisticsKey, AtomicInteger> metricsMap = incrementMap.computeIfAbsent(createDateStr,
@@ -377,18 +389,17 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public void updateEndJobStatistics(long taskInstanceId) {
+    public void updateEndJobStatistics(TaskInstanceDTO taskInstanceDTO) {
         synchronized (writeLock) {
-            TaskInstanceDTO taskInstanceDTO = taskInstanceService.getTaskInstance(taskInstanceId);
             String createDateStr = DateUtils.getDateStrFromUnixTimeMills(taskInstanceDTO.getCreateTime());
             Map<StatisticsKey, AtomicInteger> metricsMap = incrementMap.computeIfAbsent(createDateStr,
                 dateStr -> new ConcurrentHashMap<>());
             // 触发时间当天的数据统计
             // 累计执行失败次数统计
             updateFailedTaskCount(taskInstanceDTO, metricsMap);
-            // 快速执行脚本成功/失败次数统计
+            // 快速执行脚本成功/失败/异常次数统计
             updateFastScriptCountByStatus(taskInstanceDTO, metricsMap);
-            // 快速分发文件成功/失败次数统计
+            // 快速分发文件成功/失败/异常次数统计
             updateFastFileCountByStatus(taskInstanceDTO, metricsMap);
             // 按执行耗时统计
             updateExecutedTaskByTimeConsuming(taskInstanceDTO, metricsMap);
@@ -437,13 +448,9 @@ public class StatisticsServiceImpl implements StatisticsService {
                             offset, limit);
                         // 触发统计
                         for (Long taskInstanceId : taskInstanceIds) {
-                            TaskStatisticsCmd taskStatisticsCmd = new TaskStatisticsCmd();
-                            taskStatisticsCmd.setTaskInstanceId(taskInstanceId);
-                            taskStatisticsCmd.setTime(LocalDateTime.now());
-                            taskStatisticsCmd.setAction(StatisticsActionEnum.START_JOB.name());
-                            taskStatisticsMsgSender.sendTaskStatisticsCmd(taskStatisticsCmd);
-                            taskStatisticsCmd.setAction(StatisticsActionEnum.END_JOB.name());
-                            taskStatisticsMsgSender.sendTaskStatisticsCmd(taskStatisticsCmd);
+                            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+                            updateStartJobStatistics(taskInstance);
+                            updateStartJobStatistics(taskInstance);
                         }
                         offset += limit;
                         Thread.sleep(2000);
