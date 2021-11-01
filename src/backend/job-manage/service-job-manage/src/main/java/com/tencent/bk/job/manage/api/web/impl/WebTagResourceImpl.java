@@ -115,7 +115,23 @@ public class WebTagResourceImpl implements WebTagResource {
             });
         }
 
+        processManagePermission(username, appId, pageTagVOs.getData());
+
         return ServiceResponse.buildSuccessResp(pageTagVOs);
+    }
+
+    private void processManagePermission(String username, Long appId, List<TagVO> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return;
+        }
+        List<String> tagIds =
+            tags.stream().map(tag -> String.valueOf(tag.getId())).distinct().collect(Collectors.toList());
+
+        List<String> allowTagIds = authService
+            .batchAuth(username, ActionId.MANAGE_TAG, appId, ResourceTypeEnum.TAG, tagIds)
+            .parallelStream().collect(Collectors.toList());
+
+        tags.forEach(tagVO -> tagVO.setCanManage(allowTagIds.contains(String.valueOf(tagVO.getId()))));
     }
 
     private Map<Long, Map<Integer, List<ResourceTagDTO>>> groupByTagIdAndResourceType(
@@ -191,7 +207,10 @@ public class WebTagResourceImpl implements WebTagResource {
 
     @Override
     public ServiceResponse<Boolean> deleteTag(String username, Long appId, Long tagId) {
-        checkManageTagPermission(username, appId, tagId);
+        AuthResultVO authResultVO = checkManageTagPermission(username, appId, tagId);
+        if (!authResultVO.isPass()) {
+            return ServiceResponse.buildAuthFailResp(authResultVO);
+        }
         tagService.deleteTag(tagId);
         return ServiceResponse.buildSuccessResp(true);
     }
@@ -279,7 +298,6 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
 
-
     private ValidateResult checkBatchPatchResourceTagReq(Long baseTagId, BatchPatchResourceTagReq req) {
         if (CollectionUtils.isEmpty(req.getResourceTypeList())) {
             log.warn("BatchPatchResourceTagReq->resourceTypeList is empty");
@@ -309,7 +327,7 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     private Map<JobResourceTypeEnum, Set<String>> filterAndClassifyResources(List<Integer> filterResourceTypes,
-                                                                          List<ResourceTagDTO> resourceTags) {
+                                                                             List<ResourceTagDTO> resourceTags) {
         Map<JobResourceTypeEnum, Set<String>> resources = new HashMap<>();
         resourceTags.stream().filter(resourceTag -> filterResourceTypes.contains(resourceTag.getResourceType()))
             .forEach(resourceTag -> {

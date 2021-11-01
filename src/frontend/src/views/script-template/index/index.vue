@@ -228,6 +228,7 @@
                     scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
                     scriptContent: this.scriptContent,
                 }).then(() => {
+                    window.changeAlert = false;
                     this.templateMap[this.scriptLanguage] = this.scriptLanguage;
                     this.messageSuccess(I18n.t('scriptTemplate.保存成功'));
                 })

@@ -22,20 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.common.iam.constant;
 
-public final class AgentUtils {
+import lombok.Getter;
 
-    private AgentUtils() {
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * IAM Action
+ */
+@Getter
+public class ActionInfo {
+    private final String actionId;
+    private final List<ResourceTypeEnum> relatedResourceTypes;
+
+    public ActionInfo(String actionId,
+                      List<ResourceTypeEnum> relatedResourceTypes) {
+        this.actionId = actionId;
+        this.relatedResourceTypes = relatedResourceTypes;
     }
 
-    /**
-     * 返回Agent的状态是否正常
-     *
-     * @param status agent的状态
-     * @return 正常1
-     */
-    public static boolean isAgentOkByStatus(int status) {
-        return status == 1;
+    public ActionInfo(String actionId,
+                      ResourceTypeEnum relatedResourceType) {
+        this.actionId = actionId;
+        this.relatedResourceTypes = new ArrayList<>();
+        this.relatedResourceTypes.add(relatedResourceType);
+    }
+
+    public ActionInfo(String actionId) {
+        this.actionId = actionId;
+        this.relatedResourceTypes = null;
     }
 }

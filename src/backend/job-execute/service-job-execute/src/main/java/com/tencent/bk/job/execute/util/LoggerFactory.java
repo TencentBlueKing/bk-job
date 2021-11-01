@@ -22,34 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.statistics;
+package com.tencent.bk.job.execute.util;
 
-import com.tencent.bk.job.execute.statistics.message.TaskStatisticsProcessor;
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
 
-@Service
-@Slf4j
-public class TaskStatisticsMsgSenderImpl implements TaskStatisticsMsgSender {
-
-    private final MessageChannel taskStatisticsOutput;
-
-    @Autowired
-    public TaskStatisticsMsgSenderImpl(@Qualifier(TaskStatisticsProcessor.OUTPUT) MessageChannel taskStatisticsOutput) {
-        this.taskStatisticsOutput = taskStatisticsOutput;
-    }
-
-    @Override
-    public void sendTaskStatisticsCmd(TaskStatisticsCmd taskStatisticsCmd) {
-        log.info("Begin to send taskStatisticsCmd, taskInstanceId={}, action={}",
-            taskStatisticsCmd.getTaskInstanceId(), taskStatisticsCmd.getAction());
-        taskStatisticsOutput.send(MessageBuilder.withPayload(taskStatisticsCmd).build());
-        log.info("Send taskStatisticsCmd message successfully, taskInstanceId={}, action={}",
-            taskStatisticsCmd.getTaskInstanceId(), taskStatisticsCmd.getAction());
-    }
+public class LoggerFactory {
+    public static final Logger TASK_MONITOR_LOGGER = org.slf4j.LoggerFactory.getLogger("TaskMonitorLogger");
 }

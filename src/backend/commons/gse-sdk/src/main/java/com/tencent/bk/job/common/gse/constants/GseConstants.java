@@ -22,19 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.statistics;
+package com.tencent.bk.job.common.gse.constants;
 
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
-
-/**
- * 作业执行统计消息发送
- */
-public interface TaskStatisticsMsgSender {
+public interface GseConstants {
+    /**
+     * 直连云区域ID
+     */
+    int DEFAULT_CLOUD_ID = 0;
 
     /**
-     * 发送任务统计指令
-     *
-     * @param taskStatisticsCmd
+     * GSE API 度量指标名称前缀
      */
-    void sendTaskStatisticsCmd(TaskStatisticsCmd taskStatisticsCmd);
+    String GSE_API_METRICS_NAME_PREFIX = "gse.api";
 }

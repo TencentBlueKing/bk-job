@@ -38,9 +38,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.statistics.TaskStatisticsMsgSender;
-import com.tencent.bk.job.execute.statistics.consts.StatisticsActionEnum;
-import com.tencent.bk.job.execute.statistics.model.TaskStatisticsCmd;
+import com.tencent.bk.job.execute.statistics.StatisticsService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +48,6 @@ import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -63,14 +60,14 @@ import java.util.List;
 public class TaskListener {
 
     private final TaskExecuteControlMsgSender taskExecuteControlMsgSender;
-    private final TaskStatisticsMsgSender taskStatisticsMsgSender;
+    private final StatisticsService statisticsService;
     private final TaskInstanceService taskInstanceService;
 
     @Autowired
     public TaskListener(TaskExecuteControlMsgSender taskExecuteControlMsgSender,
-                        TaskStatisticsMsgSender taskStatisticsMsgSender, TaskInstanceService taskInstanceService) {
+                        StatisticsService statisticsService, TaskInstanceService taskInstanceService) {
         this.taskExecuteControlMsgSender = taskExecuteControlMsgSender;
-        this.taskStatisticsMsgSender = taskStatisticsMsgSender;
+        this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
     }
 
@@ -108,32 +105,6 @@ public class TaskListener {
         }
     }
 
-    /**
-     * 作业启动，触发一次任务统计
-     *
-     * @param taskInstanceId
-     */
-    private void triggerStartJobStatistics(long taskInstanceId) {
-        TaskStatisticsCmd taskStatisticsCmd = new TaskStatisticsCmd();
-        taskStatisticsCmd.setAction(StatisticsActionEnum.START_JOB.name());
-        taskStatisticsCmd.setTaskInstanceId(taskInstanceId);
-        taskStatisticsCmd.setTime(LocalDateTime.now());
-        taskStatisticsMsgSender.sendTaskStatisticsCmd(taskStatisticsCmd);
-    }
-
-    /**
-     * 作业结束，触发一次任务统计
-     *
-     * @param taskInstanceId
-     */
-    private void triggerEndJobStatistics(long taskInstanceId) {
-        TaskStatisticsCmd taskStatisticsCmd = new TaskStatisticsCmd();
-        taskStatisticsCmd.setAction(StatisticsActionEnum.END_JOB.name());
-        taskStatisticsCmd.setTaskInstanceId(taskInstanceId);
-        taskStatisticsCmd.setTime(LocalDateTime.now());
-        taskStatisticsMsgSender.sendTaskStatisticsCmd(taskStatisticsCmd);
-    }
-
     /*
      * 启动作业
      */
@@ -146,7 +117,7 @@ public class TaskListener {
                 DateUtils.currentTimeMillis(), null, null);
             taskExecuteControlMsgSender.startStep(firstStepId);
             // 触发任务开始统计分析
-            triggerStartJobStatistics(taskInstanceId);
+            statisticsService.updateStartJobStatistics(taskInstance);
         } else {
             log.warn("Unsupported task instance run status for starting task, taskInstanceId={}, status={}",
                 taskInstanceId, taskInstance.getStatus());
@@ -223,11 +194,11 @@ public class TaskListener {
                     taskInstance.setTotalTime(totalTime);
                     asyncNotifySuccess(taskInstance, currentStep);
                     // 触发任务结束统计分析
-                    triggerEndJobStatistics(taskInstanceId);
+                    statisticsService.updateEndJobStatistics(taskInstance);
                 } else if (RunStatusEnum.FAIL.getValue() == stepStatus) {
                     asyncNotifyFail(taskInstance, currentStep);
                     // 触发任务结束统计分析
-                    triggerEndJobStatistics(taskInstanceId);
+                    statisticsService.updateEndJobStatistics(taskInstance);
                 } else {
                     taskInstanceService.updateTaskStatus(taskInstanceId, stepStatus);
                 }
@@ -255,7 +226,7 @@ public class TaskListener {
                     asyncNotifySuccess(taskInstance, currentStep);
                     callback(taskInstance, taskInstanceId, RunStatusEnum.SUCCESS.getValue(), currentStepId, stepStatus);
                     // 触发任务结束统计分析
-                    triggerEndJobStatistics(taskInstanceId);
+                    statisticsService.updateEndJobStatistics(taskInstance);
                 } else { // 进入下一步
                     taskInstanceService.updateTaskCurrentStepId(taskInstanceId, nextStepId);
                     taskExecuteControlMsgSender.startStep(nextStepId);
@@ -277,7 +248,7 @@ public class TaskListener {
                 asyncNotifyFail(taskInstance, currentStep);
                 callback(taskInstance, taskInstanceId, RunStatusEnum.FAIL.getValue(), currentStepId, stepStatus);
                 // 触发任务结束统计分析
-                triggerEndJobStatistics(taskInstanceId);
+                statisticsService.updateEndJobStatistics(taskInstance);
             } else {
                 log.warn("Unsupported task instance run status for refresh task, taskInstanceId={}, status={}",
                     taskInstanceId, taskInstance.getStatus());

@@ -42,12 +42,14 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record1;
 import org.jooq.Record21;
+import org.jooq.Record5;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.CronJob;
 import org.jooq.generated.tables.records.CronJobRecord;
 import org.jooq.types.UByte;
+import org.jooq.types.UInteger;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -196,6 +198,23 @@ public class CronJobDAOImpl implements CronJobDAO {
         return getCronJobByConditions(conditions);
     }
 
+    @Override
+    public CronJobInfoDTO getCronJobErrorById(long appId, long cronJobId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobId)));
+        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
+        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
+        return getCronJobErrorByConditions(conditions);
+    }
+
+    private CronJobInfoDTO getCronJobErrorByConditions(Collection<Condition> conditions) {
+        Record5<ULong, ULong, UByte, ULong, UInteger> record = context
+            .select(TABLE.ID, TABLE.APP_ID, TABLE.LAST_EXECUTE_STATUS, TABLE.LAST_EXECUTE_ERROR_CODE,
+                TABLE.LAST_EXECUTE_ERROR_COUNT)
+            .from(TABLE).where(conditions).fetchOne();
+        return convertToCronJobErrorDTO(record);
+    }
+
     private CronJobInfoDTO getCronJobByConditions(Collection<Condition> conditions) {
         Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte, UByte,
             ULong, String, ULong, ULong, ULong, String,
@@ -316,6 +335,24 @@ public class CronJobDAOImpl implements CronJobDAO {
             updateStep = updateStep.set(TABLE.NOTIFY_CHANNEL, JsonUtils.toJson(cronJob.getNotifyChannel()));
         }
 
+        return 1 == updateStep.where(conditions).limit(1).execute();
+    }
+
+    @Override
+    public boolean updateCronJobErrorById(CronJobInfoDTO cronJobErrorInfo) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.equal(ULong.valueOf(cronJobErrorInfo.getId())));
+        conditions.add(TABLE.APP_ID.equal(ULong.valueOf(cronJobErrorInfo.getAppId())));
+        conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
+
+        UpdateSetMoreStep<CronJobRecord> updateStep =
+            context.update(TABLE).set(TABLE.LAST_EXECUTE_STATUS, UByte.valueOf(cronJobErrorInfo.getLastExecuteStatus()));
+        if (cronJobErrorInfo.getLastExecuteErrorCode() != null) {
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_CODE, ULong.valueOf(cronJobErrorInfo.getLastExecuteErrorCode()));
+        }
+        if (cronJobErrorInfo.getLastExecuteErrorCount() != null) {
+            updateStep = updateStep.set(TABLE.LAST_EXECUTE_ERROR_COUNT, UInteger.valueOf(cronJobErrorInfo.getLastExecuteErrorCount()));
+        }
         return 1 == updateStep.where(conditions).limit(1).execute();
     }
 
@@ -489,6 +526,19 @@ public class CronJobDAOImpl implements CronJobDAO {
         } else {
             cronJobInfoDTO.setNotifyChannel(Collections.emptyList());
         }
+        return cronJobInfoDTO;
+    }
+
+    private CronJobInfoDTO convertToCronJobErrorDTO(Record5<ULong, ULong, UByte, ULong, UInteger> record) {
+        if (record == null) {
+            return null;
+        }
+        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
+        cronJobInfoDTO.setId(record.get(TABLE.ID).longValue());
+        cronJobInfoDTO.setAppId(record.get(TABLE.APP_ID).longValue());
+        cronJobInfoDTO.setLastExecuteStatus(record.get(TABLE.LAST_EXECUTE_STATUS).intValue());
+        cronJobInfoDTO.setLastExecuteErrorCode(DbRecordMapper.getLongValue(record.get(TABLE.LAST_EXECUTE_ERROR_CODE)));
+        cronJobInfoDTO.setLastExecuteErrorCount(record.get(TABLE.LAST_EXECUTE_ERROR_COUNT).intValue());
         return cronJobInfoDTO;
     }
 

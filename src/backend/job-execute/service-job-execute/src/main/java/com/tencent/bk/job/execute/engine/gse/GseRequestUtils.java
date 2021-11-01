@@ -24,7 +24,27 @@
 
 package com.tencent.bk.job.execute.engine.gse;
 
-import com.tencent.bk.gse.taskapi.*;
+import com.tencent.bk.gse.taskapi.api_agent;
+import com.tencent.bk.gse.taskapi.api_auth;
+import com.tencent.bk.gse.taskapi.api_auto_task;
+import com.tencent.bk.gse.taskapi.api_base_file_info;
+import com.tencent.bk.gse.taskapi.api_comm_rsp;
+import com.tencent.bk.gse.taskapi.api_copy_fileinfoV2;
+import com.tencent.bk.gse.taskapi.api_host;
+import com.tencent.bk.gse.taskapi.api_map_rsp;
+import com.tencent.bk.gse.taskapi.api_process_base_info;
+import com.tencent.bk.gse.taskapi.api_process_extra_info;
+import com.tencent.bk.gse.taskapi.api_process_info;
+import com.tencent.bk.gse.taskapi.api_process_req;
+import com.tencent.bk.gse.taskapi.api_query_agent_info_v2;
+import com.tencent.bk.gse.taskapi.api_query_atom_task_info;
+import com.tencent.bk.gse.taskapi.api_query_task_info_v2;
+import com.tencent.bk.gse.taskapi.api_script_file;
+import com.tencent.bk.gse.taskapi.api_script_request;
+import com.tencent.bk.gse.taskapi.api_stop_task_request;
+import com.tencent.bk.gse.taskapi.api_task_detail_result;
+import com.tencent.bk.gse.taskapi.api_task_request;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
@@ -32,22 +52,26 @@ import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.LogPullProgress;
 import com.tencent.bk.job.execute.engine.model.RunSQLScriptFile;
 import com.tencent.bk.job.execute.gse.model.ProcessOperateTypeEnum;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * GSE请求构建工具类
  */
 @Slf4j
 public class GseRequestUtils {
-    private static MeterRegistry meterRegistry;
+    private static final MeterRegistry meterRegistry;
 
     static {
         meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
@@ -101,9 +125,9 @@ public class GseRequestUtils {
     /**
      * 创建 Agent 列表
      *
-     * @param userName
-     * @param passwd
-     * @return
+     * @param userName 用户名
+     * @param passwd   密码
+     * @return Agent列表
      */
     public static List<api_agent> buildAgentList(Set<String> jobIpSet, String userName, String passwd) {
         List<api_agent> agentList = new ArrayList<>();
@@ -125,14 +149,14 @@ public class GseRequestUtils {
     }
 
     /**
-     * @param userName
-     * @param fullIP
-     * @return
+     * @param userName 用户名
+     * @param cloudIp  云区域:IP
+     * @return Agent
      */
-    public static api_agent buildAgent(String fullIP, String userName, String passwd) {
+    public static api_agent buildAgent(String cloudIp, String userName, String passwd) {
         int source = 0;
         String ip;
-        String[] ipArray = fullIP.split(":");
+        String[] ipArray = cloudIp.split(":");
         if (ipArray.length > 1) {
             source = Integer.parseInt(ipArray[0]);
             ip = ipArray[1];
@@ -207,11 +231,13 @@ public class GseRequestUtils {
     /**
      * 创建GSE执行脚本请求
      *
-     * @param downloadPath
-     * @param scriptParam
-     * @param timeout
-     * @param agentList
-     * @return
+     * @param agentList      Agent列表
+     * @param scriptContent  脚本内容
+     * @param scriptFileName 脚本名称
+     * @param downloadPath   脚本存放路径
+     * @param scriptParam    脚本参数
+     * @param timeout        脚本任务超时时间，单位秒
+     * @return 执行脚本任务请求
      */
     public static api_script_request buildScriptRequest(List<api_agent> agentList, String scriptContent,
                                                         String scriptFileName, String downloadPath, String scriptParam,
@@ -254,6 +280,13 @@ public class GseRequestUtils {
         return scriptReq;
     }
 
+    /**
+     * 下发脚本任务
+     *
+     * @param id            任务ID
+     * @param scriptRequest 请求内容
+     * @return GSE Server响应
+     */
     public static GseTaskResponse sendScriptTaskRequest(long id, api_script_request scriptRequest) {
         return sendCmd("" + id, new GseTaskResponseCaller() {
             @Override
@@ -296,7 +329,13 @@ public class GseRequestUtils {
         return processReq;
     }
 
-
+    /**
+     * 下发文件分发任务
+     *
+     * @param id               任务ID
+     * @param copyFileInfoList 请求内容
+     * @return GSE Server响应
+     */
     public static GseTaskResponse sendCopyFileTaskRequest(long id, List<api_copy_fileinfoV2> copyFileInfoList) {
         return sendCmd("" + id, new GseTaskResponseCaller() {
             @Override
@@ -318,6 +357,13 @@ public class GseRequestUtils {
         });
     }
 
+    /**
+     * 强制终止任务
+     *
+     * @param id              任务ID
+     * @param stopTaskRequest 终止任务请求
+     * @return GSE SERVER 响应
+     */
     public static GseTaskResponse sendForceStopTaskRequest(long id, api_stop_task_request stopTaskRequest) {
         return sendCmd("" + id, new GseTaskResponseCaller() {
             @Override
@@ -352,35 +398,18 @@ public class GseRequestUtils {
     /**
      * 拉取脚本执行任务日志 V2
      *
-     * @param gseTaskId
-     * @param cloudIps
-     * @param runBushOffsetMap
-     * @return
+     * @param gseTaskId        gse任务ID
+     * @param cloudIps         目标服务器列表
+     * @param runBushOffsetMap 日志偏移量
+     * @return 响应
      */
     public static api_query_task_info_v2 buildScriptLogRequestV2(String gseTaskId, Collection<String> cloudIps,
                                                                  Map<String, LogPullProgress> runBushOffsetMap) {
         List<api_query_agent_info_v2> queryAgentList = new ArrayList<>();
         for (String cloudIp : cloudIps) {
-            String[] ipArray = cloudIp.split(":");
-
-            int source = 0;
-            String ip;
-            if (ipArray.length > 1) {
-                source = Integer.parseInt(ipArray[0]);
-                ip = ipArray[1];
-            } else {
-                ip = ipArray[0];
-            }
-
             api_query_agent_info_v2 queryAgentInfo = new api_query_agent_info_v2();
-            api_host apiHost = new api_host();
-            apiHost.setIp(ip);
-            if (source > 1) {
-                apiHost.setGse_composite_id(source);
-            } else {
-                apiHost.setGse_composite_id(0);
-            }
 
+            api_host apiHost = convertToApiHost(cloudIp);
             queryAgentInfo.setHost(apiHost);
 
             LogPullProgress process = runBushOffsetMap.get(cloudIp);
@@ -400,22 +429,71 @@ public class GseRequestUtils {
         return queryTaskInfo;
     }
 
+    private static api_host convertToApiHost(String cloudIp) {
+        String[] ipArray = cloudIp.split(":");
+
+        int cloudAreaId = 0;
+        String ip;
+        if (ipArray.length > 1) {
+            cloudAreaId = Integer.parseInt(ipArray[0]);
+            ip = ipArray[1];
+        } else {
+            ip = ipArray[0];
+        }
+
+        api_host apiHost = new api_host();
+        apiHost.setIp(ip);
+        if (cloudAreaId > 1) {
+            apiHost.setGse_composite_id(cloudAreaId);
+        } else {
+            apiHost.setGse_composite_id(0);
+        }
+        return apiHost;
+    }
+
     /**
-     * 脚本任务详情
+     * 获取文件任务执行结果
+     *
+     * @param id        job任务ID
+     * @param gseTaskId gse任务ID
+     * @return 结果
      */
     public static api_map_rsp pullCopyFileTaskLog(long id, String gseTaskId) {
         return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
             @Override
             public api_map_rsp callback(GseClient gseClient) throws TException {
-                log.info("[{}]: copyFileTaskLogRequest_gseTaskId={}", id, gseTaskId);
+                log.info("[{}]: pullCopyFileTaskLog|gseTaskId:{}", id, gseTaskId);
                 api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient().get_copy_file_result(gseTaskId);
-                log.info("[{}]: copyFileTaskLogResponse={}", id, copyFileTaskLog);
+                log.info("[{}]: pullCopyFileTaskLog|response:{}", id, copyFileTaskLog);
                 return copyFileTaskLog;
             }
 
             @Override
             public String getApiName() {
                 return "get_copy_file_result";
+            }
+        });
+    }
+
+    /**
+     * 拉取文件任务执行结果-根据IP
+     */
+    public static api_map_rsp pullCopyFileTaskLog(long id, String gseTaskId, Collection<String> cloudIps) {
+        return sendCmd("" + id, new GseApiCallback<api_map_rsp>() {
+            @Override
+            public api_map_rsp callback(GseClient gseClient) throws TException {
+                List<api_host> hosts = cloudIps.stream()
+                    .map(GseRequestUtils::convertToApiHost).collect(Collectors.toList());
+                log.info("[{}]: pullCopyFileTaskLogByIp|gseTaskId:{}|hosts:{}", id, gseTaskId, hosts);
+                api_map_rsp copyFileTaskLog = gseClient.getGseAgentClient()
+                    .get_copy_file_result_by_ip_v2(gseTaskId, hosts);
+                log.info("[{}]: pullCopyFileTaskLogByIp|response:{}", id, copyFileTaskLog);
+                return copyFileTaskLog;
+            }
+
+            @Override
+            public String getApiName() {
+                return "get_copy_file_result_by_ip_v2";
             }
         });
     }
@@ -511,9 +589,8 @@ public class GseRequestUtils {
                 status = "error";
             } finally {
                 long end = System.nanoTime();
-                meterRegistry.timer(ExecuteMetricNames.GSE_API_PREFIX, "api_name", caller.getApiName(), "status",
-                    status)
-                    .record(end - start, TimeUnit.NANOSECONDS);
+                meterRegistry.timer(GseConstants.GSE_API_METRICS_NAME_PREFIX, "api_name", caller.getApiName(),
+                    "status", status).record(end - start, TimeUnit.NANOSECONDS);
             }
         } while (retry-- > 0); //重试1次
         return caller.fail(connect);

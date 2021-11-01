@@ -247,9 +247,7 @@
 
             .layout-left {
                 position: relative;
-                height: calc(100vh - 154px);
-                max-height: calc(100vh - 154px);
-                min-height: calc(100vh - 154px);
+                height: calc(100vh - 210px);
                 background: #fafbfd;
                 flex: 0 0 320px;
 
@@ -295,9 +293,7 @@
             }
 
             .layout-right {
-                height: calc(100vh - 154px);
-                max-height: calc(100vh - 154px);
-                min-height: calc(100vh - 154px);
+                height: calc(100vh - 210px);
                 flex: 1;
             }
         }

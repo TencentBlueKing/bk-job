@@ -86,7 +86,6 @@ public class AppHostsUpdateHelper {
 
     public boolean isAppHostsUpdating(Long appId) {
         String updatingMachine = getAppHostsUpdatingMachine(appId);
-//        log.debug("{} is updating app {}", updatingMachine, appId);
         return StringUtils.isNotBlank(updatingMachine);
     }
 

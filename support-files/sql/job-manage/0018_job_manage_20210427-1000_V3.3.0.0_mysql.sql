@@ -2,7 +2,7 @@ use job_manage;
 
 SET NAMES utf8mb4;
 
-CREATE TABLE `user_custom_script_template` (
+CREATE TABLE IF NOT EXISTS `user_custom_script_template` (
   `row_create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `row_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `username` varchar(128) NOT NULL,

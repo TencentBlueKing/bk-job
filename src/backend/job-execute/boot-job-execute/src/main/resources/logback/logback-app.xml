@@ -20,11 +20,17 @@
             <appender-ref ref="schedule-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="task-monitor-appender"/>
+        </logger>
     </springProfile>
     <springProfile name="prod &amp; !kubernetes">
         <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
             <appender-ref ref="schedule-appender"/>
             <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="task-monitor-appender"/>
         </logger>
     </springProfile>
 </included>

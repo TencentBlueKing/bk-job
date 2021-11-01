@@ -57,6 +57,7 @@
                         :max-height="tableHeight"
                         @row-click="handleRowSelect"
                         @sort-change="handleSortChange"
+                        :size="tableSize"
                         :row-class-name="rowClassName">
                         <bk-table-column
                             key="selection"
@@ -825,7 +826,7 @@
                     ...currentScriptVersion,
                     scriptVersionId: -1,
                     status: -1,
-                    version: genDefaultScriptVersion().slice(0, 30),
+                    version: genDefaultScriptVersion(),
                 });
                 this.isListFlod = true;
                 this.lastSelectScriptVersionId = this.selectVersionId;

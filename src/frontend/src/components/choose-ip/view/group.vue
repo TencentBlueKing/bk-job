@@ -43,24 +43,38 @@
                     :max-height="410"
                     :list="list"
                     :append-nums="invalidList.length">
-                    <tbody v-if="invalidList.length > 0" class="invalid-list" slot="appendBefore">
-                        <tr v-for="(row, index) in invalidList" :key="`invalid_${index}`">
+                    <tbody
+                        v-if="invalidList.length > 0"
+                        class="invalid-list"
+                        slot="appendBefore">
+                        <tr
+                            v-for="(row, index) in invalidList"
+                            :key="`invalid_${index}`">
                             <td class="table-cell">
-                                <span class="invalid" :tippy-tips="$t('该分组在配置平台已被删除')">{{ $t('无效') }}</span>
+                                <span
+                                    class="invalid"
+                                    :tippy-tips="$t('该分组在配置平台已被删除')">{{ $t('无效') }}</span>
                                 <span>{{ row }}</span>
                             </td>
-                            <td>--</td>
+                            <td colspan="2">--</td>
                             <td v-if="editable" class="action-column">
-                                <bk-button text @click="handleInvalidRemove(index)">{{ $t('移除') }}</bk-button>
+                                <bk-button
+                                    text
+                                    @click="handleInvalidRemove(index)">
+                                    {{ $t('移除') }}
+                                </bk-button>
                             </td>
                         </tr>
                     </tbody>
                     <tbody class="valid-list">
-                        <tr v-for="(row, index) in list" :key="index" :class="diff[row.id]">
+                        <tr
+                            v-for="(row, index) in list"
+                            :key="index"
+                            :class="diff[row.id]">
                             <td style="width: 40%; cursor: pointer;" @click="handleView(row.id)">
                                 {{ row.name }}
                             </td>
-                            <td style="width: 15%;">
+                            <td style="width: 150px;">
                                 <div class="cell-text">共<span class="number strong">{{ row.total }}</span>台主机</div>
                             </td>
                             <td @click="handleView(row.id)">
@@ -155,8 +169,8 @@
              */
             fetchDynamicGroup () {
                 this.isLoading = true;
-                const allGroupMap = this.data.reduce((result, item) => {
-                    result[item] = item;
+                const allGroupMap = this.data.reduce((result, groupId) => {
+                    result[groupId] = groupId;
                     return result;
                 }, {});
                 
@@ -221,10 +235,12 @@
             },
             triggerChange () {
                 this.isInnerChange = true;
-                this.$emit('on-change', [
-                    ...this.invalidList,
-                    ...this.list,
-                ]);
+                // 所有分组id
+                const groupIdList = [...this.invalidList];
+                this.list.forEach((group) => {
+                    groupIdList.push(group.id);
+                });
+                this.$emit('on-change', groupIdList);
             },
             /**
              * @desc 失败重试
