@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.manager.variable;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
@@ -48,6 +49,7 @@ class StepVariableParserTest {
         List<TaskStepDTO> steps = new ArrayList<>();
         TaskScriptStepDTO scriptStep = new TaskScriptStepDTO();
         scriptStep.setId(1L);
+        scriptStep.setLanguage(ScriptTypeEnum.SHELL);
         scriptStep.setContent("#!/bin/bash\n# job_import {{var1}}\necho ${var2}");
         scriptStep.setScriptParam("${var3} ${var4}");
         TaskStepDTO step1 = new TaskStepDTO();
