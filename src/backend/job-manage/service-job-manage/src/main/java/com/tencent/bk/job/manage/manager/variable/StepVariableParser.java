@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.manager.variable;
 
 import com.tencent.bk.job.common.service.VariableResolver;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
@@ -85,19 +86,21 @@ public class StepVariableParser {
         TaskScriptStepDTO scriptStep = step.getScriptStepInfo();
         List<String> refVarNames = new ArrayList<>();
 
-        List<String> shellVarNames = VariableResolver.resolveShellScriptVar(scriptStep.getContent());
         List<String> jobStandardVarNames = VariableResolver.resolveJobStandardVar(scriptStep.getScriptParam());
-        List<String> jobImportedVarNames = VariableResolver.resolveJobImportVariables(scriptStep.getContent());
-
-        if (CollectionUtils.isNotEmpty(shellVarNames)) {
-            refVarNames.addAll(shellVarNames);
-        }
         if (CollectionUtils.isNotEmpty(jobStandardVarNames)) {
             refVarNames.addAll(jobStandardVarNames);
         }
-        if (CollectionUtils.isNotEmpty(jobImportedVarNames)) {
-            refVarNames.addAll(jobImportedVarNames);
+        if (scriptStep.getLanguage() == ScriptTypeEnum.SHELL) {
+            List<String> shellVarNames = VariableResolver.resolveShellScriptVar(scriptStep.getContent());
+            List<String> jobImportedVarNames = VariableResolver.resolveJobImportVariables(scriptStep.getContent());
+            if (CollectionUtils.isNotEmpty(shellVarNames)) {
+                refVarNames.addAll(shellVarNames);
+            }
+            if (CollectionUtils.isNotEmpty(jobImportedVarNames)) {
+                refVarNames.addAll(jobImportedVarNames);
+            }
         }
+
         if (scriptStep.getExecuteTarget() != null
             && StringUtils.isNoneBlank(scriptStep.getExecuteTarget().getVariable())) {
             refVarNames.add(scriptStep.getExecuteTarget().getVariable());
