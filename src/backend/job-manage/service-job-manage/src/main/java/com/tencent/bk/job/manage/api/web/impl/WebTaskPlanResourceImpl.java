@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.manager.variable.StepVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -321,6 +322,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         TaskPlanInfoDTO taskPlan = planService.getTaskPlanById(appId, templateId, planId);
         if (taskPlan != null) {
+            StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+
             final String templateVersion = taskTemplateBasicInfo.getVersion();
             if (StringUtils.isNotEmpty(templateVersion)) {
                 taskPlan.setTemplateVersion(templateVersion);

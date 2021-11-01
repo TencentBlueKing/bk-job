@@ -24,156 +24,93 @@
 
 package com.tencent.bk.job.manage.manager.variable;
 
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StepVariableParserTest {
-
     @Test
-    void parse() {
+    @DisplayName("ParseScriptStepRefVars")
+    void parseScriptStepRefVars() {
+        List<TaskStepDTO> steps = new ArrayList<>();
+        TaskScriptStepDTO scriptStep = new TaskScriptStepDTO();
+        scriptStep.setId(1L);
+        scriptStep.setContent("#!/bin/bash\n# job_import {{var1}}\necho ${var2}");
+        scriptStep.setScriptParam("${var3} ${var4}");
+        TaskStepDTO step1 = new TaskStepDTO();
+        step1.setId(scriptStep.getId());
+        step1.setType(TaskStepTypeEnum.SCRIPT);
+        step1.setScriptStepInfo(scriptStep);
+        steps.add(step1);
+
+        List<TaskVariableDTO> variables = new ArrayList<>();
+        TaskVariableDTO var1 = new TaskVariableDTO();
+        var1.setName("var1");
+        variables.add(var1);
+        TaskVariableDTO var2 = new TaskVariableDTO();
+        var2.setName("var2");
+        variables.add(var2);
+        TaskVariableDTO var4 = new TaskVariableDTO();
+        var4.setName("var4");
+        variables.add(var4);
+        TaskVariableDTO var5 = new TaskVariableDTO();
+        var5.setName("var5");
+        variables.add(var5);
+
+        StepVariableParser.parseStepRefVars(steps, variables);
+        assertThat(step1.getRefVariables()).extracting("name")
+            .containsOnly("var1", "var2", "var4");
     }
 
     @Test
-    @DisplayName("Test parse variable from shell script - Basic")
-    void testParseShellScriptVarBasic() {
-        String scriptContent = "#!/bin/bash\necho \"${var1}\"";
-        List<String> varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var1");
+    @DisplayName("ParseFileStepRefVars")
+    void parseFileStepRefVars() {
+        List<TaskStepDTO> steps = new ArrayList<>();
+        TaskFileStepDTO fileStep = new TaskFileStepDTO();
+        fileStep.setId(1L);
+        List<TaskFileInfoDTO> originFiles = new ArrayList<>();
+        TaskFileInfoDTO file1 = new TaskFileInfoDTO();
+        file1.setFileLocation(null);
+        originFiles.add(file1);
+        TaskFileInfoDTO file2 = new TaskFileInfoDTO();
+        file2.setFileLocation(Arrays.asList("/tmp/${var1}.log", "/tmp/${var2}.log"));
+        originFiles.add(file2);
+        fileStep.setOriginFileList(originFiles);
 
-        scriptContent = "#!/bin/bash\necho \"${var}\"";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
+        fileStep.setDestinationFileLocation("/tmp/${var3}/");
+        TaskStepDTO step1 = new TaskStepDTO();
+        step1.setId(fileStep.getId());
+        step1.setType(TaskStepTypeEnum.FILE);
+        step1.setFileStepInfo(fileStep);
+        steps.add(step1);
 
-        scriptContent = "#!/bin/bash\necho \"${_var}\"";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("_var");
+        List<TaskVariableDTO> variables = new ArrayList<>();
+        TaskVariableDTO var1 = new TaskVariableDTO();
+        var1.setName("var1");
+        variables.add(var1);
+        TaskVariableDTO var2 = new TaskVariableDTO();
+        var2.setName("var2");
+        variables.add(var2);
+        TaskVariableDTO var4 = new TaskVariableDTO();
+        var4.setName("var3");
+        variables.add(var4);
+        TaskVariableDTO var5 = new TaskVariableDTO();
+        var5.setName("var4");
+        variables.add(var5);
 
-        scriptContent = "#!/bin/bash\necho \"${Var}\"";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("Var");
-
-        scriptContent = "#!/bin/bash\necho \"${var1}\" & echo \"${_var2}\"";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var1", "_var2");
-    }
-
-    @Test
-    @DisplayName("Test parse variable from shell script - Expression")
-    void testParseShellScriptVarForStringExpression() {
-        String scriptContent = "#!/bin/bash\necho ${var-DEFAULT}";
-        List<String> varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var:-DEFAULT}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var=DEFAULT}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var=DEFAULT}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var+OTHER}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var:+OTHER}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var?ERR_MSG}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var:?ERR_MSG}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-    }
-
-    @Test
-    @DisplayName("Test parse variable from shell script - String manipulation")
-    void testParseShellScriptVarForStringManipulation() {
-        String scriptContent = "#!/bin/bash\necho ${#var}";
-        List<String> varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var:1}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var:1:2}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var#substring}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var##substring}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var%substring}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var%%substring}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var/substring/replacement}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var/#substring/replacement}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-
-        scriptContent = "#!/bin/bash\necho ${var/%substring/replacement}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("var");
-    }
-
-    @Test
-    @DisplayName("Test parse variable from shell script - Array variable")
-    void testParseShellScriptVarForArrayVar() {
-        String scriptContent = "#!/bin/bash\necho ${array_name[0]}";
-        List<String> varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-
-        scriptContent = "#!/bin/bash\necho ${array_name['test']}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-
-        scriptContent = "#!/bin/bash\necho ${array_name[*]}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-
-        scriptContent = "#!/bin/bash\necho ${array_name[@]}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-
-        scriptContent = "#!/bin/bash\necho ${#array_name[@]}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-
-        scriptContent = "#!/bin/bash\necho ${#array_name[*]}";
-        varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("array_name");
-    }
-
-    @Test
-    @DisplayName("Test parse variable from shell script - Multi line and vars")
-    void testParseShellScriptVarForMultiLineAndVars() {
-        String scriptContent = "#!/bin/bash\necho ${my_array[0]}\n echo ${var1} \n job_fail ${var2} ${_var3} \n";
-        List<String> varNames = StepVariableParser.parseShellScriptVar(scriptContent);
-        assertThat(varNames).containsOnly("my_array", "var1", "var2", "_var3");
+        StepVariableParser.parseStepRefVars(steps, variables);
+        assertThat(step1.getRefVariables()).extracting("name")
+            .containsOnly("var1", "var2", "var3");
     }
 }

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.util.VariableResolver;
+import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
@@ -184,7 +184,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         for (FileSourceDTO fileSource : fileSources) {
             if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
                 for (FileDetailDTO file : fileSource.getFiles()) {
-                    String resolvedFilePath = VariableResolver.resolve(file.getFilePath(),
+                    String resolvedFilePath = VariableValueResolver.resolve(file.getFilePath(),
                         stepInputGlobalVariableValueMap);
                     if (!resolvedFilePath.equals(file.getFilePath())) {
                         file.setResolvedFilePath(resolvedFilePath);
@@ -271,7 +271,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
      * 解析文件分发目标路径，替换变量
      */
     private void resolvedTargetPathWithVariable() {
-        String resolvedTargetPath = VariableResolver.resolve(stepInstance.getFileTargetPath(),
+        String resolvedTargetPath = VariableValueResolver.resolve(stepInstance.getFileTargetPath(),
             buildReferenceGlobalVarValueMap(stepInputVariables));
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);

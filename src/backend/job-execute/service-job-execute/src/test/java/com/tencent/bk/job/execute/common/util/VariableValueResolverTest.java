@@ -31,7 +31,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class VariableResolverTest {
+public class VariableValueResolverTest {
     @Test
     void testResolve() {
         Map<String, String> vars = new HashMap<>();
@@ -39,7 +39,7 @@ public class VariableResolverTest {
         vars.put("var2", "var2");
         String param = "${var1} ${var2}";
 
-        String resolvedParam = VariableResolver.resolve(param, vars);
+        String resolvedParam = VariableValueResolver.resolve(param, vars);
         assertThat(resolvedParam).isEqualTo("var1 var2");
     }
 
@@ -49,7 +49,7 @@ public class VariableResolverTest {
         vars.put("var1", "var1");
         String param = "${var1} ${var2}";
 
-        String resolvedParam = VariableResolver.resolve(param, vars);
+        String resolvedParam = VariableValueResolver.resolve(param, vars);
         assertThat(resolvedParam).isEqualTo("var1 ${var2}");
     }
 
@@ -60,7 +60,7 @@ public class VariableResolverTest {
         vars.put("var2", "var2");
         String param = "/tmp/";
 
-        String resolvedParam = VariableResolver.resolve(param, vars);
+        String resolvedParam = VariableValueResolver.resolve(param, vars);
         assertThat(resolvedParam).isEqualTo("/tmp/");
     }
 
@@ -71,7 +71,7 @@ public class VariableResolverTest {
         vars.put("var2", null);
         String param = "--test=${var1} --name=${var2}";
 
-        String resolvedParam = VariableResolver.resolve(param, vars);
+        String resolvedParam = VariableValueResolver.resolve(param, vars);
         assertThat(resolvedParam).isEqualTo("--test=var1 --name=");
     }
 
@@ -89,7 +89,7 @@ public class VariableResolverTest {
             "${gopath}/src/go_build_target/AccountServer\\ntar -zcf ../AccountServer.tar.gz bin\\nexport " +
             "GOPATH=/root/go\", \"svn_repo\": false}'";
         vars.put(key, value);
-        assertThat(VariableResolver.resolve("${build_data}", vars)).isEqualTo(value);
-        assertThat(VariableResolver.resolve("A${build_data}B", vars)).isEqualTo("A" + value + "B");
+        assertThat(VariableValueResolver.resolve("${build_data}", vars)).isEqualTo(value);
+        assertThat(VariableValueResolver.resolve("A${build_data}B", vars)).isEqualTo("A" + value + "B");
     }
 }
