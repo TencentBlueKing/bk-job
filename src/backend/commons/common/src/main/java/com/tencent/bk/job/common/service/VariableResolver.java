@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.service;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -131,7 +132,13 @@ public class VariableResolver {
      * @return 变量列表
      */
     public static List<String> resolveShellScriptVar(String shellScriptContent) {
+        if (StringUtils.isBlank(shellScriptContent)) {
+            return Collections.emptyList();
+        }
         String content = filterCommentLine(shellScriptContent);
+        if (StringUtils.isBlank(content)) {
+            return Collections.emptyList();
+        }
         List<String> varNames = new ArrayList<>();
 
         Matcher m1 = Pattern.compile("\\$([_a-zA-Z][0-9_a-zA-Z]*)").matcher(content);
