@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,10 +98,15 @@ public class StepVariableParser {
         if (CollectionUtils.isNotEmpty(jobImportedVarNames)) {
             refVarNames.addAll(jobImportedVarNames);
         }
+        if (scriptStep.getExecuteTarget() != null
+            && StringUtils.isNoneBlank(scriptStep.getExecuteTarget().getVariable())) {
+            refVarNames.add(scriptStep.getExecuteTarget().getVariable());
+        }
 
         step.setRefVariables(variables.stream().filter(variable -> refVarNames.contains(variable.getName()))
             .distinct().collect(Collectors.toList()));
     }
+
 
     private static void parseFileStepRefVars(TaskStepDTO step,
                                              List<TaskVariableDTO> variables) {
@@ -114,13 +120,22 @@ public class StepVariableParser {
                     if (CollectionUtils.isNotEmpty(filePathVarNames)) {
                         refVarNames.addAll(filePathVarNames);
                     }
+
                 });
+            }
+            if (originFile.getHost() != null && StringUtils.isNoneBlank(originFile.getHost().getVariable())) {
+                refVarNames.add(originFile.getHost().getVariable());
             }
         });
         List<String> destFilePathVarNames =
             VariableResolver.resolveJobStandardVar(fileStep.getDestinationFileLocation());
         if (CollectionUtils.isNotEmpty(destFilePathVarNames)) {
             refVarNames.addAll(destFilePathVarNames);
+        }
+
+        if (fileStep.getDestinationHostList() != null
+            && StringUtils.isNoneBlank(fileStep.getDestinationHostList().getVariable())) {
+            refVarNames.add(fileStep.getDestinationHostList().getVariable());
         }
 
         step.setRefVariables(variables.stream().filter(variable -> refVarNames.contains(variable.getName()))

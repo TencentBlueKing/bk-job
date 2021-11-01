@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.manage.manager.variable;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,9 @@ class StepVariableParserTest {
         step1.setType(TaskStepTypeEnum.SCRIPT);
         step1.setScriptStepInfo(scriptStep);
         steps.add(step1);
+        TaskTargetDTO target = new TaskTargetDTO();
+        target.setVariable("host1");
+        scriptStep.setExecuteTarget(target);
 
         List<TaskVariableDTO> variables = new ArrayList<>();
         TaskVariableDTO var1 = new TaskVariableDTO();
@@ -67,10 +72,14 @@ class StepVariableParserTest {
         TaskVariableDTO var5 = new TaskVariableDTO();
         var5.setName("var5");
         variables.add(var5);
+        TaskVariableDTO host1 = new TaskVariableDTO();
+        host1.setType(TaskVariableTypeEnum.HOST_LIST);
+        host1.setName("host1");
+        variables.add(host1);
 
         StepVariableParser.parseStepRefVars(steps, variables);
         assertThat(step1.getRefVariables()).extracting("name")
-            .containsOnly("var1", "var2", "var4");
+            .containsOnly("var1", "var2", "var4", "host1");
     }
 
     @Test
@@ -85,10 +94,16 @@ class StepVariableParserTest {
         originFiles.add(file1);
         TaskFileInfoDTO file2 = new TaskFileInfoDTO();
         file2.setFileLocation(Arrays.asList("/tmp/${var1}.log", "/tmp/${var2}.log"));
+        TaskTargetDTO originHost = new TaskTargetDTO();
+        originHost.setVariable("host2");
+        file2.setHost(originHost);
         originFiles.add(file2);
         fileStep.setOriginFileList(originFiles);
 
         fileStep.setDestinationFileLocation("/tmp/${var3}/");
+        TaskTargetDTO target = new TaskTargetDTO();
+        target.setVariable("host1");
+        fileStep.setDestinationHostList(target);
         TaskStepDTO step1 = new TaskStepDTO();
         step1.setId(fileStep.getId());
         step1.setType(TaskStepTypeEnum.FILE);
@@ -108,9 +123,15 @@ class StepVariableParserTest {
         TaskVariableDTO var5 = new TaskVariableDTO();
         var5.setName("var4");
         variables.add(var5);
+        TaskVariableDTO host1 = new TaskVariableDTO();
+        host1.setName("host1");
+        variables.add(host1);
+        TaskVariableDTO host2 = new TaskVariableDTO();
+        host2.setName("host2");
+        variables.add(host2);
 
         StepVariableParser.parseStepRefVars(steps, variables);
         assertThat(step1.getRefVariables()).extracting("name")
-            .containsOnly("var1", "var2", "var3");
+            .containsOnly("var1", "var2", "var3", "host1", "host2");
     }
 }
