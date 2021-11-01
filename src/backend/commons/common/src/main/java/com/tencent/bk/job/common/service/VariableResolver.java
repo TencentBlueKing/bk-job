@@ -58,6 +58,9 @@ public class VariableResolver {
      * @return 变量名
      */
     public static List<String> resolveJobImportVariables(String scriptContent) {
+        if (StringUtils.isBlank(scriptContent)) {
+            return Collections.emptyList();
+        }
         String[] lines = scriptContent.split("\n");
         Set<String> variables = new HashSet<>();
         for (String line : lines) {
@@ -84,6 +87,9 @@ public class VariableResolver {
      * @return 变量列表
      */
     public static Set<String> resolveScriptBuildInVariables(String content) {
+        if (StringUtils.isBlank(content)) {
+            return Collections.emptySet();
+        }
         String[] lines = content.split("\n");
         Set<String> variables = new HashSet<>();
         for (String line : lines) {
