@@ -61,8 +61,8 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
 
     private static final TaskPlanVariable TABLE = TaskPlanVariable.TASK_PLAN_VARIABLE;
 
-    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID, TABLE.NAME,
-        TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
+    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.ID, TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
+        TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
 
     private final DSLContext context;
 
