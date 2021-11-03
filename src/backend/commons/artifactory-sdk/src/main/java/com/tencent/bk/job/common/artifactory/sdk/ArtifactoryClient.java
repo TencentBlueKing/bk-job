@@ -360,10 +360,14 @@ public class ArtifactoryClient {
 
     public InputStream getFileInputStream(String filePath) throws ServiceException {
         List<String> pathList = parsePath(filePath);
+        return getFileInputStream(pathList.get(0), pathList.get(1), pathList.get(2));
+    }
+
+    public InputStream getFileInputStream(String projectId, String repoName, String filePath) throws ServiceException {
         DownloadGenericFileReq req = new DownloadGenericFileReq();
-        req.setProject(pathList.get(0));
-        req.setRepo(pathList.get(1));
-        req.setPath(pathList.get(2));
+        req.setProject(projectId);
+        req.setRepo(repoName);
+        req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_DOWNLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
         CloseableHttpResponse resp = null;
@@ -377,13 +381,12 @@ public class ArtifactoryClient {
         }
     }
 
-    public NodeDTO uploadGenericFile(String filePath, InputStream fis) {
-        List<String> pathList = parsePath(filePath);
+    public NodeDTO uploadGenericFile(String projectId, String repoName, String filePath, InputStream fis) {
         String fileName = PathUtil.getFileNameByPath(filePath);
         UploadGenericFileReq req = new UploadGenericFileReq();
-        req.setProject(pathList.get(0));
-        req.setRepo(pathList.get(1));
-        req.setPath(pathList.get(2));
+        req.setProject(projectId);
+        req.setRepo(repoName);
+        req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_UPLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
         String respStr = null;

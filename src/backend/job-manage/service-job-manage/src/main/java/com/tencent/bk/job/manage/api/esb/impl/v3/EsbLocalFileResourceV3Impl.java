@@ -94,7 +94,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
             localFileConfigForManage.getArtifactoryJobProject(),
-            localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
+            localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );
         Map<String, TempUrlInfo> urlInfoMap = new HashMap<>();

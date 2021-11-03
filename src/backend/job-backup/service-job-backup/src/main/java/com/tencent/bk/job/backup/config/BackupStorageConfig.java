@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.backup.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class LocalFileConfigForManage {
+public class BackupStorageConfig {
 
     @Value("${artifactory.base-url:}")
     private String artifactoryBaseUrl;
@@ -50,10 +50,10 @@ public class LocalFileConfigForManage {
     @Value("${artifactory.job.project:bkjob}")
     private String artifactoryJobProject;
 
-    @Value("${local-file.storage-backend:local}")
+    @Value("${job.backup.storage-backend:local}")
     private String storageBackend;
 
-    @Value("${local-file.artifactory.repo:localupload}")
-    private String localUploadRepo;
+    @Value("${job.backup.artifactory.repo:backup}")
+    private String backupRepo;
 
 }

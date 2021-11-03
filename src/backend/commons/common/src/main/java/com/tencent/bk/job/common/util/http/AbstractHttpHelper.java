@@ -225,13 +225,14 @@ public abstract class AbstractHttpHelper {
         put.setEntity(requestEntity);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity entity = httpResponse.getEntity();
+            String content = new String(EntityUtils.toByteArray(entity), CHARSET);
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Put request fail, statusCode={}, errorReason={}", statusCode, message);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                log.warn("Put request fail, statusCode={}, errorReason={}, content={}", statusCode, message, content);
+                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, content);
             }
-            HttpEntity entity = httpResponse.getEntity();
-            return new String(EntityUtils.toByteArray(entity), CHARSET);
+            return content;
         }
     }
 

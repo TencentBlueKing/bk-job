@@ -1,7 +1,7 @@
-package com.tencent.bk.job.manage.runner;
+package com.tencent.bk.job.backup.runner;
 
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
-import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -11,29 +11,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
-    private final LocalFileConfigForManage localFileConfigForManage;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
-    public InitArtifactoryDataRunner(LocalFileConfigForManage localFileConfigForManage) {
-        this.localFileConfigForManage = localFileConfigForManage;
+    public InitArtifactoryDataRunner(BackupStorageConfig backupStorageConfig) {
+        this.backupStorageConfig = backupStorageConfig;
     }
 
     @Override
     public void run(String... args) {
-        String baseUrl = localFileConfigForManage.getArtifactoryBaseUrl();
-        String adminUsername = localFileConfigForManage.getArtifactoryAdminUsername();
-        String adminPassword = localFileConfigForManage.getArtifactoryAdminPassword();
-        String jobUsername = localFileConfigForManage.getArtifactoryJobUsername();
-        String jobPassword = localFileConfigForManage.getArtifactoryJobPassword();
-        String jobProject = localFileConfigForManage.getArtifactoryJobProject();
-        String localUploadRepo = localFileConfigForManage.getLocalUploadRepo();
+        String baseUrl = backupStorageConfig.getArtifactoryBaseUrl();
+        String adminUsername = backupStorageConfig.getArtifactoryAdminUsername();
+        String adminPassword = backupStorageConfig.getArtifactoryAdminPassword();
+        String jobUsername = backupStorageConfig.getArtifactoryJobUsername();
+        String jobPassword = backupStorageConfig.getArtifactoryJobPassword();
+        String jobProject = backupStorageConfig.getArtifactoryJobProject();
+        String backupRepo = backupStorageConfig.getBackupRepo();
         // 1.检查用户、仓库是否存在
         boolean userRepoExists = ArtifactoryHelper.checkRepoExists(
             baseUrl,
             jobUsername,
             jobPassword,
             jobProject,
-            localUploadRepo
+            backupRepo
         );
         if (userRepoExists) {
             return;
@@ -54,22 +54,22 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
                 jobUsername
             );
         }
-        // 3.本地文件上传仓库不存在则创建
-        String REPO_LOCALUPLOAD_DESCRIPTION = "BlueKing bk-job official project localupload repo," +
-            " which is used to save job data produced by users. " +
+        // 3.Backup仓库不存在则创建
+        String REPO_BACKUP_DESCRIPTION = "BlueKing bk-job official project backup repo," +
+            " which is used to save job export data produced by program. " +
             "Do not delete me unless you know what you are doing";
         boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
             baseUrl,
             adminUsername,
             adminPassword,
             jobProject,
-            localUploadRepo,
-            REPO_LOCALUPLOAD_DESCRIPTION
+            backupRepo,
+            REPO_BACKUP_DESCRIPTION
         );
         if (repoCreated) {
             log.info(
                 "repo {} created",
-                localUploadRepo
+                backupRepo
             );
         }
     }

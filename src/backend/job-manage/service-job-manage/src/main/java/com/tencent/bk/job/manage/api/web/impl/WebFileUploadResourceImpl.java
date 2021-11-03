@@ -153,19 +153,25 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             String filePath = Utils.getUUID() +
                 File.separatorChar + username + File.separatorChar +
                 file.getOriginalFilename();
-            String fullFilePath = PathUtil.joinFilePath(localFileConfigForManage.getJobLocalUploadRootPath(), filePath);
-            String fileName = PathUtil.getFileNameByPath(fullFilePath);
-            log.debug("fullFilePath={}", fullFilePath);
+            String fileName = PathUtil.getFileNameByPath(filePath);
+            log.debug("filePath={}", filePath);
             UploadLocalFileResultVO fileResultVO = new UploadLocalFileResultVO();
             fileResultVO.setFileName(fileName);
             fileResultVO.setFilePath(filePath);
+            String project = localFileConfigForManage.getArtifactoryJobProject();
+            String repo = localFileConfigForManage.getLocalUploadRepo();
             try {
-                NodeDTO nodeDTO = artifactoryClient.uploadGenericFile(fullFilePath, file.getInputStream());
+                NodeDTO nodeDTO = artifactoryClient.uploadGenericFile(project, repo, filePath, file.getInputStream());
                 fileResultVO.setFileSize(nodeDTO.getSize());
                 fileResultVO.setMd5(nodeDTO.getMd5());
                 fileResultVO.setStatus(0);
             } catch (IOException e) {
-                String errMsg = String.format("Fail to upload file %s to artifactory", fullFilePath);
+                String errMsg = String.format(
+                    "Fail to upload file %s to artifactory project {} repo {}",
+                    filePath,
+                    project,
+                    repo
+                );
                 fileResultVO.setStatus(-1);
                 log.error(errMsg, e);
                 throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, errMsg);
@@ -181,7 +187,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                                                                           MultipartFile[] uploadFiles) {
         log.info("Handle upload file!");
         List<UploadLocalFileResultVO> fileUploadResults = null;
-        if (JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+        if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForManage.getStorageBackend()
         )) {
             fileUploadResults = saveFileToArtifactory(username, uploadFiles);
@@ -203,7 +209,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
             localFileConfigForManage.getArtifactoryJobProject(),
-            localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
+            localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );
         return ServiceResponse.buildSuccessResp(

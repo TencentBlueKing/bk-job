@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.executor;
 
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.LogMessage;
@@ -31,7 +32,15 @@ import com.tencent.bk.job.backup.constant.SecretHandlerEnum;
 import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ExportJobInfoDTO;
 import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
-import com.tencent.bk.job.backup.service.*;
+import com.tencent.bk.job.backup.service.AccountService;
+import com.tencent.bk.job.backup.service.ExportJobService;
+import com.tencent.bk.job.backup.service.LogService;
+import com.tencent.bk.job.backup.service.ScriptService;
+import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.backup.service.TaskPlanService;
+import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -45,23 +54,38 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
-import com.tencent.bk.job.manage.model.web.vo.task.*;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskScriptStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -81,12 +105,15 @@ public class ExportJobExecutor {
     private final LogService logService;
     private final StorageService storageService;
     private final MessageI18nService i18nService;
+    private final ArtifactoryClient artifactoryClient;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public ExportJobExecutor(ExportJobService exportJobService, TaskTemplateService taskTemplateService,
                              TaskPlanService taskPlanService, ScriptService scriptService,
                              AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService) {
+                             StorageService storageService, MessageI18nService i18nService,
+                             ArtifactoryClient artifactoryClient, BackupStorageConfig backupStorageConfig) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -95,6 +122,8 @@ public class ExportJobExecutor {
         this.logService = logService;
         this.storageService = storageService;
         this.i18nService = i18nService;
+        this.artifactoryClient = artifactoryClient;
+        this.backupStorageConfig = backupStorageConfig;
 
         File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
         checkDirectory(storageDirectory);
@@ -124,6 +153,22 @@ public class ExportJobExecutor {
         }
     }
 
+    private void saveToArtifactory(String fileName) {
+        String fullPath = storageService.getStoragePath().concat(fileName);
+        String project = backupStorageConfig.getArtifactoryJobProject();
+        String repo = backupStorageConfig.getBackupRepo();
+        try {
+            artifactoryClient.uploadGenericFile(project, repo, fileName, new FileInputStream(fullPath));
+            log.info("{} uploaded to {}:{}:{}", fullPath, project, repo, fileName);
+        } catch (FileNotFoundException e) {
+            FormattingTuple formatter = MessageFormatter.format(
+                "Fail to upload {} to {}:{}:{}",
+                new String[]{fullPath, project, repo, fileName}
+            );
+            log.error(formatter.getMessage(), e);
+        }
+    }
+
     private void processExportJob(String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(-1L, jobId);
         if (BackupJobStatusEnum.INIT.equals(exportInfo.getStatus())) {
@@ -146,7 +191,7 @@ public class ExportJobExecutor {
                 log.error("Error while processing account!", e);
                 logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
                     "Process account failed! Please " +
-                    "try again!");
+                        "try again!");
                 exportInfo.setPassword(null);
                 exportInfo.setStatus(BackupJobStatusEnum.FAILED);
                 exportJobService.updateExportJob(exportInfo);
@@ -170,6 +215,11 @@ public class ExportJobExecutor {
             }
 
             fileName = getExportFilePrefix(exportInfo.getCreator(), exportInfo.getId()) + fileName;
+
+            // 上传至制品库
+            if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(backupStorageConfig.getStorageBackend())) {
+                saveToArtifactory(fileName);
+            }
 
             exportInfo.setPassword(null);
             exportInfo.setStatus(BackupJobStatusEnum.SUCCESS);

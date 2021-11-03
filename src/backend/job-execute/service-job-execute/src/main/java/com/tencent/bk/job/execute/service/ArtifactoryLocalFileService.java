@@ -30,7 +30,7 @@ public class ArtifactoryLocalFileService {
     public FileDetailDTO getFileDetailFromArtifactory(String filePath) {
         String fullPath = PathUtil.joinFilePath(
             localFileConfigForExecute.getArtifactoryJobProject()
-                + "/" + localFileConfigForExecute.getArtifactoryJobLocalUploadRepo(),
+                + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             filePath
         );
         NodeDTO nodeDTO = artifactoryClient.getFileNode(fullPath);

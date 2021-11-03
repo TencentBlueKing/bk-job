@@ -37,7 +37,7 @@ public class LocalFilePrepareService {
 
     @PostConstruct
     private void init() {
-        ArtifactoryLocalFilePrepareTask.init(localFileConfigForExecute.getArtifactoryDownloadConcurrency());
+        ArtifactoryLocalFilePrepareTask.init(localFileConfigForExecute.getDownloadConcurrency());
     }
 
     public void stopPrepareLocalFilesAsync(
@@ -54,7 +54,7 @@ public class LocalFilePrepareService {
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler
     ) {
-        if (!JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+        if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForExecute.getStorageBackend()
         )) {
             log.info("artifactory is not enable, not need to prepare local file");
@@ -67,7 +67,7 @@ public class LocalFilePrepareService {
             new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
             artifactoryClient,
             localFileConfigForExecute.getArtifactoryJobProject()
-                + "/" + localFileConfigForExecute.getArtifactoryJobLocalUploadRepo(),
+                + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             storageSystemConfig.getJobStorageRootPath()
         );
         taskMap.put(stepInstanceId, task);
