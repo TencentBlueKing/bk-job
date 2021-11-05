@@ -114,10 +114,15 @@ module.exports = function (env) {
                     automaticNameDelimiter: '~',
                     name: false,
                     cacheGroups: {
+                        vendors: {
+                            test: /[\\/]node_modules[\\/]/,
+                            name: 'vendors',
+                            priority: 10,
+                        },
                         bkMagic: {
                             chunks: 'all',
                             name: 'bk-magic-vue',
-                            priority: 5,
+                            priority: 10,
                             reuseExistingChunk: true,
                             test: module => /bk-magic-vue/.test(module.context),
                         },
@@ -133,10 +138,6 @@ module.exports = function (env) {
                             name: 'twice',
                             priority: 6,
                             minChunks: 2,
-                        },
-                        vendors: {
-                            test: /[\\/]node_modules[\\/]/,
-                            priority: -10,
                         },
                         default: {
                             chunks: 'async',
