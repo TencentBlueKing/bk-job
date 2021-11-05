@@ -26,9 +26,19 @@
 -->
 
 <template>
-    <layout class="task-plan-create-box" v-bind="$attrs" :title="$t('template.新建执行方案')" :loading="isLoading">
-        <jb-form ref="createPlanForm" :model="formData" :rules="rules">
-            <jb-form-item :label="$t('template.方案名称')" required property="name">
+    <layout
+        class="task-plan-create-box"
+        v-bind="$attrs"
+        :title="$t('template.新建执行方案')"
+        :loading="isLoading">
+        <jb-form
+            ref="createPlanForm"
+            :model="formData"
+            :rules="rules">
+            <jb-form-item
+                :label="$t('template.方案名称')"
+                required
+                property="name">
                 <jb-input
                     class="input"
                     :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
@@ -36,7 +46,11 @@
                     @change="handleNameChange"
                     :maxlength="60" />
             </jb-form-item>
-            <jb-form-item :label="$t('template.全局变量.label')">
+            <jb-form-item label=" ">
+                <div class="section-title">
+                    <span>{{ $t('template.全局变量.label') }}</span>
+                    <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
+                </div>
                 <render-global-var
                     :key="templateId"
                     :list="globalVariableList"
@@ -47,8 +61,10 @@
             </jb-form-item>
             <jb-form-item label=" " property="enableSteps">
                 <div class="task-step-selection">
-                    <!-- eslint-disable-next-line max-len -->
-                    <div>{{ $t('template.选择执行步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                    <div class="section-title">
+                        <span>{{ $t('template.选择执行步骤') }}</span>
+                        <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                    </div>
                     <div class="step-check">
                         <bk-button
                             v-if="hasSelectAll"
@@ -56,7 +72,12 @@
                             @click="handleDeselectAll">
                             {{ $t('template.取消全选') }}
                         </bk-button>
-                        <bk-button v-else text @click="handleSelectAll">{{ $t('template.全选') }}</bk-button>
+                        <bk-button
+                            v-else
+                            text
+                            @click="handleSelectAll">
+                            {{ $t('template.全选') }}
+                        </bk-button>
                     </div>
                 </div>
                 <render-task-step
@@ -98,9 +119,9 @@
     } from '@utils/validator';
     import JbForm from '@components/jb-form';
     import JbInput from '@components/jb-input';
-    import Layout from './layout';
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
+    import Layout from './layout';
     
     const getDefaultData = () => ({
         id: 0,
@@ -148,6 +169,7 @@
              */
             selectedVariable () {
                 const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
+                console.log('from selectedVariable ===== ', selectedSteps);
                 return findUsedVariable(selectedSteps);
             },
             /**
@@ -340,6 +362,12 @@
             @media (--huge-viewports) {
                 width: 680px;
             }
+        }
+
+        .section-title {
+            font-size: 14px;
+            line-height: 19px;
+            color: #313238;
         }
 
         .task-step-selection {

@@ -47,7 +47,11 @@
                     v-model="formData.name"
                     :maxlength="60" />
             </jb-form-item>
-            <jb-form-item :label="$t('template.全局变量.label')">
+            <jb-form-item label=" " style="margin-bottom: 40px;">
+                <div class="section-title">
+                    <span>{{ $t('template.全局变量.label') }}</span>
+                    <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
+                </div>
                 <render-global-var
                     :key="id"
                     :list="globalVariableList"
@@ -59,7 +63,10 @@
             <jb-form-item label=" " property="enableSteps">
                 <div class="task-step-selection">
                     <!-- eslint-disable-next-line max-len -->
-                    <div>{{ $t('template.选择执行步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                    <div class="section-title">
+                        <span>{{ $t('template.选择执行步骤') }}</span>
+                        <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                    </div>
                     <div class="step-check">
                         <bk-button
                             v-if="hasSelectAll"
@@ -362,12 +369,16 @@
             }
         }
 
+        .section-title {
+            font-size: 14px;
+            line-height: 19px;
+            color: #313238;
+        }
+
         .task-step-selection {
             display: flex;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
+            height: 19px;
+            margin-bottom: 16px;
 
             .step-check {
                 margin-left: auto;

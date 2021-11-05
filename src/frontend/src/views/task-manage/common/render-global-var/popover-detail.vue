@@ -26,12 +26,21 @@
 -->
 
 <template>
-    <div class="global-variable-popover-detail" :class="classes" :style="styles" ref="detail">
+    <div
+        ref="detail"
+        class="global-variable-popover-detail"
+        :class="classes"
+        :style="styles">
         <div class="wraper">
+            <div class="header">
+                <span>{{ data.name }}</span>
+                <span
+                    v-if="editOfPlan && !selectValue.includes(data.name)"
+                    class="tag">
+                    {{ $t('template.未引用') }}
+                </span>
+            </div>
             <detail-layout>
-                <detail-item :label="$t('template.变量名称：')">
-                    {{ data.name }}
-                </detail-item>
                 <detail-item :label="$t('template.变量类型：')">
                     {{ data.typeText }}
                 </detail-item>
@@ -66,6 +75,14 @@
             data: {
                 type: Object,
                 required: true,
+            },
+            selectValue: {
+                type: Array,
+                required: true,
+            },
+            editOfPlan: {
+                type: Boolean,
+                DEFAULT: false,
             },
             defaultField: {
                 type: String,
@@ -153,6 +170,25 @@
             padding: 12px 13px;
             background: #fff;
             border-radius: 2px;
+
+            .header {
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+                font-size: 14px;
+                color: #313238;
+                border-bottom: 1px solid #f0f1f5;
+
+                .tag {
+                    display: inline-block;
+                    height: 18px;
+                    padding: 0 6px;
+                    font-size: 12px;
+                    line-height: 18px;
+                    color: #979ba5;
+                    background-color: #f0f1f5;
+                    border-radius: 2px;
+                }
+            }
 
             .detail-item {
                 margin-bottom: 0;

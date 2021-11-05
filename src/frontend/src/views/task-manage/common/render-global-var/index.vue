@@ -47,16 +47,20 @@
                         v-if="item.delete !== 1"
                         :key="`${item.name}_${index}`"
                         class="variable-box"
-                        :class="{
-                            'step-mode-diff': isDiff,
-                            'not-selected': isSelect && !selectValue.includes(item.name),
-                        }">
+                        :class="[
+                            {
+                                'step-mode-diff': isDiff,
+                            },
+                            isSelect ?
+                                selectValue.includes(item.name) ? 'selected' : 'not-selected'
+                                : '',
+                        ]">
                         <div
                             class="variable-wraper"
                             :class="[diff[item.id] && diff[item.id].type]"
                             @mouseenter="handleShowPopoverDetail(item)"
                             @mouseleave="handleHidePopoverDetail"
-                            @click="handlerOperation(item, index, isSelect && !selectValue.includes(item.name))">
+                            @click="handlerOperation(item, index)">
                             <div :id="`globalVariableWithName_${item.name}`" class="variable-type">
                                 <Icon :type="item.icon" />
                             </div>
@@ -85,6 +89,8 @@
             <popover-detail
                 v-if="currentPopoverDetail.name"
                 :data="currentPopoverDetail"
+                :select-value="selectValue"
+                :edit-of-plan="isEditOfPlan"
                 :default-field="defaultField" />
             <jb-sideslider
                 v-if="isView || isEditOfPlan"
@@ -93,7 +99,10 @@
                 :show-footer="false"
                 ref="variableView"
                 :media="detailMedia">
-                <detail v-if="isShowDetail" :data="currentData" :default-field="defaultField" />
+                <detail
+                    v-if="isShowDetail"
+                    :data="currentData"
+                    :default-field="defaultField" />
             </jb-sideslider>
             <jb-sideslider
                 v-if="isEditOfPlan"
@@ -116,6 +125,7 @@
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
                     ref="planGlobalVar"
+                    :selected-list="selectValue"
                     :variable-list="variable"
                     @on-change="handleBatchPlanEditSubmit" />
             </jb-sideslider>
@@ -439,25 +449,17 @@
             margin-top: 10px;
             margin-right: 10px;
             cursor: pointer;
+            border-color: #3a84ff;
+
+            &.selected {
+                .variable-wraper {
+                    border-color: #3a84ff;
+                }
+            }
 
             &.not-selected {
-                border-color: #dcdee5;
-
-                .variable-wraper {
-                    background: transparent;
-
-                    &:hover {
-                        border-color: #dcdee5;
-                    }
-                }
-
                 .variable-type {
-                    background: rgba(58, 132, 255, 0.3);
-                }
-
-                .variable-name,
-                .variable-description {
-                    color: #c4c6cc;
+                    background: #dcdee5;
                 }
             }
         }
@@ -469,13 +471,14 @@
             height: 50px;
             padding: 0 10px;
             background: #fff;
-            border: 1px solid #dcdee5;
+            border: 1px solid #c4c6cc;
             border-radius: 2px;
             box-sizing: border-box;
             transition: all 0.15s;
             align-items: center;
 
             &:hover {
+                background: #e1ecff;
                 border-color: #3a84ff;
 
                 .variable-delete-btn {
@@ -497,6 +500,7 @@
             align-items: center;
             justify-content: center;
             flex: 0 0 30px;
+            transition: all 0.15s;
         }
 
         .variable-delete-btn {

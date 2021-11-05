@@ -37,6 +37,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
+// const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 // const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const figlet = require('figlet');
 const marked = require('marked');
@@ -129,10 +130,17 @@ module.exports = function (env) {
                     cacheGroups: {
                         bkMagic: {
                             chunks: 'all',
-                            name: 'chunk-bk-magic-vue',
+                            name: 'bk-magic-vue',
                             priority: 5,
                             reuseExistingChunk: true,
                             test: module => /bk-magic-vue/.test(module.context),
+                        },
+                        commom: {
+                            chunks: 'all',
+                            name: 'common-base',
+                            priority: 5,
+                            reuseExistingChunk: true,
+                            test: module => /src\/components/.test(module.context),
                         },
                         twice: {
                             chunks: 'all',

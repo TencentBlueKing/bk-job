@@ -66,7 +66,8 @@ export default class TaskStep extends Model {
         this.type = payload.type || 0;
         this.delete = payload.delete || 0;
         this.enable = payload.enable || 0;
-        this.templateStepId = payload.templateStepId;
+        this.templateStepId = payload.templateStepId || 0;
+        this.refVariables = payload.refVariables || [];
         
         this.approvalStepInfo = this.initApprovalStepInfo(payload.approvalStepInfo);
         this.fileStepInfo = this.initFileStepInfo(payload.fileStepInfo);

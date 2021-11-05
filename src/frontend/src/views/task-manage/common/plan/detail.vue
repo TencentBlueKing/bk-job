@@ -28,10 +28,19 @@
 <template>
     <permission-section :key="id">
         <div class="view-execute-plan">
-            <layout v-bind="$attrs" :title="planInfo.name" :plan-name="planInfo.name" :loading="isLoading">
+            <layout
+                v-bind="$attrs"
+                :title="planInfo.name"
+                :plan-name="planInfo.name"
+                :loading="isLoading">
                 <div slot="sub-title" class="link-wraper">
-                    <span style="margin-right: 32px;" :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
-                        <bk-button text :disabled="!planInfo.hasCronJob" @click="handleGoCronList">
+                    <span
+                        style="margin-right: 32px;"
+                        :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
+                        <bk-button
+                            text
+                            :disabled="!planInfo.hasCronJob"
+                            @click="handleGoCronList">
                             <span>{{ $t('template.关联定时任务') }}</span>
                             <Icon type="jump" />
                         </bk-button>
@@ -45,12 +54,24 @@
                         <Icon type="jump" />
                     </auth-button>
                 </div>
-                <jb-form>
-                    <jb-form-item :label="$t('template.全局变量.label')">
+                <jb-form form-type="vertical">
+                    <jb-form-item
+                        :label="$t('template.全局变量.label')"
+                        style="margin-bottom: 30px;">
                         <render-global-var
                             :key="id"
-                            :list="planInfo.variableList"
+                            :list="usedVariableList"
                             :default-field="$t('template.变量值')" />
+                        <toggle-display
+                            v-if="unusedVariableList.length > 0"
+                            :count="unusedVariableList.length"
+                            style="margin-top: 20px;">
+                            <render-global-var
+                                :key="id"
+                                :list="unusedVariableList"
+                                :default-field="$t('template.变量值')"
+                                style="margin-top: 18px;" />
+                        </toggle-display>
                     </jb-form-item>
                     <jb-form-item :label="$t('template.执行步骤')">
                         <render-task-step
@@ -133,20 +154,21 @@
     import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
     import TaskExecuteService from '@service/task-execute';
+    import { findUsedVariable } from '@utils/assist';
     import PermissionSection from '@components/apply-permission/apply-section';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import RenderGlobalVar from '../render-global-var';
     import RenderTaskStep from '../render-task-step';
     import Layout from './layout';
+    import ToggleDisplay from './components/toggle-display';
 
     export default {
         name: '',
         components: {
             PermissionSection,
-            JbPopoverConfirm,
-            Layout,
             RenderGlobalVar,
             RenderTaskStep,
+            ToggleDisplay,
+            Layout,
         },
         props: {
             id: {
@@ -164,6 +186,8 @@
                     variableList: [],
                     enableStepList: [],
                 },
+                usedVariableList: [],
+                unusedVariableList: [],
                 isLoading: true,
                 execLoading: false,
                 deleteLoading: false,
@@ -191,6 +215,24 @@
                     permission: 'catch',
                 }).then((data) => {
                     this.planInfo = Object.freeze(data);
+                    // 处理执行方案步骤中变量的使用情况
+                    const planStepList = data.stepList.filter(({ enable }) => enable === 1);
+                    const usedVariableNameMap = findUsedVariable(planStepList).reduce((result, variableName) => {
+                        result[variableName] = true;
+                        return result;
+                    }, {});
+
+                    const usedVariableList = [];
+                    const unusedVariableList = [];
+                    data.variableList.forEach((variable) => {
+                        if (usedVariableNameMap[variable.name]) {
+                            usedVariableList.push(variable);
+                        } else {
+                            unusedVariableList.push(variable);
+                        }
+                    });
+                    this.usedVariableList = Object.freeze(usedVariableList);
+                    this.unusedVariableList = Object.freeze(unusedVariableList);
                 })
                     .finally(() => {
                         this.isLoading = false;

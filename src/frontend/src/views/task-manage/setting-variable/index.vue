@@ -28,13 +28,26 @@
 <template>
     <div class="setting-variable-page">
         <smart-action offset-target="variable-value">
-            <global-variable-layout>
+            <global-variable-layout type="vertical" style="padding-bottom: 20px;">
                 <global-variable
-                    v-for="variable in variableList"
-                    ref="variable"
+                    v-for="variable in usedList"
+                    ref="used"
                     :type="variable.type"
                     :key="variable.id"
                     :data="variable" />
+                <toggle-display
+                    v-if="unusedList.length > 0"
+                    :count="unusedList.length"
+                    style="max-width: 960px; margin-top: 20px;">
+                    <div style="margin-top: 20px;">
+                        <global-variable
+                            v-for="variable in unusedList"
+                            ref="unused"
+                            :type="variable.type"
+                            :key="variable.id"
+                            :data="variable" />
+                    </div>
+                </toggle-display>
             </global-variable-layout>
             <template #action>
                 <div class="action-wraper">
@@ -69,8 +82,10 @@
     import I18n from '@/i18n';
     import TaskExecuteService from '@service/task-execute';
     import TaskPlanService from '@service/task-plan';
+    import { findUsedVariable } from '@utils/assist';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/edit';
+    import ToggleDisplay from '@components/global-variable/toggle-display';
     import BackTop from '@components/back-top';
     
     export default {
@@ -78,6 +93,7 @@
         components: {
             GlobalVariableLayout,
             GlobalVariable,
+            ToggleDisplay,
             BackTop,
         },
         data () {
@@ -85,7 +101,8 @@
                 isLoading: true,
                 isSubmiting: false,
                 hasHostVariable: false,
-                variableList: [],
+                usedList: [],
+                unusedList: [],
                 planName: '',
             };
         },
@@ -116,10 +133,29 @@
                 }).then((plan) => {
                     const {
                         name,
+                        stepList,
                         variableList,
                     } = plan;
                     this.planName = name;
-                    this.variableList = Object.freeze(variableList);
+                    const planStepList = stepList.filter(step => step.enable === 1);
+                    const usedVariableNameMap = findUsedVariable(planStepList).reduce((result, item) => {
+                        result[item] = true;
+                        return result;
+                    }, {});
+                    
+                    // 执行方案中的步骤使用了得变量
+                    const usedList = [];
+                    // 未被使用的变量
+                    const unusedList = [];
+                    variableList.forEach((variable) => {
+                        if (usedVariableNameMap[variable.name]) {
+                            usedList.push(variable);
+                        } else {
+                            unusedList.push(variable);
+                        }
+                    });
+                    this.usedList = Object.freeze(usedList);
+                    this.unusedList = Object.freeze(unusedList);
                     this.hasHostVariable = _.findIndex(variableList, variable => variable.isHost) > -1;
                 })
                     .catch((error) => {
@@ -142,11 +178,19 @@
              * @desc 开始执行
              */
             handleGoExec () {
-                if (!this.$refs.variable) {
-                    return;
+                const validateQueue = [];
+                if (this.$refs.used) {
+                    this.$refs.used.forEach((item) => {
+                        validateQueue.push(item.validate());
+                    });
+                }
+                if (this.$refs.unused) {
+                    this.$refs.unused.forEach((item) => {
+                        validateQueue.push(item.validate());
+                    });
                 }
                 this.isSubmiting = true;
-                Promise.all(this.$refs.variable.map(item => item.validate()))
+                Promise.all(validateQueue)
                     .then(taskVariables => TaskExecuteService.taskExecution({
                         taskId: this.taskId,
                         taskVariables: taskVariables.map(({
@@ -192,7 +236,8 @@
              * @desc 一键移除所有无效主机
              */
             handleRemoveAllInvalidHost () {
-                this.$refs.variable.forEach(item => item.removeAllInvalidHost());
+                this.$refs.used && this.$refs.used.forEach(item => item.removeAllInvalidHost());
+                this.$refs.unused && this.$refs.unused.forEach(item => item.removeAllInvalidHost());
             },
             /**
              * @desc 路由回退
