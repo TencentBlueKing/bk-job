@@ -29,7 +29,8 @@ const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+// const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const LodashWebpackPlugin = require('lodash-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -99,7 +100,7 @@ module.exports = function (env) {
                 minimize: true,
                 minimizer: [
                     new TerserPlugin({}),
-                    new OptimizeCSSAssetsPlugin({}),
+                    new CssMinimizerPlugin(),
                 ],
                 runtimeChunk: {
                     name: 'runtime',
@@ -344,7 +345,7 @@ module.exports = function (env) {
             port: 8081,
             allowedHosts: 'all',
             client: {
-                logging: 'info',
+                logging: 'none',
                 overlay: false,
             },
             historyApiFallback: true,
