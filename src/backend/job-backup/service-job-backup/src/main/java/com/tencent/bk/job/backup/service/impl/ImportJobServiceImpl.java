@@ -172,6 +172,7 @@ public class ImportJobServiceImpl implements ImportJobService {
                         }
                     }
                     if (!success) {
+                        log.warn("Parse import file fail");
                         markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                     }
                 } catch (IOException | RuntimeException e) {
