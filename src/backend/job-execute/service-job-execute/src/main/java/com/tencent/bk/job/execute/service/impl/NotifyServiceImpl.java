@@ -295,7 +295,7 @@ public class NotifyServiceImpl implements NotifyService {
             ChronoUnit.MILLIS));
         List<Long> stepIdList = taskInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
-        Long currentStepId = taskInstanceDTO.getCurrentStepId();
+        long currentStepId = taskInstanceDTO.getCurrentStepId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
         StepInstanceDTO stepInstanceDTO = taskInstanceService.getStepInstanceDetail(currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
@@ -319,7 +319,6 @@ public class NotifyServiceImpl implements NotifyService {
             } else if ("2".equals(appLang)) {
                 userLang = LocaleUtils.LANG_EN_US;
             } else {
-                log.warn("appLang=null, use zh_CN, appId={}", appId);
                 userLang = LocaleUtils.LANG_ZH_CN;
             }
         }
