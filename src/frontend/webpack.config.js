@@ -320,8 +320,7 @@ module.exports = function (env) {
             new StylelintPlugin({
                 files: ['./**/*.vue', './**/*.css'],
                 extensions: ['css', 'scss', 'sass', 'postcss'],
-                lintDirtyModulesOnly: false,
-                fix: false,
+                lintDirtyModulesOnly: true,
                 emitWarning: true,
             }),
             // moment 优化，只提取本地包
