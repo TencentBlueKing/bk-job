@@ -77,7 +77,7 @@
     import RenderFileListColumn, {
         checkIsCheckboxColumn,
         parseCondition,
-    } from '@components/render-file-list-column';
+        } from '@components/render-file-list-column';
 
     export default {
         components: {

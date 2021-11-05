@@ -383,7 +383,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .view-execute-plan {
         .link-wraper {

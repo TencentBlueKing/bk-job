@@ -198,7 +198,7 @@
             }
 
             .confirm-content {
-                margin: 10px 0 0 0;
+                margin: 10px 0 0;
                 font-size: 12px;
                 color: #63656e;
             }
@@ -206,7 +206,7 @@
             .confirm-options {
                 display: flex;
                 justify-content: flex-end;
-                margin: 16px 0 0 0;
+                margin: 16px 0 0;
             }
 
             .confirm-option-button {

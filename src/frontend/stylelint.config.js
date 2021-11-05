@@ -24,14 +24,26 @@
 */
 
 module.exports = {
-    processors: [],
     extends: 'stylelint-config-standard',
-    plugins: ['stylelint-scss', 'stylelint-order'],
+    customSyntax: 'postcss-html',
+    plugins: [
+        'stylelint-scss',
+        'stylelint-order',
+    ],
     rules: {
         'at-rule-no-unknown': [true, {
-            ignoreAtRules: ['function', 'if', 'each', 'include', 'mixin', 'define-mixin', 'extend'],
+            ignoreAtRules: [
+                'function',
+                'if',
+                'each',
+                'include',
+                'mixin',
+                'define-mixin',
+                'extend',
+            ],
         }],
         'no-descending-specificity': null,
+        'selector-id-pattern': null,
         indentation: 4,
         'order/properties-order': [ // 指定声明块内属性的字母顺序
             'position',

@@ -26,7 +26,11 @@
 -->
 
 <template>
-    <div class="task-step-execute-target" :class="mode">
+    <div
+        class="task-step-execute-target"
+        :class="{
+            'only-host': mode === 'onlyHost',
+        }">
         <jb-form-item
             :label="$t('目标服务器')"
             required
@@ -371,7 +375,7 @@
     };
 </script>
 <style lang='postcss'>
-    html[lang='en-US'] {
+    html[lang="en-US"] {
         .compose-form-item {
             .server-global-variable-select {
                 width: 341px;
@@ -382,7 +386,7 @@
             width: 162px;
         }
 
-        .onlyHost {
+        .only-host {
             .ip-search {
                 width: 314px;
             }
@@ -390,7 +394,7 @@
     }
 
     .task-step-execute-target {
-        &.onlyHost {
+        &.only-host {
             .ip-search {
                 width: 620px;
             }

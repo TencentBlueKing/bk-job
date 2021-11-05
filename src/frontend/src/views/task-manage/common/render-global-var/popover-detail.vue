@@ -143,7 +143,7 @@
     .global-variable-popover-detail {
         border: 1px solid #dcdee5;
         border-radius: 2px;
-        box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+        box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
 
         &.arrow-position-right {
             &::before {
@@ -160,9 +160,9 @@
             height: 11px;
             background: #fff;
             border: 1px solid #dcdee5;
-            content: '';
+            content: "";
             transform: rotateZ(45deg);
-            box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+            box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
         }
 
         .wraper {
@@ -201,6 +201,7 @@
             }
 
             .detail-content {
+                /* stylelint-disable value-no-vendor-prefix */
                 display: -webkit-box;
                 max-height: 60px;
                 overflow: hidden;

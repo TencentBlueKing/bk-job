@@ -157,7 +157,7 @@
         line-height: 26px;
         color: #63656e;
         background: #fff;
-        border-top: 40px solid rgba(0, 0, 0, 0.6);
+        border-top: 40px solid rgb(0 0 0 / 60%);
         user-select: none;
 
         .anchor-wraper {
@@ -181,7 +181,7 @@
                 background: #fff;
                 border: 2px solid #c4c6cc;
                 border-radius: 50%;
-                content: '';
+                content: "";
                 transform: translateY(-50%);
                 box-sizing: border-box;
             }
@@ -212,7 +212,7 @@
                     width: 2px;
                     height: 100%;
                     background: #3a84ff;
-                    content: '';
+                    content: "";
                 }
             }
 

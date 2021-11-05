@@ -39,21 +39,21 @@ export default class SourceFile extends Model {
         [STATUS_ABNORMAL]: I18n.t('异常'),
         [STATUS_NORMAL]: I18n.t('正常'),
         [STATUS_UNKNOWN]: I18n.t('未知'),
-    }
+    };
 
     static STATUS_ICON_MAP = {
         [STATUS_ABNORMAL]: 'abnormal',
         [STATUS_NORMAL]: 'normal',
         [STATUS_UNKNOWN]: 'unknown',
-    }
+    };
 
     static STORAGE_TYPE_MAP = {
         [STORAGE_TYPE_OSS]: I18n.t('对象存储'),
         [STORAGE_TYPE_FILE_SYSTEM]: I18n.t('文件系统'),
-    }
+    };
 
     // 文件名前缀默认值
-    static FILE_PERFIX_UUID = '${UUID}' // 文件前缀：后台自动生成UUID
+    static FILE_PERFIX_UUID = '${UUID}'; // 文件前缀：后台自动生成UUID
 
     constructor (payload) {
         super();

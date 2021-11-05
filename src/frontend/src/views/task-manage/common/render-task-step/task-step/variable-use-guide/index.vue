@@ -205,7 +205,7 @@
                         vertical-align: middle;
                         background: #979ba5;
                         border-radius: 50%;
-                        content: '';
+                        content: "";
                     }
 
                     &:nth-child(n+2) {

@@ -107,12 +107,12 @@ export default class TaskExecutionResultStep {
         [TYPE_SCRIPT]: 'script-5',
         [TYPE_FILE]: 'file',
         [TYPE_APPROVAL]: 'approval',
-    }
+    };
 
     static processMap = {
         success: 'step-next',
         pending: 'step-pending',
-    }
+    };
     
     constructor (payload) {
         this.stepInstanceId = payload.stepInstanceId;
@@ -236,7 +236,7 @@ export default class TaskExecutionResultStep {
             forceding: 'loading',
             loading: 'loading',
             confirm: 'confirm',
-            confirmForced: 'confirmForced',
+            confirmForced: 'confirm-forced',
             disabled: 'disabled',
         };
         return styleMap[checkStatus(this.status)];

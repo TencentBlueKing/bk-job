@@ -126,12 +126,12 @@
         .view-pending {
             max-height: 100%;
             overflow: hidden;
-            opacity: 0;
+            opacity: 0%;
             visibility: hidden;
         }
 
         .permission-pending {
-            opacity: 0;
+            opacity: 0%;
         }
     }
 </style>

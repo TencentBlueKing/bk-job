@@ -700,7 +700,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .template-operation {
         .info {

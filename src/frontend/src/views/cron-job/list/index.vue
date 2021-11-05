@@ -719,7 +719,7 @@
                 height: 8px;
                 margin-right: 10px;
                 border-radius: 50%;
-                content: '';
+                content: "";
             }
         }
 

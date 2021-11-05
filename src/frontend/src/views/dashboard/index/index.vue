@@ -193,7 +193,7 @@
             height: 56px;
             padding: 0 24px;
             background: #fff;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
             .app-select {
                 display: flex;
@@ -273,7 +273,7 @@
                 .content-right {
                     display: flex;
                     background: #fff;
-                    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
                     & > * {
                         flex: 1;

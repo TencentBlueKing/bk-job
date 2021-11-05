@@ -292,7 +292,7 @@
     };
 </script>
 <style lang='postcss'>
-    html[lang='en-US'] {
+    html[lang="en-US"] {
         .return-edit {
             margin-top: 6px;
             transform: rotate(90deg);
@@ -344,7 +344,7 @@
                 line-height: 28px;
                 color: #fff;
                 text-align: center;
-                background: rgba(0, 0, 0, 0.25);
+                background: rgb(0 0 0 / 25%);
                 user-select: none;
             }
         }

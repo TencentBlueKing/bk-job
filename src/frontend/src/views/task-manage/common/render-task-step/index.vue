@@ -522,7 +522,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     @define-mixin step-active {
         .step-content {
@@ -584,7 +584,7 @@
                         margin-top: 10px;
                         background: #e1ecff;
                         border-radius: 2px;
-                        content: '';
+                        content: "";
                     }
                 }
             }
@@ -685,7 +685,7 @@
                     height: 22px;
                     margin-left: -22px;
                     background: #d8d8d8;
-                    content: '';
+                    content: "";
                 }
 
                 .select-checked {
@@ -910,7 +910,7 @@
                 margin-left: -22px;
                 border: 9px solid transparent;
                 border-right-color: #fdd;
-                content: '';
+                content: "";
             }
 
             &::after {
@@ -921,7 +921,7 @@
                 height: 4px;
                 background: #fff;
                 border-radius: 50%;
-                content: '';
+                content: "";
                 transform: translateY(-50%);
             }
         }
@@ -964,7 +964,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            content: '';
+            content: "";
         }
 
         .render-task-step {
@@ -980,7 +980,7 @@
                     color: #fff;
                     text-align: center;
                     background: #ffa86e;
-                    content: 'new';
+                    content: "new";
                 }
             }
 

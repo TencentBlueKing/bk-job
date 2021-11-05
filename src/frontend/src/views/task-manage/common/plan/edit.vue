@@ -345,7 +345,7 @@
     };
 </script>
 <style lang="postcss">
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .task-plan-edit-box {
         .input,

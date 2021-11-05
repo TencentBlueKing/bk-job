@@ -35,7 +35,7 @@ const LodashWebpackPlugin = require('lodash-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
-const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
+// const DashboardPlugin = require('webpack-dashboard/plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 // const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 // const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
@@ -44,15 +44,7 @@ const marked = require('marked');
 const renderer = new marked.Renderer();
 
 const resolve = dir => path.join(__dirname, dir);
-const genUrlLoaderOptions = dir => ({
-    limit: 10000,
-    fallback: {
-        loader: 'file-loader',
-        options: {
-            name: path.posix.join('static', `${dir}/[name].[hash:7].[ext]`),
-        },
-    },
-});
+const genAssetPath = dir => path.posix.join('static', `${dir}/[name].[hash:7].[ext]`);
 
 // const smp = new SpeedMeasurePlugin();
 
@@ -67,13 +59,7 @@ module.exports = function (env) {
             };
         }
     };
-    const appendCacheLoader = function () {
-        if (env.development) {
-            return {
-                loader: 'cache-loader',
-            };
-        }
-    };
+    
     if (env.development) {
         const localENVPath = path.resolve(__dirname, '.env.local');
         if (!fs.existsSync(localENVPath)) {
@@ -86,7 +72,7 @@ module.exports = function (env) {
     }
     return {
         mode: env.development ? 'development' : 'production',
-        devtool: env.development ? 'eval-source-map' : 'none',
+        devtool: env.development ? 'eval-source-map' : 'hidden-source-map',
         cache: env.development
             ? {
                 type: 'filesystem',
@@ -109,7 +95,7 @@ module.exports = function (env) {
                 splitChunks: false,
             }
             : {
-                moduleIds: 'hashed',
+                moduleIds: 'deterministic',
                 minimize: true,
                 minimizer: [
                     new TerserPlugin({}),
@@ -121,12 +107,11 @@ module.exports = function (env) {
                 splitChunks: {
                     chunks: 'all',
                     minSize: 30000,
-                    maxSize: 0,
                     minChunks: 1,
                     maxAsyncRequests: 5,
                     maxInitialRequests: 3,
                     automaticNameDelimiter: '~',
-                    name: true,
+                    name: false,
                     cacheGroups: {
                         bkMagic: {
                             chunks: 'all',
@@ -171,7 +156,6 @@ module.exports = function (env) {
                     test: /\.vue$/,
                     use: [
                         appendThreadLoader(),
-                        appendCacheLoader(),
                         {
                             loader: 'vue-loader',
                             options: {
@@ -189,7 +173,6 @@ module.exports = function (env) {
                     test: /\.js$/,
                     use: [
                         appendThreadLoader(),
-                        appendCacheLoader(),
                         {
                             loader: 'babel-loader',
                             options: {
@@ -225,7 +208,6 @@ module.exports = function (env) {
                     use: [
                         'vue-style-loader',
                         env.development ? '' : MiniCssExtractPlugin.loader,
-                        appendCacheLoader(),
                         {
                             loader: 'css-loader',
                             options: {
@@ -239,30 +221,24 @@ module.exports = function (env) {
                 },
                 {
                     test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-                    use: [
-                        {
-                            loader: 'url-loader',
-                            options: genUrlLoaderOptions('images'),
-                        },
-                    ].filter(_ => _),
+                    type: 'asset',
+                    generator: {
+                        filename: genAssetPath('images'),
+                    },
                 },
                 {
                     test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
-                    use: [
-                        {
-                            loader: 'url-loader',
-                            options: genUrlLoaderOptions('media'),
-                        },
-                    ].filter(_ => _),
+                    type: 'asset',
+                    generator: {
+                        filename: genAssetPath('media'),
+                    },
                 },
                 {
                     test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-                    use: [
-                        {
-                            loader: 'url-loader',
-                            options: genUrlLoaderOptions('fonts'),
-                        },
-                    ].filter(_ => _),
+                    type: 'asset',
+                    generator: {
+                        filename: genAssetPath('fonts'),
+                    },
                 },
             ],
         },
@@ -270,6 +246,9 @@ module.exports = function (env) {
             modules: [resolve('src'), resolve('node_modules')],
             extensions: ['.js', '.vue', '.json'],
             symlinks: false,
+            fallback: {
+                path: false,
+            },
             alias: {
                 vue$: 'vue/dist/vue.esm.js',
                 '@': resolve('src'),
@@ -334,34 +313,41 @@ module.exports = function (env) {
                 threads: 2,
             }),
             env.development && new webpack.ProgressPlugin(),
-            env.development && new FriendlyErrorsWebpackPlugin(),
+            // env.development && new FriendlyErrorsWebpackPlugin(),
             env.development && new webpack.HotModuleReplacementPlugin(),
             new VueLoaderPlugin(),
             new LodashWebpackPlugin(),
             new StylelintPlugin({
                 files: ['./**/*.vue', './**/*.css'],
-                lintDirtyModulesOnly: true,
+                extensions: ['css', 'scss', 'sass', 'postcss'],
+                lintDirtyModulesOnly: false,
+                fix: false,
                 emitWarning: true,
             }),
             // moment 优化，只提取本地包
             new webpack.ContextReplacementPlugin(/moment\/locale$/, /zh-cn/),
-            new CopyWebpackPlugin([
-                {
-                    from: resolve('static/images'),
-                    to: resolve('dist/static/images'),
-                    toType: 'dir',
-                },
-                {
-                    from: resolve('static/login_success.html'),
-                    to: resolve('dist/static/login_success.html'),
-                },
-            ]),
+            new CopyWebpackPlugin({
+                patterns: [
+                    {
+                        from: resolve('static/images'),
+                        to: resolve('dist/static/images'),
+                        toType: 'dir',
+                    },
+                    {
+                        from: resolve('static/login_success.html'),
+                        to: resolve('dist/static/login_success.html'),
+                    },
+                ],
+            }),
         ].filter(_ => _),
         devServer: {
             host: '0.0.0.0',
             port: 8081,
-            clientLogLevel: 'none',
-            disableHostCheck: true,
+            allowedHosts: 'all',
+            client: {
+                logging: 'info',
+                overlay: false,
+            },
             historyApiFallback: true,
         },
     };

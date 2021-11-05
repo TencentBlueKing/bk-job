@@ -699,7 +699,7 @@
                 text-align: center;
                 word-break: keep-all;
                 content: attr(data-text);
-                opacity: 0;
+                opacity: 0%;
             }
 
             .rotate-loading {

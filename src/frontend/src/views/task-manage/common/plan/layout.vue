@@ -176,7 +176,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .plan-action-layout {
         position: relative;
@@ -194,11 +194,11 @@
             padding-top: 40px;
             padding-left: 40px;
             background: #fff;
-            opacity: 1;
+            opacity: 100%;
             visibility: visible;
 
             &.loading-hidden {
-                opacity: 0;
+                opacity: 0%;
                 visibility: hidden;
                 transition: visibility 0.7s linear, opacity 0.5s linear;
             }

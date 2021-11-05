@@ -39,25 +39,25 @@ const TYPE_FILE = 2;
 const TYPE_APPROVAL = 3;
 
 export default class TaskStep extends Model {
-    static TYPE_SCRIPT = TYPE_SCRIPT
-    static TYPE_FILE = TYPE_FILE
-    static TYPE_APPROVAL = TYPE_APPROVAL
+    static TYPE_SCRIPT = TYPE_SCRIPT;
+    static TYPE_FILE = TYPE_FILE;
+    static TYPE_APPROVAL = TYPE_APPROVAL;
 
-    static fileStep = TaskFileStep
-    static scriptStep = TaskScriptStep
-    static approvalStep = TaskApprovalStep
+    static fileStep = TaskFileStep;
+    static scriptStep = TaskScriptStep;
+    static approvalStep = TaskApprovalStep;
 
     static typeTextMap = {
         [TYPE_SCRIPT]: I18n.t('执行脚本'),
         [TYPE_FILE]: I18n.t('分发文件'),
         [TYPE_APPROVAL]: I18n.t('人工审核'),
-    }
+    };
 
     static iconMap = {
         [TYPE_SCRIPT]: 'script-5',
         [TYPE_FILE]: 'file',
         [TYPE_APPROVAL]: 'approval',
-    }
+    };
 
     constructor (payload, isClone = false) {
         super();

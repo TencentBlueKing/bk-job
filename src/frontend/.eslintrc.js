@@ -188,6 +188,10 @@ module.exports = {
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/array-bracket-spacing.md
         // 'vue/array-bracket-spacing': ['error', 'never'],
 
+        'vue/multi-word-component-names': 'off',
+
+        'vue/script-setup-uses-vars': 'off',
+
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/arrow-spacing.md
         'vue/arrow-spacing': ['error', { before: true, after: true }],
 

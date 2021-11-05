@@ -41,13 +41,13 @@ export default class DangerousRecord {
     static actionMap = {
         1: `${I18n.t('detectRecords.扫描')}`,
         2: `${I18n.t('detectRecords.拦截')}`,
-    }
+    };
 
     static startupModeMap = {
         1: 'Web',
         2: 'API',
         3: 'Cron',
-    }
+    };
 
     constructor (payload) {
         this.action = payload.action;

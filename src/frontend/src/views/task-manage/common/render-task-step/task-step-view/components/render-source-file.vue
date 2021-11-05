@@ -252,7 +252,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .render-server-file {
         flex: 1;

@@ -149,7 +149,7 @@
             }
         }
 
-        &.confirmForced {
+        &.confirm-forced {
             &::before {
                 background: #ff5656;
                 border-color: #ff5656;
@@ -189,7 +189,7 @@
             background: #ffb848;
             border: 1px solid #dcdee5;
             border-color: #ffb848;
-            content: '';
+            content: "";
         }
 
         .confirm-wraper {

@@ -437,7 +437,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .variable-container {
         display: flex;
@@ -482,7 +482,7 @@
                 border-color: #3a84ff;
 
                 .variable-delete-btn {
-                    opacity: 1;
+                    opacity: 100%;
                     visibility: visible;
                     transform: scale(1);
                 }
@@ -515,7 +515,7 @@
             cursor: pointer;
             background: #c4c6cc;
             border-radius: 50%;
-            opacity: 0;
+            opacity: 0%;
             visibility: hidden;
             transform: scale(0.8);
             transition: all 0.25s;
@@ -619,7 +619,7 @@
                         color: #fff;
                         text-align: center;
                         background: #ffa86e;
-                        content: 'new';
+                        content: "new";
                     }
                 }
 
