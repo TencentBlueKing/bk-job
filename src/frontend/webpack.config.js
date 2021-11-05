@@ -209,7 +209,14 @@ module.exports = function (env) {
                     test: /\.(css|scss|postcss)$/,
                     use: [
                         'vue-style-loader',
-                        env.development ? '' : MiniCssExtractPlugin.loader,
+                        env.development
+                            ? ''
+                            : {
+                                loader: MiniCssExtractPlugin.loader,
+                                options: {
+                                    esModule: false,
+                                },
+                            },
                         {
                             loader: 'css-loader',
                             options: {
