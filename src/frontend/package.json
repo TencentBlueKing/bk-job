@@ -77,7 +77,6 @@
     "markdown-loader": "^6.0.0",
     "mini-css-extract-plugin": "^2.4.4",
     "node-xlsx": "^0.17.2",
-    "optimize-css-assets-webpack-plugin": "^6.0.1",
     "postcss": "^8.2.10",
     "postcss-advanced-variables": "~3.0.0",
     "postcss-atroot": "^0.2.3",
