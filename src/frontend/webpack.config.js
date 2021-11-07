@@ -33,7 +33,6 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const LodashWebpackPlugin = require('lodash-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 // const DashboardPlugin = require('webpack-dashboard/plugin');
@@ -88,6 +87,7 @@ module.exports = function (env) {
             publicPath: '/',
             filename: env.development ? 'js/[name].js' : 'js/[name].[chunkhash].js',
             chunkFilename: env.development ? 'js/[name].js' : 'js/[name].[chunkhash].js',
+            clean: true,
         },
         optimization: env.development
             ? {
@@ -315,7 +315,6 @@ module.exports = function (env) {
                 filename: 'static/css/[name].[contenthash].css',
                 ignoreOrder: true,
             }),
-            !env.development && new CleanWebpackPlugin(),
             env.development && new ESLintPlugin({
                 extensions: ['js', 'vue'],
                 lintDirtyModulesOnly: true,
