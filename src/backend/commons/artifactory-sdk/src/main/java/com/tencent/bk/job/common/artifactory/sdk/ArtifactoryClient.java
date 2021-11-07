@@ -120,39 +120,56 @@ public class ArtifactoryClient {
     private List<Header> getBaseHeaderList() {
         List<Header> headerList = new ArrayList<>();
         headerList.add(new BasicHeader("accept", "*/*"));
-        headerList.add(new BasicHeader("Content-Type", "application/json"));
         headerList.add(new BasicHeader(ArtifactoryInterfaceConsts.AUTH_HEADER_KEY,
             "Basic " + Base64Util.encodeContentToStr(username + ":" + password)));
         return headerList;
     }
 
-    private Header[] getBaseHeaders() {
+    private List<Header> getJsonHeaderList() {
         List<Header> headerList = getBaseHeaderList();
+        headerList.add(new BasicHeader("Content-Type", "application/json"));
+        return headerList;
+    }
+
+    private List<Header> getUploadFileHeaderList() {
+        List<Header> headerList = getBaseHeaderList();
+        headerList.add(new BasicHeader("Content-Type", "application/octet-stream"));
+        return headerList;
+    }
+
+    private Header[] getJsonHeaders() {
+        List<Header> headerList = getJsonHeaderList();
+        Header[] headers = new Header[headerList.size()];
+        return headerList.toArray(headers);
+    }
+
+    private Header[] getUploadFileHeaders() {
+        List<Header> headerList = getUploadFileHeaderList();
         Header[] headers = new Header[headerList.size()];
         return headerList.toArray(headers);
     }
 
     private String doHttpGet(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws IOException {
         if (null == reqBody) {
-            return httpHelper.get(url, getBaseHeaders());
+            return httpHelper.get(url, getJsonHeaders());
         } else {
-            return httpHelper.get(url + reqBody.toUrlParams(), getBaseHeaders());
+            return httpHelper.get(url + reqBody.toUrlParams(), getJsonHeaders());
         }
     }
 
     private String doHttpPost(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws Exception {
         if (null == reqBody) {
-            return httpHelper.post(url, "{}", getBaseHeaders());
+            return httpHelper.post(url, "{}", getJsonHeaders());
         } else {
-            return httpHelper.post(url, JsonUtils.toJson(reqBody), getBaseHeaders());
+            return httpHelper.post(url, JsonUtils.toJson(reqBody), getJsonHeaders());
         }
     }
 
     private String doHttpDelete(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws Exception {
         if (null == reqBody) {
-            return httpHelper.delete(url, "{}", getBaseHeaders());
+            return httpHelper.delete(url, "{}", getJsonHeaders());
         } else {
-            return httpHelper.delete(url + reqBody.toUrlParams(), JsonUtils.toJson(reqBody), getBaseHeaders());
+            return httpHelper.delete(url + reqBody.toUrlParams(), JsonUtils.toJson(reqBody), getJsonHeaders());
         }
     }
 
@@ -372,7 +389,7 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         CloseableHttpResponse resp = null;
         try {
-            resp = longHttpHelper.getRawResp(true, url, getBaseHeaders());
+            resp = longHttpHelper.getRawResp(true, url, getJsonHeaders());
             return resp.getEntity().getContent();
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
@@ -395,7 +412,7 @@ public class ArtifactoryClient {
             HttpEntity reqEntity = MultipartEntityBuilder.create()
                 .addPart(fileName, fisBody)
                 .build();
-            respStr = longHttpHelper.put(url, reqEntity, getBaseHeaders());
+            respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
             log.debug("respStr={}", respStr);
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
             });
