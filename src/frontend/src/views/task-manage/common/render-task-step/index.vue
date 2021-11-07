@@ -325,12 +325,14 @@
                 },
                 immediate: true,
             },
-            steps: {
-                handler () {
-                    this.order = 0;
-                },
-                immediate: true,
-            },
+        },
+        created () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
+        },
+        beforeUpdate () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
         },
         methods: {
             /**
