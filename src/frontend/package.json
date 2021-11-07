@@ -13,8 +13,8 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/paas-login": "0.0.4",
-    "@blueking/user-selector": "1.0.6",
+    "@blueking/paas-login": "0.0.10",
+    "@blueking/user-selector": "^1.0.7",
     "@icon-cool/bk-icon-job": "0.0.5",
     "@vue/composition-api": "^1.0.0-beta.1",
     "ace-builds": "^1.4.12",
@@ -55,13 +55,13 @@
     "@vue/babel-sugar-inject-h": "^1.2.2",
     "@vue/eslint-config-standard": "^6.0.0",
     "babel-loader": "^8.0.6",
-    "babel-plugin-import-bk-magic-vue": "2.0.14",
+    "babel-plugin-import-bk-magic-vue": "^2.1.10",
     "babel-plugin-lodash": "^3.3.4",
     "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.5.1",
     "css-minimizer-webpack-plugin": "^3.1.1",
     "dotenv": "^10.0.0",
-    "eslint": "^8.1.0",
+    "eslint": "^8.2.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-html": "^6.1.2",
     "eslint-plugin-import": "^2.22.1",
@@ -101,14 +101,13 @@
     "thread-loader": "^3.0.0",
     "vue-loader": "15.9.8",
     "vue-style-loader": "^4.1.3",
-    "webpack": "^5.61.0",
+    "webpack": "^5.62.1",
     "webpack-cli": "^4.6.0",
-    "webpack-dashboard": "^3.3.6",
     "webpack-dev-server": "^4.4.0",
     "webpack-merge": "^5.2.0"
   },
   "engines": {
-    "node": ">= 6.9.0",
+    "node": ">= 14.7.0",
     "npm": ">= 6.0.0"
   }
 }

@@ -29,13 +29,11 @@ const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-// const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const LodashWebpackPlugin = require('lodash-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
-// const DashboardPlugin = require('webpack-dashboard/plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
 // const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 // const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
@@ -76,6 +74,7 @@ module.exports = function (env) {
         cache: env.development
             ? {
                 type: 'filesystem',
+                memoryCacheUnaffected: true,
             }
             : false,
         entry: {
@@ -91,17 +90,18 @@ module.exports = function (env) {
         },
         optimization: env.development
             ? {
+                moduleIds: 'named',
                 removeAvailableModules: false,
                 removeEmptyChunks: false,
                 splitChunks: false,
+                emitOnErrors: true,
             }
             : {
-                moduleIds: 'deterministic',
-                minimize: true,
                 minimizer: [
                     new TerserPlugin({}),
                     new CssMinimizerPlugin(),
                 ],
+                moduleIds: 'deterministic',
                 runtimeChunk: {
                     name: 'runtime',
                 },
@@ -320,9 +320,7 @@ module.exports = function (env) {
                 lintDirtyModulesOnly: true,
                 threads: 2,
             }),
-            env.development && new webpack.ProgressPlugin(),
-            // env.development && new FriendlyErrorsWebpackPlugin(),
-            env.development && new webpack.HotModuleReplacementPlugin(),
+            new webpack.ProgressPlugin(),
             new VueLoaderPlugin(),
             new LodashWebpackPlugin(),
             new StylelintPlugin({
@@ -346,13 +344,15 @@ module.exports = function (env) {
                     },
                 ],
             }),
+            
         ].filter(_ => _),
         devServer: {
             host: '0.0.0.0',
             port: 8081,
             allowedHosts: 'all',
+            liveReload: false,
             client: {
-                logging: 'none',
+                logging: 'warn',
                 overlay: false,
             },
             historyApiFallback: true,
