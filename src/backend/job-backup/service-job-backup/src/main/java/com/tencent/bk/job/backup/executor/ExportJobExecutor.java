@@ -68,15 +68,12 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -161,16 +158,9 @@ public class ExportJobExecutor {
         String fullPath = storageService.getStoragePath().concat(fileName);
         String project = backupStorageConfig.getArtifactoryJobProject();
         String repo = backupStorageConfig.getBackupRepo();
-        try {
-            artifactoryClient.uploadGenericFile(project, repo, fileName, new FileInputStream(fullPath));
-            log.info("{} uploaded to {}:{}:{}", fullPath, project, repo, fileName);
-        } catch (FileNotFoundException e) {
-            FormattingTuple formatter = MessageFormatter.format(
-                "Fail to upload {} to {}:{}:{}",
-                new String[]{fullPath, project, repo, fileName}
-            );
-            log.error(formatter.getMessage(), e);
-        }
+        File file = new File(fullPath);
+        artifactoryClient.uploadGenericFile(project, repo, fileName, file);
+        log.info("{} uploaded to {}:{}:{}", fullPath, project, repo, fileName);
     }
 
     private void processExportJob(String jobId) {

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
-import com.tencent.bk.job.backup.config.BkConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
+import com.tencent.bk.job.backup.config.BkConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
@@ -272,7 +272,31 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 ImportInfoVO importInfoVO = new ImportInfoVO();
                 importInfoVO.setId(jobId);
                 importInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
-                importJobService.parseFile(username, appId, id);
+                Boolean parseResult = importJobService.parseFile(username, appId, id);
+                if (parseResult
+                    && JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+                    backupStorageConfig.getStorageBackend()
+                )) {
+                    // 上传至制品库
+                    String filePath = "import"
+                        + File.separator + username
+                        + File.separator + id
+                        + File.separator + originalFileName;
+                    File file = new File(storageService.getStoragePath() + filePath);
+                    try {
+                        log.debug("begin to upload to artifactory:{}", filePath);
+                        artifactoryClient.uploadGenericFile(
+                            backupStorageConfig.getArtifactoryJobProject(),
+                            backupStorageConfig.getBackupRepo(),
+                            filePath,
+                            file
+                        );
+                        log.debug("uploaded to artifactory:{}", filePath);
+                    } catch (Exception e) {
+                        log.error("Fail to save file to artifactory", e);
+                        return ServiceResponse.buildCommonFailResp("Upload failed!");
+                    }
+                }
                 return ServiceResponse.buildSuccessResp(importInfoVO);
             }
         } else {

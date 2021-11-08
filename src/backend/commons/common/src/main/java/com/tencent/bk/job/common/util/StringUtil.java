@@ -56,7 +56,7 @@ public class StringUtil {
             String fieldName = placeholder.substring(1, placeholder.length() - 1);
             Object fieldValue = ReflectUtil.getFieldValue(obj, fieldName);
             if (null != fieldValue) {
-                rawStr = rawStr.replace(placeholder, URLEncoder.encode(fieldValue.toString()));
+                rawStr = rawStr.replace(placeholder, fieldValue.toString());
             } else {
                 log.warn("Fail to parse path variable {} because cannot find field {} in {}", placeholder, fieldName,
                     JsonUtils.toJson(obj));

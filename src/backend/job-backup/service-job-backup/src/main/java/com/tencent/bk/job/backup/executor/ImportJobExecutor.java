@@ -25,15 +25,30 @@
 package com.tencent.bk.job.backup.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.backup.constant.*;
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
+import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
+import com.tencent.bk.job.backup.constant.Constant;
+import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
+import com.tencent.bk.job.backup.constant.LogEntityTypeEnum;
+import com.tencent.bk.job.backup.constant.LogMessage;
 import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ImportJobInfoDTO;
 import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
 import com.tencent.bk.job.backup.model.dto.TemplateIdMapDTO;
-import com.tencent.bk.job.backup.service.*;
+import com.tencent.bk.job.backup.service.AccountService;
+import com.tencent.bk.job.backup.service.ImportJobService;
+import com.tencent.bk.job.backup.service.LogService;
+import com.tencent.bk.job.backup.service.ScriptService;
+import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.backup.service.TaskPlanService;
+import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.util.FileUtil;
+import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -43,7 +58,14 @@ import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
-import com.tencent.bk.job.manage.model.web.vo.task.*;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileDestinationInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskScriptStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -55,6 +77,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -80,12 +103,16 @@ public class ImportJobExecutor {
     private final LogService logService;
     private final StorageService storageService;
     private final MessageI18nService i18nService;
+    private final ArtifactoryClient artifactoryClient;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public ImportJobExecutor(ImportJobService importJobService, TaskTemplateService taskTemplateService,
                              TaskPlanService taskPlanService, ScriptService scriptService,
                              AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService) {
+                             StorageService storageService, MessageI18nService i18nService,
+                             ArtifactoryClient artifactoryClient,
+                             BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -94,6 +121,8 @@ public class ImportJobExecutor {
         this.logService = logService;
         this.storageService = storageService;
         this.i18nService = i18nService;
+        this.artifactoryClient = artifactoryClient;
+        this.backupStorageConfig = backupStorageConfig;
 
         ImportJobExecutor.ImportJobExecutorThread importJobExecutorThread =
             new ImportJobExecutor.ImportJobExecutorThread();
@@ -165,10 +194,38 @@ public class ImportJobExecutor {
                 String.format(i18nService.getI18n(LogMessage.NAME_DUPLICATE_SUFFIX), importJob.getDuplicateSuffix()));
 
             File importFileDirectory = getImportFileDirectory(importJob);
-            if (importFileDirectory != null && importFileDirectory.exists() && importFileDirectory.isDirectory()) {
+            // 下载文件
+            if (!importFileDirectory.exists()) {
+                log.debug("begin to download from artifactory:{}", importJob.getFileName());
+                InputStream ins = artifactoryClient.getFileInputStream(
+                    backupStorageConfig.getArtifactoryJobProject(),
+                    backupStorageConfig.getBackupRepo(),
+                    importJob.getFileName()
+                );
+                String localPath = PathUtil.joinFilePath(
+                    storageService.getStoragePath(),
+                    importJob.getFileName()
+                );
+                try {
+                    FileUtil.writeInsToFile(ins, localPath);
+                    log.debug("end to download from artifactory:{}", importJob.getFileName());
+                } catch (InterruptedException e) {
+                    String msg = "Fail to write artifactory file to local";
+                    log.warn(msg, e);
+                    importJobService.markJobFailed(importJob, msg);
+                    return;
+                }
+                // 解压
+                log.debug("local path:{}", localPath);
+                File uploadFile = new File(localPath);
+                List<File> fileList = ZipUtil.unzip(uploadFile);
+                log.debug("unzipped:{} files", fileList.size());
+            }
+            if (importFileDirectory.exists() && importFileDirectory.isDirectory()) {
                 File[] importFileList = importFileDirectory.listFiles();
                 if (importFileList != null && importFileList.length > 0) {
                     for (File file : importFileList) {
+                        log.debug("process {}", file.getAbsolutePath());
                         if (processImportFile(file, importJob)) return;
                     }
                 } else {

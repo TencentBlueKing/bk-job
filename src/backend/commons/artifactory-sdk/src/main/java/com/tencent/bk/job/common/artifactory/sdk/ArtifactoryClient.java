@@ -52,7 +52,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
 import com.tencent.bk.job.common.util.http.LongRetryableHttpHelper;
@@ -66,10 +65,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.message.BasicHeader;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -90,7 +91,6 @@ public class ArtifactoryClient {
     public static final String URL_UPLOAD_GENERIC_FILE = "/generic/{project}/{repo}/{path}";
     public static final String URL_QUERY_NODE_DETAIL = "/repository/api/node/detail/{projectId}/{repoName}/{fullPath}";
     public static final String URL_CREATE_TEMP_ACCESS_URL = "/generic/temporary/url/create";
-    public static final String URL_CREATE_USER = "/auth/api/user/create";
     public static final String URL_CREATE_USER_TO_PROJECT = "/auth/api/user/create/project";
     public static final String URL_USER_DETAIL = "/auth/api/user/detail/{userId}";
     public static final String URL_CREATE_PROJECT = "/repository/api/project/create";
@@ -352,8 +352,12 @@ public class ArtifactoryClient {
         filePath = StringUtil.removePrefixAndSuffix(filePath, "/");
         String[] pathArr = filePath.split("/");
         if (pathArr.length < 2) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
-                " must contain projectId and repoName"});
+            throw new ServiceException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "path",
+                    "path must contain projectId and repoName"
+                });
         }
         String projectId = pathArr[0];
         String repoName = pathArr[1];
@@ -369,8 +373,11 @@ public class ArtifactoryClient {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
         if (null == nodeDTO) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "can " +
-                "not find node by filePath"});
+            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "path",
+                    "can not find node by filePath"
+                });
         }
         return nodeDTO;
     }
@@ -387,9 +394,9 @@ public class ArtifactoryClient {
         req.setPath(filePath);
         String url = StringUtil.replacePathVariables(URL_DOWNLOAD_GENERIC_FILE, req);
         url = getCompleteUrl(url);
-        CloseableHttpResponse resp = null;
+        CloseableHttpResponse resp;
         try {
-            resp = longHttpHelper.getRawResp(true, url, getJsonHeaders());
+            resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
             return resp.getEntity().getContent();
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
@@ -398,8 +405,28 @@ public class ArtifactoryClient {
         }
     }
 
-    public NodeDTO uploadGenericFile(String projectId, String repoName, String filePath, InputStream fis) {
-        String fileName = PathUtil.getFileNameByPath(filePath);
+    public NodeDTO uploadGenericFileWithStream(
+        String projectId,
+        String repoName,
+        String filePath,
+        InputStream ins,
+        long fileSize
+    ) {
+        HttpEntity reqEntity = new InputStreamEntity(ins, fileSize);
+        return uploadGenericFileWithEntity(projectId, repoName, filePath, reqEntity);
+    }
+
+    public NodeDTO uploadGenericFile(String projectId, String repoName, String filePath, File file) {
+        HttpEntity reqEntity = new FileEntity(file);
+        return uploadGenericFileWithEntity(projectId, repoName, filePath, reqEntity);
+    }
+
+    private NodeDTO uploadGenericFileWithEntity(
+        String projectId,
+        String repoName,
+        String filePath,
+        HttpEntity reqEntity
+    ) {
         UploadGenericFileReq req = new UploadGenericFileReq();
         req.setProject(projectId);
         req.setRepo(repoName);
@@ -408,14 +435,12 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String respStr = null;
         try {
-            InputStreamBody fisBody = new InputStreamBody(fis, fileName);
-            HttpEntity reqEntity = MultipartEntityBuilder.create()
-                .addPart(fileName, fisBody)
-                .build();
             respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
             log.debug("respStr={}", respStr);
-            ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
-            });
+            ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
+                respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
+                }
+            );
             if (resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
                 return resp.getData();
             } else {

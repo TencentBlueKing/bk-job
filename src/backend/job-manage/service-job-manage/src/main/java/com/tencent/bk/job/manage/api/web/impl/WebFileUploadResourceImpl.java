@@ -161,7 +161,13 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             String project = localFileConfigForManage.getArtifactoryJobProject();
             String repo = localFileConfigForManage.getLocalUploadRepo();
             try {
-                NodeDTO nodeDTO = artifactoryClient.uploadGenericFile(project, repo, filePath, file.getInputStream());
+                NodeDTO nodeDTO = artifactoryClient.uploadGenericFileWithStream(
+                    project,
+                    repo,
+                    filePath,
+                    file.getInputStream(),
+                    file.getSize()
+                );
                 fileResultVO.setFileSize(nodeDTO.getSize());
                 fileResultVO.setMd5(nodeDTO.getMd5());
                 fileResultVO.setStatus(0);
