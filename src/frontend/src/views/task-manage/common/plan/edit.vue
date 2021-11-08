@@ -44,6 +44,10 @@
                 <jb-input
                     v-model="formData.name"
                     behavior="simplicity"
+                    :native-attributes="{
+                        spellcheck: false,
+                        autofocus: true,
+                    }"
                     :maxlength="60" />
             </jb-form-item>
         </jb-form>

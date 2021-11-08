@@ -33,6 +33,7 @@
         <jb-form
             slot="title"
             ref="titleForm"
+            style="width: 100%;"
             :model="formData">
             <jb-form-item
                 :rules="rules.name"
@@ -43,13 +44,16 @@
                     v-model="formData.name"
                     behavior="simplicity"
                     :maxlength="60"
+                    :native-attributes="{
+                        spellcheck: false,
+                        autofocus: true,
+                    }"
                     @change="handleNameChange" />
             </jb-form-item>
         </jb-form>
         <jb-form
             ref="createPlanForm"
             :model="formData"
-            style="width: 100%;"
             form-type="vertical">
             <jb-form-item>
                 <div class="section-title">
