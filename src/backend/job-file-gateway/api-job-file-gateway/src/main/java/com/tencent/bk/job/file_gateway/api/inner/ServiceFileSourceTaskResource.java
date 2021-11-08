@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearBatchTaskFilesReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceBatchDownloadTaskReq;
@@ -58,7 +58,7 @@ public interface ServiceFileSourceTaskResource {
     // 直接转发至FileWorker的请求，URL子路径保持一致
     @ApiOperation(value = "创建并启动文件下载任务", produces = "application/json")
     @PostMapping("/downloadFiles/start")
-    ServiceResponse<TaskInfoDTO> startFileSourceDownloadTask(
+    InternalResponse<TaskInfoDTO> startFileSourceDownloadTask(
         @ApiParam("用户名")
         @RequestHeader("username")
             String username,
@@ -68,14 +68,14 @@ public interface ServiceFileSourceTaskResource {
 
     @ApiOperation(value = "清理任务已下载的文件", produces = "application/json")
     @PostMapping("/downloadFiles/stop")
-    ServiceResponse<Integer> stopTasks(
+    InternalResponse<Integer> stopTasks(
         @ApiParam("文件源下载任务请求")
         @RequestBody StopTaskReq req
     );
 
     @ApiOperation(value = "清理任务已下载的文件", produces = "application/json")
     @PostMapping("/clearFiles")
-    ServiceResponse<Integer> clearTaskFiles(
+    InternalResponse<Integer> clearTaskFiles(
         @ApiParam("文件源下载任务请求")
         @RequestBody ClearTaskFilesReq req
     );
@@ -83,7 +83,7 @@ public interface ServiceFileSourceTaskResource {
     // 文件网关自有资源请求
     @ApiOperation(value = "获取文件任务状态", produces = "application/json")
     @GetMapping("/taskIds/{taskId}/status")
-    ServiceResponse<FileSourceTaskStatusDTO> getFileSourceTaskStatusAndLogs(
+    InternalResponse<FileSourceTaskStatusDTO> getFileSourceTaskStatusAndLogs(
         @ApiParam("任务Id")
         @PathVariable("taskId")
             String taskId,
@@ -97,7 +97,7 @@ public interface ServiceFileSourceTaskResource {
 
     @ApiOperation(value = "创建并启动批量文件下载任务", produces = "application/json")
     @PostMapping("/batch/downloadFiles/start")
-    ServiceResponse<BatchTaskInfoDTO> startFileSourceBatchDownloadTask(
+    InternalResponse<BatchTaskInfoDTO> startFileSourceBatchDownloadTask(
         @ApiParam("用户名")
         @RequestHeader("username")
             String username,
@@ -107,14 +107,14 @@ public interface ServiceFileSourceTaskResource {
 
     @ApiOperation(value = "清理批量任务已下载的文件", produces = "application/json")
     @PostMapping("/batch/downloadFiles/stop")
-    ServiceResponse<Integer> stopBatchTasks(
+    InternalResponse<Integer> stopBatchTasks(
         @ApiParam("文件源下载任务请求")
         @RequestBody StopBatchTaskReq req
     );
 
     @ApiOperation(value = "清理批量任务已下载的文件", produces = "application/json")
     @PostMapping("/batch/clearFiles")
-    ServiceResponse<Integer> clearBatchTaskFiles(
+    InternalResponse<Integer> clearBatchTaskFiles(
         @ApiParam("文件源下载任务请求")
         @RequestBody ClearBatchTaskFilesReq req
     );
@@ -122,7 +122,7 @@ public interface ServiceFileSourceTaskResource {
     // 文件网关自有资源请求
     @ApiOperation(value = "获取文件批量任务状态", produces = "application/json")
     @GetMapping("/batch/batchTaskIds/{batchTaskId}/status")
-    ServiceResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(
+    InternalResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(
         @ApiParam("任务Id")
         @PathVariable("batchTaskId")
             String batchTaskId,

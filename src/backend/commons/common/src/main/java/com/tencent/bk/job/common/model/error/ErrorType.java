@@ -26,9 +26,26 @@
  */
 package com.tencent.bk.job.common.model.error;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ErrorType {
-    BadRequest(1);
-    private int type;
+    OK(1),
+    INVALID_PARAM(2),
+    FAILED_PRECONDITION(3),
+    UNAUTHENTICATED(4),
+    PERMISSION_DENIED(5),
+    NOT_FOUND(6),
+    ALREADY_EXISTS(7),
+    ABORTED(8),
+    RESOURCE_EXHAUSTED(9),
+    UNIMPLEMENTED(10),
+    INTERNAL(11),
+    UNAVAILABLE(12),
+    TIMEOUT(13);
+
+    @JsonValue
+    private final int type;
 
     ErrorType(int type) {
         this.type = type;
@@ -38,7 +55,8 @@ public enum ErrorType {
         return type;
     }
 
-    public ErrorType valOf(Integer type) {
+    @JsonCreator
+    public static ErrorType valOf(Integer type) {
         if (type == null) {
             return null;
         }

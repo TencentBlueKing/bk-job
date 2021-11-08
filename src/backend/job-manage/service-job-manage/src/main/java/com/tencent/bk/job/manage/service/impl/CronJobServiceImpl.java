@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.client.ServiceCronJobResourceClient;
 import com.tencent.bk.job.manage.service.CronJobService;
@@ -55,7 +55,7 @@ public class CronJobServiceImpl implements CronJobService {
         if (appId <= 0 || CollectionUtils.isEmpty(planIdList)) {
             return null;
         }
-        ServiceResponse<Map<Long, List<CronJobVO>>> cronJobByPlanIds =
+        InternalResponse<Map<Long, List<CronJobVO>>> cronJobByPlanIds =
             serviceCronJobResourceClient.batchListCronJobByPlanIds(appId, planIdList);
         if (cronJobByPlanIds != null) {
             return cronJobByPlanIds.getData();

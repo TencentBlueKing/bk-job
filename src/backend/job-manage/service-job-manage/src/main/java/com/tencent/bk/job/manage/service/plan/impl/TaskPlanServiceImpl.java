@@ -25,7 +25,10 @@
 package com.tencent.bk.job.manage.service.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -219,84 +222,74 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(rollbackFor = Throwable.class)
     public Long saveTaskPlan(TaskPlanInfoDTO taskPlanInfo) {
         boolean insert = false;
-        if (taskPlanInfo == null) {
-            throw new ParamErrorException(ErrorCode.TASK_PLAN_NOT_EXIST);
-        }
         if (taskPlanInfo.getId() == null || taskPlanInfo.getId() <= 0) {
             TaskTemplateInfoDTO taskTemplate =
                 taskTemplateService.getTaskTemplateById(taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId());
             TaskPlanInfoDTO.buildPlanInfo(taskPlanInfo, taskTemplate);
             insert = true;
         }
-        try {
-            // process plan id
-            Long planId;
-            taskPlanInfo.setLastModifyUser(taskPlanInfo.getLastModifyUser());
-            taskPlanInfo.setLastModifyTime(taskPlanInfo.getLastModifyTime());
+        // process plan id
+        Long planId;
+        taskPlanInfo.setLastModifyUser(taskPlanInfo.getLastModifyUser());
+        taskPlanInfo.setLastModifyTime(taskPlanInfo.getLastModifyTime());
 
-            if (insert) {
-                taskPlanInfo.setCreateTime(DateUtils.currentTimeSeconds());
-                planId = taskPlanDAO.insertTaskPlan(taskPlanInfo);
-                if (planId == null) {
-                    throw new ServiceException(ErrorCode.INSERT_TASK_PLAN_FAILED);
-                }
-                taskPlanInfo.setId(planId);
-            } else {
-                if (!taskPlanDAO.updateTaskPlanById(taskPlanInfo)) {
-                    throw new ServiceException(ErrorCode.UPDATE_TASK_PLAN_FAILED);
-                }
-                planId = taskPlanInfo.getId();
+        if (insert) {
+            taskPlanInfo.setCreateTime(DateUtils.currentTimeSeconds());
+            planId = taskPlanDAO.insertTaskPlan(taskPlanInfo);
+            if (planId == null) {
+                throw new InternalException(ErrorCode.INSERT_TASK_PLAN_FAILED);
             }
+            taskPlanInfo.setId(planId);
+        } else {
+            if (!taskPlanDAO.updateTaskPlanById(taskPlanInfo)) {
+                throw new InternalException(ErrorCode.UPDATE_TASK_PLAN_FAILED);
+            }
+            planId = taskPlanInfo.getId();
+        }
 
-            if (insert) {
-                // Save step
-                for (TaskStepDTO taskStep : taskPlanInfo.getStepList()) {
-                    taskStep.setPlanId(planId);
-                    // Insert give template step id
-                    if (taskPlanInfo.getEnableStepList().contains(taskStep.getTemplateStepId())) {
+        if (insert) {
+            // Save step
+            for (TaskStepDTO taskStep : taskPlanInfo.getStepList()) {
+                taskStep.setPlanId(planId);
+                // Insert give template step id
+                if (taskPlanInfo.getEnableStepList().contains(taskStep.getTemplateStepId())) {
+                    taskStep.setEnable(1);
+                } else {
+                    taskStep.setEnable(0);
+                }
+                // new step, insert to get id
+                taskStep.setId(taskPlanStepService.insertStep(taskStep));
+            }
+        } else {
+            List<TaskStepDTO> taskStepList = taskPlanStepService.listStepsByParentId(planId);
+            if (CollectionUtils.isNotEmpty(taskStepList)) {
+                for (TaskStepDTO taskStep : taskStepList) {
+                    // Update give step id
+                    if (taskPlanInfo.getEnableStepList().contains(taskStep.getId())) {
                         taskStep.setEnable(1);
                     } else {
                         taskStep.setEnable(0);
                     }
-                    // new step, insert to get id
-                    taskStep.setId(taskPlanStepService.insertStep(taskStep));
-                }
-            } else {
-                List<TaskStepDTO> taskStepList = taskPlanStepService.listStepsByParentId(planId);
-                if (CollectionUtils.isNotEmpty(taskStepList)) {
-                    for (TaskStepDTO taskStep : taskStepList) {
-                        // Update give step id
-                        if (taskPlanInfo.getEnableStepList().contains(taskStep.getId())) {
-                            taskStep.setEnable(1);
-                        } else {
-                            taskStep.setEnable(0);
-                        }
-                        taskPlanStepService.updateStepById(taskStep);
-                    }
+                    taskPlanStepService.updateStepById(taskStep);
                 }
             }
-
-            if (insert) {
-                // Insert new variable
-                taskPlanInfo.getVariableList().forEach(variable -> variable.setPlanId(planId));
-                taskPlanVariableService.batchInsertVariable(taskPlanInfo.getVariableList());
-            } else {
-                for (TaskVariableDTO taskVariable : taskPlanInfo.getVariableList()) {
-                    taskVariable.setPlanId(planId);
-                    // Update exist variable
-                    taskPlanVariableService.updateVariableById(taskVariable);
-                }
-            }
-            return planId;
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unknown exception while insert plan!", e);
-            throw new ServiceException(ErrorCode.SAVE_TASK_PLAN_UNKNOWN_ERROR);
         }
+
+        if (insert) {
+            // Insert new variable
+            taskPlanInfo.getVariableList().forEach(variable -> variable.setPlanId(planId));
+            taskPlanVariableService.batchInsertVariable(taskPlanInfo.getVariableList());
+        } else {
+            for (TaskVariableDTO taskVariable : taskPlanInfo.getVariableList()) {
+                taskVariable.setPlanId(planId);
+                // Update exist variable
+                taskPlanVariableService.updateVariableById(taskVariable);
+            }
+        }
+        return planId;
     }
 
     @Override
@@ -304,18 +297,18 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         Map<Long, List<CronJobVO>> cronJobMap =
             cronJobService.batchListCronJobByPlanIds(appId, Collections.singletonList(planId));
         if (MapUtils.isNotEmpty(cronJobMap) && CollectionUtils.isNotEmpty(cronJobMap.get(planId))) {
-            throw new ServiceException(ErrorCode.DELETE_PLAN_FAILED_USING_BY_CRON);
+            throw new FailedPreconditionException(ErrorCode.DELETE_PLAN_FAILED_USING_BY_CRON);
         }
         return taskPlanDAO.deleteTaskPlanById(appId, templateId, planId);
     }
 
     @Override
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(rollbackFor = Throwable.class)
     public TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId) {
         TaskPlanInfoDTO taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
         TaskTemplateInfoDTO taskTemplateInfo = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateInfo == null) {
-            throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         if (taskPlan != null) {
             if (!taskTemplateInfo.getVersion().equals(taskPlan.getVersion())) {
@@ -327,35 +320,30 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             return taskPlan;
         }
 
-        try {
-            taskPlan = new TaskPlanInfoDTO();
-            taskPlan.setAppId(appId);
-            taskPlan.setTemplateId(templateId);
-            taskPlan.setName(taskTemplateInfo.getName() +
-                "_" + i18nService.getI18n("job.task.plan.debug")
-                + "_" + System.currentTimeMillis() / 1000L
-            );
-            taskPlan.setCreator(username);
-            taskPlan.setLastModifyUser(username);
-            taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
-            taskPlan.setDebug(true);
-            taskPlan.setId(taskPlanService.saveTaskPlan(taskPlan));
+        taskPlan = new TaskPlanInfoDTO();
+        taskPlan.setAppId(appId);
+        taskPlan.setTemplateId(templateId);
+        taskPlan.setName(taskTemplateInfo.getName() +
+            "_" + i18nService.getI18n("job.task.plan.debug")
+            + "_" + System.currentTimeMillis() / 1000L
+        );
+        taskPlan.setCreator(username);
+        taskPlan.setLastModifyUser(username);
+        taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
+        taskPlan.setDebug(true);
+        taskPlan.setId(taskPlanService.saveTaskPlan(taskPlan));
 
-            taskPlan = taskPlanDAO.getTaskPlanById(appId, templateId, taskPlan.getId(), TaskPlanTypeEnum.DEBUG);
-            taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
-            taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
-            taskPlan.setVersion(taskTemplateInfo.getVersion());
+        taskPlan = taskPlanDAO.getTaskPlanById(appId, templateId, taskPlan.getId(), TaskPlanTypeEnum.DEBUG);
+        taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
+        taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
+        taskPlan.setVersion(taskTemplateInfo.getVersion());
 
-            for (TaskStepDTO taskStep : taskPlan.getStepList()) {
-                taskStep.setEnable(1);
-                taskPlan.getEnableStepList().add(taskStep.getId());
-            }
-            taskPlanService.saveTaskPlan(taskPlan);
-            return taskPlan;
-        } catch (Exception e) {
-            log.error("Error while creating debug plan", e);
-            throw new ServiceException(ErrorCode.CREATE_DEBUG_PLAN_ERROR);
+        for (TaskStepDTO taskStep : taskPlan.getStepList()) {
+            taskStep.setEnable(1);
+            taskPlan.getEnableStepList().add(taskStep.getId());
         }
+        taskPlanService.saveTaskPlan(taskPlan);
+        return taskPlan;
     }
 
     @Override
@@ -473,15 +461,12 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public void syncPlan(TaskPlanInfoDTO taskPlanInfo) {
-        if (taskPlanInfo == null) {
-            throw new ParamErrorException(ErrorCode.MISSING_PARAM);
-        }
         try {
             // process plan id
             Long planId = taskPlanInfo.getId();
 
             if (!taskPlanDAO.updateTaskPlanById(taskPlanInfo)) {
-                throw new ServiceException(ErrorCode.UPDATE_TASK_PLAN_FAILED);
+                throw new InternalException(ErrorCode.UPDATE_TASK_PLAN_FAILED);
             }
 
             List<TaskStepDTO> taskStepList = taskPlanStepService.listStepsByParentId(planId);
@@ -536,7 +521,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             throw e;
         } catch (Exception e) {
             log.error("Unknown exception while sync plan!", e);
-            throw new ServiceException(ErrorCode.SYNC_TASK_PLAN_UNKNOWN_ERROR);
+            throw new InternalException(ErrorCode.SYNC_TASK_PLAN_UNKNOWN_ERROR);
         }
     }
 
@@ -553,7 +538,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             if (taskTemplateInfo != null) {
                 taskPlan.setName(taskTemplateInfo.getName());
             } else {
-                throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
             }
             taskPlan.setCreator(username);
             if (createTime != null && createTime > 0) {
@@ -601,7 +586,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             return planId;
         } catch (Exception e) {
             log.error("Error while creating debug plan", e);
-            throw new ServiceException(ErrorCode.CREATE_DEBUG_PLAN_ERROR);
+            throw new InternalException(ErrorCode.CREATE_DEBUG_PLAN_ERROR);
         }
     }
 
@@ -629,13 +614,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public Long saveTaskPlanForBackup(TaskPlanInfoDTO taskPlanInfo) {
         try {
-            if (taskPlanInfo == null) {
-                throw new ServiceException(ErrorCode.MISSING_PARAM);
-            }
             TaskPlanInfoDTO taskPlanByName = taskPlanDAO.getTaskPlanByName(taskPlanInfo.getAppId(),
                 taskPlanInfo.getTemplateId(), taskPlanInfo.getName());
             if (taskPlanByName != null) {
-                throw new ServiceException(ErrorCode.PLAN_NAME_EXIST);
+                throw new AlreadyExistsException(ErrorCode.PLAN_NAME_EXIST);
             }
 
             // process template id
@@ -647,10 +629,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     if (taskPlanDAO.insertTaskPlanWithId(taskPlanInfo)) {
                         planId = taskPlanInfo.getId();
                     } else {
-                        throw new ServiceException(ErrorCode.INSERT_TASK_PLAN_FAILED);
+                        throw new InternalException(ErrorCode.INSERT_TASK_PLAN_FAILED);
                     }
                 } else {
-                    throw new ServiceException(ErrorCode.PLAN_ID_EXIST);
+                    throw new AlreadyExistsException(ErrorCode.PLAN_ID_EXIST);
                 }
             }
             taskPlanInfo.setId(planId);
@@ -667,7 +649,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 preStep = taskStepDTO;
             }
             if (preStep == null) {
-                throw new ServiceException(ErrorCode.INSERT_TASK_PLAN_FAILED);
+                throw new InternalException(ErrorCode.INSERT_TASK_PLAN_FAILED);
             }
             preStep.setNextStepId(0L);
             taskPlanStepService.insertStep(preStep);
@@ -684,7 +666,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             throw e;
         } catch (Exception e) {
             log.error("Unknown exception while insert template!", e);
-            throw new ServiceException(ErrorCode.SAVE_TEMPLATE_UNKNOWN_ERROR);
+            throw new InternalException(ErrorCode.SAVE_TEMPLATE_UNKNOWN_ERROR);
         }
     }
 
@@ -737,7 +719,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 } else {
                     log.error("Error while batch update variable value!|{}", planInfo);
                 }
-                throw new ServiceException(ErrorCode.BATCH_UPDATE_PLAN_VARIABLE_FAILED);
+                throw new InternalException(ErrorCode.BATCH_UPDATE_PLAN_VARIABLE_FAILED);
             } catch (Exception e) {
                 log.error("Error while batch update plan variable value!|{}", planInfo, e);
                 throw e;
@@ -749,7 +731,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     private void checkTemplateExist(Long appId, Long templateId) {
         TaskTemplateInfoDTO taskTemplateBasicInfo = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateBasicInfo == null) {
-            throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
     }
 }

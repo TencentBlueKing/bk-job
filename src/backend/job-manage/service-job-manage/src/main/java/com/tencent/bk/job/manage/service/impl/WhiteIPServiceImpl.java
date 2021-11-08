@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -201,27 +202,33 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private List<String> checkReqAndGetIpList(WhiteIPRecordCreateUpdateReq createUpdateReq) {
         String appIdStr = createUpdateReq.getAppIdStr();
         if (null == appIdStr || appIdStr.isEmpty()) {
-            throw new InvalidParamException("appIdStr", "appIdStr cannot be null or empty");
+            log.warn("appIdStr cannot be null or empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<Long> appIdList = Arrays.stream(appIdStr.split(","))
             .map(Long::parseLong).collect(Collectors.toList());
         if (appIdList.isEmpty()) {
-            throw new InvalidParamException("appIdStr", "appIdStr must contain at least one valid ip");
+            log.warn("appIdStr must contain at least one valid ip");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         Long cloudAreaId = createUpdateReq.getCloudAreaId();
         if (null == cloudAreaId) {
-            throw new InvalidParamException("cloudAreaId", "cloudAreaId cannot be null");
+            log.warn("cloudAreaId cannot be null");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         String remark = createUpdateReq.getRemark();
         if (null != remark && remark.length() > 100) {
-            throw new InvalidParamException("remark", "remark cannot be null and length cannot be over 100");
+            log.warn("remark cannot be null and length cannot be over 100");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         String ipStr = createUpdateReq.getIpStr();
         List<String> ipList;
         if (null == ipStr || ipStr.trim().isEmpty()) {
-            throw new InvalidParamException("ipStr", "ipStr cannot be null or empty");
+            log.warn("ipStr cannot be null or empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         } else if (ipStr.length() > 5000) {
-            throw new InvalidParamException("ipStr", "length of ipStr cannot be over 5000");
+            log.warn("length of ipStr cannot be over 5000");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         } else {
             ipList = Arrays.asList(ipStr.trim().split(SEPERATOR_ENTER));
             //过滤空值
@@ -229,7 +236,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             ipList.forEach(ip -> {
                 //正则校验
                 if (!IpUtils.checkIp(ip.trim()))
-                    throw new InvalidParamException("ipStr", "not a valid ip format");
+                    log.warn("not a valid ip format");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             });
         }
         List<String> uniqueIpList = new ArrayList<>();

@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.DangerousRecordVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 public interface WebDangerousRecordResource {
     @ApiOperation(value = "分页获取高危检测记录", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<PageData<DangerousRecordVO>> pageListDangerousRecords(
+    Response<PageData<DangerousRecordVO>> pageListDangerousRecords(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(name = "id", value = "记录ID")

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.tmp;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.tmp.MigrationPlanBasic;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -44,7 +44,7 @@ public interface TmpMigrationResource {
 
     @ApiOperation(value = "获取业务下的执行方案的基础信息", produces = "application/json")
     @GetMapping("/app/{appId}/plan/basic/list")
-    ServiceResponse<List<MigrationPlanBasic>> listAppPlanBasicInfo(
+    Response<List<MigrationPlanBasic>> listAppPlanBasicInfo(
         @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId);
 

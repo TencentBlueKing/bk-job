@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
 import io.swagger.annotations.Api;
@@ -46,8 +46,8 @@ import org.springframework.web.bind.annotation.RestController;
 @InternalAPI
 public interface ServiceExecuteTaskResource {
     @PostMapping("/task-execution/task")
-    ServiceResponse<ServiceTaskExecuteResult> executeTask(@RequestBody ServiceTaskExecuteRequest request);
+    InternalResponse<ServiceTaskExecuteResult> executeTask(@RequestBody ServiceTaskExecuteRequest request);
 
     @PostMapping("/task-execution/task/auth")
-    ServiceResponse<AuthResult> authExecuteTask(@RequestBody ServiceTaskExecuteRequest request);
+    InternalResponse<AuthResultDTO> authExecuteTask(@RequestBody ServiceTaskExecuteRequest request);
 }

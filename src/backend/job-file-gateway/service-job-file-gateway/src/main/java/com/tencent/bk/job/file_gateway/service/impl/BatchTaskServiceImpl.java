@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.service.impl;
 
-import com.tencent.bk.job.common.exception.DataConsistencyException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceBatchTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
@@ -113,7 +114,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
         FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getFileSourceBatchTaskById(dslContext,
             batchTaskId);
         if (fileSourceBatchTaskDTO == null) {
-            throw new DataConsistencyException("batchTaskId:" + batchTaskId, "detail");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         batchTaskStatusDTO.setStatus(fileSourceBatchTaskDTO.getStatus());
         List<FileSourceTaskStatusDTO> fileSourceTaskStatusInfoList = new ArrayList<>();

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
@@ -33,7 +33,12 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep8;
+import org.jooq.Record8;
+import org.jooq.Result;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.TaskPlanVariable;
 import org.jooq.generated.tables.records.TaskPlanVariableRecord;
 import org.jooq.types.UByte;
@@ -160,7 +165,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
                 taskVariableInfo.setId(variableIdIterator.next());
             }
         } catch (Exception e) {
-            throw new ServiceException(ErrorCode.BATCH_INSERT_FAILED);
+            throw new InternalException(ErrorCode.BATCH_INSERT_FAILED);
         }
 
         return variableIdList;

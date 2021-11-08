@@ -26,7 +26,8 @@ package com.tencent.bk.job.backup.service.impl;
 
 import com.tencent.bk.job.backup.config.NfsStorageSystemConfig;
 import com.tencent.bk.job.backup.service.StorageService;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,11 +80,11 @@ public class NfsStorageServiceImpl implements StorageService {
                 boolean isCreate = parentDir.mkdirs();
                 if (!isCreate) {
                     log.error("Fail to create parent dir:{}", parentDir.getCanonicalFile());
-                    throw new ServiceException("");
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR, "Fail to create parent dir");
                 }
                 if (!parentDir.setWritable(true, false)) {
                     log.error("Fail to set writable:{}", parentDir.getCanonicalFile());
-                    throw new ServiceException("");
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR, "Fail to set writable");
                 }
             }
 

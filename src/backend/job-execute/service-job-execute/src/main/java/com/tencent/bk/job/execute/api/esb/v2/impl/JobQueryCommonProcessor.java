@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -45,9 +45,6 @@ public class JobQueryCommonProcessor {
 
     @Autowired
     protected AuthService authService;
-
-    @Autowired
-    private MessageI18nService i18nService;
 
     /**
      * 查看步骤实例鉴权
@@ -71,20 +68,19 @@ public class JobQueryCommonProcessor {
      * @param username     用户名
      * @param appId        业务ID
      * @param taskInstance 作业实例
-     * @return 鉴权结果
      */
-    protected EsbResp authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
+    protected void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance)
+        throws PermissionDeniedException {
         if (taskInstance == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         if (!appId.equals(taskInstance.getAppId())) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
-        return EsbResp.buildSuccessResp(null);
     }
 }

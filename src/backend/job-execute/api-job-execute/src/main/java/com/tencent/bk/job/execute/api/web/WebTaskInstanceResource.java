@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
@@ -52,7 +52,7 @@ import java.util.List;
 public interface WebTaskInstanceResource {
     @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
     @GetMapping("/app/{appId}/task-instance/step_instance/{stepInstanceId}")
-    ServiceResponse<ExecuteStepVO> getStepInstanceDetail(
+    Response<ExecuteStepVO> getStepInstanceDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -62,7 +62,7 @@ public interface WebTaskInstanceResource {
 
     @ApiOperation(value = "获取作业实例全局参数", produces = "application/json")
     @GetMapping("/app/{appId}/task-instance/task-variables/{taskInstanceId}")
-    ServiceResponse<List<ExecuteVariableVO>> getTaskInstanceVariables(
+    Response<List<ExecuteVariableVO>> getTaskInstanceVariables(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -72,7 +72,7 @@ public interface WebTaskInstanceResource {
 
     @ApiOperation(value = "获取作业操作日志", produces = "application/json")
     @GetMapping("/app/{appId}/task-instance/operation-log/{taskInstanceId}")
-    ServiceResponse<List<TaskOperationLogVO>> getTaskInstanceOperationLog(
+    Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -82,7 +82,7 @@ public interface WebTaskInstanceResource {
 
     @ApiOperation(value = "获取作业实例详情,包括步骤列表和全局变量列表", produces = "application/json")
     @GetMapping("/app/{appId}/task-instance/{taskInstanceId}")
-    ServiceResponse<TaskInstanceDetailVO> getTaskInstanceDetail(
+    Response<TaskInstanceDetailVO> getTaskInstanceDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -92,7 +92,7 @@ public interface WebTaskInstanceResource {
 
     @ApiOperation(value = "获取作业实例基本信息", produces = "application/json")
     @GetMapping("/task_instance/{taskInstanceId}")
-    ServiceResponse<TaskInstanceVO> getTaskInstanceBasic(
+    Response<TaskInstanceVO> getTaskInstanceBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)

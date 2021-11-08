@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Charsets;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
@@ -40,7 +40,12 @@ import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -137,7 +142,8 @@ public class MetaDataService {
      */
     public FileTreeNodeDef getChildFileNodeMetaDataByParent(String fileSourceTypeCode, String parentNodeType) {
         if (StringUtils.isBlank(fileSourceTypeCode)) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fileSourceTypeCode"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{"fileSourceTypeCode"});
         }
         FileWorkerConfig fileWorkerConfig = getFileWorkerConfig();
         List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();

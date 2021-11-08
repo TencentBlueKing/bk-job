@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.api.esb.gse.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.api.esb.gse.GseOperateProcessResource;
@@ -59,7 +61,7 @@ public class GseOperateProcessResourceImpl implements GseOperateProcessResource 
     public EsbResp<EsbGseTaskResultDTO> gseOperateProcess(EsbGseOperateProcessRequest request) {
         log.info("Gse operate process, request={}", request);
         if (!checkRequest(request)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         List<GseProcessInfoDTO> gseProcessInfos = new ArrayList<>();
@@ -142,7 +144,7 @@ public class GseOperateProcessResourceImpl implements GseOperateProcessResource 
             .processOperateProcess(gseProcessInfos, request.getOpType());
 
         if (resp == null || resp.getErrorCode() != GseTaskResponse.ERROR_CODE_SUCCESS) {
-            return EsbResp.buildCommonFailResp(ErrorCode.GSE_ERROR, i18nService);
+            throw new InternalException(ErrorCode.GSE_ERROR);
         }
         EsbGseTaskResultDTO result = new EsbGseTaskResultDTO();
         result.setGseTaskId(resp.getGseTaskId());

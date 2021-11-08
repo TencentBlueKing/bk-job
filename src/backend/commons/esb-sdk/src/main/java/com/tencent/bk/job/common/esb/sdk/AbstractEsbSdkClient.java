@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -40,7 +40,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 
-import static com.tencent.bk.job.common.constant.ErrorCode.RESULT_OK;
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_BK_LANG;
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
 
@@ -60,15 +59,15 @@ public abstract class AbstractEsbSdkClient {
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
     public static final String BK_LANG_EN = "en";
-    private String esbHostUrl;
-    private String appSecret;
-    private String appCode;
-    private String lang;
-    private AbstractHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+    private final String esbHostUrl;
+    private final String appSecret;
+    private final String appCode;
+    private final String lang;
+    private final AbstractHttpHelper defaultHttpHelper = new DefaultHttpHelper();
     /**
      * 是否对接ESB测试环境
      */
-    private boolean useEsbTestEnv;
+    private final boolean useEsbTestEnv;
 
     public AbstractEsbSdkClient(String esbHostUrl, String appCode, String appSecret,
                                 String lang, boolean useEsbTestEnv) {
@@ -142,18 +141,18 @@ public abstract class AbstractEsbSdkClient {
         return esbReq;
     }
 
-    public String doHttpGet(String uri, EsbReq params) throws Exception {
+    public String doHttpGet(String uri, EsbReq params) {
         return doHttpGet(uri, params, defaultHttpHelper);
     }
 
-    public String doHttpGet(String uri, EsbReq params, AbstractHttpHelper httpHelper) throws Exception {
+    public String doHttpGet(String uri, EsbReq params, AbstractHttpHelper httpHelper) {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
         boolean error = false;
         long start = System.currentTimeMillis();
         String responseBody = null;
-        String url = esbHostUrl;
+        String url;
         try {
             if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
                 url = esbHostUrl + "/" + uri + params.toUrlParams();
@@ -171,7 +170,7 @@ public abstract class AbstractEsbSdkClient {
             }
             responseBody = httpHelper.get(url, header);
             return responseBody;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Get url {}| params={}| exception={}", esbHostUrl + uri,
                 JsonUtils.toJsonWithoutSkippedFields(params),
                 e.getMessage());
@@ -183,14 +182,16 @@ public abstract class AbstractEsbSdkClient {
         }
     }
 
-    protected <T extends EsbReq> String doHttpPost(String uri, T params) throws Exception {
+    protected <T extends EsbReq> String doHttpPost(String uri, T params) {
         return doHttpPost(uri, params, defaultHttpHelper);
     }
 
     protected <T extends EsbReq> String doHttpPost(
-        String uri, T params,
-        AbstractHttpHelper httpHelper
-    ) throws Exception {
+        String uri,
+        T params,
+        AbstractHttpHelper httpHelper)
+        {
+
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
@@ -233,13 +234,13 @@ public abstract class AbstractEsbSdkClient {
     }
 
 
-    public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                     TypeReference<R> typeReference) throws RuntimeException {
+    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody,
+                                 TypeReference<EsbResp<R>> typeReference) {
         return getEsbRespByReq(method, uri, reqBody, typeReference, null);
     }
 
-    public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<R> typeReference,
-                                     AbstractHttpHelper httpHelper) throws RuntimeException {
+    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<EsbResp<R>> typeReference,
+                                 AbstractHttpHelper httpHelper) {
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
         String respStr = null;
         try {
@@ -249,19 +250,18 @@ public abstract class AbstractEsbSdkClient {
                 respStr = doHttpPost(uri, reqBody, httpHelper);
             }
             if (StringUtils.isBlank(respStr)) {
-                log.error("fail:response is blank|method={}|uri={}|reqStr={}", method, uri, reqStr);
-                throw new ServiceException(ErrorCode.ESB_API_DATA_ERROR, "response is blank");
+                String errorMsg = method + " " + uri + ", error: " + "Response is blank";
+                log.error(errorMsg);
+                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
             } else {
                 log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
             }
-            R result =
-                JSON_MAPPER.fromJson(respStr, typeReference);
-            EsbResp esbResp = (EsbResp) result;
+            EsbResp<R> esbResp = JSON_MAPPER.fromJson(respStr, typeReference);
             if (esbResp == null) {
-                log.error("fail:esbResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
-                    reqStr, respStr);
-                throw new ServiceException(ErrorCode.ESB_API_DATA_ERROR, "esbResp is null after parse");
-            } else if (esbResp.getCode() != RESULT_OK) {
+                String errorMsg = method + " " + uri + ", error: " + "Response is blank after parse";
+                log.error(errorMsg);
+                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
+            } else if (!esbResp.getResult()) {
                 log.error(
                     "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
                         ".message={}|method={}|uri={}|reqStr={}|respStr={}"
@@ -270,7 +270,7 @@ public abstract class AbstractEsbSdkClient {
                     , esbResp.getMessage()
                     , method, uri, reqStr, respStr
                 );
-                throw new ServiceException(ErrorCode.ESB_API_DATA_ERROR, "esbResp code!=0");
+                throw new InternalException(ErrorCode.API_ERROR, "Esb response code not success");
             }
             if (esbResp.getData() == null) {
                 log.warn(
@@ -282,11 +282,11 @@ public abstract class AbstractEsbSdkClient {
                     , method, uri, reqStr, respStr
                 );
             }
-            return result;
-        } catch (Exception e) {
+            return esbResp;
+        } catch (Throwable e) {
             String errorMsg = "Fail to request ESB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
-            throw new ServiceException(ErrorCode.ESB_API_DATA_ERROR, "Fail to request ESB data");
+            throw new InternalException(e, ErrorCode.API_ERROR, "Fail to request esb api");
         }
     }
 }

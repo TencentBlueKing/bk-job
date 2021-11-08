@@ -30,14 +30,16 @@ import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -45,16 +47,53 @@ import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
-import com.tencent.bk.job.execute.common.constants.*;
+import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
+import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
+import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
+import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AgentTaskExecutionDTO;
+import com.tencent.bk.job.execute.model.ExecutionResultGroupDTO;
+import com.tencent.bk.job.execute.model.FileIpLogContent;
+import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.StepExecutionDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
+import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
+import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
+import com.tencent.bk.job.execute.model.TaskExecutionDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceQuery;
+import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
-import com.tencent.bk.job.execute.model.web.vo.*;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.model.web.vo.AgentTaskExecutionVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.ExecutionResultGroupVO;
+import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.IpFileLogContentVO;
+import com.tencent.bk.job.execute.model.web.vo.IpScriptLogContentVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecutionRecordVO;
+import com.tencent.bk.job.execute.model.web.vo.StepExecutionVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
+import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
+import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.TaskResultService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -72,7 +111,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -81,7 +125,6 @@ import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTOR
 @RestController
 @Slf4j
 public class WebTaskExecutionResultResourceImpl
-    extends AbstractJobController
     implements WebTaskExecutionResultResource {
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
@@ -99,7 +142,7 @@ public class WebTaskExecutionResultResourceImpl
             build(new CacheLoader<String, Map<String, String>>() {
                       @Override
                       public Map<String, String> load(String lang) {
-                          ServiceResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
+                          InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
                           log.info("Get notify roles, resp={}", resp);
                           if (!resp.isSuccess() || resp.getData() == null) {
                               return new HashMap<>();
@@ -119,7 +162,7 @@ public class WebTaskExecutionResultResourceImpl
             build(new CacheLoader<String, Map<String, String>>() {
                       @Override
                       public Map<String, String> load(String lang) {
-                          ServiceResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                          InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
                           log.info("Get notify channels, resp={}", resp);
                           if (!resp.isSuccess() || resp.getData() == null) {
                               return new HashMap<>();
@@ -146,7 +189,6 @@ public class WebTaskExecutionResultResourceImpl
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService,
                                               GseTaskLogService gseTaskLogService) {
-        super(webAuthService.getAuthService());
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -160,22 +202,22 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public ServiceResponse<PageData<TaskInstanceVO>> getTaskHistoryList(String username,
-                                                                        Long appId,
-                                                                        String taskName,
-                                                                        Long taskInstanceId,
-                                                                        Integer status,
-                                                                        String operator,
-                                                                        Integer taskType,
-                                                                        String startTime,
-                                                                        String endTime,
-                                                                        Integer timeRange,
-                                                                        TaskTotalTimeTypeEnum totalTimeType,
-                                                                        Integer start,
-                                                                        Integer pageSize,
-                                                                        Long cronTaskId,
-                                                                        String startupModes,
-                                                                        String ip) {
+    public Response<PageData<TaskInstanceVO>> getTaskHistoryList(String username,
+                                                                 Long appId,
+                                                                 String taskName,
+                                                                 Long taskInstanceId,
+                                                                 Integer status,
+                                                                 String operator,
+                                                                 Integer taskType,
+                                                                 String startTime,
+                                                                 String endTime,
+                                                                 Integer timeRange,
+                                                                 TaskTotalTimeTypeEnum totalTimeType,
+                                                                 Integer start,
+                                                                 Integer pageSize,
+                                                                 Long cronTaskId,
+                                                                 String startupModes,
+                                                                 String ip) {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
         taskQuery.setAppId(appId);
@@ -184,7 +226,7 @@ public class WebTaskExecutionResultResourceImpl
 
         ValidateResult validateResult = validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
         if (!validateResult.isPass()) {
-            return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
+            return Response.buildValidateFailResp(validateResult);
         }
 
         setTotalTimeCondition(taskQuery, totalTimeType);
@@ -204,7 +246,7 @@ public class WebTaskExecutionResultResourceImpl
 
         PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
         if (pageData == null) {
-            return ServiceResponse.buildSuccessResp(PageData.emptyPageData(start, pageSize));
+            return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
         }
 
         PageData<TaskInstanceVO> pageDataVO = new PageData<>();
@@ -219,7 +261,7 @@ public class WebTaskExecutionResultResourceImpl
         }
         pageDataVO.setData(taskInstanceVOS);
         batchSetPermissionsForTaskInstance(username, appId, taskInstanceVOS);
-        return ServiceResponse.buildSuccessResp(pageDataVO);
+        return Response.buildSuccessResp(pageDataVO);
     }
 
     private ValidateResult validateAndSetQueryTimeRange(TaskInstanceQuery taskInstanceQuery, String startTime,
@@ -312,30 +354,29 @@ public class WebTaskExecutionResultResourceImpl
 
 
     @Override
-    public ServiceResponse<TaskExecuteResultVO> getTaskExecutionResult(String username, Long appId,
-                                                                       Long taskInstanceId) {
+    public Response<TaskExecuteResultVO> getTaskExecutionResult(String username, Long appId,
+                                                                Long taskInstanceId) {
         try {
             TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username, appId,
                 taskInstanceId);
             TaskExecuteResultVO taskExecuteResultVO = convertToTaskExecuteResultVO(taskExecuteResult);
-            return ServiceResponse.buildSuccessResp(taskExecuteResultVO);
-        } catch (InSufficientPermissionException e) {
+            return Response.buildSuccessResp(taskExecuteResultVO);
+        } catch (PermissionDeniedException e) {
             return handleInSufficientPermissionException(e);
         } catch (ServiceException e) {
             String errorMsg = "Fail to get task execution result, taskInstanceId=" + taskInstanceId;
             log.warn(errorMsg, e);
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(),
-                i18nService.getI18nWithArgs(String.valueOf(e.getErrorCode()), e.getErrorParams()));
+            return Response.buildCommonFailResp(e);
         }
     }
 
-    private <T> ServiceResponse<T> handleInSufficientPermissionException(InSufficientPermissionException e) {
+    private <T> Response<T> handleInSufficientPermissionException(PermissionDeniedException e) {
         AuthResult authResult = e.getAuthResult();
         log.debug("Insufficient permission, authResult: {}", authResult);
         if (StringUtils.isEmpty(authResult.getApplyUrl())) {
             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
         }
-        return ServiceResponse.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
     }
 
     private TaskExecuteResultVO convertToTaskExecuteResultVO(TaskExecuteResultDTO taskExecuteResultDTO) {
@@ -436,14 +477,14 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public ServiceResponse<StepExecutionDetailVO> getStepExecutionResult(String username, Long appId,
-                                                                         Long stepInstanceId, Integer executeCount,
-                                                                         Integer resultType, String tag,
-                                                                         Integer maxIpsPerResultGroup,
-                                                                         String keyword,
-                                                                         String searchIp,
-                                                                         String orderField,
-                                                                         Integer order) {
+    public Response<StepExecutionDetailVO> getStepExecutionResult(String username, Long appId,
+                                                                  Long stepInstanceId, Integer executeCount,
+                                                                  Integer resultType, String tag,
+                                                                  Integer maxIpsPerResultGroup,
+                                                                  String keyword,
+                                                                  String searchIp,
+                                                                  String orderField,
+                                                                  Integer order) {
         StepExecutionResultQuery query = new StepExecutionResultQuery();
         query.setStepInstanceId(stepInstanceId);
         query.setExecuteCount(executeCount);
@@ -457,18 +498,18 @@ public class WebTaskExecutionResultResourceImpl
 
         StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username,
             appId, query);
-        return ServiceResponse.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
+        return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
     }
 
     @Override
-    public ServiceResponse<StepExecutionDetailVO> getFastTaskStepExecutionResult(String username,
-                                                                                 Long appId,
-                                                                                 Long taskInstanceId,
-                                                                                 Integer resultType,
-                                                                                 String tag,
-                                                                                 Integer maxIpsPerResultGroup,
-                                                                                 String orderField,
-                                                                                 Integer order) {
+    public Response<StepExecutionDetailVO> getFastTaskStepExecutionResult(String username,
+                                                                          Long appId,
+                                                                          Long taskInstanceId,
+                                                                          Integer resultType,
+                                                                          String tag,
+                                                                          Integer maxIpsPerResultGroup,
+                                                                          String orderField,
+                                                                          Integer order) {
         StepExecutionResultQuery query = new StepExecutionResultQuery();
         query.setResultType(resultType);
         query.setTag(tag);
@@ -477,7 +518,7 @@ public class WebTaskExecutionResultResourceImpl
         query.setOrder(Order.valueOf(order));
         StepExecutionDetailDTO executionResult = taskResultService.getFastTaskStepExecutionResult(username,
             appId, taskInstanceId, query);
-        return ServiceResponse.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
+        return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
     }
 
     private StepExecutionDetailVO convertToStepInstanceExecutionDetailVO(StepExecutionDetailDTO executionDetail) {
@@ -538,45 +579,37 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public ServiceResponse<IpScriptLogContentVO> getScriptLogContentByIp(String username, Long appId,
-                                                                         Long stepInstanceId, Integer executeCount,
-                                                                         String ip) {
+    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username, Long appId,
+                                                                  Long stepInstanceId, Integer executeCount,
+                                                                  String ip) {
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (!IpUtils.checkCloudAreaIdAndIpStr(ip)) {
             log.warn("Get ip log content, param ip is illegal! ip={}", ip);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (stepInstance == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            return Response.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
         if (!authResult.isPass()) {
             log.debug("Insufficient permission, authResult: {}", authResult);
-            return ServiceResponse.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+            return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
         }
 
-        try {
-            ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
-                IpDTO.fromCloudAreaIdAndIpStr(ip));
-            IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
-            ipScriptLogContentVO.setDisplayIp(ip);
-            if (scriptIpLogContent != null) {
-                ipScriptLogContentVO.setLogContent(scriptIpLogContent.getContent());
-                ipScriptLogContentVO.setFinished(scriptIpLogContent.isFinished());
-            }
-            return ServiceResponse.buildSuccessResp(ipScriptLogContentVO);
-        } catch (ServiceException e) {
-            log.warn("Fail to get content by ip, stepInstanceId={}, executeCount={}, ip={}, errorCode={}, " +
-                "errorMsg={}", stepInstanceId, executeCount, ip, e.getErrorCode(), e.getMessage());
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), e.getMessage());
+        ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
+            IpDTO.fromCloudAreaIdAndIpStr(ip));
+        IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
+        ipScriptLogContentVO.setDisplayIp(ip);
+        if (scriptIpLogContent != null) {
+            ipScriptLogContentVO.setLogContent(scriptIpLogContent.getContent());
+            ipScriptLogContentVO.setFinished(scriptIpLogContent.isFinished());
         }
+        return Response.buildSuccessResp(ipScriptLogContentVO);
     }
 
     private AuthResult authViewStepInstance(String username, Long appId, StepInstanceBaseDTO stepInstance) {
@@ -594,27 +627,27 @@ public class WebTaskExecutionResultResourceImpl
 
 
     @Override
-    public ServiceResponse<List<ExecuteVariableVO>> getStepVariableByIp(String username, Long appId,
-                                                                        Long stepInstanceId, String ip) {
+    public Response<List<ExecuteVariableVO>> getStepVariableByIp(String username, Long appId,
+                                                                 Long stepInstanceId, String ip) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
         if (!stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
             || !stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
 
         AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
         if (!authResult.isPass()) {
             log.debug("Insufficient permission, authResult: {}", authResult);
-            return ServiceResponse.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+            return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
         }
 
         List<TaskVariableDTO> taskVars =
             taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
         if (taskVars == null || taskVars.isEmpty()) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
         List<ExecuteVariableVO> taskVariableVOS = new ArrayList<>();
         List<String> changeableVarNames = new ArrayList<>();
@@ -641,7 +674,7 @@ public class WebTaskExecutionResultResourceImpl
             if (inputStepInstanceValues == null) {
                 taskVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType()) &&
                     var.isChangeable()).forEach(var -> taskVariableVOS.add(convertToTaskVariableVO(var)));
-                return ServiceResponse.buildSuccessResp(taskVariableVOS);
+                return Response.buildSuccessResp(taskVariableVOS);
             }
 
             namespaceVarNames.forEach(paramName -> {
@@ -680,7 +713,7 @@ public class WebTaskExecutionResultResourceImpl
                 }
             }
         }
-        return ServiceResponse.buildSuccessResp(taskVariableVOS);
+        return Response.buildSuccessResp(taskVariableVOS);
     }
 
     private ExecuteVariableVO convertToTaskVariableVO(TaskVariableDTO taskVariable) {
@@ -701,66 +734,58 @@ public class WebTaskExecutionResultResourceImpl
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public ServiceResponse<IpFileLogContentVO> getFileLogContentByIp(String username, Long appId, Long stepInstanceId,
-                                                                     Integer executeCount,
-                                                                     String ip, String mode) {
+    public Response<IpFileLogContentVO> getFileLogContentByIp(String username, Long appId, Long stepInstanceId,
+                                                              Integer executeCount,
+                                                              String ip, String mode) {
 
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (!IpUtils.checkCloudAreaIdAndIpStr(ip)) {
             log.warn("Get ip log content, param ip is illegal! ip={}", ip);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         IpFileLogContentVO result = new IpFileLogContentVO();
         List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
         result.setFileDistributionDetails(fileDistDetailVOS);
 
-        try {
-            if ("download".equals(mode)) {
-                FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
-                    IpDTO.fromCloudAreaIdAndIpStr(ip), FileDistModeEnum.DOWNLOAD.getValue());
-                // downloadLog为null说明步骤还未下发至GSE就被终止
-                if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
-                    downloadLog.getFileTaskLogs().forEach(fileLog -> {
-                        if (fileLog.getMode().equals(FileDistModeEnum.UPLOAD.getValue())) {
-                            return;
-                        }
-                        fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog));
-                    });
-                    result.setFinished(downloadLog.isFinished());
-                }
-                Collections.sort(fileDistDetailVOS);
-            } else {
-                List<ServiceFileTaskLogDTO> fileTaskLogs = logService.batchGetFileSourceIpLogContent(stepInstanceId,
-                    executeCount);
-                if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-                    fileTaskLogs.forEach(fileTaskLog -> {
-                        if (fileTaskLog.getMode().equals(FileDistModeEnum.DOWNLOAD.getValue())) {
-                            return;
-                        }
-                        fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileTaskLog));
-                    });
-                    Collections.sort(fileDistDetailVOS);
-                    result.setFinished(fileTaskLogs.stream().noneMatch(fileLog ->
-                        (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
-                            || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
-                            || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
-                            || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
-                }
+        if ("download".equals(mode)) {
+            FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount,
+                IpDTO.fromCloudAreaIdAndIpStr(ip), FileDistModeEnum.DOWNLOAD.getValue());
+            // downloadLog为null说明步骤还未下发至GSE就被终止
+            if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
+                downloadLog.getFileTaskLogs().forEach(fileLog -> {
+                    if (fileLog.getMode().equals(FileDistModeEnum.UPLOAD.getValue())) {
+                        return;
+                    }
+                    fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog));
+                });
+                result.setFinished(downloadLog.isFinished());
             }
-            boolean includingLogContent = !removeFileLogContentIfResultIsLarge(fileDistDetailVOS);
-            result.setIncludingLogContent(includingLogContent);
-            return ServiceResponse.buildSuccessResp(result);
-        } catch (ServiceException e) {
-            log.warn("Fail to get content by ip, stepInstanceId={}, executeCount={}, ip={}, errorCode={}, errorMsg={}",
-                stepInstanceId, executeCount, ip, e.getErrorCode(), e.getMessage());
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), e.getMessage());
+            Collections.sort(fileDistDetailVOS);
+        } else {
+            List<ServiceFileTaskLogDTO> fileTaskLogs = logService.batchGetFileSourceIpLogContent(stepInstanceId,
+                executeCount);
+            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+                fileTaskLogs.forEach(fileTaskLog -> {
+                    if (fileTaskLog.getMode().equals(FileDistModeEnum.DOWNLOAD.getValue())) {
+                        return;
+                    }
+                    fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileTaskLog));
+                });
+                Collections.sort(fileDistDetailVOS);
+                result.setFinished(fileTaskLogs.stream().noneMatch(fileLog ->
+                    (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
+                        || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
+                        || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
+                        || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
+            }
         }
+        boolean includingLogContent = !removeFileLogContentIfResultIsLarge(fileDistDetailVOS);
+        result.setIncludingLogContent(includingLogContent);
+        return Response.buildSuccessResp(result);
     }
 
     private boolean removeFileLogContentIfResultIsLarge(List<FileDistributionDetailVO> fileDistDetailVOS) {
@@ -806,40 +831,40 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public ServiceResponse<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(String username, Long appId,
-                                                                                          Long stepInstanceId,
-                                                                                          Integer executeCount,
-                                                                                          List<String> taskIds) {
+    public Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(String username, Long appId,
+                                                                                   Long stepInstanceId,
+                                                                                   Integer executeCount,
+                                                                                   List<String> taskIds) {
 
         List<ServiceFileTaskLogDTO> fileTaskLogs = logService.getFileLogContentByTaskIds(stepInstanceId, executeCount
             , taskIds);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
-            return ServiceResponse.buildSuccessResp(null);
+            return Response.buildSuccessResp(null);
         }
         List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
         fileTaskLogs.forEach(fileLog -> {
             fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog));
         });
-        return ServiceResponse.buildSuccessResp(fileDistDetailVOS);
+        return Response.buildSuccessResp(fileDistDetailVOS);
     }
 
     @Override
-    public ServiceResponse<List<HostDTO>> getHostsByResultType(String username, Long appId, Long stepInstanceId,
-                                                               Integer executeCount, Integer resultType,
-                                                               String tag, String keyword) {
+    public Response<List<HostDTO>> getHostsByResultType(String username, Long appId, Long stepInstanceId,
+                                                        Integer executeCount, Integer resultType,
+                                                        String tag, String keyword) {
         List<IpDTO> hosts = taskResultService.getHostsByResultType(username, appId, stepInstanceId, executeCount,
             resultType, tag, keyword);
-        return ServiceResponse.buildSuccessResp(hosts.stream().map(IpDTO::toHost)
+        return Response.buildSuccessResp(hosts.stream().map(IpDTO::toHost)
             .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<List<StepExecutionRecordVO>> listStepExecutionHistory(String username, Long appId,
-                                                                                 Long stepInstanceId) {
+    public Response<List<StepExecutionRecordVO>> listStepExecutionHistory(String username, Long appId,
+                                                                          Long stepInstanceId) {
         List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
             appId, stepInstanceId);
 
-        return ServiceResponse.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
+        return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
             StepExecutionRecordVO vo = new StepExecutionRecordVO();
             vo.setStepInstanceId(stepInstanceId);
             vo.setRetryCount(stepExecutionRecord.getRetryCount());

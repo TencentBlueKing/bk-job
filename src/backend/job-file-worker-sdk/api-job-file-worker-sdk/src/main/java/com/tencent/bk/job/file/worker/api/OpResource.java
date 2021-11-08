@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file.worker.model.req.WorkerOffLineReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,7 +46,7 @@ public interface OpResource {
 
     @ApiOperation(value = "Worker下线", produces = "application/json")
     @PostMapping("/offline")
-    ServiceResponse<List<String>> offLine(
+    Response<List<String>> offLine(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "文件下线参数", required = true) @RequestBody WorkerOffLineReq req
@@ -54,7 +54,7 @@ public interface OpResource {
 
     @ApiOperation(value = "查询Worker当前正在跑的任务", produces = "application/json")
     @PostMapping("/taskList")
-    ServiceResponse<List<String>> taskList(
+    Response<List<String>> taskList(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.timer;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import org.quartz.JobKey;
 
 import java.util.HashMap;
@@ -67,7 +67,7 @@ public class QuartzJobBuilder {
         job.setDescription(description);
 
         if (key == null) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM, "Job mast have key!");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Job mast have key!");
         }
 
         job.setKey(key);

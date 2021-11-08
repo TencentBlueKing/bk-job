@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateRenderReq;
 import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVO;
@@ -51,7 +51,7 @@ public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "获取用户自定义的脚本模板", produces = "application/json")
     @GetMapping
-    ServiceResponse<List<ScriptTemplateVO>> listUserCustomScriptTemplate(
+    Response<List<ScriptTemplateVO>> listUserCustomScriptTemplate(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
@@ -59,7 +59,7 @@ public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "获取渲染后的用户自定义的脚本模板", produces = "application/json")
     @GetMapping("/rendered")
-    ServiceResponse<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(
+    Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
@@ -69,7 +69,7 @@ public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "保存用户自定义的脚本模板", produces = "application/json")
     @PostMapping
-    ServiceResponse saveScriptTemplate(
+    Response saveScriptTemplate(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username") String username,
         @ApiParam(value = "创建或更新请求体", required = true)
@@ -77,7 +77,7 @@ public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "渲染自定义的脚本模板", produces = "application/json")
     @PostMapping("/render")
-    ServiceResponse<ScriptTemplateVO> renderScriptTemplate(
+    Response<ScriptTemplateVO> renderScriptTemplate(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本模板渲染请求", required = true)
@@ -85,7 +85,7 @@ public interface WebCustomSettingsResource {
 
     @ApiOperation(value = "获取用户自定义的脚本模板变量", produces = "application/json")
     @GetMapping("/variables")
-    ServiceResponse<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(
+    Response<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username);
 

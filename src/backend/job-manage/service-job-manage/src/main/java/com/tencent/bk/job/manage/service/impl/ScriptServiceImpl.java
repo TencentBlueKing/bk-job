@@ -27,11 +27,15 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -292,19 +296,19 @@ public class ScriptServiceImpl implements ScriptService {
             if (script.getScriptVersionId() != null && script.getScriptVersionId() > 0) {
                 ScriptDTO scriptVersionToBeUpdate = scriptDAO.getScriptVersionById(script.getScriptVersionId());
                 if (scriptVersionToBeUpdate == null) {
-                    throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
                 }
                 if (!scriptVersionToBeUpdate.getStatus().equals(JobResourceStatusEnum.DRAFT.getValue())) {
                     log.warn("Script status is not draft, can not update.scriptVersionId={}",
                         script.getScriptVersionId());
-                    throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+                    throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
                 }
                 scriptDAO.updateScriptVersion(script.getLastModifyUser(), script.getScriptVersionId(), script);
             } else {
                 // 新增脚本版本
                 if (scriptDAO.isExistDuplicateVersion(script.getId(), script.getVersion())) {
                     log.warn("Script version:{} is exist, scriptId:{}", script.getVersion(), script.getId());
-                    throw new ServiceException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
+                    throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
                 }
                 scriptVersionId = scriptDAO.saveScriptVersion(script);
                 scriptDAO.updateScript(script);
@@ -314,7 +318,7 @@ public class ScriptServiceImpl implements ScriptService {
             boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
             if (isNameDuplicate) {
                 log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                throw new ServiceException(ErrorCode.SCRIPT_NAME_DUPLICATE);
+                throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
             }
             scriptId = JobUUID.getUUID();
             script.setId(scriptId);
@@ -379,7 +383,7 @@ public class ScriptServiceImpl implements ScriptService {
         if (script.getScriptVersionId() != null && script.getScriptVersionId() > 0) {
             if (scriptDAO.isExistDuplicateScriptId(script.getScriptVersionId())) {
                 log.warn("scriptVersionId:{} is exist, scriptId:{}", script.getScriptVersionId(), script.getId());
-                throw new ServiceException(ErrorCode.SCRIPT_VERSION_ID_EXIST);
+                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_ID_EXIST);
             }
         }
         long finalCreateTime = createTime;
@@ -388,7 +392,7 @@ public class ScriptServiceImpl implements ScriptService {
         if (StringUtils.isNotBlank(script.getId())) {
             if (scriptDAO.isExistDuplicateVersion(script.getId(), script.getVersion())) {
                 log.warn("Script version:{} is exist, scriptId:{}", script.getVersion(), script.getId());
-                throw new ServiceException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
+                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
             }
             // 指定版本号新增
             // 不指定版本号新增
@@ -399,7 +403,7 @@ public class ScriptServiceImpl implements ScriptService {
                     boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
                     if (isNameDuplicate) {
                         log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                        throw new ServiceException(ErrorCode.SCRIPT_NAME_DUPLICATE);
+                        throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
                     }
                     // 插入script
                     String scriptId = scriptDAO.saveScript(context, script, finalCreateTime, finalLastModifyTime);
@@ -417,7 +421,7 @@ public class ScriptServiceImpl implements ScriptService {
             boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
             if (isNameDuplicate) {
                 log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                throw new ServiceException(ErrorCode.SCRIPT_NAME_DUPLICATE);
+                throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
             }
 
             script.setId(JobUUID.getUUID());
@@ -481,7 +485,7 @@ public class ScriptServiceImpl implements ScriptService {
         checkDeleteScriptPermission(appId, existScript);
         if (existScript.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
             log.warn("Fail to delete script version because script is online. scriptVersionId={}", scriptVersionId);
-            throw new ServiceException(ErrorCode.DELETE_ONLINE_SCRIPT_FAIL);
+            throw new FailedPreconditionException(ErrorCode.DELETE_ONLINE_SCRIPT_FAIL);
         }
         List<ScriptDTO> scriptVersions = scriptDAO.listScriptVersionsByScriptId(existScript.getId());
         if (scriptVersions.size() == 1) {
@@ -515,14 +519,14 @@ public class ScriptServiceImpl implements ScriptService {
         ScriptDTO existScript
     ) throws ServiceException {
         if (existScript == null) {
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
         long targetAppId = appId;
         if (existScript.isPublicScript()) {
             targetAppId = JobConstants.PUBLIC_APP_ID;
         }
         if (!existScript.getAppId().equals(targetAppId)) {
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_IN_APP);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
         }
     }
 
@@ -538,7 +542,7 @@ public class ScriptServiceImpl implements ScriptService {
         List<ScriptDTO> scriptVersions = scriptDAO.listScriptVersionsByScriptId(scriptId);
         if (scriptVersions == null || scriptVersions.isEmpty()) {
             log.warn("Publish script, script:{} is not exist", scriptId);
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
@@ -552,7 +556,7 @@ public class ScriptServiceImpl implements ScriptService {
         for (ScriptDTO scriptVersion : scriptVersions) {
             if (!isPublicScript && !scriptVersion.getAppId().equals(targetAppId)) {
                 log.warn("Publish script, script:{} is not in current app:{}", scriptId, targetAppId);
-                throw new ServiceException(ErrorCode.SCRIPT_NOT_IN_APP);
+                throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
             }
             if (scriptVersion.getScriptVersionId().equals(scriptVersionId)) {
                 isScriptVersionInCurrentScript = true;
@@ -561,13 +565,13 @@ public class ScriptServiceImpl implements ScriptService {
         }
         if (!isScriptVersionInCurrentScript) {
             log.warn("Public script, scriptVersion:{} is not in script:{}", scriptVersionId, scriptId);
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         if (scriptVersionToBePublished.getStatus().equals(JobResourceStatusEnum.DISABLED.getValue())) {
             log.warn("Publish script, scriptVersion:{}, status:{} could not publish", scriptVersionId,
                 scriptVersionToBePublished.getStatus());
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
 
         ScriptDTO publishedScriptVersion = null;
@@ -601,7 +605,7 @@ public class ScriptServiceImpl implements ScriptService {
         List<ScriptDTO> scriptVersions = scriptDAO.listScriptVersionsByScriptId(scriptId);
         if (scriptVersions == null || scriptVersions.isEmpty()) {
             log.warn("Disable script, script:{} is not exist", scriptId);
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
@@ -615,7 +619,7 @@ public class ScriptServiceImpl implements ScriptService {
         for (ScriptDTO scriptVersion : scriptVersions) {
             if (!scriptVersion.getAppId().equals(targetAppId)) {
                 log.warn("Disable script, script:{} is not in current app:{}", scriptId, targetAppId);
-                throw new ServiceException(ErrorCode.SCRIPT_NOT_IN_APP);
+                throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
             }
             if (scriptVersion.getScriptVersionId().equals(scriptVersionId)) {
                 isScriptVersionInCurrentScript = true;
@@ -624,13 +628,13 @@ public class ScriptServiceImpl implements ScriptService {
         }
         if (!isScriptVersionInCurrentScript) {
             log.warn("Disable script, scriptVersion:{} is not in script:{}", scriptVersionId, scriptId);
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         if (!scriptVersionToBeDisabled.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
             log.warn("Disable script, scriptVersion:{}, status:{} could not disable", scriptVersionId,
                 scriptVersionToBeDisabled.getStatus());
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
 
         scriptDAO.updateScriptVersionStatus(scriptVersionToBeDisabled.getScriptVersionId(),
@@ -658,12 +662,12 @@ public class ScriptServiceImpl implements ScriptService {
 
     private void checkScriptInApp(long appId, ScriptDTO script) throws ServiceException {
         if (script == null) {
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
         if (!script.isPublicScript()) {
             if (!script.getAppId().equals(appId)) {
                 log.warn("Script:{} is not in current app:{}", script.getId(), appId);
-                throw new ServiceException(ErrorCode.SCRIPT_NOT_IN_APP);
+                throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
             }
         }
     }
@@ -689,7 +693,7 @@ public class ScriptServiceImpl implements ScriptService {
         boolean isNameExist = scriptDAO.isExistDuplicateName(targetAppId, newName);
         if (isNameExist) {
             log.warn("Update script name, script:{} new name {} is duplicate", scriptId, newName);
-            throw new ServiceException(ErrorCode.SCRIPT_NAME_DUPLICATE);
+            throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
         }
 
         scriptDAO.updateScriptName(operator, scriptId, newName);
@@ -802,16 +806,16 @@ public class ScriptServiceImpl implements ScriptService {
     public List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
                                                               Long syncScriptVersionId,
                                                               List<TemplateStepIDDTO> templateStepIDs)
-        throws InSufficientPermissionException {
+        throws PermissionDeniedException {
         if (CollectionUtils.isEmpty(templateStepIDs)) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         ScriptDTO syncScript = scriptDAO.getScriptVersionById(syncScriptVersionId);
         checkScriptInApp(appId, syncScript);
         if (!scriptId.equals(syncScript.getId())) {
             log.warn("Script ID and scriptVersionId not match!");
-            throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
         // 鉴权
         Set<Long> authTemplateIds = new HashSet<>();
@@ -820,7 +824,7 @@ public class ScriptServiceImpl implements ScriptService {
         templateStepIDs.forEach(step -> {
             TaskTemplateInfoDTO taskTemplate = taskTemplateService.getTaskTemplateBasicInfoById(step.getTemplateId());
             if (appId > 0 && taskTemplate != null && !taskTemplate.getAppId().equals(appId)) {
-                throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
             }
             if (taskTemplate != null) {
                 step.setAppId(taskTemplate.getAppId());
@@ -840,7 +844,7 @@ public class ScriptServiceImpl implements ScriptService {
         if (!authResult.isPass()) {
             log.info("Sync script to template auth fail, scriptId: {}, syncScriptVersionId: {}, template steps: {}",
                 scriptId, syncScriptVersionId, templateStepIDs);
-            throw new InSufficientPermissionException(authResult);
+            throw new PermissionDeniedException(authResult);
         }
 
         List<SyncScriptResultDTO> syncResults = new ArrayList<>();
@@ -861,7 +865,7 @@ public class ScriptServiceImpl implements ScriptService {
             } catch (Throwable e) {
                 log.warn("Update script step ref script fail, templateId: {}, stepId: {}, scriptVersionId: {}",
                     templateId, stepId, syncScriptVersionId);
-                syncResults.add(SyncScriptResultDTO.buildFailSyncResult(updateStep, ErrorCode.SERVICE_INTERNAL_ERROR));
+                syncResults.add(SyncScriptResultDTO.buildFailSyncResult(updateStep, ErrorCode.INTERNAL_ERROR));
             }
         });
 

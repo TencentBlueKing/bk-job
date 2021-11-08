@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.web.feign;
 
+import com.tencent.bk.job.common.feign.FeignAddHeaderRequestInterceptor;
+import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,5 +34,10 @@ public class FeignConfiguration {
     @Bean
     public FeignAddHeaderRequestInterceptor feignAddHeaderRequestInterceptor() {
         return new FeignAddHeaderRequestInterceptor();
+    }
+
+    @Bean
+    public ErrorDecoder feignErrorDecoder() {
+        return new FeignErrorDecoder();
     }
 }

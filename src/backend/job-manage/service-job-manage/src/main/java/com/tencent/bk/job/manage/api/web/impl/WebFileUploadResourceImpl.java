@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
@@ -168,7 +168,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                 String errMsg = String.format("Fail to upload file %s to artifactory", fullFilePath);
                 fileResultVO.setStatus(-1);
                 log.error(errMsg, e);
-                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, errMsg);
+                throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, errMsg);
             } finally {
                 fileUploadResults.add(fileResultVO);
             }
@@ -177,8 +177,8 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     }
 
     @Override
-    public ServiceResponse<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
-                                                                          MultipartFile[] uploadFiles) {
+    public Response<List<UploadLocalFileResultVO>> uploadLocalFile(String username,
+                                                                   MultipartFile[] uploadFiles) {
         log.info("Handle upload file!");
         List<UploadLocalFileResultVO> fileUploadResults = null;
         if (JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
@@ -189,11 +189,11 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         } else {
             fileUploadResults = saveFileToLocal(username, uploadFiles);
         }
-        return ServiceResponse.buildSuccessResp(fileUploadResults);
+        return Response.buildSuccessResp(fileUploadResults);
     }
 
     @Override
-    public ServiceResponse<UploadTargetVO> genUploadTarget(String username, GenUploadTargetReq req) {
+    public Response<UploadTargetVO> genUploadTarget(String username, GenUploadTargetReq req) {
         List<String> fileNameList = req.getFileNameList();
         List<String> filePathList = new ArrayList<>();
         fileNameList.forEach(fileName -> {
@@ -206,7 +206,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             localFileConfigForManage.getArtifactoryJobLocalUploadRepo(),
             filePathList
         );
-        return ServiceResponse.buildSuccessResp(
+        return Response.buildSuccessResp(
             new UploadTargetVO(
                 urlInfoList
                     .parallelStream()

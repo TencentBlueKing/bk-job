@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbPageData;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -78,7 +79,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         boolean isQueryPublicScript = (request.getPublicScript() != null && request.getPublicScript());

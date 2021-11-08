@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.prepare.third;
 
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
@@ -302,12 +302,12 @@ public class ThirdFilePrepareService {
         req.setStepInstanceId(stepInstanceId);
         req.setExecuteCount(executeCount);
         req.setFileSourceTaskList(fileSourceTaskList);
-        ServiceResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
+        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
         log.debug("resp={}", resp);
         if (resp.isSuccess()) {
             return resp.getData();
         } else {
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getCode(), resp.getErrorMsg());
         }
     }
 

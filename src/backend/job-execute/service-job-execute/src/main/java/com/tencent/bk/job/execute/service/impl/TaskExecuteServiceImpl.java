@@ -30,12 +30,17 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.AbortedException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -284,7 +289,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
             if (systemAccount == null) {
                 log.warn("System account is not exist, accountId={}", systemAccountId);
-                throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
             }
             stepInstance.setAccount(systemAccount.getAccount());
             stepInstance.setAccountAlias(systemAccount.getAlias());
@@ -294,13 +299,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO systemAccount = accountService.getSystemAccountByAlias(accountAlias, appId);
             if (systemAccount == null) {
                 log.warn("System account is not exist, appId={}, accountAlias={}", appId, accountAlias);
-                throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
             }
             stepInstance.setAccount(systemAccount.getAccount());
             stepInstance.setAccountId(systemAccount.getId());
         } else {
             log.warn("Account is empty!");
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
         if (stepInstance.isFileStep() && CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
             stepInstance.getFileSourceList().forEach(fileSource -> {
@@ -310,7 +315,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
                     if (systemAccount == null) {
                         log.warn("System account is not exist, accountId={}", systemAccountId);
-                        throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
                     }
                     fileSource.setAccountAlias(systemAccount.getAlias());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -319,7 +324,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         AccountCategoryEnum.SYSTEM, fileSourceAccountAlias, appId);
                     if (systemAccount == null) {
                         log.warn("System account is not exist, accountId={}", systemAccountId);
-                        throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
                     }
                     fileSource.setAccountId(systemAccount.getId());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -335,7 +340,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO dbAccount = accountService.getAccountById(dbAccountId);
             if (dbAccount == null) {
                 log.warn("DB account is not exist, accountId={}", dbAccountId);
-                throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
             }
             stepInstance.setDbAccount(dbAccount.getAccount());
             stepInstance.setDbType(dbAccount.getType().getType());
@@ -346,14 +351,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO systemAccount = accountService.getAccountById(systemAccountId);
             if (systemAccount == null) {
                 log.warn("DB account dependency system account is not exist, systemAccountId={}", systemAccountId);
-                throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
             }
             stepInstance.setAccountId(systemAccount.getId());
             stepInstance.setAccount(systemAccount.getAccount());
             stepInstance.setAccountAlias(systemAccount.getAlias());
         } else {
             log.warn("DB account is requested");
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+            throw new NotFoundException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
@@ -377,19 +382,19 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 if (script == null) {
                     log.warn("Script is not exist, appId={}, scriptId: {}, scriptVersionId={}", stepInstance.getAppId(),
                         stepInstance.getScriptId(), scriptVersionId);
-                    throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
                 }
                 if (!script.isPublicScript() && !script.getAppId().equals(appId)) {
                     log.warn("Script is not exist in app, appId={}, scriptId: {}, scriptVersionId={}",
                         stepInstance.getAppId(),
                         stepInstance.getScriptId(), scriptVersionId);
                     stepInstance.setScriptVersionId(script.getScriptVersionId());
-                    throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
                 }
                 if (!script.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
                     log.warn("Script is not online, should not execute! appId={}, scriptId: {}, scriptVersionId={}",
                         stepInstance.getAppId(), script.getId(), scriptVersionId);
-                    throw new ServiceException(ErrorCode.SCRIPT_NOT_ONLINE_SHOULD_NOT_EXECUTE);
+                    throw new FailedPreconditionException(ErrorCode.SCRIPT_NOT_ONLINE_SHOULD_NOT_EXECUTE);
                 }
                 if (StringUtils.isEmpty(stepInstance.getScriptId())) {
                     stepInstance.setScriptId(script.getId());
@@ -427,7 +432,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (StringUtils.isNotBlank(checkResultSummary)) {
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
                 if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
-                    throw new ServiceException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION, checkResultSummary);
+                    throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION, checkResultSummary);
                 }
             }
         }
@@ -449,7 +454,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         if (!authResult.isPass()) {
-            throw new InSufficientPermissionException(authResult);
+            throw new PermissionDeniedException(authResult);
         }
     }
 
@@ -595,7 +600,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         long appId = stepInstanceList.get(0).getAppId();
         CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
         if (cacheApp == null) {
-            throw new ServiceException(ErrorCode.WRONG_APP_ID);
+            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
         }
         // 如果是全业务，则不需要判断权限
         if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
@@ -733,7 +738,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         CacheAppDO cacheApp = applicationService.getAppPreferCache(appId);
         if (cacheApp == null) {
-            throw new ServiceException(ErrorCode.WRONG_APP_ID);
+            throw new FailedPreconditionException(ErrorCode.WRONG_APP_ID);
         }
         // 如果是全业务，则不需要判断权限
         if (cacheApp.getAppType() == AppTypeEnum.ALL_APP.getValue()) {
@@ -742,7 +747,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || targetServers.getIpList() == null || targetServers.getIpList().isEmpty()) {
             log.warn("Empty target server");
-            throw new ServiceException(ErrorCode.SERVER_EMPTY);
+            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
         }
 
         List<IpDTO> ipList = targetServers.getIpList();
@@ -775,7 +780,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         String ipListStr = StringUtils.join(unavailableHosts.stream().map(IpDTO::getIp).collect(Collectors.toList()),
             ",");
         log.warn("The following hosts are not registered, appId:{}, ips={}", appId, ipListStr);
-        throw new ServiceException(ErrorCode.SERVER_UNREGISTERED, new Object[]{ipListStr});
+        throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED, new Object[]{ipListStr});
     }
 
     private Collection<IpDTO> checkHostsNotInApp(CacheAppDO cacheApp, Collection<IpDTO> hosts) {
@@ -855,7 +860,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
                             ":{}|totalFileTaskSize:{}|maxAllowedSize:{}",
                         taskName, appCode, appId, operator, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
-                    throw new ServiceException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
+                    throw new AbortedException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
                 }
             } else if (stepInstance.isScriptStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();
@@ -868,7 +873,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
                             ":{}|targetServerSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
                         targetServerSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
-                    throw new ServiceException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
+                    throw new ResourceExhaustedException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
                         jobExecuteConfig.getScriptTaskMaxTargetServer());
                 }
             }
@@ -884,7 +889,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             StepInstanceDTO originStepInstance = taskInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {
                 log.error("Rode task is not exist, taskInstanceId: {}", taskInstanceId);
-                throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
             }
             stepInstance.setScriptParam(originStepInstance.getScriptParam());
             stepInstance.setSecureParam(originStepInstance.isSecureParam());
@@ -1002,7 +1007,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceTaskPlanDTO taskPlan = taskPlanService.getPlanById(appId, planId);
         if (taskPlan == null) {
             log.warn("Create task instance for task, task plan is not exist.appId={}, planId={}", appId, planId);
-            throw new ServiceException(ErrorCode.EXECUTE_TASK_PLAN_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.EXECUTE_TASK_PLAN_NOT_EXIST);
         }
         watch.stop();
 
@@ -1017,7 +1022,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         if (taskPlan.getStepList() == null || taskPlan.getStepList().isEmpty()) {
             log.warn("Task plan step is empty! planId={}", planId);
-            throw new ServiceException(ErrorCode.EXECUTE_TASK_PLAN_ILLEGAL);
+            throw new InternalException(ErrorCode.EXECUTE_TASK_PLAN_ILLEGAL);
         }
 
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
@@ -1027,7 +1032,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
             if (stepType == null) {
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
             switch (stepType) {
                 case SCRIPT:
@@ -1049,7 +1054,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void authExecuteJobPlan(String username, long appId, ServiceTaskPlanDTO plan,
-                                    List<StepInstanceDTO> stepInstanceList) throws InSufficientPermissionException {
+                                    List<StepInstanceDTO> stepInstanceList) throws PermissionDeniedException {
         boolean isDebugTask = plan.getDebugTask();
         ServersDTO authServers = new ServersDTO();
         Set<Long> accountIds = new HashSet<>();
@@ -1104,7 +1109,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         if (!authResult.isPass()) {
-            throw new InSufficientPermissionException(authResult);
+            throw new PermissionDeniedException(authResult);
         }
     }
 
@@ -1133,7 +1138,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             authFastExecute(taskInstance, fileStepInstance);
         } else {
             log.warn("Auth fail because of invalid task type!");
-            throw new InSufficientPermissionException(AuthResult.fail());
+            throw new PermissionDeniedException(AuthResult.fail());
         }
     }
 
@@ -1141,7 +1146,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepExecuteTypeEnum executeType = null;
         TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
         if (stepType == null) {
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         switch (stepType) {
             case SCRIPT:
@@ -1171,7 +1176,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else if (executeType == MANUAL_CONFIRM) {
             stepType = TaskStepTypeEnum.APPROVAL;
         } else {
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         return stepType;
     }
@@ -1224,7 +1229,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (originTaskInstance == null) {
             log.warn("Create task instance for redo, task instance is not exist.appId={}, planId={}", appId,
                 taskInstanceId);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator);
@@ -1235,7 +1240,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         if (originTaskInstance.getStepInstances() == null || originTaskInstance.getStepInstances().isEmpty()) {
             log.warn("Task instance step is empty! taskInstanceId={}", taskInstanceId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
@@ -1424,7 +1429,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (step.getScriptStepInfo().getScriptStatus().equals(JobResourceStatusEnum.DISABLED.getValue())) {
                 log.warn("Script is disabled, should not execute! appId={}, scriptVersionId={}",
                     stepInstance.getAppId(), scriptVersionId);
-                throw new ServiceException(ErrorCode.SCRIPT_DISABLED_SHOULD_NOT_EXECUTE);
+                throw new FailedPreconditionException(ErrorCode.SCRIPT_DISABLED_SHOULD_NOT_EXECUTE);
             }
             stepInstance.setScriptVersionId(scriptVersionId);
             stepInstance.setScriptId(scriptId);
@@ -1443,7 +1448,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceAccountDTO accountInfo = scriptStepInfo.getAccount();
         if (accountInfo == null) {
             log.warn("Account is null! step_id:{}", step.getId());
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
         ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(scriptStepInfo.getType());
@@ -1476,7 +1481,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServiceAccountDTO accountInfo = step.getFileStepInfo().getAccount();
         if (accountInfo == null) {
             log.warn("Account is null! step_id:{}", step.getId());
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
         stepInstance.setAccountId(fileStepInfo.getAccount().getId());
         stepInstance.setAccount(fileStepInfo.getAccount().getAccount());
@@ -1622,7 +1627,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             acquireStaticIp(appId, targetServers);
             if (targetServers.getIpList() == null || targetServers.getIpList().isEmpty()) {
                 log.warn("Target server variable host is empty.variable={}", target.getVariable());
-                throw new ServiceException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_SERVER_EMPTY,
+                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_SERVER_EMPTY,
                     new String[]{target.getVariable()});
             }
             setAgentStatus(targetServers.getIpList());
@@ -1646,13 +1651,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskVariableDTO serverVariable = variableValueMap.get(hostVariableName);
         if (serverVariable == null) {
             log.warn("Target server variable is not exist.variable={}", hostVariableName);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST,
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_NOT_EXIST,
                 new String[]{hostVariableName});
         }
         ServersDTO variableTargetServers = serverVariable.getTargetServers();
         if (variableTargetServers == null || CollectionUtils.isEmpty(variableTargetServers.getIpList())) {
             log.warn("Target server variable host is empty.variable={}", hostVariableName);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_SERVER_EMPTY,
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_RELATED_HOST_VAR_SERVER_EMPTY,
                 new String[]{hostVariableName});
         }
 
@@ -1809,11 +1814,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             log.warn("Step instance {} is not exist", stepInstanceId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("Step instance {} is not in app:{}", stepInstance, appId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
@@ -1856,12 +1861,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus())) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
                 "-terminate");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         checkConfirmUser(taskInstance, stepInstance, operator);
 
@@ -1881,12 +1886,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!RunStatusEnum.CONFIRM_TERMINATED.getValue().equals(stepInstance.getStatus())) {
             log.warn("StepInstance:{} status is not confirm_terminated, Unsupported Operation:{}",
                 stepInstance.getId(), "confirm-restart");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
                 "-restart");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.CONFIRM_RESTART));
@@ -1909,7 +1914,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 Set<String> roles = new HashSet<>(stepInstance.getConfirmRoles());
                 // JOB_RESOURCE_TRIGGER_USER should remove
                 roles.remove(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name());
-                ServiceResponse<Set<String>> resp = userResource.getUsersByRoles(stepInstance.getAppId(), operator,
+                InternalResponse<Set<String>> resp = userResource.getUsersByRoles(stepInstance.getAppId(), operator,
                     ResourceTypeEnum.JOB.getType(), String.valueOf(taskInstance.getTaskId()), roles);
                 if (resp.isSuccess() && resp.getData() != null) {
                     confirmUsers.addAll(resp.getData());
@@ -1917,7 +1922,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         if (confirmUsers.isEmpty() || !confirmUsers.contains(operator)) {
-            throw new ServiceException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
+            throw new FailedPreconditionException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
         }
     }
 
@@ -1926,12 +1931,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
             log.warn("StepInstance:{} is not confirm-step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
                 "-continue");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (!(RunStatusEnum.WAITING.getValue().equals(stepInstance.getStatus()))) {
             log.warn("StepInstance:{} status is not waiting, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         // 人工确认继续，需要判断操作者
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
@@ -1957,7 +1962,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!RunStatusEnum.STOP_SUCCESS.getValue().equals(stepInstance.getStatus())) {
             log.warn("StepInstance:{} status is not stop-success, Unsupported Operation:{}", stepInstance.getId(),
                 "next-step");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.NEXT_STEP));
@@ -1972,7 +1977,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())) {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(), "retry" +
                 "-fail");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
@@ -1988,7 +1993,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!(stepInstance.getStatus().equals(RunStatusEnum.FAIL.getValue())
             || stepInstance.getStatus().equals(RunStatusEnum.STOP_SUCCESS.getValue()))) {
             log.warn("StepInstance:{} status is not fail, Unsupported Operation:{}", stepInstance.getId(), "retry-all");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
@@ -2005,7 +2010,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             !stepInstance.getStatus().equals(RunStatusEnum.ABNORMAL_STATE.getValue())) {
             log.warn("StepInstance:{} status is {}, Unsupported Operation:{}", stepInstance.getId(),
                 stepInstance.getStatus(), "ignore-error");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
@@ -2019,7 +2024,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 只有“强制终止中”的作业可以跳过
         if (!stepInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
             log.warn("StepInstance:{} status is not stopping, Unsupported Operation:{}", stepInstance.getId(), "skip");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         controlMsgSender.skipStep(stepInstance.getId());
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator, UserOperationEnum.SKIP_STEP);
@@ -2063,15 +2068,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
             log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         if (!RunStatusEnum.RUNNING.getValue().equals(taskInstance.getStatus())) {
             log.warn("TaskInstance:{} status is not running, should not terminate it!", taskInstance.getId());
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (RunStatusEnum.STOPPING.getValue().equals(taskInstance.getStatus())) {
             log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
-            throw new ServiceException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
+            throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
         }
         controlMsgSender.stopTask(taskInstanceId);
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);

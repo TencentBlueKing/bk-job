@@ -25,6 +25,11 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -195,7 +200,7 @@ public class CronJobServiceImpl implements CronJobService {
                     if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                         addJob(cronJobInfo.getAppId(), cronJobInfo.getId());
                     } else {
-                        throw new ServiceException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+                        throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
                     }
                 } catch (TaskExecuteAuthFailedException e) {
                     log.error("Error while pre auth cron execute!", e);
@@ -205,7 +210,7 @@ public class CronJobServiceImpl implements CronJobService {
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                     deleteJob(cronJobInfo.getAppId(), cronJobInfo.getId());
                 } else {
-                    throw new ServiceException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+                    throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
                 }
             }
             return cronJobInfo.getId();
@@ -252,7 +257,7 @@ public class CronJobServiceImpl implements CronJobService {
             if (planBasicInfoById != null) {
                 cronJobInfo.setTaskTemplateId(planBasicInfoById.getTaskTemplateId());
             } else {
-                throw new ServiceException(ErrorCode.TASK_PLAN_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
             }
         }
     }
@@ -387,7 +392,7 @@ public class CronJobServiceImpl implements CronJobService {
         }
 
         if (trigger == null) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         InnerCronJobInfoDTO innerCronJobInfoDTO = new InnerCronJobInfoDTO();
@@ -409,7 +414,7 @@ public class CronJobServiceImpl implements CronJobService {
             quartzTaskHandler.addJob(job);
         } catch (SchedulerException e) {
             log.error("Error while add job to quartz!", e);
-            throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Add to quartz failed!");
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
         }
 
         return true;
@@ -487,12 +492,12 @@ public class CronJobServiceImpl implements CronJobService {
         checkCronJobPlanOrScript(cronJobInfo);
         CronJobInfoDTO cronJobById = cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
         if (cronJobById != null) {
-            throw new ServiceException(ErrorCode.CRON_JOB_ALREADY_EXIST);
+            throw new AlreadyExistsException(ErrorCode.CRON_JOB_ALREADY_EXIST);
         }
         if (cronJobDAO.insertCronJobWithId(cronJobInfo)) {
             return cronJobInfo.getId();
         } else {
-            throw new ServiceException(ErrorCode.INSERT_CRON_JOB_FAILED);
+            throw new InternalException(ErrorCode.INSERT_CRON_JOB_FAILED);
         }
     }
 
@@ -557,7 +562,7 @@ public class CronJobServiceImpl implements CronJobService {
                 CronJobInfoDTO cronJobInfo = getCronJobInfoById(appId, cronJobId);
                 if (StringUtils.isBlank(cronJobInfo.getCronExpression())
                     && cronJobInfo.getExecuteTime() < DateUtils.currentTimeSeconds()) {
-                    throw new ServiceException(ErrorCode.CRON_JOB_TIME_PASSED);
+                    throw new FailedPreconditionException(ErrorCode.CRON_JOB_TIME_PASSED);
                 }
                 checkCronRelatedPlan(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
                 QuartzTrigger trigger = null;
@@ -569,7 +574,7 @@ public class CronJobServiceImpl implements CronJobService {
                             .withMisfireInstruction(CronTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
                     if (cronJobInfo.getEndTime() > 0) {
                         if (cronJobInfo.getEndTime() < DateUtils.currentTimeSeconds()) {
-                            throw new ServiceException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
+                            throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
                         } else {
                             cronTriggerBuilder =
                                 cronTriggerBuilder.endAt(Date.from(Instant.ofEpochSecond(cronJobInfo.getEndTime())));
@@ -585,7 +590,7 @@ public class CronJobServiceImpl implements CronJobService {
                         .build();
                 }
                 if (trigger == null) {
-                    throw new ServiceException(ErrorCode.ILLEGAL_PARAM);
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
 
                 QuartzJob job =
@@ -599,7 +604,7 @@ public class CronJobServiceImpl implements CronJobService {
                     quartzTaskHandler.addJob(job);
                 } catch (SchedulerException e) {
                     log.error("Error while add job to quartz!", e);
-                    throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Add to quartz failed!");
+                    throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
                 }
 
                 if (cronJobInfo.getNotifyOffset() > 0) {
@@ -612,7 +617,7 @@ public class CronJobServiceImpl implements CronJobService {
                         notifyTime = cronJobInfo.getExecuteTime() - cronJobInfo.getNotifyOffset();
                     }
                     if (notifyTime < DateUtils.currentTimeSeconds()) {
-                        throw new ServiceException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
+                        throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
                     }
 
                     QuartzTrigger notifyTrigger = QuartzTriggerBuilder.newTrigger()
@@ -633,7 +638,7 @@ public class CronJobServiceImpl implements CronJobService {
                         quartzTaskHandler.addJob(notifyJob);
                     } catch (SchedulerException e) {
                         log.error("Error while add job to quartz!", e);
-                        throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Add to quartz failed!");
+                        throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
                     }
                 } else {
                     try {
@@ -641,7 +646,7 @@ public class CronJobServiceImpl implements CronJobService {
                             JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
                     } catch (SchedulerException e) {
                         log.error("Error while add job to quartz!", e);
-                        throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Add to quartz failed!");
+                        throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
                     }
                 }
                 return true;
@@ -652,18 +657,18 @@ public class CronJobServiceImpl implements CronJobService {
             } catch (Exception e) {
                 deleteJob(appId, cronJobId);
                 log.error("Unknown exception while process cron status change!", e);
-                throw new ServiceException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             } finally {
                 LockUtils.releaseDistributedLock(lockKey, JobContextUtil.getRequestId());
             }
         } else {
-            throw new ServiceException(ErrorCode.ACQUIRE_CRON_JOB_LOCK_FAILED);
+            throw new InternalException(ErrorCode.ACQUIRE_CRON_JOB_LOCK_FAILED);
         }
     }
 
     private void checkCronRelatedPlan(Long appId, Long taskPlanId) throws ServiceException {
         if (taskPlanService.getPlanBasicInfoById(appId, taskPlanId) == null) {
-            throw new ServiceException(ErrorCode.TASK_PLAN_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
     }
 

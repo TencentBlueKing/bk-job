@@ -30,7 +30,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -76,7 +76,7 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
     public List<StatisticsDTO> calcAppTaskTemplateStepTypeStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 1.手工录入脚本的步骤统计
-        ServiceResponse<Integer> resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT,
+        InternalResponse<Integer> resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT,
             TaskScriptSourceEnum.LOCAL, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTemplateSteps, resp:{}", resp);

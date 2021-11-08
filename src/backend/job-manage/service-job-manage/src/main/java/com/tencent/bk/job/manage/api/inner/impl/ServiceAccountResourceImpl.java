@@ -25,9 +25,10 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -54,12 +55,11 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     }
 
     @Override
-    public ServiceResponse<ServiceAccountDTO> getAccountByAccountId(Long accountId) {
+    public InternalResponse<ServiceAccountDTO> getAccountByAccountId(Long accountId) {
         AccountDTO accountDTO = accountService.getAccountById(accountId);
         if (accountDTO == null) {
             log.warn("Account is not exist, accountId={}", accountId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                i18nService.getI18nWithArgs(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST), accountId));
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountId);
         }
         ServiceAccountDTO result = accountDTO.toServiceAccountDTO();
         if (accountDTO.getCategory() == AccountCategoryEnum.DB) {
@@ -67,21 +67,19 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             AccountDTO dbSystemAccount = accountService.getAccountById(systemAccountId);
             if (dbSystemAccount == null) {
                 log.warn("Db related system account is not exist, accountId={}", accountId);
-                return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                    i18nService.getI18nWithArgs(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST), systemAccountId));
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, systemAccountId);
             }
             result.setDbSystemAccount(dbSystemAccount.toServiceAccountDTO());
         }
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public ServiceResponse<ServiceAccountDTO> getAccountByAccountName(Long appId, String account) {
+    public InternalResponse<ServiceAccountDTO> getAccountByAccountName(Long appId, String account) {
         AccountDTO accountDTO = accountService.getAccountByAccount(appId, account);
         if (accountDTO == null) {
             log.warn("Account is not exist, appId={},account={}", appId, account);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                i18nService.getI18n(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST)));
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, account);
         }
         ServiceAccountDTO result = accountDTO.toServiceAccountDTO();
         if (accountDTO.getCategory() == AccountCategoryEnum.DB) {
@@ -89,23 +87,21 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             AccountDTO dbSystemAccount = accountService.getAccountById(systemAccountId);
             if (dbSystemAccount == null) {
                 log.warn("Db related system account is not exist,appId={}, account={}", appId, account);
-                return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                    i18nService.getI18n(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST)));
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
             }
             result.setDbSystemAccount(dbSystemAccount.toServiceAccountDTO());
         }
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 
 
     @Override
-    public ServiceResponse<ServiceAccountDTO> getAccountByCategoryAndAliasInApp(Long appId, Integer category,
-                                                                                String alias) {
+    public InternalResponse<ServiceAccountDTO> getAccountByCategoryAndAliasInApp(Long appId, Integer category,
+                                                                                 String alias) {
         AccountDTO accountDTO = accountService.getAccount(appId, AccountCategoryEnum.valOf(category), alias);
         if (accountDTO == null) {
             log.warn("Account is not exist, appId={}, category={}, alias={}", appId, category, alias);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                i18nService.getI18nWithArgs(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST), alias));
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, alias);
         }
         ServiceAccountDTO result = accountDTO.toServiceAccountDTO();
         if (accountDTO.getCategory() == AccountCategoryEnum.DB) {
@@ -114,26 +110,24 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             if (dbSystemAccount == null) {
                 log.warn("Db related system account is not exist, , appId={}, category={}, alias={}", appId, category
                     , alias);
-                return ServiceResponse.buildCommonFailResp(ErrorCode.ACCOUNT_NOT_EXIST,
-                    i18nService.getI18nWithArgs(String.valueOf(ErrorCode.ACCOUNT_NOT_EXIST), systemAccountId));
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, systemAccountId);
             }
             result.setDbSystemAccount(dbSystemAccount.toServiceAccountDTO());
         }
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public ServiceResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
-                                                               String lastModifyUser, Long appId,
-                                                               AccountCreateUpdateReq accountCreateUpdateReq) {
+    public InternalResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
+                                                                String lastModifyUser, Long appId,
+                                                                AccountCreateUpdateReq accountCreateUpdateReq) {
         if (!accountService.checkCreateParam(accountCreateUpdateReq, true, true)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         AccountDTO accountDTO =
             accountService.getAccount(appId, AccountCategoryEnum.SYSTEM, accountCreateUpdateReq.getAlias());
         if (accountDTO != null) {
-            return ServiceResponse.buildSuccessResp(accountDTO.toServiceAccountDTO());
+            return InternalResponse.buildSuccessResp(accountDTO.toServiceAccountDTO());
         }
         AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appId, accountCreateUpdateReq);
         newAccount.setCreator(username);
@@ -153,14 +147,8 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             newAccount.setLastModifyUser(username);
         }
 
-        try {
-            long accountId = accountService.saveAccount(newAccount);
-            newAccount.setId(accountId);
-            return ServiceResponse.buildSuccessResp(newAccount.toServiceAccountDTO());
-        } catch (ServiceException e) {
-            String errorMsg = i18nService.getI18n(String.valueOf(e.getErrorCode()));
-            log.warn("Fail to save account, appId={}, account={}, reason={}", appId, accountCreateUpdateReq, errorMsg);
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), errorMsg);
-        }
+        long accountId = accountService.saveAccount(newAccount);
+        newAccount.setId(accountId);
+        return InternalResponse.buildSuccessResp(newAccount.toServiceAccountDTO());
     }
 }

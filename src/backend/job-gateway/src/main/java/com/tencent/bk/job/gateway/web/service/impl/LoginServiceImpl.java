@@ -28,7 +28,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.gateway.config.BkConfig;
@@ -38,8 +38,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -92,12 +92,7 @@ public class LoginServiceImpl implements LoginService {
         if (StringUtils.isBlank(bkToken)) {
             return;
         }
-        try {
-            onlineUserCache.invalidate(bkToken);
-        } catch (Exception e) {
-            log.warn("Error occur when invalidate bkToken:{}", bkToken);
-            throw caughtException(e);
-        }
+        onlineUserCache.invalidate(bkToken);
     }
 
 
@@ -109,9 +104,9 @@ public class LoginServiceImpl implements LoginService {
         try {
             Optional<BkUserDTO> userDto = onlineUserCache.get(bkToken);
             return userDto.orElse(null);
-        } catch (Exception e) {
+        } catch (ExecutionException e) {
             log.warn("Error occur when get user from paas!");
-            throw caughtException(e);
+            throw new InternalException(e, ErrorCode.PAAS_API_DATA_ERROR, "Query userinfo from paas fail");
         }
     }
 
@@ -123,13 +118,5 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public String getCookieNameForToken() {
         return this.tokenName;
-    }
-
-    private ServiceException caughtException(Exception e) {
-        int errorCode = ErrorCode.PAAS_API_DATA_ERROR;
-        if (e instanceof UnknownHostException) {
-            errorCode = ErrorCode.PAAS_UNREACHABLE_SERVER;
-        }
-        return new ServiceException(errorCode, e.getMessage());
     }
 }

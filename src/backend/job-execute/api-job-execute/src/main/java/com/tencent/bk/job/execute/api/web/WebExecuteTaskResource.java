@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
 import com.tencent.bk.job.execute.model.web.request.WebFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.web.request.WebFastPushFileRequest;
@@ -57,7 +57,7 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")
     @PostMapping("/app/{appId}/task-execution")
-    ServiceResponse<TaskExecuteVO> executeTask(
+    Response<TaskExecuteVO> executeTask(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -67,7 +67,7 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "重新执行作业", produces = "application/json")
     @PostMapping("/app/{appId}/task-execution/redo-task")
-    ServiceResponse<TaskExecuteVO> redoTask(
+    Response<TaskExecuteVO> redoTask(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -77,7 +77,7 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "快速执行脚本", produces = "application/json")
     @PostMapping("/app/{appId}/fast-execute-script")
-    ServiceResponse<StepExecuteVO> fastExecuteScript(
+    Response<StepExecuteVO> fastExecuteScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -87,7 +87,7 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "快速分发文件", produces = "application/json")
     @PostMapping("/app/{appId}/fast-push-file")
-    ServiceResponse<StepExecuteVO> fastPushFile(
+    Response<StepExecuteVO> fastPushFile(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -97,23 +97,23 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
     @PostMapping("/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}")
-    ServiceResponse<StepOperationVO> doStepOperation(@ApiParam("用户名，网关自动传入")
+    Response<StepOperationVO> doStepOperation(@ApiParam("用户名，网关自动传入")
                                                      @RequestHeader("username") String username,
-                                                     @ApiParam(value = "业务ID", required = true, example = "1")
+                                              @ApiParam(value = "业务ID", required = true, example = "1")
                                                      @PathVariable("appId") Long appId,
-                                                     @ApiParam(value = "步骤实例ID", required = true, example = "1")
+                                              @ApiParam(value = "步骤实例ID", required = true, example = "1")
                                                      @PathVariable("stepInstanceId") Long stepInstanceId,
-                                                     @ApiParam(value = "步骤实例操作请求报文", name = "operation", required =
+                                              @ApiParam(value = "步骤实例操作请求报文", name = "operation", required =
                                                          true)
                                                      @RequestBody WebStepOperation operation);
 
     @ApiOperation(value = "终止作业", produces = "application/json")
     @PostMapping("/app/{appId}/taskInstance/{taskInstanceId}/terminate")
-    ServiceResponse terminateJob(@ApiParam("用户名，网关自动传入")
+    Response terminateJob(@ApiParam("用户名，网关自动传入")
                                  @RequestHeader("username") String username,
-                                 @ApiParam(value = "业务ID", required = true, example = "1")
+                          @ApiParam(value = "业务ID", required = true, example = "1")
                                  @PathVariable("appId") Long appId,
-                                 @ApiParam(value = "作业实例ID", required = true, example = "1")
+                          @ApiParam(value = "作业实例ID", required = true, example = "1")
                                  @PathVariable("taskInstanceId") Long taskInstanceId);
 
 }

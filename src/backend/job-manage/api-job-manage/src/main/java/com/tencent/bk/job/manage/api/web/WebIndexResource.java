@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
@@ -53,7 +53,7 @@ public interface WebIndexResource {
     @Deprecated
     @ApiOperation(value = "获取问候语列表", produces = "application/json")
     @GetMapping("/analysis/greeting/list")
-    ServiceResponse<List<GreetingVO>> listGreeting(
+    Response<List<GreetingVO>> listGreeting(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -64,7 +64,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "获取Agent统计数据", produces = "application/json")
     @GetMapping("/statistics/agent")
-    ServiceResponse<AgentStatistics> getAgentStatistics(
+    Response<AgentStatistics> getAgentStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -75,7 +75,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
     @GetMapping("/hosts/agentStatus/{agentStatus}")
-    ServiceResponse<PageData<HostInfoVO>> listHostsByAgentStatus(
+    Response<PageData<HostInfoVO>> listHostsByAgentStatus(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -95,7 +95,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "根据Agent状态获取IP分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
     @GetMapping("/IPs/agentStatus/{agentStatus}")
-    ServiceResponse<PageData<String>> listIPsByAgentStatus(
+    Response<PageData<String>> listIPsByAgentStatus(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -115,7 +115,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "获取作业与脚本统计数据", produces = "application/json")
     @GetMapping("/statistics/jobAndScript")
-    ServiceResponse<JobAndScriptStatistics> getJobAndScriptStatistics(
+    Response<JobAndScriptStatistics> getJobAndScriptStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -126,7 +126,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "获取我收藏的作业", produces = "application/json")
     @GetMapping("/jobs/myFavorList")
-    ServiceResponse<List<TaskTemplateVO>> listMyFavorTasks(
+    Response<List<TaskTemplateVO>> listMyFavorTasks(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

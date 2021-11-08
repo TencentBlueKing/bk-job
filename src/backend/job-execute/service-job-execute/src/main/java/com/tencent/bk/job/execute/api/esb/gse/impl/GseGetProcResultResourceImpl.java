@@ -29,6 +29,8 @@ import com.google.common.collect.Maps;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.gse.GseGetProcResultResource;
@@ -58,19 +60,19 @@ public class GseGetProcResultResourceImpl implements GseGetProcResultResource {
     public EsbResp<Map<String, Object>> gseGetProcResult(EsbGseGetProcResultRequest request) {
         log.info("Gse process result, request={}", request);
         if (!checkRequest(request)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         String gseTaskId = request.getGseTaskId();
 
         api_map_rsp resp = new GseApiExecutor("").getGetProcRst(gseTaskId);
 
         if (resp == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.GSE_ERROR, i18nService);
+            throw new InternalException(ErrorCode.GSE_ERROR);
         }
         int RESULT_RUNNING = 1000115;
 
         if (resp.getBk_error_code() != ErrorCode.RESULT_OK && resp.getBk_error_code() != RESULT_RUNNING) {
-            return EsbResp.buildCommonFailResp(resp.getBk_error_code(), resp.getBk_error_msg());
+            return EsbResp.buildCommonFailResp(resp.getBk_error_code());
         }
 
         Map<String, Object> resultData = Maps.newHashMap();

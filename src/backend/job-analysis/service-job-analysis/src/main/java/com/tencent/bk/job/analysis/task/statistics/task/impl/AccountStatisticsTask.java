@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
@@ -80,7 +80,7 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
 
     public void calcAndSaveAccountStatistics(String dateStr) {
         // Linux
-        ServiceResponse<Integer> resp = manageMetricsClient.countAccounts(AccountTypeEnum.LINUX);
+        InternalResponse<Integer> resp = manageMetricsClient.countAccounts(AccountTypeEnum.LINUX);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;

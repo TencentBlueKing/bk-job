@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.api.web;
 
 import com.tencent.bk.job.analysis.model.web.AnalysisResultVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,7 +47,7 @@ public interface WebIndexResource {
 
     @ApiOperation(value = "获取分析结果列表", produces = "application/json")
     @GetMapping("/analysis/result/list")
-    ServiceResponse<List<AnalysisResultVO>> listAnalysisResult(
+    Response<List<AnalysisResultVO>> listAnalysisResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

@@ -30,15 +30,17 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
@@ -130,10 +132,6 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @Override
     @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_cron_list"})
     public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronListUsingPost(EsbGetCronListV3Request request) {
-        if (request == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
-        }
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
@@ -214,19 +212,14 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
                 request.getStatus() == 1);
         } catch (TaskExecuteAuthFailedException e) {
-            if (e.getAuthResult() != null) {
-                return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
-            } else {
-                return EsbResp.buildAuthFailResult(null, i18nService);
-            }
+            throw new PermissionDeniedException(e.getAuthResult());
         }
         if (updateResult) {
             EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
             esbCronInfoV3Response.setId(request.getId());
             return EsbResp.buildSuccessResp(esbCronInfoV3Response);
         }
-        return EsbResp.buildCommonFailResp(ErrorCode.UPDATE_CRON_JOB_FAILED,
-            i18nService.getI18n(String.valueOf(ErrorCode.UPDATE_CRON_JOB_FAILED)));
+        throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
     }
 
     @Override
@@ -238,7 +231,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         if (request != null) {
             request.validate();
         } else {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM, "request body cannot be null");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON, "request body cannot be null");
         }
         Long appId = request.getAppId();
         AuthResult authResult;
@@ -280,23 +273,21 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                 Long id = esbGlobalVarV3DTO.getId();
                 String name = esbGlobalVarV3DTO.getName();
                 if (id == null && StringUtils.isBlank(name)) {
-                    return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
                         "id/name of globalVar cannot be null/blank at the same time");
                 }
                 if (id == null) {
                     // 根据name解析id
-                    ServiceResponse<Long> resp = taskPlanResource.getGlobalVarIdByName(request.getPlanId(), name);
+                    InternalResponse<Long> resp = taskPlanResource.getGlobalVarIdByName(request.getPlanId(), name);
                     if (!resp.isSuccess()) {
-                        return EsbResp.buildCommonFailResp(resp.getCode(),
-                            resp.getErrorMsg());
+                        throw new InternalException(resp.getCode());
                     }
                     esbGlobalVarV3DTO.setId(resp.getData());
                 } else {
                     // 根据id解析name，无论是否传入name都根据id解析name作为正确值
-                    ServiceResponse<String> resp = taskPlanResource.getGlobalVarNameById(request.getPlanId(), id);
+                    InternalResponse<String> resp = taskPlanResource.getGlobalVarNameById(request.getPlanId(), id);
                     if (!resp.isSuccess()) {
-                        return EsbResp.buildCommonFailResp(resp.getCode(),
-                            resp.getErrorMsg());
+                        throw new InternalException(resp.getCode());
                     }
                     if (!StringUtils.isBlank(name) && !name.equals(resp.getData())) {
                         log.info("Ignore given name {}, use name {} parsed by id", name, resp.getData());
@@ -327,25 +318,19 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             try {
                 cronId = cronJobService.saveCronJobInfo(cronJobInfo);
             } catch (TaskExecuteAuthFailedException e) {
-                if (e.getAuthResult() != null) {
-                    return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
-                } else {
-                    return EsbResp.buildAuthFailResult(null, i18nService);
-                }
+                throw new PermissionDeniedException(e.getAuthResult());
             }
             if (cronId > 0) {
                 esbCronInfoV3Response.setId(cronId);
                 return EsbResp.buildSuccessResp(esbCronInfoV3Response);
             } else {
-                return EsbResp.buildCommonFailResp(ErrorCode.UPDATE_CRON_JOB_FAILED,
-                    i18nService.getI18n(String.valueOf(ErrorCode.UPDATE_CRON_JOB_FAILED)));
+                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             }
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Validate request failed!|{}", JobContextUtil.getDebugMessage());
             }
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
@@ -354,14 +339,13 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
         if (request.validate()) {
             CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
             return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));
         } else {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 }

@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +83,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
 
     public void calcAndSaveHostStatistics(String dateStr) {
         // Linux
-        ServiceResponse<Long> resp = manageMetricsClient.countHostsByOsType("1");
+        InternalResponse<Long> resp = manageMetricsClient.countHostsByOsType("1");
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;

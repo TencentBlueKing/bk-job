@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,14 +56,14 @@ public class ValidateResult {
      */
     private Object[] errorParams;
 
-    public ValidateResult(boolean isPass, Integer code, Object[] errorParams) {
+    public ValidateResult(boolean isPass, Integer errorCode, Object[] errorParams) {
         this.pass = isPass;
-        this.errorCode = code;
+        this.errorCode = errorCode;
         this.errorParams = errorParams;
     }
 
     public static ValidateResult pass() {
-        return new ValidateResult(true, null, null);
+        return new ValidateResult(true, ErrorCode.RESULT_OK, null);
     }
 
     public static ValidateResult fail(Integer errorCode, Object[] errorParams) {

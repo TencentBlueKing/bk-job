@@ -27,14 +27,17 @@ package com.tencent.bk.job.common.web.exception.handler;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.exception.UnauthenticatedException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.error.BadRequestDetail;
-import com.tencent.bk.job.common.model.error.ErrorDetail;
+import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.spi.nodenameprovider.JavaBeanProperty;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +48,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -56,11 +58,11 @@ import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
@@ -70,222 +72,246 @@ import javax.validation.ConstraintViolationException;
  */
 @ControllerAdvice(annotations = {EsbAPI.class})
 @Slf4j
-public class EsbExceptionControllerAdvice extends ResponseEntityExceptionHandler {
-    private final MessageI18nService i18nService;
+public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase {
     private final AuthService authService;
 
     @Autowired
-    public EsbExceptionControllerAdvice(MessageI18nService i18nService, AuthService authService) {
-        this.i18nService = i18nService;
+    public EsbExceptionControllerAdvice(AuthService authService) {
         this.authService = authService;
     }
 
-    @ExceptionHandler(InSufficientPermissionException.class)
+    @ExceptionHandler(Throwable.class)
     @ResponseBody
-    ResponseEntity<?> handleControllerInSufficientPermissionException(HttpServletRequest request, ServiceException ex) {
-        log.warn("Handle service exception", ex);
+    ResponseEntity<?> handleException(HttpServletRequest request, Throwable ex) {
+        log.error("Handle exception", ex);
         // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(authService.buildEsbAuthFailResp((InSufficientPermissionException) ex),
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR),
             HttpStatus.OK);
     }
 
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
-    ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
-        log.warn("Handle service exception", ex);
+    ResponseEntity<?> handleServiceException(HttpServletRequest request, ServiceException ex) {
+        log.error("Handle ServiceException", ex);
         // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode(), i18nService, ex.getErrorParams()),
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(InternalException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    ResponseEntity<?> handleInternalException(HttpServletRequest request, InternalException ex) {
+        String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(PermissionDeniedException.class)
+    @ResponseBody
+    ResponseEntity<?> handlePermissionDeniedException(HttpServletRequest request, PermissionDeniedException ex) {
+        log.info("Handle PermissionDeniedException", ex);
+        // esb请求错误统一返回200，具体的错误信息放在返回数据里边
+        return new ResponseEntity<>(authService.buildEsbAuthFailResp(ex),
             HttpStatus.OK);
     }
 
-    @ExceptionHandler(Throwable.class)
+    @ExceptionHandler({InvalidParamException.class})
     @ResponseBody
-    ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
-        log.warn("Handle exception", ex);
-        // esb请求错误统一返回200，具体的错误信息放在返回数据里边
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService),
-            HttpStatus.OK);
+    ResponseEntity<?> handleInvalidParamException(HttpServletRequest request, InvalidParamException ex) {
+        String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
+        log.warn(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(FailedPreconditionException.class)
+    @ResponseBody
+    ResponseEntity<?> handleFailedPreconditionException(HttpServletRequest request, FailedPreconditionException ex) {
+        String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseBody
+    ResponseEntity<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
+        String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(AlreadyExistsException.class)
+    @ResponseBody
+    ResponseEntity<?> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
+        String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    @ResponseBody
+    ResponseEntity<?> handleUnauthenticatedException(HttpServletRequest request, UnauthenticatedException ex) {
+        String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
                                                          ConstraintViolationException ex) {
-        log.warn("Handle ConstraintViolationException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                          HttpHeaders headers, HttpStatus status,
                                                                          WebRequest request) {
         log.warn("Handle HttpRequestMethodNotSupportedException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
         log.warn("Handle HttpMediaTypeNotSupportedException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
                                                                       HttpHeaders headers, HttpStatus status,
                                                                       WebRequest request) {
         log.warn("Handle HttpMediaTypeNotAcceptableException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers,
                                                                HttpStatus status, WebRequest request) {
         log.warn("Handle MissingPathVariableException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
                                                                           HttpHeaders headers, HttpStatus status,
                                                                           WebRequest request) {
         log.warn("Handle MissingServletRequestParameterException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
                                                                           HttpHeaders headers, HttpStatus status,
                                                                           WebRequest request) {
         log.warn("Handle ServletRequestBindingException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         log.warn("Handle ConversionNotSupportedException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
                                                         HttpStatus status, WebRequest request) {
         log.warn("Handle TypeMismatchException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         log.warn("Handle HttpMessageNotReadableException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         log.warn("Handle HttpMessageNotWritableException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        log.warn("Handle MethodArgumentNotValidException", ex);
         BindingResult bindingResult = ex.getBindingResult();
-
-        EsbResp resp = null;
-        for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            // fail fast
-            BadRequestDetail badRequestDetail = new BadRequestDetail(fieldError.getField(),
-                null,
-                fieldError.getDefaultMessage());
-            ErrorDetail errorDetail = new ErrorDetail(badRequestDetail);
-            resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, errorDetail, i18nService);
-            break;
-        }
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
-    private String getFieldName(String field) {
-        if (!field.contains(".")) {
-            return field;
-        }
-        String[] fieldPath = field.split("\\.");
-        if (fieldPath.length == 0) {
-            return field;
-        }
-        return fieldPath[fieldPath.length - 1];
-    }
-
-    private static class JavaBeanPropertyImpl implements JavaBeanProperty {
-        private final Class<?> declaringClass;
-        private final String name;
-
-        private JavaBeanPropertyImpl(Class<?> declaringClass, String name) {
-            this.declaringClass = declaringClass;
-            this.name = name;
-        }
-
-        @Override
-        public Class<?> getDeclaringClass() {
-            return declaringClass;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-    }
-
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
         log.warn("Handle MissingServletRequestPartException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
                                                          WebRequest request) {
         log.warn("Handle BindException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
+
+
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
         log.warn("Handle NoHandlerFoundException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Override
+    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
                                                                         HttpHeaders headers, HttpStatus status,
                                                                         WebRequest webRequest) {
-        log.warn("Handle AsyncRequestTimeoutException", ex);
-        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
+        log.error("Handle AsyncRequestTimeoutException", ex);
+        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 }

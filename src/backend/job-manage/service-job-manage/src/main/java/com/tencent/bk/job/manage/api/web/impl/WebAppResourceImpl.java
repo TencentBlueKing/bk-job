@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
@@ -87,7 +87,7 @@ public class WebAppResourceImpl implements WebAppResource {
     // 老接口，在listAppWithFavor上线后下掉
     @Deprecated
     @Override
-    public ServiceResponse<List<AppVO>> listApp(String username) {
+    public Response<List<AppVO>> listApp(String username) {
         List<ApplicationInfoDTO> appList = applicationService.listAllAppsFromLocalDB();
         List<ApplicationInfoDTO> normalAppList =
             appList.parallelStream().filter(it -> it.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
@@ -110,11 +110,11 @@ public class WebAppResourceImpl implements WebAppResource {
         finalAppList.addAll(specialAppList);
         List<AppVO> appVOList = finalAppList.parallelStream().map(it -> new AppVO(it.getId(), it.getName(),
             it.getAppType().getValue(), true, null, null)).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(appVOList);
+        return Response.buildSuccessResp(appVOList);
     }
 
     @Override
-    public ServiceResponse<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
+    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
         String username,
         Integer start,
         Integer pageSize
@@ -193,22 +193,22 @@ public class WebAppResourceImpl implements WebAppResource {
         PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
         PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
             new PageDataWithAvailableIdList<>(pageData, availableAppIds);
-        return ServiceResponse.buildSuccessResp(pageDataWithAvailableIdList);
+        return Response.buildSuccessResp(pageDataWithAvailableIdList);
     }
 
     @Override
-    public ServiceResponse<Integer> favorApp(String username, Long appId, FavorAppReq req) {
-        return ServiceResponse.buildSuccessResp(applicationFavorService.favorApp(username, req.getAppId()));
+    public Response<Integer> favorApp(String username, Long appId, FavorAppReq req) {
+        return Response.buildSuccessResp(applicationFavorService.favorApp(username, req.getAppId()));
     }
 
     @Override
-    public ServiceResponse<Integer> cancelFavorApp(String username, Long appId, FavorAppReq req) {
-        return ServiceResponse.buildSuccessResp(applicationFavorService.cancelFavorApp(username, req.getAppId()));
+    public Response<Integer> cancelFavorApp(String username, Long appId, FavorAppReq req) {
+        return Response.buildSuccessResp(applicationFavorService.cancelFavorApp(username, req.getAppId()));
     }
 
     @Override
-    public ServiceResponse<PageData<HostInfoVO>> listAppHost(String username, Long appId, Integer start,
-                                                             Integer pageSize, Long moduleType, String ipCondition) {
+    public Response<PageData<HostInfoVO>> listAppHost(String username, Long appId, Integer start,
+                                                      Integer pageSize, Long moduleType, String ipCondition) {
         JobContextUtil.setAppId(appId);
 
         ApplicationHostInfoDTO applicationHostInfoCondition = new ApplicationHostInfoDTO();
@@ -237,42 +237,42 @@ public class WebAppResourceImpl implements WebAppResource {
         finalHostInfoPageData
             .setData(appHostInfoPageData.getData().stream()
                 .map(TopologyHelper::convertToHostInfoVO).collect(Collectors.toList()));
-        return ServiceResponse.buildSuccessResp(finalHostInfoPageData);
+        return Response.buildSuccessResp(finalHostInfoPageData);
     }
 
     @Override
-    public ServiceResponse<CcTopologyNodeVO> listAppTopologyTree(String username, Long appId) {
+    public Response<CcTopologyNodeVO> listAppTopologyTree(String username, Long appId) {
         JobContextUtil.setAppId(appId);
-        return ServiceResponse.buildSuccessResp(applicationService.listAppTopologyTree(username, appId));
+        return Response.buildSuccessResp(applicationService.listAppTopologyTree(username, appId));
     }
 
     @Override
-    public ServiceResponse<CcTopologyNodeVO> listAppTopologyHostTree(String username, Long appId) {
+    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username, Long appId) {
         JobContextUtil.setAppId(appId);
-        return ServiceResponse.buildSuccessResp(applicationService.listAppTopologyHostTree(username, appId));
+        return Response.buildSuccessResp(applicationService.listAppTopologyHostTree(username, appId));
     }
 
     @Override
-    public ServiceResponse<CcTopologyNodeVO> listAppTopologyHostCountTree(String username, Long appId) {
+    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username, Long appId) {
         JobContextUtil.setAppId(appId);
-        return ServiceResponse.buildSuccessResp(applicationService.listAppTopologyHostCountTree(username, appId));
+        return Response.buildSuccessResp(applicationService.listAppTopologyHostCountTree(username, appId));
     }
 
     @Override
-    public ServiceResponse<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username, Long appId,
-                                                                            ListHostByBizTopologyNodesReq req) {
-        return ServiceResponse.buildSuccessResp(applicationService.listHostByBizTopologyNodes(username, appId, req));
+    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username, Long appId,
+                                                                     ListHostByBizTopologyNodesReq req) {
+        return Response.buildSuccessResp(applicationService.listHostByBizTopologyNodes(username, appId, req));
     }
 
     @Override
-    public ServiceResponse<PageData<String>> listIpByBizTopologyNodes(String username, Long appId,
-                                                                      ListHostByBizTopologyNodesReq req) {
-        return ServiceResponse.buildSuccessResp(applicationService.listIPByBizTopologyNodes(username, appId, req));
+    public Response<PageData<String>> listIpByBizTopologyNodes(String username, Long appId,
+                                                               ListHostByBizTopologyNodesReq req) {
+        return Response.buildSuccessResp(applicationService.listIPByBizTopologyNodes(username, appId, req));
     }
 
     @Override
-    public ServiceResponse<List<AppTopologyTreeNode>> getNodeDetail(String username, Long appId,
-                                                                    List<TargetNodeVO> targetNodeVOList) {
+    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username, Long appId,
+                                                             List<TargetNodeVO> targetNodeVOList) {
         JobContextUtil.setAppId(appId);
         List<AppTopologyTreeNode> treeNodeList = applicationService.getAppTopologyTreeNodeDetail(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
@@ -282,12 +282,12 @@ public class WebAppResourceImpl implements WebAppResource {
                 "",
                 null
             )).collect(Collectors.toList()));
-        return ServiceResponse.buildSuccessResp(treeNodeList);
+        return Response.buildSuccessResp(treeNodeList);
     }
 
     @Override
-    public ServiceResponse<List<List<CcTopologyNodeVO>>> queryNodePaths(String username, Long appId,
-                                                                        List<TargetNodeVO> targetNodeVOList) {
+    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username, Long appId,
+                                                                 List<TargetNodeVO> targetNodeVOList) {
         List<List<InstanceTopologyDTO>> pathList = applicationService.queryNodePaths(username, appId,
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
@@ -310,12 +310,12 @@ public class WebAppResourceImpl implements WebAppResource {
                 }).collect(Collectors.toList()));
             }
         }
-        return ServiceResponse.buildSuccessResp(resultList);
+        return Response.buildSuccessResp(resultList);
     }
 
     @Override
-    public ServiceResponse<List<NodeInfoVO>> listHostByNode(String username, Long appId,
-                                                            List<TargetNodeVO> targetNodeVOList) {
+    public Response<List<NodeInfoVO>> listHostByNode(String username, Long appId,
+                                                     List<TargetNodeVO> targetNodeVOList) {
         JobContextUtil.setAppId(appId);
         List<NodeInfoVO> moduleHostInfoList = applicationService.getHostsByNode(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
@@ -325,51 +325,51 @@ public class WebAppResourceImpl implements WebAppResource {
                 "",
                 null
             )).collect(Collectors.toList()));
-        return ServiceResponse.buildSuccessResp(moduleHostInfoList);
+        return Response.buildSuccessResp(moduleHostInfoList);
     }
 
     @Override
-    public ServiceResponse<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username, Long appId) {
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username, Long appId) {
         JobContextUtil.setAppId(appId);
         ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
         // 业务集动态分组暂不支持
         if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL) {
-            return ServiceResponse.buildSuccessResp(new ArrayList<>());
+            return Response.buildSuccessResp(new ArrayList<>());
         }
         List<DynamicGroupInfoDTO> dynamicGroupList = applicationService.getDynamicGroupList(username, appId);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(dynamicGroupInfoList);
+        return Response.buildSuccessResp(dynamicGroupInfoList);
     }
 
     @Override
-    public ServiceResponse<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username, Long appId,
-                                                                             List<String> dynamicGroupIds) {
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username, Long appId,
+                                                                      List<String> dynamicGroupIds) {
         JobContextUtil.setAppId(appId);
         List<DynamicGroupInfoDTO> dynamicGroupList =
             applicationService.getDynamicGroupHostList(username, appId, dynamicGroupIds);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(dynamicGroupInfoList);
+        return Response.buildSuccessResp(dynamicGroupInfoList);
     }
 
     @Override
-    public ServiceResponse<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username, Long appId,
-                                                                                     List<String> dynamicGroupIds) {
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username, Long appId,
+                                                                              List<String> dynamicGroupIds) {
         JobContextUtil.setAppId(appId);
         List<DynamicGroupInfoDTO> dynamicGroupList = applicationService.getDynamicGroupList(username, appId);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .filter(dynamicGroupInfoDTO -> dynamicGroupIds.contains(dynamicGroupInfoDTO.getId()))
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(dynamicGroupInfoList);
+        return Response.buildSuccessResp(dynamicGroupInfoList);
     }
 
     @Override
-    public ServiceResponse<List<HostInfoVO>> listHostByIp(String username, Long appId, IpCheckReq req) {
-        return ServiceResponse.buildSuccessResp(applicationService.getHostsByIp(
+    public Response<List<HostInfoVO>> listHostByIp(String username, Long appId, IpCheckReq req) {
+        return Response.buildSuccessResp(applicationService.getHostsByIp(
             username,
             appId,
             req.getActionScope(),
@@ -378,9 +378,9 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public ServiceResponse<AgentStatistics> agentStatistics(String username, Long appId,
-                                                            AgentStatisticsReq agentStatisticsReq) {
-        return ServiceResponse.buildSuccessResp(applicationService.getAgentStatistics(username, appId,
+    public Response<AgentStatistics> agentStatistics(String username, Long appId,
+                                                     AgentStatisticsReq agentStatisticsReq) {
+        return Response.buildSuccessResp(applicationService.getAgentStatistics(username, appId,
             agentStatisticsReq));
     }
 }

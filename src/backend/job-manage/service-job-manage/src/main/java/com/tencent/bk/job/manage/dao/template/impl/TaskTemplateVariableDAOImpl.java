@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
@@ -33,7 +33,12 @@ import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep7;
+import org.jooq.InsertValuesStep8;
+import org.jooq.Record8;
+import org.jooq.Result;
 import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.generated.tables.records.TaskTemplateVariableRecord;
 import org.jooq.types.UByte;
@@ -157,7 +162,7 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
                 taskFileInfo.setId(variableIdIterator.next());
             }
         } catch (Exception e) {
-            throw new ServiceException(ErrorCode.BATCH_INSERT_FAILED);
+            throw new InternalException(ErrorCode.BATCH_INSERT_FAILED);
         }
 
         return variableIdList;

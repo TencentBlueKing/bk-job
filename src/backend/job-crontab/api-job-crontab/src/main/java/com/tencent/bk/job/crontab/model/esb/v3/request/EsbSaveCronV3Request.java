@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -87,23 +88,25 @@ public class EsbSaveCronV3Request extends EsbReq {
 
     public boolean validate() {
         if (appId == null || appId <= 0) {
-            throw new InvalidParamException("bk_biz_id", "bk_biz_id must be a positive long number");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"bk_biz_id", "bk_biz_id must be a positive long number"});
         }
         if (id != null && id < 0) {
-            throw new InvalidParamException("id", "id must be a positive long number when updating");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"id", "id must be a positive long number when updating"});
         }
         if (id == null || id == 0) {
             if (planId == null || planId <= 0) {
-                throw new InvalidParamException("job_plan_id", "job_plan_id must be a positive long number");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"job_plan_id", "job_plan_id must be a positive long number"});
             }
             if (StringUtils.isBlank(name)) {
-                throw new InvalidParamException("name", "name cannot be null or blank when create");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"name", "name cannot be null or blank when create"});
             }
             if (StringUtils.isBlank(cronExpression) && (executeTime == null || executeTime <= 0)) {
-                throw new InvalidParamException(
-                    "expression/execute_time",
-                    "expression/execute_time cannot both be null or invalid"
-                );
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"expression/execute_time", "expression/execute_time cannot both be null or invalid"});
             }
         } else {
             boolean hasChange = false;
@@ -126,10 +129,10 @@ public class EsbSaveCronV3Request extends EsbReq {
                 executeTime = null;
             }
             if (!hasChange) {
-                throw new InvalidParamException(
-                    "job_plan_id/name/expression/execute_time",
-                    "At least one of job_plan_id/name/expression/execute_time must be given to update cron " + id
-                );
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"job_plan_id/name/expression/execute_time",
+                        "At least one of job_plan_id/name/expression/execute_time must be given to update cron " + id
+                    });
             }
         }
         return true;

@@ -26,12 +26,16 @@ package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.upgrader.model.*;
+import com.tencent.bk.job.upgrader.model.ActionPolicies;
+import com.tencent.bk.job.upgrader.model.IamReq;
+import com.tencent.bk.job.upgrader.model.IamResp;
+import com.tencent.bk.job.upgrader.model.Policy;
+import com.tencent.bk.job.upgrader.model.PolicyListReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -59,8 +63,8 @@ public class IamClient extends AbstractIamClient {
         super(iamHostUrl, appCode, appSecret);
     }
 
-    private <T, R> R getIamRespByReq(String method, String uri, IamReq reqBody,
-                                     TypeReference<R> typeReference) throws RuntimeException {
+    private <R> R getIamRespByReq(String method, String uri, IamReq reqBody,
+                                  TypeReference<R> typeReference) throws RuntimeException {
         return getIamRespByReq(method, uri, reqBody, typeReference, null);
     }
 
@@ -79,17 +83,16 @@ public class IamClient extends AbstractIamClient {
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|uri={}|reqStr={}", method, uri, reqStr);
-                throw new ServiceException(ErrorCode.IAM_API_DATA_ERROR, "response is blank");
+                throw new InternalException(ErrorCode.IAM_API_DATA_ERROR, "response is blank");
             } else {
                 log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
             }
-            R result =
-                JSON_MAPPER.fromJson(respStr, typeReference);
+            R result = JSON_MAPPER.fromJson(respStr, typeReference);
             IamResp iamResp = (IamResp) result;
             if (iamResp == null) {
                 log.error("fail:iamResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
                     reqStr, respStr);
-                throw new ServiceException(ErrorCode.IAM_API_DATA_ERROR, "iamResp is null after parse");
+                throw new InternalException(ErrorCode.IAM_API_DATA_ERROR, "iamResp is null after parse");
             } else if (iamResp.getCode() != RESULT_OK) {
                 log.error(
                     "fail:iamResp code!=0|iamResp.code={}|iamResp" +
@@ -98,7 +101,7 @@ public class IamClient extends AbstractIamClient {
                     , iamResp.getMessage()
                     , method, uri, reqStr, respStr
                 );
-                throw new ServiceException(ErrorCode.IAM_API_DATA_ERROR, "iamResp code!=0");
+                throw new InternalException(ErrorCode.IAM_API_DATA_ERROR, "iamResp code!=0");
             }
             if (iamResp.getData() == null) {
                 log.warn(
@@ -110,10 +113,10 @@ public class IamClient extends AbstractIamClient {
                 );
             }
             return result;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             String errorMsg = "Fail to request IAM data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
-            throw new ServiceException(ErrorCode.IAM_API_DATA_ERROR, "Fail to request IAM data");
+            throw new InternalException(e, ErrorCode.IAM_API_DATA_ERROR, "Fail to request IAM data");
         }
     }
 
@@ -125,7 +128,7 @@ public class IamClient extends AbstractIamClient {
         req.setPageSize(500);
         IamResp<ActionPolicies> resp;
         ActionPolicies finalData = null;
-        List<Policy> results = null;
+        List<Policy> results;
         do {
             resp = getIamRespByReq(HttpGet.METHOD_NAME, URL_QUERY_POLICIES, req,
                 new TypeReference<IamResp<ActionPolicies>>() {

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
 import io.swagger.annotations.Api;
@@ -46,6 +46,6 @@ import java.util.List;
 public interface ServiceCheckScriptResource {
 
     @PostMapping
-    ServiceResponse<List<ServiceScriptCheckResultItemDTO>> check(
+    InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(
         @RequestBody ServiceCheckScriptRequest checkScriptRequest);
 }

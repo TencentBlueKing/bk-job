@@ -28,15 +28,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.web.exception.HttpStatusServiceException;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.service.PaaSService;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -100,8 +99,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
         } catch (ExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";
             logger.error(errorMsg, e);
-            throw new HttpStatusServiceException(HttpStatus.INTERNAL_SERVER_ERROR,
-                ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR, errorMsg);
+            throw new InternalException(e, ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR, errorMsg);
         }
         return null;
     }
@@ -114,8 +112,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
         } catch (ExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";
             logger.error(errorMsg, e);
-            throw new HttpStatusServiceException(HttpStatus.INTERNAL_SERVER_ERROR,
-                ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR, errorMsg);
+            throw new InternalException(e, ErrorCode.PAAS_MSG_CHANNEL_DATA_ERROR, errorMsg);
         }
     }
 }

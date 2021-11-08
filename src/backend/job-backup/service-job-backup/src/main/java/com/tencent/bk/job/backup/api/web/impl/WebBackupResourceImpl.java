@@ -46,7 +46,8 @@ import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -90,9 +91,9 @@ public class WebBackupResourceImpl implements WebBackupResource {
     }
 
     @Override
-    public ServiceResponse<ExportInfoVO> startExport(String username, Long appId, ExportRequest exportRequest) {
+    public Response<ExportInfoVO> startExport(String username, Long appId, ExportRequest exportRequest) {
         if (!exportRequest.validate()) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         ExportJobInfoDTO exportJobInfoDTO = new ExportJobInfoDTO();
         exportJobInfoDTO.setAppId(appId);
@@ -122,24 +123,23 @@ public class WebBackupResourceImpl implements WebBackupResource {
             try {
                 ExportJobExecutor.startExport(id);
             } catch (Exception e) {
-                return ServiceResponse.buildCommonFailResp("Start job failed! System busy!");
+                throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Start job failed! System busy!");
             }
-            return ServiceResponse.buildSuccessResp(exportInfoVO);
+            return Response.buildSuccessResp(exportInfoVO);
         }
-
-        return ServiceResponse.buildCommonFailResp("Start failed!");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Start failed!");
     }
 
     @Override
-    public ServiceResponse<ExportInfoVO> getExportInfo(String username, Long appId, String jobId) {
+    public Response<ExportInfoVO> getExportInfo(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             List<LogEntityDTO> exportLog = logService.getExportLogById(appId, jobId);
             ExportInfoVO exportInfoVO = ExportJobInfoDTO.toVO(exportInfo);
             exportInfoVO.setLog(exportLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
-            return ServiceResponse.buildSuccessResp(exportInfoVO);
+            return Response.buildSuccessResp(exportInfoVO);
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
     }
 
     @Override
@@ -171,35 +171,35 @@ public class WebBackupResourceImpl implements WebBackupResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> completeExport(String username, Long appId, String jobId) {
+    public Response<Boolean> completeExport(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
                 exportInfo.setFileName(null);
-                return ServiceResponse.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
+                return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
             } else {
-                return ServiceResponse.buildCommonFailResp("Wrong job status");
+                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Wrong job status");
             }
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
     }
 
     @Override
-    public ServiceResponse<Boolean> abortExport(String username, Long appId, String jobId) {
+    public Response<Boolean> abortExport(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             exportInfo.setStatus(BackupJobStatusEnum.CANCEL);
             exportInfo.setFileName(null);
-            return ServiceResponse.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
+            return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
     }
 
     @Override
-    public ServiceResponse<ImportInfoVO> getImportFileInfo(String username, Long appId, MultipartFile uploadFile) {
+    public Response<ImportInfoVO> getImportFileInfo(String username, Long appId, MultipartFile uploadFile) {
         if (uploadFile.isEmpty()) {
-            return ServiceResponse.buildCommonFailResp("No file");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR, "No File");
         }
         String originalFileName = uploadFile.getOriginalFilename();
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
@@ -211,41 +211,40 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 importInfoVO.setId(jobId);
                 importInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
                 importJobService.parseFile(username, appId, id);
-                return ServiceResponse.buildSuccessResp(importInfoVO);
+                return Response.buildSuccessResp(importInfoVO);
             }
         } else {
             log.error("Upload unknown type of file!");
-            return ServiceResponse.buildCommonFailResp("Upload failed! Unknown file type!");
         }
-        return ServiceResponse.buildCommonFailResp("Upload failed!");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Upload failed! Unknown file type!");
     }
 
     @Override
-    public ServiceResponse<Boolean> checkPassword(String username, Long appId, String jobId,
-                                                  CheckPasswordRequest passwordRequest) {
+    public Response<Boolean> checkPassword(String username, Long appId, String jobId,
+                                           CheckPasswordRequest passwordRequest) {
         boolean lockResult =
             LockUtils.tryGetDistributedLock(getImportJobLockKey(appId, jobId), JobContextUtil.getRequestId(), 60_000L);
         if (lockResult) {
             try {
-                return ServiceResponse.buildSuccessResp(
+                return Response.buildSuccessResp(
                     importJobService.checkPassword(username, appId, jobId, passwordRequest.getPassword()));
             } catch (Exception e) {
                 log.error("Error while check password!");
-                return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
+                return Response.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
             } finally {
                 LockUtils.releaseDistributedLock(getImportJobLockKey(appId, jobId), JobContextUtil.getRequestId());
             }
         } else {
             log.warn("Acquire import job lock failed!|{}|{}", appId, jobId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
+            return Response.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> startImport(String username, Long appId, String jobId,
-                                                ImportRequest importRequest) {
+    public Response<Boolean> startImport(String username, Long appId, String jobId,
+                                         ImportRequest importRequest) {
         if (!importRequest.validate()) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         ImportJobInfoDTO importJobInfo = new ImportJobInfoDTO();
         importJobInfo.setId(jobId);
@@ -255,27 +254,27 @@ public class WebBackupResourceImpl implements WebBackupResource {
             importJobInfo.setTemplateInfo(importRequest.getTemplateInfo().stream().map(BackupTemplateInfoDTO::fromVO)
                 .collect(Collectors.toList()));
         } else {
-            return ServiceResponse.buildCommonFailResp("No template selected!");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR, "No template selected!");
         }
         importJobInfo.setDuplicateSuffix(importRequest.getDuplicateSuffix());
         importJobInfo.setDuplicateIdHandler(DuplicateIdHandlerEnum.valueOf(importRequest.getDuplicateIdHandler()));
-        return ServiceResponse.buildSuccessResp(importJobService.startImport(importJobInfo));
+        return Response.buildSuccessResp(importJobService.startImport(importJobInfo));
     }
 
     @Override
-    public ServiceResponse<ImportInfoVO> getImportInfo(String username, Long appId, String jobId) {
+    public Response<ImportInfoVO> getImportInfo(String username, Long appId, String jobId) {
         ImportJobInfoDTO importInfo = importJobService.getImportInfoById(appId, jobId);
         if (importInfo != null) {
             List<LogEntityDTO> importLog = logService.getImportLogById(appId, jobId);
             ImportInfoVO importInfoVO = ImportJobInfoDTO.toVO(importInfo);
             importInfoVO.setLog(importLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
-            return ServiceResponse.buildSuccessResp(importInfoVO);
+            return Response.buildSuccessResp(importInfoVO);
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not Found");
     }
 
     @Override
-    public ServiceResponse<BackupJobInfoVO> getCurrentJob(String username, Long appId) {
+    public Response<BackupJobInfoVO> getCurrentJob(String username, Long appId) {
         List<ExportJobInfoDTO> exportJobInfoList = exportJobService.getCurrentJobByUser(username, appId);
         List<ImportJobInfoDTO> importJobInfoList = importJobService.getCurrentJobByUser(username, appId);
         BackupJobInfoVO backupJobInfo = new BackupJobInfoVO();
@@ -287,7 +286,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             backupJobInfo.setImportJob(
                 importJobInfoList.parallelStream().map(ImportJobInfoDTO::toVO).collect(Collectors.toList()));
         }
-        return ServiceResponse.buildSuccessResp(backupJobInfo);
+        return Response.buildSuccessResp(backupJobInfo);
     }
 
     private String getImportJobLockKey(Long appId, String jobId) {

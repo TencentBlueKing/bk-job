@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import io.swagger.annotations.Api;
@@ -63,7 +63,7 @@ public interface ServiceSyncResource {
      */
     @GetMapping("/host/app/{appId}")
     @ApiOperation(value = "根据业务ID获取主机", produces = "application/json")
-    ServiceResponse<List<ServiceHostInfoDTO>> getHostByAppId(
+    InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId);
 
@@ -75,7 +75,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncHost/app/{appId}")
     @ApiOperation(value = "根据业务ID同步主机", produces = "application/json")
-    ServiceResponse<Boolean> syncHostByAppId(
+    InternalResponse<Boolean> syncHostByAppId(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId);
 
@@ -86,7 +86,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/appWatch/enable")
     @ApiOperation(value = "开启业务事件监听", produces = "application/json")
-    ServiceResponse<Boolean> enableAppWatch();
+    InternalResponse<Boolean> enableAppWatch();
 
     /**
      * 关闭业务事件监听
@@ -95,7 +95,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/appWatch/disable")
     @ApiOperation(value = "关闭业务事件监听", produces = "application/json")
-    ServiceResponse<Boolean> disableAppWatch();
+    InternalResponse<Boolean> disableAppWatch();
 
     /**
      * 开启主机事件监听
@@ -104,7 +104,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/hostWatch/enable")
     @ApiOperation(value = "开启主机事件监听", produces = "application/json")
-    ServiceResponse<Boolean> enableHostWatch();
+    InternalResponse<Boolean> enableHostWatch();
 
     /**
      * 关闭主机事件监听
@@ -113,7 +113,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/hostWatch/disable")
     @ApiOperation(value = "关闭主机事件监听", produces = "application/json")
-    ServiceResponse<Boolean> disableHostWatch();
+    InternalResponse<Boolean> disableHostWatch();
 
     /**
      * 开启业务同步
@@ -122,7 +122,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncApp/enable")
     @ApiOperation(value = "开启业务同步", produces = "application/json")
-    ServiceResponse<Boolean> enableSyncApp();
+    InternalResponse<Boolean> enableSyncApp();
 
     /**
      * 关闭业务同步
@@ -131,7 +131,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncApp/disable")
     @ApiOperation(value = "关闭业务同步", produces = "application/json")
-    ServiceResponse<Boolean> disableSyncApp();
+    InternalResponse<Boolean> disableSyncApp();
 
     /**
      * 开启主机同步
@@ -140,7 +140,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncHost/enable")
     @ApiOperation(value = "开启主机同步", produces = "application/json")
-    ServiceResponse<Boolean> enableSyncHost();
+    InternalResponse<Boolean> enableSyncHost();
 
     /**
      * 关闭主机同步
@@ -149,7 +149,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncHost/disable")
     @ApiOperation(value = "关闭主机同步", produces = "application/json")
-    ServiceResponse<Boolean> disableSyncHost();
+    InternalResponse<Boolean> disableSyncHost();
 
     /**
      * 开启主机状态同步
@@ -158,7 +158,7 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncAgentStatus/enable")
     @ApiOperation(value = "开启主机状态同步", produces = "application/json")
-    ServiceResponse<Boolean> enableSyncAgentStatus();
+    InternalResponse<Boolean> enableSyncAgentStatus();
 
     /**
      * 关闭主机状态同步
@@ -167,5 +167,5 @@ public interface ServiceSyncResource {
      */
     @PutMapping("/syncAgentStatus/disable")
     @ApiOperation(value = "关闭主机状态同步", produces = "application/json")
-    ServiceResponse<Boolean> disableSyncAgentStatus();
+    InternalResponse<Boolean> disableSyncAgentStatus();
 }

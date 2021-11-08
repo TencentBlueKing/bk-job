@@ -26,9 +26,10 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.DataConsistencyException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
@@ -176,7 +177,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             if (affectedCount != 1) {
                 log.error("Fail to update status of FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO));
             }
-            throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
+            throw new InternalException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
                 new String[]{e.getMessage()});
         }
         return new TaskInfoDTO(fileSourceTaskId, fileSourceDTO.getAlias(), fileSourceDTO.getPublicFlag(),
@@ -196,7 +197,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceTaskDTO.getFileSourceId());
         if (fileSourceDTO == null) {
-            throw new DataConsistencyException("fileSourceId:" + fileSourceTaskDTO.getFileSourceId(), "detail");
+            throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST,
+                "fileSourceId:" + fileSourceTaskDTO.getFileSourceId());
         }
         String filePathWithSourceAlias = PathUtil.joinFilePath(fileSourceDTO.getAlias(), filePath);
         List<ServiceFileTaskLogDTO> fileTaskLogs = new ArrayList<>();
@@ -385,7 +387,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 if (e instanceof ServiceException) {
                     throw (ServiceException) e;
                 } else {
-                    throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_STOP_TASKS,
+                    throw new InternalException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_STOP_TASKS,
                         new String[]{e.getMessage()});
                 }
             }
@@ -439,7 +441,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 if (e instanceof ServiceException) {
                     throw (ServiceException) e;
                 } else {
-                    throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_CLEAR_TASK_FILES,
+                    throw new InternalException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_CLEAR_TASK_FILES,
                         new String[]{e.getMessage()});
                 }
             }
@@ -458,9 +460,9 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     private Integer parseInteger(String respStr) {
-        ServiceResponse<Integer> resp = null;
+        Response<Integer> resp = null;
         try {
-            resp = JsonUtils.fromJson(respStr, new TypeReference<ServiceResponse<Integer>>() {
+            resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Integer>>() {
             });
         } catch (Throwable t) {
             String msg = String.format("Fail to parse resp:%s", respStr);

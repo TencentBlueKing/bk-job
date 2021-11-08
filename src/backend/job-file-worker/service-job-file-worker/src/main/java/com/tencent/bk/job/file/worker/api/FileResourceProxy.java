@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.file.worker.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
@@ -60,7 +60,7 @@ public class FileResourceProxy implements IFileResource {
         } else if (FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name().equals(req.getFileSourceTypeCode())) {
             return artifactoryFileResource;
         } else {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fileSourceTypeCode"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fileSourceTypeCode"});
         }
     }
 
@@ -70,17 +70,17 @@ public class FileResourceProxy implements IFileResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+    public InternalResponse<Boolean> isFileAvailable(BaseReq req) {
         return chooseFileResource(req).isFileAvailable(req);
     }
 
     @Override
-    public ServiceResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
+    public InternalResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
         return chooseFileResource(req).listFileNode(req);
     }
 
     @Override
-    public ServiceResponse<Boolean> executeAction(ExecuteActionReq req) {
+    public InternalResponse<Boolean> executeAction(ExecuteActionReq req) {
         return chooseFileResource(req).executeAction(req);
     }
 }

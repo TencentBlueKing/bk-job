@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.client.ServiceNotificationResourceClient;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.NotifyService;
@@ -49,7 +49,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendCronJobNotification(CronJobInfoDTO cronJobInfo) {
-        ServiceResponse<Integer> sendNotifyResponse =
+        InternalResponse<Integer> sendNotifyResponse =
             notificationClient.sendTemplateNotification(CronJobInfoDTO.buildNotifyInfo(cronJobInfo));
         if (sendNotifyResponse != null) {
             if (sendNotifyResponse.isSuccess()) {
@@ -81,7 +81,7 @@ public class NotifyServiceImpl implements NotifyService {
             templateNotificationRequest.getVariablesMap().put("task.error_message", "Null");
         }
 
-        ServiceResponse<Integer> sendNotifyResponse =
+        InternalResponse<Integer> sendNotifyResponse =
             notificationClient.sendTemplateNotification(templateNotificationRequest);
         if (sendNotifyResponse != null) {
             if (sendNotifyResponse.isSuccess()) {

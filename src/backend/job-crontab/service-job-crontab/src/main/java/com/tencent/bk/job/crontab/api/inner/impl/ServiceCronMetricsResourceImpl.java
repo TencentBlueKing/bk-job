@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronMetricsResource;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class ServiceCronMetricsResourceImpl implements ServiceCronMetricsResourc
     }
 
     @Override
-    public ServiceResponse<Integer> countCronJob(Long appId, Boolean active, Boolean cron) {
-        return ServiceResponse.buildSuccessResp(cronJobService.countCronJob(appId, active, cron));
+    public InternalResponse<Integer> countCronJob(Long appId, Boolean active, Boolean cron) {
+        return InternalResponse.buildSuccessResp(cronJobService.countCronJob(appId, active, cron));
     }
 }

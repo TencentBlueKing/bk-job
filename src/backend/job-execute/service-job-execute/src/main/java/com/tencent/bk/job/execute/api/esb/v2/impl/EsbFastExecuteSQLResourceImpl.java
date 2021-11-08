@@ -27,9 +27,10 @@ package com.tencent.bk.job.execute.api.esb.v2.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -88,32 +89,22 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, validateResult);
+            throw new InvalidParamException(validateResult);
         }
 
         request.trimIps();
 
         ServiceScriptDTO script = getAndCheckScript(request.getAppId(), request.getUserName(), request.getScriptId(),
             scriptService);
-        try {
-            TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
-            StepInstanceDTO stepInstance = buildFastSQLStepInstance(request, script);
-            long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-            taskExecuteService.startTask(taskInstanceId);
+        TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
+        StepInstanceDTO stepInstance = buildFastSQLStepInstance(request, script);
+        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+        taskExecuteService.startTask(taskInstanceId);
 
-            EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
-            jobExecuteInfo.setTaskInstanceId(taskInstanceId);
-            jobExecuteInfo.setTaskName(stepInstance.getName());
-            return EsbResp.buildSuccessResp(jobExecuteInfo);
-        } catch (InSufficientPermissionException e) {
-            return authService.buildEsbAuthFailResp(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-        }
+        EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
+        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setTaskName(stepInstance.getName());
+        return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
     private String generateDefaultFastTaskName() {
@@ -200,11 +191,11 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         AccountDTO account = accountService.getAccountById(request.getDbAccountId());
         if (account == null) {
             log.info("Account:{} is not exist in app:{}", request.getDbAccountId(), request.getAppId());
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
         }
         if (AccountCategoryEnum.DB != account.getCategory()) {
             log.info("Account:{} is not db account in app:{}", request.getDbAccountId(), request.getAppId());
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
         }
         stepInstance.setAccountId(account.getDbSystemAccountId());
         stepInstance.setDbAccountId(account.getId());

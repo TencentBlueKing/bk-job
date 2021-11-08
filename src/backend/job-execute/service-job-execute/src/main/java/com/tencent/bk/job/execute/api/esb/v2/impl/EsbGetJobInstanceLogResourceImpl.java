@@ -28,12 +28,17 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
@@ -64,15 +69,12 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance log request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        EsbResp authResult = authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
-        if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
-            return authResult;
-        }
+        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
 
         List<StepInstanceBaseDTO> stepInstanceList =
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);

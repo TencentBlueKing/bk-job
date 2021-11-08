@@ -30,7 +30,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
@@ -73,7 +73,7 @@ public class TaskPlanPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     public List<StatisticsDTO> calcAppTaskPlanTotalStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
-        ServiceResponse<Integer> resp = manageMetricsClient.countTaskPlans(appId);
+        InternalResponse<Integer> resp = manageMetricsClient.countTaskPlans(appId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTaskPlans, resp:{}", resp);
             return statisticsDTOList;

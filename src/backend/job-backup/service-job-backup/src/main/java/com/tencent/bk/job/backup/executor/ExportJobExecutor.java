@@ -31,9 +31,16 @@ import com.tencent.bk.job.backup.constant.SecretHandlerEnum;
 import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ExportJobInfoDTO;
 import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
-import com.tencent.bk.job.backup.service.*;
+import com.tencent.bk.job.backup.service.AccountService;
+import com.tencent.bk.job.backup.service.ExportJobService;
+import com.tencent.bk.job.backup.service.LogService;
+import com.tencent.bk.job.backup.service.ScriptService;
+import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.backup.service.TaskPlanService;
+import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
@@ -45,7 +52,13 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
-import com.tencent.bk.job.manage.model.web.vo.task.*;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskScriptStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -61,7 +74,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
@@ -520,13 +539,16 @@ public class ExportJobExecutor {
         if (directory.exists() && !directory.isDirectory()) {
             if (!directory.delete()) {
                 log.error("Error while deleting exist export directory!");
-                throw new ServiceException("Delete exist export directory failed!");
+                throw new InternalException(ErrorCode.INTERNAL_ERROR,
+                    "Delete exist export directory failed!");
             }
         }
         if (!directory.exists()) {
             if (!directory.mkdirs() || !directory.setWritable(true)) {
                 log.error("Create export directory failed!|{}|{}", directory.getPath(), directory.getAbsolutePath());
-                throw new ServiceException("Create export directory failed! Check path config or permission!");
+
+                throw new InternalException(ErrorCode.INTERNAL_ERROR,
+                    "Create export directory failed! Check path config or permission!");
             }
         }
     }

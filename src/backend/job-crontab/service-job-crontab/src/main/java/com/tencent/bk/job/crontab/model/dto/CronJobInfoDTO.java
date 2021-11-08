@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.crontab.model.dto;
 
-import com.tencent.bk.job.common.exception.DataConsistencyException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -329,7 +330,7 @@ public class CronJobInfoDTO {
         ServiceTaskPlanDTO serviceTaskPlanDTO =
             taskPlanService.getPlanBasicInfoById(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
         if (serviceTaskPlanDTO == null) {
-            throw new DataConsistencyException("taskPlanId:" + cronJobInfo.getTaskPlanId(), "detail");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
         variableMap.put("task.cron.notify_time", notifyTimeStr);
@@ -393,7 +394,7 @@ public class CronJobInfoDTO {
         ServiceTaskPlanDTO serviceTaskPlanDTO =
             taskPlanService.getPlanBasicInfoById(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
         if (serviceTaskPlanDTO == null) {
-            throw new DataConsistencyException("taskPlanId:" + cronJobInfo.getTaskPlanId(), "Detail");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         variableMap.put("task.cron.plan_name", serviceTaskPlanDTO.getName());
 

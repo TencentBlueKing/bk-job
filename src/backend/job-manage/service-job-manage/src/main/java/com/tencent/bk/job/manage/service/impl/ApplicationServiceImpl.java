@@ -35,9 +35,8 @@ import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.exception.ParamErrorException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -182,7 +181,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     public CcTopologyNodeVO listAppTopologyTree(String username, Long appId) {
         ApplicationInfoDTO appInfo = applicationInfoDAO.getCacheAppInfoById(appId);
         if (appInfo == null) {
-            throw new ParamErrorException(ErrorCode.WRONG_APP_ID);
+            throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
         if (appInfo.getAppType() == AppTypeEnum.ALL_APP) {
             // 全业务
@@ -803,7 +802,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                         inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
                     } catch (Exception e) {
                         log.warn("Invalid Ip:" + ip, e);
-                        throw new InvalidParamException("checkIpList", "every ip in checkIpList must contain " +
+                        throw new InternalException(ErrorCode.INTERNAL_ERROR, "every ip in checkIpList must contain " +
                             "cloudAreaId");
                     }
                 } else {
@@ -1018,8 +1017,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
                 username);
             if (appTopologyTree == null) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"appId",
-                    "Fail to getBizTopo of appId " + appId + " from CMDB"});
+                throw new InternalException(ErrorCode.INTERNAL_ERROR,
+                    "Fail to getBizTopo of appId " + appId + " from CMDB");
             }
             for (AppTopologyTreeNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
@@ -1028,9 +1027,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                 if (completeNode == null) {
                     log.warn("Cannot find node in topo, node:{}, topo:", JsonUtils.toJson(ccInstanceDTO));
                     TopologyUtil.printTopo(appTopologyTree);
-                    throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{
-                        "objectId/instanceId", "Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
-                        "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo"});
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR,
+                        "Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
+                            "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo");
                 }
                 moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
             }

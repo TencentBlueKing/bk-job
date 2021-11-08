@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.migration.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -58,7 +58,7 @@ public class MigrationResource {
      * 对DB账号的密码进行加密
      */
     @PostMapping("/action/encryptDbAccountPassword")
-    public ServiceResponse<List<Long>> encryptDbAccountPassword() {
+    public Response<List<Long>> encryptDbAccountPassword() {
         return encryptDbAccountPasswordMigrationTask.encryptDbAccountPassword();
     }
 
@@ -66,7 +66,7 @@ public class MigrationResource {
      * 迁移模板、脚本引用的标签数据到resource_tag表
      */
     @PostMapping("/action/migrationResourceTags")
-    public ServiceResponse<List<ResourceTagDTO>> upgradeResourceTags() {
+    public Response<List<ResourceTagDTO>> upgradeResourceTags() {
         return resourceTagsMigrationTask.execute();
     }
 }

@@ -29,9 +29,8 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -79,7 +78,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Execute job request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         request.trimIps();
@@ -103,33 +102,23 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 executeVariableValues.add(taskVariableDTO);
             }
         }
-        try {
-            TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
-                TaskExecuteParam
-                    .builder()
-                    .appId(request.getAppId())
-                    .planId(request.getTaskId())
-                    .operator(request.getUserName())
-                    .executeVariableValues(executeVariableValues)
-                    .startupMode(TaskStartupModeEnum.API)
-                    .callbackUrl(request.getCallbackUrl())
-                    .appCode(request.getAppCode())
-                    .build());
-            taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+            TaskExecuteParam
+                .builder()
+                .appId(request.getAppId())
+                .planId(request.getTaskId())
+                .operator(request.getUserName())
+                .executeVariableValues(executeVariableValues)
+                .startupMode(TaskStartupModeEnum.API)
+                .callbackUrl(request.getCallbackUrl())
+                .appCode(request.getAppCode())
+                .build());
+        taskExecuteService.startTask(taskInstanceDTO.getId());
 
-            EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
-            result.setTaskInstanceId(taskInstanceDTO.getId());
-            result.setTaskName(taskInstanceDTO.getName());
-            return EsbResp.buildSuccessResp(result);
-        } catch (InSufficientPermissionException e) {
-            return authService.buildEsbAuthFailResp(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-        }
+        EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
+        result.setTaskInstanceId(taskInstanceDTO.getId());
+        result.setTaskName(taskInstanceDTO.getName());
+        return EsbResp.buildSuccessResp(result);
     }
 
     private ValidateResult checkExecuteTaskRequest(EsbExecuteJobV3Request request) {

@@ -29,14 +29,19 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
-import com.tencent.bk.job.common.exception.DataConsistencyException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -101,7 +106,7 @@ public class AppService {
         List<ServiceApplicationDTO> serviceApplicationDTOList = listLocalDBAppsFromCache();
         if (serviceApplicationDTOList == null) {
             log.error("Fail to listLocalDBAppsFromCache, serviceApplicationDTOList is null");
-            throw new DataConsistencyException("none", "localDBApps");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         Map<Long, SimpleAppInfoDTO> map = new HashMap<>();
         for (ServiceApplicationDTO serviceApplicationDTO : serviceApplicationDTOList) {

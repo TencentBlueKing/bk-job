@@ -25,8 +25,10 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
@@ -71,16 +73,16 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> queryAppSetById(Long appId) {
+    public InternalResponse<ServiceApplicationDTO> queryAppSetById(Long appId) {
         ServiceApplicationDTO appInfo = getAppSet(appId);
         if (appInfo == null) {
-            return ServiceResponse.buildCommonFailResp("App is not exist");
+            throw new NotFoundException(ErrorCode.WRONG_APP_ID);
         }
-        return ServiceResponse.buildSuccessResp(appInfo);
+        return InternalResponse.buildSuccessResp(appInfo);
     }
 
     @Override
-    public ServiceResponse<List<ServiceApplicationDTO>> listAppSet() {
+    public InternalResponse<List<ServiceApplicationDTO>> listAppSet() {
         List<ApplicationInfoDTO> appSetList = applicationDAO.listAppInfoByType(AppTypeEnum.APP_SET);
         List<ApplicationInfoDTO> allAppSetList = applicationDAO.listAppInfoByType(AppTypeEnum.ALL_APP);
 
@@ -95,26 +97,26 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             results = results.stream().sorted((Comparator.comparing(ApplicationInfoDTO::getId)))
                 .collect(Collectors.toList());
         }
-        return ServiceResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
+        return InternalResponse.buildSuccessResp(results.stream().map(this::convertToServiceApp)
             .collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<Boolean> deleteAppSet(Long appId) {
+    public InternalResponse<Boolean> deleteAppSet(Long appId) {
         checkAppSetId(appId);
         ApplicationInfoDTO app = applicationDAO.getAppInfoById(appId);
         if (app == null) {
             log.warn("App-set is not exist!");
-            return ServiceResponse.buildCommonFailResp("App-Set is not exist");
+            throw new NotFoundException(ErrorCode.WRONG_APP_ID);
         }
         applicationDAO.deleteAppInfoById(dslContext, appId);
-        return ServiceResponse.buildSuccessResp(null);
+        return InternalResponse.buildSuccessResp(null);
     }
 
     private void checkAppSetId(Long appId) {
         // appSet id should between 8000000 and 9999999
         if (appId == null || appId < 8000000 || appId > 9999999) {
-            throw new ServiceException("Invalid appId");
+            throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
     }
 
@@ -140,14 +142,14 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     }
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> addAppSet(ServiceAddAppSetRequest request) {
+    public InternalResponse<ServiceApplicationDTO> addAppSet(ServiceAddAppSetRequest request) {
         log.info("Add app-set, request:{}", request);
         checkAddAppSetRequest(request);
 
         ApplicationInfoDTO app = applicationDAO.getAppInfoById(request.getId());
         if (app != null) {
             log.warn("App-set is exist!");
-            return ServiceResponse.buildCommonFailResp("App-Set is exist, can not add again!");
+            throw new NotFoundException(ErrorCode.WRONG_APP_ID);
         }
 
         ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
@@ -175,22 +177,23 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         applicationService.createApp(appInfo);
 
         ServiceApplicationDTO newAppSet = convertToServiceApp(applicationDAO.getAppInfoById(request.getId()));
-        return ServiceResponse.buildSuccessResp(newAppSet);
+        return InternalResponse.buildSuccessResp(newAppSet);
     }
 
     private void checkAddAppSetRequest(ServiceAddAppSetRequest request) {
         if (request.getId() == null || request.getId() > 9999999 || request.getId() < 8000000) {
             log.warn("Add app-set, appId is invalid");
-            throw new ServiceException("AppId should not be empty, and should between 8000000 and 9999999");
+            throw new InvalidParamException(ErrorCode.WRONG_APP_ID,
+                "AppId should not be empty, and should between 8000000 and 9999999");
         }
         if (StringUtils.isEmpty(request.getName())) {
             log.warn("Add app-set, appName is empty");
-            throw new ServiceException("App name is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "App name is empty");
         }
         checkAndGetMaintainers(request.getMaintainers());
         if (request.isDynamicAppSet()) {
             if (request.getDeptId() == null || request.getDeptId() < 1) {
-                throw new ServiceException("Dept id is empty!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Dept id is empty!");
             }
         } else {
             if (request.getSubAppIds() != null && !request.getSubAppIds().isEmpty()) {
@@ -202,26 +205,26 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private List<String> checkAndGetMaintainers(String maintainers) {
         List<String> maintainerList = splitToList(maintainers);
         if (maintainerList.isEmpty()) {
-            throw new ServiceException("Param maintainers is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param maintainers is empty");
         }
         for (String maintainer : maintainerList) {
             if (!userDAO.isUserExist(maintainer)) {
-                throw new ServiceException("maintainer:" + maintainer + " is not exist");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "maintainer:" + maintainer + " is not exist");
             }
         }
         return maintainerList;
     }
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> addMaintainers(ServiceUpdateAppSetRequest request) {
+    public InternalResponse<ServiceApplicationDTO> addMaintainers(ServiceUpdateAppSetRequest request) {
         Long appId = request.getAppId();
         String maintainers = request.getAddMaintainers();
         log.info("Add app-set maintainers, appId:{}, maintainers:{}", appId, maintainers);
         if (appId == null) {
-            return ServiceResponse.buildCommonFailResp("Param appId is empty");
+           throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param appId is empty");
         }
         if (StringUtils.isEmpty(maintainers)) {
-            return ServiceResponse.buildCommonFailResp("Param maintainers is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM,"Param maintainers is empty");
         }
         ApplicationInfoDTO app = checkGetAndAppSet(appId);
         List<String> newMaintainers = checkAndGetMaintainers(maintainers);
@@ -239,18 +242,18 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         applicationDAO.updateMaintainers(appId, concatListAsString(currentMaintainers));
 
         ServiceApplicationDTO updatedApp = getAppSet(appId);
-        return ServiceResponse.buildSuccessResp(updatedApp);
+        return InternalResponse.buildSuccessResp(updatedApp);
     }
 
     private ApplicationInfoDTO checkGetAndAppSet(long appId) {
         ApplicationInfoDTO app = applicationDAO.getAppInfoById(appId);
         if (app == null) {
             log.warn("App is not exist, appId:{}", appId);
-            throw new ServiceException("App-set is not exist");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "App-set is not exist");
         }
         if (!(app.getAppType() == AppTypeEnum.APP_SET || app.getAppType() == AppTypeEnum.ALL_APP)) {
             log.warn("App is not app-set or all-app, appId:{}", appId);
-            throw new ServiceException("Not app-set or app-all type");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Not app-set or app-all type");
         }
         return app;
     }
@@ -270,7 +273,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     }
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> deleteMaintainers(ServiceUpdateAppSetRequest request) {
+    public InternalResponse<ServiceApplicationDTO> deleteMaintainers(ServiceUpdateAppSetRequest request) {
         Long appId = request.getAppId();
         String maintainers = request.getDelMaintainers();
         log.info("Delete maintainers, appId:{}, maintainers:{}", appId, maintainers);
@@ -285,19 +288,19 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         applicationDAO.updateMaintainers(appId, concatListAsString(currentMaintainers));
 
         ServiceApplicationDTO updatedApp = getAppSet(appId);
-        return ServiceResponse.buildSuccessResp(updatedApp);
+        return InternalResponse.buildSuccessResp(updatedApp);
     }
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> addSubAppToAppSet(ServiceUpdateAppSetRequest request) {
+    public InternalResponse<ServiceApplicationDTO> addSubAppToAppSet(ServiceUpdateAppSetRequest request) {
         Long appId = request.getAppId();
         String subAppIds = request.getAddSubAppIds();
         log.info("Add app-set subApp, appId:{}, subAppIds:{}", appId, subAppIds);
         if (appId == null) {
-            return ServiceResponse.buildCommonFailResp("Param appId is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param appId is empty");
         }
         if (StringUtils.isEmpty(subAppIds)) {
-            return ServiceResponse.buildCommonFailResp("Param subAppIds is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param subAppIds is empty");
         }
         ApplicationInfoDTO app = checkGetAndAppSet(appId);
         List<String> newAppIds = checkAndGetAppIds(subAppIds);
@@ -315,24 +318,24 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         log.info("Update app-set sub-app, appId:{}, subAppIds:{}", appId, currentSubAppIds);
         applicationDAO.updateSubAppIds(appId, concatListAsString(currentSubAppIds));
         ServiceApplicationDTO updatedApp = getAppSet(appId);
-        return ServiceResponse.buildSuccessResp(updatedApp);
+        return InternalResponse.buildSuccessResp(updatedApp);
     }
 
     private List<String> checkAndGetAppIds(String subAppIds) {
         List<String> appList = splitToList(subAppIds);
         if (appList.isEmpty()) {
-            throw new ServiceException("Param subAppIds is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param subAppIds is empty");
         }
         for (String appId : appList) {
             if (applicationDAO.getAppInfoById(Long.parseLong(appId)) == null) {
-                throw new ServiceException("Sub-app:" + appId + " is not exist");
+                throw new NotFoundException(ErrorCode.WRONG_APP_ID, "Sub-app:" + appId + " is not exist");
             }
         }
         return appList;
     }
 
     @Override
-    public ServiceResponse<ServiceApplicationDTO> deleteSubApp(ServiceUpdateAppSetRequest request) {
+    public InternalResponse<ServiceApplicationDTO> deleteSubApp(ServiceUpdateAppSetRequest request) {
         Long appId = request.getAppId();
         String subAppIds = request.getDelSubAppIds();
         log.info("Delete subAppIds, appId:{}, subAppIds:{}", appId, subAppIds);
@@ -347,6 +350,6 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
         applicationDAO.updateSubAppIds(appId, concatListAsString(currentSubAppIds));
         ServiceApplicationDTO updatedApp = getAppSet(appId);
-        return ServiceResponse.buildSuccessResp(updatedApp);
+        return InternalResponse.buildSuccessResp(updatedApp);
     }
 }

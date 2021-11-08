@@ -25,9 +25,10 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -58,51 +59,48 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
     }
 
     @Override
-    public ServiceResponse<ServiceScriptDTO> getScriptByAppIdAndScriptVersionId(String username, Long appId,
-                                                                                Long scriptVersionId) {
+    public InternalResponse<ServiceScriptDTO> getScriptByAppIdAndScriptVersionId(String username, Long appId,
+                                                                                 Long scriptVersionId) {
+
         if (appId == null || appId < 0) {
             log.warn("Get script version by id, appId is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.MISSING_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (scriptVersionId == null || scriptVersionId <= 0) {
+        if (scriptVersionId <= 0) {
             log.warn("Get script version by id, param scriptVersionId is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.MISSING_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SCRIPT_NOT_EXIST,
-                i18nService.getI18nWithArgs(String.valueOf(ErrorCode.SCRIPT_NOT_EXIST), scriptVersionId));
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptVersionId);
         }
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
-        return ServiceResponse.buildSuccessResp(scriptVersion);
+        return InternalResponse.buildSuccessResp(scriptVersion);
     }
 
     @Override
-    public ServiceResponse<ServiceScriptDTO> getScriptByScriptVersionId(Long scriptVersionId) {
+    public InternalResponse<ServiceScriptDTO> getScriptByScriptVersionId(Long scriptVersionId) {
         if (scriptVersionId == null || scriptVersionId <= 0) {
             log.warn("Get script version by id, param scriptVersionId is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.MISSING_PARAM)));
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
         ScriptDTO script = scriptService.getScriptVersion(scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SCRIPT_NOT_EXIST,
-                i18nService.getI18nWithArgs(String.valueOf(ErrorCode.SCRIPT_NOT_EXIST), scriptVersionId));
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptVersionId);
         }
+
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
-        return ServiceResponse.buildSuccessResp(scriptVersion);
+        return InternalResponse.buildSuccessResp(scriptVersion);
     }
 
     @Override
-    public ServiceResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
-                                                                         Long lastModifyTime, String lastModifyUser,
-                                                                         Integer scriptStatus, Long appId,
-                                                                         ScriptCreateUpdateReq scriptCreateUpdateReq) {
+    public InternalResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
+                                                                     Long lastModifyTime, String lastModifyUser,
+                                                                     Integer scriptStatus, Long appId,
+                                                                     ScriptCreateUpdateReq scriptCreateUpdateReq) {
         scriptCreateUpdateReq.setAppId(appId);
         if (log.isDebugEnabled()) {
             log.debug("createScriptWithVersionId,operator={},appId={},script={},status={}", username, appId,
@@ -119,47 +117,38 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
         if (scriptStatus != null && scriptStatus > 0) {
             script.setStatus(scriptStatus);
         }
-        try {
-            return ServiceResponse.buildSuccessResp(
-                scriptService.createScriptWithVersionId(username, appId, script, createTime, lastModifyTime));
-        } catch (ServiceException e) {
-            String errorMsg = i18nService.getI18n(String.valueOf(e.getErrorCode()));
-            log.warn("Fail to save script, {}", errorMsg);
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), errorMsg);
-        }
+        return InternalResponse.buildSuccessResp(
+            scriptService.createScriptWithVersionId(username, appId, script, createTime, lastModifyTime));
     }
 
     @Override
-    public ServiceResponse<ServiceScriptDTO> getBasicScriptInfo(String scriptId) {
+    public InternalResponse<ServiceScriptDTO> getBasicScriptInfo(String scriptId) {
         if (StringUtils.isEmpty(scriptId)) {
             log.warn("Get script by id, param scriptId is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.MISSING_PARAM)));
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
         ScriptDTO script = scriptService.getScriptWithoutTagByScriptId(scriptId);
         if (script == null) {
             log.warn("Get script by id:{}, the script is not exist", scriptId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SCRIPT_NOT_EXIST,
-                i18nService.getI18nWithArgs(String.valueOf(ErrorCode.SCRIPT_NOT_EXIST), scriptId));
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptId);
         }
         ServiceScriptDTO serviceScript = ScriptConverter.convertToServiceScriptDTO(script);
-        return ServiceResponse.buildSuccessResp(serviceScript);
+        return InternalResponse.buildSuccessResp(serviceScript);
     }
 
     @Override
-    public ServiceResponse<ServiceScriptDTO> getOnlineScriptVersion(String scriptId) {
+    public InternalResponse<ServiceScriptDTO> getOnlineScriptVersion(String scriptId) {
         if (StringUtils.isEmpty(scriptId)) {
             log.warn("Get online script by scriptId, param scriptId is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.MISSING_PARAM)));
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
         ScriptDTO script = scriptService.getOnlineScriptVersionByScriptId(scriptId);
         if (script == null) {
-            return ServiceResponse.buildSuccessResp(null);
+            return InternalResponse.buildSuccessResp(null);
         }
         ServiceScriptDTO serviceScript = ScriptConverter.convertToServiceScriptDTO(script);
-        return ServiceResponse.buildSuccessResp(serviceScript);
+        return InternalResponse.buildSuccessResp(serviceScript);
     }
 }

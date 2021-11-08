@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.manage.migration;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -59,17 +62,17 @@ public class EncryptDbAccountPasswordMigrationTask {
      *
      * @return 结果
      */
-    public ServiceResponse<List<Long>> encryptDbAccountPassword() {
+    public Response<List<Long>> encryptDbAccountPassword() {
         log.info("Encrypt db account password start...");
         if (StringUtils.isBlank(jobManageConfig.getEncryptPassword())) {
             log.error("Encrypt password is blank");
-            return ServiceResponse.buildCommonFailResp("Encrypt password is blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         List<AccountDTO> dbAccounts = accountDAO.listAccountByAccountCategory(AccountCategoryEnum.DB);
         if (CollectionUtils.isEmpty(dbAccounts)) {
             log.info("Db account is empty, skip");
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
 
         try {
@@ -87,10 +90,10 @@ public class EncryptDbAccountPasswordMigrationTask {
             }
             accountDAO.batchUpdateDbAccountPassword(dbAccounts);
             log.info("Encrypt db account password successfully!");
-            return ServiceResponse.buildSuccessResp(updateAccountIdList);
+            return Response.buildSuccessResp(updateAccountIdList);
         } catch (Throwable e) {
             log.error("Encrypt db account password error", e);
-            return ServiceResponse.buildCommonFailResp("Encrypt db account password error");
+            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password error");
         }
     }
 

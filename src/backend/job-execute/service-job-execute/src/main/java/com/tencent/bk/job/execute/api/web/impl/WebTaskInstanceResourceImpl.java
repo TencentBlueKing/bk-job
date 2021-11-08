@@ -28,12 +28,14 @@ import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -106,23 +108,22 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
-    public ServiceResponse<ExecuteStepVO> getStepInstanceDetail(String username, Long appId, Long stepInstanceId) {
+    public Response<ExecuteStepVO> getStepInstanceDetail(String username, Long appId, Long stepInstanceId) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST,
-                i18nService.getI18n(String.valueOf(ErrorCode.STEP_INSTANCE_NOT_EXIST)));
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         AuthResultVO authResultVO = authViewStepInstance(username, appId, stepInstance);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
-        return ServiceResponse.buildSuccessResp(stepVO);
+        return Response.buildSuccessResp(stepVO);
     }
 
     private AuthResultVO authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
@@ -302,17 +303,17 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
-    public ServiceResponse<List<ExecuteVariableVO>> getTaskInstanceVariables(String username, Long appId,
-                                                                             Long taskInstanceId) {
+    public Response<List<ExecuteVariableVO>> getTaskInstanceVariables(String username, Long appId,
+                                                                      Long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
             log.warn("TaskInstance:{} is not in app:{}", taskInstanceId, appId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
 
         List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
@@ -322,7 +323,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 variableVOS.add(convertToVariableVO(appId, variable));
             });
         }
-        return ServiceResponse.buildSuccessResp(variableVOS);
+        return Response.buildSuccessResp(variableVOS);
     }
 
     private ExecuteVariableVO convertToVariableVO(long appId, TaskVariableDTO variable) {
@@ -360,22 +361,22 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
-    public ServiceResponse<List<TaskOperationLogVO>> getTaskInstanceOperationLog(String username, Long appId,
-                                                                                 Long taskInstanceId) {
+    public Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(String username, Long appId,
+                                                                          Long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
             log.warn("TaskInstance:{} is not in app:{}", taskInstanceId, appId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
 
         List<OperationLogDTO> operationLogs = taskOperationLogService.listOperationLog(taskInstanceId);
         if (operationLogs == null || operationLogs.isEmpty()) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
         List<TaskOperationLogVO> vos = new ArrayList<>(operationLogs.size());
         for (OperationLogDTO operationLog : operationLogs) {
@@ -393,7 +394,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             vo.setDetail(buildDetail(operationLog.getOperationEnum(), operationLog.getDetail()));
             vos.add(vo);
         }
-        return ServiceResponse.buildSuccessResp(vos);
+        return Response.buildSuccessResp(vos);
     }
 
     private String buildDetail(UserOperationEnum operationCode, OperationLogDTO.OperationDetail detail) {
@@ -431,19 +432,19 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
-    public ServiceResponse<TaskInstanceDetailVO> getTaskInstanceDetail(String username, Long appId,
-                                                                       Long taskInstanceId) {
+    public Response<TaskInstanceDetailVO> getTaskInstanceDetail(String username, Long appId,
+                                                                Long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
             log.warn("TaskInstance:{} is not in app:{}", taskInstanceId, appId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
-        return ServiceResponse.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
+        return Response.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
     }
 
     private TaskInstanceDetailVO convertToTaskInstanceDetailVO(TaskInstanceDTO taskInstanceDTO) {
@@ -471,21 +472,21 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
-    public ServiceResponse<TaskInstanceVO> getTaskInstanceBasic(String username, Long taskInstanceId) {
+    public Response<TaskInstanceVO> getTaskInstanceBasic(String username, Long taskInstanceId) {
         if (taskInstanceId == null || taskInstanceId <= 0) {
             log.warn("Get task instance basic, task instance id is null or empty!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         AuthResultVO authResultVO = webAuthService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
-        return ServiceResponse.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
+        return Response.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
             i18nService));
     }
 }

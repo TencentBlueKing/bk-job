@@ -24,13 +24,22 @@
 
 package com.tencent.bk.job.analysis.api.op;
 
-import com.tencent.bk.job.analysis.model.op.*;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.analysis.model.op.CancelTasksReq;
+import com.tencent.bk.job.analysis.model.op.ClearStatisticsReq;
+import com.tencent.bk.job.analysis.model.op.ConfigStatisticsReq;
+import com.tencent.bk.job.analysis.model.op.ConfigThreadsReq;
+import com.tencent.bk.job.analysis.model.op.StartTasksReq;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -41,14 +50,14 @@ public interface OpResource {
 
     @ApiOperation(value = "查询统计配置", produces = "application/json")
     @GetMapping("/config")
-    ServiceResponse<String> getStatisticsConfig(
+    Response<String> getStatisticsConfig(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
     @ApiOperation(value = "更新统计配置", produces = "application/json")
     @PostMapping("/config")
-    ServiceResponse<Boolean> configStatistics(
+    Response<Boolean> configStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "统计配置参数", required = true) @RequestBody ConfigStatisticsReq req
@@ -56,7 +65,7 @@ public interface OpResource {
 
     @ApiOperation(value = "清理某些日期的统计数据", produces = "application/json")
     @PostMapping("/clear")
-    ServiceResponse<Integer> clearStatistics(
+    Response<Integer> clearStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "清理参数", required = true) @RequestBody ClearStatisticsReq req
@@ -64,7 +73,7 @@ public interface OpResource {
 
     @ApiOperation(value = "调整统计线程数量", produces = "application/json")
     @PostMapping("/config/threads")
-    ServiceResponse<Boolean> configThreads(
+    Response<Boolean> configThreads(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "线程数量参数", required = true) @RequestBody ConfigThreadsReq req
@@ -72,7 +81,7 @@ public interface OpResource {
 
     @ApiOperation(value = "开始某些统计任务", produces = "application/json")
     @PostMapping("/start")
-    ServiceResponse<List<String>> startTasks(
+    Response<List<String>> startTasks(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "开始任务参数", required = true) @RequestBody StartTasksReq req
@@ -80,14 +89,14 @@ public interface OpResource {
 
     @ApiOperation(value = "取消全部统计任务", produces = "application/json")
     @PostMapping("/cancelAll")
-    ServiceResponse<List<String>> cancelAllTasks(
+    Response<List<String>> cancelAllTasks(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
     @ApiOperation(value = "取消某些统计任务", produces = "application/json")
     @PostMapping("/cancel")
-    ServiceResponse<List<String>> cancelTasks(
+    Response<List<String>> cancelTasks(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "取消任务参数", required = true) @RequestBody CancelTasksReq req
@@ -95,14 +104,14 @@ public interface OpResource {
 
     @ApiOperation(value = "查询所有统计任务", produces = "application/json")
     @PostMapping("/taskList")
-    ServiceResponse<List<String>> taskList(
+    Response<List<String>> taskList(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
     @ApiOperation(value = "查询当前正在跑的统计任务", produces = "application/json")
     @PostMapping("/taskList/arranged")
-    ServiceResponse<List<Pair<String, Integer>>> arrangedTaskList(
+    Response<List<Pair<String, Integer>>> arrangedTaskList(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );

@@ -25,8 +25,9 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ParamErrorException;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -71,7 +72,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public TagDTO getTagInfoById(Long tagId) {
         if (tagId == null || tagId <= 0) {
-            throw new ParamErrorException(ErrorCode.ILLEGAL_PARAM);
+            throw new InternalException(ErrorCode.ILLEGAL_PARAM);
         }
         return tagDAO.getTagById(tagId);
     }
@@ -79,7 +80,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public TagDTO getTagInfoById(Long appId, Long tagId) {
         if (appId == null || appId < 0 || tagId == null || tagId <= 0) {
-            throw new ParamErrorException(ErrorCode.ILLEGAL_PARAM);
+            throw new InternalException(ErrorCode.ILLEGAL_PARAM);
         }
         return tagDAO.getTagById(appId, tagId);
     }
@@ -87,7 +88,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagDTO> listTagsByAppId(Long appId) {
         if (appId == null || appId < 0) {
-            throw new ParamErrorException(ErrorCode.WRONG_APP_ID);
+            throw new InternalException(ErrorCode.WRONG_APP_ID);
         }
         return tagDAO.listTagsByAppId(appId);
     }
@@ -105,7 +106,7 @@ public class TagServiceImpl implements TagService {
 
         boolean isTagExist = tagDAO.isExistDuplicateName(tag.getAppId(), tag.getName());
         if (isTagExist) {
-            throw new ServiceException(ErrorCode.TAG_ALREADY_EXIST);
+            throw new AlreadyExistsException(ErrorCode.TAG_ALREADY_EXIST);
         }
         return tagDAO.insertTag(tag);
     }
@@ -113,7 +114,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public boolean updateTagById(String username, TagDTO tag) {
         if (tag.getId() == null || tag.getId() <= 0) {
-            throw new ParamErrorException(ErrorCode.ILLEGAL_PARAM);
+            throw new InternalException(ErrorCode.ILLEGAL_PARAM);
         }
         tag.setAppId(tag.getAppId());
         tag.setId(tag.getId());
@@ -122,14 +123,14 @@ public class TagServiceImpl implements TagService {
 
         boolean isTagNameValid = checkTagName(tag.getAppId(), tag.getId(), tag.getName());
         if (!isTagNameValid) {
-            throw new ServiceException(ErrorCode.TAG_ALREADY_EXIST);
+            throw new AlreadyExistsException(ErrorCode.TAG_ALREADY_EXIST);
         }
         return tagDAO.updateTagById(tag);
     }
 
     private void checkRequiredParam(TagDTO tag) {
         if (tag.getAppId() == null || tag.getAppId() <= 0) {
-            throw new ParamErrorException(ErrorCode.WRONG_APP_ID);
+            throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(
@@ -141,10 +142,10 @@ public class TagServiceImpl implements TagService {
             tag.setName(stringCheckHelper.checkAndGetResult(tag.getName()));
         } catch (StringCheckException e) {
             log.warn("Tag name is invalid:", e);
-            throw new ParamErrorException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (StringUtils.isAllBlank(tag.getCreator(), tag.getLastModifyUser())) {
-            throw new ParamErrorException(ErrorCode.MISSING_PARAM);
+            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
     }
 
@@ -221,7 +222,7 @@ public class TagServiceImpl implements TagService {
     private void checkTags(Long appId, List<TagDTO> tags) {
         tags.forEach(tag -> {
             if (!tag.getAppId().equals(appId)) {
-                throw new ServiceException("Tag is not exist");
+                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Tag is not exist");
             }
         });
     }

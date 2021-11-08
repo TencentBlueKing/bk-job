@@ -26,8 +26,9 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -64,7 +65,7 @@ public class FileServiceImpl implements FileService {
 
     private FileWorkerDTO getFileWorker(Long appId, FileSourceDTO fileSourceDTO) {
         if (fileSourceDTO == null) {
-            throw new ServiceException(ErrorCode.FILE_SOURCE_NOT_EXIST);
+            throw new InternalException(ErrorCode.FILE_SOURCE_NOT_EXIST);
         }
         return dispatchService.findBestFileWorker(fileSourceDTO);
     }
@@ -74,7 +75,7 @@ public class FileServiceImpl implements FileService {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
         FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
         if (fileWorkerDTO == null) {
-            throw new ServiceException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+            throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         // 访问文件Worker接口，拿到available状态信息
@@ -86,8 +87,8 @@ public class FileServiceImpl implements FileService {
             respStr = fileWorkerHttpHelper.post(fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
                 fileAvailableReq.getHeaders());
             log.info(String.format("respStr=%s", respStr));
-            ServiceResponse<Boolean> resp = JsonUtils.fromJson(respStr,
-                new TypeReference<ServiceResponse<Boolean>>() {
+            Response<Boolean> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<Response<Boolean>>() {
                 });
             return resp.getData();
         } catch (Exception e) {
@@ -104,7 +105,7 @@ public class FileServiceImpl implements FileService {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
         FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
         if (fileWorkerDTO == null) {
-            throw new ServiceException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+            throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         // 访问文件Worker接口，拿到FileNode信息
@@ -118,7 +119,8 @@ public class FileServiceImpl implements FileService {
                 listFileNodeReq.getHeaders());
         } catch (Exception e) {
             log.error("Fail to request remote worker:", e);
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, new String[]{e.getMessage()});
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE,
+                new String[]{e.getMessage()});
         }
         log.info(String.format("respStr=%s", respStr));
         FileNodesDTO fileNodesDTO = parseFileNodesDTO(respStr);
@@ -132,7 +134,7 @@ public class FileServiceImpl implements FileService {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
         FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
         if (fileWorkerDTO == null) {
-            throw new ServiceException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+            throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         HttpReq req = fileSourceReqGenService.genExecuteActionReq(appId, executeActionReq.getActionCode(),
@@ -142,38 +144,38 @@ public class FileServiceImpl implements FileService {
             JsonUtils.toJson(req.getHeaders())));
         try {
             respStr = fileWorkerHttpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-            ServiceResponse<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<ServiceResponse<Boolean>>() {
+            Response<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Boolean>>() {
             });
             if (resp.isSuccess()) {
                 return resp.getData();
             } else {
-                throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+                throw new InternalException(resp.getCode());
             }
         } catch (Exception e) {
             if (e instanceof ServiceException) {
                 throw (ServiceException) e;
             } else {
                 log.error("Fail to request remote worker:", e);
-                throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_EXECUTE_ACTION,
+                throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_EXECUTE_ACTION,
                     new String[]{e.getMessage()});
             }
         }
     }
 
     private FileNodesDTO parseFileNodesDTO(String respStr) {
-        ServiceResponse<FileNodesDTO> resp = null;
+        Response<FileNodesDTO> resp = null;
         try {
-            resp = JsonUtils.fromJson(respStr, new TypeReference<ServiceResponse<FileNodesDTO>>() {
+            resp = JsonUtils.fromJson(respStr, new TypeReference<Response<FileNodesDTO>>() {
             });
         } catch (Exception e) {
             log.error("Fail to parse bucket from response={}", respStr, e);
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, e.getMessage());
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, e.getMessage());
         }
         if (resp.isSuccess()) {
             return resp.getData();
         } else {
             log.error("get failed bucket response={}", respStr);
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getCode());
         }
     }
 }
