@@ -88,7 +88,7 @@ public class QuartzTriggerBuilder {
         quartzTrigger.setJobKey(this.jobKey);
 
         if (key == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Trigger mast have key!");
+            throw new InternalException("Trigger mast have key!", ErrorCode.INTERNAL_ERROR);
         }
 
         quartzTrigger.setKey(this.key);

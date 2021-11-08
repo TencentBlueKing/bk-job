@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -120,7 +121,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
             log.info("Account is not exist, accountId={}", accountId);
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
         AuthResultVO authResultVO = checkManageAccountPermission(username, appId, accountId);
         if (!authResultVO.isPass()) {
@@ -280,7 +281,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
             log.info("Account is not exist, accountId={}", accountId);
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
         AuthResultVO authResultVO = checkManageAccountPermission(username, appId, accountId);
         if (!authResultVO.isPass()) {

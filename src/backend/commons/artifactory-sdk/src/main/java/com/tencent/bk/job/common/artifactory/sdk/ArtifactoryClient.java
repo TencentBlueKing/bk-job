@@ -169,7 +169,7 @@ public class ArtifactoryClient {
         if (result == null) {
             log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
                 url, reqStr, respStr);
-            throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
+            throw new InternalException("artifactoryResp is null after parse", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         if (result instanceof ArtifactoryResp) {
             ArtifactoryResp<R> artifactoryResp = (ArtifactoryResp<R>) result;
@@ -183,7 +183,7 @@ public class ArtifactoryClient {
                     artifactoryResp.getMessage(),
                     method, url, reqStr, respStr
                 );
-                throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
+                throw new InternalException("artifactoryResp code!=0", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             }
             if (artifactoryResp.getData() == null) {
                 log.warn(
@@ -225,7 +225,7 @@ public class ArtifactoryClient {
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
-                throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "response is blank");
+                throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
                 log.debug("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
             }
@@ -241,7 +241,7 @@ public class ArtifactoryClient {
         } catch (Exception e) {
             log.error("Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}", method, url, reqStr, e);
             status = "error";
-            throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "Fail to request ARTIFACTORY data");
+            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
             long end = System.nanoTime();
             if (null != meterRegistry) {
@@ -307,7 +307,7 @@ public class ArtifactoryClient {
     }
 
     public Boolean deleteProject(String projectId) {
-        throw new NotImplementedException(ErrorCode.NOT_SUPPORT_FEATURE, "Not support feature");
+        throw new NotImplementedException("Not support feature", ErrorCode.NOT_SUPPORT_FEATURE);
     }
 
     public Boolean deleteRepo(String projectId, String repoName, Boolean forced) {
@@ -337,8 +337,7 @@ public class ArtifactoryClient {
         filePath = StringUtil.removePrefixAndSuffix(filePath, "/");
         String[] pathArr = filePath.split("/");
         if (pathArr.length < 2) {
-            throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR,
-                "path must contain projectId and repoName");
+            throw new InternalException("path must contain projectId and repoName", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         String projectId = pathArr[0];
         String repoName = pathArr[1];
@@ -354,8 +353,7 @@ public class ArtifactoryClient {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
         if (null == nodeDTO) {
-            throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR,
-                "can not find node by filePath");
+            throw new InternalException("can not find node by filePath", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         return nodeDTO;
     }

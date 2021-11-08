@@ -307,7 +307,7 @@ public class ThirdFilePrepareService {
         if (resp.isSuccess()) {
             return resp.getData();
         } else {
-            throw new InternalException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getErrorMsg(), resp.getCode());
         }
     }
 

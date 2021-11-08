@@ -539,16 +539,15 @@ public class ExportJobExecutor {
         if (directory.exists() && !directory.isDirectory()) {
             if (!directory.delete()) {
                 log.error("Error while deleting exist export directory!");
-                throw new InternalException(ErrorCode.INTERNAL_ERROR,
-                    "Delete exist export directory failed!");
+                throw new InternalException("Delete exist export directory failed!", ErrorCode.INTERNAL_ERROR);
             }
         }
         if (!directory.exists()) {
             if (!directory.mkdirs() || !directory.setWritable(true)) {
                 log.error("Create export directory failed!|{}|{}", directory.getPath(), directory.getAbsolutePath());
 
-                throw new InternalException(ErrorCode.INTERNAL_ERROR,
-                    "Create export directory failed! Check path config or permission!");
+                throw new InternalException("Create export directory failed! Check path config or permission!",
+                    ErrorCode.INTERNAL_ERROR);
             }
         }
     }

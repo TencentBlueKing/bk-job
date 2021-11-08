@@ -93,7 +93,7 @@ public class EncryptDbAccountPasswordMigrationTask {
             return Response.buildSuccessResp(updateAccountIdList);
         } catch (Throwable e) {
             log.error("Encrypt db account password error", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password error");
+            throw new InternalException("Encrypt db account password error", ErrorCode.INTERNAL_ERROR);
         }
     }
 

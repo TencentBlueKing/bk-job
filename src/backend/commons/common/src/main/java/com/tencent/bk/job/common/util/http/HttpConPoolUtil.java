@@ -201,7 +201,7 @@ public class HttpConPoolUtil {
                 String errorMsg = buildErrorMessage("Post", url, statusCode,
                     httpResponse.getStatusLine().getReasonPhrase());
                 log.error(errorMsg);
-                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toByteArray(entity);
@@ -257,7 +257,7 @@ public class HttpConPoolUtil {
                 String errorMsg = buildErrorMessage("Delete", url, statusCode,
                     httpResponse.getStatusLine().getReasonPhrase());
                 log.error(errorMsg);
-                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             byte[] respBytes = EntityUtils.toByteArray(entity);

@@ -222,7 +222,7 @@ public class TagServiceImpl implements TagService {
     private void checkTags(Long appId, List<TagDTO> tags) {
         tags.forEach(tag -> {
             if (!tag.getAppId().equals(appId)) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Tag is not exist");
+                throw new InternalException("Tag is not exist", ErrorCode.INTERNAL_ERROR);
             }
         });
     }

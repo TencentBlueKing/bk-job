@@ -81,7 +81,7 @@ public class AccountServiceImpl implements AccountService {
         } else {
             log.error("Get account failed! Empty response!|{}", id);
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Error while getting account info!");
+        throw new InternalException("Error while getting account info!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
@@ -144,6 +144,6 @@ public class AccountServiceImpl implements AccountService {
         } else {
             log.error("Save account failed! Empty response!|{}|{}", username, account.getAlias());
         }
-        throw new InternalException(errorCode, "Error while save or get account info!");
+        throw new InternalException("Error while save or get account info!", errorCode);
     }
 }

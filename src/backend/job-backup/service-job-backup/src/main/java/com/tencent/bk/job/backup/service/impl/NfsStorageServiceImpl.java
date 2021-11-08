@@ -80,11 +80,11 @@ public class NfsStorageServiceImpl implements StorageService {
                 boolean isCreate = parentDir.mkdirs();
                 if (!isCreate) {
                     log.error("Fail to create parent dir:{}", parentDir.getCanonicalFile());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR, "Fail to create parent dir");
+                    throw new InternalException("Fail to create parent dir", ErrorCode.INTERNAL_ERROR);
                 }
                 if (!parentDir.setWritable(true, false)) {
                     log.error("Fail to set writable:{}", parentDir.getCanonicalFile());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR, "Fail to set writable");
+                    throw new InternalException("Fail to set writable", ErrorCode.INTERNAL_ERROR);
                 }
             }
 

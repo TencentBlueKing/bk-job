@@ -104,22 +104,22 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
             String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);
             if (StringUtils.isBlank(respStr)) {
                 log.error("Fail:response is blank|uri={}", url);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password fail");
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
             }
             InternalResponse<List<Long>> resp = JsonUtils.fromJson(respStr,
                 new TypeReference<InternalResponse<List<Long>>>() {
                 });
             if (resp == null) {
                 log.error("Fail:parse respStr fail|uri={}", url);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password fail");
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
             } else if (!resp.isSuccess()) {
                 log.error("Fail: code!=0");
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password fail");
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
             }
             log.info("Encrypt db account password successfully!accountIds: {}", resp.getData());
         } catch (Exception e) {
             log.error("Fail: caught exception", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Encrypt db account password fail");
+            throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
         }
         return 0;
     }

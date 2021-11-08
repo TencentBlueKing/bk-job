@@ -289,8 +289,8 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else if (ResourceEnum.EXECUTED_FAST_FILE == resource && DimensionEnum.FILE_TRANSFER_MODE == dimension) {
             dayDistributionElementVOList = fastFileByTransferModeDayDetail(username, appIdList, startDate, endDate);
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, String.format("dimension %s of " +
-                "resource %s not supported", dimension.name(), resource.name()));
+            throw new InvalidParamException(String.format("dimension %s of " +
+                "resource %s not supported", dimension.name(), resource.name()), ErrorCode.ILLEGAL_PARAM);
         }
         return Response.buildSuccessResp(dayDistributionElementVOList);
     }

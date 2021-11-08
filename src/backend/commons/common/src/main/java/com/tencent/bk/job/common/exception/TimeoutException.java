@@ -43,8 +43,12 @@ public class TimeoutException extends ServiceException {
         super(ErrorType.TIMEOUT, errorCode, errorParams);
     }
 
-    public TimeoutException(Integer errorCode, Object errorParam) {
-        super(ErrorType.TIMEOUT, errorCode, errorParam);
+    public TimeoutException(String message, Integer errorCode) {
+        super(message, ErrorType.TIMEOUT, errorCode);
+    }
+
+    public TimeoutException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.TIMEOUT, errorCode, errorParams);
     }
 
     public TimeoutException(Throwable cause, Integer errorCode) {
@@ -55,21 +59,12 @@ public class TimeoutException extends ServiceException {
         super(cause, ErrorType.TIMEOUT, errorCode, errorParams);
     }
 
-    public TimeoutException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.TIMEOUT, errorCode, errorParam);
-    }
-
     public TimeoutException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.TIMEOUT, errorCode);
     }
 
     public TimeoutException(String message, Throwable cause, Integer errorCode,
-                            Object[] errorParams) {
+                                      Object[] errorParams) {
         super(message, cause, ErrorType.TIMEOUT, errorCode, errorParams);
-    }
-
-    public TimeoutException(String message, Throwable cause, Integer errorCode,
-                            Object errorParam) {
-        super(message, cause, ErrorType.TIMEOUT, errorCode, errorParam);
     }
 }

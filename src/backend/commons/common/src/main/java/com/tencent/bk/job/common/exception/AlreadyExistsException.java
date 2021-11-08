@@ -42,8 +42,12 @@ public class AlreadyExistsException extends ServiceException {
         super(ErrorType.ALREADY_EXISTS, errorCode, errorParams);
     }
 
-    public AlreadyExistsException(Integer errorType, Integer errorCode, Object errorParam) {
-        super(ErrorType.ALREADY_EXISTS, errorCode, errorParam);
+    public AlreadyExistsException(String message, Integer errorCode) {
+        super(message, ErrorType.ALREADY_EXISTS, errorCode);
+    }
+
+    public AlreadyExistsException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.ALREADY_EXISTS, errorCode, errorParams);
     }
 
     public AlreadyExistsException(Throwable cause, Integer errorCode) {
@@ -54,21 +58,12 @@ public class AlreadyExistsException extends ServiceException {
         super(cause, ErrorType.ALREADY_EXISTS, errorCode, errorParams);
     }
 
-    public AlreadyExistsException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.ALREADY_EXISTS, errorCode, errorParam);
-    }
-
     public AlreadyExistsException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.ALREADY_EXISTS, errorCode);
     }
 
     public AlreadyExistsException(String message, Throwable cause, Integer errorCode,
-                                  Object[] errorParams) {
+                            Object[] errorParams) {
         super(message, cause, ErrorType.ALREADY_EXISTS, errorCode, errorParams);
-    }
-
-    public AlreadyExistsException(String message, Throwable cause, Integer errorCode,
-                                  Object errorParam) {
-        super(message, cause, ErrorType.ALREADY_EXISTS, errorCode, errorParam);
     }
 }

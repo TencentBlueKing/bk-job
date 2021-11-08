@@ -22,49 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.exception;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.model.error.ErrorType;
-import lombok.Getter;
-import lombok.ToString;
-
-/**
- * 并发冲突，例如读取/修改/写入冲突
- */
-@Getter
-@ToString
-public class AbortedException extends ServiceException {
-
-    public AbortedException(Integer errorCode) {
-        super(ErrorType.ABORTED, errorCode);
+public class ArrayUtil {
+    public static Object[] toArray(Object obj) {
+        return new Object[]{obj};
     }
 
-    public AbortedException(Integer errorCode, Object[] errorParams) {
-        super(ErrorType.ABORTED, errorCode, errorParams);
-    }
-
-    public AbortedException(String message, Integer errorCode) {
-        super(message, ErrorType.ABORTED, errorCode);
-    }
-
-    public AbortedException(String message, Integer errorCode, Object[] errorParams) {
-        super(message, ErrorType.ABORTED, errorCode, errorParams);
-    }
-
-    public AbortedException(Throwable cause, Integer errorCode) {
-        super(cause, ErrorType.ABORTED, errorCode);
-    }
-
-    public AbortedException(Throwable cause, Integer errorCode, Object[] errorParams) {
-        super(cause, ErrorType.ABORTED, errorCode, errorParams);
-    }
-
-    public AbortedException(String message, Throwable cause, Integer errorCode) {
-        super(message, cause, ErrorType.ABORTED, errorCode);
-    }
-
-    public AbortedException(String message, Throwable cause, Integer errorCode,
-                             Object[] errorParams) {
-        super(message, cause, ErrorType.ABORTED, errorCode, errorParams);
+    public static Object[] toArray(Object obj1, Object obj2) {
+        return new Object[]{obj1, obj2};
     }
 }

@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -289,7 +290,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
             if (systemAccount == null) {
                 log.warn("System account is not exist, accountId={}", systemAccountId);
-                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray("ID=" + systemAccountId));
             }
             stepInstance.setAccount(systemAccount.getAccount());
             stepInstance.setAccountAlias(systemAccount.getAlias());
@@ -299,7 +300,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AccountDTO systemAccount = accountService.getSystemAccountByAlias(accountAlias, appId);
             if (systemAccount == null) {
                 log.warn("System account is not exist, appId={}, accountAlias={}", appId, accountAlias);
-                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+                throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountAlias));
             }
             stepInstance.setAccount(systemAccount.getAccount());
             stepInstance.setAccountId(systemAccount.getId());
@@ -315,7 +316,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     AccountDTO systemAccount = accountService.getAccountPreferCache(systemAccountId, null, null, null);
                     if (systemAccount == null) {
                         log.warn("System account is not exist, accountId={}", systemAccountId);
-                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
+                            ArrayUtil.toArray("ID=" + systemAccountId));
                     }
                     fileSource.setAccountAlias(systemAccount.getAlias());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -324,7 +326,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         AccountCategoryEnum.SYSTEM, fileSourceAccountAlias, appId);
                     if (systemAccount == null) {
                         log.warn("System account is not exist, accountId={}", systemAccountId);
-                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + systemAccountId);
+                        throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
+                            ArrayUtil.toArray("ID=" + systemAccountId));
                     }
                     fileSource.setAccountId(systemAccount.getId());
                     fileSource.setAccount(systemAccount.getAccount());
@@ -432,7 +435,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (StringUtils.isNotBlank(checkResultSummary)) {
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
                 if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
-                    throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION, checkResultSummary);
+                    throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
+                        ArrayUtil.toArray(checkResultSummary));
                 }
             }
         }
@@ -860,7 +864,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
                             ":{}|totalFileTaskSize:{}|maxAllowedSize:{}",
                         taskName, appCode, appId, operator, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
-                    throw new AbortedException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT, jobExecuteConfig.getFileTasksMax());
+                    throw new AbortedException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT,
+                        new Integer[]{ jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();
@@ -874,7 +879,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                             ":{}|targetServerSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
                         targetServerSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
                     throw new ResourceExhaustedException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
-                        jobExecuteConfig.getScriptTaskMaxTargetServer());
+                        new Integer[]{jobExecuteConfig.getScriptTaskMaxTargetServer()});
                 }
             }
         }

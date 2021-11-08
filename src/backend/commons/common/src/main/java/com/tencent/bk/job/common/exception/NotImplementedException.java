@@ -43,8 +43,12 @@ public class NotImplementedException extends ServiceException {
         super(ErrorType.UNIMPLEMENTED, errorCode, errorParams);
     }
 
-    public NotImplementedException(Integer errorCode, Object errorParam) {
-        super(ErrorType.UNIMPLEMENTED, errorCode, errorParam);
+    public NotImplementedException(String message, Integer errorCode) {
+        super(message, ErrorType.UNIMPLEMENTED, errorCode);
+    }
+
+    public NotImplementedException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.UNIMPLEMENTED, errorCode, errorParams);
     }
 
     public NotImplementedException(Throwable cause, Integer errorCode) {
@@ -55,21 +59,12 @@ public class NotImplementedException extends ServiceException {
         super(cause, ErrorType.UNIMPLEMENTED, errorCode, errorParams);
     }
 
-    public NotImplementedException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.UNIMPLEMENTED, errorCode, errorParam);
-    }
-
     public NotImplementedException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.UNIMPLEMENTED, errorCode);
     }
 
     public NotImplementedException(String message, Throwable cause, Integer errorCode,
-                                   Object[] errorParams) {
+                             Object[] errorParams) {
         super(message, cause, ErrorType.UNIMPLEMENTED, errorCode, errorParams);
-    }
-
-    public NotImplementedException(String message, Throwable cause, Integer errorCode,
-                                   Object errorParam) {
-        super(message, cause, ErrorType.UNIMPLEMENTED, errorCode, errorParam);
     }
 }

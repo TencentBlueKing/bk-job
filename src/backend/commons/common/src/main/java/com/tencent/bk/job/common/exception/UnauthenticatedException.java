@@ -43,8 +43,12 @@ public class UnauthenticatedException extends ServiceException {
         super(ErrorType.UNAUTHENTICATED, errorCode, errorParams);
     }
 
-    public UnauthenticatedException(Integer errorCode, Object errorParam) {
-        super(ErrorType.UNAUTHENTICATED, errorCode, errorParam);
+    public UnauthenticatedException(String message, Integer errorCode) {
+        super(message, ErrorType.UNAUTHENTICATED, errorCode);
+    }
+
+    public UnauthenticatedException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.UNAUTHENTICATED, errorCode, errorParams);
     }
 
     public UnauthenticatedException(Throwable cause, Integer errorCode) {
@@ -55,21 +59,12 @@ public class UnauthenticatedException extends ServiceException {
         super(cause, ErrorType.UNAUTHENTICATED, errorCode, errorParams);
     }
 
-    public UnauthenticatedException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.UNAUTHENTICATED, errorCode, errorParam);
-    }
-
     public UnauthenticatedException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.UNAUTHENTICATED, errorCode);
     }
 
     public UnauthenticatedException(String message, Throwable cause, Integer errorCode,
-                                    Object[] errorParams) {
+                            Object[] errorParams) {
         super(message, cause, ErrorType.UNAUTHENTICATED, errorCode, errorParams);
-    }
-
-    public UnauthenticatedException(String message, Throwable cause, Integer errorCode,
-                                    Object errorParam) {
-        super(message, cause, ErrorType.UNAUTHENTICATED, errorCode, errorParam);
     }
 }

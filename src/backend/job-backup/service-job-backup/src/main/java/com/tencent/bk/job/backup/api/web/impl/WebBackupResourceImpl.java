@@ -123,11 +123,11 @@ public class WebBackupResourceImpl implements WebBackupResource {
             try {
                 ExportJobExecutor.startExport(id);
             } catch (Exception e) {
-                throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Start job failed! System busy!");
+                throw new InternalException("Start job failed! System busy!", e, ErrorCode.INTERNAL_ERROR);
             }
             return Response.buildSuccessResp(exportInfoVO);
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Start failed!");
+        throw new InternalException("Start failed!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             exportInfoVO.setLog(exportLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
             return Response.buildSuccessResp(exportInfoVO);
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
@@ -179,10 +179,10 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 exportInfo.setFileName(null);
                 return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
             } else {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Wrong job status");
+                throw new InternalException("Wrong job status", ErrorCode.INTERNAL_ERROR);
             }
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
@@ -193,13 +193,13 @@ public class WebBackupResourceImpl implements WebBackupResource {
             exportInfo.setFileName(null);
             return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
     public Response<ImportInfoVO> getImportFileInfo(String username, Long appId, MultipartFile uploadFile) {
         if (uploadFile.isEmpty()) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "No File");
+            throw new InternalException("No File", ErrorCode.INTERNAL_ERROR);
         }
         String originalFileName = uploadFile.getOriginalFilename();
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
@@ -216,7 +216,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         } else {
             log.error("Upload unknown type of file!");
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Upload failed! Unknown file type!");
+        throw new InternalException("Upload failed! Unknown file type!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
@@ -254,7 +254,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             importJobInfo.setTemplateInfo(importRequest.getTemplateInfo().stream().map(BackupTemplateInfoDTO::fromVO)
                 .collect(Collectors.toList()));
         } else {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "No template selected!");
+            throw new InternalException("No template selected!", ErrorCode.INTERNAL_ERROR);
         }
         importJobInfo.setDuplicateSuffix(importRequest.getDuplicateSuffix());
         importJobInfo.setDuplicateIdHandler(DuplicateIdHandlerEnum.valueOf(importRequest.getDuplicateIdHandler()));
@@ -270,7 +270,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             importInfoVO.setLog(importLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
             return Response.buildSuccessResp(importInfoVO);
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Not Found");
+        throw new InternalException("Not Found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override

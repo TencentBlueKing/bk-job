@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
@@ -198,7 +199,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceTaskDTO.getFileSourceId());
         if (fileSourceDTO == null) {
             throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST,
-                "fileSourceId:" + fileSourceTaskDTO.getFileSourceId());
+                ArrayUtil.toArray("fileSourceId:" + fileSourceTaskDTO.getFileSourceId()));
         }
         String filePathWithSourceAlias = PathUtil.joinFilePath(fileSourceDTO.getAlias(), filePath);
         List<ServiceFileTaskLogDTO> fileTaskLogs = new ArrayList<>();

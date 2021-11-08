@@ -34,8 +34,8 @@ import lombok.ToString;
 @Getter
 @ToString
 public class ServiceException extends RuntimeException {
-    private ErrorType errorType;
-    private Integer errorCode;
+    private final ErrorType errorType;
+    private final Integer errorCode;
     private Object[] errorParams;
 
     public ServiceException(ErrorType errorType, Integer errorCode) {
@@ -51,12 +51,17 @@ public class ServiceException extends RuntimeException {
         this.errorParams = errorParams;
     }
 
-    public ServiceException(ErrorType errorType, Integer errorCode, Object errorParam) {
-        super();
+    public ServiceException(String message, ErrorType errorType, Integer errorCode) {
+        super(message);
         this.errorType = errorType;
         this.errorCode = errorCode;
-        this.errorParams = new Object[1];
-        this.errorParams[0] = errorParam;
+    }
+
+    public ServiceException(String message, ErrorType errorType, Integer errorCode, Object[] errorParams) {
+        super(message);
+        this.errorType = errorType;
+        this.errorCode = errorCode;
+        this.errorParams = errorParams;
     }
 
     public ServiceException(Throwable cause, ErrorType errorType, Integer errorCode) {
@@ -72,14 +77,6 @@ public class ServiceException extends RuntimeException {
         this.errorParams = errorParams;
     }
 
-    public ServiceException(Throwable cause, ErrorType errorType, Integer errorCode, Object errorParam) {
-        super(cause);
-        this.errorType = errorType;
-        this.errorCode = errorCode;
-        this.errorParams = new Object[1];
-        this.errorParams[0] = errorParam;
-    }
-
     public ServiceException(String message, Throwable cause, ErrorType errorType, Integer errorCode) {
         super(message, cause);
         this.errorType = errorType;
@@ -92,14 +89,5 @@ public class ServiceException extends RuntimeException {
         this.errorType = errorType;
         this.errorCode = errorCode;
         this.errorParams = errorParams;
-    }
-
-    public ServiceException(String message, Throwable cause, ErrorType errorType, Integer errorCode,
-                            Object errorParam) {
-        super(message, cause);
-        this.errorType = errorType;
-        this.errorCode = errorCode;
-        this.errorParams = new Object[1];
-        this.errorParams[0] = errorParam;
     }
 }

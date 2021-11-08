@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
@@ -154,7 +155,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id, appId={},id={}, the script is not exist", appId, scriptVersionId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptVersionId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
         }
 
         // 鉴权

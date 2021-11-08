@@ -100,22 +100,22 @@ public class ResourceTagMigrationTask extends BaseUpgradeTask {
             String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);
             if (StringUtils.isBlank(respStr)) {
                 log.error("Fail:response is blank|uri={}", url);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Migration tags fail");
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
             }
             InternalResponse<List<ResourceTagDTO>> resp = JsonUtils.fromJson(respStr,
                 new TypeReference<InternalResponse<List<ResourceTagDTO>>>() {
                 });
             if (resp == null) {
                 log.error("Fail:parse respStr fail|uri={}", url);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Migration tags fail");
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
             } else if (!resp.isSuccess()) {
                 log.error("Fail: code!=0");
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Migration tags fail");
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
             }
             log.info("Migration tags successfully!tags: {}", JsonUtils.toJson(resp.getData()));
         } catch (Exception e) {
             log.error("Fail: caught exception", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Migration tags fail");
+            throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
         }
         return 0;
     }

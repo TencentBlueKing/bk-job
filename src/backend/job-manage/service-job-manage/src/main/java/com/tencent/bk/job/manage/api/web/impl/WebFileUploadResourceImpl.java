@@ -168,7 +168,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                 String errMsg = String.format("Fail to upload file %s to artifactory", fullFilePath);
                 fileResultVO.setStatus(-1);
                 log.error(errMsg, e);
-                throw new InternalException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, errMsg);
+                throw new InternalException(errMsg, ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } finally {
                 fileUploadResults.add(fileResultVO);
             }

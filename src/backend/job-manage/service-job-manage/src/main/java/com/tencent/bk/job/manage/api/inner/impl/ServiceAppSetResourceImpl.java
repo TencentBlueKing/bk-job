@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
@@ -183,17 +184,18 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private void checkAddAppSetRequest(ServiceAddAppSetRequest request) {
         if (request.getId() == null || request.getId() > 9999999 || request.getId() < 8000000) {
             log.warn("Add app-set, appId is invalid");
-            throw new InvalidParamException(ErrorCode.WRONG_APP_ID,
-                "AppId should not be empty, and should between 8000000 and 9999999");
+            throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
         }
         if (StringUtils.isEmpty(request.getName())) {
             log.warn("Add app-set, appName is empty");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "App name is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("App name is empty"));
         }
         checkAndGetMaintainers(request.getMaintainers());
         if (request.isDynamicAppSet()) {
             if (request.getDeptId() == null || request.getDeptId() < 1) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Dept id is empty!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                    ArrayUtil.toArray("Dept id is empty!"));
             }
         } else {
             if (request.getSubAppIds() != null && !request.getSubAppIds().isEmpty()) {
@@ -205,11 +207,12 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private List<String> checkAndGetMaintainers(String maintainers) {
         List<String> maintainerList = splitToList(maintainers);
         if (maintainerList.isEmpty()) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param maintainers is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         for (String maintainer : maintainerList) {
             if (!userDAO.isUserExist(maintainer)) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "maintainer:" + maintainer + " is not exist");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                    ArrayUtil.toArray("maintainer:" + maintainer + " is not exist"));
             }
         }
         return maintainerList;
@@ -221,10 +224,12 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         String maintainers = request.getAddMaintainers();
         log.info("Add app-set maintainers, appId:{}, maintainers:{}", appId, maintainers);
         if (appId == null) {
-           throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param appId is empty");
+           throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+               ArrayUtil.toArray("Param appId is empty"));
         }
         if (StringUtils.isEmpty(maintainers)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM,"Param maintainers is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("Param maintainers is empty"));
         }
         ApplicationInfoDTO app = checkGetAndAppSet(appId);
         List<String> newMaintainers = checkAndGetMaintainers(maintainers);
@@ -249,11 +254,13 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         ApplicationInfoDTO app = applicationDAO.getAppInfoById(appId);
         if (app == null) {
             log.warn("App is not exist, appId:{}", appId);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "App-set is not exist");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("App-set is not exist"));
         }
         if (!(app.getAppType() == AppTypeEnum.APP_SET || app.getAppType() == AppTypeEnum.ALL_APP)) {
             log.warn("App is not app-set or all-app, appId:{}", appId);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Not app-set or app-all type");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("Not app-set or app-all type"));
         }
         return app;
     }
@@ -297,10 +304,12 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         String subAppIds = request.getAddSubAppIds();
         log.info("Add app-set subApp, appId:{}, subAppIds:{}", appId, subAppIds);
         if (appId == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param appId is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("Param appId is empty"));
         }
         if (StringUtils.isEmpty(subAppIds)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param subAppIds is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("Param subAppIds is empty"));
         }
         ApplicationInfoDTO app = checkGetAndAppSet(appId);
         List<String> newAppIds = checkAndGetAppIds(subAppIds);
@@ -324,11 +333,11 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
     private List<String> checkAndGetAppIds(String subAppIds) {
         List<String> appList = splitToList(subAppIds);
         if (appList.isEmpty()) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM, "Param subAppIds is empty");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         for (String appId : appList) {
             if (applicationDAO.getAppInfoById(Long.parseLong(appId)) == null) {
-                throw new NotFoundException(ErrorCode.WRONG_APP_ID, "Sub-app:" + appId + " is not exist");
+                throw new NotFoundException(ErrorCode.WRONG_APP_ID);
             }
         }
         return appList;

@@ -43,8 +43,12 @@ public class InvalidParamException extends ServiceException {
         super(ErrorType.INVALID_PARAM, errorCode, errorParams);
     }
 
-    public InvalidParamException(Integer errorCode, Object errorParam) {
-        super(ErrorType.INVALID_PARAM, errorCode, errorParam);
+    public InvalidParamException(String message, Integer errorCode) {
+        super(message, ErrorType.INVALID_PARAM, errorCode);
+    }
+
+    public InvalidParamException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.INVALID_PARAM, errorCode, errorParams);
     }
 
     public InvalidParamException(Throwable cause, Integer errorCode) {
@@ -53,10 +57,6 @@ public class InvalidParamException extends ServiceException {
 
     public InvalidParamException(Throwable cause, Integer errorCode, Object[] errorParams) {
         super(cause, ErrorType.INVALID_PARAM, errorCode, errorParams);
-    }
-
-    public InvalidParamException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.INVALID_PARAM, errorCode, errorParam);
     }
 
     public InvalidParamException(String message, Throwable cause, Integer errorCode) {
@@ -68,12 +68,8 @@ public class InvalidParamException extends ServiceException {
         super(message, cause, ErrorType.INVALID_PARAM, errorCode, errorParams);
     }
 
-    public InvalidParamException(String message, Throwable cause, Integer errorCode,
-                                 Object errorParam) {
-        super(message, cause, ErrorType.INVALID_PARAM, errorCode, errorParam);
-    }
-
     public InvalidParamException(ValidateResult validateResult) {
         super(ErrorType.INVALID_PARAM, validateResult.getErrorCode(), validateResult.getErrorParams());
     }
+
 }

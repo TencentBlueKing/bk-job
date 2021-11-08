@@ -176,7 +176,7 @@ public abstract class AbstractHttpHelper {
                     url,
                     headers
                 );
-                throw new InternalException(ErrorCode.API_ERROR, message);
+                throw new InternalException(message, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toByteArray(entity);
@@ -249,7 +249,7 @@ public abstract class AbstractHttpHelper {
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
                 log.info("Put request fail, statusCode={}, errorReason={}", statusCode, message);
-                throw new InternalException(ErrorCode.API_ERROR, message);
+                throw new InternalException(message, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             return new String(EntityUtils.toByteArray(entity), CHARSET);
@@ -269,8 +269,8 @@ public abstract class AbstractHttpHelper {
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
                 log.info("Delete request fail, url={}, statusCode={}, errorReason={}", url, statusCode, message);
-                throw new InternalException(ErrorCode.API_ERROR, String.format("url=%s,statusCode=%s" +
-                    "，message=%s", url, statusCode, message));
+                throw new InternalException(String.format("url=%s,statusCode=%s" +
+                    "，message=%s", url, statusCode, message), ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             byte[] respBytes = EntityUtils.toByteArray(entity);

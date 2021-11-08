@@ -42,8 +42,12 @@ public class NotFoundException extends ServiceException {
         super(ErrorType.NOT_FOUND, errorCode, errorParams);
     }
 
-    public NotFoundException(Integer errorCode, Object errorParam) {
-        super(ErrorType.NOT_FOUND, errorCode, errorParam);
+    public NotFoundException(String message, Integer errorCode) {
+        super(message, ErrorType.NOT_FOUND, errorCode);
+    }
+
+    public NotFoundException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.NOT_FOUND, errorCode, errorParams);
     }
 
     public NotFoundException(Throwable cause, Integer errorCode) {
@@ -54,21 +58,12 @@ public class NotFoundException extends ServiceException {
         super(cause, ErrorType.NOT_FOUND, errorCode, errorParams);
     }
 
-    public NotFoundException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.NOT_FOUND, errorCode, errorParam);
-    }
-
     public NotFoundException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.NOT_FOUND, errorCode);
     }
 
     public NotFoundException(String message, Throwable cause, Integer errorCode,
-                             Object[] errorParams) {
+                                 Object[] errorParams) {
         super(message, cause, ErrorType.NOT_FOUND, errorCode, errorParams);
-    }
-
-    public NotFoundException(String message, Throwable cause, Integer errorCode,
-                             Object errorParam) {
-        super(message, cause, ErrorType.NOT_FOUND, errorCode, errorParam);
     }
 }

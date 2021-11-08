@@ -43,8 +43,12 @@ public class ResourceExhaustedException extends ServiceException {
         super(ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParams);
     }
 
-    public ResourceExhaustedException(Integer errorCode, Object errorParam) {
-        super(ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParam);
+    public ResourceExhaustedException(String message, Integer errorCode) {
+        super(message, ErrorType.RESOURCE_EXHAUSTED, errorCode);
+    }
+
+    public ResourceExhaustedException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParams);
     }
 
     public ResourceExhaustedException(Throwable cause, Integer errorCode) {
@@ -55,21 +59,12 @@ public class ResourceExhaustedException extends ServiceException {
         super(cause, ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParams);
     }
 
-    public ResourceExhaustedException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParam);
-    }
-
     public ResourceExhaustedException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.RESOURCE_EXHAUSTED, errorCode);
     }
 
     public ResourceExhaustedException(String message, Throwable cause, Integer errorCode,
-                                      Object[] errorParams) {
+                                   Object[] errorParams) {
         super(message, cause, ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParams);
-    }
-
-    public ResourceExhaustedException(String message, Throwable cause, Integer errorCode,
-                                      Object errorParam) {
-        super(message, cause, ErrorType.RESOURCE_EXHAUSTED, errorCode, errorParam);
     }
 }

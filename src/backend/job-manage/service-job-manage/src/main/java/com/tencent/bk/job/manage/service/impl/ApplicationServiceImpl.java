@@ -802,8 +802,8 @@ public class ApplicationServiceImpl implements ApplicationService {
                         inputCloudIPList.add(new CloudIPDTO(Long.parseLong(arr[0].trim()), arr[1].trim()));
                     } catch (Exception e) {
                         log.warn("Invalid Ip:" + ip, e);
-                        throw new InternalException(ErrorCode.INTERNAL_ERROR, "every ip in checkIpList must contain " +
-                            "cloudAreaId");
+                        throw new InternalException("every ip in checkIpList must contain cloudAreaId",
+                            ErrorCode.INTERNAL_ERROR);
                     }
                 } else {
                     inputCloudIPList.add(new CloudIPDTO(null, ip.trim()));
@@ -1017,8 +1017,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             InstanceTopologyDTO appTopologyTree = ccClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
                 username);
             if (appTopologyTree == null) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR,
-                    "Fail to getBizTopo of appId " + appId + " from CMDB");
+                throw new InternalException("Fail to getBizTopo of appId " + appId + " from CMDB",
+                    ErrorCode.INTERNAL_ERROR);
             }
             for (AppTopologyTreeNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
@@ -1027,9 +1027,8 @@ public class ApplicationServiceImpl implements ApplicationService {
                 if (completeNode == null) {
                     log.warn("Cannot find node in topo, node:{}, topo:", JsonUtils.toJson(ccInstanceDTO));
                     TopologyUtil.printTopo(appTopologyTree);
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR,
-                        "Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
-                            "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo");
+                    throw new InternalException("Fail to find node {objectId:" + ccInstanceDTO.getObjectType() + "," +
+                        "instanceId:" + ccInstanceDTO.getInstanceId() + ") from app topo", ErrorCode.INTERNAL_ERROR);
                 }
                 moduleIds.addAll(TopologyUtil.findModuleIdsFromTopo(completeNode));
             }

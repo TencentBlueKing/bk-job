@@ -118,9 +118,8 @@ class DownloadFileTask extends Thread {
                 Thread.sleep(0);
             } while (!downloadSuccess && count < 10);
             if (!downloadSuccess) {
-                throw new InternalException(ErrorCode.INTERNAL_ERROR,
-                    String.format("Fail to download %s because md5 not match 10 times, " +
-                    "filePath=%s", targetPath, filePath));
+                throw new InternalException(String.format("Fail to download %s because md5 not match 10 times, " +
+                    "filePath=%s", targetPath, filePath), ErrorCode.INTERNAL_ERROR);
             }
         } catch (InterruptedException e) {
             // 停止下载任务时，线程被主动中断，删除下一半的文件

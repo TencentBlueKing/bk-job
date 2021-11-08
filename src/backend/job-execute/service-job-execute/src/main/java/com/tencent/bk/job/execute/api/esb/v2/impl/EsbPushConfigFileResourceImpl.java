@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -197,11 +198,11 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         AccountDTO account = accountService.getSystemAccountByAlias(accountAlias, appId);
         if (account == null) {
             log.info("Account:{} is not exist in app:{}", accountAlias, appId);
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountAlias));
         }
         if (AccountCategoryEnum.SYSTEM != account.getCategory()) {
             log.info("Account:{} is not os account in app:{}", accountAlias, appId);
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountAlias));
         }
         return account;
     }

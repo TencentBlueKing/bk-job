@@ -169,7 +169,7 @@ public class FileServiceImpl implements FileService {
             });
         } catch (Exception e) {
             log.error("Fail to parse bucket from response={}", respStr, e);
-            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE, e.getMessage());
+            throw new InternalException(e.getMessage(), ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE);
         }
         if (resp.isSuccess()) {
             return resp.getData();

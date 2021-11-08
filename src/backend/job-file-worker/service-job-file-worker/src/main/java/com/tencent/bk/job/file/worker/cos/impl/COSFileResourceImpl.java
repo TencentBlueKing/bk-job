@@ -99,7 +99,7 @@ public class COSFileResourceImpl implements IFileResource {
             return bucketDTOList;
         } catch (Throwable t) {
             log.error("Fail to listBucket", t);
-            throw new InvalidParamException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_LIST_BUCKET, t.getMessage());
+            throw new InvalidParamException(t.getMessage(), ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_LIST_BUCKET);
         }
     }
 
@@ -112,7 +112,7 @@ public class COSFileResourceImpl implements IFileResource {
         } catch (Exception e) {
             String msg = "Fail to listAllObjects from " + cosBaseService.getEndPointDomain(req);
             log.error(msg, e);
-            throw new InvalidParamException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_LIST_OBJECTS, msg);
+            throw new InvalidParamException(msg, ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_LIST_OBJECTS);
         }
         List<FileDTO> fileDTOList = new ArrayList<>();
         cosObjectSummaryList.forEach(cosObjectSummary -> {
@@ -140,7 +140,7 @@ public class COSFileResourceImpl implements IFileResource {
             return true;
         } catch (Exception e) {
             log.error("Fail to delete bucket {}", bucketName, e);
-            throw new InvalidParamException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_BUCKET, e.getMessage());
+            throw new InvalidParamException(e.getMessage(), ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_BUCKET);
         }
     }
 
@@ -153,7 +153,7 @@ public class COSFileResourceImpl implements IFileResource {
             return true;
         } catch (Exception e) {
             log.error("Fail to delete bucket {} file:{}", bucketName, key, e);
-            throw new InvalidParamException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_OBJECT, e.getMessage());
+            throw new InvalidParamException(e.getMessage(), ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_OBJECT);
         }
     }
 

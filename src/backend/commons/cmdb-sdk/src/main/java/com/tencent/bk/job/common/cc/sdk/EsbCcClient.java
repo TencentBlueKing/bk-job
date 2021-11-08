@@ -494,7 +494,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
             status = "error";
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, e.getMessage());
+            throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             long end = System.nanoTime();
             meterRegistry.timer("cmdb.api", "api_name", uri, "status", status)
@@ -955,7 +955,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             SearchAppResult data = esbResp.getData();
             if (data == null) {
                 appList.clear();
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, "Data is null");
+                throw new InternalException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
             }
             List<BusinessInfoDTO> businessInfos = data.getInfo();
             if (businessInfos != null && !businessInfos.isEmpty()) {
@@ -1017,7 +1017,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             SearchAppResult data = esbResp.getData();
             if (data == null) {
                 appList.clear();
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, "data is null");
+                throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
             }
             List<BusinessInfoDTO> businessInfos = data.getInfo();
             if (businessInfos != null && !businessInfos.isEmpty()) {
@@ -1057,11 +1057,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             });
         SearchAppResult data = esbResp.getData();
         if (data == null) {
-            throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, "data is null");
+            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         List<BusinessInfoDTO> businessInfos = data.getInfo();
         if (businessInfos == null || businessInfos.isEmpty()) {
-            throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, "data is null");
+            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         return convertToAppInfo(businessInfos.get(0));
     }

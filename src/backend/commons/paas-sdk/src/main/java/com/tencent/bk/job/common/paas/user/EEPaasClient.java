@@ -139,7 +139,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
-            throw new InternalException(e, ErrorCode.PAAS_API_DATA_ERROR, errorMsg);
+            throw new InternalException(errorMsg, e, ErrorCode.PAAS_API_DATA_ERROR);
         }
         if (oriUsers == null || oriUsers.isEmpty()) {
             return null;

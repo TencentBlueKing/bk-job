@@ -274,7 +274,7 @@ public class ImportJobExecutor {
                             "Find or create db account " + account.getAlias() +
                                 "|" + account.getDbSystemAccount().getAlias() + " " + "failed!",
                             LogEntityTypeEnum.ERROR);
-                        throw new InternalException(ErrorCode.INTERNAL_ERROR, "Find or create account failed!");
+                        throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
                     }
                     account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                 }
@@ -298,7 +298,7 @@ public class ImportJobExecutor {
                 logService.addImportLog(importJob.getAppId(), importJob.getId(),
                     "Find or create account " + account.getAlias() +
                         " " + "failed!", LogEntityTypeEnum.ERROR);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR, "Find or create account failed!");
+                throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
             }
         } else {
             log.debug("Already create account|{}|{}", account.getAppId(), account.getAlias());

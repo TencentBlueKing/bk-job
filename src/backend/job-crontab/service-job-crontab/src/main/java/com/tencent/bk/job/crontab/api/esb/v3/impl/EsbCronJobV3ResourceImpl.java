@@ -231,7 +231,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         if (request != null) {
             request.validate();
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON, "request body cannot be null");
+            throw new InvalidParamException("request body cannot be null", ErrorCode.ILLEGAL_PARAM_WITH_REASON);
         }
         Long appId = request.getAppId();
         AuthResult authResult;
@@ -274,7 +274,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                 String name = esbGlobalVarV3DTO.getName();
                 if (id == null && StringUtils.isBlank(name)) {
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
-                        "id/name of globalVar cannot be null/blank at the same time");
+                        new String[]{"id/name of globalVar cannot be null/blank at the same time"});
                 }
                 if (id == null) {
                     // 根据name解析id

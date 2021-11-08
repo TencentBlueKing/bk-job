@@ -106,7 +106,7 @@ public class LoginServiceImpl implements LoginService {
             return userDto.orElse(null);
         } catch (ExecutionException e) {
             log.warn("Error occur when get user from paas!");
-            throw new InternalException(e, ErrorCode.PAAS_API_DATA_ERROR, "Query userinfo from paas fail");
+            throw new InternalException("Query userinfo from paas fail", e, ErrorCode.PAAS_API_DATA_ERROR);
         }
     }
 

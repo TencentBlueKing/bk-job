@@ -67,7 +67,7 @@ public class QuartzJobBuilder {
         job.setDescription(description);
 
         if (key == null) {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR, "Job mast have key!");
+            throw new InternalException("Job mast have key!", ErrorCode.INTERNAL_ERROR);
         }
 
         job.setKey(key);

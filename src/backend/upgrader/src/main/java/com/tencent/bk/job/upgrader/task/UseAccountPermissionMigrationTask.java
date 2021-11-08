@@ -112,7 +112,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         } catch (IOException | GeneralSecurityException e) {
             String msg = "Fail to generate jwt auth token";
             log.error(msg, e);
-            throw new InternalException(e, ErrorCode.INTERNAL_ERROR, msg);
+            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
         }
         String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
         jobManageClient = new JobClient(

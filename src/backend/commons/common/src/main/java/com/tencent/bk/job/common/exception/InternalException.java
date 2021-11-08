@@ -43,8 +43,12 @@ public class InternalException extends ServiceException {
         super(ErrorType.INTERNAL, errorCode, errorParams);
     }
 
-    public InternalException(Integer errorCode, Object errorParam) {
-        super(ErrorType.INTERNAL, errorCode, errorParam);
+    public InternalException(String message, Integer errorCode) {
+        super(message, ErrorType.INTERNAL, errorCode);
+    }
+
+    public InternalException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.INTERNAL, errorCode, errorParams);
     }
 
     public InternalException(Throwable cause, Integer errorCode) {
@@ -55,10 +59,6 @@ public class InternalException extends ServiceException {
         super(cause, ErrorType.INTERNAL, errorCode, errorParams);
     }
 
-    public InternalException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.INTERNAL, errorCode, errorParam);
-    }
-
     public InternalException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.INTERNAL, errorCode);
     }
@@ -66,10 +66,5 @@ public class InternalException extends ServiceException {
     public InternalException(String message, Throwable cause, Integer errorCode,
                              Object[] errorParams) {
         super(message, cause, ErrorType.INTERNAL, errorCode, errorParams);
-    }
-
-    public InternalException(String message, Throwable cause, Integer errorCode,
-                             Object errorParam) {
-        super(message, cause, ErrorType.INTERNAL, errorCode, errorParam);
     }
 }

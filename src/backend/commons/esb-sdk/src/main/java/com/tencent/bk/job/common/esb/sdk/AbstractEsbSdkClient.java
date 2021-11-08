@@ -252,7 +252,7 @@ public abstract class AbstractEsbSdkClient {
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = method + " " + uri + ", error: " + "Response is blank";
                 log.error(errorMsg);
-                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             } else {
                 log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
             }
@@ -260,7 +260,7 @@ public abstract class AbstractEsbSdkClient {
             if (esbResp == null) {
                 String errorMsg = method + " " + uri + ", error: " + "Response is blank after parse";
                 log.error(errorMsg);
-                throw new InternalException(ErrorCode.API_ERROR, errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             } else if (!esbResp.getResult()) {
                 log.error(
                     "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
@@ -270,7 +270,7 @@ public abstract class AbstractEsbSdkClient {
                     , esbResp.getMessage()
                     , method, uri, reqStr, respStr
                 );
-                throw new InternalException(ErrorCode.API_ERROR, "Esb response code not success");
+                throw new InternalException("Esb response code not success", ErrorCode.API_ERROR);
             }
             if (esbResp.getData() == null) {
                 log.warn(
@@ -286,7 +286,7 @@ public abstract class AbstractEsbSdkClient {
         } catch (Throwable e) {
             String errorMsg = "Fail to request ESB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
-            throw new InternalException(e, ErrorCode.API_ERROR, "Fail to request esb api");
+            throw new InternalException("Fail to request esb api", e, ErrorCode.API_ERROR);
         }
     }
 }

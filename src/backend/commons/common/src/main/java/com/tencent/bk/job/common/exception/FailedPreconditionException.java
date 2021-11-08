@@ -43,8 +43,12 @@ public class FailedPreconditionException extends ServiceException {
         super(ErrorType.FAILED_PRECONDITION, errorCode, errorParams);
     }
 
-    public FailedPreconditionException(Integer errorCode, Object errorParam) {
-        super(ErrorType.FAILED_PRECONDITION, errorCode, errorParam);
+    public FailedPreconditionException(String message, Integer errorCode) {
+        super(message, ErrorType.FAILED_PRECONDITION, errorCode);
+    }
+
+    public FailedPreconditionException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.FAILED_PRECONDITION, errorCode, errorParams);
     }
 
     public FailedPreconditionException(Throwable cause, Integer errorCode) {
@@ -55,10 +59,6 @@ public class FailedPreconditionException extends ServiceException {
         super(cause, ErrorType.FAILED_PRECONDITION, errorCode, errorParams);
     }
 
-    public FailedPreconditionException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.FAILED_PRECONDITION, errorCode, errorParam);
-    }
-
     public FailedPreconditionException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.FAILED_PRECONDITION, errorCode);
     }
@@ -66,10 +66,5 @@ public class FailedPreconditionException extends ServiceException {
     public FailedPreconditionException(String message, Throwable cause, Integer errorCode,
                                        Object[] errorParams) {
         super(message, cause, ErrorType.FAILED_PRECONDITION, errorCode, errorParams);
-    }
-
-    public FailedPreconditionException(String message, Throwable cause, Integer errorCode,
-                                       Object errorParam) {
-        super(message, cause, ErrorType.FAILED_PRECONDITION, errorCode, errorParam);
     }
 }

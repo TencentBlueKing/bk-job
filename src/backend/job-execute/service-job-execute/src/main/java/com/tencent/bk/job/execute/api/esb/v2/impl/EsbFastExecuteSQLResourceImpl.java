@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastExecuteSQLResource;
@@ -191,11 +192,13 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         AccountDTO account = accountService.getAccountById(request.getDbAccountId());
         if (account == null) {
             log.info("Account:{} is not exist in app:{}", request.getDbAccountId(), request.getAppId());
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
+                ArrayUtil.toArray("ID=" + request.getDbAccountId()));
         }
         if (AccountCategoryEnum.DB != account.getCategory()) {
             log.info("Account:{} is not db account in app:{}", request.getDbAccountId(), request.getAppId());
-            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, "ID=" + request.getDbAccountId());
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST,
+                ArrayUtil.toArray("ID=" + request.getDbAccountId()));
         }
         stepInstance.setAccountId(account.getDbSystemAccountId());
         stepInstance.setDbAccountId(account.getId());

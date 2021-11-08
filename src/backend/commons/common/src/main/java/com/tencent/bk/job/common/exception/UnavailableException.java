@@ -43,8 +43,12 @@ public class UnavailableException extends ServiceException {
         super(ErrorType.UNAVAILABLE, errorCode, errorParams);
     }
 
-    public UnavailableException(Integer errorCode, Object errorParam) {
-        super(ErrorType.UNAVAILABLE, errorCode, errorParam);
+    public UnavailableException(String message, Integer errorCode) {
+        super(message, ErrorType.UNAVAILABLE, errorCode);
+    }
+
+    public UnavailableException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.UNAVAILABLE, errorCode, errorParams);
     }
 
     public UnavailableException(Throwable cause, Integer errorCode) {
@@ -55,21 +59,12 @@ public class UnavailableException extends ServiceException {
         super(cause, ErrorType.UNAVAILABLE, errorCode, errorParams);
     }
 
-    public UnavailableException(Throwable cause, Integer errorCode, Object errorParam) {
-        super(cause, ErrorType.UNAVAILABLE, errorCode, errorParam);
-    }
-
     public UnavailableException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.UNAVAILABLE, errorCode);
     }
 
     public UnavailableException(String message, Throwable cause, Integer errorCode,
-                                Object[] errorParams) {
+                                    Object[] errorParams) {
         super(message, cause, ErrorType.UNAVAILABLE, errorCode, errorParams);
-    }
-
-    public UnavailableException(String message, Throwable cause, Integer errorCode,
-                                Object errorParam) {
-        super(message, cause, ErrorType.UNAVAILABLE, errorCode, errorParam);
     }
 }

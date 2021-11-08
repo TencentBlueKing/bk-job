@@ -91,15 +91,16 @@ public class FeignErrorDecoder extends ErrorDecoder.Default {
             case INTERNAL:
             case UNAVAILABLE:
             case TIMEOUT:
-                return new InternalException(exception, errorCode, errorMsg);
+                // 微服务内部调用错误，应该转换为外部的错误;例如，从另一个服务接收 INVALID_PARAM 错误,应该将 INTERNAL_ERROR 传播给它自己的调用者。
+                return new InternalException(exception, errorCode);
             case PERMISSION_DENIED:
                 return new PermissionDeniedException(AuthResult.fromAuthResultDTO(response.getAuthResult()));
             case NOT_FOUND:
-                return new NotFoundException(exception, errorCode, errorMsg);
+                return new NotFoundException(exception, errorCode);
             case ALREADY_EXISTS:
-                return new AlreadyExistsException(exception, errorCode, errorMsg);
+                return new AlreadyExistsException(exception, errorCode);
             case FAILED_PRECONDITION:
-                return new FailedPreconditionException(errorCode, errorMsg);
+                return new FailedPreconditionException(errorCode);
             default:
                 return new ServiceException(type, errorCode);
         }

@@ -414,7 +414,7 @@ public class CronJobServiceImpl implements CronJobService {
             quartzTaskHandler.addJob(job);
         } catch (SchedulerException e) {
             log.error("Error while add job to quartz!", e);
-            throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
+            throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
         }
 
         return true;
@@ -604,7 +604,7 @@ public class CronJobServiceImpl implements CronJobService {
                     quartzTaskHandler.addJob(job);
                 } catch (SchedulerException e) {
                     log.error("Error while add job to quartz!", e);
-                    throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
+                    throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
                 }
 
                 if (cronJobInfo.getNotifyOffset() > 0) {
@@ -638,7 +638,7 @@ public class CronJobServiceImpl implements CronJobService {
                         quartzTaskHandler.addJob(notifyJob);
                     } catch (SchedulerException e) {
                         log.error("Error while add job to quartz!", e);
-                        throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
+                        throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
                     }
                 } else {
                     try {
@@ -646,7 +646,7 @@ public class CronJobServiceImpl implements CronJobService {
                             JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
                     } catch (SchedulerException e) {
                         log.error("Error while add job to quartz!", e);
-                        throw new InternalException(e, ErrorCode.INTERNAL_ERROR, "Add to quartz failed!");
+                        throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
                     }
                 }
                 return true;

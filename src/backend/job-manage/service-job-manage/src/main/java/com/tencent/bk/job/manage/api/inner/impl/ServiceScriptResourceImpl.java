@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -73,7 +74,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
         ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptVersionId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
         }
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
         return InternalResponse.buildSuccessResp(scriptVersion);
@@ -89,7 +90,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
         ScriptDTO script = scriptService.getScriptVersion(scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptVersionId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
         }
 
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
@@ -131,7 +132,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
         ScriptDTO script = scriptService.getScriptWithoutTagByScriptId(scriptId);
         if (script == null) {
             log.warn("Get script by id:{}, the script is not exist", scriptId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, scriptId);
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptId));
         }
         ServiceScriptDTO serviceScript = ScriptConverter.convertToServiceScriptDTO(script);
         return InternalResponse.buildSuccessResp(serviceScript);
