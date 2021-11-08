@@ -125,7 +125,7 @@
     import JbForm from '@components/jb-form';
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
-    import Layout from './layout';
+    import Layout from './components/layout';
     
     const getDefaultData = () => ({
         id: 0,

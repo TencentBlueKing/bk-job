@@ -129,10 +129,19 @@
                 }
                 this.isSubmiting = true;
                 TaskPlanService.planUpdate({
-                    ...this.data,
+                    id: this.data.id,
+                    templateId: this.data.templateId,
                     name: this.localValue,
+                    variables: this.data.variableList,
+                    enableSteps: this.data.stepList.reduce((result, step) => {
+                        if (step.enable) {
+                            result.push(step.id);
+                        }
+                        return result;
+                    }, []),
                 }).then(() => {
                     this.isEditing = false;
+                    this.$emit('on-edit-success');
                     this.messageSuccess(I18n.t('template.执行方案名称编辑成功'));
                 })
                     .finally(() => {

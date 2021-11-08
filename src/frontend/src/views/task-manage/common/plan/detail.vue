@@ -34,7 +34,9 @@
                 :plan-name="planInfo.name"
                 :loading="isLoading">
                 <div slot="title" class="view-title">
-                    <edit-title :data="planInfo" />
+                    <edit-title
+                        :data="planInfo"
+                        @on-edit-success="handleEditSuccess" />
                     <span
                         class="cron-job-tag"
                         :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
@@ -163,7 +165,7 @@
     import PermissionSection from '@components/apply-permission/apply-section';
     import RenderGlobalVar from '../render-global-var';
     import RenderTaskStep from '../render-task-step';
-    import Layout from './layout';
+    import Layout from './components/layout';
     import ToggleDisplay from './components/toggle-display';
     import EditTitle from './components/edit-title.vue';
 
@@ -286,6 +288,12 @@
                     id: this.templateId,
                     active: this.id,
                 });
+            },
+            /**
+             * @desc 执行方案编辑成功
+             */
+            handleEditSuccess () {
+                this.$emit('on-edit-success');
             },
             /**
              * @desc 查看执行方案关联的定时任务列表
