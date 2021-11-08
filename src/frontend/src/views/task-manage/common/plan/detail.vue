@@ -27,24 +27,29 @@
 
 <template>
     <permission-section :key="id">
-        <div class="view-execute-plan">
+        <div class="task-plan-view-box">
             <layout
                 v-bind="$attrs"
                 :title="planInfo.name"
                 :plan-name="planInfo.name"
                 :loading="isLoading">
-                <div slot="sub-title" class="link-wraper">
+                <div slot="title" class="view-title">
+                    <edit-title :data="planInfo" />
                     <span
-                        style="margin-right: 32px;"
+                        class="cron-job-tag"
                         :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
                         <bk-button
                             text
                             :disabled="!planInfo.hasCronJob"
                             @click="handleGoCronList">
-                            <span>{{ $t('template.关联定时任务') }}</span>
-                            <Icon type="jump" />
+                            <div class="btn-inner">
+                                <Icon type="job-timing" />
+                                <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
+                            </div>
                         </bk-button>
                     </span>
+                </div>
+                <div slot="sub-title" class="link-wraper">
                     <auth-button
                         :resource-id="templateId"
                         auth="job_template/view"
@@ -160,6 +165,7 @@
     import RenderTaskStep from '../render-task-step';
     import Layout from './layout';
     import ToggleDisplay from './components/toggle-display';
+    import EditTitle from './components/edit-title.vue';
 
     export default {
         name: '',
@@ -169,6 +175,7 @@
             RenderTaskStep,
             ToggleDisplay,
             Layout,
+            EditTitle,
         },
         props: {
             id: {
@@ -385,9 +392,40 @@
 <style lang='postcss' scoped>
     @import "@/css/mixins/media";
 
-    .view-execute-plan {
-        .link-wraper {
+    .task-plan-view-box {
+        .view-title {
+            flex: 1;
             display: flex;
+            align-items: center;
+
+            .cron-job-tag {
+                display: inline-flex;
+                margin-left: 14px;
+                cursor: pointer;
+                user-select: none;
+
+                .is-disabled {
+                    .btn-inner {
+                        background-color: #dcdee5;
+                    }
+                }
+
+                .btn-inner {
+                    display: flex;
+                    height: 16px;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 0 4px;
+                    font-size: 12px;
+                    color: #fff;
+                    background: #3a84ff;
+                    border-radius: 8px;
+                }
+            }
+
+            .link-wraper {
+                display: flex;
+            }
         }
 
         .action-box {

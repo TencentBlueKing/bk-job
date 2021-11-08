@@ -26,8 +26,14 @@
 -->
 
 <template>
-    <div ref="jobForm" class="job-form" @click="handleApplyChange">
-        <bk-form ref="bkForm" :model="model" v-bind="$attrs">
+    <div
+        ref="jobForm"
+        class="job-form"
+        @click="handleApplyChange">
+        <bk-form
+            ref="bkForm"
+            :model="model"
+            v-bind="$attrs">
             <slot />
         </bk-form>
     </div>
@@ -185,12 +191,12 @@
                     margin-left: 0 !important;
                 }
 
-                .tooltips-icon {
+                /* .tooltips-icon {
                     position: relative;
                     top: 0 !important;
                     right: 0 !important;
                     margin-left: -24px;
-                }
+                } */
             }
 
             &.bk-form-vertical {

@@ -96,13 +96,9 @@
                     this.inputHander.style.paddingRight = `${numberText.length - 1}em`;
                 });
             },
-            triggerChange (value) {
-                this.$emit('input', value);
-                this.$emit('change', value);
-            },
             handleBlur () {
                 setTimeout(() => {
-                    this.$refs.input.setCurValue(this.localValue);
+                    this.$refs.input && this.$refs.input.setCurValue(this.localValue);
                 });
             },
             handleKeyup (value, event) {
@@ -115,7 +111,7 @@
                 if ((value === '' && value !== this.value)
                     || event.keyCode === 13) {
                     setTimeout(() => {
-                        this.triggerChange(this.inputHander.value);
+                        this.$emit('submit', this.inputHander.value);
                     });
                 }
             },
@@ -130,9 +126,8 @@
                 }
                 this.inputLength = value.length;
                 this.localValue = value;
-                if (!this.enterTrigger) {
-                    this.triggerChange(value);
-                }
+                this.$emit('input', value);
+                this.$emit('change', value);
             },
         },
     };
@@ -143,11 +138,11 @@
 
         .jb-input-number {
             position: absolute;
-            top: 50%;
+            top: 9px;
             right: 9px;
             font-size: 12px;
+            line-height: 1em;
             color: #979ba5;
-            transform: translateY(-50%);
         }
     }
 </style>

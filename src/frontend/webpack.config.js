@@ -94,7 +94,6 @@ module.exports = function (env) {
                 removeAvailableModules: false,
                 removeEmptyChunks: false,
                 splitChunks: false,
-                emitOnErrors: true,
             }
             : {
                 minimizer: [
@@ -318,17 +317,18 @@ module.exports = function (env) {
             env.development && new ESLintPlugin({
                 extensions: ['js', 'vue'],
                 lintDirtyModulesOnly: true,
+                failOnError: false,
                 threads: 2,
             }),
-            new webpack.ProgressPlugin(),
-            new VueLoaderPlugin(),
-            new LodashWebpackPlugin(),
-            new StylelintPlugin({
+            env.development && new StylelintPlugin({
                 files: ['./**/*.vue', './**/*.css'],
                 extensions: ['css', 'scss', 'sass', 'postcss'],
                 lintDirtyModulesOnly: true,
                 emitWarning: true,
             }),
+            new webpack.ProgressPlugin(),
+            new VueLoaderPlugin(),
+            new LodashWebpackPlugin(),
             // moment 优化，只提取本地包
             new webpack.ContextReplacementPlugin(/moment\/locale$/, /zh-cn/),
             new CopyWebpackPlugin({

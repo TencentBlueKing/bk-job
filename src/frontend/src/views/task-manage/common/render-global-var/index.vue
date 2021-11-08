@@ -29,14 +29,18 @@
     <div id="templateVariableRender">
         <div v-if="showEmpty">--</div>
         <template v-else>
-            <div v-if="isOperation">
-                <bk-button text @click="handleShowBatchOperation">
+            <div class="variable-batch-action">
+                <bk-button
+                    v-if="isOperation"
+                    text
+                    @click="handleShowBatchOperation">
                     <Icon type="bulk-edit" />
                     {{ $t('template.批量编辑') }}
                 </bk-button>
-            </div>
-            <div v-if="isEditOfPlan">
-                <bk-button text @click="handleShowBatchEditOfPlan">
+                <bk-button
+                    v-if="isEditOfPlan"
+                    text
+                    @click="handleShowBatchEditOfPlan">
                     <Icon type="bulk-edit" />
                     {{ $t('template.批量编辑变量值') }}
                 </bk-button>

@@ -24,9 +24,7 @@
 */
 
 import I18n from '@/i18n';
-import {
-    messageSuccess,
-} from '@/common/bkmagic';
+import { messageSuccess } from '@/common/bkmagic';
 
 export * from './permission';
 export * from './leave-confirm';
@@ -39,6 +37,7 @@ export * from './business';
 export * from './script-error-alert';
 export * from './byte-pretty';
 export * from './format';
+export * from './calc-text-width';
 
 export const isMac = () => /macintosh|mac os x/i.test(navigator.userAgent);
 

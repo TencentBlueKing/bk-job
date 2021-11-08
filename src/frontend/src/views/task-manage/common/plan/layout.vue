@@ -35,24 +35,27 @@
                     :speed="2"
                     primary-color="#EBECF3"
                     secondary-color="#F6F7FB">
-                    <rect x="0" y="6.60804744e-13" width="237" height="21.5454545" rx="2" />
-                    <rect x="0" y="84.7727273" width="60" height="20" rx="2" />
-                    <rect x="0" y="157.772727" width="60" height="20" rx="2" />
-                    <rect x="80" y="434.772727" width="120" height="20" rx="2" />
-                    <rect x="80" y="68.7727273" width="160" height="50" rx="2" />
-                    <rect x="80" y="148.772727" width="500" height="42" rx="2" />
-                    <rect x="80" y="200.772727" width="500" height="42" rx="2" />
-                    <rect x="80" y="252.772727" width="500" height="42" rx="2" />
-                    <rect x="80" y="304.772727" width="500" height="42" rx="2" />
-                    <rect x="80" y="356.772727" width="500" height="42" rx="2" />
-                    <rect x="250" y="68.7727273" width="160" height="50" rx="2" />
-                    <rect x="420" y="68.7727273" width="160" height="50" rx="2" />
+                    <rect x="0" y="0" width="128" height="16" rx="1" />
+                    <rect x="0" y="148" width="128" height="16" rx="1" />
+                    <rect x="0" y="180" width="620" height="42" rx="2" />
+                    <rect x="0" y="232" width="620" height="42" rx="2" />
+                    <rect x="0" y="284" width="620" height="42" rx="2" />
+                    <rect x="0" y="336" width="620" height="42" rx="2" />
+                    <rect x="0" y="388" width="620" height="42" rx="2" />
+                    <rect x="0" y="28" width="128" height="16" rx="1" />
+                    <rect x="0" y="56" width="200" height="50" rx="1" />
+                    <rect x="210" y="56" width="200" height="50" rx="1" />
+                    <rect x="420" y="56" width="200" height="50" rx="1" />
                 </content-loader>
             </div>
         </div>
         <div class="layout-title">
-            <div class="title-text">{{ title }}</div>
-            <slot name="sub-title" />
+            <slot name="title">
+                <div class="title-text">{{ title }}</div>
+            </slot>
+            <div class="sub-title">
+                <slot name="sub-title" />
+            </div>
         </div>
         <div ref="content" class="content-wraper" :style="contentStyles">
             <slot />
@@ -65,12 +68,8 @@
 </template>
 <script>
     import _ from 'lodash';
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    import {
-        getOffset,
-    } from '@utils/assist';
+    import { ContentLoader } from 'vue-content-loader';
+    import { getOffset } from '@utils/assist';
     import BackTop from '@components/back-top';
 
     export default {
@@ -180,7 +179,8 @@
 
     .plan-action-layout {
         position: relative;
-        padding-left: 40px;
+        padding-right: 24px;
+        padding-left: 24px;
         overflow: hidden;
         background: #fff;
 
@@ -209,8 +209,8 @@
         }
 
         .layout-title {
+            display: flex;
             padding-top: 30px;
-            padding-right: 40px;
             padding-bottom: 16px;
             color: #000;
             border-bottom: 1px solid #f0f1f5;
@@ -220,10 +220,14 @@
                 font-size: 18px;
                 line-height: 1;
             }
+
+            .sub-title {
+                margin-left: auto;
+            }
         }
 
         .content-wraper {
-            padding-top: 30px;
+            padding-top: 16px;
             padding-right: 40px;
             margin-right: 2px;
             overflow-y: auto;
@@ -235,8 +239,8 @@
             position: relative;
             display: flex;
             height: 60px;
-            margin-right: -40px;
-            margin-left: -40px;
+            margin-right: -24px;
+            margin-left: -24px;
             background: #fff;
             align-items: center;
         }

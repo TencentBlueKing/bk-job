@@ -502,6 +502,7 @@ export default {
         新增标签: 'New',
         编辑标签成功: 'New tag has been created',
         未引用: '',
+        执行方案名称编辑成功: '',
         
     },
 };

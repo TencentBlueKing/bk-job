@@ -284,7 +284,7 @@
             width: 960px;
 
             .remove-all {
-                margin-left: auto;
+                margin-left: 40px;
             }
         }
     }

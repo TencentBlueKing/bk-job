@@ -49,7 +49,7 @@
                     right-icon="bk-icon icon-search"
                     style="width: 480px;"
                     enter-trigger
-                    @change="handleSearch" />
+                    @submit="handleSearch" />
             </template>
         </list-action-layout>
         <div v-bkloading="{ isLoading }">

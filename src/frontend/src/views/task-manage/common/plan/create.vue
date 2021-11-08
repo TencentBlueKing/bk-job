@@ -29,24 +29,29 @@
     <layout
         class="task-plan-create-box"
         v-bind="$attrs"
-        :title="$t('template.新建执行方案')"
         :loading="isLoading">
+        <jb-form
+            slot="title"
+            ref="titleForm"
+            :model="formData">
+            <jb-form-item
+                :rules="rules.name"
+                property="name"
+                error-display-type="tooltips"
+                style="margin-bottom: 0;">
+                <jb-input
+                    v-model="formData.name"
+                    behavior="simplicity"
+                    :maxlength="60"
+                    @change="handleNameChange" />
+            </jb-form-item>
+        </jb-form>
         <jb-form
             ref="createPlanForm"
             :model="formData"
-            :rules="rules">
-            <jb-form-item
-                :label="$t('template.方案名称')"
-                required
-                property="name">
-                <jb-input
-                    class="input"
-                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
-                    :value="formData.name"
-                    @change="handleNameChange"
-                    :maxlength="60" />
-            </jb-form-item>
-            <jb-form-item label=" ">
+            style="width: 100%;"
+            form-type="vertical">
+            <jb-form-item>
                 <div class="section-title">
                     <span>{{ $t('template.全局变量.label') }}</span>
                     <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
@@ -59,7 +64,9 @@
                     :default-field="$t('template.变量值')"
                     @on-change="handleVariableChange" />
             </jb-form-item>
-            <jb-form-item label=" " property="enableSteps">
+            <jb-form-item
+                :rules="rules.enableSteps"
+                property="enableSteps">
                 <div class="task-step-selection">
                     <div class="section-title">
                         <span>{{ $t('template.选择执行步骤') }}</span>
@@ -114,11 +121,8 @@
         genDefaultName,
         findUsedVariable,
     } from '@utils/assist';
-    import {
-        planNameRule,
-    } from '@utils/validator';
+    import { planNameRule } from '@utils/validator';
     import JbForm from '@components/jb-form';
-    import JbInput from '@components/jb-input';
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
     import Layout from './layout';
@@ -130,12 +134,11 @@
         templateId: 0,
         variables: [],
     });
-
+    
     export default {
         name: '',
         components: {
             JbForm,
-            JbInput,
             Layout,
             RenderGlobalVar,
             RenderTaskStep,
@@ -169,7 +172,6 @@
              */
             selectedVariable () {
                 const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
-                console.log('from selectedVariable ===== ', selectedSteps);
                 return findUsedVariable(selectedSteps);
             },
             /**
@@ -315,16 +317,18 @@
              */
             handleSumbit () {
                 this.submitLoading = true;
-                this.$refs.createPlanForm.validate()
-                    .then(() => ExecPlanService.planUpdate(this.formData)
-                        .then((data) => {
-                            window.changeAlert = false;
-                            this.$bkMessage({
-                                theme: 'success',
-                                message: I18n.t('template.操作成功'),
-                            });
-                            this.$emit('on-create', data);
-                        }))
+                Promise.all([
+                    this.$refs.titleForm.validate(),
+                    this.$refs.createPlanForm.validate(),
+                ]).then(() => ExecPlanService.planUpdate(this.formData)
+                    .then((data) => {
+                        window.changeAlert = false;
+                        this.$bkMessage({
+                            theme: 'success',
+                            message: I18n.t('template.操作成功'),
+                        });
+                        this.$emit('on-create', data);
+                    }))
                     .finally(() => {
                         this.submitLoading = false;
                     });
@@ -339,13 +343,37 @@
         },
     };
 </script>
-<style lang="postcss" scoped>
+<style lang="postcss">
     @import "@/css/mixins/media";
 
     .task-plan-create-box {
-        .input,
+        .variable-batch-action {
+            margin: 4px 0;
+        }
+
+        .layout-title {
+            padding-bottom: 0 !important;
+            border-bottom-color: transparent !important;
+
+            .only-bottom-border {
+                padding-top: 9px;
+                padding-bottom: 16px;
+            }
+        }
+
+        .section-title {
+            font-size: 14px;
+            line-height: 19px;
+            color: #313238;
+        }
+
         .task-step-selection {
+            display: flex;
             width: 500px;
+            margin-bottom: 14px;
+            font-size: 16px;
+            line-height: 21px;
+            color: #313238;
 
             @media (--small-viewports) {
                 width: 500px;
@@ -362,20 +390,6 @@
             @media (--huge-viewports) {
                 width: 680px;
             }
-        }
-
-        .section-title {
-            font-size: 14px;
-            line-height: 19px;
-            color: #313238;
-        }
-
-        .task-step-selection {
-            display: flex;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

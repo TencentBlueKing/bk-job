@@ -654,6 +654,24 @@
     }
 
     .step-wraper {
+        &:hover {
+            .step-content {
+                color: #63656e;
+                background: #e1ecff;
+                border-color: #3a84ff;
+            }
+
+            .select-flag {
+                border-color: #3a84ff;
+            }
+
+            .step-icon {
+                color: #3a84ff;
+                background: #e1ecff;
+                border-color: transparent;
+            }
+        }
+
         cursor: pointer;
 
         &.is-hide {
@@ -718,15 +736,15 @@
         }
 
         &.not-select {
-            .step-content {
-                color: #979ba5;
-                background: transparent;
-                border-color: #dcdee5;
-            }
-
             .step-icon {
                 color: #c4c6cc;
                 background: #f0f1f5;
+                border-color: #dcdee5;
+            }
+
+            .step-content {
+                color: #979ba5;
+                background: transparent;
                 border-color: #dcdee5;
             }
 
@@ -738,24 +756,6 @@
                     &::after {
                         transform: scale(0);
                     }
-                }
-            }
-
-            &:hover {
-                .step-content {
-                    color: #63656e;
-                    background: #e1ecff;
-                    border-color: #3a84ff;
-                }
-
-                .select-flag {
-                    border-color: #3a84ff;
-                }
-
-                .step-icon {
-                    color: #3a84ff;
-                    background: #e1ecff;
-                    border-color: transparent;
                 }
             }
         }
