@@ -235,9 +235,10 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             ipList = ipList.stream().filter(ip -> !ip.trim().isEmpty()).collect(Collectors.toList());
             ipList.forEach(ip -> {
                 //正则校验
-                if (!IpUtils.checkIp(ip.trim()))
+                if (!IpUtils.checkIp(ip.trim())) {
                     log.warn("not a valid ip format");
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+                }
             });
         }
         List<String> uniqueIpList = new ArrayList<>();
