@@ -73,8 +73,7 @@ the conflict:
 
 ## Reporting Violations
 
-Violations of the Code of Conduct can be reported to BK-JOB’s Project Stewards, Irwin sun (irwinsun@tencent.com) 
-and Nek zhang (nekzhang@tencent.com). The Project Steward will determine whether the Code of Conduct was violated,
+Violations of the Code of Conduct can be reported to BK-JOB’s Project Stewards(contactus_bk@tencent.com). The Project Steward will determine whether the Code of Conduct was violated,
 and will issue an appropriate sanction, possibly including a written warning or expulsion from the project,
 project sponsored spaces, or project forums. We ask that you make a good-faith effort to resolve your conflict 
 via the conflict resolution policy before submitting a report.
