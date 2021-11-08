@@ -614,12 +614,15 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         try {
             List<Long> planIds = Collections.singletonList(planInfo.getId());
             Map<Long, List<CronJobVO>> cronJobByPlanIds = cronJobService.batchListCronJobByPlanIds(appId, planIds);
-            if (MapUtils.isNotEmpty(cronJobByPlanIds)) {
-                planInfo.setHasCronJob(cronJobByPlanIds.containsKey(planInfo.getId()));
+            List<CronJobVO> cronJobs = cronJobByPlanIds != null ? cronJobByPlanIds.get(planInfo.getId()) : null;
+            if (CollectionUtils.isNotEmpty(cronJobs)) {
+                planInfo.setHasCronJob(true);
+                planInfo.setCronJobCount((long) cronJobs.size());
             } else {
                 planInfo.setHasCronJob(false);
+                planInfo.setCronJobCount(0L);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error while process plan's cronjob", e);
         }
     }
