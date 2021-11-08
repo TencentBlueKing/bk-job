@@ -75,6 +75,7 @@
             data: {
                 handler  () {
                     this.localValue = this.data.name || '';
+                    this.localValueMemo = this.localValue;
                 },
                 immediate: true,
             },
@@ -101,7 +102,11 @@
             handleEdit () {
                 this.isEditing = true;
                 this.errorInfo = '';
-                this.inputWidth = this.$refs.text.getBoundingClientRect().width + 10;
+                this.inputWidth = this.$refs.text.getBoundingClientRect().width;
+                // 输入框自动获取焦点
+                setTimeout(() => {
+                    this.$refs.input.$el.querySelector('.bk-form-input').focus();
+                });
             },
             /**
              * @desc 用户输入时自适应输入框宽度
@@ -127,6 +132,10 @@
                 if (this.errorInfo) {
                     return;
                 }
+                if (this.localValueMemo === this.localValue) {
+                    this.isEditing = false;
+                    return;
+                }
                 this.isSubmiting = true;
                 TaskPlanService.planUpdate({
                     id: this.data.id,
@@ -140,6 +149,7 @@
                         return result;
                     }, []),
                 }).then(() => {
+                    this.localValueMemo = this.localValue;
                     this.isEditing = false;
                     this.$emit('on-edit-success');
                     this.messageSuccess(I18n.t('template.执行方案名称编辑成功'));
