@@ -462,7 +462,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                           String uri,
                                           EsbReq reqBody,
                                           TypeReference<EsbResp<R>> typeReference,
-                                          AbstractHttpHelper httpHelper) throws RuntimeException {
+                                          AbstractHttpHelper httpHelper) {
 
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
