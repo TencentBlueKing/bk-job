@@ -50,11 +50,14 @@ public class JobSrcFileUtils {
     /**
      * 构造源文件路径与目标文件路径的映射关系
      *
-     * @param srcFiles  源文件
-     * @param targetDir 目标目录
+     * @param srcFiles   源文件
+     * @param targetDir  目标目录
+     * @param targetName 目录/文件分发到目标主机的对应名称
      * @return 源文件路径与目标文件路径的映射关系
      */
-    public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles, String targetDir) {
+    public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles,
+                                                                   String targetDir,
+                                                                   String targetName) {
         Map<String, FileDest> sourceDestPathMap = new HashMap<>();
         String standardTargetDir = FilePathUtils.standardizedDirPath(targetDir);
         long currentTime = System.currentTimeMillis();
@@ -63,22 +66,26 @@ public class JobSrcFileUtils {
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
                 "0_0.0.0.0" : srcFile.getCloudAreaIdAndIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
-            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath);
+            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetName);
         }
         return sourceDestPathMap;
     }
 
-    private static void addSourceDestPathMapping(Map<String, FileDest> sourceDestPathMap, JobFile sourceFile,
-                                                 String destDirPath) {
-        sourceDestPathMap.put(sourceFile.getFileUniqueKey(), buildFileDest(sourceFile, destDirPath));
+    private static void addSourceDestPathMapping(Map<String, FileDest> sourceDestPathMap,
+                                                 JobFile sourceFile,
+                                                 String destDirPath,
+                                                 String destName) {
+        sourceDestPathMap.put(sourceFile.getFileUniqueKey(), buildFileDest(sourceFile, destDirPath, destName));
     }
 
-    private static FileDest buildFileDest(JobFile sourceFile, String destDirPath) {
-        String destPath = "";
+    private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
+        String destPath;
         if (sourceFile.isDir()) {
-            destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(sourceFile.getDir()));
+            String destDirName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getDir();
+            destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(destDirName));
         } else {
-            destPath = FilePathUtils.appendFileName(destDirPath, sourceFile.getFileName());
+            String destFileName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getFileName();
+            destPath = FilePathUtils.appendFileName(destDirPath, destFileName);
         }
         return new FileDest(destPath, destDirPath, sourceFile.getFileName());
     }
