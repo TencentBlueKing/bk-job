@@ -33,10 +33,12 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
+import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
+import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -87,13 +89,16 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
 
     @Override
     public InternalResponse<Long> saveCronJob(String username, Long appId, Long cronJobId,
-                                         CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+                                              CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         return null;
     }
 
     @Override
-    public InternalResponse<Boolean> updateCronJobStatus(Long appId, Long cronJobId, Integer status) {
-        return null;
+    public InternalResponse<Boolean> updateCronJobStatus(Long appId, Long cronJobId,
+                                                         InternalUpdateCronStatusRequest request) {
+        log.info("Update cron job status, appId: {}, cronJobId: {}, request: {}", appId, cronJobId, request);
+        return InternalResponse.buildSuccessResp(cronJobService.changeCronJobEnableStatus(request.getOperator(),
+            appId, cronJobId, CronStatusEnum.RUNNING.getStatus().equals(request.getStatus())));
     }
 
     @Override
@@ -112,8 +117,8 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
 
     @Override
     public InternalResponse<Long> saveCronJobWithId(String username, Long appId, Long cronJobId, Long createTime,
-                                               Long lastModifyTime, String lastModifyUser,
-                                               CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+                                                    Long lastModifyTime, String lastModifyUser,
+                                                    CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         JobContextUtil.setAllowMigration(true);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         cronJobInfoDTO.setId(cronJobId);
