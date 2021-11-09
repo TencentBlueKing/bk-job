@@ -462,10 +462,7 @@
                             });
                         });
                     })
-                    .catch((error) => {
-                        console.log(error.message);
-                    })
-                    .finally(() => {
+                    .catch(() => {
                         this.isSubmiting = false;
                     });
             },

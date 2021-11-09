@@ -222,7 +222,7 @@
                             },
                         });
                     }))
-                    .finally(() => {
+                    .catch(() => {
                         this.isSubmiting = false;
                     });
             },
