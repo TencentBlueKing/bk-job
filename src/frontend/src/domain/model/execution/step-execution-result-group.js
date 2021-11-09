@@ -81,5 +81,5 @@ export default class ResultGroup {
             return [];
         }
         return agentTaskExecutionDetail.map(item => Object.freeze(new AgentTaskModel(item)));
-    }
+    };
 }

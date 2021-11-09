@@ -487,11 +487,11 @@
 <style lang='postcss'>
     @keyframes fade-in {
         from {
-            opacity: 0.1;
+            opacity: 10%;
         }
 
         to {
-            opacity: 1;
+            opacity: 100%;
         }
     }
 
@@ -533,7 +533,7 @@
                 width: 0;
                 height: 100%;
                 vertical-align: middle;
-                content: '';
+                content: "";
             }
         }
 

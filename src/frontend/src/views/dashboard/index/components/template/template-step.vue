@@ -324,7 +324,7 @@
                     width: 14px;
                     height: 1px;
                     background: #f0f1f5;
-                    content: '';
+                    content: "";
                 }
             }
 
@@ -344,7 +344,7 @@
                         width: 1px;
                         height: 22px;
                         background: #f0f1f5;
-                        content: '';
+                        content: "";
                     }
                 }
 
@@ -355,33 +355,33 @@
                     width: 14px;
                     height: 1px;
                     background: #f0f1f5;
-                    content: '';
+                    content: "";
                 }
             }
 
             .local-file-dot {
-                background: rgba(35, 35, 148, 0.4);
+                background: rgb(35 35 148 / 40%);
                 border: 2px solid #232394;
 
                 @extend %dot;
             }
 
             .server-file-dot {
-                background: rgba(55, 134, 173, 0.4);
+                background: rgb(55 134 173 / 40%);
                 border: 2px solid #3786ad;
 
                 @extend %dot;
             }
 
             .local-script-dot {
-                background: rgba(116, 194, 194, 0.4);
+                background: rgb(116 194 194 / 40%);
                 border: 2px solid #74c2c2;
 
                 @extend %dot;
             }
 
             .refer-script-dot {
-                background: rgba(154, 214, 154, 0.4);
+                background: rgb(154 214 154 / 40%);
                 border: 2px solid #9ad69a;
 
                 @extend %dot;

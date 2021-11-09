@@ -27,15 +27,29 @@
 
 <template>
     <permission-section :key="id">
-        <div class="view-execute-plan">
-            <layout v-bind="$attrs" :title="planInfo.name" :plan-name="planInfo.name" :loading="isLoading">
-                <div slot="sub-title" class="link-wraper">
-                    <span style="margin-right: 32px;" :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
-                        <bk-button text :disabled="!planInfo.hasCronJob" @click="handleGoCronList">
-                            <span>{{ $t('template.关联定时任务') }}</span>
-                            <Icon type="jump" />
-                        </bk-button>
+        <div class="task-plan-view-box">
+            <layout
+                v-bind="$attrs"
+                :title="planInfo.name"
+                :plan-name="planInfo.name"
+                :loading="isLoading">
+                <div slot="title" class="view-title">
+                    <edit-title
+                        :data="planInfo"
+                        @on-edit-success="handleEditSuccess" />
+                    <span
+                        v-if="planInfo.cronJobCount > 0"
+                        class="cron-job-tag"
+                        v-bk-tooltips.html="`
+                            <div>${$t('template.有')} ${planInfo.cronJobCount} ${$t('template.个定时任务')}</div>
+                            <div>${$t('template.点击前往查看')}</div>
+                        `"
+                        @click="handleGoCronList">
+                        <Icon type="job-timing" svg />
+                        <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
                     </span>
+                </div>
+                <div slot="sub-title" class="link-wraper">
                     <auth-button
                         :resource-id="templateId"
                         auth="job_template/view"
@@ -45,12 +59,24 @@
                         <Icon type="jump" />
                     </auth-button>
                 </div>
-                <jb-form>
-                    <jb-form-item :label="$t('template.全局变量.label')">
+                <jb-form form-type="vertical">
+                    <jb-form-item
+                        :label="$t('template.全局变量.label')"
+                        style="margin-bottom: 30px;">
                         <render-global-var
                             :key="id"
-                            :list="planInfo.variableList"
+                            :list="usedVariableList"
                             :default-field="$t('template.变量值')" />
+                        <toggle-display
+                            v-if="unusedVariableList.length > 0"
+                            :count="unusedVariableList.length"
+                            style="margin-top: 20px;">
+                            <render-global-var
+                                :key="id"
+                                :list="unusedVariableList"
+                                :default-field="$t('template.变量值')"
+                                style="margin-top: 18px;" />
+                        </toggle-display>
                     </jb-form-item>
                     <jb-form-item :label="$t('template.执行步骤')">
                         <render-task-step
@@ -105,7 +131,7 @@
                                 v-test="{ type: 'button', value: 'syncPlan' }">
                                 <span>{{ $t('template.去同步') }}</span>
                                 <div v-if="planInfo.needUpdate" class="update-flag">
-                                    <Icon type="sync" :tippy-tips="$t('template.未同步')" />
+                                    <Icon type="sync-8" :tippy-tips="$t('template.未同步')" />
                                 </div>
                             </auth-button>
                         </span>
@@ -133,20 +159,23 @@
     import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
     import TaskExecuteService from '@service/task-execute';
+    import { findUsedVariable } from '@utils/assist';
     import PermissionSection from '@components/apply-permission/apply-section';
-    import JbPopoverConfirm from '@components/jb-popover-confirm';
     import RenderGlobalVar from '../render-global-var';
     import RenderTaskStep from '../render-task-step';
-    import Layout from './layout';
+    import Layout from './components/layout';
+    import ToggleDisplay from './components/toggle-display';
+    import EditTitle from './components/edit-title.vue';
 
     export default {
         name: '',
         components: {
             PermissionSection,
-            JbPopoverConfirm,
-            Layout,
             RenderGlobalVar,
             RenderTaskStep,
+            ToggleDisplay,
+            Layout,
+            EditTitle,
         },
         props: {
             id: {
@@ -164,6 +193,8 @@
                     variableList: [],
                     enableStepList: [],
                 },
+                usedVariableList: [],
+                unusedVariableList: [],
                 isLoading: true,
                 execLoading: false,
                 deleteLoading: false,
@@ -191,6 +222,24 @@
                     permission: 'catch',
                 }).then((data) => {
                     this.planInfo = Object.freeze(data);
+                    // 处理执行方案步骤中变量的使用情况
+                    const planStepList = data.stepList.filter(({ enable }) => enable === 1);
+                    const usedVariableNameMap = findUsedVariable(planStepList).reduce((result, variableName) => {
+                        result[variableName] = true;
+                        return result;
+                    }, {});
+
+                    const usedVariableList = [];
+                    const unusedVariableList = [];
+                    data.variableList.forEach((variable) => {
+                        if (usedVariableNameMap[variable.name]) {
+                            usedVariableList.push(variable);
+                        } else {
+                            unusedVariableList.push(variable);
+                        }
+                    });
+                    this.usedVariableList = Object.freeze(usedVariableList);
+                    this.unusedVariableList = Object.freeze(unusedVariableList);
                 })
                     .finally(() => {
                         this.isLoading = false;
@@ -237,6 +286,12 @@
                     id: this.templateId,
                     active: this.id,
                 });
+            },
+            /**
+             * @desc 执行方案编辑成功
+             */
+            handleEditSuccess () {
+                this.$emit('on-edit-success');
             },
             /**
              * @desc 查看执行方案关联的定时任务列表
@@ -341,11 +396,33 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
-    .view-execute-plan {
-        .link-wraper {
+    .task-plan-view-box {
+        .view-title {
+            flex: 1;
             display: flex;
+            align-items: center;
+
+            .cron-job-tag {
+                display: inline-flex;
+                display: flex;
+                height: 16px;
+                padding: 0 4px;
+                margin-left: 14px;
+                font-size: 12px;
+                color: #fff;
+                cursor: pointer;
+                background: #3a84ff;
+                border-radius: 8px;
+                user-select: none;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .link-wraper {
+                display: flex;
+            }
         }
 
         .action-box {

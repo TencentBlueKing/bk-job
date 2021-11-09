@@ -293,14 +293,14 @@
         .sync-script-record {
             &:hover {
                 .template-link {
-                    opacity: 1;
+                    opacity: 100%;
                 }
             }
         }
 
         .template-link {
             font-size: 12px;
-            opacity: 0;
+            opacity: 0%;
         }
 
         .retry-btn {

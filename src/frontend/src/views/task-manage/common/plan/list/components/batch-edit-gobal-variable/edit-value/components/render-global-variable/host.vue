@@ -139,7 +139,7 @@
             margin-left: auto;
             font-size: 16px;
             color: #3a84ff;
-            opacity: 0;
+            opacity: 0%;
         }
 
         &:hover {
@@ -150,7 +150,7 @@
             }
 
             .host-edit {
-                opacity: 1;
+                opacity: 100%;
             }
         }
     }

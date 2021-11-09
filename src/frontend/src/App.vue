@@ -248,18 +248,16 @@
 </script>
 <style lang="postcss">
     .job-site {
-        opacity: 1;
-        transition: all 0.1s cubic-bezier(0.2, 1.02, 0.55, 0.96);
+        opacity: 100%;
 
         &.loading {
-            opacity: 0;
+            opacity: 0%;
         }
 
         .flag-box {
             position: relative;
             display: inline-flex;
             width: 32px;
-            height: 32px;
             font-size: 16px;
             color: #979ba5;
             cursor: pointer;

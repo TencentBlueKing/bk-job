@@ -26,12 +26,21 @@
 -->
 
 <template>
-    <div class="global-variable-popover-detail" :class="classes" :style="styles" ref="detail">
+    <div
+        ref="detail"
+        class="global-variable-popover-detail"
+        :class="classes"
+        :style="styles">
         <div class="wraper">
+            <div class="header">
+                <span>{{ data.name }}</span>
+                <span
+                    v-if="editOfPlan && !selectValue.includes(data.name)"
+                    class="tag">
+                    {{ $t('template.未引用') }}
+                </span>
+            </div>
             <detail-layout>
-                <detail-item :label="$t('template.变量名称：')">
-                    {{ data.name }}
-                </detail-item>
                 <detail-item :label="$t('template.变量类型：')">
                     {{ data.typeText }}
                 </detail-item>
@@ -66,6 +75,14 @@
             data: {
                 type: Object,
                 required: true,
+            },
+            selectValue: {
+                type: Array,
+                required: true,
+            },
+            editOfPlan: {
+                type: Boolean,
+                DEFAULT: false,
             },
             defaultField: {
                 type: String,
@@ -126,7 +143,7 @@
     .global-variable-popover-detail {
         border: 1px solid #dcdee5;
         border-radius: 2px;
-        box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+        box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
 
         &.arrow-position-right {
             &::before {
@@ -143,9 +160,9 @@
             height: 11px;
             background: #fff;
             border: 1px solid #dcdee5;
-            content: '';
+            content: "";
             transform: rotateZ(45deg);
-            box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+            box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
         }
 
         .wraper {
@@ -153,6 +170,25 @@
             padding: 12px 13px;
             background: #fff;
             border-radius: 2px;
+
+            .header {
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+                font-size: 14px;
+                color: #313238;
+                border-bottom: 1px solid #f0f1f5;
+
+                .tag {
+                    display: inline-block;
+                    height: 18px;
+                    padding: 0 6px;
+                    font-size: 12px;
+                    line-height: 18px;
+                    color: #979ba5;
+                    background-color: #f0f1f5;
+                    border-radius: 2px;
+                }
+            }
 
             .detail-item {
                 margin-bottom: 0;
@@ -165,6 +201,7 @@
             }
 
             .detail-content {
+                /* stylelint-disable value-no-vendor-prefix */
                 display: -webkit-box;
                 max-height: 60px;
                 overflow: hidden;

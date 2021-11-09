@@ -462,10 +462,7 @@
                             });
                         });
                     })
-                    .catch((error) => {
-                        console.log(error.message);
-                    })
-                    .finally(() => {
+                    .catch(() => {
                         this.isSubmiting = false;
                     });
             },
@@ -480,9 +477,9 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
-    html[lang='en-US'] {
+    html[lang="en-US"] {
         .recent-result {
             margin-top: 6px;
             transform: rotate(90deg);

@@ -130,7 +130,7 @@
 
         .layout-right {
             display: flex;
-            width: 28.61685%;
+            width: 28.6168%;
             max-width: 480px;
             min-width: 360px;
             flex-direction: column;
@@ -161,7 +161,7 @@
             margin-right: 20px;
 
             &:hover {
-                box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
+                box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
 
                 .hexagon {
                     animation: hexagon-scale 0.3s ease-in forwards;

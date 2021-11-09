@@ -242,15 +242,15 @@
 <style lang="postcss">
     @keyframes export-task-loading {
         0% {
-            content: '.';
+            content: ".";
         }
 
         30% {
-            content: '..';
+            content: "..";
         }
 
         60% {
-            content: '...';
+            content: "...";
         }
     }
 
@@ -271,7 +271,7 @@
                 .loading {
                     &::after {
                         display: inline-block;
-                        content: '.';
+                        content: ".";
                         animation: export-task-loading 2s linear infinite;
                     }
                 }

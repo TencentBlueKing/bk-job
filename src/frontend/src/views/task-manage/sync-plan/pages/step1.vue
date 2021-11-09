@@ -128,6 +128,6 @@
 </style>
 <style lang='postcss' scoped>
     .sync-plan-step1 {
-        padding: 24px 24px 60px 24px;
+        padding: 24px 24px 60px;
     }
 </style>

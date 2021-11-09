@@ -42,11 +42,11 @@ export default class SourceFile {
         [AGENT_STATUS_NORMAL]: I18n.t('正常'),
         [AGENT_STATUS_ABNORMAL]: I18n.t('异常'),
         [AGENT_STATUS_UNINSTALLED]: I18n.t('未安装'),
-    }
+    };
 
-    static typeServer = FILE_TYPE_SERVER
-    static typeLocal = FILE_TYPE_LOCAL
-    static typeSource = FILE_TYPE_SOURCE
+    static typeServer = FILE_TYPE_SERVER;
+    static typeLocal = FILE_TYPE_LOCAL;
+    static typeSource = FILE_TYPE_SOURCE;
 
     constructor (payload) {
         this.id = payload.id || 0;

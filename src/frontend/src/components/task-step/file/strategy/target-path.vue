@@ -250,7 +250,7 @@
                 height: 4px;
                 background: currentColor;
                 border-radius: 50%;
-                content: '';
+                content: "";
             }
         }
 

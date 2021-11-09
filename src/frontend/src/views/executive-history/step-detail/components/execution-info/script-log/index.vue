@@ -253,15 +253,15 @@
 <style lang='postcss'>
     @keyframes script-execute-loading {
         0% {
-            content: '.';
+            content: ".";
         }
 
         30% {
-            content: '..';
+            content: "..";
         }
 
         60% {
-            content: '...';
+            content: "...";
         }
     }
 
@@ -278,7 +278,7 @@
             left: 0;
             width: 100%;
             padding-right: 20px;
-
+            /* stylelint-disable selector-class-pattern */
             .ace_editor {
                 overflow: unset;
                 line-height: 1.6;
@@ -298,11 +298,11 @@
                 }
 
                 .ace_hidden-cursors .ace_cursor {
-                    opacity: 0 !important;
+                    opacity: 0% !important;
                 }
 
                 .ace_selected-word {
-                    background: rgba(135, 139, 145, 0.25);
+                    background: rgb(135 139 145 / 25%);
                 }
 
                 .ace_scrollbar-v,
@@ -346,7 +346,7 @@
         .log-loading {
             &::after {
                 display: inline-block;
-                content: '.';
+                content: ".";
                 animation: script-execute-loading 2s linear infinite;
             }
         }
@@ -372,13 +372,13 @@
                 font-size: 18px;
                 color: #000;
                 cursor: pointer;
-                background: rgba(255, 255, 255, 0.8);
+                background: rgb(255 255 255 / 80%);
                 border-radius: 50%;
                 align-items: center;
                 justify-content: center;
 
                 &:hover {
-                    background: rgba(255, 255, 255);
+                    background: rgb(255 255 255);
                 }
 
                 &.action-bottom {

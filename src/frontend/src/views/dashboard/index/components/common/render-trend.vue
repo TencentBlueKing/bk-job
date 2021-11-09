@@ -229,6 +229,7 @@
             line-height: 16px;
             color: #babcc2;
             white-space: nowrap;
+            /* stylelint-disable declaration-block-no-redundant-longhand-properties */
             flex-direction: column;
             flex-wrap: nowrap;
 

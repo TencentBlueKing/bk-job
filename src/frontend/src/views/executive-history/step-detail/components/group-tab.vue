@@ -180,7 +180,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .step-execute-host-group {
         width: 100%;
@@ -286,7 +286,7 @@
                 }
 
                 .dropdown-menu {
-                    opacity: 1;
+                    opacity: 100%;
                     visibility: visible;
                     transform: translateY(0);
                 }
@@ -309,7 +309,7 @@
                 font-size: 12px;
                 background: #fff;
                 border: 1px solid #dcdee5;
-                opacity: 0;
+                opacity: 0%;
                 visibility: hidden;
                 transform: translateY(-15px);
                 transition: all 0.15s;
@@ -322,7 +322,7 @@
                     right: 0;
                     width: 124px;
                     height: 8px;
-                    content: '';
+                    content: "";
                 }
 
                 .group-nums {

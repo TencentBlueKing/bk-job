@@ -198,7 +198,7 @@
         height: 128px;
         padding: 16px 24px;
         background: #fff;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.16);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 16%);
 
         .script-type-flag {
             flex: 0 0  auto;

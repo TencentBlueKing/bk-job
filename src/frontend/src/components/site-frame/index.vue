@@ -325,7 +325,7 @@
             font-size: 16px;
             color: #313238;
             background: #fff;
-            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px 0 rgb(0 0 0 / 10%);
         }
 
         .jb-navigation-content {

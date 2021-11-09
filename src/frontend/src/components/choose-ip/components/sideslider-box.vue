@@ -94,7 +94,7 @@
     .host-sideslider-leave-active {
         .container,
         .box-mask {
-            opacity: 1;
+            opacity: 100%;
             transition: all 0.3s ease;
         }
     }
@@ -102,7 +102,7 @@
     .host-sideslider-enter,
     .host-sideslider-leave-to {
         .container {
-            opacity: 0;
+            opacity: 0%;
             transform: translateY(-15px);
         }
     }
@@ -186,7 +186,7 @@
             bottom: 0;
             left: 0;
             cursor: pointer;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgb(0 0 0 / 60%);
         }
     }
 

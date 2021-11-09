@@ -749,7 +749,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-
+        /* stylelint-disable selector-class-pattern */
         .ace_editor {
             padding-right: 14px;
             overflow: unset;
@@ -788,15 +788,15 @@
                 }
 
                 &.ace_info {
-                    background-image: url('/static/images/ace-editor/info.png');
+                    background-image: url("/static/images/ace-editor/info.png");
                 }
 
                 &.ace_warning {
-                    background-image: url('/static/images/ace-editor/warning.png');
+                    background-image: url("/static/images/ace-editor/warning.png");
                 }
 
                 &.ace_error {
-                    background-image: url('/static/images/ace-editor/error.png');
+                    background-image: url("/static/images/ace-editor/error.png");
                 }
             }
         }
@@ -815,7 +815,7 @@
         font-size: 14px;
         color: #fff;
         background: #202024;
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+        box-shadow: 0 2px 4px 0 "rgba(0, 0, 0, 16%)";
 
         .jb-ace-mode-item {
             display: flex;
@@ -844,7 +844,7 @@
         }
 
         .bk-loading {
-            background: rgba(0, 0, 0, 0.8) !important;
+            background: "rgba(0, 0, 0, 80%)" !important;
         }
     }
 
@@ -882,7 +882,7 @@
             width: 10px;
             height: 10px;
             background: inherit;
-            content: '';
+            content: "";
             transform: rotateZ(-45deg);
         }
 

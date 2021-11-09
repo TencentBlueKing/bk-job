@@ -241,6 +241,7 @@
             }
         }
 
+        /* stylelint-disable selector-class-pattern */
         &.error-month .month,
         &.error-dayOfMonth .dayOfMonth,
         &.error-dayOfWeek .dayOfWeek,
