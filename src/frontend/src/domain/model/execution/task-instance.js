@@ -96,7 +96,7 @@ const calcStatusGroup = (status) => {
 export default class TaskInstance {
     static STATUS_ICON_TYPE = {
 
-    }
+    };
 
     constructor (payload) {
         this.id = payload.id;

@@ -253,7 +253,7 @@
 
                 &:hover {
                     font-weight: bold;
-                    opacity: 1;
+                    opacity: 100%;
                     transform: scale(1.2);
                 }
 

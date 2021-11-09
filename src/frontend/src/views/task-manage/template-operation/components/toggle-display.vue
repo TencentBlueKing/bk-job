@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="toggle-container">
+    <div class="toggle-display">
         <div v-show="isOpen">
             <slot />
         </div>
@@ -60,7 +60,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    .toggle-container {
+    .toggle-display {
         .action {
             display: flex;
             align-items: center;

@@ -81,7 +81,7 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
     @Override
     public GatewayFilter apply(Config config) {
-        return this::filter;
+        return (exchange, chain) -> chain.filter(exchange);
     }
 
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

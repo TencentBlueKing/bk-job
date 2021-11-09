@@ -28,7 +28,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
@@ -49,7 +48,6 @@ import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record11;
@@ -57,7 +55,6 @@ import org.jooq.Record12;
 import org.jooq.Record13;
 import org.jooq.Record15;
 import org.jooq.Record6;
-import org.jooq.Record8;
 import org.jooq.Record9;
 import org.jooq.generated.tables.Application;
 import org.jooq.generated.tables.Host;
@@ -82,31 +79,7 @@ public class DbRecordMapper {
     private static final TaskTemplateStepFileList TABLE_TASK_TEMPLATE_STEP_FILE_LIST =
         TaskTemplateStepFileList.TASK_TEMPLATE_STEP_FILE_LIST;
 
-    public static TaskVariableDTO convertRecordToTaskVariable(
-        Record8<ULong, ULong, String, UByte, String, String, UByte, UByte> record, TaskTypeEnum taskType) {
-        if (record == null) {
-            return null;
-        }
-        TaskVariableDTO taskVariable = new TaskVariableDTO();
-        taskVariable.setId(((ULong) record.get(0)).longValue());
-        switch (taskType) {
-            case TEMPLATE:
-                taskVariable.setTemplateId(((ULong) record.get(1)).longValue());
-                break;
-            case PLAN:
-                taskVariable.setPlanId(((ULong) record.get(1)).longValue());
-                break;
-            default:
-                return null;
-        }
-        taskVariable.setName((String) record.get(2));
-        taskVariable.setType(TaskVariableTypeEnum.valOf(((UByte) record.get(3)).intValue()));
-        taskVariable.setDefaultValue((String) record.get(4));
-        taskVariable.setDescription((String) record.get(5));
-        taskVariable.setChangeable(((UByte) record.get(6)).intValue() == 1);
-        taskVariable.setRequired(((UByte) record.get(7)).intValue() == 1);
-        return taskVariable;
-    }
+
 
     public static TaskApprovalStepDTO
     convertRecordToTaskApprovalStep(Record6<ULong, ULong, UByte, String, String, String> record) {

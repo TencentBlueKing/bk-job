@@ -26,7 +26,7 @@
 -->
 
 <template>
-    <div class="file-manage-sourceFile" v-bkloading="{ isLoading }">
+    <div class="file-manage-source-file" v-bkloading="{ isLoading }">
         <list-action-layout>
             <auth-button
                 theme="primary"
@@ -401,7 +401,7 @@
     };
 </script>
 <style lang="postcss">
-    .file-manage-sourceFile {
+    .file-manage-source-file {
         .action-box {
             display: flex;
             align-items: center;

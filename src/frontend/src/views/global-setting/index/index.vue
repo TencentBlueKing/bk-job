@@ -119,7 +119,7 @@
         }
 
         .slide-enter {
-            opacity: 0;
+            opacity: 0%;
             transform: translateX(200px);
         }
 

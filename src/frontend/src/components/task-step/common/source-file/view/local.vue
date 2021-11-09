@@ -58,7 +58,7 @@
             ref="uploadInput"
             type="file"
             multiple
-            style="position: absolute; width: 0; height: 0; opacity: 0;"
+            style="position: absolute; width: 0; height: 0; opacity: 0%;"
             @change="handleStartUpload">
     </div>
 </template>

@@ -40,12 +40,12 @@ export default class ScriptSync extends Model {
         [STATUS_ONLINE]: I18n.t('已上线'),
         [STATUS_OFFLINE]: I18n.t('已下线'),
         [STATUS_DISABLED]: I18n.t('已禁用'),
-    }
+    };
 
     static SYNC_STATUS_ICON_MAP = {
         [SYNC_STATUS_SUCCESS]: 'sync-success',
         [SYNC_STATUS_FAILED]: 'sync-failed',
-    }
+    };
 
     constructor (payload) {
         super();

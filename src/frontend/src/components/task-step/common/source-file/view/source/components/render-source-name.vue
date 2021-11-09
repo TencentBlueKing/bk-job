@@ -83,14 +83,14 @@
         cursor: pointer;
 
         .link-flag {
-            opacity: 0;
+            opacity: 0%;
         }
 
         &:hover {
             color: #3a84ff !important;
 
             .link-flag {
-                opacity: 1;
+                opacity: 100%;
             }
         }
     }

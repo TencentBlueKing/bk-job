@@ -22,45 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.util;
+package com.tencent.bk.job.crontab.model.inner.request;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import lombok.Data;
 
 /**
- * 变量解析
+ * 更新定时任务状态-启停
  */
-public class VariableResolver {
-    public static String resolve(String param, Map<String, String> variableMap) {
-        if (StringUtils.isBlank(param) || variableMap == null || variableMap.isEmpty()) {
-            return param;
-        }
-
-        Matcher m = Pattern.compile("\\$\\{\\w+}").matcher(param);
-        StringBuilder resolvedParam = new StringBuilder();
-        boolean hasMatched = false;
-        int notVarPartStart = 0;
-        while (m.find()) {
-            String paramTemplate = m.group();
-            String paramName = paramTemplate.substring(2, paramTemplate.length() - 1);
-            int varStart = m.start();
-            resolvedParam.append(param, notVarPartStart, varStart);
-            if (variableMap.containsKey(paramName)) {
-                resolvedParam.append(variableMap.get(paramName) == null ? "" : variableMap.get(paramName));
-            } else {
-                resolvedParam.append(paramTemplate);
-            }
-            notVarPartStart = m.end();
-            hasMatched = true;
-        }
-        if (hasMatched) {
-            resolvedParam.append(param.substring(notVarPartStart));
-        } else {
-            resolvedParam.append(param);
-        }
-        return resolvedParam.toString();
-    }
+@Data
+public class InternalUpdateCronStatusRequest {
+    private String operator;
+    /**
+     * 定时任务状态,1-启动，2-停止
+     */
+    private Integer status;
 }

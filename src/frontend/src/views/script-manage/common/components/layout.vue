@@ -97,7 +97,7 @@
             font-size: 14px;
             color: #c4c6cc;
             background: #333;
-            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+            box-shadow: 0 2px 4px 0 rgb(0 0 0 / 16%);
 
             .sub-header {
                 display: flex;
@@ -147,7 +147,7 @@
             background: #242424;
             align-items: center;
             border-top: 1px solid #141414;
-            box-shadow: 0 -2px 4px 0 rgba(0, 0, 0, 0.16);
+            box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 16%);
         }
 
         .bk-label {
@@ -198,7 +198,7 @@
                 }
             }
         }
-
+        /* stylelint-disable selector-class-pattern */
         .jd-ace-editor {
             .ace_editor {
                 background: #1a1a1a;
@@ -219,7 +219,7 @@
         }
 
         .bk-loading {
-            background: rgba(0, 0, 0, 0.8) !important;
+            background: rgb(0 0 0 / 80%) !important;
         }
 
         span[data-script-status] {

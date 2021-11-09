@@ -297,7 +297,7 @@
             .tag-normal-box,
             .tag-shortcurt-box {
                 display: flex;
-                opacity: 1;
+                opacity: 100%;
                 transform: scale(1);
             }
         }
@@ -322,7 +322,7 @@
             height: 30px;
             min-width: 24px;
             color: #979ba5;
-            opacity: 0;
+            opacity: 0%;
             align-items: center;
         }
 
@@ -365,7 +365,7 @@
             position: absolute;
             top: 9px;
             right: 10px;
-            animation: 'tag-edit-loading' 1s linear infinite;
+            animation: "tag-edit-loading" 1s linear infinite;
         }
 
         .edit-value-box {

@@ -168,7 +168,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             return null;
         }
         if (StringUtils.isBlank(respStr)) {
-            log.error("Get {} error, response is null", API_GET_NOTIFY_CHANNEL_LIST);
+            log.error("Get {} error, response is blank", API_GET_NOTIFY_CHANNEL_LIST);
             return null;
         }
         EsbResp<List<EsbNotifyChannelDTO>> esbResp = JsonUtils.fromJson(respStr,
@@ -206,7 +206,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             respStr = doHttpPost(uri, req);
 
             if (StringUtils.isBlank(respStr)) {
-                log.error("Get {} error, response is null", API_POST_SEND_MSG);
+                log.error("Get {} error, response is blank", API_POST_SEND_MSG);
                 status = "fail";
                 return false;
             }

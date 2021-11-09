@@ -22,27 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.crontab.common.constants;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-import java.util.Set;
+/**
+ * 定时任务状态
+ */
+public enum CronStatusEnum {
+    RUNNING(1), STOPPING(2);
 
-import static org.assertj.core.api.Assertions.assertThat;
 
-public class JobVariableResolverTest {
-    @Test
-    void test() {
-        String content = "abc{{username}}def";
-        Set<String> variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username");
+    @JsonValue
+    private final Integer status;
 
-        content = "abc{{username}}def\n#d{{biz_id}}\n";
-        variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username", "biz_id");
+    CronStatusEnum(Integer status) {
+        this.status = status;
+    }
 
-        content = "{{username}}{{biz_id}}";
-        variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username", "biz_id");
+    @JsonCreator
+    public static CronStatusEnum valOf(int cronStatus) {
+        for (CronStatusEnum status : values()) {
+            if (status.getStatus() == cronStatus) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    public Integer getStatus() {
+        return status;
     }
 }

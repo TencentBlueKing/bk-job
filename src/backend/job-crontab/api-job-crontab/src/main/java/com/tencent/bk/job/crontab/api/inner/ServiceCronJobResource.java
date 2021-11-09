@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
+import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -91,11 +93,17 @@ public interface ServiceCronJobResource {
      * @param status    定时任务状态
      * @return 是否更新成功
      */
-    @PutMapping("/{cronJobId}/status")
+    @PostMapping("/{cronJobId}/status")
     InternalResponse<Boolean> updateCronJobStatus(
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,
-        @ApiParam(value = "状态", required = true) @RequestParam(value = "status") Integer status
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId")
+            Long appId,
+        @ApiParam(value = "定时任务 ID", required = true)
+        @PathVariable("cronJobId")
+            Long cronJobId,
+        @ApiParam(value = "状态", required = true)
+        @RequestBody
+            InternalUpdateCronStatusRequest request
     );
 
     /**

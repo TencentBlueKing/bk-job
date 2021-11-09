@@ -802,7 +802,7 @@
             .template-plan-sync-record {
                 &:hover {
                     .open-link-flag {
-                        opacity: 1;
+                        opacity: 100%;
                     }
                 }
             }
@@ -813,7 +813,7 @@
 
             .open-link-flag {
                 font-size: 12px;
-                opacity: 0;
+                opacity: 0%;
             }
 
             .status-column {
@@ -886,7 +886,7 @@
             height: 52px;
             padding-right: 24px;
             background: #fff;
-            box-shadow: 0 -2px 4px 0 rgba(0, 0, 0, 0.06);
+            box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
         }
     }
 </style>

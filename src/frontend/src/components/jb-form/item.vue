@@ -29,13 +29,13 @@
     <bk-form-item
         ref="bkFormItem"
         :class="classes"
-        v-bind="$attrs"
         :label="label"
+        :error-display-type="errorDisplayType"
+        v-bind="$attrs"
         v-on="$listeners">
         <div class="jb-form-item-content">
             <slot />
         </div>
-        <p v-if="validator.state === 'error'" class="error">{{ validator.content }}</p>
     </bk-form-item>
 </template>
 <script>
@@ -51,15 +51,12 @@
                 type: String,
                 default: '',
             },
+            errorDisplayType: {
+                type: String,
+                default: 'normal',
+            },
         },
-        data () {
-            return {
-                validator: {
-                    state: '',
-                    content: '',
-                },
-            };
-        },
+        
         computed: {
             classes () {
                 const classes = {
@@ -72,9 +69,7 @@
                 return classes;
             },
         },
-        mounted () {
-            this.validator = this.$refs.bkFormItem.validator;
-        },
+        
         methods: {
             clearValidator () {
                 this.$refs.bkFormItem.clearValidator();
@@ -106,17 +101,6 @@
 
         .bk-label {
             height: 32px;
-        }
-
-        .error {
-            margin-bottom: -4px;
-            font-size: 12px;
-            line-height: 20px;
-            color: #ff4d4d;
-        }
-
-        .tooltips-icon {
-            display: none;
         }
     }
 </style>

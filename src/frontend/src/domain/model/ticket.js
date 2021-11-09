@@ -37,7 +37,7 @@ export default class Ticket extends Model {
         [PASSWORD]: I18n.t('单一密码'),
         [USERNAME_PASSWORD]: I18n.t('用户名+密码'),
         [SECRET_KEY]: I18n.t('单一SecretKey'),
-    }
+    };
 
     constructor (payload) {
         super();

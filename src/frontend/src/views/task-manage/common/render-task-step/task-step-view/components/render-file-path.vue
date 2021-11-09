@@ -66,7 +66,7 @@
     };
 </script>
 <style lang="postcss">
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .render-file-path-box {
         padding: 6px 10px;

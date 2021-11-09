@@ -34,6 +34,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @since 2/10/2019 20:30
@@ -78,6 +82,11 @@ public class TaskStepDTO {
 
     private Integer enable;
 
+    /**
+     * 步骤引用的变量
+     */
+    private List<TaskVariableDTO> refVariables;
+
     public static TaskStepVO toVO(TaskStepDTO taskStep) {
         if (taskStep == null) {
             return null;
@@ -91,6 +100,10 @@ public class TaskStepDTO {
         stepVO.setFileStepInfo(TaskFileStepDTO.toVO(taskStep.getFileStepInfo()));
         stepVO.setApprovalStepInfo(TaskApprovalStepDTO.toVO(taskStep.getApprovalStepInfo()));
         stepVO.setEnable(taskStep.getEnable());
+        if (CollectionUtils.isNotEmpty(taskStep.getRefVariables())) {
+            stepVO.setRefVariables(taskStep.getRefVariables().stream().map(TaskVariableDTO::getName)
+                .distinct().collect(Collectors.toList()));
+        }
         return stepVO;
     }
 

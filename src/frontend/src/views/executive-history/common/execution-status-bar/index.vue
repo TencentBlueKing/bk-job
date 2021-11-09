@@ -104,7 +104,7 @@
         white-space: nowrap;
 
         &.fail,
-        &.confirmForced {
+        &.confirm-forced {
             .status-text {
                 color: #ea3636;
             }

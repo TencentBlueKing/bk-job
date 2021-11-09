@@ -104,7 +104,7 @@
     .step-execute-variable-view {
         height: 100%;
         padding: 0 20px;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+        font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
         color: #c4c6cc;
         white-space: pre-line;
 

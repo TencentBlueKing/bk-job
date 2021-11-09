@@ -22,38 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.execute.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Job变量解析
+ * 变量值解析
  */
-public class JobVariableResolver {
-    private static final String VARIABLE_PATTERN = "(\\{\\{[A-Za-z0-9_]+}})";
-
-    public static Set<String> resolvedVariables(String content) {
-        String[] lines = content.split("\n");
-        Set<String> variables = new HashSet<>();
-        for (String line : lines) {
-            if (StringUtils.isEmpty(line)) {
-                continue;
-            }
-            Pattern pattern = Pattern.compile(VARIABLE_PATTERN);
-
-            Matcher matcher = pattern.matcher(line);
-
-            while (matcher.find()) {
-                String variable = matcher.group(1).trim();
-                variable = variable.substring(2, variable.length() - 2);
-                variables.add(variable);
-            }
+public class VariableValueResolver {
+    public static String resolve(String param, Map<String, String> variableMap) {
+        if (StringUtils.isBlank(param) || variableMap == null || variableMap.isEmpty()) {
+            return param;
         }
-        return variables;
+
+        Matcher m = Pattern.compile("\\$\\{\\w+}").matcher(param);
+        StringBuilder resolvedParam = new StringBuilder();
+        boolean hasMatched = false;
+        int notVarPartStart = 0;
+        while (m.find()) {
+            String paramTemplate = m.group();
+            String paramName = paramTemplate.substring(2, paramTemplate.length() - 1);
+            int varStart = m.start();
+            resolvedParam.append(param, notVarPartStart, varStart);
+            if (variableMap.containsKey(paramName)) {
+                resolvedParam.append(variableMap.get(paramName) == null ? "" : variableMap.get(paramName));
+            } else {
+                resolvedParam.append(paramTemplate);
+            }
+            notVarPartStart = m.end();
+            hasMatched = true;
+        }
+        if (hasMatched) {
+            resolvedParam.append(param.substring(notVarPartStart));
+        } else {
+            resolvedParam.append(param);
+        }
+        return resolvedParam.toString();
     }
 }

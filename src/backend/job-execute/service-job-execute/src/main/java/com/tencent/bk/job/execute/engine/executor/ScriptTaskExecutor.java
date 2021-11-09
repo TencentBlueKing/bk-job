@@ -28,8 +28,9 @@ import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.gse.taskapi.api_stop_task_request;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.util.VariableResolver;
+import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
@@ -39,7 +40,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
-import com.tencent.bk.job.execute.engine.util.ScriptVariableResolver;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
@@ -148,7 +148,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         boolean containsAnyImportedVariable = false;
         List<String> importVariables = null;
         if (shouldParseBuildInVariables(stepInstance)) {
-            importVariables = ScriptVariableResolver.resolvedVariablesFromScript(stepInstance.getScriptContent());
+            importVariables = VariableResolver.resolveJobImportVariables(stepInstance.getScriptContent());
             if (CollectionUtils.isNotEmpty(importVariables)) {
                 log.info("Parse imported variables, stepInstanceId:{}, variables: {}", stepInstance.getId(),
                     importVariables);
@@ -182,7 +182,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             return scriptParam;
         }
 
-        String resolvedScriptParam = VariableResolver.resolve(scriptParam,
+        String resolvedScriptParam = VariableValueResolver.resolve(scriptParam,
             buildReferenceGlobalVarValueMap(stepInputVariables));
         resolvedScriptParam = resolvedScriptParam.replace("\n", " ");
         log.info("Origin script param:{}, resolved script param:{}", scriptParam, resolvedScriptParam);

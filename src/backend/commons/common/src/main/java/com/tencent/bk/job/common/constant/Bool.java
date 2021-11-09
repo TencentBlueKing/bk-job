@@ -22,37 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.common.constant;
 
-import org.apache.commons.lang3.StringUtils;
+public enum Bool {
+    FALSE(0), TRUE(1);
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+    private final int value;
 
-public class ScriptVariableResolver {
-    private static final String VARIABLE_PATTERN = "^#\\s+job_import\\s+(\\{\\{[A-Za-z0-9_]+}})";
+    Bool(int value) {
+        this.value = value;
+    }
 
-    public static List<String> resolvedVariablesFromScript(String scriptContent) {
-        String[] lines = scriptContent.split("\n");
-        Set<String> variables = new HashSet<>();
-        for (String line : lines) {
-            if (StringUtils.isEmpty(line) || !line.startsWith("#")) {
-                continue;
-            }
-            Pattern pattern = Pattern.compile(VARIABLE_PATTERN);
-
-            Matcher matcher = pattern.matcher(line);
-
-            if (matcher.find()) {
-                String variable = matcher.group(1).trim();
-                variable = variable.substring(2, variable.length() - 2);
-                variables.add(variable);
+    public static Bool from(Integer value) {
+        if (value == null) {
+            return FALSE;
+        }
+        for (Bool boolEnum : values()) {
+            if (boolEnum.getValue() == value) {
+                return boolEnum;
             }
         }
-        return new ArrayList<>(variables);
+        return FALSE;
+    }
+
+    public static Bool from(boolean value) {
+        return value ? TRUE : FALSE;
+    }
+
+    public static boolean isTrue(Integer value) {
+        if (value == null) {
+            return false;
+        }
+        return value.equals(Bool.TRUE.getValue());
+    }
+
+    public int getValue() {
+        return this.value;
     }
 }

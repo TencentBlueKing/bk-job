@@ -28,7 +28,12 @@
 <template>
     <permission-section>
         <smart-action offset-target="variable-value">
-            <div class="cron-job-detail" :class="{ isLoading }" v-bkloading="{ isLoading }">
+            <div
+                class="cron-job-detail"
+                :class="{
+                    'is-loading': isLoading,
+                }"
+                v-bkloading="{ isLoading }">
                 <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
                 <div class="title">
                     <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
@@ -201,11 +206,11 @@
 <style lang='postcss' scoped>
     .cron-job-detail {
         padding: 20px 40px 0;
-        opacity: 1;
+        opacity: 100%;
         transition: opacity 0.1s;
 
-        &.isLoading {
-            opacity: 0;
+        &.is-loading {
+            opacity: 0%;
         }
 
         .title {
@@ -233,17 +238,17 @@
 
             .disable {
                 color: #63656e;
-                background: rgba(99, 101, 110, 0.14);
+                background: rgb(99 101 110 / 14%);
             }
 
             .confirm {
-                color: rgb(45, 203, 157);
-                background-color: rgb(45, 203, 157, 0.14);
+                color: rgb(45 203 157);
+                background-color: rgb(45 203 157 / 14%);
             }
 
             .waiting {
                 color: #ff9c01;
-                background: rgba(255, 156, 1, 0.14);
+                background: rgb(255 156 1 / 14%);
             }
         }
 

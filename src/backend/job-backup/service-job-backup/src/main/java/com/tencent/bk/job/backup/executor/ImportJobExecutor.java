@@ -190,6 +190,7 @@ public class ImportJobExecutor {
                         if (processImportFile(file, importJob)) return;
                     }
                 } else {
+                    log.warn("Import file not found");
                     importJobService.markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                 }
             } else {

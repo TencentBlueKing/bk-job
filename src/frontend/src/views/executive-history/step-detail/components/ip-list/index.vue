@@ -467,7 +467,7 @@
                     margin-right: 1em;
                     margin-left: -3px;
                     background: #2dc89d;
-                    content: '';
+                    content: "";
                 }
             }
 

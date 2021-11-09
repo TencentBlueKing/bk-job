@@ -334,7 +334,7 @@
 
             &:hover {
                 .edit-action {
-                    opacity: 1;
+                    opacity: 100%;
                     transform: scale(1);
                 }
 
@@ -362,7 +362,7 @@
             .edit-action {
                 padding: 6px 0 6px 2px;
                 cursor: pointer;
-                opacity: 0;
+                opacity: 0%;
                 transform: scale(0);
                 transition: 0.15s;
                 transform-origin: left center;

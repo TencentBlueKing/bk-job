@@ -39,17 +39,17 @@ const STATUS_SYNCED = 9;
 const STATUS_PERMISSION = 10;
 
 export default class SyncPlan {
-    static STATUS_CRON_JOB_LOADING = STATUS_CRON_JOB_LOADING
-    static STATUS_DEFAULT = STATUS_DEFAULT
-    static STATUS_CONFIRM_QUEUE = STATUS_CONFIRM_QUEUE
-    static STATUS_CONFIRM_PENDGING = STATUS_CONFIRM_PENDGING
-    static STATUS_CONFIRM_FAILED = STATUS_CONFIRM_FAILED
-    static STATUS_CONFIRMED = STATUS_CONFIRMED
-    static STATUS_SYNC_QUEUE = STATUS_SYNC_QUEUE
-    static STATUS_SYNC_PENDING = STATUS_SYNC_PENDING
-    static STATUS_SYNC_FAILED = STATUS_SYNC_FAILED
-    static STATUS_SYNCED = STATUS_SYNCED
-    static STATUS_PERMISSION = STATUS_PERMISSION
+    static STATUS_CRON_JOB_LOADING = STATUS_CRON_JOB_LOADING;
+    static STATUS_DEFAULT = STATUS_DEFAULT;
+    static STATUS_CONFIRM_QUEUE = STATUS_CONFIRM_QUEUE;
+    static STATUS_CONFIRM_PENDGING = STATUS_CONFIRM_PENDGING;
+    static STATUS_CONFIRM_FAILED = STATUS_CONFIRM_FAILED;
+    static STATUS_CONFIRMED = STATUS_CONFIRMED;
+    static STATUS_SYNC_QUEUE = STATUS_SYNC_QUEUE;
+    static STATUS_SYNC_PENDING = STATUS_SYNC_PENDING;
+    static STATUS_SYNC_FAILED = STATUS_SYNC_FAILED;
+    static STATUS_SYNCED = STATUS_SYNCED;
+    static STATUS_PERMISSION = STATUS_PERMISSION;
 
     static STATUS_TEXT_MAP = {
         [STATUS_CRON_JOB_LOADING]: '',
@@ -63,7 +63,7 @@ export default class SyncPlan {
         [STATUS_SYNC_FAILED]: I18n.t('同步失败'),
         [STATUS_SYNCED]: I18n.t('同步成功'),
         [STATUS_PERMISSION]: I18n.t('无同步权限'),
-    }
+    };
 
     static STATUS_ICON_MAP = {
         [STATUS_CRON_JOB_LOADING]: 'sync-pending',
@@ -77,7 +77,7 @@ export default class SyncPlan {
         [STATUS_SYNC_FAILED]: 'sync-failed',
         [STATUS_SYNCED]: 'sync-success',
         [STATUS_PERMISSION]: 'sync-default',
-    }
+    };
 
     constructor (payload) {
         this.id = payload.id;

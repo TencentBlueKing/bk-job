@@ -24,7 +24,11 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
-import com.tencent.bk.job.backup.constant.*;
+import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
+import com.tencent.bk.job.backup.constant.Constant;
+import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
+import com.tencent.bk.job.backup.constant.LogEntityTypeEnum;
+import com.tencent.bk.job.backup.constant.LogMessage;
 import com.tencent.bk.job.backup.dao.ImportJobDAO;
 import com.tencent.bk.job.backup.executor.ImportJobExecutor;
 import com.tencent.bk.job.backup.model.dto.IdNameInfoDTO;
@@ -54,7 +58,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 /**
@@ -164,10 +172,11 @@ public class ImportJobServiceImpl implements ImportJobService {
                         }
                     }
                     if (!success) {
+                        log.warn("Parse import file fail");
                         markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                     }
                 } catch (IOException | RuntimeException e) {
-                    log.debug("Error while unzip upload file! Maybe encrypt!|{}|{}", appId, jobId);
+                    log.error("Error while unzip upload file", e);
                     if (detectAndRemoveMagic(appId, jobId, uploadFile)) {
                         importJob.setStatus(BackupJobStatusEnum.NEED_PASSWORD);
                         importJobDAO.updateImportJobById(importJob);

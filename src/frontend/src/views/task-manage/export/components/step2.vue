@@ -276,7 +276,7 @@
                 bottom: 0;
                 width: 1px;
                 background: #dcdee5;
-                content: '';
+                content: "";
             }
 
             .job-list {

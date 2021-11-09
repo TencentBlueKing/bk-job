@@ -502,7 +502,7 @@
                     text-align: center;
                     background: #f0c581;
                     border-radius: 2px;
-                    content: 'new';
+                    content: "new";
                     transform: translateY(-50%);
                 }
             }

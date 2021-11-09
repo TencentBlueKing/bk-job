@@ -293,7 +293,7 @@
                 line-height: 40px;
                 color: #fff;
                 text-align: center;
-                background: rgba(0, 0, 0, 0.6);
+                background: rgb(0 0 0 / 60%);
             }
         }
 
