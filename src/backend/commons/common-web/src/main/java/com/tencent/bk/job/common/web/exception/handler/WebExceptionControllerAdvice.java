@@ -102,7 +102,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleInternalException(HttpServletRequest request, InternalException ex) {
         String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @ExceptionHandler({InvalidParamException.class})
@@ -111,7 +111,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleInvalidParamException(HttpServletRequest request, InvalidParamException ex) {
         String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
         log.warn(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @ExceptionHandler(FailedPreconditionException.class)
@@ -120,7 +120,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleBusinessException(HttpServletRequest request, FailedPreconditionException ex) {
         String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -129,7 +129,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
         String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @ExceptionHandler(AlreadyExistsException.class)
@@ -138,7 +138,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
         String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @ExceptionHandler(UnauthenticatedException.class)
@@ -147,7 +147,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     Response<?> handleUnauthenticatedException(HttpServletRequest request, UnauthenticatedException ex) {
         String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
-        return Response.buildCommonFailResp(ex.getErrorCode());
+        return Response.buildCommonFailResp(ex);
     }
 
     @SuppressWarnings("all")
