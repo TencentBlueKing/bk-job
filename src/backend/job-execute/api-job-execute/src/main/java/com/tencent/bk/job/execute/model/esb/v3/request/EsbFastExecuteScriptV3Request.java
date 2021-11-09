@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -106,6 +107,7 @@ public class EsbFastExecuteScriptV3Request extends EsbReq {
     private Integer timeout;
 
     @JsonProperty("target_server")
+    @Valid
     private EsbServerV3DTO targetServer;
 
     /**

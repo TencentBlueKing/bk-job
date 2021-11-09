@@ -27,7 +27,7 @@ package com.tencent.bk.job.analysis.api.web.impl;
 import com.tencent.bk.job.analysis.api.web.WebScriptStatisticsResource;
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
 import com.tencent.bk.job.analysis.service.ScriptStatisticService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +48,11 @@ public class WebScriptStatisticsResourceImpl implements WebScriptStatisticsResou
     }
 
     @Override
-    public ServiceResponse<ScriptCiteStatisticVO> scriptCiteInfo(String username, List<Long> appIdList, String date) {
+    public Response<ScriptCiteStatisticVO> scriptCiteInfo(String username, List<Long> appIdList, String date) {
         if (StringUtils.isBlank(date)) {
             date = DateUtils.getCurrentDateStr();
         }
         ScriptCiteStatisticVO scriptCiteStatisticVO = scriptStatisticService.scriptCiteInfo(appIdList, date);
-        return ServiceResponse.buildSuccessResp(scriptCiteStatisticVO);
+        return Response.buildSuccessResp(scriptCiteStatisticVO);
     }
 }

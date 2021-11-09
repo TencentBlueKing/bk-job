@@ -25,8 +25,10 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -41,10 +43,31 @@ import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AgentTaskExecutionDTO;
+import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ExecutionResultGroupDTO;
+import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.OperationLogDTO;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
+import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
+import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
+import com.tencent.bk.job.execute.model.TaskExecutionDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.service.*;
+import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +75,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
@@ -116,11 +146,11 @@ public class TaskResultServiceImpl implements TaskResultService {
         TaskInstanceDTO taskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             log.warn("Task instance is not exist, taskInstanceId={}", taskInstanceId);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         if (!taskInstance.getAppId().equals(appId)) {
             log.warn("Task instance is not in application, taskInstanceId={}, appId={}", taskInstanceId, appId);
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         authViewTaskInstance(username, appId, taskInstance);
@@ -191,7 +221,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
         AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
         if (!authResult.isPass()) {
-            throw new InSufficientPermissionException(authResult);
+            throw new PermissionDeniedException(authResult);
         }
     }
 
@@ -203,7 +233,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId,
             stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
-            throw new InSufficientPermissionException(authResult);
+            throw new PermissionDeniedException(authResult);
         }
     }
 
@@ -241,14 +271,14 @@ public class TaskResultServiceImpl implements TaskResultService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         if (stepInstance == null) {
             log.warn("Step instance is not exist, stepInstanceId={}", stepInstanceId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         authViewStepInstance(username, appId, stepInstance);
 
         if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
             log.warn("Manual confirm step does not support get-step-detail operation");
-            throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         return stepInstance;
     }
@@ -300,11 +330,11 @@ public class TaskResultServiceImpl implements TaskResultService {
         StepInstanceBaseDTO stepInstance = stepInstanceList.get(0);
         if (stepInstance == null) {
             log.warn("Step instance is not exist, taskInstanceId={}", taskInstanceId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("Step instance is not in application, stepInstanceId={}, appId={}", stepInstance.getId(), appId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         return getStepExecutionResult(username, appId, query);
@@ -836,7 +866,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("Step instance is not in application, stepInstanceId={}, appId={}", stepInstanceId, appId);
-            throw new ServiceException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         StepExecutionResultQuery query = new StepExecutionResultQuery();

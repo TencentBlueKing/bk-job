@@ -27,8 +27,10 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.client.AccountResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
@@ -78,10 +80,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDTO getAccountById(Long accountId) throws ServiceException {
-        ServiceResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountId(accountId);
+        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountId(accountId);
         if (!resp.isSuccess()) {
             log.warn("Get account by accountId:{} return fail resp", accountId);
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getCode());
         }
         if (resp.getData() == null) {
             log.warn("Get account by accountId:{} return empty account", accountId);
@@ -92,11 +94,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDTO getAccountByAccountName(Long appId, String accountName) throws ServiceException {
-        ServiceResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountName(appId,
+        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountName(appId,
             accountName);
         if (!resp.isSuccess()) {
             log.warn("Get accountName by appId:{}, accountName:{} return fail resp", appId, accountName);
-            throw new ServiceException(resp.getCode());
+            throw new InternalException(resp.getCode());
         }
         if (resp.getData() == null) {
             log.warn("Get accountName by appId:{}, accountName:{} return empty accountName", appId, accountName);
@@ -135,16 +137,16 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDTO getAccountByAlias(AccountCategoryEnum accountCategory, Long appId,
                                         String alias) throws ServiceException {
-        ServiceResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByCategoryAndAliasInApp(appId,
+        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByCategoryAndAliasInApp(appId,
             accountCategory.getValue(), alias);
         if (!resp.isSuccess()) {
             log.warn("Get account by category: {}, alias:{}, appId:{} return fail resp", accountCategory, alias, appId);
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getCode());
         }
         if (resp.getData() == null) {
             log.warn("Get account by category: {}, alias:{}, appId:{} return empty account", accountCategory, alias,
                 appId);
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         return convertToAccountInfo(resp.getData());
     }

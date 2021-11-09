@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.file.worker.artifactory.impl;
 
+import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
+import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -35,9 +38,6 @@ import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.file.worker.api.IFileResource;
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryActionCodeEnum;
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryNodeTypeEnum;
-import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
-import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
-import com.tencent.bk.job.common.artifactory.model.dto.RepoDTO;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryBaseService;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryRemoteClient;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
@@ -76,9 +76,9 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+    public InternalResponse<Boolean> isFileAvailable(BaseReq req) {
         ArtifactoryRemoteClient client = baseService.getArtifactoryClientFromBaseReq(req);
-        return ServiceResponse.buildSuccessResp(client.isAvailable());
+        return InternalResponse.buildSuccessResp(client.isAvailable());
     }
 
     private String parseParentNodeTypeByPath(String path) {
@@ -144,11 +144,11 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         String path = req.getPath();
         path = StringUtil.removePrefixAndSuffix(path, "/");
         if (path.contains("/")) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path",
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path",
                 "Parent path of repo must only contains projectName"});
         }
         if (StringUtils.isBlank(path)) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
                 " cannot be blank"});
         }
         String projectId = path;
@@ -200,7 +200,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         path = StringUtil.removePrefixAndSuffix(path, "/");
         String[] pathArr = path.split("/");
         if (pathArr.length < 2) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
                 " must contain projectId and repoName"});
         }
         String projectId = pathArr[0];
@@ -260,7 +260,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
     }
 
     @Override
-    public ServiceResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
+    public InternalResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
         FileNodesDTO fileNodesDTO = new FileNodesDTO();
         String parentNodeType = parseParentNodeTypeByPath(req.getPath());
         FileTreeNodeDef metaData = metaDataService.getChildFileNodeMetaDataByParent(req.getFileSourceTypeCode(),
@@ -269,21 +269,21 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         if (ArtifactoryNodeTypeEnum.FILE_SOURCE.name().equals(parentNodeType)) {
             // 父节点类型为文件源，则子节点为Project，listProject
             fillProjectFileNodesDTO(fileNodesDTO, req);
-            return ServiceResponse.buildSuccessResp(fileNodesDTO);
+            return InternalResponse.buildSuccessResp(fileNodesDTO);
         } else if (ArtifactoryNodeTypeEnum.PROJECT.name().equals(parentNodeType)) {
             // 父节点类型为Project，则子节点为Repo，listRepo
             fillRepoFileNodesDTO(fileNodesDTO, req);
-            return ServiceResponse.buildSuccessResp(fileNodesDTO);
+            return InternalResponse.buildSuccessResp(fileNodesDTO);
         } else if (ArtifactoryNodeTypeEnum.REPO.name().equals(parentNodeType)) {
             // 父节点类型为Repo，则子节点为Node，listNode
             fillNodeFileNodesDTO(fileNodesDTO, req);
-            return ServiceResponse.buildSuccessResp(fileNodesDTO);
+            return InternalResponse.buildSuccessResp(fileNodesDTO);
         } else if (ArtifactoryNodeTypeEnum.NODE.name().equals(parentNodeType)) {
             // 父节点类型为Node，则子节点仍为Node，listNode
             fillNodeFileNodesDTO(fileNodesDTO, req);
-            return ServiceResponse.buildSuccessResp(fileNodesDTO);
+            return InternalResponse.buildSuccessResp(fileNodesDTO);
         } else {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"nodeType"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"nodeType"});
         }
     }
 
@@ -303,7 +303,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> executeAction(ExecuteActionReq req) {
+    public InternalResponse<Boolean> executeAction(ExecuteActionReq req) {
         String actionCode = req.getActionCode();
         if (ArtifactoryActionCodeEnum.DELETE_PROJECT.name().equals(actionCode)) {
             // deleteProject
@@ -315,7 +315,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
             if (StringUtils.isNotBlank(projectId)) {
                 deleteProject(projectId, req);
             } else {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
             }
         } else if (ArtifactoryActionCodeEnum.DELETE_REPO.name().equals(actionCode)) {
             String projectId = null;
@@ -326,9 +326,9 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
                 repoName = (String) params.get("repoName");
             }
             if (StringUtils.isBlank(projectId)) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
             } else if (StringUtils.isBlank(repoName)) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"repoName"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"repoName"});
             } else {
                 deleteRepo(projectId, repoName, req);
             }
@@ -343,15 +343,15 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
                 fullPath = (String) params.get("fullPath");
             }
             if (StringUtils.isBlank(projectId)) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
             } else if (StringUtils.isBlank(repoName)) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"repoName"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"repoName"});
             } else if (StringUtils.isBlank(fullPath)) {
-                throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fullPath"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fullPath"});
             } else {
                 deleteNode(projectId, repoName, fullPath, req);
             }
         }
-        return ServiceResponse.buildSuccessResp(true);
+        return InternalResponse.buildSuccessResp(true);
     }
 }

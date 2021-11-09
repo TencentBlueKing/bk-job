@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -49,10 +49,10 @@ public interface WebPublicTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<List<TagVO>> listTags(@ApiParam("用户名，网关自动传入")
+    Response<List<TagVO>> listTags(@ApiParam("用户名，网关自动传入")
                                           @RequestHeader("username")
                                               String username,
-                                          @ApiParam("标签名称")
+                                   @ApiParam("标签名称")
                                           @RequestParam(value = "name", required = false)
                                               String name);
 

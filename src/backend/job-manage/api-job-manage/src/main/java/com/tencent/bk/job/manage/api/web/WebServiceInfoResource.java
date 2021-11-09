@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,7 +45,7 @@ public interface WebServiceInfoResource {
 
     @ApiOperation(value = "获取所有服务信息", produces = "application/json")
     @GetMapping("/listAll")
-    ServiceResponse<List<ServiceInfoVO>> listServiceInfo(
+    Response<List<ServiceInfoVO>> listServiceInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username

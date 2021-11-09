@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.client.ServiceTaskPlanResourceClient;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
@@ -51,7 +51,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         if (appId <= 0 || planId <= 0) {
             return null;
         }
-        ServiceResponse<ServiceTaskPlanDTO> planByIdResponse =
+        InternalResponse<ServiceTaskPlanDTO> planByIdResponse =
             serviceTaskPlanResourceClient.getPlanBasicInfoById(appId, planId);
         if (planByIdResponse.isSuccess()) {
             return planByIdResponse.getData();

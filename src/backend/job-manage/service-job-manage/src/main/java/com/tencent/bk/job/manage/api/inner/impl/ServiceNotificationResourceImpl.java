@@ -25,12 +25,17 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
-import com.tencent.bk.job.manage.model.inner.*;
+import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
+import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,23 +56,23 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     }
 
     @Override
-    public ServiceResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
+    public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
         log.info(String.format("Input:%s", JsonUtils.toJson(serviceUserNotificationDTO)));
-        return ServiceResponse.buildSuccessResp(notifyService.sendNotificationsToUsers(serviceUserNotificationDTO));
+        return InternalResponse.buildSuccessResp(notifyService.sendNotificationsToUsers(serviceUserNotificationDTO));
     }
 
     @Override
-    public ServiceResponse<Integer> sendNotificationsToAdministrators(
+    public InternalResponse<Integer> sendNotificationsToAdministrators(
         ServiceNotificationMessage serviceNotificationMessage
     ) {
         log.info(String.format("Input:%s", JsonUtils.toJson(serviceNotificationMessage)));
-        return ServiceResponse.buildSuccessResp(
+        return InternalResponse.buildSuccessResp(
             notifyService.sendNotificationsToAdministrators(serviceNotificationMessage)
         );
     }
 
     @Override
-    public ServiceResponse<Integer> triggerTemplateNotification(
+    public InternalResponse<Integer> triggerTemplateNotification(
         ServiceTriggerTemplateNotificationDTO triggerTemplateNotification
     ) {
         log.info(String.format("Input:%s", JsonUtils.toJson(triggerTemplateNotification)));
@@ -80,31 +85,31 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
         } else if (watch.getTotalTimeMillis() > 1000) {
             log.info(watch.prettyPrint());
         }
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public ServiceResponse<Integer> sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
+    public InternalResponse<Integer> sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
         log.info(String.format("Input:%s", JsonUtils.toJson(templateNotificationDTO)));
-        return ServiceResponse.buildSuccessResp(notifyService.sendTemplateNotification(templateNotificationDTO));
+        return InternalResponse.buildSuccessResp(notifyService.sendTemplateNotification(templateNotificationDTO));
     }
 
     @Override
-    public ServiceResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
+    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
         log.info(String.format("Input:%s", lang));
         List<AppRoleDTO> roles = notifyService.listRoles();
         List<ServiceAppRoleDTO> result = roles.stream().map(role -> new ServiceAppRoleDTO(role.getId(),
             role.getName())).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public ServiceResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang) {
+    public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang) {
         log.info(String.format("Input:%s", lang));
         List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel();
         List<ServiceNotifyChannelDTO> result =
             channels.stream().map(channel ->
                 new ServiceNotifyChannelDTO(channel.getType(), channel.getLabel())).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(result);
+        return InternalResponse.buildSuccessResp(result);
     }
 }

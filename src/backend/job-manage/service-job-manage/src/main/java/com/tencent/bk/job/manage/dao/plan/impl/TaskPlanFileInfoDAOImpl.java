@@ -25,14 +25,18 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.TaskFileInfoDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep8;
+import org.jooq.Record9;
+import org.jooq.Result;
 import org.jooq.generated.tables.TaskPlanStepFileList;
 import org.jooq.generated.tables.records.TaskPlanStepFileListRecord;
 import org.jooq.types.UByte;
@@ -41,7 +45,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -161,14 +170,14 @@ public class TaskPlanFileInfoDAOImpl implements TaskFileInfoDAO {
                 taskFileInfo.setId(fileInfoIdIterator.next());
             }
         } catch (Exception e) {
-            throw new ServiceException(ErrorCode.BATCH_INSERT_FAILED);
+            throw new InternalException(ErrorCode.BATCH_INSERT_FAILED);
         }
         return fileInfoIdList;
     }
 
     @Override
     public boolean updateFileInfoById(TaskFileInfoDTO fileInfo) {
-        throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+        throw new InternalException(ErrorCode.UNSUPPORTED_OPERATION);
     }
 
     @Override

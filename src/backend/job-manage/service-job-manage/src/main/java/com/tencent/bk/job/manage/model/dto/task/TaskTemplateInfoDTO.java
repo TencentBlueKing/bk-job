@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
@@ -184,11 +185,8 @@ public class TaskTemplateInfoDTO {
 
     public static TaskTemplateInfoDTO fromBasicReq(String username, Long appId,
                                                    TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq) {
-        if (templateBasicInfoUpdateReq == null) {
-            throw new InvalidParamException("put body", "body cannot be null");
-        }
         if (appId == null || appId <= 0) {
-            throw new InvalidParamException("appId", "appId must be a positive integer");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         TaskTemplateInfoDTO templateInfo = new TaskTemplateInfoDTO();

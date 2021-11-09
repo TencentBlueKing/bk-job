@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.api.web;
 
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -46,7 +46,7 @@ public interface WebScriptStatisticsResource {
 
     @ApiOperation(value = "查询脚本引用统计信息", produces = "application/json")
     @GetMapping("/citeInfo")
-    ServiceResponse<ScriptCiteStatisticVO> scriptCiteInfo(
+    Response<ScriptCiteStatisticVO> scriptCiteInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

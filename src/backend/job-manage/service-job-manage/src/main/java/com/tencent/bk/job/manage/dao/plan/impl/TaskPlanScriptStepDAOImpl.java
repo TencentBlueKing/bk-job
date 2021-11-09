@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
@@ -162,7 +162,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
 
     @Override
     public boolean updateScriptStepById(TaskScriptStepDTO scriptStep) {
-        throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+        throw new InternalException(ErrorCode.UNSUPPORTED_OPERATION);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
 
     @Override
     public List<TaskScriptStepDTO> batchListScriptStepIdByParentIds(List<Long> templateIdList) {
-        throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+        throw new InternalException(ErrorCode.UNSUPPORTED_OPERATION);
     }
 
     @Override

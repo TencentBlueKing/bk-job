@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file.worker.cos;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.cos.COSClient;
@@ -33,12 +33,23 @@ import com.tencent.cos.ClientConfig;
 import com.tencent.cos.auth.BasicCOSCredentials;
 import com.tencent.cos.auth.COSCredentials;
 import com.tencent.cos.http.HttpMethodName;
-import com.tencent.cos.model.*;
+import com.tencent.cos.model.Bucket;
+import com.tencent.cos.model.COSObject;
+import com.tencent.cos.model.COSObjectSummary;
+import com.tencent.cos.model.GeneratePresignedUrlRequest;
+import com.tencent.cos.model.ListObjectsRequest;
+import com.tencent.cos.model.ObjectListing;
+import com.tencent.cos.model.ObjectMetadata;
+import com.tencent.cos.model.ResponseHeaderOverrides;
 import com.tencent.cos.region.Region;
 import com.tencent.cos.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -130,7 +141,7 @@ public class TencentInnerCOSUtil {
         COSClient cosClient = getCOSClient(accessKey, secretKey, regionName);
         COSObject cosObject = cosClient.getObject(bucketName, key);
         if (cosObject == null) {
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{String.format("Fail to getObject by bucketName %s key %s", bucketName, key)});
         }
         return cosObject.getObjectContent();
@@ -141,12 +152,12 @@ public class TencentInnerCOSUtil {
         COSClient cosClient = getCOSClient(accessKey, secretKey, regionName);
         COSObject cosObject = cosClient.getObject(bucketName, key);
         if (cosObject == null) {
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT,
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT,
                 new String[]{String.format("Fail to getObject by bucketName %s key %s", bucketName, key)});
         }
         ObjectMetadata objectMetadata = cosObject.getObjectMetadata();
         if (objectMetadata == null) {
-            throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT,
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_GET_OBJECT,
                 new String[]{String.format("Fail to getObjectMetaData by bucketName %s key %s", bucketName, key)});
         }
         long fileSize = objectMetadata.getContentLength();

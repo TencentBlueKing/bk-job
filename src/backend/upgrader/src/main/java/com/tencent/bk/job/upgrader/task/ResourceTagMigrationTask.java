@@ -26,8 +26,8 @@ package com.tencent.bk.job.upgrader.task;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
@@ -47,8 +47,6 @@ import org.apache.http.message.BasicHeader;
 
 import java.util.List;
 import java.util.Properties;
-
-import static com.tencent.bk.job.common.constant.ErrorCode.RESULT_OK;
 
 /**
  * 迁移作业模板/脚本引用的标签到resource_tag表
@@ -102,22 +100,22 @@ public class ResourceTagMigrationTask extends BaseUpgradeTask {
             String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);
             if (StringUtils.isBlank(respStr)) {
                 log.error("Fail:response is blank|uri={}", url);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
             }
-            ServiceResponse<List<ResourceTagDTO>> resp = JsonUtils.fromJson(respStr,
-                new TypeReference<ServiceResponse<List<ResourceTagDTO>>>() {
+            InternalResponse<List<ResourceTagDTO>> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<InternalResponse<List<ResourceTagDTO>>>() {
                 });
             if (resp == null) {
                 log.error("Fail:parse respStr fail|uri={}", url);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");
-            } else if (resp.getCode() != RESULT_OK) {
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
+            } else if (!resp.isSuccess()) {
                 log.error("Fail: code!=0");
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");
+                throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
             }
             log.info("Migration tags successfully!tags: {}", JsonUtils.toJson(resp.getData()));
         } catch (Exception e) {
             log.error("Fail: caught exception", e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Migration tags fail");
+            throw new InternalException("Migration tags fail", ErrorCode.INTERNAL_ERROR);
         }
         return 0;
     }

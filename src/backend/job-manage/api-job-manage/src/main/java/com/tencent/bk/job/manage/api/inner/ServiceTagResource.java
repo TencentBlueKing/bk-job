@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,7 +45,7 @@ public interface ServiceTagResource {
 
     @ApiOperation(value = "获取业务下的所有标签", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<List<ServiceTagDTO>> listTags(
+    InternalResponse<List<ServiceTagDTO>> listTags(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId
@@ -53,6 +53,6 @@ public interface ServiceTagResource {
 
     @ApiOperation(value = "获取所有公共标签", produces = "application/json")
     @GetMapping("/list/public")
-    ServiceResponse<List<ServiceTagDTO>> listPublicTags();
+    InternalResponse<List<ServiceTagDTO>> listPublicTags();
 
 }

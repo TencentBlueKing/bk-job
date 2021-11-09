@@ -33,7 +33,6 @@ import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.server.reactive.HttpHandler;
 
 import javax.annotation.PostConstruct;
@@ -44,7 +43,6 @@ import javax.annotation.PreDestroy;
  */
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
 @EnableDiscoveryClient
-@EnableFeignClients
 @Slf4j
 public class JobGatewayBootApplication {
     private HttpHandler httpHandler;

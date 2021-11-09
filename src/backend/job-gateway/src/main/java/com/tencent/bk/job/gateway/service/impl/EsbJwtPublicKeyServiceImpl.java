@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbPublicKeyDTO;
@@ -67,7 +68,7 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
             new ParameterizedTypeReference<EsbResp<EsbPublicKeyDTO>>() {
             }, variables).getBody();
         log.info("Get esb jwt public key, resp: {}", resp);
-        if (resp == null || !resp.getCode().equals(EsbResp.SUCCESS_CODE) || resp.getData() == null) {
+        if (resp == null || !resp.getCode().equals(ErrorCode.RESULT_OK) || resp.getData() == null) {
             log.error("Get esb jwt public key fail!");
             throw new RuntimeException("Get esb jwt public key fail");
         }

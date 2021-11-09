@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.client.ServiceTaskExecuteResultResourceClient;
 import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
@@ -72,7 +72,7 @@ public class TaskExecuteResultServiceImpl implements TaskExecuteResultService {
                 log.debug("Get cron execute result|{}|{}", appId, getCronTaskExecuteStatisticsRequest);
             }
 
-            ServiceResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> cronTaskExecuteResultStatResp =
+            InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> cronTaskExecuteResultStatResp =
                 serviceTaskExecuteResultResourceClient.getCronTaskExecuteResultStatistics(
                     getCronTaskExecuteStatisticsRequest
                 );

@@ -24,7 +24,6 @@
 
 dependencies {
     api project(':commons:common')
-    api project(':commons:common-iam')
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'
     api 'ch.qos.logback:logback-core'

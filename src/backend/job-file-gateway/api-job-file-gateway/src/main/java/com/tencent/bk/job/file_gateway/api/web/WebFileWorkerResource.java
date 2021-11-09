@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
 import io.swagger.annotations.Api;
@@ -48,7 +48,7 @@ public interface WebFileWorkerResource {
 
     @ApiOperation(value = "获取文件接入点列表", produces = "application/json")
     @GetMapping("/app/{appId}/list")
-    ServiceResponse<List<FileWorkerVO>> listFileWorker(
+    Response<List<FileWorkerVO>> listFileWorker(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true)

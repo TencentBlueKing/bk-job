@@ -30,12 +30,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +47,7 @@ import java.util.TimeZone;
 @Slf4j
 public class JsonUtils {
 
-    private static final Map<String, JsonMapper> JSON_MAPPERS = Maps.newHashMap();
+    private static final Map<String, JsonMapper> JSON_MAPPERS = new HashMap<>();
 
     /**
      * 序列化时忽略bean中的某些字段,字段需要使用SkipLogFields注解

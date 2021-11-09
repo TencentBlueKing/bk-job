@@ -25,14 +25,16 @@
 package com.tencent.bk.job.crontab.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
+import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -60,7 +62,7 @@ public interface ServiceCronJobResource {
      * @return 定时任务列表
      */
     @GetMapping("/")
-    ServiceResponse<List<ServiceCronJobDTO>> listCronJobs(
+    InternalResponse<List<ServiceCronJobDTO>> listCronJobs(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "是否开启", required = false, example = "true") @RequestParam("enable") Boolean enable
     );
@@ -75,7 +77,7 @@ public interface ServiceCronJobResource {
      * @return 定时任务 ID
      */
     @PutMapping("/{cronJobId}")
-    ServiceResponse<Long> saveCronJob(
+    InternalResponse<Long> saveCronJob(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,
@@ -91,11 +93,17 @@ public interface ServiceCronJobResource {
      * @param status    定时任务状态
      * @return 是否更新成功
      */
-    @PutMapping("/{cronJobId}/status")
-    ServiceResponse<Boolean> updateCronJobStatus(
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,
-        @ApiParam(value = "状态", required = true) @RequestParam(value = "status") Integer status
+    @PostMapping("/{cronJobId}/status")
+    InternalResponse<Boolean> updateCronJobStatus(
+        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @PathVariable("appId")
+            Long appId,
+        @ApiParam(value = "定时任务 ID", required = true)
+        @PathVariable("cronJobId")
+            Long cronJobId,
+        @ApiParam(value = "状态", required = true)
+        @RequestBody
+            InternalUpdateCronStatusRequest request
     );
 
     /**
@@ -106,7 +114,7 @@ public interface ServiceCronJobResource {
      * @return 执行方案与定时任务列表对应表
      */
     @GetMapping("/plan")
-    ServiceResponse<Map<Long, List<CronJobVO>>> batchListCronJobByPlanIds(
+    InternalResponse<Map<Long, List<CronJobVO>>> batchListCronJobByPlanIds(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案 ID 列表", required = true) @RequestParam(value = "planId") List<Long> planIdList
     );
@@ -124,7 +132,7 @@ public interface ServiceCronJobResource {
      * @return 定时任务 ID
      */
     @PutMapping("/{cronJobId}/saveCronJobWithId")
-    ServiceResponse<Long> saveCronJobWithId(
+    InternalResponse<Long> saveCronJobWithId(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,

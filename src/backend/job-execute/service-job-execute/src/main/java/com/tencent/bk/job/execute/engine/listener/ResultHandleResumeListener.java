@@ -198,7 +198,7 @@ public class ResultHandleResumeListener {
             }
         } catch (Exception e) {
             String errorMsg = "Handling task control message error,stepInstanceId=" + stepInstanceId;
-            log.warn(errorMsg, e);
+            log.error(errorMsg, e);
         }
     }
 

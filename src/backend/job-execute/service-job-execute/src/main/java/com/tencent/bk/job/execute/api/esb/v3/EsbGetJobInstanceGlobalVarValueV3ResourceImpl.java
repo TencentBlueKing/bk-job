@@ -28,8 +28,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
@@ -48,7 +50,7 @@ import java.util.List;
 @RestController
 @Slf4j
 public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
-    extends JobQueryCommonV3Processor
+    extends JobQueryCommonProcessor
     implements EsbGetJobInstanceGlobalVarValueV3Resource {
 
     private final TaskInstanceService taskInstanceService;
@@ -71,16 +73,12 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        EsbResp<EsbJobInstanceGlobalVarValueV3DTO> authResult = authViewTaskInstance(request.getUserName(),
-            request.getAppId(), taskInstance);
-        if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
-            return authResult;
-        }
+        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
 
         EsbJobInstanceGlobalVarValueV3DTO result = new EsbJobInstanceGlobalVarValueV3DTO();
         result.setTaskInstanceId(taskInstanceId);

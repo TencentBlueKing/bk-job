@@ -27,7 +27,8 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.client.ServicePlanResourceClient;
 import com.tencent.bk.job.backup.client.WebPlanResourceClient;
 import com.tencent.bk.job.backup.service.TaskPlanService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
@@ -70,7 +71,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     continue;
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
-                ServiceResponse<TaskPlanVO> planByIdResponse =
+                Response<TaskPlanVO> planByIdResponse =
                     webPlanResourceClient.getPlanById(username, appId, templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
@@ -92,7 +93,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
-            ServiceResponse<List<TaskPlanVO>> planListResponse =
+            Response<List<TaskPlanVO>> planListResponse =
                 webPlanResourceClient.listPlans(username, appId, templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
@@ -112,7 +113,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public ServiceIdNameCheckDTO checkIdAndName(Long appId, Long templateId, Long planId, String name) {
         try {
-            ServiceResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
+            InternalResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
                 servicePlanResourceClient.checkIdAndName(appId, templateId, planId, name);
             if (idNameCheckResponse != null) {
                 if (0 == idNameCheckResponse.getCode()) {
@@ -141,7 +142,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             }
             planInfo.setVariableList(planInfo.getVariableList());
 
-            ServiceResponse<Long> savePlanResult =
+            InternalResponse<Long> savePlanResult =
                 servicePlanResourceClient.savePlanForImport(username, appId, templateId, null, planInfo);
 
             if (savePlanResult != null) {
@@ -162,7 +163,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public List<ServiceTaskVariableDTO> getPlanVariable(String username, Long appId, Long templateId, Long planId) {
         try {
-            ServiceResponse<List<ServiceTaskVariableDTO>> planVariableResponse =
+            InternalResponse<List<ServiceTaskVariableDTO>> planVariableResponse =
                 servicePlanResourceClient.getPlanVariable(username, appId, templateId, planId);
             if (planVariableResponse != null) {
                 if (0 == planVariableResponse.getCode()) {

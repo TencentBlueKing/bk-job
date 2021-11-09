@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbCCTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -44,6 +45,7 @@ public class EsbServerV3DTO {
     private String variable;
 
     @JsonProperty("ip_list")
+    @Valid
     private List<EsbIpDTO> ips;
 
     /**

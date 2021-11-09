@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.prepare.third;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -152,7 +152,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         boolean allLogDone = true;
         try {
             pullTimes += 1;
-            ServiceResponse<BatchTaskStatusDTO> resp = fileSourceTaskResource.getBatchTaskStatusAndLogs(batchTaskId,
+            InternalResponse<BatchTaskStatusDTO> resp = fileSourceTaskResource.getBatchTaskStatusAndLogs(batchTaskId,
                 logStart, logLength);
             log.debug("resp={}", resp);
             batchTaskStatusDTO = resp.getData();

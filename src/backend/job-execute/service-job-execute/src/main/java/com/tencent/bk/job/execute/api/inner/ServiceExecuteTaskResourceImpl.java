@@ -26,16 +26,21 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.TaskExecuteParam;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
@@ -69,30 +74,19 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     }
 
     @Override
-    public ServiceResponse<ServiceTaskExecuteResult> executeTask(ServiceTaskExecuteRequest request) {
+    public InternalResponse<ServiceTaskExecuteResult> executeTask(ServiceTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
         if (!checkExecuteTaskRequest(request)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskExecuteParam executeParam = buildExecuteParam(request);
-        try {
-            TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(executeParam);
-            taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(executeParam);
+        taskExecuteService.startTask(taskInstanceDTO.getId());
 
-            ServiceTaskExecuteResult result = new ServiceTaskExecuteResult();
-            result.setTaskInstanceId(taskInstanceDTO.getId());
-            result.setName(taskInstanceDTO.getName());
-            return ServiceResponse.buildSuccessResp(result);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(),
-                i18nService.getI18n(String.valueOf(e.getErrorCode())));
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL,
-                i18nService.getI18n(String.valueOf(ErrorCode.STARTUP_TASK_FAIL)));
-        }
+        ServiceTaskExecuteResult result = new ServiceTaskExecuteResult();
+        result.setTaskInstanceId(taskInstanceDTO.getId());
+        result.setName(taskInstanceDTO.getName());
+        return InternalResponse.buildSuccessResp(result);
     }
 
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
@@ -176,26 +170,23 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     }
 
     @Override
-    public ServiceResponse<AuthResult> authExecuteTask(ServiceTaskExecuteRequest request) {
+    public InternalResponse<AuthResultDTO> authExecuteTask(ServiceTaskExecuteRequest request) {
         log.info("Auth execute task, request={}", request);
         if (!checkExecuteTaskRequest(request)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskExecuteParam executeParam = buildExecuteParam(request);
+
+        AuthResultDTO authResult = null;
         try {
             taskExecuteService.authExecuteJobPlan(executeParam);
-        } catch (InSufficientPermissionException e) {
-            AuthResult authResult = e.getAuthResult();
+        } catch (PermissionDeniedException e) {
+            authResult = AuthResult.toAuthResultDTO(e.getAuthResult());
             log.debug("Insufficient permission, authResult: {}", authResult);
             if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-                authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
+                authResult.setApplyUrl(webAuthService.getApplyUrl(e.getAuthResult().getRequiredActionResources()));
             }
-            ServiceResponse<AuthResult> response =
-                ServiceResponse.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
-            response.setData(authResult);
-            return response;
         }
-        return ServiceResponse.buildSuccessResp(null);
+        return InternalResponse.buildSuccessResp(authResult);
     }
 }

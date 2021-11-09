@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
@@ -49,7 +49,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "接入业务总量", produces = "application/json")
     @GetMapping("/apps/count")
-    ServiceResponse<Integer> countApps(
+    InternalResponse<Integer> countApps(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -57,7 +57,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "作业模板量", produces = "application/json")
     @GetMapping("/templates/count")
-    ServiceResponse<Integer> countTemplates(
+    InternalResponse<Integer> countTemplates(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId
@@ -65,7 +65,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "执行方案量", produces = "application/json")
     @GetMapping("/taskPlans/count")
-    ServiceResponse<Integer> countTaskPlans(
+    InternalResponse<Integer> countTaskPlans(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId
@@ -73,7 +73,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "作业模板的步骤量", produces = "application/json")
     @GetMapping("/templates/step/count")
-    ServiceResponse<Integer> countTemplateSteps(
+    InternalResponse<Integer> countTemplateSteps(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,
@@ -90,7 +90,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "脚本总量", produces = "application/json")
     @GetMapping("/script/count")
-    ServiceResponse<Integer> countScripts(
+    InternalResponse<Integer> countScripts(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,
@@ -104,7 +104,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "被引用的脚本总量", produces = "application/json")
     @GetMapping("/script/cited/count")
-    ServiceResponse<Integer> countCiteScripts(
+    InternalResponse<Integer> countCiteScripts(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId
@@ -112,7 +112,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "引用脚本的步骤总量", produces = "application/json")
     @GetMapping("/step/citeScript/count")
-    ServiceResponse<Integer> countCiteScriptSteps(
+    InternalResponse<Integer> countCiteScriptSteps(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId
@@ -120,7 +120,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "脚本版本总量", produces = "application/json")
     @GetMapping("/scriptVersions/count")
-    ServiceResponse<Integer> countScriptVersions(
+    InternalResponse<Integer> countScriptVersions(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,
@@ -134,7 +134,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "账号总量", produces = "application/json")
     @GetMapping("/accounts/count")
-    ServiceResponse<Integer> countAccounts(
+    InternalResponse<Integer> countAccounts(
         @ApiParam("账号类型")
         @RequestParam(value = "accountType", required = false)
             AccountTypeEnum accountType
@@ -142,7 +142,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "主机总量", produces = "application/json")
     @GetMapping("/hosts/count")
-    ServiceResponse<Long> countHostsByOsType(
+    InternalResponse<Long> countHostsByOsType(
         @ApiParam("系统类型")
         @RequestParam(value = "osType", required = false)
             String osType
@@ -150,7 +150,7 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "某个标签在某业务下的被引数量", produces = "application/json")
     @GetMapping("/tags/citedCount")
-    ServiceResponse<Long> tagCitedCount(
+    InternalResponse<Long> tagCitedCount(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,

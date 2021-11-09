@@ -25,15 +25,19 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
-import com.tencent.bk.job.manage.common.util.DbRecordMapper;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep7;
+import org.jooq.InsertValuesStep8;
+import org.jooq.Record8;
+import org.jooq.Result;
 import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.generated.tables.records.TaskTemplateVariableRecord;
 import org.jooq.types.UByte;
@@ -79,9 +83,9 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
 
         List<TaskVariableDTO> taskVariableList = new ArrayList<>();
 
-        if (records != null && records.size() >= 1) {
+        if (records.size() >= 1) {
             records.forEach(record -> taskVariableList
-                .add(DbRecordMapper.convertRecordToTaskVariable(record, TaskTypeEnum.TEMPLATE)));
+                .add(convertRecordToTaskVariable(record)));
         }
         return taskVariableList;
     }
@@ -95,10 +99,27 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
             context.select(TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
-            return DbRecordMapper.convertRecordToTaskVariable(record, TaskTypeEnum.TEMPLATE);
+            return convertRecordToTaskVariable(record);
         } else {
             return null;
         }
+    }
+
+    private TaskVariableDTO convertRecordToTaskVariable(
+        Record8<ULong, ULong, String, UByte, String, String, UByte, UByte> record) {
+        if (record == null) {
+            return null;
+        }
+        TaskVariableDTO taskVariable = new TaskVariableDTO();
+        taskVariable.setId(((ULong) record.get(0)).longValue());
+        taskVariable.setTemplateId(((ULong) record.get(1)).longValue());
+        taskVariable.setName((String) record.get(2));
+        taskVariable.setType(TaskVariableTypeEnum.valOf(((UByte) record.get(3)).intValue()));
+        taskVariable.setDefaultValue((String) record.get(4));
+        taskVariable.setDescription((String) record.get(5));
+        taskVariable.setChangeable(((UByte) record.get(6)).intValue() == 1);
+        taskVariable.setRequired(((UByte) record.get(7)).intValue() == 1);
+        return taskVariable;
     }
 
     @Override
@@ -109,8 +130,8 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
         Result<Record8<ULong, ULong, String, UByte, String, String, UByte, UByte>> records =
             context.select(TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED).from(TABLE).where(conditions).fetch();
-        if (records != null && records.size() > 0) {
-            return DbRecordMapper.convertRecordToTaskVariable(records.get(0), TaskTypeEnum.TEMPLATE);
+        if (records.size() > 0) {
+            return convertRecordToTaskVariable(records.get(0));
         } else {
             return null;
         }
@@ -157,7 +178,7 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
                 taskFileInfo.setId(variableIdIterator.next());
             }
         } catch (Exception e) {
-            throw new ServiceException(ErrorCode.BATCH_INSERT_FAILED);
+            throw new InternalException(ErrorCode.BATCH_INSERT_FAILED);
         }
 
         return variableIdList;

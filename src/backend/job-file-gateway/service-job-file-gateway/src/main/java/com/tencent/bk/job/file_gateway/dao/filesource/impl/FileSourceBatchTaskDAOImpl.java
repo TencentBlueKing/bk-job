@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceBatchTaskDAO;
@@ -93,7 +94,7 @@ public class FileSourceBatchTaskDAOImpl extends BaseDAOImpl implements FileSourc
             if (affectedRowNum != 1) {
                 log.error("Fail to insertFileSourceBatchTask, fileSourceBatchTaskDTO={}",
                     JsonUtils.toJson(fileSourceBatchTaskDTO));
-                throw new ServiceException("Fail to insertFileSourceBatchTask");
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
             List<FileSourceTaskDTO> fileSourceTaskDTOList = fileSourceBatchTaskDTO.getFileSourceTaskList();
             if (fileSourceTaskDTOList == null) {

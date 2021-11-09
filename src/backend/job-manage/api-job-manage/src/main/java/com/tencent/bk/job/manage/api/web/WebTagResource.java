@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.BatchPatchResourceTagReq;
 import com.tencent.bk.job.manage.model.web.request.TagCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
@@ -59,7 +59,7 @@ public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
     @GetMapping("/tag/list")
-    ServiceResponse<PageData<TagVO>> listPageTags(
+    Response<PageData<TagVO>> listPageTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -81,7 +81,7 @@ public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name)", produces = "application/json")
     @GetMapping("/tag/basic/list")
-    ServiceResponse<List<TagVO>> listTagsBasic(
+    Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -91,7 +91,7 @@ public interface WebTagResource {
 
     @ApiOperation(value = "更新标签名称", produces = "application/json")
     @PutMapping("/tag/{tagId}")
-    ServiceResponse<Boolean> updateTagInfo(
+    Response<Boolean> updateTagInfo(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable(
             "appId") Long appId,
@@ -100,14 +100,14 @@ public interface WebTagResource {
 
     @ApiOperation(value = "创建标签", produces = "application/json")
     @PostMapping("/tag")
-    ServiceResponse<TagVO> saveTagInfo(
+    Response<TagVO> saveTagInfo(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam("标签创建请求") @RequestBody TagCreateUpdateReq tagCreateUpdateReq);
 
     @ApiOperation(value = "删除标签", produces = "application/json")
     @DeleteMapping("/tag/{tagId}")
-    ServiceResponse<Boolean> deleteTag(
+    Response<Boolean> deleteTag(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "标签 ID", required = true) @PathVariable("tagId") Long tagId);
@@ -115,7 +115,7 @@ public interface WebTagResource {
 
     @ApiOperation(value = "批量流转标签", produces = "application/json")
     @PutMapping("/tag/{tagId}/resources")
-    ServiceResponse<?> patchTagRefResourceTags(
+    Response<?> patchTagRefResourceTags(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable(
             "appId") Long appId,
@@ -124,7 +124,7 @@ public interface WebTagResource {
 
     @ApiOperation(value = "检查标签名称是否合法", produces = "application/json")
     @GetMapping("/tag/{tagId}/checkName")
-    ServiceResponse<Boolean> checkTagName(
+    Response<Boolean> checkTagName(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")

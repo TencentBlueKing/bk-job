@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.api;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
@@ -47,18 +47,18 @@ public class FileResourceImpl implements FileResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> isFileAvailable(BaseReq req) {
+    public InternalResponse<Boolean> isFileAvailable(BaseReq req) {
         return fileResource.isFileAvailable(req);
     }
 
     @Override
-    public ServiceResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
+    public InternalResponse<FileNodesDTO> listFileNode(ListFileNodeReq req) {
         log.info("req={}", JsonUtils.toJson(req));
         return fileResource.listFileNode(req);
     }
 
     @Override
-    public ServiceResponse<Boolean> executeAction(ExecuteActionReq req) {
+    public InternalResponse<Boolean> executeAction(ExecuteActionReq req) {
         log.info("req={}", JsonUtils.toJson(req));
         return fileResource.executeAction(req);
     }

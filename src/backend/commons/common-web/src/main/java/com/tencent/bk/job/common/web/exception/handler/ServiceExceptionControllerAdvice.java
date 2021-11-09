@@ -26,68 +26,137 @@ package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.web.exception.HttpStatusServiceException;
+import com.tencent.bk.job.common.exception.UnauthenticatedException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice(annotations = {InternalAPI.class})
 @Slf4j
-public class ServiceExceptionControllerAdvice extends ResponseEntityExceptionHandler {
-    private final MessageI18nService i18nService;
+public class ServiceExceptionControllerAdvice extends ExceptionControllerAdviceBase {
 
-    @Autowired
-    public ServiceExceptionControllerAdvice(MessageI18nService i18nService) {
-        this.i18nService = i18nService;
+    @ExceptionHandler(Throwable.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    InternalResponse<?> handleException(HttpServletRequest request, Throwable ex) {
+        String exceptionInfo = "Handle Exception, uri: " + request.getRequestURI();
+        log.error(exceptionInfo, ex);
+        return InternalResponse.buildCommonFailResp(ErrorType.INTERNAL, ErrorCode.INTERNAL_ERROR);
     }
 
     @ExceptionHandler(ServiceException.class)
     @ResponseBody
-    ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
-        String exceptionInfo = "Handle service exception, exception: " + ex.toString();
+    ResponseEntity<?> handleServiceException(HttpServletRequest request, ServiceException ex) {
+        String exceptionInfo = "Handle ServiceException, uri: " + request.getRequestURI();
         log.warn(exceptionInfo, ex);
-        if (ex instanceof HttpStatusServiceException) {
-            HttpStatusServiceException httpStatusServiceException = (HttpStatusServiceException) ex;
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException,
-                i18nService), httpStatusServiceException.getHttpStatus());
-        } else if (ex instanceof InSufficientPermissionException) {
-            InSufficientPermissionException inSufficientPermissionException = (InSufficientPermissionException) ex;
-            log.debug("Insufficient permission, authResult: {}", inSufficientPermissionException.getAuthResult());
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.USER_NO_PERMISSION_COMMON,
-                i18nService), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex, i18nService), HttpStatus.OK);
-        }
+        return new ResponseEntity<>(InternalResponse.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
-    @ExceptionHandler(Throwable.class)
+    @ExceptionHandler(PermissionDeniedException.class)
     @ResponseBody
-    ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
-        log.warn("Handle exception", ex);
-        // 默认处理
-        HttpStatus status = getStatus(request);
-        return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR,
-            i18nService), status);
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    InternalResponse<?> handlePermissionDeniedException(HttpServletRequest request,
+                                                        PermissionDeniedException ex) {
+        log.info("Handle PermissionDeniedException, uri: {}, authResult: {}",
+            request.getRequestURI(), ex.getAuthResult());
+        return InternalResponse.buildAuthFailResp(AuthResult.toAuthResultDTO(ex.getAuthResult()));
     }
 
-
-    private HttpStatus getStatus(HttpServletRequest request) {
-        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-        if (statusCode == null) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-        return HttpStatus.valueOf(statusCode);
+    @ExceptionHandler(InternalException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    InternalResponse<?> handleInternalException(HttpServletRequest request, InternalException ex) {
+        String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
     }
 
+    @ExceptionHandler({InvalidParamException.class})
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    InternalResponse<?> handleInvalidParamException(HttpServletRequest request, InvalidParamException ex) {
+        String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
+        log.warn(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(FailedPreconditionException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    InternalResponse<?> handleBusinessException(HttpServletRequest request, FailedPreconditionException ex) {
+        String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    InternalResponse<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
+        String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(AlreadyExistsException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    InternalResponse<?> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
+        String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    InternalResponse<?> handleUnauthenticatedException(HttpServletRequest request, UnauthenticatedException ex) {
+        String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return InternalResponse.buildCommonFailResp(ex);
+    }
+
+    @SuppressWarnings("all")
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  WebRequest request) {
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
+        InternalResponse<?> resp = InternalResponse.buildCommonFailResp(ErrorType.INVALID_PARAM,
+            ErrorCode.ILLEGAL_PARAM, errorDetail);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
+                                                         ConstraintViolationException ex) {
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
+        InternalResponse<?> resp = InternalResponse.buildCommonFailResp(ErrorType.INVALID_PARAM,
+            ErrorCode.ILLEGAL_PARAM, errorDetail);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+    }
 }

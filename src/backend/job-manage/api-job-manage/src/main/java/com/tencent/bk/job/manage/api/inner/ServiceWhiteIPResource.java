@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import io.swagger.annotations.Api;
@@ -49,7 +49,7 @@ public interface ServiceWhiteIPResource {
 
     @ApiOperation(value = "获取指定IP在白名单中的生效范围（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）", produces = "application/json")
     @GetMapping("/getWhiteIPActionScopes")
-    ServiceResponse<List<String>> getWhiteIPActionScopes(
+    InternalResponse<List<String>> getWhiteIPActionScopes(
         @ApiParam("业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,
@@ -63,11 +63,11 @@ public interface ServiceWhiteIPResource {
 
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
     @GetMapping("/listWhiteIPInfos")
-    ServiceResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
+    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
 
     @ApiOperation(value = "新增/更新IP白名单", produces = "application/json")
     @PostMapping("")
-    ServiceResponse<Long> saveWhiteIP(
+    InternalResponse<Long> saveWhiteIP(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,

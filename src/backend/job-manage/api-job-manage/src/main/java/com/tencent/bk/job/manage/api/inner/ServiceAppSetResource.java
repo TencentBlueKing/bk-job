@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceAddAppSetRequest;
 import com.tencent.bk.job.manage.model.inner.request.ServiceUpdateAppSetRequest;
@@ -46,27 +46,27 @@ import java.util.List;
 @InternalAPI
 public interface ServiceAppSetResource {
     @GetMapping("/{appId}")
-    ServiceResponse<ServiceApplicationDTO> queryAppSetById(@PathVariable("appId") Long appId);
+    InternalResponse<ServiceApplicationDTO> queryAppSetById(@PathVariable("appId") Long appId);
 
     @GetMapping("/list")
-    ServiceResponse<List<ServiceApplicationDTO>> listAppSet();
+    InternalResponse<List<ServiceApplicationDTO>> listAppSet();
 
 
     @DeleteMapping("/{appId}")
-    ServiceResponse<Boolean> deleteAppSet(@PathVariable("appId") Long appId);
+    InternalResponse<Boolean> deleteAppSet(@PathVariable("appId") Long appId);
 
     @PutMapping
-    ServiceResponse<ServiceApplicationDTO> addAppSet(@RequestBody ServiceAddAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addAppSet(@RequestBody ServiceAddAppSetRequest request);
 
     @PutMapping("/{appId}/maintainers")
-    ServiceResponse<ServiceApplicationDTO> addMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
 
     @DeleteMapping("/{appId}/maintainers")
-    ServiceResponse<ServiceApplicationDTO> deleteMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> deleteMaintainers(@RequestBody ServiceUpdateAppSetRequest request);
 
     @PutMapping("/{appId}/sub-app")
-    ServiceResponse<ServiceApplicationDTO> addSubAppToAppSet(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> addSubAppToAppSet(@RequestBody ServiceUpdateAppSetRequest request);
 
     @DeleteMapping("/{appId}/sub-app")
-    ServiceResponse<ServiceApplicationDTO> deleteSubApp(@RequestBody ServiceUpdateAppSetRequest request);
+    InternalResponse<ServiceApplicationDTO> deleteSubApp(@RequestBody ServiceUpdateAppSetRequest request);
 }

@@ -44,7 +44,7 @@ public class FileWorkerHttpHelper extends DefaultHttpHelper {
     }
 
     @Override
-    public byte[] post(String url, HttpEntity requestEntity, Header... headers) throws Exception {
+    public byte[] post(String url, HttpEntity requestEntity, Header... headers) {
         Timer.Sample sample = Timer.start(meterRegistry);
         byte[] result = super.post(url, requestEntity, headers);
         sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,
@@ -53,7 +53,7 @@ public class FileWorkerHttpHelper extends DefaultHttpHelper {
     }
 
     @Override
-    public String delete(String url, String content, Header... headers) throws Exception {
+    public String delete(String url, String content, Header... headers) {
         Timer.Sample sample = Timer.start(meterRegistry);
         String result = super.delete(url, content, headers);
         sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,

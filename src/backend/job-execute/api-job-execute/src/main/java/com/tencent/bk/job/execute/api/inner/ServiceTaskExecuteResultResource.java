@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
@@ -57,12 +57,12 @@ public interface ServiceTaskExecuteResultResource {
      */
     @ApiOperation(value = "获取定时作业执行结果统计", produces = "application/json")
     @PostMapping("/task-execution-history/execute-result-statistics/cron")
-    ServiceResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
+    InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
         @ApiParam("获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
 
     @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
     @GetMapping("/app/{appId}/task-execution-history/list")
-    ServiceResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(
+    InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(
         @ApiParam(value = "业务ID", required = true, example = "1") @PathVariable("appId") Long appId,
         @ApiParam(value = "任务名称", name = "taskName", required = false) @RequestParam(value = "taskName",
             required = false) String taskName,

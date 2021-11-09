@@ -28,11 +28,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -60,7 +63,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
-    extends JobQueryCommonV3Processor
+    extends JobQueryCommonProcessor
     implements EsbBatchGetJobInstanceIpLogV3Resource {
 
     private final TaskInstanceService taskInstanceService;
@@ -81,24 +84,20 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Batch get job instance ip log request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         long taskInstanceId = request.getTaskInstanceId();
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        EsbResp<EsbIpLogsV3DTO> authResult = authViewTaskInstance(request.getUserName(),
-            request.getAppId(), taskInstance);
-        if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
-            return authResult;
-        }
+        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
         EsbIpLogsV3DTO ipLogs = new EsbIpLogsV3DTO();

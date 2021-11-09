@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebPublicTagResource;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
@@ -49,7 +49,7 @@ public class WebPublicTagResourceImpl implements WebPublicTagResource {
     }
 
     @Override
-    public ServiceResponse<List<TagVO>> listTags(String username, String name) {
+    public Response<List<TagVO>> listTags(String username, String name) {
         return tagResourceProxy.listTagsBasic(username, PUBLIC_APP_ID, name);
     }
 }

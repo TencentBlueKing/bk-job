@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -62,11 +62,11 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public ServiceResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
+    public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
         List<ApplicationInfoDTO> applicationInfoDTOList = applicationInfoDAO.listAppInfoByType(AppTypeEnum.NORMAL);
         List<ServiceAppBaseInfoDTO> resultList =
             applicationInfoDTOList.parallelStream().map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(resultList);
+        return InternalResponse.buildSuccessResp(resultList);
     }
 
     @Override
@@ -100,15 +100,15 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public ServiceResponse<Boolean> checkAppPermission(Long appId, String username) {
+    public InternalResponse<Boolean> checkAppPermission(Long appId, String username) {
         if (appId == null || appId < 0) {
-            return ServiceResponse.buildSuccessResp(false);
+            return InternalResponse.buildSuccessResp(false);
         }
-        return ServiceResponse.buildSuccessResp(applicationService.checkAppPermission(appId, username));
+        return InternalResponse.buildSuccessResp(applicationService.checkAppPermission(appId, username));
     }
 
     @Override
-    public ServiceResponse<List<ServiceApplicationDTO>> listLocalDBApps(Integer appType) {
+    public InternalResponse<List<ServiceApplicationDTO>> listLocalDBApps(Integer appType) {
         List<ApplicationInfoDTO> applicationInfoDTOList;
         if (appType == null || appType <= 0) {
             applicationInfoDTOList = applicationInfoDAO.listAppInfo();
@@ -117,16 +117,16 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         }
         List<ServiceApplicationDTO> resultList =
             applicationInfoDTOList.parallelStream().map(this::convertToServiceApp).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(resultList);
+        return InternalResponse.buildSuccessResp(resultList);
     }
 
     @Override
-    public ServiceResponse<Boolean> existsHost(Long appId, String ip) {
-        return ServiceResponse.buildSuccessResp(applicationService.existsHost(appId, ip));
+    public InternalResponse<Boolean> existsHost(Long appId, String ip) {
+        return InternalResponse.buildSuccessResp(applicationService.existsHost(appId, ip));
     }
 
     @Override
-    public ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
         Long appId,
         String username,
         ServiceGetHostStatusByNodeReq req
@@ -145,11 +145,11 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
                 }
             });
         });
-        return ServiceResponse.buildSuccessResp(hostStatusDTOList);
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 
     @Override
-    public ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         Long appId,
         String username,
         ServiceGetHostStatusByDynamicGroupReq req
@@ -172,12 +172,12 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
                 }
             });
         });
-        return ServiceResponse.buildSuccessResp(hostStatusDTOList);
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 
     @Override
-    public ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
-                                                                         ServiceGetHostStatusByIpReq req) {
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
+                                                                     ServiceGetHostStatusByIpReq req) {
         List<String> ipList = req.getIpList();
         List<HostInfoVO> hostInfoVOList = applicationService.getHostsByIp(username, appId, null, ipList);
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
@@ -190,6 +190,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
                 hostStatusDTOList.add(serviceHostStatusDTO);
             }
         });
-        return ServiceResponse.buildSuccessResp(hostStatusDTOList);
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 }

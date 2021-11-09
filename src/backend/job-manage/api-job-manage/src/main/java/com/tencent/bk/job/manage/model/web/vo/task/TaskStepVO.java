@@ -30,6 +30,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 /**
  * @since 16/10/2019 10:37
  */
@@ -63,6 +65,9 @@ public class TaskStepVO {
 
     @ApiModelProperty(value = "是否启用 0-未启用 1-启用")
     private Integer enable;
+
+    @ApiModelProperty(value = "引用的全局变量")
+    private List<String> refVariables;
 
     public boolean validate(boolean isCreate) {
         if (isCreate) {

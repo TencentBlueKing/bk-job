@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,5 +40,5 @@ public interface ServiceGlobalSettingsResource {
 
     @ApiOperation(value = "获取文档中心基础Url", produces = "application/json")
     @GetMapping("/docCenterBaseUrl")
-    ServiceResponse<String> getDocCenterBaseUrl();
+    InternalResponse<String> getDocCenterBaseUrl();
 }

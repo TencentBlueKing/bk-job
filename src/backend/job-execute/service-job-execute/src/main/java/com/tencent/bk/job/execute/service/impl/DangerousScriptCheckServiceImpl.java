@@ -25,11 +25,15 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.client.ScriptCheckResourceClient;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.DangerousRecordDTO;
+import com.tencent.bk.job.execute.model.ScriptCheckItemDTO;
+import com.tencent.bk.job.execute.model.ScriptCheckResultDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousRecordService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
@@ -71,7 +75,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
     @Override
     public List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
         try {
-            ServiceResponse<List<ServiceScriptCheckResultItemDTO>> response =
+            InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
                 scriptCheckResourceClient.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
             return response.isSuccess() ? response.getData() : Collections.emptyList();
         } catch (Throwable e) {

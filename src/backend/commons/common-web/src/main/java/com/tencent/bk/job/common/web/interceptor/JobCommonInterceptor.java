@@ -28,17 +28,14 @@ import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.web.controller.AbstractJobController;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -111,7 +108,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         if (appId != null) {
             JobContextUtil.setAppId(appId);
         }
-        return preService(request, response, handler);
+        return true;
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
@@ -188,9 +185,6 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
-        if (handler instanceof HandlerMethod) {
-            postService(request, response, (HandlerMethod) handler);
-        }
     }
 
     @Override
@@ -213,33 +207,5 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
                 request.getRequestURI());
         }
         JobContextUtil.unsetContext();
-    }
-
-    private AbstractJobController getControllerInstance(HandlerMethod handler) {
-        Class<?> declaringClass = handler.getMethod().getDeclaringClass();
-        Object declaringClassInstance = ApplicationContextRegister.getBean(declaringClass);
-        if (declaringClassInstance instanceof AbstractJobController) {
-            return (AbstractJobController) declaringClassInstance;
-        }
-        return null;
-    }
-
-    private boolean preService(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (handler instanceof HandlerMethod) {
-            AbstractJobController controllerInstance = getControllerInstance((HandlerMethod) handler);
-            if (controllerInstance != null) {
-                return controllerInstance.preService(request, response, (HandlerMethod) handler);
-            }
-            return true;
-        } else {
-            return true;
-        }
-    }
-
-    private void postService(HttpServletRequest request, HttpServletResponse response, HandlerMethod handler) {
-        AbstractJobController controllerInstance = getControllerInstance(handler);
-        if (controllerInstance != null) {
-            controllerInstance.postService(request, response, handler);
-        }
     }
 }

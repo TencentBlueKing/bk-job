@@ -25,8 +25,11 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskLogResource;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
@@ -71,12 +74,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
-    public ServiceResponse<LogExportJobInfoVO> requestDownloadLogFile(String username, Long appId,
-                                                                      Long stepInstanceId, String ip,
-                                                                      Boolean repackage) {
+    public Response<LogExportJobInfoVO> requestDownloadLogFile(String username, Long appId,
+                                                               Long stepInstanceId, String ip,
+                                                               Boolean repackage) {
         if (appId == null || appId <= 0 || stepInstanceId == null || stepInstanceId < 0) {
             log.warn("Check request param fail, appId={}, stepInstanceId={}", appId, stepInstanceId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (repackage == null) {
             repackage = false;
@@ -84,7 +87,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         if (!repackage) {
@@ -96,20 +99,19 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                     case INIT:
                     case PROCESSING:
                     case FAILED:
-                        return ServiceResponse.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
+                        return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
                     case SUCCESS:
                         File zipFile = new File(logFileDir + exportInfo.getZipFileName());
                         // 如果日志文件已存在，直接返回
                         if (zipFile.exists()) {
-                            return ServiceResponse.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
+                            return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
                         } else {
                             log.warn("Job info exist but file is gone!|{}", exportInfo);
                             repackage = true;
                         }
                         break;
                     default:
-                        return ServiceResponse.buildCommonFailResp(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL,
-                            i18nService);
+                        throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
                 }
             }
         }
@@ -118,12 +120,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         String logFileName = getLogFileName(stepInstanceId, ip, executeCount);
         if (StringUtils.isBlank(logFileName)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL, i18nService);
+            throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
         LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, ip,
             executeCount, logFileDir, logFileName, repackage);
-        return ServiceResponse.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
+        return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
     private String getLogFileName(Long stepInstanceId, String ip, int executeCount) {

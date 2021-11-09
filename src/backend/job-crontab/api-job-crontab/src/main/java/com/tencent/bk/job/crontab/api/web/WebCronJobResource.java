@@ -26,7 +26,7 @@ package com.tencent.bk.job.crontab.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobLaunchHistoryVO;
@@ -75,7 +75,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "获取定时任务列表", produces = "application/json")
     @GetMapping
-    ServiceResponse<PageData<CronJobVO>> listCronJobs(
+    Response<PageData<CronJobVO>> listCronJobs(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID") @RequestParam(value = "cronJobId", required = false) Long cronJobId,
@@ -99,7 +99,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "获取定时任务执行状态信息列表", produces = "application/json")
     @GetMapping("/statistic")
-    ServiceResponse<List<CronJobVO>> listCronJobStatistic(
+    Response<List<CronJobVO>> listCronJobStatistic(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID 列表，逗号分隔") @RequestParam(value = "cronJobIds") List<Long> cronJobId
@@ -115,7 +115,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "获取定时任务信息", produces = "application/json")
     @GetMapping("/{cronJobId}")
-    ServiceResponse<CronJobVO> getCronJobById(
+    Response<CronJobVO> getCronJobById(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable(value = "cronJobId") Long cronJobId
@@ -132,7 +132,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "更新定时任务", produces = "application/json")
     @PutMapping("/{cronJobId}")
-    ServiceResponse<Long> saveCronJob(
+    Response<Long> saveCronJob(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID，新建时填 0", required = true) @PathVariable("cronJobId") Long cronJobId,
@@ -150,7 +150,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "删除定时任务", produces = "application/json")
     @DeleteMapping("/{cronJobId}")
-    ServiceResponse<Boolean> deleteCronJob(
+    Response<Boolean> deleteCronJob(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId
@@ -167,7 +167,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "启用、禁用定时任务", produces = "application/json")
     @PutMapping("/{cronJobId}/status")
-    ServiceResponse<Boolean> changeCronJobEnableStatus(
+    Response<Boolean> changeCronJobEnableStatus(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,
@@ -186,7 +186,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "定时任务启动记录", produces = "application/json")
     @GetMapping("/{cronJobId}/history")
-    ServiceResponse<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(
+    Response<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID", required = true) @PathVariable("cronJobId") Long cronJobId,
@@ -205,7 +205,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "检查定时任务名称是否可用", produces = "application/json")
     @GetMapping("/{cronJobId}/check_name")
-    ServiceResponse<Boolean> checkCronJobName(
+    Response<Boolean> checkCronJobName(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "定时任务 ID，新建时填 0", required = true) @PathVariable("cronJobId") Long cronJobId,
@@ -225,7 +225,7 @@ public interface WebCronJobResource {
     @Deprecated
     @ApiOperation(value = "批量更新定时任务信息 只更新 变量 和 启用 字段", produces = "application/json")
     @PostMapping("/batch_update")
-    ServiceResponse<Boolean> batchUpdateCronJob(
+    Response<Boolean> batchUpdateCronJob(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "批量更新定时任务请求", name = "batchUpdateCronJobReq",
@@ -242,7 +242,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "根据执行方案 ID 查询定时任务信息", produces = "application/json")
     @GetMapping("/plan/{planId}")
-    ServiceResponse<List<CronJobVO>> getCronJobListByPlanId(
+    Response<List<CronJobVO>> getCronJobListByPlanId(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案 ID", required = true) @PathVariable(value = "planId") Long planId
@@ -258,7 +258,7 @@ public interface WebCronJobResource {
      */
     @ApiOperation(value = "根据执行方案 ID 列表查询定时任务信息", produces = "application/json")
     @GetMapping("/plans/{planId}")
-    ServiceResponse<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(
+    Response<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案 ID 列表，逗号分隔", required = true) @PathVariable(value = "planId") List<Long> planIdList

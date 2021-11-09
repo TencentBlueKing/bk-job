@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageDataWithManagePermission;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
@@ -54,7 +54,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "获取IP白名单列表", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(
+    Response<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -93,7 +93,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "新增/更新IP白名单", produces = "application/json")
     @PostMapping("/")
-    ServiceResponse<Long> saveWhiteIP(
+    Response<Long> saveWhiteIP(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -104,7 +104,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "获取IP白名单记录详情", produces = "application/json")
     @GetMapping("/ids/{id}")
-    ServiceResponse<WhiteIPRecordVO> getWhiteIPDetailById(
+    Response<WhiteIPRecordVO> getWhiteIPDetailById(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -115,7 +115,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "获取业务下云区域列表", produces = "application/json")
     @GetMapping("/cloudAreas/list")
-    ServiceResponse<List<CloudAreaInfoVO>> listCloudAreas(
+    Response<List<CloudAreaInfoVO>> listCloudAreas(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -123,7 +123,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "获取生效范围列表", produces = "application/json")
     @GetMapping("/actionScope/list")
-    ServiceResponse<List<ActionScopeVO>> listActionScope(
+    Response<List<ActionScopeVO>> listActionScope(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -131,7 +131,7 @@ public interface WebWhiteIPResource {
 
     @ApiOperation(value = "删除IP白名单", produces = "application/json")
     @DeleteMapping("/ids/{id}")
-    ServiceResponse<Long> deleteWhiteIPById(
+    Response<Long> deleteWhiteIPById(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

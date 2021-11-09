@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.service;
 
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +50,7 @@ public class MetricResourceReslover {
         } else if (DistributionMetricEnum.ACCOUNT_TYPE == metric) {
             return StatisticsConstants.RESOURCE_ACCOUNT_OF_ALL_APP;
         } else {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"metric"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"metric"});
         }
     }
 }
