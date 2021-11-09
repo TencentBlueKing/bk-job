@@ -79,15 +79,15 @@ public class JobSrcFileUtils {
     }
 
     private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
-        String destPath;
         if (sourceFile.isDir()) {
             String destDirName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getDir();
-            destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(destDirName));
+            String destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(destDirName));
+            return new FileDest(destPath, destDirPath, destDirName);
         } else {
             String destFileName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getFileName();
-            destPath = FilePathUtils.appendFileName(destDirPath, destFileName);
+            String destPath = FilePathUtils.appendFileName(destDirPath, destFileName);
+            return new FileDest(destPath, destDirPath, destFileName);
         }
-        return new FileDest(destPath, destDirPath, sourceFile.getFileName());
     }
 
     /**
