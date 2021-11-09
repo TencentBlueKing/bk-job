@@ -42,6 +42,7 @@
                 style="margin-bottom: 0;">
                 <jb-input
                     v-model="formData.name"
+                    class="name-input"
                     behavior="simplicity"
                     :maxlength="60"
                     :native-attributes="{
@@ -359,9 +360,16 @@
             padding-bottom: 0 !important;
             border-bottom-color: transparent !important;
 
-            .only-bottom-border {
-                padding-top: 9px;
-                padding-bottom: 16px;
+            .name-input {
+                .bk-form-input {
+                    font-size: 18px;
+                    color: #313238;
+                }
+
+                .only-bottom-border {
+                    padding-top: 9px;
+                    padding-bottom: 16px;
+                }
             }
         }
 

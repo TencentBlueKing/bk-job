@@ -168,6 +168,10 @@
         .input-box {
             position: relative;
 
+            .bk-form-input {
+                font-size: 14px;
+            }
+
             &.validate-error {
                 .only-bottom-border {
                     border-bottom-color: #ea3636 !important;
