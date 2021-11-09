@@ -24,7 +24,7 @@
             <maxHistory>15</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -37,7 +37,7 @@
             <maxHistory>15</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
+            <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
