@@ -38,17 +38,15 @@
                         :data="planInfo"
                         @on-edit-success="handleEditSuccess" />
                     <span
+                        v-if="planInfo.cronJobCount > 0"
                         class="cron-job-tag"
-                        :tippy-tips="planInfo.hasCronJob ? '' : $t('template.没有关联定时任务')">
-                        <bk-button
-                            text
-                            :disabled="!planInfo.hasCronJob"
-                            @click="handleGoCronList">
-                            <div class="btn-inner">
-                                <Icon type="job-timing" />
-                                <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
-                            </div>
-                        </bk-button>
+                        v-bk-tooltips.html="`
+                            <div>${$t('template.有')} ${planInfo.cronJobCount} ${$t('template.个定时任务')}</div>
+                            <div>${$t('template.点击前往查看')}</div>
+                        `"
+                        @click="handleGoCronList">
+                        <Icon type="job-timing" svg />
+                        <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
                     </span>
                 </div>
                 <div slot="sub-title" class="link-wraper">
@@ -408,27 +406,18 @@
 
             .cron-job-tag {
                 display: inline-flex;
+                display: flex;
+                height: 16px;
+                padding: 0 4px;
                 margin-left: 14px;
+                font-size: 12px;
+                color: #fff;
                 cursor: pointer;
+                background: #3a84ff;
+                border-radius: 8px;
                 user-select: none;
-
-                .is-disabled {
-                    .btn-inner {
-                        background-color: #dcdee5;
-                    }
-                }
-
-                .btn-inner {
-                    display: flex;
-                    height: 16px;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 0 4px;
-                    font-size: 12px;
-                    color: #fff;
-                    background: #3a84ff;
-                    border-radius: 8px;
-                }
+                justify-content: center;
+                align-items: center;
             }
 
             .link-wraper {

@@ -16,6 +16,7 @@
                     spellcheck: false,
                     autofocus: true,
                 }"
+                :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
                 enter-trigger
                 :maxlength="60"
                 behavior="simplicity"
@@ -48,7 +49,7 @@
     import _ from 'lodash';
     import TaskPlanService from '@service/task-plan';
     import I18n from '@/i18n';
-    import { calcTextWidth } from '@utils/assist';
+    import { calcTextWidth, getOffset } from '@utils/assist';
     import { planNameRule } from '@utils/validator';
 
     export default {
@@ -113,9 +114,12 @@
              * @param { String } value 输入值
              */
             handleInput: _.throttle(function (value) {
+                const windowClienWidth = window.innerWidth;
                 const offset = 60;
                 const width = calcTextWidth(value, this.$refs.box) + offset;
-                if (width <= 520 && width > this.inputWidth) {
+                const { left } = getOffset(this.$refs.box);
+                const maxWidth = windowClienWidth - left - 230;
+                if (width <= maxWidth && width > this.inputWidth) {
                     this.inputWidth = width;
                 }
             }, 60),
@@ -164,6 +168,7 @@
 <style lang="postcss">
     .plan-edit-title {
         position: relative;
+        font-size: 14px;
 
         .input-box {
             position: relative;

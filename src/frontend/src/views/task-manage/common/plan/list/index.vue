@@ -115,11 +115,31 @@
                                         v-bk-overflow-tips>
                                         {{ row.name }}
                                     </div>
-                                    <Icon
+                                    <router-link
+                                        v-if="row.cronJobCount > 0"
+                                        class="cron-job-tag"
+                                        :to="{
+                                            name: 'cronList',
+                                            query: {
+                                                planId: row.id,
+                                            },
+                                        }"
+                                        target="_blank"
+                                        v-bk-tooltips.html="`
+                                            <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
+                                            <div>${$t('template.点击前往查看')}</div>
+                                        `">
+                                        <Icon type="job-timing" svg />
+                                        <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
+                                    </router-link>
+                                    <span
                                         v-if="row.needUpdate"
-                                        class="update-flag"
-                                        :tippy-tips="$t('template.未同步')"
-                                        type="sync" />
+                                        class="update-flag">
+                                        <Icon
+                                            :tippy-tips="$t('template.未同步')"
+                                            type="sync-8" />
+                                    </span>
+                                    
                                 </div>
                                 <Icon
                                     @click.stop="handleCollection(row)"
@@ -139,11 +159,31 @@
                                 }">
                                 <div class="name-wraper">
                                     <div class="name-text" v-bk-overflow-tips>{{ row.name }}</div>
-                                    <Icon
+                                    <router-link
+                                        v-if="row.cronJobCount > 0"
+                                        class="cron-job-tag"
+                                        :to="{
+                                            name: 'cronList',
+                                            query: {
+                                                planId: row.id,
+                                            },
+                                        }"
+                                        target="_blank"
+                                        v-bk-tooltips.html="`
+                                            <div>${$t('template.有')} ${row.cronJobCount} ${$t('template.个定时任务')}</div>
+                                            <div>${$t('template.点击前往查看')}</div>
+                                        `">
+                                        <Icon type="job-timing" svg />
+                                        <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
+                                    </router-link>
+                                    <span
                                         v-if="row.needUpdate"
-                                        class="update-flag"
-                                        :tippy-tips="$t('template.未同步')"
-                                        type="sync" />
+                                        class="update-flag">
+                                        <Icon
+                                            :tippy-tips="$t('template.未同步')"
+                                            type="sync-8" />
+                                    </span>
+                                    
                                 </div>
                                 <Icon
                                     @click.stop="handleCollection(row)"
@@ -162,23 +202,6 @@
                     key="templateName"
                     show-overflow-tooltip
                     align="left" />
-                <bk-table-column
-                    v-if="allRenderColumnMap.cronJobCount"
-                    :label="$t('template.关联定时任务')"
-                    prop="cronJobCount"
-                    key="cronJobCount"
-                    width="160"
-                    align="right">
-                    <template slot-scope="{ row }">
-                        <bk-button
-                            text
-                            :disabled="!row.hasCronJob"
-                            @click="handleGoCronJobList(row)"
-                            v-test="{ type: 'link', value: 'crontabList' }">
-                            {{ row.cronJobCount }}
-                        </bk-button>
-                    </template>
-                </bk-table-column>
                 <bk-table-column
                     v-if="allRenderColumnMap.lastModifyUser"
                     :label="$t('template.更新人.colHead')"
@@ -537,11 +560,6 @@
                     id: 'createTime',
                     label: I18n.t('template.创建时间'),
                 },
-                {
-                    id: 'cronJobCount',
-                    label: I18n.t('template.关联定时任务'),
-                    disabled: true,
-                },
             ];
             const columnsCache = listColumnsCache.getItem(TABLE_COLUMN_CACHE);
             if (columnsCache) {
@@ -551,7 +569,6 @@
                 this.selectedTableColumn = Object.freeze([
                     { id: 'id' },
                     { id: 'name' },
-                    { id: 'cronJobCount' },
                     { id: 'lastModifyUser' },
                     { id: 'lastModifyTime' },
                 ]);
@@ -1065,9 +1082,33 @@
                 align-items: center;
             }
 
-            .update-flag {
+            .cron-job-tag {
+                display: inline-flex;
+                height: 16px;
+                padding: 0 4px;
                 margin-left: 4px;
-                color: #ea3636 !important;
+                font-size: 12px;
+                color: #fff;
+                cursor: pointer;
+                background: #3a84ff;
+                border-radius: 8px;
+                user-select: none;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .update-flag {
+                display: inline-flex;
+                width: 16px;
+                height: 16px;
+                margin-left: 4px;
+                font-size: 12px;
+                color: #fff;
+                background: #ea3636;
+                border-radius: 8px;
+                user-select: none;
+                justify-content: center;
+                align-items: center;
             }
 
             .collection-flag {

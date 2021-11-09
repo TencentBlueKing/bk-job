@@ -45,6 +45,7 @@
                     v-model="formData.name"
                     class="name-input"
                     behavior="simplicity"
+                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
                     :native-attributes="{
                         spellcheck: false,
                         autofocus: true,
@@ -374,6 +375,7 @@
                 .only-bottom-border {
                     padding-top: 9px;
                     padding-bottom: 16px;
+                    padding-left: 10px;
                 }
             }
         }
