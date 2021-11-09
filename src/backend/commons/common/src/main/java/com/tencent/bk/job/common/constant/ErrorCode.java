@@ -257,7 +257,7 @@ public class ErrorCode {
     // 文件网关 start
     // 文件源不存在:{0}
     public static final int FILE_SOURCE_NOT_EXIST = 1260001;
-    // 接入点响应异常：ListBucket，详情：{0}
+    // 接入点响应异常：ListFileNode，详情：{0}
     public static final int FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE = 1260002;
     // 接入点响应异常：FileAvailable，详情：{0}
     public static final int FAIL_TO_REQUEST_FILE_WORKER_FILE_AVAILABLE = 1260003;
