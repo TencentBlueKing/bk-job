@@ -54,8 +54,7 @@ public class AuthResult {
     /**
      * 依赖的权限操作与资源
      */
-    private List<com.tencent.bk.job.common.iam.model.PermissionActionResource> requiredActionResources =
-        new ArrayList<>();
+    private List<PermissionActionResource> requiredActionResources = new ArrayList<>();
 
     public static AuthResult pass() {
         AuthResult authResult = new AuthResult();
@@ -79,15 +78,13 @@ public class AuthResult {
         this.pass = false;
 
         if (permissionResource == null) {
-            com.tencent.bk.job.common.iam.model.PermissionActionResource actionResource =
-                new com.tencent.bk.job.common.iam.model.PermissionActionResource();
+            PermissionActionResource actionResource = new PermissionActionResource();
             actionResource.setActionId(actionId);
             this.requiredActionResources.add(actionResource);
             return;
         }
 
-        com.tencent.bk.job.common.iam.model.PermissionActionResource actionResource =
-            createOrGetPermissionActionResource(actionId);
+        PermissionActionResource actionResource = createOrGetPermissionActionResource(actionId);
 
         PermissionResourceGroup resourceGroup = null;
         for (PermissionResourceGroup existedResourceGroup : actionResource.getResourceGroups()) {
@@ -116,8 +113,7 @@ public class AuthResult {
         }
         this.pass = false;
 
-        com.tencent.bk.job.common.iam.model.PermissionActionResource actionResource =
-            createOrGetPermissionActionResource(actionId);
+        PermissionActionResource actionResource = createOrGetPermissionActionResource(actionId);
 
         PermissionResourceGroup resourceGroup = null;
         ResourceTypeEnum resourceType = permissionResources.get(0).getResourceType();
@@ -135,18 +131,16 @@ public class AuthResult {
         resourceGroup.addPermissionResources(permissionResources);
     }
 
-    private com.tencent.bk.job.common.iam.model.PermissionActionResource createOrGetPermissionActionResource(
-        String actionId) {
-        com.tencent.bk.job.common.iam.model.PermissionActionResource actionResource = null;
-        for (com.tencent.bk.job.common.iam.model.PermissionActionResource existedActionResource :
-            requiredActionResources) {
+    private PermissionActionResource createOrGetPermissionActionResource(String actionId) {
+        PermissionActionResource actionResource = null;
+        for (PermissionActionResource existedActionResource : requiredActionResources) {
             if (existedActionResource.getActionId().equals(actionId)) {
                 actionResource = existedActionResource;
                 break;
             }
         }
         if (actionResource == null) {
-            actionResource = new com.tencent.bk.job.common.iam.model.PermissionActionResource();
+            actionResource = new PermissionActionResource();
             actionResource.setActionId(actionId);
             requiredActionResources.add(actionResource);
         }
@@ -164,8 +158,7 @@ public class AuthResult {
         boolean isPass = this.pass && otherAuthResult.isPass();
         authResult.setPass(isPass);
         if (!isPass) {
-            List<com.tencent.bk.job.common.iam.model.PermissionActionResource> requiredActionResourceList =
-                new ArrayList<>();
+            List<PermissionActionResource> requiredActionResourceList = new ArrayList<>();
             if (this.requiredActionResources != null && !this.requiredActionResources.isEmpty()) {
                 requiredActionResourceList.addAll(this.requiredActionResources);
             }
@@ -184,7 +177,7 @@ public class AuthResult {
         result.setApplyUrl(authResult.getApplyUrl());
 
         List<PermissionActionResourceDTO> actionResourcesDTOS = new ArrayList<>();
-        for (com.tencent.bk.job.common.iam.model.PermissionActionResource actionResource :
+        for (PermissionActionResource actionResource :
             authResult.getRequiredActionResources()) {
             PermissionActionResourceDTO actionResourceDTO = new PermissionActionResourceDTO();
             actionResourceDTO.setActionId(actionResource.getActionId());

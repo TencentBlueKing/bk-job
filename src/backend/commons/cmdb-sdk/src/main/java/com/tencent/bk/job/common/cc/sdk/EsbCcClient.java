@@ -459,10 +459,10 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public <R> EsbResp<R> requestCmdbApi(String method,
-                                          String uri,
-                                          EsbReq reqBody,
-                                          TypeReference<EsbResp<R>> typeReference,
-                                          AbstractHttpHelper httpHelper) throws RuntimeException {
+                                         String uri,
+                                         EsbReq reqBody,
+                                         TypeReference<EsbResp<R>> typeReference,
+                                         AbstractHttpHelper httpHelper) {
 
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
@@ -1462,139 +1462,139 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return userSet;
     }
 
-        @Override
-        public List<AppRoleDTO> getAppRoleList() throws ServiceException {
-            List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
-            return esbObjAttributeDTO.stream().filter(it ->
-                it.getBkPropertyGroup().equals("role")
-            ).map(it -> new AppRoleDTO(
-                it.getBkPropertyId(),
-                it.getBkPropertyName(),
-                it.getCreator())
-            ).collect(Collectors.toList());
+    @Override
+    public List<AppRoleDTO> getAppRoleList() throws ServiceException {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
+        return esbObjAttributeDTO.stream().filter(it ->
+            it.getBkPropertyGroup().equals("role")
+        ).map(it -> new AppRoleDTO(
+            it.getBkPropertyId(),
+            it.getBkPropertyName(),
+            it.getCreator())
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
+        String owner = defaultSupplierAccount;
+        String uin = defaultUin;
+        GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, uin, owner);
+
+        // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
+        List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
+        List<Long> appNodes = new ArrayList<>();
+        for (InstanceTopologyDTO topoNode : getTopoNodePathReq.getTopoNodes()) {
+            if ("biz".equals(topoNode.getObjectId())) {
+                appNodes.add(topoNode.getInstanceId());
+            } else {
+                nonAppNodes.add(topoNode);
+            }
         }
 
-        @Override
-        public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
-            String owner = defaultSupplierAccount;
-            String uin = defaultUin;
-            GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, uin, owner);
+        req.setTopoNodes(nonAppNodes);
+        req.setAppId(getTopoNodePathReq.getAppId());
 
-            // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
-            List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
-            List<Long> appNodes = new ArrayList<>();
-            for (InstanceTopologyDTO topoNode : getTopoNodePathReq.getTopoNodes()) {
-                if ("biz".equals(topoNode.getObjectId())) {
-                    appNodes.add(topoNode.getInstanceId());
-                } else {
-                    nonAppNodes.add(topoNode);
-                }
+        List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
+        if (!nonAppNodes.isEmpty()) {
+            EsbResp<List<TopoNodePathDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
+                req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
+                });
+            if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {
+                return Collections.emptyList();
             }
+            List<TopoNodePathDTO> nodePathList = esbResp.getData();
 
-            req.setTopoNodes(nonAppNodes);
-            req.setAppId(getTopoNodePathReq.getAppId());
-
-            List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
-            if (!nonAppNodes.isEmpty()) {
-                EsbResp<List<TopoNodePathDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
-                    req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
-                    });
-                if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {
-                    return Collections.emptyList();
-                }
-                List<TopoNodePathDTO> nodePathList = esbResp.getData();
-
-                nodePathList.forEach(nodePath -> {
-                    InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
-                    hierarchyTopo.setObjectId(nodePath.getObjectId());
-                    hierarchyTopo.setInstanceId(nodePath.getInstanceId());
-                    hierarchyTopo.setInstanceName(nodePath.getObjectName());
-                    if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
-                        List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
-                        if (!CollectionUtils.isEmpty(parents)) {
-                            Collections.reverse(parents);
-                            parents.forEach(hierarchyTopo::addParent);
-                        }
+            nodePathList.forEach(nodePath -> {
+                InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
+                hierarchyTopo.setObjectId(nodePath.getObjectId());
+                hierarchyTopo.setInstanceId(nodePath.getInstanceId());
+                hierarchyTopo.setInstanceName(nodePath.getObjectName());
+                if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
+                    List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
+                    if (!CollectionUtils.isEmpty(parents)) {
+                        Collections.reverse(parents);
+                        parents.forEach(hierarchyTopo::addParent);
                     }
-                    hierarchyTopoList.add(hierarchyTopo);
-                });
-            }
-            if (!appNodes.isEmpty()) {
-                appNodes.forEach(appId -> {
-                    InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
-                    hierarchyTopo.setObjectId("biz");
-                    hierarchyTopo.setInstanceId(appId);
-                    hierarchyTopoList.add(hierarchyTopo);
-                });
-            }
-            return hierarchyTopoList;
-        }
-
-        @Override
-        public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
-            ResourceWatchReq req = makeBaseReqByWeb(
-                ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-            req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name", "bk_os_type",
-                "bk_cloud_id"));
-            req.setResource("host");
-            req.setCursor(cursor);
-            req.setStartTime(startTime);
-            EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-                req, new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
-                }, new LongRetryableHttpHelper());
-            return esbResp.getData();
-        }
-
-        @Override
-        public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
-            ResourceWatchReq req = makeBaseReqByWeb(
-                ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-            req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id"));
-            req.setResource("host_relation");
-            req.setCursor(cursor);
-            req.setStartTime(startTime);
-            EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-                RESOURCE_WATCH, req, new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
-                }, new LongRetryableHttpHelper());
-            return esbResp.getData();
-        }
-
-        @Override
-        public ResourceWatchResult<AppEventDetail> getAppEvents(Long startTime, String cursor) {
-            ResourceWatchReq req = makeBaseReqByWeb(
-                ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-            req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
-                "time_zone", "bk_operate_dept_id", "bk_operate_dept_name", "language"));
-            req.setResource("biz");
-            req.setCursor(cursor);
-            req.setStartTime(startTime);
-            EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-                req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
-                }, new LongRetryableHttpHelper());
-            return esbResp.getData();
-        }
-
-        class FindModuleHostRelationTask implements Runnable {
-            //结果队列
-            LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue;
-            FindModuleHostRelationReq req;
-            String requestId;
-
-            FindModuleHostRelationTask(LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue,
-                                       FindModuleHostRelationReq req, String requestId) {
-                this.resultQueue = resultQueue;
-                this.req = req;
-                this.requestId = requestId;
-            }
-
-            @Override
-            public void run() {
-                JobContextUtil.setRequestId(requestId);
-                try {
-                    resultQueue.addAll(getHostsByReq(req).getRelation());
-                } catch (Exception e) {
-                    log.error("FindModuleHostRelationTask fail:", e);
                 }
+                hierarchyTopoList.add(hierarchyTopo);
+            });
+        }
+        if (!appNodes.isEmpty()) {
+            appNodes.forEach(appId -> {
+                InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
+                hierarchyTopo.setObjectId("biz");
+                hierarchyTopo.setInstanceId(appId);
+                hierarchyTopoList.add(hierarchyTopo);
+            });
+        }
+        return hierarchyTopoList;
+    }
+
+    @Override
+    public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
+        ResourceWatchReq req = makeBaseReqByWeb(
+            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name", "bk_os_type",
+            "bk_cloud_id"));
+        req.setResource("host");
+        req.setCursor(cursor);
+        req.setStartTime(startTime);
+        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+            req, new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
+            }, new LongRetryableHttpHelper());
+        return esbResp.getData();
+    }
+
+    @Override
+    public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
+        ResourceWatchReq req = makeBaseReqByWeb(
+            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id"));
+        req.setResource("host_relation");
+        req.setCursor(cursor);
+        req.setStartTime(startTime);
+        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+            RESOURCE_WATCH, req, new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
+            }, new LongRetryableHttpHelper());
+        return esbResp.getData();
+    }
+
+    @Override
+    public ResourceWatchResult<AppEventDetail> getAppEvents(Long startTime, String cursor) {
+        ResourceWatchReq req = makeBaseReqByWeb(
+            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
+            "time_zone", "bk_operate_dept_id", "bk_operate_dept_name", "language"));
+        req.setResource("biz");
+        req.setCursor(cursor);
+        req.setStartTime(startTime);
+        EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+            req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
+            }, new LongRetryableHttpHelper());
+        return esbResp.getData();
+    }
+
+    class FindModuleHostRelationTask implements Runnable {
+        //结果队列
+        LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue;
+        FindModuleHostRelationReq req;
+        String requestId;
+
+        FindModuleHostRelationTask(LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue,
+                                   FindModuleHostRelationReq req, String requestId) {
+            this.resultQueue = resultQueue;
+            this.req = req;
+            this.requestId = requestId;
+        }
+
+        @Override
+        public void run() {
+            JobContextUtil.setRequestId(requestId);
+            try {
+                resultQueue.addAll(getHostsByReq(req).getRelation());
+            } catch (Exception e) {
+                log.error("FindModuleHostRelationTask fail:", e);
             }
         }
+    }
 }

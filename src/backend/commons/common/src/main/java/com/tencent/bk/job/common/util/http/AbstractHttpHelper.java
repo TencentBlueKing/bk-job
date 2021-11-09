@@ -285,7 +285,7 @@ public abstract class AbstractHttpHelper {
     }
 
     private static class FakeHttpDelete extends HttpPost {
-        public FakeHttpDelete(String url) {
+        FakeHttpDelete(String url) {
             super(url);
         }
 

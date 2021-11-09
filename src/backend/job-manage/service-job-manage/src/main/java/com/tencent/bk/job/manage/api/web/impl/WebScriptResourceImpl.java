@@ -454,9 +454,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         String updateField = scriptInfoUpdateReq.getUpdateField();
-        boolean isUpdateDesc = updateField.equals("scriptDesc");
-        boolean isUpdateName = updateField.equals("scriptName");
-        boolean isUpdateTags = updateField.equals("scriptTags");
+        boolean isUpdateDesc = "scriptDesc".equals(updateField);
+        boolean isUpdateName = "scriptName".equals(updateField);
+        boolean isUpdateTags = "scriptTags".equals(updateField);
 
         if (StringUtils.isBlank(updateField) || !(isUpdateDesc || isUpdateName || isUpdateTags)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

@@ -272,7 +272,7 @@ public class HttpConPoolUtil {
     }
 
     private static class FakeHttpDelete extends HttpPost {
-        public FakeHttpDelete(String url) {
+        FakeHttpDelete(String url) {
             super(url);
         }
 
