@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.util.JobVariableResolver;
+import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.dao.customsetting.CustomScriptTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateDTO;
@@ -41,7 +41,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.*;
+import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.BIZ_ID;
+import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.BIZ_NAME;
+import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.DATETIME;
+import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.DISPLAY_NAME;
+import static com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum.USERNAME;
 
 @Service
 @Slf4j
@@ -81,7 +85,7 @@ public class CustomScriptTemplateServiceImpl implements CustomScriptTemplateServ
     public void renderScriptTemplate(ScriptTemplateVariableRenderDTO scriptTemplateVariableRender,
                                      ScriptTemplateDTO scriptTemplate) {
         String scriptContent = scriptTemplate.getScriptContent();
-        Set<String> variables = JobVariableResolver.resolvedVariables(scriptContent);
+        Set<String> variables = VariableResolver.resolveScriptBuildInVariables(scriptContent);
         if (CollectionUtils.isEmpty(variables)) {
             return;
         }

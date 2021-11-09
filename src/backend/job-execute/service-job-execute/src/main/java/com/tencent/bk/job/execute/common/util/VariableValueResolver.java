@@ -22,27 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.execute.common.util;
 
-import org.junit.jupiter.api.Test;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static org.assertj.core.api.Assertions.assertThat;
+/**
+ * 变量值解析
+ */
+public class VariableValueResolver {
+    public static String resolve(String param, Map<String, String> variableMap) {
+        if (StringUtils.isBlank(param) || variableMap == null || variableMap.isEmpty()) {
+            return param;
+        }
 
-public class JobVariableResolverTest {
-    @Test
-    void test() {
-        String content = "abc{{username}}def";
-        Set<String> variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username");
-
-        content = "abc{{username}}def\n#d{{biz_id}}\n";
-        variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username", "biz_id");
-
-        content = "{{username}}{{biz_id}}";
-        variables = JobVariableResolver.resolvedVariables(content);
-        assertThat(variables).containsOnly("username", "biz_id");
+        Matcher m = Pattern.compile("\\$\\{\\w+}").matcher(param);
+        StringBuilder resolvedParam = new StringBuilder();
+        boolean hasMatched = false;
+        int notVarPartStart = 0;
+        while (m.find()) {
+            String paramTemplate = m.group();
+            String paramName = paramTemplate.substring(2, paramTemplate.length() - 1);
+            int varStart = m.start();
+            resolvedParam.append(param, notVarPartStart, varStart);
+            if (variableMap.containsKey(paramName)) {
+                resolvedParam.append(variableMap.get(paramName) == null ? "" : variableMap.get(paramName));
+            } else {
+                resolvedParam.append(paramTemplate);
+            }
+            notVarPartStart = m.end();
+            hasMatched = true;
+        }
+        if (hasMatched) {
+            resolvedParam.append(param.substring(notVarPartStart));
+        } else {
+            resolvedParam.append(param);
+        }
+        return resolvedParam.toString();
     }
 }

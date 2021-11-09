@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.manager.variable.StepVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -321,6 +322,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         TaskPlanInfoDTO taskPlan = planService.getTaskPlanById(appId, templateId, planId);
         if (taskPlan != null) {
+            StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+
             final String templateVersion = taskTemplateBasicInfo.getVersion();
             if (StringUtils.isNotEmpty(templateVersion)) {
                 taskPlan.setTemplateVersion(templateVersion);
@@ -611,12 +614,15 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         try {
             List<Long> planIds = Collections.singletonList(planInfo.getId());
             Map<Long, List<CronJobVO>> cronJobByPlanIds = cronJobService.batchListCronJobByPlanIds(appId, planIds);
-            if (MapUtils.isNotEmpty(cronJobByPlanIds)) {
-                planInfo.setHasCronJob(cronJobByPlanIds.containsKey(planInfo.getId()));
+            List<CronJobVO> cronJobs = cronJobByPlanIds != null ? cronJobByPlanIds.get(planInfo.getId()) : null;
+            if (CollectionUtils.isNotEmpty(cronJobs)) {
+                planInfo.setHasCronJob(true);
+                planInfo.setCronJobCount((long) cronJobs.size());
             } else {
                 planInfo.setHasCronJob(false);
+                planInfo.setCronJobCount(0L);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error while process plan's cronjob", e);
         }
     }

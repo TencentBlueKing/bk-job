@@ -172,12 +172,13 @@ public class ImportJobServiceImpl implements ImportJobService {
                         }
                     }
                     if (!success) {
+                        log.warn("Parse import file fail");
                         markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                     } else {
                         return true;
                     }
                 } catch (IOException | RuntimeException e) {
-                    log.debug("Error while unzip upload file! Maybe encrypt!|{}|{}", appId, jobId);
+                    log.error("Error while unzip upload file", e);
                     if (detectAndRemoveMagic(appId, jobId, uploadFile)) {
                         importJob.setStatus(BackupJobStatusEnum.NEED_PASSWORD);
                         importJobDAO.updateImportJobById(importJob);
