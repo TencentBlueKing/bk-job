@@ -255,9 +255,10 @@ public class LogExportServiceImpl implements LogExportService {
                     artifactoryClient.uploadGenericFile(
                         artifactoryConfig.getArtifactoryJobProject(),
                         logExportConfig.getLogExportRepo(),
-                        "/",
+                        zipFile.getName(),
                         zipFile
                     );
+                    FileUtils.deleteQuietly(zipFile);
                 } catch (Exception e) {
                     String msg = MessageFormatter.format(
                         "Fail to upload {} to artifactory",
