@@ -64,7 +64,7 @@ public class EsbFastTransferFileV3Request extends EsbReq {
     private String targetPath;
 
     /**
-     * 目标文件/目录名
+     * 目标文件名
      */
     @JsonProperty("file_target_name")
     private String targetName;

@@ -52,12 +52,12 @@ public class JobSrcFileUtils {
      *
      * @param srcFiles   源文件
      * @param targetDir  目标目录
-     * @param targetName 目录/文件分发到目标主机的对应名称
+     * @param targetFileName 文件分发到目标主机的对应名称
      * @return 源文件路径与目标文件路径的映射关系
      */
     public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles,
                                                                    String targetDir,
-                                                                   String targetName) {
+                                                                   String targetFileName) {
         Map<String, FileDest> sourceDestPathMap = new HashMap<>();
         String standardTargetDir = FilePathUtils.standardizedDirPath(targetDir);
         long currentTime = System.currentTimeMillis();
@@ -66,7 +66,7 @@ public class JobSrcFileUtils {
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
                 "0_0.0.0.0" : srcFile.getCloudAreaIdAndIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
-            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetName);
+            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
         return sourceDestPathMap;
     }
@@ -80,9 +80,8 @@ public class JobSrcFileUtils {
 
     private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
         if (sourceFile.isDir()) {
-            String destDirName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getDir();
-            String destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(destDirName));
-            return new FileDest(destPath, destDirPath, destDirName);
+            String destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(sourceFile.getDir()));
+            return new FileDest(destPath, destDirPath, null);
         } else {
             String destFileName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getFileName();
             String destPath = FilePathUtils.appendFileName(destDirPath, destFileName);

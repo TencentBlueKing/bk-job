@@ -48,7 +48,7 @@ public class FileStepInstanceDTO {
      */
     private String fileTargetPath;
     /**
-     * 目录/文件分发到目标主机的对应名称
+     * 文件分发到目标主机的对应名称
      */
     private String fileTargetName;
     /**
