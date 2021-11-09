@@ -195,4 +195,8 @@ data:
           log:
             connectTimeout: 5000
             readTimeout: 30000
+    log-export:
+      storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
+      artifactory:
+        repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
   {{- end}}

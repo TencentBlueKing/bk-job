@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
@@ -85,17 +86,21 @@ public class WebBackupResourceImpl implements WebBackupResource {
     private final LogService logService;
     private final StorageService storageService;
     private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService, ExportJobService exportJobService,
                                  LogService logService, StorageService storageService,
-                                 ArtifactoryClient artifactoryClient, BackupStorageConfig backupStorageConfig) {
+                                 ArtifactoryClient artifactoryClient,
+                                 ArtifactoryConfig artifactoryConfig,
+                                 BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;
         this.storageService = storageService;
         this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
     }
 
@@ -171,7 +176,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         InputStream ins;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                backupStorageConfig.getArtifactoryJobProject(),
+                artifactoryConfig.getArtifactoryJobProject(),
                 backupStorageConfig.getBackupRepo(),
                 fileName
             );
@@ -180,7 +185,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         }
         try {
             ins = artifactoryClient.getFileInputStream(
-                backupStorageConfig.getArtifactoryJobProject(),
+                artifactoryConfig.getArtifactoryJobProject(),
                 backupStorageConfig.getBackupRepo(),
                 fileName
             );
@@ -282,7 +287,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                     try {
                         log.debug("begin to upload to artifactory:{}", filePath);
                         artifactoryClient.uploadGenericFile(
-                            backupStorageConfig.getArtifactoryJobProject(),
+                            artifactoryConfig.getArtifactoryJobProject(),
                             backupStorageConfig.getBackupRepo(),
                             filePath,
                             file

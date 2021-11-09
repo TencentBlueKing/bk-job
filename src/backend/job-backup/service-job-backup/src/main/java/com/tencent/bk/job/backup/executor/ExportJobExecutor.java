@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.executor;
 
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.config.LocalFileConfigForBackup;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
@@ -105,6 +106,7 @@ public class ExportJobExecutor {
     private final StorageService storageService;
     private final MessageI18nService i18nService;
     private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
     private final LocalFileConfigForBackup localFileConfig;
 
@@ -113,7 +115,9 @@ public class ExportJobExecutor {
                              TaskPlanService taskPlanService, ScriptService scriptService,
                              AccountService accountService, LogService logService,
                              StorageService storageService, MessageI18nService i18nService,
-                             ArtifactoryClient artifactoryClient, BackupStorageConfig backupStorageConfig,
+                             ArtifactoryClient artifactoryClient,
+                             ArtifactoryConfig artifactoryConfig,
+                             BackupStorageConfig backupStorageConfig,
                              LocalFileConfigForBackup localFileConfig) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
@@ -124,6 +128,7 @@ public class ExportJobExecutor {
         this.storageService = storageService;
         this.i18nService = i18nService;
         this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
         this.localFileConfig = localFileConfig;
 
@@ -157,7 +162,7 @@ public class ExportJobExecutor {
 
     private void saveToArtifactory(String fileName) {
         String fullPath = storageService.getStoragePath().concat(fileName);
-        String project = backupStorageConfig.getArtifactoryJobProject();
+        String project = artifactoryConfig.getArtifactoryJobProject();
         String repo = backupStorageConfig.getBackupRepo();
         File file = new File(fullPath);
         artifactoryClient.uploadGenericFile(project, repo, fileName, file);

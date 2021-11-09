@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
+import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.config.StorageSystemConfig;
 import com.tencent.bk.job.manage.model.web.request.GenUploadTargetReq;
@@ -56,16 +57,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebFileUploadResourceImpl implements WebFileUploadResource {
     private final StorageSystemConfig storageSystemConfig;
+    private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
 
     @Autowired
     public WebFileUploadResourceImpl(
         StorageSystemConfig storageSystemConfig,
-        LocalFileConfigForManage localFileConfigForManage,
+        ArtifactoryConfig artifactoryConfig, LocalFileConfigForManage localFileConfigForManage,
         ArtifactoryClient artifactoryClient
     ) {
         this.storageSystemConfig = storageSystemConfig;
+        this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
     }
@@ -158,7 +161,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             UploadLocalFileResultVO fileResultVO = new UploadLocalFileResultVO();
             fileResultVO.setFileName(fileName);
             fileResultVO.setFilePath(filePath);
-            String project = localFileConfigForManage.getArtifactoryJobProject();
+            String project = artifactoryConfig.getArtifactoryJobProject();
             String repo = localFileConfigForManage.getLocalUploadRepo();
             try {
                 NodeDTO nodeDTO = artifactoryClient.uploadGenericFileWithStream(
@@ -214,7 +217,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             filePathList.add(filePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
-            localFileConfigForManage.getArtifactoryJobProject(),
+            artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );

@@ -32,24 +32,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class BackupStorageConfig {
 
-    @Value("${artifactory.base-url:}")
-    private String artifactoryBaseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String artifactoryAdminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String artifactoryAdminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String artifactoryJobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String artifactoryJobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String artifactoryJobProject;
-
     @Value("${job.backup.storage-backend:local}")
     private String storageBackend;
 

@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.ParamCheckUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbLocalFileV3Resource;
+import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
@@ -52,14 +53,16 @@ import java.util.Map;
 @Slf4j
 public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
 
+    private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
 
     @Autowired
     public EsbLocalFileResourceV3Impl(
-        LocalFileConfigForManage localFileConfigForManage,
+        ArtifactoryConfig artifactoryConfig, LocalFileConfigForManage localFileConfigForManage,
         ArtifactoryClient artifactoryClient
     ) {
+        this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
     }
@@ -95,7 +98,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             filePathList.add(filePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
-            localFileConfigForManage.getArtifactoryJobProject(),
+            artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );

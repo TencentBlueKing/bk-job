@@ -1,6 +1,7 @@
 package com.tencent.bk.job.manage.runner;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,21 +12,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
+    private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
 
     @Autowired
-    public InitArtifactoryDataRunner(LocalFileConfigForManage localFileConfigForManage) {
+    public InitArtifactoryDataRunner(
+        ArtifactoryConfig artifactoryConfig,
+        LocalFileConfigForManage localFileConfigForManage
+    ) {
+        this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
     }
 
     @Override
     public void run(String... args) {
-        String baseUrl = localFileConfigForManage.getArtifactoryBaseUrl();
-        String adminUsername = localFileConfigForManage.getArtifactoryAdminUsername();
-        String adminPassword = localFileConfigForManage.getArtifactoryAdminPassword();
-        String jobUsername = localFileConfigForManage.getArtifactoryJobUsername();
-        String jobPassword = localFileConfigForManage.getArtifactoryJobPassword();
-        String jobProject = localFileConfigForManage.getArtifactoryJobProject();
+        String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
+        String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
+        String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
+        String jobUsername = artifactoryConfig.getArtifactoryJobUsername();
+        String jobPassword = artifactoryConfig.getArtifactoryJobPassword();
+        String jobProject = artifactoryConfig.getArtifactoryJobProject();
         String localUploadRepo = localFileConfigForManage.getLocalUploadRepo();
         // 1.检查用户、仓库是否存在
         boolean userRepoExists = ArtifactoryHelper.checkRepoExists(

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
@@ -105,6 +106,7 @@ public class ImportJobExecutor {
     private final StorageService storageService;
     private final MessageI18nService i18nService;
     private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
@@ -113,7 +115,7 @@ public class ImportJobExecutor {
                              AccountService accountService, LogService logService,
                              StorageService storageService, MessageI18nService i18nService,
                              ArtifactoryClient artifactoryClient,
-                             BackupStorageConfig backupStorageConfig) {
+                             ArtifactoryConfig artifactoryConfig, BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -123,6 +125,7 @@ public class ImportJobExecutor {
         this.storageService = storageService;
         this.i18nService = i18nService;
         this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
 
         ImportJobExecutor.ImportJobExecutorThread importJobExecutorThread =
@@ -199,7 +202,7 @@ public class ImportJobExecutor {
             if (!importFileDirectory.exists()) {
                 log.debug("begin to download from artifactory:{}", importJob.getFileName());
                 InputStream ins = artifactoryClient.getFileInputStream(
-                    backupStorageConfig.getArtifactoryJobProject(),
+                    artifactoryConfig.getArtifactoryJobProject(),
                     backupStorageConfig.getBackupRepo(),
                     importJob.getFileName()
                 );

@@ -374,23 +374,24 @@ cmdb:
 nodeman:
   server:
     url: http://nodeman.example.com
+## BlueKing Artifactory Config
+artifactory:
+  baseUrl: http://bkrepo.example.com
+  admin:
+    username: admin
+    password: blueking
+  job:
+    username: bkjob
+    password: bkjob
+    project: bkjob
 
 ## Job LocalFile Config
 localFile:
   storageBackend: artifactory
   artifactory:
-    baseUrl: http://bkrepo.example.com
     download:
       concurrency: 10
-    admin:
-      username: admin
-      password: blueking
-    job:
-      username: bkjob
-      password: bkjob
-      project: bkjob
-      repo:
-        localUpload: localupload
+    repo: localupload
 
 ## Swagger Doc
 swagger:
@@ -533,6 +534,10 @@ manageConfig:
 
 ## @section job-execute parameters
 executeConfig:
+  logExport:
+    storageBackend: artifactory
+    artifactory:
+      repo: backup
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-execute
@@ -676,6 +681,9 @@ logsvrConfig:
 
 ## @section job-backup parameters
 backupConfig:
+  storageBackend: artifactory
+  artifactory:
+    repo: backup
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-backup

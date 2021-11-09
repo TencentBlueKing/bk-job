@@ -1,5 +1,6 @@
 package com.tencent.bk.job.backup.runner;
 
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -11,21 +12,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
+    private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
-    public InitArtifactoryDataRunner(BackupStorageConfig backupStorageConfig) {
+    public InitArtifactoryDataRunner(ArtifactoryConfig artifactoryConfig, BackupStorageConfig backupStorageConfig) {
+        this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
     }
 
     @Override
     public void run(String... args) {
-        String baseUrl = backupStorageConfig.getArtifactoryBaseUrl();
-        String adminUsername = backupStorageConfig.getArtifactoryAdminUsername();
-        String adminPassword = backupStorageConfig.getArtifactoryAdminPassword();
-        String jobUsername = backupStorageConfig.getArtifactoryJobUsername();
-        String jobPassword = backupStorageConfig.getArtifactoryJobPassword();
-        String jobProject = backupStorageConfig.getArtifactoryJobProject();
+        String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
+        String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
+        String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
+        String jobUsername = artifactoryConfig.getArtifactoryJobUsername();
+        String jobPassword = artifactoryConfig.getArtifactoryJobPassword();
+        String jobProject = artifactoryConfig.getArtifactoryJobProject();
         String backupRepo = backupStorageConfig.getBackupRepo();
         // 1.检查用户、仓库是否存在
         boolean userRepoExists = ArtifactoryHelper.checkRepoExists(
