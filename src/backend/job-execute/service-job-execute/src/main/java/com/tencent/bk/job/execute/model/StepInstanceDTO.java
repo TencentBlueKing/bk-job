@@ -222,6 +222,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.fileSourceList = fileStepInstance.getFileSourceList();
         this.resolvedFileSourceList = fileStepInstance.getResolvedFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
+        this.fileTargetName = fileStepInstance.getFileTargetName();
         this.resolvedFileTargetPath = fileStepInstance.getResolvedFileTargetPath();
         this.fileUploadSpeedLimit = fileStepInstance.getFileUploadSpeedLimit();
         this.fileDownloadSpeedLimit = fileStepInstance.getFileDownloadSpeedLimit();

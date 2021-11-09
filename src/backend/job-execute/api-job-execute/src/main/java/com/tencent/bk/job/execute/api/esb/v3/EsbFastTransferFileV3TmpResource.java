@@ -22,66 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+/**
+ * 快速分发文件API-tmp
+ * 临时API,支持文件重命名
+ */
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbFastTransferFileV3TmpResource {
 
-@Getter
-@Setter
-@ToString
-public class FileStepInstanceDTO {
-    private Long stepInstanceId;
-    /**
-     * 文件传输的源文件
-     */
-    private List<FileSourceDTO> fileSourceList;
-    /**
-     * 变量解析之后的文件传输的源文件
-     */
-    private List<FileSourceDTO> resolvedFileSourceList;
-    /**
-     * 文件传输的目标目录
-     */
-    private String fileTargetPath;
-    /**
-     * 目录/文件分发到目标主机的对应名称
-     */
-    private String fileTargetName;
-    /**
-     * 变量解析之后的目标路径
-     */
-    private String resolvedFileTargetPath;
-    /**
-     * 任务超时时间
-     */
-    private Integer timeout;
-    /**
-     * 系统执行账号ID
-     */
-    private Long accountId;
-    /**
-     * 目标机器的执行账户名
-     */
-    private String account;
-    /**
-     * 上传文件限速，单位KB
-     */
-    private Integer fileUploadSpeedLimit;
+    @PostMapping("/fast_transfer_file_tmp")
+    EsbResp<EsbJobExecuteV3DTO> fastTransferFile(
+        @RequestBody EsbFastTransferFileV3Request request);
 
-    /**
-     * 下载文件限速，单位KB
-     */
-    private Integer fileDownloadSpeedLimit;
-    /**
-     * 文件分发-重名文件处理，1-覆盖，2-追加源IP目录
-     */
-    private Integer fileDuplicateHandle;
-    /**
-     * 目标路径不存在：路径处理
-     */
-    private Integer notExistPathHandler;
+
 }

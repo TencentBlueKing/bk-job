@@ -28,7 +28,14 @@ import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import org.assertj.core.util.Lists;
@@ -370,6 +377,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileStepInstance.setFileDuplicateHandle(1);
         fileStepInstance.setNotExistPathHandler(1);
         fileStepInstance.setFileTargetPath("/tmp/");
+        fileStepInstance.setFileTargetName("test.log");
         fileStepInstance.setTimeout(1000);
 
         List<FileSourceDTO> fileSources = new ArrayList<>();
@@ -400,6 +408,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getFileDuplicateHandle()).isEqualTo(1);
         assertThat(savedStepInstance.getNotExistPathHandler()).isEqualTo(1);
         assertThat(savedStepInstance.getFileTargetPath()).isEqualTo("/tmp/");
+        assertThat(savedStepInstance.getFileTargetName()).isEqualTo("test.log");
         assertThat(savedStepInstance.getTimeout()).isEqualTo(1000);
         assertThat(savedStepInstance.getFileSourceList()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0)).isNotNull();
@@ -426,6 +435,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getResolvedFileSourceList().get(0).getFiles().get(0).getResolvedFilePath())
             .isEqualTo("/tmp/1.log");
         assertThat(returnStepInstance.getFileTargetPath()).isEqualTo("/${log_dir}/");
+        assertThat(returnStepInstance.getFileTargetName()).isEqualTo("2.log");
         assertThat(returnStepInstance.getResolvedFileTargetPath()).isEqualTo("/tmp/");
         assertThat(returnStepInstance.getFileUploadSpeedLimit()).isEqualTo(100);
         assertThat(returnStepInstance.getFileDownloadSpeedLimit()).isEqualTo(100);

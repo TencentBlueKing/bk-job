@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_file`
     `file_source`               mediumtext NOT NULL,
     `resolved_file_source`      mediumtext          DEFAULT NULL,
     `file_target_path`          varchar(512)        DEFAULT NULL,
+    `file_target_name`          varchar(512)        DEFAULT NULL,
     `resolved_file_target_path` varchar(512)        DEFAULT NULL,
     `file_upload_speed_limit`   int(11)             DEFAULT NULL,
     `file_download_speed_limit` int(11)             DEFAULT NULL,
