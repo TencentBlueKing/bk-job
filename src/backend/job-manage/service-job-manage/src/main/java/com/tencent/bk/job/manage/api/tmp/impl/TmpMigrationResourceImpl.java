@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.tmp.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.tmp.TmpMigrationResource;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -60,7 +60,7 @@ public class TmpMigrationResourceImpl implements TmpMigrationResource {
     }
 
     @Override
-    public ServiceResponse<List<MigrationPlanBasic>> listAppPlanBasicInfo(String username, Long appId) {
+    public Response<List<MigrationPlanBasic>> listAppPlanBasicInfo(String username, Long appId) {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         // Get all
         baseSearchCondition.setLength(Integer.MAX_VALUE);
@@ -70,7 +70,7 @@ public class TmpMigrationResourceImpl implements TmpMigrationResource {
         PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateService.listPageTaskTemplates(query);
         if (templatePageData == null || CollectionUtils.isEmpty(templatePageData.getData())) {
             log.info("Template is empty, appId: {}", appId);
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
         Map<Long, String> templateIdNameMap = new HashMap<>();
         templatePageData.getData().forEach(template -> templateIdNameMap.put(template.getId(), template.getName()));
@@ -81,7 +81,7 @@ public class TmpMigrationResourceImpl implements TmpMigrationResource {
             baseSearchCondition, Collections.emptyList());
         if (pagePlanData == null || CollectionUtils.isEmpty(pagePlanData.getData())) {
             log.info("Plan is empty, appId: {}", appId);
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return Response.buildSuccessResp(Collections.emptyList());
         }
         List<MigrationPlanBasic> planList = new ArrayList<>(pagePlanData.getData().size());
         pagePlanData.getData().forEach(plan -> {
@@ -93,6 +93,6 @@ public class TmpMigrationResourceImpl implements TmpMigrationResource {
             planList.add(planBasic);
         });
 
-        return ServiceResponse.buildSuccessResp(planList);
+        return Response.buildSuccessResp(planList);
     }
 }

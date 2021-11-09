@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.GenUploadTargetReq;
 import com.tencent.bk.job.manage.model.web.vo.UploadLocalFileResultVO;
 import com.tencent.bk.job.manage.model.web.vo.UploadTargetVO;
@@ -52,7 +52,7 @@ import java.util.List;
 public interface WebFileUploadResource {
     @ApiOperation(value = "上传本地文件", produces = "application/json")
     @PostMapping("/localFile")
-    ServiceResponse<List<UploadLocalFileResultVO>> uploadLocalFile(
+    Response<List<UploadLocalFileResultVO>> uploadLocalFile(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -62,7 +62,7 @@ public interface WebFileUploadResource {
 
     @ApiOperation(value = "生成上传目标地址信息", produces = "application/json")
     @PostMapping("/genUploadTarget")
-    ServiceResponse<UploadTargetVO> genUploadTarget(
+    Response<UploadTargetVO> genUploadTarget(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

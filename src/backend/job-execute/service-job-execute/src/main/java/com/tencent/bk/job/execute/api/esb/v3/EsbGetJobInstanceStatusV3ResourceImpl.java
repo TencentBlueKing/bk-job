@@ -27,8 +27,11 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -47,7 +50,7 @@ import java.util.List;
 @RestController
 @Slf4j
 public class EsbGetJobInstanceStatusV3ResourceImpl
-    extends JobQueryCommonV3Processor
+    extends JobQueryCommonProcessor
     implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
@@ -67,22 +70,20 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
-        EsbResp<EsbJobInstanceStatusV3DTO> authResult = authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
-        if (!authResult.getCode().equals(EsbResp.SUCCESS_CODE)) {
-            return authResult;
-        }
+
+        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
 
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
             log.warn("Get job instance status by taskInstanceId:{}, stepInstanceList is empty!", taskInstanceId);
-            return EsbResp.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
         boolean isReturnIpResult = request.getReturnIpResult() != null && request.getReturnIpResult();

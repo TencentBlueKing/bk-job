@@ -25,14 +25,14 @@
 package com.tencent.bk.job.common.web.exception;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import org.springframework.http.HttpStatus;
+import com.tencent.bk.job.common.exception.InternalException;
 
 /**
  * 服务拒绝访问
  */
-public class ServiceNoAuthException extends HttpStatusServiceException {
+public class ServiceNoAuthException extends InternalException {
     public ServiceNoAuthException() {
-        super(HttpStatus.UNAUTHORIZED, ErrorCode.SERVICE_AUTH_FAIL);
+        super(ErrorCode.SERVICE_AUTH_FAIL);
     }
 
 }

@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
@@ -98,7 +98,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     public List<StatisticsDTO> calcAppScriptCiteInfo(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 1.统计脚本总数
-        ServiceResponse<Integer> resp = manageMetricsClient.countScripts(
+        InternalResponse<Integer> resp = manageMetricsClient.countScripts(
             appId,
             null,
             null

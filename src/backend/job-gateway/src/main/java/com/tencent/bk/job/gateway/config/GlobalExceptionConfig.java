@@ -24,31 +24,17 @@
 
 package com.tencent.bk.job.gateway.config;
 
-import com.tencent.bk.job.gateway.common.exception.JsonExceptionHandler;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.web.reactive.result.view.ViewResolver;
-
-import java.util.Collections;
-import java.util.List;
-
-@Configuration
+//@Configuration
 public class GlobalExceptionConfig {
-    @Primary
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-    public ErrorWebExceptionHandler errorWebExceptionHandler(JsonExceptionHandler jsonExceptionHandler,
-                                                             ObjectProvider<List<ViewResolver>> viewResolversProvider,
-                                                             ServerCodecConfigurer serverCodecConfigurer) {
-        jsonExceptionHandler.setViewResolvers(viewResolversProvider.getIfAvailable(Collections::emptyList));
-        jsonExceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
-        jsonExceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
-        return jsonExceptionHandler;
-    }
+//    @Primary
+//    @Bean
+//    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
+//    public ErrorWebExceptionHandler errorWebExceptionHandler(JsonExceptionHandler jsonExceptionHandler,
+//                                                             ObjectProvider<List<ViewResolver>> viewResolversProvider,
+//                                                             ServerCodecConfigurer serverCodecConfigurer) {
+//        jsonExceptionHandler.setViewResolvers(viewResolversProvider.getIfAvailable(Collections::emptyList));
+//        jsonExceptionHandler.setMessageWriters(serverCodecConfigurer.getWriters());
+//        jsonExceptionHandler.setMessageReaders(serverCodecConfigurer.getReaders());
+//        return jsonExceptionHandler;
+//    }
 }

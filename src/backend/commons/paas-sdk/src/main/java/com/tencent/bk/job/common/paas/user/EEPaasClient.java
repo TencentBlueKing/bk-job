@@ -29,9 +29,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.*;
+import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
+import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
+import com.tencent.bk.job.common.paas.model.GetUserListReq;
+import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -121,21 +125,21 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
 
             String respStr = doHttpGet(API_GET_USER_LIST, req);
             if (StringUtils.isBlank(respStr)) {
-                log.error("{}|{}|response empty", ErrorCode.PAAS_API_DATA_ERROR, API_GET_USER_LIST);
+                log.error("{}|response empty", API_GET_USER_LIST);
                 return null;
             }
             EsbResp<List<EsbListUsersResult>> esbResp = JsonUtils.fromJson(respStr,
                 new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
                 });
             if (esbResp == null || esbResp.getCode() != 0) {
-                log.error("{}|{}|code={}|msg={}", ErrorCode.PAAS_API_DATA_ERROR, API_GET_USER_LIST, esbResp.getCode()
-                    , esbResp.getMessage());
+                log.error("Get {} error, response is null or response code is not success", API_GET_USER_LIST);
                 return null;
             }
             oriUsers = esbResp.getData();
         } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.PAAS_API_DATA_ERROR, API_GET_USER_LIST, e);
-            throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR);
+            String errorMsg = "Get " + API_GET_USER_LIST + " error";
+            log.error(errorMsg, e);
+            throw new InternalException(errorMsg, e, ErrorCode.PAAS_API_DATA_ERROR);
         }
         if (oriUsers == null || oriUsers.isEmpty()) {
             return null;
@@ -164,15 +168,14 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             return null;
         }
         if (StringUtils.isBlank(respStr)) {
-            log.error("{}|{}|response empty", ErrorCode.PAAS_API_DATA_ERROR, API_GET_NOTIFY_CHANNEL_LIST);
+            log.error("Get {} error, response is blank", API_GET_NOTIFY_CHANNEL_LIST);
             return null;
         }
         EsbResp<List<EsbNotifyChannelDTO>> esbResp = JsonUtils.fromJson(respStr,
             new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
             });
         if (esbResp == null || esbResp.getCode() != 0) {
-            log.error("{}|{}|code={}|msg={}", ErrorCode.PAAS_API_DATA_ERROR, API_GET_NOTIFY_CHANNEL_LIST,
-                esbResp.getCode(), esbResp.getMessage());
+            log.error("Get {} error, response is null or response code is not success", API_GET_NOTIFY_CHANNEL_LIST);
             return null;
         }
         return esbResp.getData();
@@ -203,7 +206,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             respStr = doHttpPost(uri, req);
 
             if (StringUtils.isBlank(respStr)) {
-                log.error("{}|{}|respStr isBlank", ErrorCode.PAAS_API_DATA_ERROR, uri);
+                log.error("Get {} error, response is blank", API_POST_SEND_MSG);
                 status = "fail";
                 return false;
             }
@@ -211,13 +214,13 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
                 new TypeReference<EsbResp<Object>>() {
                 });
             if (esbResp == null) {
-                log.warn("{}|{}|req={}|respStr={}|esbResp == null after json parse", ErrorCode.PAAS_API_DATA_ERROR,
+                log.warn("{}|req={}|respStr={}|esbResp == null after json parse",
                     uri, JsonUtils.toJsonWithoutSkippedFields(req), respStr);
                 status = "fail";
                 return false;
             } else if (esbResp.getCode() != 0) {
                 Integer code = esbResp.getCode();
-                log.warn("{}|{}|requestId={}|code={}|msg={}|esbResp.getCode() != 0", ErrorCode.PAAS_API_DATA_ERROR,
+                log.warn("{}|requestId={}|code={}|msg={}|esbResp.getCode() != 0",
                     uri, esbResp.getRequestId(), esbResp.getCode(), esbResp.getMessage());
                 if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
                     || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {

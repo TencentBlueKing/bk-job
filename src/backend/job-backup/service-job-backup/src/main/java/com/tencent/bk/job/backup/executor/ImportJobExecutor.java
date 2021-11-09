@@ -44,6 +44,7 @@ import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.FileUtil;
@@ -276,7 +277,7 @@ public class ImportJobExecutor {
                     log.error("Error while process import job!|{}|{}", importJob.getAppId(),
                         importJob.getId(), e);
                     if (e instanceof ServiceException) {
-                        if (ErrorCode.USER_NO_PERMISSION_COMMON == ((ServiceException) e).getErrorCode()) {
+                        if (ErrorCode.PERMISSION_DENIED == ((ServiceException) e).getErrorCode()) {
                             logService.addImportLog(importJob.getAppId(), importJob.getId(),
                                 i18nService.getI18n(String.valueOf(((ServiceException) e).getErrorCode())),
                                 LogEntityTypeEnum.ERROR);
@@ -313,7 +314,7 @@ public class ImportJobExecutor {
                             "Find or create db account " + account.getAlias() +
                                 "|" + account.getDbSystemAccount().getAlias() + " " + "failed!",
                             LogEntityTypeEnum.ERROR);
-                        throw new ServiceException(-1, "Find or create account failed!");
+                        throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
                     }
                     account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                 }
@@ -337,7 +338,7 @@ public class ImportJobExecutor {
                 logService.addImportLog(importJob.getAppId(), importJob.getId(),
                     "Find or create account " + account.getAlias() +
                         " " + "failed!", LogEntityTypeEnum.ERROR);
-                throw new ServiceException(-1, "Find or create account failed!");
+                throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
             }
         } else {
             log.debug("Already create account|{}|{}", account.getAppId(), account.getAlias());

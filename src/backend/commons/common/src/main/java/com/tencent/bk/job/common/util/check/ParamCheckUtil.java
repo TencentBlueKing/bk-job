@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util.check;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,19 +32,23 @@ public class ParamCheckUtil {
 
     public static void checkAppId(Long appId, String paramName) {
         if (appId == null) {
-            throw new InvalidParamException(paramName, paramName + " cannot be null");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " cannot be null"});
         }
         if (appId <= 0) {
-            throw new InvalidParamException(paramName, paramName + " must be a positive number");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " must be a positive number"});
         }
     }
 
     public static void checkLocalUploadFileName(String fileName, String paramName) {
         if (StringUtils.isBlank(fileName)) {
-            throw new InvalidParamException(paramName, paramName + " cannot be null or blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " cannot be null or blank"});
         }
         if (fileName.length() > 1024) {
-            throw new InvalidParamException(paramName, paramName + " length cannot be longer than 1024");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{paramName, paramName + " length cannot be longer than 1024"});
         }
     }
 }

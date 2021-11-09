@@ -26,9 +26,10 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -103,9 +104,9 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
-    public ServiceResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(Long appId, Long planId) {
+    public InternalResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(Long appId, Long planId) {
         if (appId == null || appId <= 0 || planId == null || planId <= 0) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<TaskPlanInfoDTO> planList =
             taskPlanService.listPlanBasicInfoByIds(appId, Collections.singletonList(planId));
@@ -117,59 +118,57 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
             planDTO.setCreator(plan.getCreator());
             planDTO.setName(plan.getName());
             planDTO.setDebugTask(plan.getDebug());
-            return ServiceResponse.buildSuccessResp(planDTO);
+            return InternalResponse.buildSuccessResp(planDTO);
         } else {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_PLAN_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
     }
 
     @Override
-    public ServiceResponse<String> getPlanName(Long planId) {
+    public InternalResponse<String> getPlanName(Long planId) {
         if (planId == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return ServiceResponse.buildSuccessResp(taskPlanService.getPlanName(planId));
+        return InternalResponse.buildSuccessResp(taskPlanService.getPlanName(planId));
     }
 
     @Override
-    public ServiceResponse<Long> getGlobalVarIdByName(Long planId, String globalVarName) {
+    public InternalResponse<Long> getGlobalVarIdByName(Long planId, String globalVarName) {
         TaskVariableDTO taskVariableDTO = taskVariableService.getVariableByName(planId, globalVarName);
         if (taskVariableDTO == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                "Cannot find globalVar by name " + globalVarName);
+            throw new InvalidParamException("Cannot find globalVar by name " + globalVarName, ErrorCode.ILLEGAL_PARAM);
         }
-        return ServiceResponse.buildSuccessResp(taskVariableDTO.getId());
+        return InternalResponse.buildSuccessResp(taskVariableDTO.getId());
     }
 
     @Override
-    public ServiceResponse<String> getGlobalVarNameById(Long planId, Long globalVarId) {
+    public InternalResponse<String> getGlobalVarNameById(Long planId, Long globalVarId) {
         TaskVariableDTO taskVariableDTO = taskVariableService.getVariableById(planId, globalVarId);
         if (taskVariableDTO == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                "Cannot find globalVar by id " + globalVarId);
+            throw new InvalidParamException("Cannot find globalVar by id " + globalVarId, ErrorCode.ILLEGAL_PARAM);
         }
-        return ServiceResponse.buildSuccessResp(taskVariableDTO.getName());
+        return InternalResponse.buildSuccessResp(taskVariableDTO.getName());
     }
 
     @Override
-    public ServiceResponse<Long> getPlanAppId(Long planId) {
+    public InternalResponse<Long> getPlanAppId(Long planId) {
         if (planId == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskPlanInfoDTO taskPlanInfoDTO = taskPlanService.getTaskPlanById(planId);
         if (taskPlanInfoDTO == null) {
             log.warn("Cannot find taskPlanInfoDTO by id {}", planId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return ServiceResponse.buildSuccessResp(taskPlanInfoDTO.getAppId());
+        return InternalResponse.buildSuccessResp(taskPlanInfoDTO.getAppId());
     }
 
     @Override
-    public ServiceResponse<ServiceTaskPlanDTO> getPlanById(Long appId, Long planId, Boolean includeDisabledSteps) {
+    public InternalResponse<ServiceTaskPlanDTO> getPlanById(Long appId, Long planId, Boolean includeDisabledSteps) {
         TaskPlanInfoDTO plan = taskPlanService.getTaskPlanById(appId, planId);
         log.info("Get plan by planId, planId={}, plan={}", planId, JsonUtils.toJson(plan));
         if (plan == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"planId", "Cannot find plan by id " + planId});
         }
         ServiceTaskPlanDTO planDTO = new ServiceTaskPlanDTO();
@@ -183,11 +182,11 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
         planDTO.setVariableList(buildVariables(plan));
 
-        return ServiceResponse.buildSuccessResp(planDTO);
+        return InternalResponse.buildSuccessResp(planDTO);
     }
 
     @Override
-    public ServiceResponse<Long> createPlanWithIdForMigration(
+    public InternalResponse<Long> createPlanWithIdForMigration(
         String username,
         Long appId,
         Long templateId,
@@ -196,52 +195,51 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        return ServiceResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(username, appId, templateId,
+        return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(username, appId, templateId,
             planId, createTime, lastModifyTime, lastModifyUser));
     }
 
     @Override
-    public ServiceResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, Long planId,
-                                                                 String name) {
+    public InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, Long planId,
+                                                             String name) {
         boolean idResult = taskPlanService.checkPlanId(planId);
         boolean nameResult = taskPlanService.checkPlanName(appId, templateId, 0L, name);
 
         ServiceIdNameCheckDTO idNameCheck = new ServiceIdNameCheckDTO();
         idNameCheck.setIdCheckResult(idResult ? 1 : 0);
         idNameCheck.setNameCheckResult(nameResult ? 1 : 0);
-        return ServiceResponse.buildSuccessResp(idNameCheck);
+        return InternalResponse.buildSuccessResp(idNameCheck);
     }
 
     @Override
-    public ServiceResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
-                                                   Long createTime, TaskPlanVO planInfo) {
+    public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
+                                               Long createTime, TaskPlanVO planInfo) {
         if (planInfo.validateForImport()) {
             TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
             if (createTime != null && createTime > 0) {
                 taskPlanInfo.setCreateTime(createTime);
             }
             Long finalTemplateId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
-            return ServiceResponse.buildSuccessResp(finalTemplateId);
+            return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
-            return ServiceResponse
-                .buildCommonFailResp("Valid param failed!" + JsonUtils.toJson(JobContextUtil.getDebugMessage()));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
     @Override
-    public ServiceResponse<List<ServiceTaskVariableDTO>> getPlanVariable(String username, Long appId, Long templateId,
-                                                                         Long planId) {
+    public InternalResponse<List<ServiceTaskVariableDTO>> getPlanVariable(String username, Long appId, Long templateId,
+                                                                     Long planId) {
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(planId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =
                 taskVariableList.parallelStream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
-            return ServiceResponse.buildSuccessResp(variableList);
+            return InternalResponse.buildSuccessResp(variableList);
         }
-        return ServiceResponse.buildSuccessResp(Collections.emptyList());
+        return InternalResponse.buildSuccessResp(Collections.emptyList());
     }
 
     @Override
-    public ServiceResponse<List<ServiceTaskPlanDTO>> listPlans(String username, Long appId, Long templateId) {
+    public InternalResponse<List<ServiceTaskPlanDTO>> listPlans(String username, Long appId, Long templateId) {
         List<TaskPlanInfoDTO> taskPlanInfoDTOList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         List<ServiceTaskPlanDTO> resultList = taskPlanInfoDTOList.parallelStream().map(it -> {
             ServiceTaskPlanDTO serviceTaskPlanDTO = new ServiceTaskPlanDTO();
@@ -271,12 +269,12 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
             serviceTaskPlanDTO.setVariableList(serviceTaskVariableDTOList);
             return serviceTaskPlanDTO;
         }).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(resultList);
+        return InternalResponse.buildSuccessResp(resultList);
     }
 
     @Override
-    public ServiceResponse<List<Long>> listPlanIds(Long templateId) {
-        return ServiceResponse.buildSuccessResp(taskPlanService.listTaskPlanIds(templateId));
+    public InternalResponse<List<Long>> listPlanIds(Long templateId) {
+        return InternalResponse.buildSuccessResp(taskPlanService.listTaskPlanIds(templateId));
     }
 
     private List<ServiceTaskStepDTO> buildSteps(TaskPlanInfoDTO plan, Boolean includeDisabledSteps) {

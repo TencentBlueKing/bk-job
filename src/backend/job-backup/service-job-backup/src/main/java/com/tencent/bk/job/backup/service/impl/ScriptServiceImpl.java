@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.client.ServiceScriptResourceClient;
 import com.tencent.bk.job.backup.client.WebScriptResourceClient;
 import com.tencent.bk.job.backup.service.ScriptService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public ServiceScriptDTO getScriptInfoById(String username, Long appId, Long scriptVersionId) {
         try {
-            ServiceResponse<ServiceScriptDTO> scriptByVersionIdResponse =
+            InternalResponse<ServiceScriptDTO> scriptByVersionIdResponse =
                 serviceScriptResourceClient.getScriptByAppIdAndScriptVersionId(username, appId, scriptVersionId);
             if (scriptByVersionIdResponse != null) {
                 if (scriptByVersionIdResponse.getCode() == 0) {

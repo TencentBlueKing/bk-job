@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.crontab.exception;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import lombok.Getter;
@@ -34,21 +33,11 @@ import lombok.Getter;
  * @since 26/11/2020 21:22
  */
 @Getter
-public class TaskExecuteAuthFailedException extends ServiceException {
-    private final AuthResult authResult;
+public class TaskExecuteAuthFailedException extends PermissionDeniedException {
     private final AuthResultVO authResultVO;
 
     public TaskExecuteAuthFailedException(AuthResult authResult, AuthResultVO authResultVO) {
-        super(ErrorCode.USER_NO_PERMISSION_COMMON);
-        this.authResult = authResult;
+        super(authResult);
         this.authResultVO = authResultVO;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("TaskExecuteAuthFailedException{");
-        sb.append("authResult=").append(authResult);
-        sb.append('}');
-        return sb.toString();
     }
 }

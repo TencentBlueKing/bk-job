@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
@@ -58,7 +58,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "获取模版基本信息列表", produces = "application/json")
     @GetMapping
-    ServiceResponse<PageData<TaskTemplateVO>> listPageTemplates(
+    Response<PageData<TaskTemplateVO>> listPageTemplates(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -91,7 +91,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/{templateId}")
-    ServiceResponse<TaskTemplateVO> getTemplateById(
+    Response<TaskTemplateVO> getTemplateById(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -102,7 +102,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "更新模版", produces = "application/json")
     @PutMapping("/{templateId}")
-    ServiceResponse<Long> saveTemplate(
+    Response<Long> saveTemplate(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -115,7 +115,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "删除模版", produces = "application/json")
     @DeleteMapping("/{templateId}")
-    ServiceResponse<Boolean> deleteTemplate(
+    Response<Boolean> deleteTemplate(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -126,7 +126,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "获取业务下标签关联的模版数量", produces = "application/json")
     @GetMapping("/tag/count")
-    ServiceResponse<TagCountVO> getTagTemplateCount(
+    Response<TagCountVO> getTagTemplateCount(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "2")
@@ -135,7 +135,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "更新模版元数据，如模版描述、名称、标签", produces = "application/json")
     @PutMapping("/{templateId}/basic")
-    ServiceResponse<Boolean> updateTemplateBasicInfo(
+    Response<Boolean> updateTemplateBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "2")
@@ -148,7 +148,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "新增收藏", produces = "application/json")
     @PutMapping("/{templateId}/favorite")
-    ServiceResponse<Boolean> addFavorite(
+    Response<Boolean> addFavorite(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "2")
@@ -159,7 +159,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "删除收藏", produces = "application/json")
     @DeleteMapping("/{templateId}/favorite")
-    ServiceResponse<Boolean> removeFavorite(
+    Response<Boolean> removeFavorite(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "2")
@@ -170,7 +170,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "检查作业模版名称是否已占用", produces = "application/json")
     @GetMapping("/{templateId}/check_name")
-    ServiceResponse<Boolean> checkTemplateName(
+    Response<Boolean> checkTemplateName(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -183,7 +183,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "根据 ID 批量获取模版基本信息列表", produces = "application/json")
     @GetMapping("/basic")
-    ServiceResponse<List<TaskTemplateVO>> listTemplateBasicInfoByIds(
+    Response<List<TaskTemplateVO>> listTemplateBasicInfoByIds(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2")
@@ -194,7 +194,7 @@ public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "批量更新模板标签-Patch方式", produces = "application/json")
     @PutMapping("/tag")
-    ServiceResponse<Boolean> batchPatchTemplateTags(
+    Response<Boolean> batchPatchTemplateTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "2")

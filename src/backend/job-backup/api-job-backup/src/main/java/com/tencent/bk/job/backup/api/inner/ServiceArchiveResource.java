@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.api.inner;
 
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,5 +39,5 @@ import org.springframework.web.bind.annotation.RestController;
 @InternalAPI
 public interface ServiceArchiveResource {
     @PostMapping
-    ServiceResponse archive(@RequestBody ServiceArchiveDBRequest request);
+    InternalResponse archive(@RequestBody ServiceArchiveDBRequest request);
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.timer.executor;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
@@ -131,7 +131,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         Integer errorCode = null;
         String errorMessage = null;
         cronJobHistoryService.fillExecutor(historyId, cronJobInfo.getLastModifyUser());
-        ServiceResponse<ServiceTaskExecuteResult> executeResult = executeTaskService.executeTask(appId,
+        InternalResponse<ServiceTaskExecuteResult> executeResult = executeTaskService.executeTask(appId,
             cronJobInfo.getTaskPlanId(),
             cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
         if (log.isDebugEnabled()) {

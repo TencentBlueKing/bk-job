@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.schedule.tasks;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.model.db.CacheHostDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -99,7 +99,7 @@ public class SyncAppHostAndRefreshCacheTask {
             Set<CacheHostDO> appHosts = new HashSet<>();
             watch.start("sync-app-hosts-" + app.getId());
             Long appId = app.getId();
-            ServiceResponse<List<ServiceHostInfoDTO>> syncHostResp = hostService.listSyncHosts(appId);
+            InternalResponse<List<ServiceHostInfoDTO>> syncHostResp = hostService.listSyncHosts(appId);
             log.info("Sync app hosts, appId:{}", appId);
 
             if (!syncHostResp.isSuccess()) {

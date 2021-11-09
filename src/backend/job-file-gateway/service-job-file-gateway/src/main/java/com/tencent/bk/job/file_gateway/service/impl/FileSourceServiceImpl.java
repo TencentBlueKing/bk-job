@@ -26,7 +26,7 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
@@ -117,7 +117,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     @Override
     public Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO) {
         if (fileSourceDAO.checkFileSourceExists(dslContext, fileSourceDTO.getAppId(), fileSourceDTO.getAlias())) {
-            throw new ServiceException(ErrorCode.FILE_SOURCE_ALIAS_ALREADY_EXISTS,
+            throw new AlreadyExistsException(ErrorCode.FILE_SOURCE_ALIAS_ALREADY_EXISTS,
                 new String[]{fileSourceDTO.getAlias()});
         }
         return fileSourceDAO.insertFileSource(dslContext, fileSourceDTO);

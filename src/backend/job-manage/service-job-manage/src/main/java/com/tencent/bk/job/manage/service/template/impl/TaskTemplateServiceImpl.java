@@ -26,7 +26,12 @@ package com.tencent.bk.job.manage.service.template.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
-import com.tencent.bk.job.common.exception.DataConsistencyException;
+import com.tencent.bk.job.common.exception.AbortedException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -336,9 +341,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public Long saveTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
         String lockKey = null;
         try {
-            if (taskTemplateInfo == null) {
-                throw new ServiceException(ErrorCode.MISSING_PARAM);
-            }
             boolean isCreate = false;
             if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
                 isCreate = true;
@@ -347,7 +349,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 lockKey = "save_template:" + taskTemplateInfo.getAppId() + ":" + taskTemplateInfo.getId();
             }
             if (!LockUtils.tryGetDistributedLock(lockKey, JobContextUtil.getRequestId(), 60_000)) {
-                throw new ServiceException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
+                throw new AbortedException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
             }
             // 保存新增的标签并获取tagId
             taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
@@ -358,7 +360,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 taskTemplateInfo.setScriptStatus(1);
                 log.debug("Find outdated script version! Comparing...|{}", outdatedScriptMap);
                 if (isCreate) {
-                    throw new ServiceException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
+                    throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
                 } else {
                     Map<Long, List<Long>> scriptStepVersionIds =
                         taskStepService.batchListScriptStepVersionIdsByTemplateIds(taskTemplateInfo.getAppId(),
@@ -370,7 +372,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     }
                     if (MapUtils.isNotEmpty(outdatedScriptMap)) {
                         log.error("Script version outdated!|{}", outdatedScriptMap);
-                        throw new ServiceException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
+                        throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
                     }
                 }
             } else {
@@ -387,7 +389,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             } else {
                 boolean bumpVersion = templateHasChange(taskTemplateInfo);
                 if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, bumpVersion)) {
-                    throw new ServiceException(ErrorCode.UPDATE_TEMPLATE_FAILED);
+                    throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
                 }
                 templateId = taskTemplateInfo.getId();
             }
@@ -429,7 +431,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             throw e;
         } catch (Exception e) {
             log.error("Unknown exception while insert template!", e);
-            throw new ServiceException(ErrorCode.SAVE_TEMPLATE_UNKNOWN_ERROR);
+            throw new InternalException(ErrorCode.SAVE_TEMPLATE_UNKNOWN_ERROR);
         } finally {
             if (StringUtils.isNotBlank(lockKey)) {
                 LockUtils.releaseDistributedLock(lockKey, JobContextUtil.getRequestId());
@@ -441,7 +443,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateInfoDTO originTaskTemplateInfo =
             taskTemplateService.getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
         if (originTaskTemplateInfo == null) {
-            throw new DataConsistencyException("taskTemplateId", "Detail");
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         if (taskTemplateInfo.getVariableList().size() == originTaskTemplateInfo.getVariableList().size()) {
             int count = 0;
@@ -507,16 +509,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     @Override
     public void createNewTagForTemplateIfNotExist(TaskTemplateInfoDTO taskTemplateInfo) {
-        try {
-            List<TagDTO> tags = taskTemplateInfo.getTags();
-            if (tags != null && !tags.isEmpty()) {
-                List<TagDTO> newTags = tagService.createNewTagIfNotExist(tags, taskTemplateInfo.getAppId(),
-                    taskTemplateInfo.getLastModifyUser());
-                taskTemplateInfo.setTags(newTags);
-            }
-        } catch (Exception e) {
-            log.error("Error while process template tag!|{}", taskTemplateInfo, e);
-            throw new ServiceException(ErrorCode.PROCESS_TAG_FAILED);
+        List<TagDTO> tags = taskTemplateInfo.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            List<TagDTO> newTags = tagService.createNewTagIfNotExist(tags, taskTemplateInfo.getAppId(),
+                taskTemplateInfo.getLastModifyUser());
+            taskTemplateInfo.setTags(newTags);
         }
     }
 
@@ -533,7 +530,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 if (MapUtils.isNotEmpty(taskPlanCronJobMap)) {
                     for (List<CronJobVO> planCronJobList : taskPlanCronJobMap.values()) {
                         if (CollectionUtils.isNotEmpty(planCronJobList)) {
-                            throw new ServiceException(ErrorCode.DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON);
+                            throw new FailedPreconditionException(ErrorCode.DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON);
                         }
                     }
                 }
@@ -571,7 +568,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         createNewTagForTemplateIfNotExist(taskTemplateInfo);
         updateTemplateTags(taskTemplateInfo);
         if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, false)) {
-            throw new ServiceException(ErrorCode.UPDATE_TEMPLATE_FAILED);
+            throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
         }
         return true;
     }
@@ -635,87 +632,77 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(rollbackFor = Throwable.class)
     public Long saveTaskTemplateForMigration(
         TaskTemplateInfoDTO taskTemplateInfo,
         Long createTime,
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        try {
-            if (taskTemplateInfo == null) {
-                throw new ServiceException(ErrorCode.MISSING_PARAM);
-            }
-            TaskTemplateInfoDTO taskTemplateByName =
-                taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
-            if (taskTemplateByName != null) {
-                throw new ServiceException(ErrorCode.TEMPLATE_NAME_EXIST);
-            }
-            taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
-
-            if (createTime != null && createTime > 0) {
-                taskTemplateInfo.setCreateTime(createTime);
-            } else {
-                taskTemplateInfo.setCreateTime(DateUtils.currentTimeSeconds());
-            }
-
-            if (lastModifyTime != null && lastModifyTime > 0) {
-                taskTemplateInfo.setLastModifyTime(lastModifyTime);
-            }
-            if (StringUtils.isNotBlank(lastModifyUser)) {
-                taskTemplateInfo.setLastModifyUser(lastModifyUser);
-            }
-
-            if (taskTemplateInfo.getFirstStepId() == null) {
-                taskTemplateInfo.setFirstStepId(0L);
-            }
-            if (taskTemplateInfo.getLastStepId() == null) {
-                taskTemplateInfo.setLastStepId(0L);
-            }
-
-            // process template id
-            Long templateId;
-            if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
-                templateId = taskTemplateService.insertNewTemplate(taskTemplateInfo);
-                taskTemplateInfo.setId(templateId);
-            } else {
-                taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
-                if (taskTemplateService.checkTemplateId(taskTemplateInfo.getId())) {
-                    if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
-                        templateId = taskTemplateInfo.getId();
-                    } else {
-                        throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
-                    }
-                } else {
-                    throw new ServiceException(ErrorCode.TEMPLATE_ID_EXIST);
-                }
-            }
-
-            updateTemplateTags(taskTemplateInfo);
-
-            taskTemplateService.processTemplateStep(taskTemplateInfo);
-
-            // Process first and last step id
-            TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
-            taskTemplateDAO.updateTaskTemplateById(updateStepIdReq, true);
-
-            // Insert new variable
-            List<TaskVariableDTO> variableList = taskTemplateInfo.getVariableList();
-            variableList.forEach(taskVariableDTO -> {
-                taskVariableDTO.setTemplateId(templateId);
-                if (taskVariableDTO.getId() <= 0) {
-                    taskVariableDTO.setId(null);
-                }
-            });
-            taskVariableService.batchInsertVariableWithId(variableList);
-
-            return templateId;
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Unknown exception while insert template!", e);
-            throw new ServiceException(ErrorCode.SAVE_TEMPLATE_UNKNOWN_ERROR);
+        TaskTemplateInfoDTO taskTemplateByName =
+            taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
+        if (taskTemplateByName != null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NAME_EXIST);
         }
+        taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
+
+        if (createTime != null && createTime > 0) {
+            taskTemplateInfo.setCreateTime(createTime);
+        } else {
+            taskTemplateInfo.setCreateTime(DateUtils.currentTimeSeconds());
+        }
+
+        if (lastModifyTime != null && lastModifyTime > 0) {
+            taskTemplateInfo.setLastModifyTime(lastModifyTime);
+        }
+        if (StringUtils.isNotBlank(lastModifyUser)) {
+            taskTemplateInfo.setLastModifyUser(lastModifyUser);
+        }
+
+        if (taskTemplateInfo.getFirstStepId() == null) {
+            taskTemplateInfo.setFirstStepId(0L);
+        }
+        if (taskTemplateInfo.getLastStepId() == null) {
+            taskTemplateInfo.setLastStepId(0L);
+        }
+
+        // process template id
+        Long templateId;
+        if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
+            templateId = taskTemplateService.insertNewTemplate(taskTemplateInfo);
+            taskTemplateInfo.setId(templateId);
+        } else {
+            taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
+            if (taskTemplateService.checkTemplateId(taskTemplateInfo.getId())) {
+                if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
+                    templateId = taskTemplateInfo.getId();
+                } else {
+                    throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
+                }
+            } else {
+                throw new AlreadyExistsException(ErrorCode.TEMPLATE_ID_EXIST);
+            }
+        }
+
+        updateTemplateTags(taskTemplateInfo);
+
+        taskTemplateService.processTemplateStep(taskTemplateInfo);
+
+        // Process first and last step id
+        TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
+        taskTemplateDAO.updateTaskTemplateById(updateStepIdReq, true);
+
+        // Insert new variable
+        List<TaskVariableDTO> variableList = taskTemplateInfo.getVariableList();
+        variableList.forEach(taskVariableDTO -> {
+            taskVariableDTO.setTemplateId(templateId);
+            if (taskVariableDTO.getId() <= 0) {
+                taskVariableDTO.setId(null);
+            }
+        });
+        taskVariableService.batchInsertVariableWithId(variableList);
+
+        return templateId;
     }
 
     private TaskTemplateInfoDTO generateUpdateStepIdReq(TaskTemplateInfoDTO taskTemplateInfo) {
@@ -790,7 +777,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplateInfo.setLastStepId(0L);
         Long templateId = taskTemplateDAO.insertTaskTemplate(taskTemplateInfo);
         if (templateId == null) {
-            throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
+            throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
         }
         if (CollectionUtils.isNotEmpty(taskTemplateInfo.getTags())) {
             List<ResourceTagDTO> tags =
@@ -808,7 +795,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskTemplateInfo.setLastStepId(0L);
         boolean isSuccess = taskTemplateDAO.insertTaskTemplateWithId(taskTemplateInfo);
         if (!isSuccess) {
-            throw new ServiceException(ErrorCode.INSERT_TEMPLATE_FAILED);
+            throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
         }
         if (CollectionUtils.isNotEmpty(taskTemplateInfo.getTags())) {
             List<ResourceTagDTO> tags =
@@ -865,7 +852,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         } else if (TaskStepTypeEnum.APPROVAL == taskStepType) {
             return taskStepService.countApprovalSteps(appId);
         } else {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{taskStepType.name()});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{taskStepType.name()});
         }
     }
 

@@ -3,7 +3,7 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
@@ -39,7 +39,7 @@ public class ArtifactoryLocalFileService {
         NodeDTO nodeDTO = artifactoryClient.getFileNode(fullPath);
         log.debug("nodeDTO={}", nodeDTO);
         if (nodeDTO == null) {
-            throw new ServiceException(
+            throw new InternalException(
                 ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
                 new String[]{filePath}
             );

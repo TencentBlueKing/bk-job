@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -65,7 +66,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get account list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();

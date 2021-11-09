@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.iam.service;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -179,7 +179,7 @@ public interface AuthService {
      * @param exception 鉴权失败返回的异常
      * @return 第三方鉴权失败返回结果
      */
-    <T> EsbResp<T> buildEsbAuthFailResp(InSufficientPermissionException exception);
+    <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception);
 
     String getBusinessApplyUrl(Long appId);
 

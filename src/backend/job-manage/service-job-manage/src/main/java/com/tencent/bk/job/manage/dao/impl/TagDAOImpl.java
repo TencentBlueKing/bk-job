@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.exception.DuplicateEntryException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -40,7 +38,6 @@ import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
-import org.jooq.exception.DataAccessException;
 import org.jooq.generated.tables.Tag;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +121,7 @@ public class TagDAOImpl implements TagDAO {
     }
 
     @Override
-    public Long insertTag(TagDTO tag) throws DuplicateEntryException {
+    public Long insertTag(TagDTO tag) {
         if (StringUtils.isBlank(tag.getLastModifyUser())) {
             tag.setLastModifyUser(tag.getCreator());
         }
@@ -132,25 +129,19 @@ public class TagDAOImpl implements TagDAO {
             tag.setCreateTime(DateUtils.currentTimeSeconds());
             tag.setLastModifyTime(tag.getCreateTime());
         }
-        try {
-            Record record =
-                context.insertInto(Tag.TAG, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME)
-                    .values(ULong.valueOf(tag.getAppId()), tag.getName(), tag.getDescription(), tag.getCreator(),
-                        tag.getCreateTime(), tag.getLastModifyUser(), tag.getLastModifyTime())
-                    .onDuplicateKeyIgnore().returning(TABLE.ID).fetchOne();
-            if (record == null) {
-                List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.APP_ID.equal(ULong.valueOf(tag.getAppId())));
-                conditions.add(TABLE.NAME.equal(tag.getName()));
-                record = context.select(TABLE.ID).from(Tag.TAG).where(conditions).fetchOne();
-            }
-            return record != null ? record.get(TABLE.ID).longValue() : 0;
-        } catch (DataAccessException e) {
-            log.error("Error while inserting tag, maybe duplicate name!|{}", tag, e);
-            throw new DuplicateEntryException(ErrorCode.TAG_ALREADY_EXIST,
-                "Duplicate name on tag|app_id|" + tag.getAppId() + "|name|" + tag.getName(), e);
+        Record record =
+            context.insertInto(Tag.TAG, TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR,
+                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME)
+                .values(ULong.valueOf(tag.getAppId()), tag.getName(), tag.getDescription(), tag.getCreator(),
+                    tag.getCreateTime(), tag.getLastModifyUser(), tag.getLastModifyTime())
+                .onDuplicateKeyIgnore().returning(TABLE.ID).fetchOne();
+        if (record == null) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TABLE.APP_ID.equal(ULong.valueOf(tag.getAppId())));
+            conditions.add(TABLE.NAME.equal(tag.getName()));
+            record = context.select(TABLE.ID).from(Tag.TAG).where(conditions).fetchOne();
         }
+        return record != null ? record.get(TABLE.ID).longValue() : 0;
     }
 
     @Override

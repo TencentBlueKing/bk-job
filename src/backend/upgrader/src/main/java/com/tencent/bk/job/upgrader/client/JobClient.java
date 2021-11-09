@@ -26,8 +26,9 @@ package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
@@ -60,8 +61,8 @@ public class JobClient extends AbstractJobClient {
         super(jobHostUrl, jobAuthToken);
     }
 
-    private <T, R> R getJobRespByReq(String method, String uri, BasicHttpReq reqBody,
-                                     TypeReference<R> typeReference) {
+    private <R> R getJobRespByReq(String method, String uri, BasicHttpReq reqBody,
+                                  TypeReference<R> typeReference) {
         return getJobRespByReq(method, uri, reqBody, typeReference, null);
     }
 
@@ -85,17 +86,17 @@ public class JobClient extends AbstractJobClient {
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|uri={}|reqStr={}", method, uri, reqStr);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "response is blank");
+                throw new InternalException("response is blank", ErrorCode.API_ERROR);
             } else {
                 log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
             }
             R result =
                 JSON_MAPPER.fromJson(respStr, typeReference);
-            ServiceResponse jobResp = (ServiceResponse) result;
+            InternalResponse jobResp = (InternalResponse) result;
             if (jobResp == null) {
                 log.error("fail:jobResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
                     reqStr, respStr);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "jobResp is null after parse");
+                throw new InternalException("jobResp is null after parse", ErrorCode.API_ERROR);
             } else if (jobResp.getCode() != RESULT_OK) {
                 log.error(
                     "fail:jobResp code!=0|jobResp.code={}|jobResp" +
@@ -107,7 +108,7 @@ public class JobClient extends AbstractJobClient {
                     reqStr,
                     respStr
                 );
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "jobResp code!=0");
+                throw new InternalException("jobResp code!=0", ErrorCode.API_ERROR);
             }
             if (jobResp.getData() == null) {
                 log.warn(
@@ -125,16 +126,16 @@ public class JobClient extends AbstractJobClient {
         } catch (Exception e) {
             String errorMsg = "Fail to request JOB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Fail to request JOB data");
+            throw new InternalException("Fail to request JOB data", ErrorCode.API_ERROR);
         }
     }
 
     public List<AppInfo> listNormalApps() {
-        ServiceResponse<List<AppInfo>> resp = getJobRespByReq(
+        Response<List<AppInfo>> resp = getJobRespByReq(
             HttpGet.METHOD_NAME,
             URL_LIST_NORMAL_APPS,
             new BasicHttpReq(),
-            new TypeReference<ServiceResponse<List<AppInfo>>>() {
+            new TypeReference<Response<List<AppInfo>>>() {
             });
         return resp.getData();
     }

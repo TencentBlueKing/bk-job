@@ -28,7 +28,9 @@ import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -379,7 +381,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         List<InstanceTopologyDTO> hierarchyTopoList = topoService.batchGetTopoNodeHierarchy(appId, topoNodes);
         if (CollectionUtils.isEmpty(hierarchyTopoList) || hierarchyTopoList.size() != topoNodes.size()) {
             log.warn("Get topo path wrong!");
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
 
         List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(hierarchyTopoList.size());
@@ -431,7 +433,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 ApplicationHostInfoDTO hostInfo = appHosts.get(host);
                 if (hostInfo == null) {
                     log.warn("Host: {}:{} is not exist!", host.getCloudAreaId(), host.getIp());
-                    throw new ServiceException(ErrorCode.SERVER_UNREGISTERED, new Object[]{host.getIp()});
+                    throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED, new Object[]{host.getIp()});
                 }
                 hostInstance.setId(hostInfo.getHostId().toString());
                 hostInstance.setType(ResourceTypeEnum.HOST.getId());
@@ -549,7 +551,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     public AuthResult authViewTaskInstance(String username, Long appId, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
-            throw new ServiceException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();

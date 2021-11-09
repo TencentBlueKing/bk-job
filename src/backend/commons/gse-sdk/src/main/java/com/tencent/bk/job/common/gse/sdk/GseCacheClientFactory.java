@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.gse.sdk;
 
 import com.tencent.bk.gse.cacheapi.CacheAPI;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.gse.config.GseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +64,7 @@ public class GseCacheClientFactory {
                     }
                     return getAgent(ip, gseConfig.getGseCacheApiServerPort());
                 } catch (TException e) {
-                    log.error("{}|get GseCacheClient fail| msg={}| cause={}", ErrorCode.GSE_ERROR, e.getMessage(),
+                    log.error("Get GseCacheClient fail| msg={}| cause={}", e.getMessage(),
                         e.getCause().getMessage());
                     if ((--tryTimes) == 0) {
                         return null;

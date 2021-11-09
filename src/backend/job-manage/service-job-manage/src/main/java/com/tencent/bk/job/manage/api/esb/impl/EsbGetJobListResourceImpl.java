@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -73,7 +74,7 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
 

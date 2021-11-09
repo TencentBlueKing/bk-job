@@ -27,9 +27,10 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -90,7 +91,7 @@ public class EsbPushConfigFileResourceV3Impl
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         request.trimIps();
@@ -110,47 +111,37 @@ public class EsbPushConfigFileResourceV3Impl
             File parentDir = theFile.getParentFile();
             if (!parentDir.exists()) {
                 if (!parentDir.mkdirs()) {
-                    log.warn("Push config file, mkdir parent dir fail!dir:{}", parentDir.getAbsolutePath());
-                    return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+                    log.error("Push config file, mkdir parent dir fail!dir:{}", parentDir.getAbsolutePath());
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
                 if (!parentDir.setWritable(true, false)) {
-                    log.warn("Push config file, set parent dir writeable fail!dir:{}", parentDir.getAbsolutePath());
-                    return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+                    log.error("Push config file, set parent dir writeable fail!dir:{}", parentDir.getAbsolutePath());
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
             }
             if (theFile.exists() && theFile.isFile()) {
                 if (!theFile.delete()) {
-                    log.warn("Push config file, delete old file fail!dir:{}", theFile.getAbsolutePath());
-                    return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+                    log.error("Push config file, delete old file fail!dir:{}", theFile.getAbsolutePath());
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
             }
 
             if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
-                log.warn("Push config file, save file failed!fileName:{}", theFile.getAbsolutePath());
-                return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
+                log.error("Push config file, save file failed!fileName:{}", theFile.getAbsolutePath());
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
             localFileList.add(localFileRelativePath);
         }
 
-        try {
-            TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-            StepInstanceDTO stepInstance = buildFastFileStepInstance(request, localFileList);
-            long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-            taskExecuteService.startTask(taskInstanceId);
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, localFileList);
+        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+        taskExecuteService.startTask(taskInstanceId);
 
-            EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
-            jobExecuteInfo.setTaskInstanceId(taskInstanceId);
-            jobExecuteInfo.setTaskName(stepInstance.getName());
-            return EsbResp.buildSuccessResp(jobExecuteInfo);
-        } catch (InSufficientPermissionException e) {
-            return authService.buildEsbAuthFailResp(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-        }
+        EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
+        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setTaskName(stepInstance.getName());
+        return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
     private TaskInstanceDTO buildFastFileTaskInstance(EsbPushConfigFileV3Request request) {

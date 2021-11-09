@@ -94,4 +94,16 @@ public enum ResourceTypeEnum {
 
     private final ResourceTypeEnum parent;
 
+    public static ResourceTypeEnum getByResourceTypeId(String resourceTypeId) {
+        if (resourceTypeId == null) {
+            return null;
+        }
+        for (ResourceTypeEnum resourceType : values()) {
+            if (resourceType.getId().equals(resourceTypeId)) {
+                return resourceType;
+            }
+        }
+        return null;
+    }
+
 }

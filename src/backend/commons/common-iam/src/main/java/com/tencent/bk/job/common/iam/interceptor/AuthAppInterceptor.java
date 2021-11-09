@@ -30,7 +30,7 @@ package com.tencent.bk.job.common.iam.interceptor;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -68,7 +68,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                 AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
                     ResourceTypeEnum.BUSINESS, appId.toString(), null);
                 if (!authResult.isPass()) {
-                    throw new InSufficientPermissionException(authResult);
+                    throw new PermissionDeniedException(authResult);
                 }
             } else {
                 log.info("ignore auth {} access_business public app {}", username, appId);

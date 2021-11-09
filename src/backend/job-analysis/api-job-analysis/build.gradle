@@ -24,6 +24,7 @@
 
 dependencies {
     api project(':commons:common')
+    api project(':commons:common-api')
     api project(':commons:common-i18n')
     api project(':commons:cmdb-sdk')
     api project(':commons:common-iam')

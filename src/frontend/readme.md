@@ -9,7 +9,7 @@ job
 
 ```
 // 配置 api 域名
-AJAX_URL_PREFIX = "http://api.jobv3.woa.com"
+AJAX_URL_PREFIX = "http://api.job.com"
 ```
 - 执行命令
 

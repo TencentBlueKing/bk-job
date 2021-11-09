@@ -42,8 +42,9 @@ import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
@@ -573,13 +574,15 @@ public class ExportJobExecutor {
         if (directory.exists() && !directory.isDirectory()) {
             if (!directory.delete()) {
                 log.error("Error while deleting exist export directory!");
-                throw new ServiceException("Delete exist export directory failed!");
+                throw new InternalException("Delete exist export directory failed!", ErrorCode.INTERNAL_ERROR);
             }
         }
         if (!directory.exists()) {
             if (!directory.mkdirs() || !directory.setWritable(true)) {
                 log.error("Create export directory failed!|{}|{}", directory.getPath(), directory.getAbsolutePath());
-                throw new ServiceException("Create export directory failed! Check path config or permission!");
+
+                throw new InternalException("Create export directory failed! Check path config or permission!",
+                    ErrorCode.INTERNAL_ERROR);
             }
         }
     }

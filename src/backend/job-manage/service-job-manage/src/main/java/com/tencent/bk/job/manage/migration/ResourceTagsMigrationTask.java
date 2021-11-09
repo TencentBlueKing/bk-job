@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.migration;
 
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.dao.ResourceTagDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -66,7 +66,7 @@ public class ResourceTagsMigrationTask {
         this.scriptDAO = scriptDAO;
     }
 
-    public ServiceResponse<List<ResourceTagDTO>> execute() {
+    public Response<List<ResourceTagDTO>> execute() {
         log.info("Get resource tags for script/template start...");
         List<TagDTO> existingTags = tagService.listAllTags();
         Set<Long> existingTagIds = existingTags.stream().map(TagDTO::getId).collect(Collectors.toSet());
@@ -89,7 +89,7 @@ public class ResourceTagsMigrationTask {
         saveResourceTags(resourceTags);
         log.info("Batch save resource tags successfully");
 
-        return ServiceResponse.buildSuccessResp(resourceTags);
+        return Response.buildSuccessResp(resourceTags);
     }
 
     @Transactional(rollbackFor = {Throwable.class})

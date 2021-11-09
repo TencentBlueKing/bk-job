@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
@@ -244,7 +245,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     public Integer setHistoryExpireTime(String username, HistoryExpireReq req) {
         Long days = req.getDays();
         if (days == null || days <= 0) {
-            throw new InvalidParamException("days", "days must be positive");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[] {"days", "days must be positive"});
         }
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
             days.toString(), String.format("执行记录保存天数(history expire days):%s,%s", username,
@@ -565,7 +567,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public Integer saveChannelTemplate(String username, ChannelTemplateReq req) {
         if (StringUtils.isBlank(req.getChannelCode()) || StringUtils.isBlank(req.getMessageTypeCode())) {
-            throw new InvalidParamException("channelCode", "channelCode cannot be blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[] {"channelCode", "channelCode cannot be blank"});
         }
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, req.getChannelCode(),
             req.getMessageTypeCode(), false);

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
@@ -52,7 +52,7 @@ public interface WebDangerousRuleResource {
 
     @ApiOperation(value = "获取高危语句规则列表", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<List<DangerousRuleVO>> listDangerousRules(
+    Response<List<DangerousRuleVO>> listDangerousRules(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -61,7 +61,7 @@ public interface WebDangerousRuleResource {
 
     @ApiOperation(value = "添加/修改高危语句规则", produces = "application/json")
     @PostMapping
-    ServiceResponse<Boolean> addOrUpdateDangerousRule(
+    Response<Boolean> addOrUpdateDangerousRule(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -73,7 +73,7 @@ public interface WebDangerousRuleResource {
 
     @ApiOperation(value = "移动高危语句规则", produces = "application/json")
     @PutMapping("/move")
-    ServiceResponse<Integer> moveDangerousRule(
+    Response<Integer> moveDangerousRule(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -85,7 +85,7 @@ public interface WebDangerousRuleResource {
 
     @ApiOperation(value = "删除高危语句规则", produces = "application/json")
     @DeleteMapping("/{id}")
-    ServiceResponse<Integer> deleteDangerousRuleById(
+    Response<Integer> deleteDangerousRuleById(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -403,7 +403,7 @@ public class AuthServiceImpl implements AuthService {
             ActionInfo actionInfo = Actions.getActionInfo(actionId);
             if (actionInfo == null) {
                 log.error("Invalid Action, actionId: {}", actionId);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
 
             List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
@@ -412,7 +412,7 @@ public class AuthServiceImpl implements AuthService {
                 List<PermissionResource> relatedResources = resourceGroups.get(resourceType.getId());
                 if (CollectionUtils.isEmpty(relatedResources)) {
                     log.error("Action related resources is empty");
-                    throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
                 RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
                 String systemId = relatedResources.get(0).getSystemId();
@@ -481,7 +481,7 @@ public class AuthServiceImpl implements AuthService {
         applyPermission.setSystemId(SystemId.JOB);
         applyPermission.setSystemName(i18nService.getI18n("system.bk_job"));
         applyPermission.setActions(actions.stream().map(this::convertToEsbAction).collect(Collectors.toList()));
-        return EsbResp.buildAuthFailResult(applyPermission, i18nService);
+        return EsbResp.buildAuthFailResult(applyPermission);
     }
 
     private EsbActionDTO convertToEsbAction(ActionDTO action) {
@@ -527,7 +527,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public <T> EsbResp<T> buildEsbAuthFailResp(InSufficientPermissionException exception) {
+    public <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception) {
         return buildEsbAuthFailResp(exception.getAuthResult().getRequiredActionResources());
     }
 

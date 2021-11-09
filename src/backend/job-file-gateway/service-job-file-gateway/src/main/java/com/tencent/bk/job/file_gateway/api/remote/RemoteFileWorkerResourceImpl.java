@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.remote;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
@@ -58,13 +58,13 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
     }
 
     @Override
-    public ServiceResponse<Long> heartBeat(HeartBeatReq heartBeatReq) {
+    public Response<Long> heartBeat(HeartBeatReq heartBeatReq) {
         log.info("Input=(heartBeatReq={})", heartBeatReq.toString());
-        return ServiceResponse.buildSuccessResp(fileWorkerService.heartBeat(FileWorkerDTO.fromReq(heartBeatReq)));
+        return Response.buildSuccessResp(fileWorkerService.heartBeat(FileWorkerDTO.fromReq(heartBeatReq)));
     }
 
     @Override
-    public ServiceResponse<String> updateFileSourceTask(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
+    public Response<String> updateFileSourceTask(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
         log.debug("Input=({})", updateFileSourceTaskReq);
         String taskId = updateFileSourceTaskReq.getFileSourceTaskId();
         String filePath = updateFileSourceTaskReq.getFilePath();
@@ -74,13 +74,13 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
         Integer progress = updateFileSourceTaskReq.getProgress();
         String content = updateFileSourceTaskReq.getContent();
         TaskStatusEnum status = updateFileSourceTaskReq.getStatus();
-        return ServiceResponse.buildSuccessResp(fileSourceTaskService.updateFileSourceTask(taskId, filePath,
+        return Response.buildSuccessResp(fileSourceTaskService.updateFileSourceTask(taskId, filePath,
             downloadPath, fileSize, speed, progress, content, status));
     }
 
     @Override
-    public ServiceResponse<List<String>> offLineAndReDispatch(OffLineAndReDispatchReq offLineAndReDispatchReq) {
-        return ServiceResponse.buildSuccessResp(
+    public Response<List<String>> offLineAndReDispatch(OffLineAndReDispatchReq offLineAndReDispatchReq) {
+        return Response.buildSuccessResp(
             reDispatchService.reDispatchByWorker(
                 offLineAndReDispatchReq.getWorkerId(),
                 offLineAndReDispatchReq.getTaskIdList(),

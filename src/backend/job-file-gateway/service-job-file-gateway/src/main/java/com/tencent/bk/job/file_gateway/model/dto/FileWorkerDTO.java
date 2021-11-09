@@ -44,7 +44,6 @@ import java.util.*;
  * 文件Worker
  */
 @Data
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class FileWorkerDTO {

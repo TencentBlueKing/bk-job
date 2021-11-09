@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.api.inner;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
 import io.swagger.annotations.Api;
@@ -57,7 +57,7 @@ public interface ServiceInnerCronJobResource {
      * @return 是否创建成功
      */
     @PutMapping("/{systemId}/{jobKey}")
-    ServiceResponse<Boolean> addNewCronJob(
+    InternalResponse<Boolean> addNewCronJob(
         @PathVariable("systemId") String systemId,
         @PathVariable("jobKey") String jobKey, @RequestBody ServiceAddInnerCronJobRequestDTO request
     );
@@ -70,7 +70,7 @@ public interface ServiceInnerCronJobResource {
      * @return 定时任务详情
      */
     @GetMapping("/{systemId}/{jobKey}")
-    ServiceResponse<ServiceInnerCronJobInfoDTO> getCronJobInfoByKey(
+    InternalResponse<ServiceInnerCronJobInfoDTO> getCronJobInfoByKey(
         @PathVariable("systemId") String systemId,
         @PathVariable("jobKey") String jobKey
     );
@@ -83,7 +83,7 @@ public interface ServiceInnerCronJobResource {
      * @return 删除是否成功
      */
     @DeleteMapping("/{systemId}/{jobKey}")
-    ServiceResponse<Boolean> deleteCronJob(
+    InternalResponse<Boolean> deleteCronJob(
         @PathVariable("systemId") String systemId,
         @PathVariable("jobKey") String jobKey
     );
@@ -95,6 +95,6 @@ public interface ServiceInnerCronJobResource {
      * @return 定时任务列表
      */
     @GetMapping("/{systemId}")
-    ServiceResponse<List<ServiceInnerCronJobInfoDTO>> listCronJobs(@PathVariable("systemId") String systemId);
+    InternalResponse<List<ServiceInnerCronJobInfoDTO>> listCronJobs(@PathVariable("systemId") String systemId);
 
 }

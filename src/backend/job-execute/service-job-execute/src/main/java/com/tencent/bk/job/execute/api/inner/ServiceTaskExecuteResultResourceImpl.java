@@ -25,10 +25,11 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -63,27 +64,27 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
     }
 
     @Override
-    public ServiceResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>>
+    public InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>>
     getCronTaskExecuteResultStatistics(ServiceGetCronTaskExecuteStatisticsRequest request) {
         if (request.getAppId() == null || request.getAppId() < 1) {
             log.warn("Illegal param appId:{}", request.getAppId());
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_OR_ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
         }
         if (request.getCronTaskIdList() == null || request.getCronTaskIdList().isEmpty()) {
             log.warn("Param:cronTaskIdList is empty");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.MISSING_OR_ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
         }
         Map<Long, ServiceCronTaskExecuteResultStatistics> statisticsMap =
             taskResultService.getCronTaskExecuteResultStatistics(request.getAppId(), request.getCronTaskIdList());
-        return ServiceResponse.buildSuccessResp(statisticsMap);
+        return InternalResponse.buildSuccessResp(statisticsMap);
     }
 
     @Override
-    public ServiceResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(Long appId, String taskName,
-                                                                                  Long taskInstanceId, Integer status
+    public InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(Long appId, String taskName,
+                                                                              Long taskInstanceId, Integer status
         , String operator, Integer startupMode, Integer taskType, String startTime,
-                                                                                  String endTime, Integer start,
-                                                                                  Integer pageSize, Long cronTaskId) {
+                                                                              String endTime, Integer start,
+                                                                              Integer pageSize, Long cronTaskId) {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
         taskQuery.setAppId(appId);
@@ -124,6 +125,6 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
                 .add(TaskInstanceConverter.convertToServiceTaskInstanceDTO(taskInstanceDTO, i18nService)));
         }
         pageDataVO.setData(serviceTaskInstanceDTOS);
-        return ServiceResponse.buildSuccessResp(pageDataVO);
+        return InternalResponse.buildSuccessResp(pageDataVO);
     }
 }

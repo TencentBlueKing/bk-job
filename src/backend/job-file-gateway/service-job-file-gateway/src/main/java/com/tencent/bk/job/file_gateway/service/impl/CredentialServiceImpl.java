@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.manage.model.credential.CommonCredential;
@@ -46,9 +46,9 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public CommonCredential getCredentialById(Long appId, String id) {
-        ServiceResponse<ServiceCredentialDTO> credentialServiceResponse = credentialService.getCredentialById(appId,
+        InternalResponse<ServiceCredentialDTO> credentialWebResponse = credentialService.getCredentialById(appId,
             id);
-        ServiceCredentialDTO credentialDTO = credentialServiceResponse.getData();
+        ServiceCredentialDTO credentialDTO = credentialWebResponse.getData();
         if (credentialDTO == null) {
             return null;
         }

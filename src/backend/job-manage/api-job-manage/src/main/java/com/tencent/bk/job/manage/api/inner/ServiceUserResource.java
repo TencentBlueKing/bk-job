@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -44,7 +44,7 @@ public interface ServiceUserResource {
 
     @ApiOperation(value = "根据业务Id与角色获取用户信息", produces = "application/json")
     @GetMapping("/getUsersByRoles")
-    ServiceResponse<Set<String>> getUsersByRoles(
+    InternalResponse<Set<String>> getUsersByRoles(
         @ApiParam("业务Id")
         @RequestParam(value = "appId", required = true)
             Long appId,

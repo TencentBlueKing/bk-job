@@ -30,7 +30,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -40,7 +40,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 统计标签名称被引情况
@@ -79,7 +83,7 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
         Map<String, Long> tagCitedCountMap = new HashMap<>();
         for (ServiceTagDTO serviceTagDTO : tagList) {
             Long tagId = serviceTagDTO.getId();
-            ServiceResponse<Long> resp = manageMetricsClient.tagCitedCount(appId, tagId);
+            InternalResponse<Long> resp = manageMetricsClient.tagCitedCount(appId, tagId);
             if (resp == null || !resp.isSuccess()) {
                 log.warn("Fail to call remote tagCitedCount, resp:{}", resp);
                 continue;
@@ -102,7 +106,7 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
     public List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app, Long fromTime, Long toTime,
                                                  String timeTag) {
         // 获取公共标签
-        ServiceResponse<List<ServiceTagDTO>> resp = tagClient.listPublicTags();
+        InternalResponse<List<ServiceTagDTO>> resp = tagClient.listPublicTags();
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote listPublicTags, resp:{}", resp);
             return Collections.emptyList();
