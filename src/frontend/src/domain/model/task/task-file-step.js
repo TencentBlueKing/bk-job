@@ -34,9 +34,9 @@ const transferModeMap = {
 };
 
 export default class TaskFileStep {
-    static TYPE_SERVER = 1
-    static TYPE_LOCAL = 2
-    static TYPE_SOURCE = 3
+    static TYPE_SERVER = 1;
+    static TYPE_LOCAL = 2;
+    static TYPE_SOURCE = 3;
     constructor (payload = {}) {
         this.timeout = payload.timeout;
         this.uploadSpeedLimit = payload.uploadSpeedLimit || 0;

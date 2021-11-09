@@ -330,7 +330,7 @@
             color: #c4c6cc;
 
             .tag-loading {
-                animation: 'ani-rotate' 2s linear infinite;
+                animation: "ani-rotate" 2s linear infinite;
             }
         }
 

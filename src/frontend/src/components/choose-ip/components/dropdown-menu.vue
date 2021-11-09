@@ -104,7 +104,7 @@
             text-align: center;
             background: #fff;
             border: 1px solid #f0f1f5;
-            box-shadow: 0 1px 1px 0 rgba(185, 203, 222, 0.5);
+            box-shadow: 0 1px 1px 0 rgb(185 203 222 / 50%);
 
             .dropdown-menu-item {
                 cursor: pointer;

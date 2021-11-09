@@ -26,17 +26,42 @@
 -->
 
 <template>
-    <layout class="task-plan-create-box" v-bind="$attrs" :title="$t('template.新建执行方案')" :loading="isLoading">
-        <jb-form ref="createPlanForm" :model="formData" :rules="rules">
-            <jb-form-item :label="$t('template.方案名称')" required property="name">
+    <layout
+        class="task-plan-create-box"
+        v-bind="$attrs"
+        :loading="isLoading">
+        <jb-form
+            slot="title"
+            ref="titleForm"
+            style="width: 100%;"
+            :model="formData">
+            <jb-form-item
+                :rules="rules.name"
+                property="name"
+                error-display-type="tooltips"
+                style="margin-bottom: 0;">
                 <jb-input
-                    class="input"
+                    v-model="formData.name"
+                    class="name-input"
+                    behavior="simplicity"
                     :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
-                    :value="formData.name"
-                    @change="handleNameChange"
-                    :maxlength="60" />
+                    :maxlength="60"
+                    :native-attributes="{
+                        spellcheck: false,
+                        autofocus: true,
+                    }"
+                    @change="handleNameChange" />
             </jb-form-item>
-            <jb-form-item :label="$t('template.全局变量.label')">
+        </jb-form>
+        <jb-form
+            ref="createPlanForm"
+            :model="formData"
+            form-type="vertical">
+            <jb-form-item style="margin-bottom: 40px;">
+                <div class="section-title">
+                    <span>{{ $t('template.全局变量.label') }}</span>
+                    <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
+                </div>
                 <render-global-var
                     :key="templateId"
                     :list="globalVariableList"
@@ -45,10 +70,14 @@
                     :default-field="$t('template.变量值')"
                     @on-change="handleVariableChange" />
             </jb-form-item>
-            <jb-form-item label=" " property="enableSteps">
+            <jb-form-item
+                :rules="rules.enableSteps"
+                property="enableSteps">
                 <div class="task-step-selection">
-                    <!-- eslint-disable-next-line max-len -->
-                    <div>{{ $t('template.选择执行步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                    <div class="section-title">
+                        <span>{{ $t('template.选择执行步骤') }}</span>
+                        <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                    </div>
                     <div class="step-check">
                         <bk-button
                             v-if="hasSelectAll"
@@ -56,7 +85,12 @@
                             @click="handleDeselectAll">
                             {{ $t('template.取消全选') }}
                         </bk-button>
-                        <bk-button v-else text @click="handleSelectAll">{{ $t('template.全选') }}</bk-button>
+                        <bk-button
+                            v-else
+                            text
+                            @click="handleSelectAll">
+                            {{ $t('template.全选') }}
+                        </bk-button>
                     </div>
                 </div>
                 <render-task-step
@@ -93,14 +127,11 @@
         genDefaultName,
         findUsedVariable,
     } from '@utils/assist';
-    import {
-        planNameRule,
-    } from '@utils/validator';
+    import { planNameRule } from '@utils/validator';
     import JbForm from '@components/jb-form';
-    import JbInput from '@components/jb-input';
-    import Layout from './layout';
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
+    import Layout from './components/layout';
     
     const getDefaultData = () => ({
         id: 0,
@@ -109,12 +140,11 @@
         templateId: 0,
         variables: [],
     });
-
+    
     export default {
         name: '',
         components: {
             JbForm,
-            JbInput,
             Layout,
             RenderGlobalVar,
             RenderTaskStep,
@@ -293,16 +323,18 @@
              */
             handleSumbit () {
                 this.submitLoading = true;
-                this.$refs.createPlanForm.validate()
-                    .then(() => ExecPlanService.planUpdate(this.formData)
-                        .then((data) => {
-                            window.changeAlert = false;
-                            this.$bkMessage({
-                                theme: 'success',
-                                message: I18n.t('template.操作成功'),
-                            });
-                            this.$emit('on-create', data);
-                        }))
+                Promise.all([
+                    this.$refs.titleForm.validate(),
+                    this.$refs.createPlanForm.validate(),
+                ]).then(() => ExecPlanService.planUpdate(this.formData)
+                    .then((data) => {
+                        window.changeAlert = false;
+                        this.$bkMessage({
+                            theme: 'success',
+                            message: I18n.t('template.操作成功'),
+                        });
+                        this.$emit('on-create', data);
+                    }))
                     .finally(() => {
                         this.submitLoading = false;
                     });
@@ -317,13 +349,45 @@
         },
     };
 </script>
-<style lang="postcss" scoped>
-    @import '@/css/mixins/media';
+<style lang="postcss">
+    @import "@/css/mixins/media";
 
     .task-plan-create-box {
-        .input,
+        .variable-batch-action {
+            margin: 4px 0;
+        }
+
+        .layout-title {
+            padding-bottom: 0 !important;
+            border-bottom-color: transparent !important;
+
+            .name-input {
+                .bk-form-input {
+                    font-size: 18px;
+                    color: #313238;
+                }
+
+                .only-bottom-border {
+                    padding-top: 9px;
+                    padding-bottom: 16px;
+                    padding-left: 0;
+                }
+            }
+        }
+
+        .section-title {
+            font-size: 14px;
+            line-height: 19px;
+            color: #313238;
+        }
+
         .task-step-selection {
+            display: flex;
             width: 500px;
+            margin-bottom: 14px;
+            font-size: 16px;
+            line-height: 21px;
+            color: #313238;
 
             @media (--small-viewports) {
                 width: 500px;
@@ -340,14 +404,6 @@
             @media (--huge-viewports) {
                 width: 680px;
             }
-        }
-
-        .task-step-selection {
-            display: flex;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

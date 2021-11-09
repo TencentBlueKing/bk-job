@@ -65,7 +65,7 @@
             border: 1px solid #dcdee5;
             border-right: none;
             border-bottom: none;
-            content: '';
+            content: "";
             transform: translateY(-50%) rotateZ(-45deg);
         }
 

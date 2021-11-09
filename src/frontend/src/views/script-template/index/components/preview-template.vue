@@ -191,7 +191,7 @@
 
         .preview-content {
             height: calc(100% - 51px);
-
+            /* stylelint-disable selector-class-pattern */
             &.ace_editor {
                 background: #292929;
 
@@ -228,7 +228,7 @@
                         height: 4px;
                         background: #d74242;
                         border-radius: 50%;
-                        content: '';
+                        content: "";
                     }
                 }
             }

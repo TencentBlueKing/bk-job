@@ -67,7 +67,7 @@
     };
 </script>
 <style lang="postcss">
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .render-source-file-name {
         padding: 6px 10px;

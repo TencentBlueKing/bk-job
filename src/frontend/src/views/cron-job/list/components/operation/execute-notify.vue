@@ -180,7 +180,7 @@
     };
 </script>
 <style lang='postcss'>
-    html[lang='en-US'] .notify-channel-wraper {
+    html[lang="en-US"] .notify-channel-wraper {
         .bk-form-checkbox {
             width: 64px;
         }

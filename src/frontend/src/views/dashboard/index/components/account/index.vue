@@ -185,7 +185,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .account-dashboard {
         .dashboard-card-layout {

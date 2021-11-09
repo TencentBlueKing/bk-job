@@ -24,9 +24,9 @@
 */
 
 export default class EntryTask {
-    preQueue = []
-    postQueue = []
-    context = {}
+    preQueue = [];
+    postQueue = [];
+    context = {};
     add (preTask, postTask) {
         this.preQueue.push(preTask);
         this.postQueue.push(postTask);

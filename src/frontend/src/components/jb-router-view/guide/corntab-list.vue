@@ -42,7 +42,7 @@
             <div class="page-container">
                 <div class="feature-item">
                     <div class="feature-pic">
-                        <img style="width: 220px; margin: 24px 25px 0 25px;" src="/static/images/guide/cron-plan.svg">
+                        <img style="width: 220px; margin: 24px 25px 0;" src="/static/images/guide/cron-plan.svg">
                     </div>
                     <div class="feature-box">
                         <div class="feature-title">选择需要定期执行的作业</div>

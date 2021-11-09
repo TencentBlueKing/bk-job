@@ -919,6 +919,6 @@
 </script>
 
 <style lang="postcss">
-    @import './styles/search-select.css';
-    @import './styles/search-select-menu.css';
+    @import "./styles/search-select.css";
+    @import "./styles/search-select-menu.css";
 </style>

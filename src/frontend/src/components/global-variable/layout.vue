@@ -91,7 +91,6 @@
         &.vertical {
             .global-variable-edit-box {
                 flex-direction: column;
-                margin-bottom: 10px;
             }
 
             .variable-name {

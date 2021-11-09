@@ -260,7 +260,7 @@
             height: 52px;
             padding-left: 16px;
             background: #2e2e2e;
-            box-shadow: 0 -2px 4px 0 rgba(0, 0, 0, 0.16);
+            box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 16%);
             align-items: center;
 
             .action-btn {
@@ -290,7 +290,7 @@
         }
 
         .bk-loading {
-            background: rgba(0, 0, 0, 0.8) !important;
+            background: rgb(0 0 0 / 80%) !important;
         }
     }
 
@@ -304,7 +304,7 @@
                 }
             }
         }
-
+        /* stylelint-disable selector-class-pattern */
         .ace_editor {
             background: #1a1a1a;
 

@@ -91,15 +91,15 @@
 <style lang='postcss'>
     @keyframes file-loading-ani {
         0% {
-            content: '*';
+            content: "*";
         }
 
         30% {
-            content: '**';
+            content: "**";
         }
 
         60% {
-            content: '***';
+            content: "***";
         }
     }
 
@@ -126,7 +126,7 @@
             .log-process {
                 &::after {
                     display: inline-block;
-                    content: '*';
+                    content: "*";
                     animation: file-loading-ani 2s linear infinite;
                 }
             }

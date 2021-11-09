@@ -1,4 +1,4 @@
-@define-mixin scroller $backgroundColor: #c4c6cc, $width: 6px {
+@mixin scroller ($backgroundColor: #c4c6cc, $width: 6px) {
     &::-webkit-scrollbar {
         width: $width;
     }

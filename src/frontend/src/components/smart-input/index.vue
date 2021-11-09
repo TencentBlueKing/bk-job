@@ -131,7 +131,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .job-smart-input {
         position: relative;

@@ -50,9 +50,9 @@
                 <jb-input
                     :placeholder="$t('file.搜索关键字')"
                     :value="name"
-                    @change="handleSearch"
                     enter-trigger
-                    style="width: 480px;" />
+                    style="width: 480px;"
+                    @submit="handleSearch" />
             </template>
         </list-action-layout>
         <render-list

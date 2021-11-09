@@ -42,14 +42,14 @@ export default class Crontab {
         [STATUS_SUCCESS]: I18n.t('成功'),
         [STATUS_FAILURE]: I18n.t('失败'),
         
-    }
+    };
 
     static STATUS_ICON_TYPE = {
         [STATUS_NOTSTARTED]: 'sync-default',
         [STATUS_SUCCESS]: 'sync-success',
         [STATUS_FAILURE]: 'sync-failed',
         
-    }
+    };
 
     constructor (payload) {
         this.appId = payload.appId;

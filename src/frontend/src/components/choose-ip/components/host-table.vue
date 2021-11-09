@@ -245,6 +245,7 @@
             }
 
             .cell-text {
+                /* stylelint-disable value-no-vendor-prefix */
                 display: -webkit-box;
                 overflow: hidden;
                 text-overflow: ellipsis;
