@@ -28,10 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
+@Setter
+@Getter
 @ApiModel("生成本地文件上传URL请求报文")
 public class EsbGenLocalFileUploadUrlV3Req extends EsbReq {
 

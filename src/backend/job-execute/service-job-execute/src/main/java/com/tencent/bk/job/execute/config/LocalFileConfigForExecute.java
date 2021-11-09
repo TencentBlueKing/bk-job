@@ -32,18 +32,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class LocalFileConfigForExecute {
 
-    @Value("${artifactory.base-url:}")
-    private String artifactoryBaseUrl;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String artifactoryJobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String artifactoryJobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String artifactoryJobProject;
-
     @Value("${local-file.storage-backend:local}")
     private String storageBackend;
 

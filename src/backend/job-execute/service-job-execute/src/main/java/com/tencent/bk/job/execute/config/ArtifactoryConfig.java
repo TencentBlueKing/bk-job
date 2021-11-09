@@ -22,24 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.model.req;
+package com.tencent.bk.job.execute.config;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
-public class CreateUserReq extends ArtifactoryReq {
-    // 必传，用户名
-    String name;
-    // 必传，用户密码
-    String pwd;
-    // 必传，用户Id
-    String userId;
-    // 非必传，是否群组账号
-    boolean group = false;
-    // 非必传，关联用户
-    List<String> asstUsers = null;
+@Component
+public class ArtifactoryConfig {
+
+    @Value("${artifactory.base-url:}")
+    private String artifactoryBaseUrl;
+
+    @Value("${artifactory.admin.username:admin}")
+    private String artifactoryAdminUsername;
+
+    @Value("${artifactory.admin.password:blueking}")
+    private String artifactoryAdminPassword;
+
+    @Value("${artifactory.job.username:bkjob}")
+    private String artifactoryJobUsername;
+
+    @Value("${artifactory.job.password:bkjob}")
+    private String artifactoryJobPassword;
+
+    @Value("${artifactory.job.project:bkjob}")
+    private String artifactoryJobProject;
+
 }

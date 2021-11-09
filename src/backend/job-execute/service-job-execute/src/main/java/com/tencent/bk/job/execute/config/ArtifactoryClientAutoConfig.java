@@ -34,13 +34,13 @@ import org.springframework.context.annotation.Configuration;
 public class ArtifactoryClientAutoConfig {
     @Bean
     public ArtifactoryClient artifactoryClient(
-        @Autowired LocalFileConfigForExecute localFileConfigForExecute,
+        @Autowired ArtifactoryConfig artifactoryConfig,
         @Autowired MeterRegistry meterRegistry
     ) {
         return new ArtifactoryClient(
-            localFileConfigForExecute.getArtifactoryBaseUrl(),
-            localFileConfigForExecute.getArtifactoryJobUsername(),
-            localFileConfigForExecute.getArtifactoryJobPassword(),
+            artifactoryConfig.getArtifactoryBaseUrl(),
+            artifactoryConfig.getArtifactoryJobUsername(),
+            artifactoryConfig.getArtifactoryJobPassword(),
             meterRegistry
         );
     }

@@ -2,10 +2,12 @@ package com.tencent.bk.job.common.artifactory.model.req;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateTempUrlReq extends ArtifactoryReq {
     // 必传，项目Id
