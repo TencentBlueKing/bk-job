@@ -76,3 +76,7 @@ td,
 th {
     padding: 0;
 }
+
+.job-icon{
+    letter-spacing: initial;
+}

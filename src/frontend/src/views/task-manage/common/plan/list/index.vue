@@ -80,7 +80,10 @@
                     class="create-plan-placeholder"
                     :class="{ active: selectPlanInfo.id === -1 }">
                     <div class="name-box">{{ newPlanName || '--' }}</div>
-                    <Icon type="new" style="color: #ff9c01;" />
+                    <Icon
+                        type="new-3"
+                        svg
+                        style="font-size: 26px; color: #ff9c01;" />
                 </div>
                 <bk-table-column
                     v-if="allRenderColumnMap.id"
@@ -137,7 +140,8 @@
                                         class="update-flag">
                                         <Icon
                                             :tippy-tips="$t('template.未同步')"
-                                            type="sync-8" />
+                                            type="sync-8"
+                                            svg />
                                     </span>
                                     
                                 </div>
@@ -181,7 +185,8 @@
                                         class="update-flag">
                                         <Icon
                                             :tippy-tips="$t('template.未同步')"
-                                            type="sync-8" />
+                                            type="sync-8"
+                                            svg />
                                     </span>
                                     
                                 </div>
@@ -1072,17 +1077,17 @@
             }
 
             .name-text {
-                max-width: calc(100% - 20px);
                 overflow: hidden;
                 color: #3a84ff;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 cursor: pointer;
-                flex: 0 0 auto;
+                flex: 0 1 auto;
                 align-items: center;
             }
 
             .cron-job-tag {
+                flex: 0 0 auto;
                 display: inline-flex;
                 height: 16px;
                 padding: 0 4px;
@@ -1098,6 +1103,7 @@
             }
 
             .update-flag {
+                flex: 0 0 auto;
                 display: inline-flex;
                 width: 16px;
                 height: 16px;

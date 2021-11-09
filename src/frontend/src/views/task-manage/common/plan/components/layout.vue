@@ -227,7 +227,7 @@
         }
 
         .content-wraper {
-            padding-top: 16px;
+            padding-top: 24px;
             padding-right: 40px;
             margin-right: 2px;
             overflow-y: auto;

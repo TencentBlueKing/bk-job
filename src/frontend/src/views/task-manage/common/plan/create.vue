@@ -57,7 +57,7 @@
             ref="createPlanForm"
             :model="formData"
             form-type="vertical">
-            <jb-form-item>
+            <jb-form-item style="margin-bottom: 40px;">
                 <div class="section-title">
                     <span>{{ $t('template.全局变量.label') }}</span>
                     <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
@@ -370,7 +370,7 @@
                 .only-bottom-border {
                     padding-top: 9px;
                     padding-bottom: 16px;
-                    padding-left: 10px;
+                    padding-left: 0;
                 }
             }
         }

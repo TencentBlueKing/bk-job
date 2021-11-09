@@ -375,7 +375,7 @@
                 .only-bottom-border {
                     padding-top: 9px;
                     padding-bottom: 16px;
-                    padding-left: 10px;
+                    padding-left: 0;
                 }
             }
         }

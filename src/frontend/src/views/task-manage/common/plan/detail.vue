@@ -131,7 +131,7 @@
                                 v-test="{ type: 'button', value: 'syncPlan' }">
                                 <span>{{ $t('template.去同步') }}</span>
                                 <div v-if="planInfo.needUpdate" class="update-flag">
-                                    <Icon type="sync" :tippy-tips="$t('template.未同步')" />
+                                    <Icon type="sync-8" :tippy-tips="$t('template.未同步')" />
                                 </div>
                             </auth-button>
                         </span>
