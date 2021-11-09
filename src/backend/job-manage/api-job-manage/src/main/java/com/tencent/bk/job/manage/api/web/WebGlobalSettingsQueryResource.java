@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
@@ -50,7 +50,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取通知渠道列表及生效状态", produces = "application/json")
     @GetMapping("/notify/listChannels")
-    ServiceResponse<List<NotifyChannelWithIconVO>> listNotifyChannel(
+    Response<List<NotifyChannelWithIconVO>> listNotifyChannel(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -59,7 +59,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取账号命名规则", produces = "application/json")
     @GetMapping("/account/nameRules")
-    ServiceResponse<AccountNameRulesWithDefaultVO> getAccountNameRules(
+    Response<AccountNameRulesWithDefaultVO> getAccountNameRules(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -67,7 +67,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "判断用户是否为超级管理员", produces = "application/json")
     @GetMapping("/isAdmin")
-    ServiceResponse<Boolean> isAdmin(
+    Response<Boolean> isAdmin(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -76,7 +76,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取CMDB服务跳转地址", produces = "application/json")
     @GetMapping("/cmdbServerUrl")
-    ServiceResponse<String> getCMDBServerUrl(
+    Response<String> getCMDBServerUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -85,7 +85,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取申请业务权限跳转地址", produces = "application/json")
     @GetMapping("/applyBusinessUrl")
-    ServiceResponse<String> getApplyBusinessUrl(
+    Response<String> getApplyBusinessUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -97,7 +97,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取CMDB业务首页地址", produces = "application/json")
     @GetMapping("/app/{appId}/cmdbAppIndexUrl")
-    ServiceResponse<String> getCMDBAppIndexUrl(
+    Response<String> getCMDBAppIndexUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -109,12 +109,12 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "获取Title与Footer", produces = "application/json")
     @GetMapping("/titleFooter")
-    ServiceResponse<TitleFooterVO> getTitleFooter();
+    Response<TitleFooterVO> getTitleFooter();
 
 
     @ApiOperation(value = "获取文档中心根路径", produces = "application/json")
     @GetMapping("/docCenterBaseUrl")
-    ServiceResponse<String> getDocCenterBaseUrl(
+    Response<String> getDocCenterBaseUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -123,7 +123,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "周边系统跳转路径", produces = "application/json")
     @GetMapping("/relatedSystemUrls")
-    ServiceResponse<Map<String, String>> getRelatedSystemUrls(
+    Response<Map<String, String>> getRelatedSystemUrls(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
@@ -132,7 +132,7 @@ public interface WebGlobalSettingsQueryResource {
 
     @ApiOperation(value = "作业平台公开配置", produces = "application/json")
     @GetMapping("/jobConfig")
-    ServiceResponse<Map<String, Object>> getJobConfig(
+    Response<Map<String, Object>> getJobConfig(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username

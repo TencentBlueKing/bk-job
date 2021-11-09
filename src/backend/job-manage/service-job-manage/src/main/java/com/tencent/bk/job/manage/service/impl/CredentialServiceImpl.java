@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
@@ -64,7 +65,7 @@ public class CredentialServiceImpl implements CredentialService {
         if (StringUtils.isNotBlank(id)) {
             CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(dslContext, id);
             if (oldCredentialDTO == null) {
-                throw new ServiceException(String.format("cannot find credential by id=%s", id));
+                throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
             }
             String value1 = createUpdateReq.getValue1();
             if ("******".equals(value1)) {

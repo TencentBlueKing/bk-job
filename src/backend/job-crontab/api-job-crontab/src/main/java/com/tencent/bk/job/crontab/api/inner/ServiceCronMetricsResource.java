@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.api.inner;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -42,7 +42,7 @@ public interface ServiceCronMetricsResource {
 
     @ApiOperation(value = "定时任务总量", produces = "application/json")
     @GetMapping("/count")
-    ServiceResponse<Integer> countCronJob(
+    InternalResponse<Integer> countCronJob(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
             Long appId,

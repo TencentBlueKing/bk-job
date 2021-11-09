@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -364,7 +364,7 @@ public interface ScriptService {
     List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
                                                        Long syncScriptVersionId,
                                                        List<TemplateStepIDDTO> templateStepIDs)
-        throws InSufficientPermissionException;
+        throws PermissionDeniedException;
 
     /**
      * 获取引用脚本的模板数量

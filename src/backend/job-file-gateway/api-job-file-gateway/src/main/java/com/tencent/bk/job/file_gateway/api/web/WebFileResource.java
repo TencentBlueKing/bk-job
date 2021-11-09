@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
 import io.swagger.annotations.Api;
@@ -49,7 +49,7 @@ public interface WebFileResource {
     // 子路径与FileWorker子路径保持一致
     @ApiOperation(value = "获取文件源某个节点下的子节点列表", produces = "application/json")
     @GetMapping("/listFileNode")
-    ServiceResponse<FileNodesVO> listFileNode(
+    Response<FileNodesVO> listFileNode(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader(value = "username", required = true)
             String username,
@@ -75,7 +75,7 @@ public interface WebFileResource {
 
     @ApiOperation(value = "执行动作", produces = "application/json")
     @PostMapping("/executeAction")
-    ServiceResponse<Boolean> executeAction(
+    Response<Boolean> executeAction(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader(value = "username", required = true)
             String username,

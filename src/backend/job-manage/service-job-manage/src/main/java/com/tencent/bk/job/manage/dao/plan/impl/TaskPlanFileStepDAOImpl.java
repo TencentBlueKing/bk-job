@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.TaskFileStepDAO;
@@ -130,7 +130,7 @@ public class TaskPlanFileStepDAOImpl implements TaskFileStepDAO {
 
     @Override
     public boolean updateFileStepById(TaskFileStepDTO fileStep) {
-        throw new ServiceException(ErrorCode.UNSUPPORTED_OPERATION);
+        throw new InternalException(ErrorCode.UNSUPPORTED_OPERATION);
     }
 
     @Override

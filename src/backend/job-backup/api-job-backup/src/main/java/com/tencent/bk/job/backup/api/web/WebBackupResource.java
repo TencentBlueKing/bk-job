@@ -31,7 +31,7 @@ import com.tencent.bk.job.backup.model.web.BackupJobInfoVO;
 import com.tencent.bk.job.backup.model.web.ExportInfoVO;
 import com.tencent.bk.job.backup.model.web.ImportInfoVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -59,7 +59,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "开始导出", produces = "application/json")
     @PostMapping("/export")
-    ServiceResponse<ExportInfoVO> startExport(
+    Response<ExportInfoVO> startExport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "作业导出请求", required = true) @RequestBody ExportRequest exportRequest
@@ -67,7 +67,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "获取导出任务信息", produces = "application/json")
     @GetMapping("/export/{id}")
-    ServiceResponse<ExportInfoVO> getExportInfo(
+    Response<ExportInfoVO> getExportInfo(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导出任务 ID", required = true) @PathVariable("id") String jobId
@@ -83,7 +83,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "完成导出任务", produces = "application/json")
     @PostMapping("/export/{id}/complete")
-    ServiceResponse<Boolean> completeExport(
+    Response<Boolean> completeExport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导出任务 ID", required = true) @PathVariable("id") String jobId
@@ -91,7 +91,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "终止导出任务", produces = "application/json")
     @DeleteMapping("/export/{id}")
-    ServiceResponse<Boolean> abortExport(
+    Response<Boolean> abortExport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导出任务 ID", required = true) @PathVariable("id") String jobId
@@ -99,7 +99,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "获取导入文件信息", produces = "application/json")
     @PostMapping("/import/file")
-    ServiceResponse<ImportInfoVO> getImportFileInfo(
+    Response<ImportInfoVO> getImportFileInfo(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "待导入文件", required = true) @RequestParam("uploadFile") MultipartFile uploadFile
@@ -107,7 +107,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "校验密码", produces = "application/json")
     @PostMapping("/import/{id}/password")
-    ServiceResponse<Boolean> checkPassword(
+    Response<Boolean> checkPassword(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导入任务 ID", required = true) @PathVariable("id") String jobId,
@@ -116,7 +116,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "开始导入", produces = "application/json")
     @PostMapping("/import/{id}")
-    ServiceResponse<Boolean> startImport(
+    Response<Boolean> startImport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导入任务 ID", required = true) @PathVariable("id") String jobId,
@@ -125,7 +125,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "获取导入信息", produces = "application/json")
     @GetMapping("/import/{id}")
-    ServiceResponse<ImportInfoVO> getImportInfo(
+    Response<ImportInfoVO> getImportInfo(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "导入任务 ID", required = true) @PathVariable("id") String jobId
@@ -133,7 +133,7 @@ public interface WebBackupResource {
 
     @ApiOperation(value = "获取当前用户的导入/导出任务列表", produces = "application/json")
     @GetMapping
-    ServiceResponse<BackupJobInfoVO> getCurrentJob(
+    Response<BackupJobInfoVO> getCurrentJob(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId
     );

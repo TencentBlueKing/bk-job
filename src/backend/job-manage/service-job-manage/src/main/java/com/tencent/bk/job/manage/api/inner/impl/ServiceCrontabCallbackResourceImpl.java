@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceCrontabCallbackResource;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,14 +42,14 @@ public class ServiceCrontabCallbackResourceImpl implements ServiceCrontabCallbac
     }
 
     @Override
-    public ServiceResponse syncApp() {
+    public InternalResponse syncApp() {
         log.info("syncApp callback invoked!");
-        return ServiceResponse.buildSuccessResp(syncService.syncApp());
+        return InternalResponse.buildSuccessResp(syncService.syncApp());
     }
 
     @Override
-    public ServiceResponse syncHost() {
+    public InternalResponse syncHost() {
         log.info("syncHost callback invoked!");
-        return ServiceResponse.buildSuccessResp(syncService.syncHost());
+        return InternalResponse.buildSuccessResp(syncService.syncHost());
     }
 }

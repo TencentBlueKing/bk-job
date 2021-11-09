@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,6 +42,6 @@ public interface ServiceHostResource {
 
     @ApiOperation(value = "判断主机是否存在", produces = "application/json")
     @GetMapping("/exist")
-    ServiceResponse<Boolean> existHost(@QueryParam("appId") long appId, @QueryParam("ip") String ip);
+    InternalResponse<Boolean> existHost(@QueryParam("appId") long appId, @QueryParam("ip") String ip);
 
 }

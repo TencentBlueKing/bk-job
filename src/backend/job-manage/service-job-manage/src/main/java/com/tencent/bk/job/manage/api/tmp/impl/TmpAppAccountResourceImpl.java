@@ -25,9 +25,10 @@
 package com.tencent.bk.job.manage.api.tmp.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.tmp.TmpAppAccountResource;
@@ -95,9 +96,9 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
     }
 
     @Override
-    public ServiceResponse saveAccount(String username, Long appId, Long createTime, Long lastModifyTime,
-                                       String lastModifyUser, Boolean useCurrentTime,
-                                       TmpAccountCreateUpdateReq accountCreateUpdateReq) {
+    public Response saveAccount(String username, Long appId, Long createTime, Long lastModifyTime,
+                                String lastModifyUser, Boolean useCurrentTime,
+                                TmpAccountCreateUpdateReq accountCreateUpdateReq) {
         if (useCurrentTime != null && useCurrentTime) {
             if (createTime == null) {
                 createTime = DateTimeUtils.currentTimeMillis();
@@ -108,8 +109,7 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
         }
         accountCreateUpdateReq.setAppId(appId);
         if (!accountService.checkCreateParam(accountCreateUpdateReq, false, false)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         Long accountId = accountCreateUpdateReq.getId();
         if (accountId != null) {
@@ -120,11 +120,10 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
                     && accountDTO.getAlias().equals(accountCreateUpdateReq.getAlias())
                 ) {
                     log.warn("same account exist, account={}, skip", JsonUtils.toJson(accountDTO));
-                    return ServiceResponse.buildSuccessResp(accountId);
+                    return Response.buildSuccessResp(accountId);
                 } else {
                     // 报错，相同ID账号已存在
-                    return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, "account already exists with " +
-                        "id=" + accountId.toString());
+                    throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALIAS_EXIST);
                 }
             }
         }
@@ -142,24 +141,18 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
                         accountCreateUpdateReq.getAlias());
                     break;
                 default:
-                    return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, "Wrong account type!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
             if (account != null) {
                 if (account.getAccount().equals(accountCreateUpdateReq.getAccount())) {
-                    return ServiceResponse.buildSuccessResp(account.getId());
+                    return Response.buildSuccessResp(account.getId());
                 }
             }
         }
 
         AccountDTO newAccount = buildCreateAccountDTO(username, appId, createTime, lastModifyTime, lastModifyUser,
             accountCreateUpdateReq);
-        try {
-            accountId = accountService.saveAccount(newAccount);
-            return ServiceResponse.buildSuccessResp(accountId);
-        } catch (ServiceException e) {
-            String errorMsg = i18nService.getI18n(String.valueOf(e.getErrorCode()));
-            log.warn("Fail to save account, appId={}, account={}, reason={}", appId, accountCreateUpdateReq, errorMsg);
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), errorMsg);
-        }
+        accountId = accountService.saveAccount(newAccount);
+        return Response.buildSuccessResp(accountId);
     }
 }

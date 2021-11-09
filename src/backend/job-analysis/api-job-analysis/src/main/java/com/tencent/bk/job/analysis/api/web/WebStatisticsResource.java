@@ -34,7 +34,7 @@ import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
 import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
 import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -56,7 +56,7 @@ public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某个统计量的统计信息", produces = "application/json")
     @GetMapping("/total/metrics/{metric}")
-    ServiceResponse<CommonStatisticWithRateVO> totalStatistics(
+    Response<CommonStatisticWithRateVO> totalStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -81,7 +81,7 @@ public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某个统计量的趋势", produces = "application/json")
     @GetMapping("/trends/metrics/{metric}")
-    ServiceResponse<List<CommonTrendElementVO>> trends(
+    Response<List<CommonTrendElementVO>> trends(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -112,7 +112,7 @@ public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某个统计量的逐业务统计列表", produces = "application/json")
     @GetMapping("/listByPerApp/metrics/{metric}")
-    ServiceResponse<List<PerAppStatisticVO>> listByPerApp(
+    Response<List<PerAppStatisticVO>> listByPerApp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -137,7 +137,7 @@ public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某个统计量的分布信息", produces = "application/json")
     @GetMapping("/distribution/metrics/{metric}")
-    ServiceResponse<CommonDistributionVO> distributionStatistics(
+    Response<CommonDistributionVO> distributionStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -163,7 +163,7 @@ public interface WebStatisticsResource {
 
     @ApiOperation(value = "查询某种资源某个维度下的每日统计详情", produces = "application/json")
     @GetMapping("/resources/{resource}/dimensions/{dimension}")
-    ServiceResponse<List<DayDistributionElementVO>> dayDetailStatistics(
+    Response<List<DayDistributionElementVO>> dayDetailStatistics(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -198,7 +198,7 @@ public interface WebStatisticsResource {
     @ApiOperation(value = "查询统计数据起始日期、更新时间等信息（可能的Key：{起始日期:STATISTICS_DATA_START_DATE, " +
         "更新时间:STATISTICS_DATA_UPDATE_TIME}）", produces = "application/json")
     @GetMapping("/info")
-    ServiceResponse<Map<String, String>> getStatisticsDataInfo(
+    Response<Map<String, String>> getStatisticsDataInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username

@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
@@ -52,13 +52,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     @Override
-    public ServiceResponse<String> getApplyUrl(String username, OperationPermissionReq req) {
+    public Response<String> getApplyUrl(String username, OperationPermissionReq req) {
         // authService.
         return null;
     }
 
     @Override
-    public ServiceResponse<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
+    public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
         return checkOperationPermission(username, req.getAppId(), req.getOperation(), req.getResourceId(),
             req.isReturnPermissionDetail());
     }
@@ -68,14 +68,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     @Override
-    public ServiceResponse<AuthResultVO> checkOperationPermission(String username, Long appId, String operation,
-                                                                  String resourceId, Boolean returnPermissionDetail) {
+    public Response<AuthResultVO> checkOperationPermission(String username, Long appId, String operation,
+                                                           String resourceId, Boolean returnPermissionDetail) {
         if (StringUtils.isEmpty(operation)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         String[] resourceAndAction = operation.split("/");
         if (resourceAndAction.length != 2) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
@@ -85,18 +85,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         switch (resourceType) {
             case "cron":
                 if (appIdStr == null) {
-                    return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                         new String[]{"appId", "appId cannot be null or empty"});
                 }
                 switch (action) {
                     case "create":
-                        return ServiceResponse.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
+                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, appIdStr, null));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
-                        return ServiceResponse.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
+                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId, buildAppPathInfo(appIdStr)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, appId, operation, resourceId,
@@ -107,6 +107,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appId, operation, resourceId,
                     returnPermissionDetail);
         }
-        return ServiceResponse.buildSuccessResp(AuthResultVO.fail());
+        return Response.buildSuccessResp(AuthResultVO.fail());
     }
 }

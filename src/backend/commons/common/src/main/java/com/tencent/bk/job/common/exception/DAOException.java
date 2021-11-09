@@ -24,20 +24,23 @@
 
 package com.tencent.bk.job.common.exception;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import lombok.Getter;
+import lombok.ToString;
+
 /**
  * DAO层异常
  */
-public class DAOException extends RuntimeException {
-
-    public DAOException() {
-    }
-
+@Getter
+@ToString
+public class DAOException extends ServiceException {
 
     public DAOException(Throwable cause) {
-        super(cause);
+        super(cause, ErrorType.INTERNAL, ErrorCode.DB_ERROR);
     }
 
     public DAOException(String errorMsg, Throwable cause) {
-        super(errorMsg, cause);
+        super(errorMsg, cause, ErrorType.INTERNAL, ErrorCode.DB_ERROR);
     }
 }

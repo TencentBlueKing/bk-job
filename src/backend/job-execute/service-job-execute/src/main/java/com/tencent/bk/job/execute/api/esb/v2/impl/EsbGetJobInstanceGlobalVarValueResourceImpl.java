@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v2.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
@@ -69,7 +70,7 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         EsbGetJobInstanceGlobalVarValueV3Request newRequest =

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.common.consts.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -51,6 +52,6 @@ public enum TaskPlanTypeEnum {
                 return planType;
             }
         }
-        throw new InvalidParamException("type", "Only support 0,1");
+        throw new InvalidParamException(ErrorCode.INTERNAL_ERROR);
     }
 }

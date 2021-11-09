@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsResource;
@@ -45,7 +45,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -63,13 +67,13 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    public ServiceResponse<List<ScriptTemplateVO>> listUserCustomScriptTemplate(String username,
-                                                                                String scriptLanguages) {
+    public Response<List<ScriptTemplateVO>> listUserCustomScriptTemplate(String username,
+                                                                         String scriptLanguages) {
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
 
         List<ScriptTemplateVO> scriptTemplateVOS = scriptTemplates.stream()
             .map(this::toScriptTemplateVO).collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(scriptTemplateVOS);
+        return Response.buildSuccessResp(scriptTemplateVOS);
     }
 
     private List<ScriptTemplateDTO> getUserCustomScriptTemplate(String username,
@@ -100,22 +104,22 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    public ServiceResponse<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
-                                                                                        String scriptLanguages,
-                                                                                        Long appId) {
+    public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
+                                                                                 String scriptLanguages,
+                                                                                 Long appId) {
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
         scriptTemplates.forEach(scriptTemplate -> customScriptTemplateService.renderScriptTemplate(
             new ScriptTemplateVariableRenderDTO(appId, username), scriptTemplate));
         List<ScriptTemplateVO> scriptTemplateVOS = scriptTemplates.stream().map(this::toScriptTemplateVO)
             .collect(Collectors.toList());
-        return ServiceResponse.buildSuccessResp(scriptTemplateVOS);
+        return Response.buildSuccessResp(scriptTemplateVOS);
     }
 
     @Override
-    public ServiceResponse saveScriptTemplate(String username, ScriptTemplateCreateUpdateReq req) {
+    public Response saveScriptTemplate(String username, ScriptTemplateCreateUpdateReq req) {
         ValidateResult validateResult = checkScriptTemplateCreateUpdateReq(req);
         if (!validateResult.isPass()) {
-            return ServiceResponse.buildCommonFailResp(validateResult.getErrorCode(), validateResult.getErrorParams());
+            return Response.buildCommonFailResp(validateResult.getErrorCode(), validateResult.getErrorParams());
         }
         String scriptContent = req.getScriptContent();
         if (StringUtils.isNotEmpty(scriptContent)) {
@@ -123,7 +127,7 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
         }
         ScriptTemplateDTO scriptTemplate = new ScriptTemplateDTO(req.getScriptLanguage(), scriptContent);
         customScriptTemplateService.saveScriptTemplate(username, scriptTemplate);
-        return ServiceResponse.buildSuccessResp(null);
+        return Response.buildSuccessResp(null);
     }
 
     private ValidateResult checkScriptTemplateCreateUpdateReq(ScriptTemplateCreateUpdateReq req) {
@@ -137,7 +141,7 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    public ServiceResponse<ScriptTemplateVO> renderScriptTemplate(String username, ScriptTemplateRenderReq req) {
+    public Response<ScriptTemplateVO> renderScriptTemplate(String username, ScriptTemplateRenderReq req) {
         String scriptContent = req.getScriptContent();
         if (StringUtils.isNotEmpty(scriptContent)) {
             scriptContent = Base64Util.decodeContentToStr(scriptContent);
@@ -152,11 +156,11 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
                 ScriptTemplateVariableEnum.BIZ_NAME.getDemo());
         }
         customScriptTemplateService.renderScriptTemplate(variableRender, scriptTemplate);
-        return ServiceResponse.buildSuccessResp(toScriptTemplateVO(scriptTemplate));
+        return Response.buildSuccessResp(toScriptTemplateVO(scriptTemplate));
     }
 
     @Override
-    public ServiceResponse<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(String username) {
+    public Response<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(String username) {
         List<ScriptTemplateVariableVO> variableVOS = new ArrayList<>();
         for (ScriptTemplateVariableEnum variable : ScriptTemplateVariableEnum.values()) {
             ScriptTemplateVariableVO variableVO = new ScriptTemplateVariableVO();
@@ -165,6 +169,6 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
             variableVO.setDemo(variable.getDemo());
             variableVOS.add(variableVO);
         }
-        return ServiceResponse.buildSuccessResp(variableVOS);
+        return Response.buildSuccessResp(variableVOS);
     }
 }

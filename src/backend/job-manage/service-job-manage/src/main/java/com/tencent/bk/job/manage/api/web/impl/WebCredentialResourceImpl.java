@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
@@ -82,7 +82,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
-    public ServiceResponse<PageData<CredentialVO>> listCredentials(
+    public Response<PageData<CredentialVO>> listCredentials(
         String username,
         Long appId,
         String id,
@@ -114,12 +114,12 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         finalPageData.setTotal(pageData.getTotal());
         finalPageData.setData(credentialVOList);
         addPermissionData(username, appId, finalPageData);
-        return ServiceResponse.buildSuccessResp(finalPageData);
+        return Response.buildSuccessResp(finalPageData);
     }
 
     @Override
-    public ServiceResponse<String> saveCredential(String username, Long appId,
-                                                  CredentialCreateUpdateReq createUpdateReq) {
+    public Response<String> saveCredential(String username, Long appId,
+                                           CredentialCreateUpdateReq createUpdateReq) {
         AuthResultVO authResultVO = null;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
             authResultVO = checkCreateTicketPermission(username, appId);
@@ -127,18 +127,18 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             authResultVO = checkManageTicketPermission(username, appId, createUpdateReq.getId());
         }
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
-        return ServiceResponse.buildSuccessResp(credentialService.saveCredential(username, appId, createUpdateReq));
+        return Response.buildSuccessResp(credentialService.saveCredential(username, appId, createUpdateReq));
     }
 
     @Override
-    public ServiceResponse<Integer> deleteCredentialById(String username, Long appId, String id) {
+    public Response<Integer> deleteCredentialById(String username, Long appId, String id) {
         AuthResultVO authResultVO = checkManageTicketPermission(username, appId, id);
         if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+            return Response.buildAuthFailResp(authResultVO);
         }
-        return ServiceResponse.buildSuccessResp(credentialService.deleteCredentialById(username, appId, id));
+        return Response.buildSuccessResp(credentialService.deleteCredentialById(username, appId, id));
     }
 
     private void addPermissionData(String username, Long appId, PageData<CredentialVO> credentialVOPageData) {

@@ -29,7 +29,17 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
-import com.tencent.bk.job.common.iam.dto.*;
+import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
+import com.tencent.bk.job.common.iam.dto.BatchAuthByPathReq;
+import com.tencent.bk.job.common.iam.dto.EsbIamAction;
+import com.tencent.bk.job.common.iam.dto.EsbIamAuthedPolicy;
+import com.tencent.bk.job.common.iam.dto.EsbIamBatchAuthedPolicy;
+import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
+import com.tencent.bk.job.common.iam.dto.EsbIamResource;
+import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
+import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
+import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
+import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -90,8 +100,8 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
             log.error("{}|{}|response empty", ErrorCode.PAAS_API_DATA_ERROR, API_GET_APPLY_URL);
             return null;
         } else if (esbResp.getCode() != 0) {
-            log.error("{}|{}|code={}|msg={}", ErrorCode.PAAS_API_DATA_ERROR, API_GET_APPLY_URL, esbResp.getCode(),
-                esbResp.getMessage());
+            log.error("{}|{}|code={}|msg={}", ErrorCode.PAAS_API_DATA_ERROR, API_GET_APPLY_URL,
+                esbResp.getCode(), esbResp.getMessage());
             return null;
         }
         if (esbResp.getData() != null) {

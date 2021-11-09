@@ -33,6 +33,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -40,9 +44,15 @@ import lombok.Setter;
 public class EsbIpDTO {
 
     @JsonProperty("bk_cloud_id")
+    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
+    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
     private Long cloudAreaId;
 
     @JsonProperty("ip")
+    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
+        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
+        message = "{validation.constraints.InvalidIp.message}")
     private String ip;
 
     public static EsbIpDTO fromApplicationHostInfo(ApplicationHostInfoDTO applicationHostInfo) {

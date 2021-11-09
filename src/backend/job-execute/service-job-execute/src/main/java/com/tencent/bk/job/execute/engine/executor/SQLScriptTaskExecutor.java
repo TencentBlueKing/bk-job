@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_script_request;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
@@ -148,7 +148,7 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
                     jobExecuteConfig.getEncryptPassword());
             } catch (Exception e) {
                 log.error("Decrypt db password failed!", e);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
             sqlParam.append(" ").append(dbPassword);
         } else {

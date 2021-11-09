@@ -28,8 +28,9 @@ import com.tencent.bk.job.common.cc.config.CcConfig;
 import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
@@ -53,7 +54,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -88,14 +94,14 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public ServiceResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId) {
+    public InternalResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId) {
         StopWatch watch = new StopWatch("sync-app-hosts-" + appId);
         watch.start();
         try {
             return syncResourceClient.getHostByAppId(appId);
         } catch (Exception e) {
             log.warn("Fail to get hosts from job-manage", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         } finally {
             watch.stop();
             log.info("Get sync app hosts, appId:{}, cost:{}", appId, watch.getTotalTimeMillis());
@@ -244,7 +250,7 @@ public class HostServiceImpl implements HostService {
     @Override
     public List<String> getHostAllowedAction(long appId, IpDTO host) {
         try {
-            ServiceResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
+            InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
                 host.getCloudAreaId());
             if (!resp.isSuccess()) {
                 log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
@@ -268,7 +274,7 @@ public class HostServiceImpl implements HostService {
         log.info("Sync white ip config!");
         isWhiteIpConfigLoaded = true;
         long start = System.currentTimeMillis();
-        ServiceResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
+        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
         if (resp == null || !resp.isSuccess()) {
             log.warn("Get all white ip config return fail resp!");
             return;

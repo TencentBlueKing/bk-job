@@ -28,11 +28,16 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
-import com.tencent.bk.job.manage.manager.script.check.checker.*;
+import com.tencent.bk.job.manage.manager.script.check.checker.BuildInDangerousScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.DangerousRuleScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.DeviceCrashScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.IOScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.ScriptGrammarChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.ScriptLogicChecker;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
@@ -46,7 +51,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -144,7 +154,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
         } catch (Exception e) {
             log.warn("Check script caught exception!", e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }

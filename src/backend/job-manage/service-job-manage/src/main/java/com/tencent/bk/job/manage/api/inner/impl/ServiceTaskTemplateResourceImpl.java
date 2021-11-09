@@ -25,16 +25,18 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
@@ -78,43 +80,43 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     }
 
     @Override
-    public ServiceResponse<Boolean> sendScriptUpdateMessage(
+    public InternalResponse<Boolean> sendScriptUpdateMessage(
         Long appId,
         String scriptId,
         Long scriptVersionId,
         Integer status
     ) {
-        return ServiceResponse.buildSuccessResp(templateService.updateScriptStatus(appId, scriptId, scriptVersionId,
+        return InternalResponse.buildSuccessResp(templateService.updateScriptStatus(appId, scriptId, scriptVersionId,
             JobResourceStatusEnum.getJobResourceStatus(status)));
     }
 
     @Override
-    public ServiceResponse<ServiceTaskTemplateDTO> getTemplateById(String username, Long appId, Long templateId) {
+    public InternalResponse<ServiceTaskTemplateDTO> getTemplateById(String username, Long appId, Long templateId) {
         TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appId, templateId);
         if (templateInfo == null) {
-            return ServiceResponse.buildCommonFailResp(1, "Not found");
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         ServiceTaskTemplateDTO serviceTaskTemplateDTO = TaskTemplateInfoDTO.toServiceDTO(templateInfo);
-        return ServiceResponse.buildSuccessResp(serviceTaskTemplateDTO);
+        return InternalResponse.buildSuccessResp(serviceTaskTemplateDTO);
     }
 
     @Override
-    public ServiceResponse<ServiceTaskTemplateDTO> getTemplateById(Long templateId) {
+    public InternalResponse<ServiceTaskTemplateDTO> getTemplateById(Long templateId) {
         TaskTemplateInfoDTO templateInfo = templateService.getTemplateById(templateId);
         if (templateInfo == null) {
-            return ServiceResponse.buildCommonFailResp(1, "Not found");
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         ServiceTaskTemplateDTO serviceTaskTemplateDTO = TaskTemplateInfoDTO.toServiceDTO(templateInfo);
-        return ServiceResponse.buildSuccessResp(serviceTaskTemplateDTO);
+        return InternalResponse.buildSuccessResp(serviceTaskTemplateDTO);
     }
 
     @Override
-    public ServiceResponse<String> getTemplateNameById(Long templateId) {
-        return ServiceResponse.buildSuccessResp(templateService.getTemplateName(templateId));
+    public InternalResponse<String> getTemplateNameById(Long templateId) {
+        return InternalResponse.buildSuccessResp(templateService.getTemplateName(templateId));
     }
 
     @Override
-    public ServiceResponse<Long> saveTemplateForMigration(
+    public InternalResponse<Long> saveTemplateForMigration(
         String username,
         Long appId,
         Long templateId,
@@ -143,7 +145,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         }
         if (!authResultVO.isPass()) {
             if (requestSource != null && requestSource == 1) {
-                return ServiceResponse.buildAuthFailResp(authResultVO);
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             } else {
                 log.warn("Skip perm check for migration!");
             }
@@ -157,41 +159,40 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                     lastModifyTime, lastModifyUser);
                 authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
                     ResourceId.TEMPLATE, username, null);
-                return ServiceResponse.buildSuccessResp(finalTemplateId);
+                return InternalResponse.buildSuccessResp(finalTemplateId);
             } else {
-                return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, "Parse request failed!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
         } else {
-            return ServiceResponse
-                .buildCommonFailResp("Valid param failed!" + JsonUtils.toJson(JobContextUtil.getDebugMessage()));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
     @Override
-    public ServiceResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, String name) {
+    public InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, String name) {
         boolean idResult = templateService.checkTemplateId(templateId);
         boolean nameResult = templateService.checkTemplateName(appId, 0L, name);
 
         ServiceIdNameCheckDTO idNameCheck = new ServiceIdNameCheckDTO();
         idNameCheck.setIdCheckResult(idResult ? 1 : 0);
         idNameCheck.setNameCheckResult(nameResult ? 1 : 0);
-        return ServiceResponse.buildSuccessResp(idNameCheck);
+        return InternalResponse.buildSuccessResp(idNameCheck);
     }
 
     @Override
-    public ServiceResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(String username, Long appId,
-                                                                             Long templateId) {
+    public InternalResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(String username, Long appId,
+                                                                         Long templateId) {
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(templateId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =
                 taskVariableList.parallelStream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
-            return ServiceResponse.buildSuccessResp(variableList);
+            return InternalResponse.buildSuccessResp(variableList);
         }
-        return ServiceResponse.buildSuccessResp(Collections.emptyList());
+        return InternalResponse.buildSuccessResp(Collections.emptyList());
     }
 
     @Override
-    public ServiceResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
+    public InternalResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
         Long appId,
         Integer start,
         Integer pageSize) {
@@ -210,6 +211,6 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         resultData.setPageSize(templateListPage.getPageSize());
         resultData.setData(templateListPage.getData().parallelStream().map(TaskTemplateInfoDTO::toServiceDTO)
             .collect(Collectors.toList()));
-        return ServiceResponse.buildSuccessResp(resultData);
+        return InternalResponse.buildSuccessResp(resultData);
     }
 }

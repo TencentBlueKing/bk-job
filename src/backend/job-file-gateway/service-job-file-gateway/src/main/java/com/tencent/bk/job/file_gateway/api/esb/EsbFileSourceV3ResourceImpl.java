@@ -1,5 +1,6 @@
 package com.tencent.bk.job.file_gateway.api.esb;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -70,7 +71,8 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     private void checkAppId(EsbCreateOrUpdateFileSourceV3Req req) {
         if (req.getAppId() == null) {
-            throw new InvalidParamException("bk_biz_id", "bk_biz_id cannot be null");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"bk_biz_id", "bk_biz_id cannot be null"});
         }
     }
 
@@ -78,19 +80,24 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         checkAppId(req);
         String code = req.getCode();
         if (StringUtils.isBlank(code)) {
-            throw new InvalidParamException("code", "code cannot be null or blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"code", "code cannot be null or blank"});
         }
         if (fileSourceService.existsCode(code)) {
-            throw new InvalidParamException("code", String.format("code [%s] already exists", code));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"code", String.format("code [%s] already exists", code)});
         }
         if (StringUtils.isBlank(req.getAlias())) {
-            throw new InvalidParamException("alias", "alias cannot be null or blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"alias", "alias cannot be null or blank"});
         }
         if (StringUtils.isBlank(req.getType())) {
-            throw new InvalidParamException("type", "type cannot be null or blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"type", "type cannot be null or blank"});
         }
         if (StringUtils.isBlank(req.getCredentialId())) {
-            throw new InvalidParamException("credential_id", "credential_id cannot be null or blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"credential_id", "credential_id cannot be null or blank"});
         }
     }
 
@@ -100,19 +107,21 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Integer id = req.getId();
         String code = req.getCode();
         if (id == null && StringUtils.isBlank(code)) {
-            throw new InvalidParamException("id/code", "id and code cannot be null/blank simultaneously");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"id/code", "id and code cannot be null/blank simultaneously"});
         }
         if (id == null) {
             id = fileSourceService.getFileSourceIdByCode(appId, code);
             if (id == null) {
-                throw new InvalidParamException("code", String.format("cannot find fileSource by code [%s]", code));
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"code", String.format("cannot find fileSource by code [%s]", code)});
             }
         }
         req.setId(id);
         if (!fileSourceService.existsFileSource(appId, id)) {
-            throw new InvalidParamException(
-                "bk_biz_id/id",
-                String.format("fileSource [%s] not exists in biz [%s]", id, appId)
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"bk_biz_id/id",
+                    String.format("fileSource [%s] not exists in biz [%s]", id, appId)}
             );
         }
     }

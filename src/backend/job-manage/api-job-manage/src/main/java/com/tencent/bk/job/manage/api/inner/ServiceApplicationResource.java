@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
@@ -56,7 +56,7 @@ public interface ServiceApplicationResource {
      * @return
      */
     @RequestMapping("/list/normal")
-    ServiceResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
+    InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
 
     /**
      * 根据业务id查询业务
@@ -70,27 +70,27 @@ public interface ServiceApplicationResource {
     );
 
     @GetMapping("/{appId}/permission")
-    ServiceResponse<Boolean> checkAppPermission(
+    InternalResponse<Boolean> checkAppPermission(
         @PathVariable("appId") Long appId,
         @RequestParam("username") String username
     );
 
     @ApiOperation(value = "获取业务列表", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<List<ServiceApplicationDTO>> listLocalDBApps(
+    InternalResponse<List<ServiceApplicationDTO>> listLocalDBApps(
         @RequestParam(value = "appType", required = false) Integer appType
     );
 
     @ApiOperation(value = "查询业务下主机是否存在", produces = "application/json")
     @GetMapping("/{appId}/host/exists/{ip}")
-    ServiceResponse<Boolean> existsHost(
+    InternalResponse<Boolean> existsHost(
         @PathVariable("appId") Long appId,
         @PathVariable("ip") String ip
     );
 
     @ApiOperation(value = "查询节点下的主机状态", produces = "application/json")
     @PostMapping("/{appId}/host/status/nodes")
-    ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
+    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
         @PathVariable("appId") Long appId,
         @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByNodeReq req
@@ -98,7 +98,7 @@ public interface ServiceApplicationResource {
 
     @ApiOperation(value = "查询动态分组下的主机状态", produces = "application/json")
     @PostMapping("/{appId}/host/status/dynamicGroups")
-    ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
+    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         @PathVariable("appId") Long appId,
         @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
@@ -106,7 +106,7 @@ public interface ServiceApplicationResource {
 
     @ApiOperation(value = "查询IP对应的主机状态", produces = "application/json")
     @PostMapping("/{appId}/host/status/ips")
-    ServiceResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
+    InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
         @PathVariable("appId") Long appId,
         @RequestHeader("username") String username,
         @RequestBody ServiceGetHostStatusByIpReq req

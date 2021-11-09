@@ -26,12 +26,19 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.encrypt.Encryptor;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.check.*;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -81,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
         if (existAccount != null) {
             log.info("Account is exist, appId={}, category={}, alias={}", account.getAppId(), account.getCategory(),
                 account.getAlias());
-            throw new ServiceException(ErrorCode.ACCOUNT_ALIAS_EXIST);
+            throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALIAS_EXIST);
         }
         if (StringUtils.isNotEmpty(account.getPassword())) {
             account.setPassword(encryptor.encrypt(account.getPassword()));
@@ -91,12 +98,12 @@ public class AccountServiceImpl implements AccountService {
             AccountDTO dbSystemAccount = accountDAO.getAccountById(account.getDbSystemAccountId());
             if (dbSystemAccount == null) {
                 log.info("DB related system account is not exist, systemAccountId={}", account.getDbSystemAccountId());
-                throw new ServiceException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
+                throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
             if (!dbSystemAccount.getAppId().equals(account.getAppId())) {
                 log.warn("DB related system account is not in current app, systemAccountId={}, systemAccountAppId={}"
                     , account.getDbSystemAccountId(), dbSystemAccount.getAppId());
-                throw new ServiceException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
+                throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
             if (StringUtils.isNotEmpty(account.getDbPassword())) {
                 account.setDbPassword(encryptPassword(account.getDbPassword()));
@@ -136,7 +143,7 @@ public class AccountServiceImpl implements AccountService {
             return AESUtils.encryptToBase64EncodedCipherText(text, jobManageConfig.getEncryptPassword());
         } catch (Exception e) {
             log.error("Encrypt password error", e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
     }
 
@@ -204,22 +211,26 @@ public class AccountServiceImpl implements AccountService {
                 req.setAlias(stringCheckHelper.checkAndGetResult(req.getAlias()));
             } catch (StringCheckException e) {
                 log.warn("Account alias is invalid:", e);
-                throw new InvalidParamException("alias", "Account alias is invalid:" + e.getMessage());
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[] {"alias", "Account alias is invalid:" + e.getMessage()});
             }
         }
         if (req.getCategory() == null || AccountCategoryEnum.valOf(req.getCategory()) == null) {
             log.warn("Category is invalid, category={}", req.getCategory());
-            throw new InvalidParamException("category", "Account category is invalid, not in [1,2]");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[] {"category",  "Account category is invalid, not in [1,2]"});
         }
         AccountTypeEnum accountType = AccountTypeEnum.valueOf(req.getType());
         if (accountType == null) {
             log.warn("Type is invalid, type={}", req.getType());
-            throw new InvalidParamException("type", "Account type is invalid, not in [1,2,9,10,11]");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[] {"type",  "Account type is invalid, not in [1,2,9,10,11]"});
         }
         // 检查账号命名规则
         String account = req.getAccount();
         if (StringUtils.isBlank(account)) {
-            throw new InvalidParamException("account", "Parameter account cannot be blank");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[] {"account",  "Parameter account cannot be blank"});
         }
         if (checkAccountName) {
             OSTypeEnum osType = accountType.getOsType();
@@ -230,11 +241,11 @@ public class AccountServiceImpl implements AccountService {
                 Pattern pattern = Pattern.compile(expression);
                 Matcher m = pattern.matcher(req.getAccount());
                 if (!m.matches()) {
-                    throw new InvalidParamException("account",
-                        "Parameter account invalid, expression:"
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                        new String[] {"account",  "Parameter account invalid, expression:"
                             + expression
                             + ", rule:"
-                            + accountNameRule.getDescription());
+                            + accountNameRule.getDescription()});
                 }
             } else {
                 log.warn("Cannot find accountNameRule of osType:{}", osType.name());
@@ -242,10 +253,12 @@ public class AccountServiceImpl implements AccountService {
         }
         if (req.getCategory().equals(AccountCategoryEnum.DB.getValue())) {
             if (req.getDbPort() == null) {
-                throw new InvalidParamException("dbPort", "dbPort cannot be null or empty");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[] {"dbPort", "dbPort cannot be null or empty"});
             }
             if (req.getDbSystemAccountId() == null) {
-                throw new InvalidParamException("dbSystemAccountId", "dbSystemAccountId cannot be null or empty");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[] {"dbSystemAccountId",  "dbSystemAccountId cannot be null or empty"});
             }
         }
         return true;

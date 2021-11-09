@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public class ServiceGlobalSettingsResourceImpl implements ServiceGlobalSettingsR
     }
 
     @Override
-    public ServiceResponse<String> getDocCenterBaseUrl() {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
+    public InternalResponse<String> getDocCenterBaseUrl() {
+        return InternalResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
     }
 }

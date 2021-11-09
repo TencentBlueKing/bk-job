@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.common.exception;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 
 /**
  * 获取主机失败
  */
-public class ObtainHostServiceException extends ServiceException {
+public class ObtainHostServiceException extends InternalException {
 
     public ObtainHostServiceException() {
         super(ErrorCode.OBTAIN_HOST_FAIL);

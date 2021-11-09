@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.remote;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
@@ -45,17 +45,17 @@ public interface RemoteFileWorkerResource {
 
     @ApiOperation(value = "Worker心跳", produces = "application/json")
     @PostMapping("/heartBeat")
-    ServiceResponse<Long> heartBeat(
+    Response<Long> heartBeat(
         @ApiParam(value = "Worker心跳请求") @RequestBody HeartBeatReq heartBeatReq);
 
     @ApiOperation(value = "Worker上报任务状态信息", produces = "application/json")
     @PostMapping("/task/update")
-    ServiceResponse<String> updateFileSourceTask(
+    Response<String> updateFileSourceTask(
         @ApiParam(value = "Worker上报任务状态信息请求") @RequestBody UpdateFileSourceTaskReq updateFileSourceTaskReq);
 
     @ApiOperation(value = "Worker下线并且重调度其任务", produces = "application/json")
     @PostMapping("/offLineAndReDispatch")
-    ServiceResponse<List<String>> offLineAndReDispatch(
+    Response<List<String>> offLineAndReDispatch(
         @ApiParam(value = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);
 
 }

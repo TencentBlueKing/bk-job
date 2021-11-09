@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.api.inner.ServiceInnerCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
@@ -50,25 +50,25 @@ public class ServiceInnerCronJobResourceImpl implements ServiceInnerCronJobResou
     }
 
     @Override
-    public ServiceResponse<Boolean> addNewCronJob(String systemId, String jobKey,
-                                                  ServiceAddInnerCronJobRequestDTO request) {
+    public InternalResponse<Boolean> addNewCronJob(String systemId, String jobKey,
+                                                   ServiceAddInnerCronJobRequestDTO request) {
         request.setSystemId(systemId);
         request.setJobKey(jobKey);
-        return ServiceResponse.buildSuccessResp(cronJobService.addInnerJob(request));
+        return InternalResponse.buildSuccessResp(cronJobService.addInnerJob(request));
     }
 
     @Override
-    public ServiceResponse<ServiceInnerCronJobInfoDTO> getCronJobInfoByKey(String systemId, String jobKey) {
-        return ServiceResponse.buildSuccessResp(cronJobService.getInnerJobInfo(systemId, jobKey));
+    public InternalResponse<ServiceInnerCronJobInfoDTO> getCronJobInfoByKey(String systemId, String jobKey) {
+        return InternalResponse.buildSuccessResp(cronJobService.getInnerJobInfo(systemId, jobKey));
     }
 
     @Override
-    public ServiceResponse<Boolean> deleteCronJob(String systemId, String jobKey) {
-        return ServiceResponse.buildSuccessResp(cronJobService.deleteInnerCronJob(systemId, jobKey));
+    public InternalResponse<Boolean> deleteCronJob(String systemId, String jobKey) {
+        return InternalResponse.buildSuccessResp(cronJobService.deleteInnerCronJob(systemId, jobKey));
     }
 
     @Override
-    public ServiceResponse<List<ServiceInnerCronJobInfoDTO>> listCronJobs(String systemId) {
+    public InternalResponse<List<ServiceInnerCronJobInfoDTO>> listCronJobs(String systemId) {
         return null;
     }
 }

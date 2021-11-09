@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebServiceInfoResource;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
@@ -122,7 +122,7 @@ public class WebServiceInfoResourceImpl implements WebServiceInfoResource {
     }
 
     @Override
-    public ServiceResponse<List<ServiceInfoVO>> listServiceInfo(String username) {
-        return ServiceResponse.buildSuccessResp(serviceInfoService.listServiceInfo());
+    public Response<List<ServiceInfoVO>> listServiceInfo(String username) {
+        return Response.buildSuccessResp(serviceInfoService.listServiceInfo());
     }
 }

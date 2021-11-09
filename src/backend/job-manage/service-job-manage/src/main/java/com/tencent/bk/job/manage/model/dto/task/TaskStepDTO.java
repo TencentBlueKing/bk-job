@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbStepV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
@@ -95,9 +95,6 @@ public class TaskStepDTO {
     }
 
     public static TaskStepDTO fromVO(TaskStepVO stepVO) {
-        if (stepVO == null) {
-            throw new ParamErrorException(ErrorCode.MISSING_PARAM);
-        }
         TaskStepDTO taskStep = new TaskStepDTO();
         taskStep.setId(stepVO.getId());
         taskStep.setType(TaskStepTypeEnum.valueOf(stepVO.getType()));
@@ -115,7 +112,7 @@ public class TaskStepDTO {
             taskStep.setDelete(0);
         }
         if (taskStep.getType() == null) {
-            throw new ParamErrorException(ErrorCode.WRONG_STEP_TYPE);
+            throw new InvalidParamException(ErrorCode.WRONG_STEP_TYPE);
         }
         switch (taskStep.getType()) {
             case SCRIPT:
@@ -128,7 +125,7 @@ public class TaskStepDTO {
                 taskStep.setApprovalStepInfo(TaskApprovalStepDTO.fromVO(stepVO.getId(), stepVO.getApprovalStepInfo()));
                 break;
             default:
-                throw new ParamErrorException(ErrorCode.WRONG_STEP_TYPE);
+                throw new InvalidParamException(ErrorCode.WRONG_STEP_TYPE);
         }
         return taskStep;
     }

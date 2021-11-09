@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +43,9 @@ public class ServiceUserResourceImpl implements ServiceUserResource {
     }
 
     @Override
-    public ServiceResponse<Set<String>> getUsersByRoles(Long appId, String triggerUser, Integer resourceType,
-                                                        String resourceId, Set<String> roleSet) {
-        return ServiceResponse.buildSuccessResp(notifyService.findUserByResourceRoles(appId, triggerUser,
+    public InternalResponse<Set<String>> getUsersByRoles(Long appId, String triggerUser, Integer resourceType,
+                                                         String resourceId, Set<String> roleSet) {
+        return InternalResponse.buildSuccessResp(notifyService.findUserByResourceRoles(appId, triggerUser,
             resourceType, resourceId, roleSet));
     }
 }

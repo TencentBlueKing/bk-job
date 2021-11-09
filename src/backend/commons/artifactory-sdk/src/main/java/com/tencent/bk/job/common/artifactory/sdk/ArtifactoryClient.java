@@ -49,6 +49,8 @@ import com.tencent.bk.job.common.artifactory.model.req.QueryNodeDetailReq;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.artifactory.model.req.UserDetailReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -167,7 +169,7 @@ public class ArtifactoryClient {
         if (result == null) {
             log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
                 url, reqStr, respStr);
-            throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp is null after parse");
+            throw new InternalException("artifactoryResp is null after parse", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         if (result instanceof ArtifactoryResp) {
             ArtifactoryResp<R> artifactoryResp = (ArtifactoryResp<R>) result;
@@ -181,7 +183,7 @@ public class ArtifactoryClient {
                     artifactoryResp.getMessage(),
                     method, url, reqStr, respStr
                 );
-                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "artifactoryResp code!=0");
+                throw new InternalException("artifactoryResp code!=0", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             }
             if (artifactoryResp.getData() == null) {
                 log.warn(
@@ -196,7 +198,7 @@ public class ArtifactoryClient {
         }
     }
 
-    private <T, R> R getArtifactoryRespByReq(
+    private <R> R getArtifactoryRespByReq(
         String method,
         String url,
         ArtifactoryReq reqBody,
@@ -223,7 +225,7 @@ public class ArtifactoryClient {
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
-                throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "response is blank");
+                throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
                 log.debug("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
             }
@@ -239,7 +241,7 @@ public class ArtifactoryClient {
         } catch (Exception e) {
             log.error("Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}", method, url, reqStr, e);
             status = "error";
-            throw new ServiceException(ErrorCode.ARTIFACTORY_API_DATA_ERROR, "Fail to request ARTIFACTORY data");
+            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
             long end = System.nanoTime();
             if (null != meterRegistry) {
@@ -305,7 +307,7 @@ public class ArtifactoryClient {
     }
 
     public Boolean deleteProject(String projectId) {
-        throw new ServiceException(ErrorCode.NOT_SUPPORT_FEATURE);
+        throw new NotImplementedException("Not support feature", ErrorCode.NOT_SUPPORT_FEATURE);
     }
 
     public Boolean deleteRepo(String projectId, String repoName, Boolean forced) {
@@ -335,8 +337,7 @@ public class ArtifactoryClient {
         filePath = StringUtil.removePrefixAndSuffix(filePath, "/");
         String[] pathArr = filePath.split("/");
         if (pathArr.length < 2) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "path" +
-                " must contain projectId and repoName"});
+            throw new InternalException("path must contain projectId and repoName", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         String projectId = pathArr[0];
         String repoName = pathArr[1];
@@ -352,8 +353,7 @@ public class ArtifactoryClient {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
         if (null == nodeDTO) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{"path", "can " +
-                "not find node by filePath"});
+            throw new InternalException("can not find node by filePath", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         return nodeDTO;
     }
@@ -372,8 +372,7 @@ public class ArtifactoryClient {
             return resp.getEntity().getContent();
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
-            throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
-                new String[]{e.getMessage()});
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
         }
     }
 
@@ -399,12 +398,12 @@ public class ArtifactoryClient {
             if (resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
                 return resp.getData();
             } else {
-                throw new ServiceException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
+                throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                     new String[]{resp.getCode() + ":" + resp.getMessage()});
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Fail to uploadGenericFile", e);
-            throw new ServiceException(e, ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
+            throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{e.getMessage()});
         }
     }

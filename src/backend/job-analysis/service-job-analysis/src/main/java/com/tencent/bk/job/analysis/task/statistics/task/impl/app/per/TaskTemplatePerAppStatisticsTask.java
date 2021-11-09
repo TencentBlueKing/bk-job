@@ -30,7 +30,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
@@ -76,7 +76,7 @@ public class TaskTemplatePerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     public List<StatisticsDTO> calcAppTaskTemplateTotalStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
-        ServiceResponse<Integer> resp = manageMetricsClient.countTemplates(appId);
+        InternalResponse<Integer> resp = manageMetricsClient.countTemplates(appId);
         if (resp == null || !resp.isSuccess()) {
             log.error("Fail to call remote countTemplates, resp:{}", resp);
             return Collections.emptyList();

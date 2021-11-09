@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> existHost(long appId, String ip) {
-        return ServiceResponse.buildSuccessResp(hostDAO.existsHost(dslContext, appId, ip));
+    public InternalResponse<Boolean> existHost(long appId, String ip) {
+        return InternalResponse.buildSuccessResp(hostDAO.existsHost(dslContext, appId, ip));
     }
 }

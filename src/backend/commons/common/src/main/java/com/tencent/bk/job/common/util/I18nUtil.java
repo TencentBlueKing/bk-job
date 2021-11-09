@@ -25,23 +25,36 @@
 package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @Description
- * @Date 2020/2/13
- * @Version 1.0
- */
+@Slf4j
 public class I18nUtil {
     private static MessageI18nService i18nService;
 
-    public static MessageI18nService getI18nService() {
+    public static String getI18nMessage(String key, Object[] params) {
+        initI18nService();
         if (i18nService == null) {
-            i18nService = ApplicationContextRegister.getBean(MessageI18nService.class);
+            log.warn("Can not find available i18nService");
+            return "";
         }
-        return i18nService;
+        if (params != null && params.length > 0) {
+            return i18nService.getI18nWithArgs(key, params);
+        } else {
+            return i18nService.getI18n(key);
+        }
     }
 
     public static String getI18nMessage(String key) {
-        return getI18nService().getI18n(key);
+        return getI18nMessage(key, null);
+    }
+
+    private static void initI18nService() {
+        if (i18nService == null) {
+            synchronized (I18nUtil.class) {
+                if (i18nService == null) {
+                    i18nService = ApplicationContextRegister.getBean(MessageI18nService.class);
+                }
+            }
+        }
     }
 }

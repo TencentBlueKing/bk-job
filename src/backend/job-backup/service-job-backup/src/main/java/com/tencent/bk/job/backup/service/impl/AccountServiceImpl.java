@@ -27,8 +27,10 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.client.ServiceAccountResourceClient;
 import com.tencent.bk.job.backup.client.WebAccountResourceClient;
 import com.tencent.bk.job.backup.service.AccountService;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
@@ -59,7 +61,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ServiceAccountDTO getAccountAliasById(Long id) {
-        ServiceResponse<ServiceAccountDTO> accountResp = serviceAccountResourceClient.getAccountByAccountId(id);
+        InternalResponse<ServiceAccountDTO> accountResp = serviceAccountResourceClient.getAccountByAccountId(id);
         if (accountResp != null) {
             if (0 == accountResp.getCode()) {
                 ServiceAccountDTO account = accountResp.getData();
@@ -79,12 +81,12 @@ public class AccountServiceImpl implements AccountService {
         } else {
             log.error("Get account failed! Empty response!|{}", id);
         }
-        throw new ServiceException(-1, "Error while getting account info!");
+        throw new InternalException("Error while getting account info!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
     public List<AccountVO> listAccountByAppId(String username, Long appId) {
-        ServiceResponse<List<AccountVO>> appAccountListResp = webAccountResourceClient.listAccounts(username, appId,
+        Response<List<AccountVO>> appAccountListResp = webAccountResourceClient.listAccounts(username, appId,
             null);
         if (appAccountListResp != null) {
             if (0 == appAccountListResp.getCode()) {
@@ -122,7 +124,7 @@ public class AccountServiceImpl implements AccountService {
         accountCreateUpdateReq.setDbPassword(account.getDbPassword());
         accountCreateUpdateReq.setDbPort(account.getDbPort());
 
-        ServiceResponse<Long> saveAccountResp = webAccountResourceClient.saveAccount(username, appId,
+        Response<Long> saveAccountResp = webAccountResourceClient.saveAccount(username, appId,
             accountCreateUpdateReq);
 
         Integer errorCode = -1;
@@ -142,6 +144,6 @@ public class AccountServiceImpl implements AccountService {
         } else {
             log.error("Save account failed! Empty response!|{}|{}", username, account.getAlias());
         }
-        throw new ServiceException(errorCode, "Error while save or get account info!");
+        throw new InternalException("Error while save or get account info!", errorCode);
     }
 }

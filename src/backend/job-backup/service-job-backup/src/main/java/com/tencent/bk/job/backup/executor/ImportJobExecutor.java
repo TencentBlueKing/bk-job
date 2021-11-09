@@ -25,13 +25,24 @@
 package com.tencent.bk.job.backup.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.backup.constant.*;
+import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
+import com.tencent.bk.job.backup.constant.Constant;
+import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
+import com.tencent.bk.job.backup.constant.LogEntityTypeEnum;
+import com.tencent.bk.job.backup.constant.LogMessage;
 import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ImportJobInfoDTO;
 import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
 import com.tencent.bk.job.backup.model.dto.TemplateIdMapDTO;
-import com.tencent.bk.job.backup.service.*;
+import com.tencent.bk.job.backup.service.AccountService;
+import com.tencent.bk.job.backup.service.ImportJobService;
+import com.tencent.bk.job.backup.service.LogService;
+import com.tencent.bk.job.backup.service.ScriptService;
+import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.backup.service.TaskPlanService;
+import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -43,7 +54,14 @@ import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
-import com.tencent.bk.job.manage.model.web.vo.task.*;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileDestinationInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskScriptStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -219,7 +237,7 @@ public class ImportJobExecutor {
                     log.error("Error while process import job!|{}|{}", importJob.getAppId(),
                         importJob.getId(), e);
                     if (e instanceof ServiceException) {
-                        if (ErrorCode.USER_NO_PERMISSION_COMMON == ((ServiceException) e).getErrorCode()) {
+                        if (ErrorCode.PERMISSION_DENIED == ((ServiceException) e).getErrorCode()) {
                             logService.addImportLog(importJob.getAppId(), importJob.getId(),
                                 i18nService.getI18n(String.valueOf(((ServiceException) e).getErrorCode())),
                                 LogEntityTypeEnum.ERROR);
@@ -256,7 +274,7 @@ public class ImportJobExecutor {
                             "Find or create db account " + account.getAlias() +
                                 "|" + account.getDbSystemAccount().getAlias() + " " + "failed!",
                             LogEntityTypeEnum.ERROR);
-                        throw new ServiceException(-1, "Find or create account failed!");
+                        throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
                     }
                     account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                 }
@@ -280,7 +298,7 @@ public class ImportJobExecutor {
                 logService.addImportLog(importJob.getAppId(), importJob.getId(),
                     "Find or create account " + account.getAlias() +
                         " " + "failed!", LogEntityTypeEnum.ERROR);
-                throw new ServiceException(-1, "Find or create account failed!");
+                throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
             }
         } else {
             log.debug("Already create account|{}|{}", account.getAppId(), account.getAlias());

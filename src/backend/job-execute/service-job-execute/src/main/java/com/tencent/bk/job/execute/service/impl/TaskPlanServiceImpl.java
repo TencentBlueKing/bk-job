@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.TaskPlanResourceClient;
 import com.tencent.bk.job.execute.service.TaskPlanService;
@@ -46,7 +46,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public ServiceTaskPlanDTO getPlanById(Long appId, Long planId) {
         try {
-            ServiceResponse<ServiceTaskPlanDTO> resp = taskPlanResourceClient.getPlanById(appId, planId, false);
+            InternalResponse<ServiceTaskPlanDTO> resp = taskPlanResourceClient.getPlanById(appId, planId, false);
             log.info("Get plan by id, appId={}, planId={}, result={}", appId, planId, JsonUtils.toJson(resp));
             return resp.getData();
         } catch (Throwable e) {
@@ -59,7 +59,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public String getPlanName(Long planId) {
         try {
-            ServiceResponse<String> resp = taskPlanResourceClient.getPlanName(planId);
+            InternalResponse<String> resp = taskPlanResourceClient.getPlanName(planId);
             return resp.getData();
         } catch (Throwable e) {
             String errorMsg = "Get plan name by id caught exception, planId=" + planId;
@@ -71,7 +71,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public Long getPlanAppId(Long planId) {
         try {
-            ServiceResponse<Long> resp = taskPlanResourceClient.getPlanAppId(planId);
+            InternalResponse<Long> resp = taskPlanResourceClient.getPlanAppId(planId);
             log.info("Get planAppId by id, planId={}, result={}", planId, JsonUtils.toJson(resp));
             return resp.getData();
         } catch (Throwable e) {
