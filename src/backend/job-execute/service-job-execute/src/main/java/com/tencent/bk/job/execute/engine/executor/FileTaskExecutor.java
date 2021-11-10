@@ -75,7 +75,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     /*
      * 本地Agent ip
      */
-    private String localAgentIp;
+    private final String localAgentIp;
     /*
      * 待分发文件，文件传输的源文件
      */
@@ -83,16 +83,16 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     /*
      * 本地文件的存储根目录
      */
-    private String fileStorageRootPath;
+    private final String fileStorageRootPath;
     /**
      * 源文件路径与目标路径映射关系
      * 格式： Map<源IP:源文件路径，目标路径>
      */
-    private Map<String, String> sourceDestPathMap = new HashMap<>();
+    private final Map<String, String> sourceDestPathMap = new HashMap<>();
 
     private Map<String, String> sourceFileDisplayMap = new HashMap<>();
 
-    private String localUploadDir;
+    private final String localUploadDir;
 
     /**
      * FileTaskExecutor Constructor
@@ -293,7 +293,8 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
 
         List<api_copy_fileinfoV2> copyFileInfoList = new ArrayList<>();
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir);
+        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir,
+            stepInstance.getFileTargetName());
         initSourceDestPathMap(srcAndDestMap);
 
         for (JobFile file : sendFiles) {
