@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
 import com.tencent.bk.job.crontab.client.ServiceTaskPlanResourceClient;
+import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
@@ -210,7 +211,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         Boolean updateResult = null;
         try {
             updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
-                request.getStatus() == 1);
+                CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
         } catch (TaskExecuteAuthFailedException e) {
             throw new PermissionDeniedException(e.getAuthResult());
         }

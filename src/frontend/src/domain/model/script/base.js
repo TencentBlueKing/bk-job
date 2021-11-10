@@ -33,11 +33,11 @@ const STATUS_OFFLINE = 2; // 已下线
 const STATUS_DISABLED = 3; // 已禁用
 
 export default class Base extends Model {
-    static STATUS_INVALID = STATUS_INVALID
-    static STATUS_DRAFT = STATUS_DRAFT
-    static STATUS_ONLINE = STATUS_ONLINE
-    static STATUS_OFFLINE = STATUS_OFFLINE
-    static STATUS_DISABLED = STATUS_DISABLED
+    static STATUS_INVALID = STATUS_INVALID;
+    static STATUS_DRAFT = STATUS_DRAFT;
+    static STATUS_ONLINE = STATUS_ONLINE;
+    static STATUS_OFFLINE = STATUS_OFFLINE;
+    static STATUS_DISABLED = STATUS_DISABLED;
 
     static STATUS_TEXT_MAP = {
         [STATUS_INVALID]: I18n.t('未保存'),
@@ -45,5 +45,5 @@ export default class Base extends Model {
         [STATUS_ONLINE]: I18n.t('已上线'),
         [STATUS_OFFLINE]: I18n.t('已下线'),
         [STATUS_DISABLED]: I18n.t('已禁用'),
-    }
+    };
 }

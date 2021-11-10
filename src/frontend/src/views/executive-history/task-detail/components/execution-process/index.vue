@@ -85,11 +85,11 @@
         color: #fff;
         text-align: center;
         cursor: pointer;
-        background: rgba(0, 0, 0, 0.25);
+        background: rgb(0 0 0 / 25%);
         border-radius: 14px;
 
         &:hover {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgb(0 0 0 / 40%);
         }
     }
 </style>

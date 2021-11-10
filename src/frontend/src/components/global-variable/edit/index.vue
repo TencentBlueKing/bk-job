@@ -151,7 +151,7 @@
                         width: 10px;
                         margin-left: 0.2em;
                         color: #ea3636;
-                        content: '*';
+                        content: "*";
                     }
                 }
             }

@@ -596,7 +596,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     @keyframes search-loading {
         0% {

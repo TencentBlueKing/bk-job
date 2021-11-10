@@ -194,25 +194,25 @@
             &.success,
             &.forced {
                 .record-label {
-                    background: rgba(45, 203, 157, 0.14);
+                    background: rgb(45 203 157 / 14%);
                 }
             }
 
             &.fail {
                 .record-label {
-                    background: rgba(255, 86, 92, 0.14);
+                    background: rgb(255 86 92 / 14%);
                 }
             }
 
             &.confirm {
                 .record-label {
-                    background: rgba(255, 156, 1, 0.14);
+                    background: rgb(255 156 1 / 14%);
                 }
             }
 
             &.loading {
                 .record-label {
-                    background: rgba(58, 132, 255, 0.14);
+                    background: rgb(58 132 255 / 14%);
                 }
             }
 

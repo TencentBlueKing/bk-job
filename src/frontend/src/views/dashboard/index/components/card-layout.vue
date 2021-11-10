@@ -98,7 +98,7 @@
                     width: 100%;
                     margin-bottom: -3px;
                     border-bottom: 1px dashed #dcdee5;
-                    content: '';
+                    content: "";
                 }
             }
         }

@@ -351,7 +351,6 @@
     };
 </script>
 <style lang="postcss">
-
     #app {
         .site-title {
             padding-left: 16px;

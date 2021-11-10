@@ -347,7 +347,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .script-source-of-execution {
         .script-source-item {

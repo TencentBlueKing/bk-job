@@ -155,7 +155,7 @@ export default class StepExecutionResult {
             forceding: 'loading',
             loading: 'loading',
             confirm: 'confirm',
-            confirmForced: 'confirmForced',
+            confirmForced: 'confirm-forced',
             disabled: 'disabled',
         };
         return styleMap[checkStatus(this.status)];

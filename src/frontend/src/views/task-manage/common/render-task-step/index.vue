@@ -325,12 +325,14 @@
                 },
                 immediate: true,
             },
-            steps: {
-                handler () {
-                    this.order = 0;
-                },
-                immediate: true,
-            },
+        },
+        created () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
+        },
+        beforeUpdate () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
         },
         methods: {
             /**
@@ -522,7 +524,7 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     @define-mixin step-active {
         .step-content {
@@ -584,7 +586,7 @@
                         margin-top: 10px;
                         background: #e1ecff;
                         border-radius: 2px;
-                        content: '';
+                        content: "";
                     }
                 }
             }
@@ -652,6 +654,24 @@
     }
 
     .step-wraper {
+        &:hover {
+            .step-content {
+                color: #63656e;
+                background: #e1ecff;
+                border-color: #3a84ff;
+            }
+
+            .select-flag {
+                border-color: #3a84ff;
+            }
+
+            .step-icon {
+                color: #3a84ff;
+                background: #e1ecff;
+                border-color: transparent;
+            }
+        }
+
         cursor: pointer;
 
         &.is-hide {
@@ -685,7 +705,7 @@
                     height: 22px;
                     margin-left: -22px;
                     background: #d8d8d8;
-                    content: '';
+                    content: "";
                 }
 
                 .select-checked {
@@ -716,15 +736,15 @@
         }
 
         &.not-select {
-            .step-content {
-                color: #979ba5;
-                background: transparent;
-                border-color: #dcdee5;
-            }
-
             .step-icon {
                 color: #c4c6cc;
                 background: #f0f1f5;
+                border-color: #dcdee5;
+            }
+
+            .step-content {
+                color: #979ba5;
+                background: transparent;
                 border-color: #dcdee5;
             }
 
@@ -736,24 +756,6 @@
                     &::after {
                         transform: scale(0);
                     }
-                }
-            }
-
-            &:hover {
-                .step-content {
-                    color: #63656e;
-                    background: #e1ecff;
-                    border-color: #3a84ff;
-                }
-
-                .select-flag {
-                    border-color: #3a84ff;
-                }
-
-                .step-icon {
-                    color: #3a84ff;
-                    background: #e1ecff;
-                    border-color: transparent;
                 }
             }
         }
@@ -910,7 +912,7 @@
                 margin-left: -22px;
                 border: 9px solid transparent;
                 border-right-color: #fdd;
-                content: '';
+                content: "";
             }
 
             &::after {
@@ -921,7 +923,7 @@
                 height: 4px;
                 background: #fff;
                 border-radius: 50%;
-                content: '';
+                content: "";
                 transform: translateY(-50%);
             }
         }
@@ -964,7 +966,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            content: '';
+            content: "";
         }
 
         .render-task-step {
@@ -980,7 +982,7 @@
                     color: #fff;
                     text-align: center;
                     background: #ffa86e;
-                    content: 'new';
+                    content: "new";
                 }
             }
 

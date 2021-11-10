@@ -152,12 +152,26 @@
                     </span>
                     <global-variable-layout v-else type="vertical">
                         <global-variable
-                            ref="variable"
-                            v-for="variable in currentPlanVariableList"
+                            ref="usedVariable"
+                            v-for="variable in usedList"
                             value-width="100%"
                             :type="variable.type"
                             :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
                             :data="variable" />
+                        <toggle-display
+                            v-if="unusedList.length > 0"
+                            :count="unusedList.length"
+                            style="max-width: 960px; margin-top: 20px;">
+                            <div style="margin-top: 20px;">
+                                <global-variable
+                                    ref="unusedVariable"
+                                    v-for="variable in unusedList"
+                                    value-width="100%"
+                                    :type="variable.type"
+                                    :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
+                                    :data="variable" />
+                            </div>
+                        </toggle-display>
                     </global-variable-layout>
                 </render-strategy>
             </div>
@@ -171,12 +185,12 @@
     import TimeTaskService from '@service/time-task';
     import {
         generatorDefaultCronTime,
+        findUsedVariable,
     } from '@utils/assist';
-    import {
-        timeTaskNameRule,
-    } from '@utils/validator';
+    import { timeTaskNameRule } from '@utils/validator';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import GlobalVariable from '@components/global-variable/edit';
+    import ToggleDisplay from '@components/global-variable/toggle-display';
     import JbInput from '@components/jb-input';
     import RenderStrategy from '../render-strategy';
     import FormItemFactory from './form-item-strategy';
@@ -215,6 +229,7 @@
         components: {
             GlobalVariableLayout,
             GlobalVariable,
+            ToggleDisplay,
             RenderStrategy,
             JbInput,
             FormItemFactory,
@@ -243,9 +258,12 @@
                 formData: getDefaultData(),
                 templateList: [],
                 planList: [],
+                planStepList: [],
                 isVariableLoading: false,
                 currentPlanVariableList: [],
                 currentRenderPlanId: 0, // 切换执行方案后更新全局变量（不同执行方案里面的变量id和name是相同的当value不同时页面不会更新）
+                usedList: [],
+                unusedList: [],
                 isRepeat: false,
                 dateOptions: {
                     disabledDate (date) {
@@ -299,8 +317,61 @@
                 },
                 immediate: true,
             },
+            /**
+             * @desc 检测选中的执行方案的全局变量，判断出被使用和未被使用的变量
+             * @param { Array } variableList
+             */
+            currentPlanVariableList (variableList) {
+                // 执行方案使用的步骤中引用变量的状态
+                const planStepList = this.planStepList.filter(step => step.enable === 1);
+                const usedVariableNameMap = findUsedVariable(planStepList).reduce((result, item) => {
+                    result[item] = true;
+                    return result;
+                }, {});
+                // 执行方案中的步骤使用了得变量
+                const usedList = [];
+                // 未被使用的变量
+                const unusedList = [];
+                variableList.forEach((variable) => {
+                    if (usedVariableNameMap[variable.name]) {
+                        usedList.push(variable);
+                    } else {
+                        unusedList.push(variable);
+                    }
+                });
+                this.usedList = Object.freeze(usedList);
+                this.unusedList = Object.freeze(unusedList);
+            },
         },
         created () {
+            // 作业模板列表
+            this.fetchTemplateList();
+
+            if (this.data.id) {
+                // 编辑状态
+
+                this.formData.id = this.data.id;
+                this.formData.name = this.data.name;
+                this.formData.taskTemplateId = this.data.taskTemplateId;
+                this.formData.taskPlanId = this.data.taskPlanId;
+                this.fetchData();
+                this.fetchTemplatePlanList();
+            } else {
+                // 新建(指定指定执行方案)
+
+                // 通过url指定作业模板和执行方案的定时任务任务
+                // 执行方案id 必须是 templateId 同时存在时才有效
+                const { templateId, planId } = this.$route.query;
+                if (parseInt(templateId, 10) > 0) {
+                    this.formData.taskTemplateId = parseInt(templateId, 10);
+                    this.fetchTemplatePlanList();
+                    if (parseInt(planId, 10) > 0) {
+                        this.formData.taskPlanId = parseInt(planId, 10);
+                        this.fetchPlanDetailInfo();
+                    }
+                }
+            }
+
             this.rules = Object.assign({}, this.rules, {
                 name: [
                     {
@@ -334,34 +405,6 @@
                     },
                 ],
             });
-            
-            // 作业模板列表
-            this.fetchTemplateList();
-
-            if (this.data.id) {
-                // 编辑状态
-
-                this.formData.id = this.data.id;
-                this.formData.name = this.data.name;
-                this.formData.taskTemplateId = this.data.taskTemplateId;
-                this.formData.taskPlanId = this.data.taskPlanId;
-                this.fetchData();
-                this.fetchTemplatePlanList();
-            } else {
-                // 新建(指定指定执行方案)
-
-                // 通过url指定作业模板和执行方案的定时任务任务
-                // 执行方案id 必须是 templateId 同时存在时才有效
-                const { templateId, planId } = this.$route.query;
-                if (parseInt(templateId, 10) > 0) {
-                    this.formData.taskTemplateId = parseInt(templateId, 10);
-                    this.fetchTemplatePlanList();
-                    if (parseInt(planId, 10) > 0) {
-                        this.formData.taskPlanId = parseInt(planId, 10);
-                        this.fetchPlanDetailInfo();
-                    }
-                }
-            }
         },
         
         methods: {
@@ -421,6 +464,7 @@
                     // 如果定时任务任务中存有变量变量值——拷贝过来
                     // 获取执行方案的接口是一个批量接口，取数组第一个
                     if (planInfo) {
+                        this.planStepList = Object.freeze(planInfo.stepList);
                         const cronJobVariableList = [
                             ...cronJob.variableValue,
                         ];
@@ -493,6 +537,7 @@
                 }).then((planInfo) => {
                     this.currentPlanVariableList = Object.freeze(planInfo.variableList);
                     this.currentRenderPlanId = this.formData.taskPlanId;
+                    this.planStepList = Object.freeze(planInfo.stepList);
                 })
                     .finally(() => {
                         this.isVariableLoading = false;
@@ -578,14 +623,25 @@
                 window.open(routerUrl.href, '_blank');
             },
             /**
-             * @desc 保存执行方案
+             * @desc 保存定时任务
              */
             submit () {
                 return this.$refs.timeTaskForm.validate().then(() => {
                     if (this.currentPlanVariableList.length < 1) {
                         return Promise.resolve([]);
                     }
-                    return Promise.all(this.$refs.variable.map(item => item.validate()));
+                    const validateQueue = [];
+                    if (this.$refs.usedVariable) {
+                        this.$refs.usedVariable.forEach((item) => {
+                            validateQueue.push(item.validate());
+                        });
+                    }
+                    if (this.$refs.unusedVariable) {
+                        this.$refs.unusedVariable.forEach((item) => {
+                            validateQueue.push(item.validate());
+                        });
+                    }
+                    return Promise.all(validateQueue);
                 })
                     .then((variableValue) => {
                         const params = { ...this.formData };

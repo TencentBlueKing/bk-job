@@ -144,7 +144,7 @@
                     color: #fff;
                     text-align: center;
                     background: #ffa86e;
-                    content: 'new';
+                    content: "new";
                 }
             }
         }

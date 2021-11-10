@@ -118,9 +118,9 @@
             width: 11px;
             height: 11px;
             background: #333;
-            content: '';
+            content: "";
             transform: translateY(-50%) rotateZ(45deg);
-            box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+            box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
         }
 
         .wraper {

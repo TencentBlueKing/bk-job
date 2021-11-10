@@ -222,7 +222,7 @@
 
         &.fail,
         &.forced,
-        &.confirmForced {
+        &.confirm-forced {
             color: #979ba5;
 
             .step-icon {
@@ -275,7 +275,7 @@
             display: block;
             width: 42px;
             height: 42px;
-            animation: 'ani-rotate' 2s linear infinite;
+            animation: "ani-rotate" 2s linear infinite;
         }
     }
 
@@ -288,7 +288,7 @@
         background: #fff;
         border: 1px solid #dcdee5;
         border-radius: 2px;
-        box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+        box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
 
         /* &:after{
             content: '';

@@ -127,13 +127,13 @@
         height: 28px;
         color: #fff;
         cursor: pointer;
-        background: rgba(0, 0, 0, 0.25);
+        background: rgb(0 0 0 / 25%);
         border-radius: 50%;
         align-items: center;
         justify-content: center;
 
         &:hover {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgb(0 0 0 / 40%);
         }
 
         &.theme-normal {

@@ -289,7 +289,7 @@
         &:hover {
             & > .scrollbar-vertical,
             & > .scrollbar-horizontal {
-                opacity: 1;
+                opacity: 100%;
             }
         }
 
@@ -297,12 +297,12 @@
             & > .scrollbar-vertical,
             & > .scrollbar-horizontal {
                 &::-webkit-scrollbar-thumb {
-                    background-color: rgb(255, 255, 255, 0.2);
+                    background-color: rgb(255 255 255 / 20%);
                 }
 
                 &:hover {
                     &::-webkit-scrollbar-thumb {
-                        background-color: rgb(255, 255, 255, 0.28);
+                        background-color: rgb(255 255 255 / 28%);
                     }
                 }
             }
@@ -322,20 +322,20 @@
         & > .scrollbar-vertical,
         & > .scrollbar-horizontal {
             cursor: pointer;
-            opacity: 0;
+            opacity: 0%;
             transition: 0.15s;
 
             &::-webkit-scrollbar-thumb {
-                background-color: rgba(151, 155, 165, 0.8);
+                background-color: rgb(151 155 165 / 80%);
                 border-radius: 3px;
             }
 
             &:hover {
                 z-index: 10000000;
-                opacity: 1;
+                opacity: 100%;
 
                 &::-webkit-scrollbar-thumb {
-                    background-color: rgba(151, 155, 165, 0.9);
+                    background-color: rgb(151 155 165 / 90%);
                     border-radius: 7px;
                 }
             }

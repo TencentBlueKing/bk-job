@@ -50,7 +50,7 @@
         color: #63656e;
         background: #fff;
         border-radius: 2px;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
         .card-title {
             margin-bottom: 20px;

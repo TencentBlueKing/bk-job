@@ -474,7 +474,7 @@
             top: 4px;
             right: 2px;
             font-size: 22px;
-            color: rgb(151, 155, 165);
+            color: rgb(151 155 165);
             pointer-events: none;
             transition: all 0.15s;
         }
@@ -484,7 +484,7 @@
         padding: 0 !important;
         background: #182233 !important;
         border: 1px solid #2f3847;
-        box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 2px 3px 0 rgb(0 0 0 / 10%) !important;
 
         .component-permission-disabled {
             color: #70737a !important;
@@ -566,7 +566,7 @@
             &:hover {
                 .app-collection {
                     .unfavor {
-                        opacity: 1;
+                        opacity: 100%;
                     }
                 }
             }
@@ -606,7 +606,7 @@
                 }
 
                 .unfavor {
-                    opacity: 0;
+                    opacity: 0%;
                     transition: all 0.1s;
                 }
             }

@@ -193,11 +193,11 @@
             flex: 1;
 
             .right-wraper {
-                opacity: 0;
+                opacity: 0%;
                 transition: all 0.5s;
 
                 &.active {
-                    opacity: 1;
+                    opacity: 100%;
                 }
             }
 

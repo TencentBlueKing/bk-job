@@ -440,7 +440,7 @@
 
             &.error,
             &.failed {
-                background: rgba(254, 221, 220, 0.4);
+                background: rgb(254 221 220 / 40%);
                 border-color: #ff5656;
 
                 &:hover {
