@@ -33,11 +33,13 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
+import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.TaskApprovalStepDAO;
 import com.tencent.bk.job.manage.dao.TaskFileInfoDAO;
 import com.tencent.bk.job.manage.dao.TaskFileStepDAO;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.dao.TaskStepDAO;
+import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +72,7 @@ public abstract class AbstractTaskStepService {
     protected TaskFileStepDAO taskFileStepDAO;
     protected TaskApprovalStepDAO taskApprovalStepDAO;
     protected TaskFileInfoDAO taskFileInfoDAO;
+    protected ScriptDAO scriptDAO;
     protected TaskTypeEnum taskType;
 
     /**
@@ -102,6 +106,7 @@ public abstract class AbstractTaskStepService {
 
         // Fill detail info by type
         Map<Long, TaskScriptStepDTO> scriptStepMap = taskScriptStepDAO.listScriptStepByIds(scriptStepIdList);
+        fillRefScriptContent(scriptStepMap);
         Map<Long, TaskFileStepDTO> fileStepMap = taskFileStepDAO.listFileStepsByIds(fileStepIdList);
         Map<Long, List<TaskFileInfoDTO>> fileInfoListMap = taskFileInfoDAO.listFileInfosByStepIds(fileStepIdList);
         Map<Long, TaskApprovalStepDTO> approvalStepMap = taskApprovalStepDAO.listApprovalsByIds(approvalStepIdList);
@@ -126,6 +131,26 @@ public abstract class AbstractTaskStepService {
         });
 
         return taskStepList;
+    }
+
+    private void fillRefScriptContent(Map<Long, TaskScriptStepDTO> scriptStepMap) {
+        List<Long> scriptVersionIds = scriptStepMap.values().stream()
+            .filter(scriptStep -> scriptStep.getScriptVersionId() != null)
+            .map(TaskScriptStepDTO::getScriptVersionId)
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(scriptVersionIds)) {
+            List<ScriptDTO> scripts = scriptDAO.batchGetScriptVersionsByIds(scriptVersionIds);
+            Map<Long, ScriptDTO> scriptMap = new HashMap<>();
+            scripts.forEach(script -> scriptMap.put(script.getScriptVersionId(), script));
+            scriptStepMap.values().forEach(scriptStep -> {
+                if (scriptStep.getScriptVersionId() != null && StringUtils.isEmpty(scriptStep.getContent())) {
+                    ScriptDTO script = scriptMap.get(scriptStep.getScriptVersionId());
+                    if (script != null) {
+                        scriptStep.setContent(script.getContent());
+                    }
+                }
+            });
+        }
     }
 
     /**

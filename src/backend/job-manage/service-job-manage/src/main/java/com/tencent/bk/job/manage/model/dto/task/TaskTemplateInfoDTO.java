@@ -220,8 +220,10 @@ public class TaskTemplateInfoDTO {
         serviceTemplate.setId(templateInfo.getId());
         serviceTemplate.setAppId(templateInfo.getAppId());
         serviceTemplate.setName(templateInfo.getName());
-        serviceTemplate.setTags(templateInfo.getTags().stream()
-            .map(TagDTO::toServiceDTO).collect(Collectors.toList()));
+        if (CollectionUtils.isNotEmpty(templateInfo.getTags())) {
+            serviceTemplate.setTags(templateInfo.getTags().stream()
+                .map(TagDTO::toServiceDTO).collect(Collectors.toList()));
+        }
         serviceTemplate.setStatus(templateInfo.getStatus().getStatus());
         serviceTemplate.setCreator(templateInfo.getCreator());
         serviceTemplate.setCreateTime(templateInfo.getCreateTime());
