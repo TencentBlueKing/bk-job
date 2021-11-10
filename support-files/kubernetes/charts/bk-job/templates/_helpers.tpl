@@ -25,6 +25,20 @@ Return the label key of job image tag
 {{- end -}}
 
 {{/*
+Return the label key of bk-job scope
+*/}}
+{{- define "job.labelKeys.jobScope" -}}
+    {{- printf "bk.job.scope" -}}
+{{- end -}}
+
+{{/*
+Return the label value of bk-job scope backend
+*/}}
+{{- define "job.labelValues.jobScope.backend" -}}
+    {{- printf "backend" -}}
+{{- end -}}
+
+{{/*
 Return the proper job-frontend image name
 */}}
 {{- define "job-frontend.image" -}}

@@ -6,7 +6,7 @@
 
     <include resource="logback/logback-app-props.xml"/>
     <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-    <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ERROR_LOG_FILE" value="${APP_LOG_DIR}/error.log"/>
     <property name="ESB_LOG_FILE" value="${APP_LOG_DIR}/esb_client.log"/>
@@ -149,24 +149,56 @@
         </root>
     </springProfile>
     <springProfile name="dev &amp; kubernetes">
-        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false" >
+            <appender-ref ref="async-app-appender"/>
+            <appender-ref ref="error-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="DEBUG" additivity="false">
+            <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="error-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.esb" level="DEBUG" additivity="false">
+            <appender-ref ref="esb-client-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <root level="INFO">
+        <root level="INFO" additivity="false">
+            <appender-ref ref="async-app-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
     <springProfile name="prod &amp; kubernetes">
-        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job" level="INFO" additivity="false" >
+            <appender-ref ref="async-app-appender"/>
+            <appender-ref ref="error-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
+            <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="error-appender"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.esb" level="INFO" additivity="false">
+            <appender-ref ref="esb-client-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="INFO">
+            <appender-ref ref="async-app-appender"/>
+            <appender-ref ref="error-appender"/>
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>

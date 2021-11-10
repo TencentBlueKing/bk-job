@@ -416,6 +416,13 @@ job:
         enabled: true
   storage:
     rootPath: /data/job/local
+  log:
+    file:
+      collectEnabled: true
+      dataId: 1
+    std:
+      collectEnabled: false
+      dataId: 1
 
 ## @section job-gateway parameters
 gatewayConfig:
