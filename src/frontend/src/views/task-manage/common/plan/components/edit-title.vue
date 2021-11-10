@@ -101,6 +101,7 @@
              * @desc 开始编辑
              */
             handleEdit () {
+                this.isSubmiting = false;
                 this.isEditing = true;
                 this.errorInfo = '';
                 this.inputWidth = this.$refs.text.getBoundingClientRect().width;
@@ -128,6 +129,12 @@
              */
             handleSubmit () {
                 this.errorInfo = '';
+                // 值没变
+                if (this.localValueMemo === this.localValue) {
+                    this.isEditing = false;
+                    return;
+                }
+                // 值检验
                 if (!this.localValue) {
                     this.errorInfo = I18n.t('template.方案名称必填');
                 } else if (!planNameRule.validator(this.localValue)) {
@@ -136,31 +143,38 @@
                 if (this.errorInfo) {
                     return;
                 }
-                if (this.localValueMemo === this.localValue) {
-                    this.isEditing = false;
-                    return;
-                }
+                
                 this.isSubmiting = true;
-                TaskPlanService.planUpdate({
-                    id: this.data.id,
+                // 重名检测
+                TaskPlanService.planCheckName({
                     templateId: this.data.templateId,
+                    planId: this.data.id,
                     name: this.localValue,
-                    variables: this.data.variableList,
-                    enableSteps: this.data.stepList.reduce((result, step) => {
-                        if (step.enable) {
-                            result.push(step.id);
-                        }
-                        return result;
-                    }, []),
-                }).then(() => {
-                    this.localValueMemo = this.localValue;
-                    this.isEditing = false;
-                    this.$emit('on-edit-success');
-                    this.messageSuccess(I18n.t('template.执行方案名称编辑成功'));
-                })
-                    .finally(() => {
+                }).then((checkResult) => {
+                    if (!checkResult) {
                         this.isSubmiting = false;
+                        this.errorInfo = I18n.t('template.方案名称已存在，请重新输入');
+                        return;
+                    }
+                    
+                    TaskPlanService.planUpdate({
+                        id: this.data.id,
+                        templateId: this.data.templateId,
+                        name: this.localValue,
+                        variables: this.data.variableList,
+                        enableSteps: this.data.stepList.reduce((result, step) => {
+                            if (step.enable) {
+                                result.push(step.id);
+                            }
+                            return result;
+                        }, []),
+                    }).then(() => {
+                        this.localValueMemo = this.localValue;
+                        this.isEditing = false;
+                        this.$emit('on-edit-success');
+                        this.messageSuccess(I18n.t('template.执行方案名称编辑成功'));
                     });
+                });
             },
         },
     };
