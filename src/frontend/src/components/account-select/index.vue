@@ -50,10 +50,10 @@
             <template slot="extension">
                 <auth-component auth="account/create">
                     <div @click="handleCreate" style="cursor: pointer;">
-                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建账号') }}
                     </div>
                     <div slot="forbid">
-                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建账号') }}
                     </div>
                 </auth-component>
             </template>

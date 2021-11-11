@@ -353,7 +353,6 @@ export default {
     请选择引用脚本: 'Please choose quoting script',
     已禁用: 'Banned',
     执行方案: 'Job Plans',
-    新建标签: 'Creating new tag',
     标签名称: 'Tag name',
     引用脚本待更新: 'New script version available',
     该变量的值必填: 'Value is required',
@@ -493,4 +492,8 @@ export default {
     展开更多: 'More',
     收起未引用的变量: '',
     展开未引用的变量: '',
+    新建账号: 'New Account',
+    新建标签: 'New Tag',
+    新建业务脚本: 'New Script',
+    新建公共脚本: 'New Public Script',
 };
