@@ -951,7 +951,7 @@
 <style lang='postcss'>
     .script-manage-version-page {
         .version-list-wraper {
-            margin-top: 12px;
+            margin-top: 20px;
         }
 
         .script-version-list {
