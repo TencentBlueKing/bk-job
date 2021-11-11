@@ -127,6 +127,11 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
      * 文件传输的目标目录
      */
     private String fileTargetPath;
+
+    /**
+     * 文件分发到目标主机的对应名称
+     */
+    private String fileTargetName;
     /**
      * 变量解析之后的目标路径
      */
@@ -217,6 +222,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.fileSourceList = fileStepInstance.getFileSourceList();
         this.resolvedFileSourceList = fileStepInstance.getResolvedFileSourceList();
         this.fileTargetPath = fileStepInstance.getFileTargetPath();
+        this.fileTargetName = fileStepInstance.getFileTargetName();
         this.resolvedFileTargetPath = fileStepInstance.getResolvedFileTargetPath();
         this.fileUploadSpeedLimit = fileStepInstance.getFileUploadSpeedLimit();
         this.fileDownloadSpeedLimit = fileStepInstance.getFileDownloadSpeedLimit();

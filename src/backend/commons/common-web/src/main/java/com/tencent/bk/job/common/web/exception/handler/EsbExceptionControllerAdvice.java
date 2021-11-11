@@ -120,7 +120,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleInvalidParamException(HttpServletRequest request, InvalidParamException ex) {
         String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
         log.warn(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler(FailedPreconditionException.class)
@@ -128,7 +128,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleFailedPreconditionException(HttpServletRequest request, FailedPreconditionException ex) {
         String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -136,7 +136,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
         String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler(AlreadyExistsException.class)
@@ -144,7 +144,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
         String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler(UnauthenticatedException.class)
@@ -152,7 +152,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleUnauthenticatedException(HttpServletRequest request, UnauthenticatedException ex) {
         String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

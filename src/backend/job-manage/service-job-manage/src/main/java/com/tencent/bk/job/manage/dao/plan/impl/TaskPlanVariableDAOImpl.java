@@ -61,7 +61,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
 
     private static final TaskPlanVariable TABLE = TaskPlanVariable.TASK_PLAN_VARIABLE;
 
-    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.ID, TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
+    private static final TableField<?,?>[] ALL_FIELDS = {TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
         TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
 
     private final DSLContext context;
@@ -86,7 +86,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
             return null;
         }
         TaskVariableDTO taskVariable = new TaskVariableDTO();
-        taskVariable.setId(record.get(TABLE.ID).longValue());
+        taskVariable.setId(record.get(TABLE.TEMPLATE_VARIABLE_ID).longValue());
         taskVariable.setPlanId(record.get(TABLE.PLAN_ID).longValue());
         taskVariable.setName(record.get(TABLE.NAME));
         taskVariable.setType(TaskVariableTypeEnum.valOf(record.get(TABLE.TYPE).intValue()));

@@ -48,6 +48,10 @@ public class FileStepInstanceDTO {
      */
     private String fileTargetPath;
     /**
+     * 文件分发到目标主机的对应名称
+     */
+    private String fileTargetName;
+    /**
      * 变量解析之后的目标路径
      */
     private String resolvedFileTargetPath;

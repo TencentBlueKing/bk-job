@@ -261,6 +261,7 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
+        stepInstance.setFileTargetName(request.getTargetName());
         stepInstance.setFileSourceList(convertFileSource(request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));

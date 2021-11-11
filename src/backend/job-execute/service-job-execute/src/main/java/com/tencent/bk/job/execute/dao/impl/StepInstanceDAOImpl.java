@@ -156,12 +156,13 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void addFileStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        ctx.insertInto(t, t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT,
-            t.FILE_DOWNLOAD_SPEED_LIMIT, t.FILE_DUPLICATE_HANDLE, t.NOT_EXIST_PATH_HANDLER,
+        ctx.insertInto(t, t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.FILE_TARGET_PATH, t.FILE_TARGET_NAME,
+            t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT, t.FILE_DUPLICATE_HANDLE, t.NOT_EXIST_PATH_HANDLER,
             t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
             .values(stepInstance.getId(),
                 JsonUtils.toJson(stepInstance.getFileSourceList()),
                 stepInstance.getFileTargetPath(),
+                stepInstance.getFileTargetName(),
                 stepInstance.getFileUploadSpeedLimit(),
                 stepInstance.getFileDownloadSpeedLimit(),
                 JooqDataTypeUtil.getByteFromInteger(stepInstance.getFileDuplicateHandle()),
@@ -234,7 +235,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         Record record = ctx.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.RESOLVED_FILE_SOURCE, t.FILE_TARGET_PATH,
-            t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
+            t.FILE_TARGET_NAME, t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
             t.FILE_DUPLICATE_HANDLE,
             t.NOT_EXIST_PATH_HANDLER, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
             .from(t)
@@ -261,6 +262,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             stepInstance.setResolvedFileSourceList(resolvedFileSourceList);
         }
         stepInstance.setFileTargetPath(record.get(t.FILE_TARGET_PATH));
+        stepInstance.setFileTargetName(record.get(t.FILE_TARGET_NAME));
         stepInstance.setResolvedFileTargetPath(record.get(t.RESOLVED_FILE_TARGET_PATH));
         stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));

@@ -258,6 +258,7 @@
             position: relative;
             display: inline-flex;
             width: 32px;
+            height: 32px;
             font-size: 16px;
             color: #979ba5;
             cursor: pointer;

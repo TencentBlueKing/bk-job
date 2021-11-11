@@ -103,14 +103,17 @@
             </jb-form-item>
         </jb-form>
         <template #footer>
-            <bk-button
-                theme="primary"
-                class="w120 mr10"
-                :loading="submitLoading"
-                @click="handleSumbit"
-                v-test="{ type: 'button', value: 'createPlanSubmit' }">
-                {{ $t('template.提交') }}
-            </bk-button>
+            <span :tippy-tips="isSubmitDisable ? $t('template.请至少勾选一个执行步骤') : ''">
+                <bk-button
+                    theme="primary"
+                    class="w120 mr10"
+                    :loading="submitLoading"
+                    :disabled="isSubmitDisable"
+                    @click="handleSumbit"
+                    v-test="{ type: 'button', value: 'createPlanSubmit' }">
+                    {{ $t('template.提交') }}
+                </bk-button>
+            </span>
             <bk-button
                 @click="handleReset"
                 v-test="{ type: 'button', value: 'createPlanReset' }">
@@ -187,6 +190,13 @@
             hasSelectAll () {
                 return this.formData.enableSteps.length >= this.taskStepList.length;
             },
+            /**
+             * @desc 禁用提交按钮
+             * @returns { Boolean }
+             */
+            isSubmitDisable () {
+                return this.formData.enableSteps.length < 1;
+            },
         },
         created () {
             this.rules = {
@@ -202,7 +212,11 @@
                         trigger: 'blur',
                     },
                     {
-                        validator: this.checkName,
+                        validator: name => ExecPlanService.planCheckName({
+                            templateId: this.formData.templateId,
+                            planId: this.formData.id,
+                            name,
+                        }),
                         message: I18n.t('template.方案名称已存在，请重新输入'),
                         trigger: 'blur',
                     },
@@ -261,17 +275,6 @@
              */
             refresh () {
                 this.fetchData();
-            },
-            /**
-             * @desc 检测执行方案是否重名
-             * @param {String} name
-             */
-            checkName (name) {
-                return ExecPlanService.planCheckName({
-                    templateId: this.formData.templateId,
-                    planId: this.formData.id,
-                    name,
-                });
             },
             /**
              * @desc 执行方案名更新

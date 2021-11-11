@@ -177,7 +177,7 @@ public class ResultHandleResumeListener {
                     storageSystemConfig.getJobStorageRootPath());
                 String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
                 Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
-                    sendFiles, targetDir);
+                    sendFiles, targetDir, stepInstance.getFileTargetName());
                 Map<String, String> sourceDestPathMap = buildSourceDestPathMap(srcAndDestMap);
                 // 初始化显示名称映射Map
                 Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
