@@ -77,7 +77,10 @@
                 <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
             </td>
         </tr>
-        <choose-ip ref="chooseIp" v-model="isShowChooseIp" @on-change="handleHostChange" />
+        <choose-ip
+            ref="chooseIp"
+            v-model="isShowChooseIp"
+            @on-change="handleHostChange" />
     </tbody>
 </template>
 <script>
