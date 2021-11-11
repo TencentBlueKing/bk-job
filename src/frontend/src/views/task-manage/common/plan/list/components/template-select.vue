@@ -53,10 +53,10 @@
                     <template slot="extension">
                         <auth-component auth="job_template/create">
                             <div @click="handleCreate" style="cursor: pointer;">
-                                <i class="bk-icon icon-plus-circle" />{{ $t('template.新增') }}
+                                <i class="bk-icon icon-plus-circle" />{{ $t('template.新建模板') }}
                             </div>
                             <div slot="forbid">
-                                <i class="bk-icon icon-plus-circle" />{{ $t('template.新增') }}
+                                <i class="bk-icon icon-plus-circle" />{{ $t('template.新建模板') }}
                             </div>
                         </auth-component>
                     </template>
