@@ -418,7 +418,7 @@ job:
     rootPath: /data/job/local
   log:
     file:
-      collectEnabled: true
+      collectEnabled: false
       dataId: 1
     std:
       collectEnabled: false
