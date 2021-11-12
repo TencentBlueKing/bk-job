@@ -43,10 +43,10 @@
             <template v-if="!publicScript" slot="extension">
                 <auth-component auth="tag/create">
                     <div @click="handleCreate">
-                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建标签') }}
                     </div>
                     <div slot="forbid">
-                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                        <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建标签') }}
                     </div>
                 </auth-component>
             </template>

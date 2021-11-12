@@ -193,6 +193,8 @@
                     const $el = document.createElement('div');
                     $el.style.opacity = 0;
                     $el.style.zIndex = '-1';
+                    $el.style.wordBreak = 'keep-all';
+                    $el.style.whiteSpace = 'pre';
                     this.$refs.valueTextBox.appendChild($el);
 
                     const lineHeight = 26;
@@ -219,7 +221,7 @@
                         if (realHeight > lineHeight) {
                             this.renderLength = realLength - 4;
                         }
-                        this.$refs.valueTextBox.removeChild($el);
+                        // this.$refs.valueTextBox.removeChild($el);
                     });
                 });
             },

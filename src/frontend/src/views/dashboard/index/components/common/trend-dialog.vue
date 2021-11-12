@@ -33,6 +33,7 @@
             class="data-trend-dialog"
             :width="1000"
             :show-footer="false"
+            mask-close
             @input="handleInput">
             <div v-bkloading="{ isLoading }">
                 <div class="trend-daterang-picker">

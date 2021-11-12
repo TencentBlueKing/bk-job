@@ -296,7 +296,7 @@
 
             &:last-child {
                 width: 90px !important;
-                text-align: right;
+                text-align: left;
 
                 .bk-button-text ~ .bk-button-text {
                     margin-right: 8px;

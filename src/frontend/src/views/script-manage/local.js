@@ -180,7 +180,7 @@ export default {
         '勾选范围里，全部脚本使用': 'Applied in all selected scripts',
         '勾选范围里，有': '',
         个脚本使用: ' of the selected scripts applied it.',
-        新增标签: 'New',
+        新建标签: 'New',
         编辑标签成功: 'New tag has been created',
     },
 };

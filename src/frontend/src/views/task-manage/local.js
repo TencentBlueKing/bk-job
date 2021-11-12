@@ -499,7 +499,7 @@ export default {
         '勾选范围里，全部作业使用': 'Applied in all selected templates',
         '勾选范围里，有': '',
         个作业使用: ' of the selected templates applied it.',
-        新增标签: 'New',
+        新建标签: 'New Tag',
         编辑标签成功: 'New tag has been created',
         未引用: 'Unquoted',
         执行方案名称编辑成功: 'Plan name has been modified',
@@ -508,5 +508,6 @@ export default {
         个定时任务: ' Cron(s) related',
         点击前往查看: 'Click to show more',
         请至少勾选一个执行步骤: 'At least one step need to be selecte',
+        新建模板: 'New Template',
     },
 };

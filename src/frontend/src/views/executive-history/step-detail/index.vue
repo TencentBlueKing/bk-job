@@ -57,8 +57,8 @@
                         </bk-select>
                         <bk-input
                             v-if="searchModel === 'log'"
-                            key="log"
                             :value="params.keyword"
+                            key="log"
                             :disabled="isFile"
                             :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
                             right-icon="bk-icon icon-search"
@@ -66,6 +66,7 @@
                             @keyup="handleLogSearch" />
                         <bk-input
                             v-if="searchModel === 'ip'"
+                            :value="params.searchIp"
                             key="ip"
                             right-icon="bk-icon icon-search"
                             style="width: 292px;"
@@ -99,9 +100,11 @@
                         :list-loading="isLoading"
                         :pagination-loading="paginationChangeLoading"
                         :data="dispalyGroup.agentTaskExecutionDetail"
+                        :search-value="`${params.keyword}_${params.searchIp}`"
                         @on-pagination-change="handlePaginationChange"
                         @on-copy="handleCopyHost"
                         @on-sort="handleSort"
+                        @on-clear-search="handleClearSearch"
                         @on-change="handleHostChange" />
                 </div>
                 <div class="container-right">
@@ -396,6 +399,15 @@
              */
             handleSort (payload) {
                 this.params = Object.assign({}, this.params, payload);
+                this.fetchStep();
+            },
+            /**
+             * @desc 清空搜索条件
+             */
+            handleClearSearch () {
+                this.params.keyword = '';
+                this.params.searchIp = '';
+                this.isLogSearching = true;
                 this.fetchStep();
             },
             /**

@@ -157,6 +157,10 @@
             fetchLogContent () {
                 if (!this.ip) {
                     this.isLoading = false;
+                    if (this.editor) {
+                        this.editor.setValue('');
+                        this.editor.clearSelection();
+                    }
                     return;
                 }
                 TaskExecuteService.fetchLogContentOfIp({

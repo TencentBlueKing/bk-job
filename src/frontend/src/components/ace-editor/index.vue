@@ -32,8 +32,7 @@
             class="jb-ace-content"
             :class="{ readonly }"
             :style="boxStyle"
-            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }"
-            @keyup.esc="handleExitByESC">
+            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }">
             <div
                 v-if="showTabHeader"
                 class="jb-ace-title"
@@ -385,6 +384,7 @@
             this.initEditor();
             languageTools.addCompleter(this.completer);
             document.body.addEventListener('click', this.handleHideHistory);
+            document.body.addEventListener('keyup', this.handleExitByESC);
             this.$once('hook:beforeDestroy', () => {
                 clearTimeout(this.historyTimer);
                 if (this.isChange) {
@@ -392,6 +392,7 @@
                 }
                 _.remove(this.editor.completers, _ => _ === this.completer);
                 document.body.removeEventListener('click', this.handleHideHistory);
+                document.body.removeEventListener('keyup', this.handleExitByESC);
             });
         },
         methods: {
@@ -734,8 +735,8 @@
             /**
              * @desc esc快捷键退出编辑的全屏状态
              */
-            handleExitByESC () {
-                if (!this.isFullScreen) {
+            handleExitByESC (event) {
+                if (event.code !== 'Escape' || !this.isFullScreen) {
                     return;
                 }
                 this.handleExitFullScreen();
