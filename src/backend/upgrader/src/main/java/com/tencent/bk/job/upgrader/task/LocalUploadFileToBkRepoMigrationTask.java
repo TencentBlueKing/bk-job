@@ -22,26 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.anotation;
+package com.tencent.bk.job.upgrader.task;
 
-import java.lang.annotation.*;
+import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
+import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
+import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
+import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
+import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Properties;
 
 /**
- * 升级任务注解
+ * 本地文件向BKREPO迁移任务
  */
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface UpgradeTask {
-    // 需要迁移的数据生成的最早版本
-    String dataStartVersion() default "0.0.0.0";
+@Slf4j
+@RequireTaskParam(value = {
+    @UpgradeTaskInputParam(value = JobManageServerAddress.class)
+})
+@UpgradeTask(
+    dataStartVersion = "3.0.0.0",
+    targetVersion = "3.4.2.0",
+    targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
+public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
 
-    // 目标版本
-    String targetVersion() default "";
+    public LocalUploadFileToBkRepoMigrationTask(Properties properties) {
+        super(properties);
+    }
 
-    // 执行时机：更新Job进程前/后，默认更新进程后执行
-    ExecuteTimeEnum targetExecuteTime() default ExecuteTimeEnum.AFTER_UPDATE_JOB;
+    @Override
+    public void init() {
+    }
 
-    // 优先级，越小越先执行
-    int priority() default 5;
+    @Override
+    public int execute(String[] args) {
+        log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
+        // TODO:上传本地文件至制品库
+        return 0;
+    }
 }
