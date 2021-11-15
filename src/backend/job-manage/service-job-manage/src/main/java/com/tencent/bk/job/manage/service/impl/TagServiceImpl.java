@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -221,7 +222,7 @@ public class TagServiceImpl implements TagService {
 
     private void checkTags(Long appId, List<TagDTO> tags) {
         tags.forEach(tag -> {
-            if (!tag.getAppId().equals(appId)) {
+            if (!tag.getAppId().equals(appId) && !tag.getAppId().equals(JobConstants.PUBLIC_APP_ID)) {
                 throw new InternalException("Tag is not exist", ErrorCode.INTERNAL_ERROR);
             }
         });
@@ -282,7 +283,7 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags,
-                                          List<ResourceTagDTO> deleteResourceTags) {
+                                       List<ResourceTagDTO> deleteResourceTags) {
         StopWatch watch = new StopWatch("batchPatchResourceTags");
         if (CollectionUtils.isNotEmpty(addResourceTags)) {
             watch.start("batchSaveResourceTags");
@@ -330,7 +331,7 @@ public class TagServiceImpl implements TagService {
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(tagIds) && CollectionUtils.isNotEmpty(resourceIds)) {
             resourceIds.forEach(resourceId -> tagIds.forEach(tagId -> resourceTags.add(
-                    new ResourceTagDTO(resourceType, resourceId, tagId))));
+                new ResourceTagDTO(resourceType, resourceId, tagId))));
         }
         return resourceTags;
     }
@@ -342,7 +343,7 @@ public class TagServiceImpl implements TagService {
             if (v == null) {
                 v = 1L;
             } else {
-                v+= 1L;
+                v += 1L;
             }
             return v;
         }));

@@ -68,13 +68,13 @@
                             <bk-icon
                                 type="plus-circle"
                                 style=" margin-right: 8px; font-size: 16px;" />
-                            <span>{{ $t('tag.新增标签') }}</span>
+                            <span>{{ $t('tag.新建标签') }}</span>
                         </div>
                         <div slot="forbid" class="tag-create">
                             <bk-icon
                                 type="plus-circle"
                                 style=" margin-right: 8px; font-size: 16px;" />
-                            <span>{{ $t('tag.新增标签') }}</span>
+                            <span>{{ $t('tag.新建标签') }}</span>
                         </div>
                     </auth-component>
                 </div>

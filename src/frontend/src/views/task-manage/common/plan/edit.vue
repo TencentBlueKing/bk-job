@@ -105,7 +105,7 @@
             </jb-form-item>
         </jb-form>
         <template #footer>
-            <span :tippy-tips="isSubmitDisable ? $t('template.请至少勾选一个执行步骤') : ''">
+            <span v-bk-tooltips="isSubmitDisable ? $t('template.请至少勾选一个执行步骤') : ''">
                 <bk-button
                     theme="primary"
                     class="w120 mr10"
