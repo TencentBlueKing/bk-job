@@ -158,27 +158,22 @@ public class CommonStatisticService {
             StatisticsConstants.RESOURCE_GLOBAL, StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + metric.name(), startDate, endDate);
         // 按日期聚合多个业务的数据
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Long> map = new HashMap<>();
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             String key = statisticsDTO.getDate();
             if (map.containsKey(key)) {
-                map.put(key, map.get(key) + Integer.parseInt(statisticsDTO.getValue()));
+                map.put(key, map.get(key) + Long.parseLong(statisticsDTO.getValue()));
             } else {
-                map.put(key, Integer.parseInt(statisticsDTO.getValue()));
+                map.put(key, Long.parseLong(statisticsDTO.getValue()));
             }
         }
-        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
             String key = entry.getKey();
-            Integer value = entry.getValue();
+            Long value = entry.getValue();
             CommonTrendElementVO commonTrendElementVO = new CommonTrendElementVO(key, value);
             trendElementVOList.add(commonTrendElementVO);
         }
-        trendElementVOList.sort(new Comparator<CommonTrendElementVO>() {
-            @Override
-            public int compare(CommonTrendElementVO o1, CommonTrendElementVO o2) {
-                return o1.getDate().compareTo(o2.getDate());
-            }
-        });
+        trendElementVOList.sort(Comparator.comparing(CommonTrendElementVO::getDate));
         return trendElementVOList;
     }
 
