@@ -32,10 +32,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
-import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
-import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
-import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -45,14 +42,11 @@ import org.slf4j.helpers.MessageFormatter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.*;
 
 /**
  * 本地文件向BKREPO迁移任务
@@ -60,7 +54,7 @@ import java.util.Properties;
 @Slf4j
 @UpgradeTask(
         dataStartVersion = "3.0.0.0",
-        targetVersion = "3.4.2.0",
+        targetVersion = "3.4.2.1",
         targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
 public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
 
@@ -76,6 +70,11 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
     private String backupRepo;
     private String logExportRepo;
     private String storageRootPath;
+    private boolean enableMigrateLocalUploadFile;
+    private boolean enableMigrateBackupFile;
+    private boolean enableMigrateLogExportFile;
+    private int uploadConcurrency;
+    private ThreadPoolExecutor uploadExecutor;
 
     private final String localUploadDirName = "localupload";
     private final String backupDirName = "backup";
@@ -124,6 +123,18 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         backupRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_BACKUP_ARTIFACTORY_REPO);
         logExportRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_LOG_EXPORT_ARTIFACTORY_REPO);
         storageRootPath = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_STORAGE_ROOT_PATH);
+        enableMigrateLocalUploadFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE, true);
+        enableMigrateBackupFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE, false);
+        enableMigrateLogExportFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, false);
+        uploadConcurrency = (Integer) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY, 20);
+        uploadExecutor = new ThreadPoolExecutor(uploadConcurrency, uploadConcurrency, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(200), new RejectedExecutionHandler() {
+            @Override
+            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                // 使用当前线程上传
+                log.info("task queue full, use current thread to upload");
+                r.run();
+            }
+        });
     }
 
     private void initUserAndProject() {
@@ -260,13 +271,32 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         return false;
     }
 
-    private void uploadFilesToRepo(String path, String repo) {
-        ArtifactoryClient jobClient = getJobClient();
-        List<File> fileList = scanAllFilesOnPath(path);
-        log.info("{} files in path {}", fileList.size(), path);
-        List<String> failedFilePathList = new ArrayList<>();
-        for (int i = 0; i < fileList.size(); i++) {
-            File file = fileList.get(i);
+    class UploadTask extends Thread {
+
+        private ArtifactoryClient jobClient;
+        private File file;
+        private String repo;
+        private String path;
+        private int taskIndex;
+        private int taskSize;
+        private ConcurrentLinkedQueue<String> failedFilePathList;
+
+        public UploadTask(
+                ArtifactoryClient jobClient,
+                File file, String repo,
+                String path, int taskIndex, int taskSize,
+                ConcurrentLinkedQueue<String> failedFilePathList) {
+            this.jobClient = jobClient;
+            this.file = file;
+            this.repo = repo;
+            this.path = path;
+            this.taskIndex = taskIndex;
+            this.taskSize = taskSize;
+            this.failedFilePathList = failedFilePathList;
+        }
+
+        @Override
+        public void run() {
             String filePath = file.getAbsolutePath();
             String relativePath = StringUtil.removePrefix(filePath, path);
             relativePath = StringUtil.removePrefix(relativePath, "/");
@@ -274,8 +304,8 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             log.info(
                     "{} {}/{}: process {} ",
                     repo,
-                    i + 1,
-                    fileList.size(),
+                    taskIndex + 1,
+                    taskSize,
                     filePath
             );
             try {
@@ -331,8 +361,39 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                 log.info("File {} already in repo {}, skip", relativePath, repo);
             }
         }
-        log.warn("Fail to upload {} files to repo {}", failedFilePathList.size(), repo);
-        failedFilePathList.forEach(log::info);
+    }
+
+    private void uploadFilesToRepo(String path, String repo) {
+        ArtifactoryClient jobClient = getJobClient();
+        List<File> fileList = scanAllFilesOnPath(path);
+        log.info("{} files in path {}", fileList.size(), path);
+        ConcurrentLinkedQueue<String> failedFilePathList = new ConcurrentLinkedQueue<>();
+        List<Future<?>> uploadTaskFutureList = new ArrayList<>();
+        for (int i = 0; i < fileList.size(); i++) {
+            File file = fileList.get(i);
+            UploadTask task = new UploadTask(
+                    jobClient,
+                    file, repo, path,
+                    i, fileList.size(),
+                    failedFilePathList
+            );
+            Future<?> future = uploadExecutor.submit(task);
+            uploadTaskFutureList.add(future);
+        }
+        uploadTaskFutureList.forEach(future -> {
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                log.warn("UploadTask interrupted", e);
+            } catch (ExecutionException e) {
+                log.warn("UploadTask execute error", e);
+            }
+        });
+        log.info("all {} uploadTasks to repo {} done!", fileList.size(), repo);
+        if (!failedFilePathList.isEmpty()) {
+            log.warn("Fail to upload {} files to repo {}", failedFilePathList.size(), repo);
+            failedFilePathList.forEach(log::info);
+        }
     }
 
     private void uploadLocalFiles() {
@@ -356,11 +417,18 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         // 1.初始化用户与各仓库
         init();
         // 2.上传本地文件至制品库
-        uploadLocalFiles();
+        if (enableMigrateLocalUploadFile) {
+            uploadLocalFiles();
+        }
         // 3.上传导入导出文件至制品库
-        uploadBackupFiles();
+        if (enableMigrateBackupFile) {
+            uploadBackupFiles();
+        }
         // 4.上传执行日志导出文件至制品库
-        uploadLogExportFiles();
+        if (enableMigrateLogExportFile) {
+            uploadLogExportFiles();
+        }
+        uploadExecutor.shutdown();
         return 0;
     }
 }

@@ -23,4 +23,8 @@ public class ParamNameConsts {
     public static final String CONFIG_PROPERTY_BACKUP_ARTIFACTORY_REPO = "job.backup.artifactory.repo";
     public static final String CONFIG_PROPERTY_LOG_EXPORT_ARTIFACTORY_REPO = "log-export.artifactory.repo";
     public static final String CONFIG_PROPERTY_JOB_STORAGE_ROOT_PATH = "job.storage.root-path";
+    public static final String CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE = "job.migrate.local-upload-file.enable";
+    public static final String CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE = "job.migrate.backup-file.enable";
+    public static final String CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE = "job.migrate.log-export-file.enable";
+    public static final String CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY = "job.migrate.upload-concurrency";
 }
