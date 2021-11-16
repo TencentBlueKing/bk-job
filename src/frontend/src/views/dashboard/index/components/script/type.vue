@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <card-layout class="script-type-dashboard" :title="$t('dashboard.脚本类型分布')">
+    <card-layout
+        class="script-type-dashboard"
+        :title="$t('dashboard.脚本类型分布')"
+        v-bkloading="{ isLoading, opacity: 0.8 }">
         <div class="wraper">
             <div ref="dashboard" style="width: 180px; height: 180px;" />
             <div class="item-list">
@@ -73,6 +76,7 @@
         },
         data () {
             return {
+                isLoading: true,
                 data: {
                     bat: 0,
                     perl: 0,
@@ -103,13 +107,18 @@
         },
         methods: {
             fetchData () {
+                this.isLoading = true;
+
                 StatisticsService.fetchDistributionMetrics({
                     date: this.date,
                     metric: 'SCRIPT_TYPE',
                 }).then((data) => {
                     this.data = data.labelAmountMap;
                     this.init();
-                });
+                })
+                    .finally(() => {
+                        this.isLoading = false;
+                    });
             },
             init () {
                 this.myChart = echarts.init(this.$refs.dashboard);

@@ -26,7 +26,9 @@
 -->
 
 <template>
-    <div class="platform-dashboard" v-bkloading="{ isLoading: isLoading, opacity: 0.8 }">
+    <div
+        class="platform-dashboard"
+        v-bkloading="{ isLoading: isLoading, opacity: 0.8 }">
         <card-layout title="Linux OS">
             <div class="container">
                 <div class="nums">{{ data.LINUX | formatNumber }}</div>

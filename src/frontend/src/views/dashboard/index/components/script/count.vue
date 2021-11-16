@@ -29,8 +29,14 @@
     <card-layout class="script-cound-card" :title="$t('dashboard.脚本量')">
         <render-trend metric="SCRIPT_COUNT" :date="date" />
         <div slot="extend">
-            <Icon type="line-chart-line" v-bk-tooltips="$t('dashboard.查看趋势图')" @click="handleShowTrend" />
-            <Icon type="table-line" v-bk-tooltips="$t('dashboard.查看列表')" @click="handleShowList" />
+            <Icon
+                type="line-chart-line"
+                v-bk-tooltips="$t('dashboard.查看趋势图')"
+                @click="handleShowTrend" />
+            <Icon
+                type="table-line"
+                v-bk-tooltips="$t('dashboard.查看列表')"
+                @click="handleShowList" />
         </div>
         <trend-dialog
             v-model="isShowTrend"
