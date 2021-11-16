@@ -233,7 +233,7 @@ export default {
         '模板下关联的所有执行方案也将被删除，请谨慎操作！': 'Caution! Related job plans will also be deleted.',
         收起更多设置: 'Hide Details',
         展开更多设置: 'More Details',
-        '对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。': 'The change of the Job Template will not directly affect the Plans, it needs to be synchronized by yourself.',
+        '「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」': 'The change of the Job Template will not directly affect the Plans, it needs to be synchronized by yourself.',
         输入作业模板名称: 'Type the name of your Job Template...',
         标签对资源的分类管理有很大帮助: 'Select or type any tag you want...',
         模板描述: 'Description',

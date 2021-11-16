@@ -32,8 +32,14 @@
         :title-tips="$t('dashboard.在 JOB有任意执行过一次任务记录的业务')">
         <render-trend ref="trend" metric="APP_COUNT" :date="date" />
         <template slot="extend">
-            <Icon type="line-chart-line" v-bk-tooltips="$t('dashboard.查看趋势图')" @click="handleShowTrend" />
-            <Icon type="table-line" v-bk-tooltips="$t('dashboard.查看列表')" @click="handleShowList" />
+            <Icon
+                type="line-chart-line"
+                v-bk-tooltips="$t('dashboard.查看趋势图')"
+                @click="handleShowTrend" />
+            <Icon
+                type="table-line"
+                v-bk-tooltips="$t('dashboard.查看列表')"
+                @click="handleShowList" />
         </template>
         <trend-dialog
             v-model="isShowTrend"
@@ -48,7 +54,7 @@
                 :width="520"
                 :show-footer="false"
                 header-position="left">
-                <div style="margin-top: 12px;" v-bkloading="{ isLoading: isListLoading }">
+                <div style="margin-top: 12px;" v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }">
                     <bk-table :data="listData" :max-height="420">
                         <bk-table-column
                             :label="$t('dashboard.业务名')"

@@ -84,7 +84,7 @@
                 </div>
             </div>
         </div>
-        <div v-bkloading="{ isLoading }">
+        <div v-bkloading="{ isLoading, opacity: 0.8 }">
             <div ref="dashboard" style="width: 100%; height: 325px;" />
         </div>
     </div>

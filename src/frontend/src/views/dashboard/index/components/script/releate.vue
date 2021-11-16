@@ -28,6 +28,7 @@
 <template>
     <card-layout
         class="script-ralate-dashboard"
+        v-bkloading="{ isLoading, opacity: 0.8 }"
         :title="$t('dashboard.使用率')"
         :title-tips="$t('dashboard.被作业模板引用的脚本总数（去重）/ 脚本总数，比率越高代表脚本在作业的使用率越高')">
         <div class="nums">{{ rate }}</div>
@@ -44,6 +45,7 @@
         },
         data () {
             return {
+                isLoading: true,
                 rate: '0 %',
             };
         },
@@ -57,6 +59,7 @@
         },
         methods: {
             fetchData () {
+                this.isLoading = true;
                 StatisticsService.fetchScriptCiteInfo()
                     .then((data) => {
                         const {
@@ -68,6 +71,9 @@
                         } else {
                             this.rate = `${Math.round(citedScriptCount / scriptCount * 100).toFixed(2)} %`;
                         }
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
                     });
             },
         },

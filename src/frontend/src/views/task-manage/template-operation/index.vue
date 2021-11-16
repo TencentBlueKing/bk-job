@@ -33,7 +33,7 @@
                 :rules="rules"
                 ref="templateOperateRef"
                 v-test="{ type: 'form', value: 'template' }">
-                <bk-alert class="info" :title="$t('template.对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。')" />
+                <bk-alert class="info" :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
                 <jb-form-item
                     :label="$t('template.模板名称')"
                     required property="name">
