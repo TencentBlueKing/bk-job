@@ -26,11 +26,21 @@
 -->
 
 <template>
-    <card-layout class="execute-total-dashboard" :title="$t('dashboard.累计任务执行次数')">
-        <render-trend metric="EXECUTED_TASK_COUNT" :date="date" />
+    <card-layout
+        class="execute-total-dashboard"
+        :title="$t('dashboard.累计任务执行次数')">
+        <render-trend
+            metric="EXECUTED_TASK_COUNT"
+            :date="date" />
         <div slot="extend">
-            <Icon type="line-chart-line" v-bk-tooltips="$t('dashboard.查看趋势图')" @click="handleShowTrend" />
-            <Icon type="table-line" v-bk-tooltips="$t('dashboard.查看列表')" @click="handleShowList" />
+            <Icon
+                type="line-chart-line"
+                v-bk-tooltips="$t('dashboard.查看趋势图')"
+                @click="handleShowTrend" />
+            <Icon
+                type="table-line"
+                v-bk-tooltips="$t('dashboard.查看列表')"
+                @click="handleShowList" />
         </div>
         <trend-dialog
             v-model="isShowTrend"

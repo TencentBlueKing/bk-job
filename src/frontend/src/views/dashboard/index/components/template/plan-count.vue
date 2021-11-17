@@ -26,11 +26,19 @@
 -->
 
 <template>
-    <card-layout class="plan-count-dashboard" :title="$t('dashboard.执行方案量')">
+    <card-layout
+        class="plan-count-dashboard"
+        :title="$t('dashboard.执行方案量')">
         <render-trend metric="TASK_PLAN_COUNT" :date="date" />
         <div slot="extend">
-            <Icon type="line-chart-line" v-bk-tooltips="$t('dashboard.查看趋势图')" @click="handleShowTrend" />
-            <Icon type="table-line" v-bk-tooltips="$t('dashboard.查看列表')" @click="handleShowList" />
+            <Icon
+                type="line-chart-line"
+                v-bk-tooltips="$t('dashboard.查看趋势图')"
+                @click="handleShowTrend" />
+            <Icon
+                type="table-line"
+                v-bk-tooltips="$t('dashboard.查看列表')"
+                @click="handleShowList" />
         </div>
         <trend-dialog
             v-model="isShowTrend"
@@ -45,7 +53,9 @@
                 :width="520"
                 :show-footer="false"
                 header-position="left">
-                <div style="margin-top: 12px;" v-bkloading="{ isLoading: isListLoading }">
+                <div
+                    style="margin-top: 12px;"
+                    v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }">
                     <bk-table :data="listData" :max-height="420">
                         <bk-table-column
                             :label="$t('dashboard.业务名')"

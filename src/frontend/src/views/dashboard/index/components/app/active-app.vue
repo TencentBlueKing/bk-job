@@ -48,7 +48,7 @@
                 :width="520"
                 :show-footer="false"
                 header-position="left">
-                <div style="margin-top: 12px;" v-bkloading="{ isLoading }">
+                <div style="margin-top: 12px;" v-bkloading="{ isLoading, opacity: 0.8 }">
                     <bk-table :data="listData" :max-height="420">
                         <bk-table-column
                             :label="$t('dashboard.业务名')"
