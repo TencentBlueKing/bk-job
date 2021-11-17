@@ -227,7 +227,7 @@ Return the Redis config
 */}}
 {{- define "job.redis.config" -}}
 {{- if .Values.redis.enabled }}
-{{- if eq .Values.redis.architecture "standalone" }}
+{{- if eq .Values.redis.architecture "standalone" -}}
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
 password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
@@ -239,7 +239,7 @@ fail "Not supported redis architecture"
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-{{- else if eq .Values.externalRedis.architecture "replication" }}
+{{- else if eq .Values.externalRedis.architecture "replication" -}}
 sentinel:
   {{- if .Values.externalRedis.existingSentinelPasswordSecret }}
   password: {{ .Values.externalRedis.existingSentinelPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
