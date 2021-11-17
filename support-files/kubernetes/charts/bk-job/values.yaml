@@ -160,15 +160,17 @@ redis:
   master:
     persistence:
       size: 10Gi
+  ## @param redis.sentinel Redis sentinel config
+  ## sentinel:
+    ## @param redis.sentinel.masterSet Master set name
+    ## masterSet: 'mymaster'
+
   ## Redis Authentication parameters
   ##
   auth:
     ## @param redis.auth.enabled Enable password authentication
     ##
     enabled: true
-    ## @param redis.auth.sentinel Enable password authentication on sentinels too
-    ##
-    sentinel: true
     ## @param redis.auth.password Password for the database
     ##
     password: "job"
@@ -180,12 +182,16 @@ redis:
     ## NOTE: ignored unless `auth.existingSecret` parameter is set
     ##
     existingSecretPasswordKey: ""
-    ## @param auth.usePasswordFiles Mount credentials as files instead of using an environment variable
+    ## @param redis.auth.sentinel Enable password authentication on sentinels too
     ##
+    sentinel: true
 
 ## External Redis configuration
 ##
 externalRedis:
+  ## @param externalRedis.architecture External Redis architecture. Allowed values: standalone or replication
+  ##
+  architecture: standalone
   ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
   ##
   existingPasswordSecret: ""
@@ -201,6 +207,15 @@ externalRedis:
   ## @param externalRedis.password Password
   ##
   password: "job"
+  ## @param externalRedis.sentinel Sentinel Config
+  ##
+  ## sentinel:
+    ## master: "mymaster"
+    ## nodes: ""
+    ## existingSentinelPasswordSecret: ""
+    ## existingSentinelPasswordKey: "redis-sentinel-password"
+
+
 
 
 ## RabbitMQ chart configuration

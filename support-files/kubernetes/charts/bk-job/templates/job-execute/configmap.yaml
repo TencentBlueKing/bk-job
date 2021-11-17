@@ -161,18 +161,7 @@ data:
         {{- end }}
         virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
-        mode: standalone
-        host: {{ include "job.redis.host" . }}
-        port: {{ include "job.redis.port" . }}
-        #sentinel:
-          #password:
-          #master:
-          #nodes:
-        {{ if .Values.externalRedis.existingPasswordSecret }}
-        password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${redis-password}
-        {{- end }}
+        {{ include "job.redis.config" . | nindent 8 }}
         database: 0
         lettuce:
           pool:
