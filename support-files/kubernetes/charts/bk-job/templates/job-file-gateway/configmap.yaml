@@ -35,7 +35,7 @@ data:
           poolName: "job-file-gateway"
           validationTimeout: 5000
       redis:
-        {{ include "job.redis.config" . | indent 8 }}
+        {{- include "job.redis.config" . | indent 8 }}
         database: 0
         lettuce:
           pool:

@@ -161,7 +161,7 @@ data:
         {{- end }}
         virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
-        {{ include "job.redis.config" . | indent 8 }}
+        {{- include "job.redis.config" . | indent 8 }}
         database: 0
         lettuce:
           pool:
