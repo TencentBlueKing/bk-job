@@ -595,6 +595,7 @@ executeConfig:
 
 ## @section job-crontab parameters
 crontabConfig:
+  enabled: true
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-crontab

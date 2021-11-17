@@ -1,3 +1,4 @@
+{{- if .Values.crontabConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -126,4 +127,4 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-
+{{- end }}
