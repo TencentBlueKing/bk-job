@@ -323,12 +323,12 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
             Map<String, Object> params = req.getParams();
             if (params != null) {
                 projectId = (String) params.get("projectId");
-                repoName = (String) params.get("repoName");
+                repoName = (String) params.get("name");
             }
             if (StringUtils.isBlank(projectId)) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"projectId"});
             } else if (StringUtils.isBlank(repoName)) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"repoName"});
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"name"});
             } else {
                 deleteRepo(projectId, repoName, req);
             }

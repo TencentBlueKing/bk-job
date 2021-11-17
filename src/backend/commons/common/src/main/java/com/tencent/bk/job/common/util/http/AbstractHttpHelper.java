@@ -40,6 +40,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Slf4j
@@ -262,10 +263,16 @@ public abstract class AbstractHttpHelper {
 
     public String delete(String url, String content, Header... headers) {
         FakeHttpDelete delete = new FakeHttpDelete(url);
+        HttpEntity requestEntity;
+        try {
+            requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Fail to get ByteArrayEntity", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        }
+        delete.setEntity(requestEntity);
+        delete.setHeaders(headers);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
-            HttpEntity requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
-            delete.setEntity(requestEntity);
-            delete.setHeaders(headers);
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();

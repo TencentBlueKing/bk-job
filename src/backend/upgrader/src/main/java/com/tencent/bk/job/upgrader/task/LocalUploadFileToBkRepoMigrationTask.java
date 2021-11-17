@@ -46,16 +46,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 本地文件向BKREPO迁移任务
  */
 @Slf4j
 @UpgradeTask(
-        dataStartVersion = "3.0.0.0",
-        targetVersion = "3.4.2.1",
-        targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
+    dataStartVersion = "3.0.0.0",
+    targetVersion = "3.4.2.1",
+    targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
 public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
 
     private ArtifactoryClient artifactoryAdminClient;
@@ -88,10 +94,10 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         Properties properties = getProperties();
         if (artifactoryAdminClient == null) {
             artifactoryAdminClient = new ArtifactoryClient(
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_BASE_URL),
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_USERNAME),
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_PASSWORD),
-                    null
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_BASE_URL),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_USERNAME),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_PASSWORD),
+                null
             );
         }
         return artifactoryAdminClient;
@@ -101,10 +107,10 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         Properties properties = getProperties();
         if (artifactoryJobClient == null) {
             artifactoryJobClient = new ArtifactoryClient(
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_BASE_URL),
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_JOB_USERNAME),
-                    (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_JOB_PASSWORD),
-                    null
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_BASE_URL),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_JOB_USERNAME),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_JOB_PASSWORD),
+                null
             );
         }
         return artifactoryJobClient;
@@ -123,9 +129,9 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         backupRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_BACKUP_ARTIFACTORY_REPO);
         logExportRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_LOG_EXPORT_ARTIFACTORY_REPO);
         storageRootPath = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_STORAGE_ROOT_PATH);
-        enableMigrateLocalUploadFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE, true);
-        enableMigrateBackupFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE, false);
-        enableMigrateLogExportFile = (Boolean) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, false);
+        enableMigrateLocalUploadFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE, "true"));
+        enableMigrateBackupFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE, "false"));
+        enableMigrateLogExportFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, "false"));
         uploadConcurrency = (Integer) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY, 20);
         uploadExecutor = new ThreadPoolExecutor(uploadConcurrency, uploadConcurrency, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(200), new RejectedExecutionHandler() {
             @Override
@@ -140,78 +146,78 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
     private void initUserAndProject() {
 
         boolean projectUserCreated = ArtifactoryHelper.createJobUserAndProjectIfNotExists(
-                baseUrl,
-                adminUsername,
-                adminPassword,
-                jobUsername,
-                jobPassword,
-                jobProject
+            baseUrl,
+            adminUsername,
+            adminPassword,
+            jobUsername,
+            jobPassword,
+            jobProject
         );
         if (!projectUserCreated) {
             log.error(
-                    "Fail to create project {} or user {}",
-                    jobProject,
-                    jobUsername
+                "Fail to create project {} or user {}",
+                jobProject,
+                jobUsername
             );
         }
     }
 
     private void initLocaluploadRepo() {
         String REPO_LOCALUPLOAD_DESCRIPTION = "BlueKing bk-job official project localupload repo," +
-                " which is used to save job data produced by users. " +
-                "Do not delete me unless you know what you are doing";
+            " which is used to save job data produced by users. " +
+            "Do not delete me unless you know what you are doing";
         boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
-                baseUrl,
-                adminUsername,
-                adminPassword,
-                jobProject,
-                localUploadRepo,
-                REPO_LOCALUPLOAD_DESCRIPTION
+            baseUrl,
+            adminUsername,
+            adminPassword,
+            jobProject,
+            localUploadRepo,
+            REPO_LOCALUPLOAD_DESCRIPTION
         );
         if (repoCreated) {
             log.info(
-                    "repo {} created",
-                    localUploadRepo
+                "repo {} created",
+                localUploadRepo
             );
         }
     }
 
     private void initBackupRepo() {
         String REPO_BACKUP_DESCRIPTION = "BlueKing bk-job official project backup repo," +
-                " which is used to save job export data produced by program. " +
-                "Do not delete me unless you know what you are doing";
+            " which is used to save job export data produced by program. " +
+            "Do not delete me unless you know what you are doing";
         boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
-                baseUrl,
-                adminUsername,
-                adminPassword,
-                jobProject,
-                backupRepo,
-                REPO_BACKUP_DESCRIPTION
+            baseUrl,
+            adminUsername,
+            adminPassword,
+            jobProject,
+            backupRepo,
+            REPO_BACKUP_DESCRIPTION
         );
         if (repoCreated) {
             log.info(
-                    "repo {} created",
-                    backupRepo
+                "repo {} created",
+                backupRepo
             );
         }
     }
 
     private void initLogExportRepo() {
         String REPO_LOG_EXPORT_DESCRIPTION = "BlueKing bk-job official project logExport repo," +
-                " which is used to save job execute log export data produced by program. " +
-                "Do not delete me unless you know what you are doing";
+            " which is used to save job execute log export data produced by program. " +
+            "Do not delete me unless you know what you are doing";
         boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
-                baseUrl,
-                adminUsername,
-                adminPassword,
-                jobProject,
-                logExportRepo,
-                REPO_LOG_EXPORT_DESCRIPTION
+            baseUrl,
+            adminUsername,
+            adminPassword,
+            jobProject,
+            logExportRepo,
+            REPO_LOG_EXPORT_DESCRIPTION
         );
         if (repoCreated) {
             log.info(
-                    "repo {} created",
-                    logExportRepo
+                "repo {} created",
+                logExportRepo
             );
         }
     }
@@ -250,7 +256,7 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                 fileList.add(file);
             }
         }
-        fileList.sort((f1, f2) -> (int) (f2.lastModified() - f1.lastModified()));
+        fileList.sort((f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
         return fileList;
     }
 
@@ -259,12 +265,12 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         try {
             NodeDTO nodeDTO = jobClient.queryNodeDetail(jobProject, repo, filePath);
             return nodeDTO != null
-                    && fileMd5.equals(nodeDTO.getMd5());
+                && fileMd5.equals(nodeDTO.getMd5());
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                    "Fail to compare targetFile {} with node in repo {}",
-                    filePath,
-                    repo
+                "Fail to compare targetFile {} with node in repo {}",
+                filePath,
+                repo
             );
             log.warn(msg.getMessage());
         }
@@ -282,10 +288,10 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         private ConcurrentLinkedQueue<String> failedFilePathList;
 
         public UploadTask(
-                ArtifactoryClient jobClient,
-                File file, String repo,
-                String path, int taskIndex, int taskSize,
-                ConcurrentLinkedQueue<String> failedFilePathList) {
+            ArtifactoryClient jobClient,
+            File file, String repo,
+            String path, int taskIndex, int taskSize,
+            ConcurrentLinkedQueue<String> failedFilePathList) {
             this.jobClient = jobClient;
             this.file = file;
             this.repo = repo;
@@ -302,18 +308,18 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             relativePath = StringUtil.removePrefix(relativePath, "/");
             String md5;
             log.info(
-                    "{} {}/{}: process {} ",
-                    repo,
-                    taskIndex + 1,
-                    taskSize,
-                    filePath
+                "{} {}/{}: process {} ",
+                repo,
+                taskIndex + 1,
+                taskSize,
+                filePath
             );
             try {
                 md5 = DigestUtils.md5Hex(new FileInputStream(file));
             } catch (IOException e) {
                 FormattingTuple msg = MessageFormatter.format(
-                        "Fail to calc md5 of file {}",
-                        filePath
+                    "Fail to calc md5 of file {}",
+                    filePath
                 );
                 failedFilePathList.add(filePath);
                 log.warn(msg.getMessage(), e);
@@ -326,21 +332,21 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                 try {
                     while (!uploaded && retryTimes < 3) {
                         nodeDTO = jobClient.uploadGenericFile(
-                                jobProject,
-                                repo,
-                                relativePath,
-                                file
+                            jobProject,
+                            repo,
+                            relativePath,
+                            file
                         );
                         if (nodeDTO != null && md5.equals(nodeDTO.getMd5())) {
                             log.info(
-                                    "Success uploaded {} to repo {}, md5={}",
-                                    relativePath, repo, nodeDTO.getMd5()
+                                "Success uploaded {} to repo {}, md5={}",
+                                relativePath, repo, nodeDTO.getMd5()
                             );
                             uploaded = true;
                         } else {
                             log.warn(
-                                    "Fail to upload {} to repo {}, md5 not correct, retry after 5s",
-                                    relativePath, repo
+                                "Fail to upload {} to repo {}, md5 not correct, retry after 5s",
+                                relativePath, repo
                             );
                             Thread.sleep(5000);
                             retryTimes += 1;
@@ -351,9 +357,9 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                     }
                 } catch (Exception e) {
                     FormattingTuple msg = MessageFormatter.format(
-                            "Fail to upload {} to repo {}",
-                            relativePath,
-                            repo
+                        "Fail to upload {} to repo {}",
+                        relativePath,
+                        repo
                     );
                     log.warn(msg.getMessage(), e);
                 }
@@ -372,10 +378,10 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         for (int i = 0; i < fileList.size(); i++) {
             File file = fileList.get(i);
             UploadTask task = new UploadTask(
-                    jobClient,
-                    file, repo, path,
-                    i, fileList.size(),
-                    failedFilePathList
+                jobClient,
+                file, repo, path,
+                i, fileList.size(),
+                failedFilePathList
             );
             Future<?> future = uploadExecutor.submit(task);
             uploadTaskFutureList.add(future);
