@@ -423,6 +423,11 @@ job:
     std:
       collectEnabled: false
       dataId: 1
+  migration:
+    iamModel:
+      enabled: true
+    mysqlSchema:
+      enabled: true
 
 ## @section job-gateway parameters
 gatewayConfig:
