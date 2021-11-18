@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.service.impl;
 
 import brave.Tracing;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.BatchUtil;
@@ -33,6 +35,8 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.trace.executors.TraceableExecutorService;
+import com.tencent.bk.job.execute.config.ArtifactoryConfig;
+import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
 import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
@@ -46,6 +50,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -55,7 +60,12 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -73,15 +83,24 @@ public class LogExportServiceImpl implements LogExportService {
     private final TraceableExecutorService logExportExecutor;
     private final StringRedisTemplate redisTemplate;
     private final TaskInstanceService taskInstanceService;
+    private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
+    private final LogExportConfig logExportConfig;
 
     @Autowired
     public LogExportServiceImpl(GseTaskLogService gseTaskLogService, LogService logService, Tracing tracing,
                                 StringRedisTemplate redisTemplate,
-                                TaskInstanceService taskInstanceService) {
+                                TaskInstanceService taskInstanceService,
+                                ArtifactoryClient artifactoryClient,
+                                ArtifactoryConfig artifactoryConfig,
+                                LogExportConfig logExportConfig) {
         this.gseTaskLogService = gseTaskLogService;
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
+        this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
+        this.logExportConfig = logExportConfig;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
         this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracing);
@@ -229,6 +248,26 @@ public class LogExportServiceImpl implements LogExportService {
                 return;
             } else {
                 FileUtils.deleteQuietly(logFile);
+            }
+            // 将zip文件上传至制品库
+            if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(logExportConfig.getStorageBackend())) {
+                try {
+                    artifactoryClient.uploadGenericFile(
+                        artifactoryConfig.getArtifactoryJobProject(),
+                        logExportConfig.getLogExportRepo(),
+                        zipFile.getName(),
+                        zipFile
+                    );
+                    FileUtils.deleteQuietly(zipFile);
+                } catch (Exception e) {
+                    String msg = MessageFormatter.format(
+                        "Fail to upload {} to artifactory",
+                        zipFile.getAbsolutePath()
+                    ).getMessage();
+                    log.error(msg, e);
+                    markJobFailed(exportJobInfo);
+                    return;
+                }
             }
             exportJobInfo.setStatus(LogExportStatusEnum.SUCCESS);
             exportJobInfo.setZipFileName(logFileName + ".zip");

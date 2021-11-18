@@ -97,7 +97,7 @@ public interface WebBackupResource {
         @ApiParam(value = "导出任务 ID", required = true) @PathVariable("id") String jobId
     );
 
-    @ApiOperation(value = "获取导入文件信息", produces = "application/json")
+    @ApiOperation(value = "上传导入文件并获取导入文件信息", produces = "application/json")
     @PostMapping("/import/file")
     Response<ImportInfoVO> getImportFileInfo(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,

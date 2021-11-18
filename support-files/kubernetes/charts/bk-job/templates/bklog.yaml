@@ -1,0 +1,40 @@
+{{- if .Values.job.log.file.collectEnabled }}
+# Container Log
+apiVersion: bk.tencent.com/v1alpha1
+kind: BkLogConfig
+metadata:
+  name: bk-job
+spec:
+  data_id: {{ .Values.job.log.file.dataId }}
+
+  log_config_type: container_log_config
+  namespace: {{ .Release.Namespace }}
+  label_selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+      {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+  path:
+    - /data/logs/job/job-*/*.log
+  encoding: 'utf-8'
+  multiline:
+    pattern: '^\[(?P<log_time>.*?)\]\s+?'
+    max_lines: 100
+    timeout: '5s'
+{{- end }}
+{{- if .Values.job.log.std.collectEnabled }}
+---
+# Stdout
+apiVersion: bk.tencent.com/v1alpha1
+kind: BkLogConfig
+metadata:
+  name: bk-job
+spec:
+  data_id: {{ .Values.job.log.std.dataId }}
+
+  log_config_type: std_log_config
+  namespace: {{ .Release.Namespace }}
+  label_selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+      {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+{{- end }}

@@ -141,7 +141,7 @@ public class ImportJobServiceImpl implements ImportJobService {
                 logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.DETECT_FILE_TYPE));
                 if (!uploadFile.getName().endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)
                     && !uploadFile.getName().endsWith(
-                        Constant.JOB_EXPORT_FILE_SUFFIX.concat(Constant.JOB_IMPORT_DECRYPT_SUFFIX))) {
+                    Constant.JOB_EXPORT_FILE_SUFFIX.concat(Constant.JOB_IMPORT_DECRYPT_SUFFIX))) {
                     markJobFailed(importJob, i18nService.getI18n(LogMessage.WRONG_FILE_TYPE));
                     return false;
                 }
@@ -174,6 +174,8 @@ public class ImportJobServiceImpl implements ImportJobService {
                     if (!success) {
                         log.warn("Parse import file fail");
                         markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
+                    } else {
+                        return true;
                     }
                 } catch (IOException | RuntimeException e) {
                     log.error("Error while unzip upload file", e);

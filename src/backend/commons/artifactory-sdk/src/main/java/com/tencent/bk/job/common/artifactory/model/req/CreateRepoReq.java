@@ -26,8 +26,10 @@ package com.tencent.bk.job.common.artifactory.model.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class CreateRepoReq extends ArtifactoryReq {
     // 必传，项目名
     String projectId;

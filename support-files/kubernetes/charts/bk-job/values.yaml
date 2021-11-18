@@ -395,23 +395,24 @@ cmdb:
 nodeman:
   server:
     url: http://nodeman.example.com
+## BlueKing Artifactory Config
+artifactory:
+  baseUrl: http://bkrepo.example.com
+  admin:
+    username: admin
+    password: blueking
+  job:
+    username: bkjob
+    password: bkjob
+    project: bkjob
 
 ## Job LocalFile Config
 localFile:
   storageBackend: artifactory
   artifactory:
-    baseUrl: http://bkrepo.example.com
     download:
       concurrency: 10
-    admin:
-      username: admin
-      password: blueking
-    job:
-      username: bkjob
-      password: bkjob
-      project: bkjob
-      repo:
-        localUpload: localupload
+    repo: localupload
 
 ## Swagger Doc
 swagger:
@@ -419,7 +420,7 @@ swagger:
 
 ## Job Common Config
 job:
-  profile: prod
+  profile: prod,kubernetes
   edition: ce
   security:
     privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
@@ -436,6 +437,18 @@ job:
         enabled: true
   storage:
     rootPath: /data/job/local
+  log:
+    file:
+      collectEnabled: false
+      dataId: 1
+    std:
+      collectEnabled: false
+      dataId: 1
+  migration:
+    iamModel:
+      enabled: true
+    mysqlSchema:
+      enabled: true
 
 ## @section job-gateway parameters
 gatewayConfig:
@@ -445,7 +458,7 @@ gatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-gateway
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -512,7 +525,7 @@ manageConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-manage
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -554,10 +567,14 @@ manageConfig:
 
 ## @section job-execute parameters
 executeConfig:
+  logExport:
+    storageBackend: artifactory
+    artifactory:
+      repo: backup
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-execute
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -599,10 +616,11 @@ executeConfig:
 
 ## @section job-crontab parameters
 crontabConfig:
+  enabled: true
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-crontab
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -656,7 +674,7 @@ logsvrConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-logsvr
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -697,10 +715,13 @@ logsvrConfig:
 
 ## @section job-backup parameters
 backupConfig:
+  storageBackend: artifactory
+  artifactory:
+    repo: backup
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-backup
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -744,7 +765,7 @@ analysisConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-analysis
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -788,7 +809,7 @@ fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-gateway
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -832,7 +853,7 @@ fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-file-worker
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -889,7 +910,7 @@ frontendConfig:
   image:
     registry: mirrors.tencent.com
     repository: bkce/job-frontend
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
@@ -949,5 +970,5 @@ migration:
   image:
     registry: "mirrors.tencent.com"
     repository: "bkce/job-migration"
-    tag: 3.4.0-beta.16
+    tag: 3.4.2-beta.3
     pullPolicy: IfNotPresent

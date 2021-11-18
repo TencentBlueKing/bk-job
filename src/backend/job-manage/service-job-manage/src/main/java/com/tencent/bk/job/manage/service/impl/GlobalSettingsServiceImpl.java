@@ -744,7 +744,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private void addEnableUploadToArtifactoryConfig(String username, Map<String, Object> configMap) {
         configMap.put(
             GlobalSettingKeys.KEY_ENABLE_UPLOAD_TO_ARTIFACTORY,
-            JobConstants.LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())
+            JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())
         );
     }
 

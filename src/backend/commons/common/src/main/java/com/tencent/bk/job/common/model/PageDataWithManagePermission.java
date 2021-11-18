@@ -25,8 +25,9 @@
 package com.tencent.bk.job.common.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.Objects;
@@ -34,7 +35,8 @@ import java.util.Objects;
 /**
  * 含管理权限的分页结构
  */
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageDataWithManagePermission<T> extends PageData<T> {

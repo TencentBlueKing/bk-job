@@ -100,6 +100,9 @@ data:
         upload:
           filesize:
             max: 2GB
+        storage-backend: {{ .Values.backupConfig.storageBackend }}
+        artifactory:
+          repo: {{ .Values.backupConfig.artifactory.repo }}
       execute:
         archive:
           enabled: true

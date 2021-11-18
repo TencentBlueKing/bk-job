@@ -35,21 +35,9 @@ public class LocalFileConfigForExecute {
     @Value("${local-file.storage-backend:local}")
     private String storageBackend;
 
-    @Value("${local-file.artifactory.base-url:}")
-    private String artifactoryBaseUrl;
-
-    @Value("${local-file.artifactory.job.username:bkjob}")
-    private String artifactoryJobUsername;
-
-    @Value("${local-file.artifactory.job.password:bkjob}")
-    private String artifactoryJobPassword;
-
-    @Value("${local-file.artifactory.job.project:bkjob}")
-    private String artifactoryJobProject;
-
-    @Value("${local-file.artifactory.job.repo.local-upload:localupload}")
-    private String artifactoryJobLocalUploadRepo;
+    @Value("${local-file.artifactory.repo:localupload}")
+    private String localUploadRepo;
 
     @Value("${local-file.artifactory.download.concurrency:10}")
-    private Integer artifactoryDownloadConcurrency;
+    private Integer downloadConcurrency;
 }
