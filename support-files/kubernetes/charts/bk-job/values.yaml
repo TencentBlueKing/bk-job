@@ -872,7 +872,6 @@ fileWorkerConfig:
   swaggerUrl: ""
   instanceName: job-file-worker-public-1
   version: 0.0.1
-  id: 1
   token: "testToken"
   appId: -1
   abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS

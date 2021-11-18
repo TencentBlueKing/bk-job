@@ -18,13 +18,11 @@ data:
     job:
       file-worker:
         version: {{ .Values.fileWorkerConfig.version }}
-        id: {{ .Values.fileWorkerConfig.id }}
         token: {{ .Values.fileWorkerConfig.token }}
         app-id: {{ .Values.fileWorkerConfig.appId }}
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:
-          host: job-file-worker-headless
-          port: 80
+          port: {{ .Values.fileWorkerConfig.containerPort }}
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
           dir: {{ .Values.fileWorkerConfig.downloadFile.dir }}

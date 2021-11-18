@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
@@ -37,14 +38,19 @@ import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 
 @Slf4j
 @Service
-public class HeartBeatTask {
+public class HeartBeatTask implements ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
 
     public static volatile boolean runFlag = true;
 
@@ -53,6 +59,21 @@ public class HeartBeatTask {
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    private boolean isInK8s() {
+        String[] profileArr = applicationContext.getEnvironment().getActiveProfiles();
+        for (String profile : profileArr) {
+            if (JobConstants.PROFILE_KUBERNETES.equals(profile)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Autowired
     public HeartBeatTask(WorkerConfig workerConfig, GatewayInfoService gatewayInfoService,
@@ -68,14 +89,17 @@ public class HeartBeatTask {
 
     private HeartBeatReq getWorkerInfo() {
         String podIp = IpUtils.getFirstMachineIP();
-        log.debug("podIp={}", podIp);
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setId(workerConfig.getId());
         heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
-        if (StringUtils.isBlank(workerConfig.getAccessHost())) {
-            heartBeatReq.setAccessHost(podIp);
+        if (isInK8s()) {
+            String podName = System.getenv("BK_JOB_POD_NAME");
+            String fileWorkerServiceName = System.getenv("BK_JOB_FILE_WORKER_SERVICE_NAME");
+            String accessHost = podName + "." + fileWorkerServiceName;
+            log.debug("accessHost={}", accessHost);
+            heartBeatReq.setAccessHost(accessHost);
         } else {
             heartBeatReq.setAccessHost(workerConfig.getAccessHost());
         }

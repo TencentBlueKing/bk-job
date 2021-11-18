@@ -77,6 +77,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BK_JOB_FILE_WORKER_SERVICE_NAME
+              value: "job-file-worker-headless"
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
             - name: JOB_COMMON_CONFIGMAP_NAME
