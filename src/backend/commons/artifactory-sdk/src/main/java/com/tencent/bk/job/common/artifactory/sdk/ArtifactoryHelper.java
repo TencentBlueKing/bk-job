@@ -6,6 +6,7 @@ import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -17,12 +18,10 @@ public class ArtifactoryHelper {
         List<ProjectDTO> projectDTOList = adminClient.listProject();
         for (ProjectDTO projectDTO : projectDTOList) {
             if (projectDTO.getName().equals(projectName)) {
-                if (log.isDebugEnabled()) {
-                    log.debug(
-                        "project {} already exists, do not create again",
-                        projectName
-                    );
-                }
+                log.debug(
+                    "project {} already exists, do not create again",
+                    projectName
+                );
                 return true;
             }
         }
@@ -36,8 +35,9 @@ public class ArtifactoryHelper {
             try {
                 if (checkProjectExist(adminClient, req.getName())) return true;
                 projectCreated = adminClient.createProject(req);
-            } catch (Exception e) {
-                log.warn("Fail to create project {}, retry {} after 5 seconds", req.getName(), ++retryCount, e);
+            } catch (Throwable t) {
+                log.warn("Fail to create project {}, retry {} after 5 seconds", req.getName(), ++retryCount, t);
+                ThreadUtils.sleep(5000);
             }
         } while (!projectCreated && retryCount < 3);
         if (!projectCreated) {
@@ -53,14 +53,15 @@ public class ArtifactoryHelper {
         do {
             try {
                 projectUserCreated = adminClient.createUserToProject(req);
-            } catch (Exception e) {
+            } catch (Throwable t) {
                 log.warn(
                     "Fail to create user {} to project {}, retry {} after 5 seconds",
                     req.getName(),
                     req.getProjectId(),
                     ++retryCount,
-                    e
+                    t
                 );
+                ThreadUtils.sleep(5000);
             }
         } while (!projectUserCreated && retryCount < 3);
         if (!projectUserCreated) {
@@ -148,8 +149,8 @@ public class ArtifactoryHelper {
                 "/"
             );
             return localUploadRepoRootNode != null;
-        } catch (Exception ignore) {
-            log.info("Fail to queryNodeDetail");
+        } catch (Throwable t) {
+            log.info("Fail to queryNodeDetail", t);
         }
         return false;
     }
@@ -193,6 +194,7 @@ public class ArtifactoryHelper {
                     ++retryCount,
                     e
                 );
+                ThreadUtils.sleep(5000);
             }
         } while (!repoCreated && retryCount < 3);
         if (!repoCreated) {

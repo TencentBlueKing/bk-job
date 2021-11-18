@@ -26,10 +26,11 @@ package com.tencent.bk.job.manage.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 @Data
-@Component
+@Configuration
 public class ArtifactoryConfig {
 
     @Value("${artifactory.base-url:}")

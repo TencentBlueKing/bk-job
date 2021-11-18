@@ -105,7 +105,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                 logExportConfig.getLogExportRepo(),
                 zipFileName
             );
-        } catch (Exception ignore) {
+        } catch (Throwable t) {
+            log.warn("Fail to queryNodeDetail", t);
         }
         return nodeDTO != null;
     }

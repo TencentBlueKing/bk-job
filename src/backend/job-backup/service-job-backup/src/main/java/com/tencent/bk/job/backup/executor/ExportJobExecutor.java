@@ -42,8 +42,8 @@ import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -192,8 +192,8 @@ public class ExportJobExecutor {
             } catch (Exception e) {
                 log.error("Error while processing account!", e);
                 logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
-                    "Process account failed! Please " +
-                        "try again!");
+                    "Process account failed! Please try again!"
+                );
                 exportInfo.setPassword(null);
                 exportInfo.setStatus(BackupJobStatusEnum.FAILED);
                 exportJobService.updateExportJob(exportInfo);

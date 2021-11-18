@@ -26,10 +26,10 @@ package com.tencent.bk.job.backup.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 @Data
-@Component
+@Configuration
 public class LocalFileConfigForBackup {
 
     @Value("${local-file.storage-backend:local}")
