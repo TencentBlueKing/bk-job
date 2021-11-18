@@ -189,13 +189,13 @@ redis:
 ## External Redis configuration
 ##
 externalRedis:
-  ## @param externalRedis.architecture External Redis architecture. Allowed values: standalone or replication
+  ## @param externalRedis.architecture : External Redis architecture. Allowed values: standalone or replication
   ##
   architecture: standalone
   ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
   ##
   existingPasswordSecret: ""
-  ## @param externalRedis.existingPasswordKey: Key in existingPasswordSecret, defaults to "redis-password"
+  ## @param externalRedis.existingPasswordKey: Redis password key, defaults to "redis-password"
   ##
   existingPasswordKey: ""
   ## @param externalRedis.host Host of the existing redis
@@ -207,13 +207,19 @@ externalRedis:
   ## @param externalRedis.password Password
   ##
   password: "job"
-  ## @param externalRedis.sentinel Sentinel Config
+  ## @param externalRedis.sentinel: Sentinel Config
   ##
   ## sentinel:
+    ## externalRedis.sentinel.auth: Enable password authentication on sentinels, defaults to false
+    ## auth: false
+    ## externalRedis.sentinel.master: Redis master name
     ## master: "mymaster"
+    ## externalRedis.sentinel.nodes: Redis sentinel nodes
     ## nodes: ""
-    ## existingSentinelPasswordSecret: ""
-    ## existingSentinelPasswordKey: "redis-sentinel-password"
+    ## externalRedis.sentinel.password: Redis sentinel password
+    ## password: ""
+    ## externalRedis.sentinel.existingPasswordKey: Redis sentinel password key, defaults to "redis-sentinel-password"
+    ## existingPasswordKey: "redis-sentinel-password"
 
 
 

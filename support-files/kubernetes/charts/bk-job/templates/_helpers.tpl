@@ -241,8 +241,8 @@ port: {{ include "job.redis.port" . }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- else if eq .Values.externalRedis.architecture "replication" }}
 sentinel:
-  {{- if .Values.externalRedis.existingSentinelPasswordSecret }}
-  password: {{ .Values.externalRedis.existingSentinelPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
+  {{- if .Values.externalRedis.sentinel.auth }}
+  password: {{ .Values.externalRedis.sentinel.existingPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
   {{- end -}}
   master: {{ .Values.externalRedis.sentinel.master }}
   nodes: {{ .Values.externalRedis.sentinel.nodes }}
