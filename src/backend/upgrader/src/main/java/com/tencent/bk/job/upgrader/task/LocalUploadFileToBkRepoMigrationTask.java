@@ -287,7 +287,7 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         private int taskSize;
         private ConcurrentLinkedQueue<String> failedFilePathList;
 
-        public UploadTask(
+        UploadTask(
             ArtifactoryClient jobClient,
             File file, String repo,
             String path, int taskIndex, int taskSize,
