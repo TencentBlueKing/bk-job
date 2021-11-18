@@ -257,7 +257,7 @@ password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password
 sentinel:
   {{- if .Values.externalRedis.sentinel.auth }}
   password: {{ .Values.externalRedis.sentinel.existingPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
-  {{- end -}}
+  {{- end }}
   master: {{ .Values.externalRedis.sentinel.master }}
   nodes: {{ .Values.externalRedis.sentinel.nodes }}
 {{- else -}}
