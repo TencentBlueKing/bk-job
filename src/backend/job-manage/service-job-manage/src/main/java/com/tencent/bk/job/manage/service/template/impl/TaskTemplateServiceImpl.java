@@ -624,6 +624,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public List<TaskTemplateInfoDTO> getFavoredTemplateBasicInfo(Long appId, String username) {
         List<Long> favoredTemplateList = taskFavoriteService.listFavorites(appId, username);
+        if (CollectionUtils.isEmpty(favoredTemplateList)) {
+            return Collections.emptyList();
+        }
         TaskTemplateQuery query = TaskTemplateQuery.builder().appId(appId).ids(favoredTemplateList)
             .baseSearchCondition(new BaseSearchCondition()).build();
         List<TaskTemplateInfoDTO> templates = taskTemplateDAO.listTaskTemplates(query);

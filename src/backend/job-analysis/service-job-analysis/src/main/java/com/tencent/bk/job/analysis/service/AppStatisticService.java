@@ -166,7 +166,7 @@ public class AppStatisticService extends CommonStatisticService {
             List<SimpleAppInfoDTO> applicationDTOList = getFilteredAppDTOList(appIdList, statisticsDTO);
             CommonTrendElementVO commonTrendElementVO = new CommonTrendElementVO();
             commonTrendElementVO.setDate(statisticsDTO.getDate());
-            commonTrendElementVO.setValue(applicationDTOList.size());
+            commonTrendElementVO.setValue(Long.valueOf(applicationDTOList.size()));
             trendElementVOList.add(commonTrendElementVO);
         }
         return trendElementVOList;

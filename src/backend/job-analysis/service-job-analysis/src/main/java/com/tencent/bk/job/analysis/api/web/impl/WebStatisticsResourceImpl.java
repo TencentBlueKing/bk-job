@@ -149,7 +149,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         if (commonTrendElementVOList.isEmpty()) {
             CommonTrendElementVO lastDayElementVO = new CommonTrendElementVO();
             lastDayElementVO.setDate(endDate);
-            lastDayElementVO.setValue(0);
+            lastDayElementVO.setValue(0L);
             commonTrendElementVOList.add(lastDayElementVO);
         }
         CommonTrendElementVO commonTrendElementVO = commonTrendElementVOList.get(0);
@@ -159,7 +159,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
             String lastDayDateStr = DateUtils.getLastDateStr(dateStr);
             CommonTrendElementVO lastDayElementVO = new CommonTrendElementVO();
             lastDayElementVO.setDate(lastDayDateStr);
-            lastDayElementVO.setValue(0);
+            lastDayElementVO.setValue(0L);
             log.debug("add empty commonTrendElementVO for {}", lastDayDateStr);
             commonTrendElementVOList.add(0, lastDayElementVO);
             count += 1;

@@ -29,7 +29,8 @@
     <card-layout
         class="script-ralate-dashboard"
         :title="$t('dashboard.复用率')"
-        :title-tips="$t('dashboard.引用脚本的步骤总数 / 被引用的脚本总数（去重），比率越高代表脚本在作业中被重复利用的价值越大')">
+        :title-tips="$t('dashboard.引用脚本的步骤总数 / 被引用的脚本总数（去重），比率越高代表脚本在作业中被重复利用的价值越大')"
+        v-bkloading="{ isLoading, opacity: 0.8 }">
         <div class="nums">{{ rate }}</div>
     </card-layout>
 </template>
@@ -44,6 +45,7 @@
         },
         data () {
             return {
+                isLoading: true,
                 rate: '0 %',
             };
         },
@@ -57,6 +59,7 @@
         },
         methods: {
             fetchData () {
+                this.isLoading = true;
                 StatisticsService.fetchScriptCiteInfo()
                     .then((data) => {
                         const {
@@ -68,6 +71,9 @@
                         } else {
                             this.rate = `${Math.round(citedScriptStepCount / citedScriptCount * 100).toFixed(2)} %`;
                         }
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
                     });
             },
         },

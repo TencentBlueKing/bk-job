@@ -40,6 +40,6 @@ public class CommonTrendElementVO {
     private String date;
 
     @ApiModelProperty("值")
-    private Integer value;
+    private Long value;
 
 }

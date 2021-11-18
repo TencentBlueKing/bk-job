@@ -67,13 +67,17 @@ export default (interceptors) => {
                 && error.response.headers['x-login-url']) {
                 return Promise.reject(new RequestError(401, error.response.headers['x-login-url']));
             }
-            if (error.response.data) {
-                return Promise.reject(new RequestError(
-                    error.response.status || -1,
-                    error.response.data.errorMsg || error.response.statusText,
-                ));
+            // 默认使用 http 错误描述，
+            // 如果 response body 里面有自定义错误描述优先使用
+            let errorMessage = error.response.statusText;
+            if (error.response.data && error.response.data.errorMsg) {
+                errorMessage = error.response.data.errorMsg;
             }
-            return Promise.reject(new RequestError(error.response.status || -1, error.response.statusText));
+            return Promise.reject(new RequestError(
+                error.response.status || -1,
+                errorMessage,
+                error.response,
+            ));
         }
         return Promise.reject(new RequestError(-1, `${window.PROJECT_CONFIG.AJAX_URL_PREFIX} 无法访问`));
     });
@@ -90,7 +94,7 @@ export default (interceptors) => {
                 }
                 break;
                 // 没权限
-            case 1238001: {
+            case 403: {
                 const requestPayload = error.response.config.payload;
                 const authResult = new AuthResultModel(error.response.data.authResult || {});
 
