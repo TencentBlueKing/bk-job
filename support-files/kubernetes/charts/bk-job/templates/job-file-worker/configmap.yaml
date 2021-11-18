@@ -23,7 +23,7 @@ data:
         app-id: {{ .Values.fileWorkerConfig.appId }}
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:
-          host: job-file-worker
+          host: job-file-worker-headless
           port: 80
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
