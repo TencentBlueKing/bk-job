@@ -37,7 +37,7 @@ import java.util.List;
 public class OffLineAndReDispatchReq {
     @ApiModelProperty(value = "访问worker使用的host", required = true)
     String accessHost;
-    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    @ApiModelProperty(value = "访问worker使用的port", required = true)
     Integer accessPort;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
