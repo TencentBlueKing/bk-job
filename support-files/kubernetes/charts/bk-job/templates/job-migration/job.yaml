@@ -50,7 +50,7 @@ spec:
             - name: BK_JOB_API_URL
               value: http://{{ .Values.gatewayConfig.ingress.hostname }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED
-              value: {{ .Values.job.migration.mysqlSchema.enabled }}
+              value: {{ .Values.job.migration.mysqlSchema.enabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
-              value: {{ .Values.job.migration.iamModel.enabled }}
+              value: {{ .Values.job.migration.iamModel.enabled | quote }}
       restartPolicy: Never
