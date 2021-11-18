@@ -296,8 +296,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
                 "notStartedTargetIpSet={}, runningFileSourceIpSet={}, notStartedFileSourceIpSet={}, " +
-                "analyseFinishedTargetIpSet={}, analyseFinishedSourceIpSet={}, successDownloadFileMap={}, " +
-                "finishedDownloadFileMap={}, fileUploadTaskNumMap={}, successUploadFileMap={}",
+                "analyseFinishedTargetIpSet={}, analyseFinishedSourceIpSet={}, finishedDownloadFileMap={}, " +
+                "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
             this.stepInstanceId,
             this.runningIpSet,
             this.notStartedIpSet,
@@ -305,10 +305,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             this.notStartedFileSourceIpSet,
             this.analyseFinishedIpSet,
             this.analyseFinishedSourceIpSet,
-            this.successDownloadFileMap,
             this.finishedDownloadFileMap,
-            this.successUploadFileMap,
-            this.finishedUploadFileMap);
+            this.successDownloadFileMap,
+            this.finishedUploadFileMap,
+            this.successUploadFileMap
+        );
 
         if (watch.getTotalTimeMillis() > 1000L) {
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
@@ -392,6 +393,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         rst = GseTaskExecuteResult.FAILED;
                     }
                 }
+                log.info("[{}] AnalyseExecuteResult-> Job finished. All source and target ip tasks finished",
+                    this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
                 if (this.downloadFinishedTime == 0) {
@@ -402,8 +405,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     int successTargetIpNum = this.successIpSet.size();
                     boolean isSuccess = this.invalidIpSet.isEmpty() && successTargetIpNum == targetIPNum;
                     rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
+                    log.info("[{}] AnalyseExecuteResult-> download tasks are finished, but upload tasks are not " +
+                        "finished after 15 seconds. Set job status finished", this.stepInstanceId);
                 } else {
                     rst = GseTaskExecuteResult.RUNNING;
+                    log.info("[{}] AnalyseExecuteResult-> download tasks are finished, but upload tasks are not " +
+                            "finished",
+                        this.stepInstanceId);
                 }
             }
 
@@ -749,7 +757,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         GseTaskIpLogDTO ipLog = ipLogMap.get(cloudIp);
         if (finishedNum >= fileNum) {
-            log.info("[{}] cloudIp: {} finished analyse!", stepInstanceId, cloudIp);
+            log.info("[{}] cloudIp: {} finished analyse! finishedTaskNum: {}, expectedTaskNum: {}",
+                stepInstanceId, cloudIp, finishedNum, fileNum);
             if (isTargetIp) {
                 dealIPFinish(cloudIp, startTime, endTime, ipLog);
             }
