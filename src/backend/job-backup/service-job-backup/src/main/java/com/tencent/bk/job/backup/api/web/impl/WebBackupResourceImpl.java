@@ -25,7 +25,8 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
-import com.tencent.bk.job.backup.config.BkConfig;
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
@@ -45,7 +46,10 @@ import com.tencent.bk.job.backup.service.ExportJobService;
 import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -53,6 +57,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -63,6 +68,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -77,17 +84,24 @@ public class WebBackupResourceImpl implements WebBackupResource {
     private final ImportJobService importJobService;
     private final ExportJobService exportJobService;
     private final LogService logService;
-    private final BkConfig bkConfig;
     private final StorageService storageService;
+    private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService, ExportJobService exportJobService,
-                                 LogService logService, BkConfig bkConfig, StorageService storageService) {
+                                 LogService logService, StorageService storageService,
+                                 ArtifactoryClient artifactoryClient,
+                                 ArtifactoryConfig artifactoryConfig,
+                                 BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;
-        this.bkConfig = bkConfig;
         this.storageService = storageService;
+        this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
+        this.backupStorageConfig = backupStorageConfig;
     }
 
     @Override
@@ -142,29 +156,78 @@ public class WebBackupResourceImpl implements WebBackupResource {
         throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
+    private Pair<Long, StreamingResponseBody> getFileSizeAndStreamFromNFS(String fileName) throws FileNotFoundException {
+        File file = storageService.getFile(fileName);
+        if (file.exists()) {
+            StreamingResponseBody streamingResponseBody =
+                outputStream -> {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        IOUtils.copy(fis, outputStream);
+                    }
+                };
+            return Pair.of(file.length(), streamingResponseBody);
+        } else {
+            throw new FileNotFoundException(file.getAbsolutePath());
+        }
+    }
+
+    private Pair<Long, StreamingResponseBody> getFileSizeAndStreamFromArtifactory(String fileName) {
+        NodeDTO nodeDTO;
+        InputStream ins;
+        try {
+            nodeDTO = artifactoryClient.queryNodeDetail(
+                artifactoryConfig.getArtifactoryJobProject(),
+                backupStorageConfig.getBackupRepo(),
+                fileName
+            );
+        } catch (Exception e) {
+            throw new InternalException(ErrorCode.FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY);
+        }
+        try {
+            ins = artifactoryClient.getFileInputStream(
+                artifactoryConfig.getArtifactoryJobProject(),
+                backupStorageConfig.getBackupRepo(),
+                fileName
+            );
+        } catch (Exception e) {
+            throw new InternalException(ErrorCode.FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY);
+        }
+        final InputStream finalIns = ins;
+        StreamingResponseBody streamingResponseBody =
+            outputStream -> IOUtils.copy(finalIns, outputStream);
+        return Pair.of(nodeDTO.getSize(), streamingResponseBody);
+    }
+
     @Override
     public ResponseEntity<StreamingResponseBody> getExportFile(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
-                File file = storageService.getFile(exportInfo.getFileName());
-                if (file != null && file.exists()) {
-                    StreamingResponseBody streamingResponseBody =
-                        outputStream -> {
-                            try (FileInputStream fis = new FileInputStream(file)) {
-                                IOUtils.copy(fis, outputStream);
-                            }
-                        };
-
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + exportInfo.getPackageName());
-                    headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-                    headers.add("Pragma", "no-cache");
-                    headers.add("Expires", "0");
-
-                    return ResponseEntity.ok().headers(headers).contentLength(file.length())
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM).body(streamingResponseBody);
+                Pair<Long, StreamingResponseBody> fileInfoPair;
+                switch (backupStorageConfig.getStorageBackend()) {
+                    case JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY:
+                        fileInfoPair = getFileSizeAndStreamFromArtifactory(exportInfo.getFileName());
+                        break;
+                    case JobConstants.FILE_STORAGE_BACKEND_LOCAL:
+                        try {
+                            fileInfoPair = getFileSizeAndStreamFromNFS(exportInfo.getFileName());
+                        } catch (FileNotFoundException e) {
+                            log.warn("export file not found", e);
+                            return ResponseEntity.notFound().build();
+                        }
+                        break;
+                    default:
+                        log.error("storage backend:{} not support yet", backupStorageConfig.getStorageBackend());
+                        return ResponseEntity.notFound().build();
                 }
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + exportInfo.getPackageName());
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                return ResponseEntity.ok().headers(headers).contentLength(fileInfoPair.getLeft())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).body(fileInfoPair.getRight());
             }
         }
         return ResponseEntity.notFound().build();
@@ -210,7 +273,31 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 ImportInfoVO importInfoVO = new ImportInfoVO();
                 importInfoVO.setId(jobId);
                 importInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
-                importJobService.parseFile(username, appId, id);
+                Boolean parseResult = importJobService.parseFile(username, appId, id);
+                if (parseResult
+                    && JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+                    backupStorageConfig.getStorageBackend()
+                )) {
+                    // 上传至制品库
+                    String filePath = "import"
+                        + File.separator + username
+                        + File.separator + id
+                        + File.separator + originalFileName;
+                    File file = new File(storageService.getStoragePath() + filePath);
+                    try {
+                        log.debug("begin to upload to artifactory:{}", filePath);
+                        artifactoryClient.uploadGenericFile(
+                            artifactoryConfig.getArtifactoryJobProject(),
+                            backupStorageConfig.getBackupRepo(),
+                            filePath,
+                            file
+                        );
+                        log.debug("uploaded to artifactory:{}", filePath);
+                    } catch (Exception e) {
+                        log.error("Fail to save file to artifactory", e);
+                        return Response.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
+                    }
+                }
                 return Response.buildSuccessResp(importInfoVO);
             }
         } else {

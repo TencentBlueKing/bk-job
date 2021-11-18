@@ -25,7 +25,9 @@
 package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class ListProjectReq extends ArtifactoryReq {
 }

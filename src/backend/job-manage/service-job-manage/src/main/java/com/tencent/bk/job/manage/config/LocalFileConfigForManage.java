@@ -35,28 +35,7 @@ public class LocalFileConfigForManage {
     @Value("${local-file.storage-backend:local}")
     private String storageBackend;
 
-    @Value("${local-file.artifactory.base-url:}")
-    private String artifactoryBaseUrl;
+    @Value("${local-file.artifactory.repo:localupload}")
+    private String localUploadRepo;
 
-    @Value("${local-file.artifactory.admin.username:admin}")
-    private String artifactoryAdminUsername;
-
-    @Value("${local-file.artifactory.admin.password:blueking}")
-    private String artifactoryAdminPassword;
-
-    @Value("${local-file.artifactory.job.username:bkjob}")
-    private String artifactoryJobUsername;
-
-    @Value("${local-file.artifactory.job.password:bkjob}")
-    private String artifactoryJobPassword;
-
-    @Value("${local-file.artifactory.job.project:bkjob}")
-    private String artifactoryJobProject;
-
-    @Value("${local-file.artifactory.job.repo.local-upload:localupload}")
-    private String artifactoryJobLocalUploadRepo;
-
-    public String getJobLocalUploadRootPath() {
-        return artifactoryJobProject + "/" + artifactoryJobLocalUploadRepo;
-    }
 }

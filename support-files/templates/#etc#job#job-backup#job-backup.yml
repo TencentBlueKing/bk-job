@@ -78,6 +78,12 @@ job:
     upload:
       filesize:
         max: 2GB
+    # 存储后端默认为本地NFS
+    storage-backend: local
+    # 存储后端为蓝鲸制品库时的配置
+    # storage-backend: artifactory
+    # artifactory:
+    #   repo: backup
   execute:
     archive:
       enabled: false

@@ -30,11 +30,11 @@ public class JobConstants {
      */
     public static final long PUBLIC_APP_ID = 0L;
     /**
-     * 本地文件存储后端：本地
+     * 文件存储后端：本地
      */
-    public static final String LOCAL_FILE_STORAGE_BACKEND_LOCAL = "local";
+    public static final String FILE_STORAGE_BACKEND_LOCAL = "local";
     /**
-     * 本地文件存储后端：制品库
+     * 文件存储后端：制品库
      */
-    public static final String LOCAL_FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
+    public static final String FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
 }

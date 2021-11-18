@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +55,7 @@ public class StringUtil {
             String fieldName = placeholder.substring(1, placeholder.length() - 1);
             Object fieldValue = ReflectUtil.getFieldValue(obj, fieldName);
             if (null != fieldValue) {
-                rawStr = rawStr.replace(placeholder, URLEncoder.encode(fieldValue.toString()));
+                rawStr = rawStr.replace(placeholder, fieldValue.toString());
             } else {
                 log.warn("Fail to parse path variable {} because cannot find field {} in {}", placeholder, fieldName,
                     JsonUtils.toJson(obj));

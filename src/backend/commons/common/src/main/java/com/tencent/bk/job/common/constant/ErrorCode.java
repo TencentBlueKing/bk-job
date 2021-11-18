@@ -48,6 +48,7 @@ public class ErrorCode {
      * 日志服务-1246xxx
      * 用户服务-1247xxx
      * 业务网关-1248xxx
+     * 备份服务-1249xxx
      * 文件网关-1260xxx
      * 文件代理-1261xxx
      * 文件Worker-1262xxx
@@ -253,6 +254,13 @@ public class ErrorCode {
 
     // 业务网关 start
     // 业务网关 end
+
+    // 备份服务 start
+    // 从制品库获取节点信息失败
+    public static final int FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY = 1249001;
+    // 从制品库下载文件失败
+    public static final int FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY = 1249002;
+    // 备份服务 end
 
     // 文件网关 start
     // 文件源不存在:{0}

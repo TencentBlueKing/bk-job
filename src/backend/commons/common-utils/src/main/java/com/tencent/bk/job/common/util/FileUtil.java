@@ -49,6 +49,58 @@ public class FileUtil {
         }
     }
 
+    /**
+     * 将 InputStream 流中内容写入文件
+     *
+     * @param ins        流
+     * @param targetPath 目标文件路径
+     * @return 文件Md5
+     * @throws InterruptedException 写入过程中被中断异常
+     */
+    public static String writeInsToFile(InputStream ins, String targetPath) throws InterruptedException {
+        File file = new File(targetPath);
+        File parentFile = file.getParentFile();
+        if (!parentFile.exists()) {
+            tryToCreateFile(parentFile);
+        }
+        FileOutputStream fos = null;
+        FileInputStream fis = null;
+        try {
+            fos = new FileOutputStream(targetPath);
+            int batchSize = 20480;
+            byte[] content = new byte[batchSize];
+            int length;
+            while ((length = ins.read(content)) > 0) {
+                fos.write(content, 0, length);
+                Thread.sleep(0);
+            }
+            fis = new FileInputStream(targetPath);
+            return DigestUtils.md5Hex(fis);
+        } catch (FileNotFoundException e) {
+            log.error("File not found:{}", targetPath, e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            log.error("IOException occurred:{}", targetPath, e);
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            log.info("Download interrupted, targetPath:{}", targetPath);
+            throw e;
+        } finally {
+            closeStreams(ins, fos, fis);
+        }
+    }
+
+    /**
+     * 将 InputStream 流中内容写入文件
+     *
+     * @param ins        流
+     * @param targetPath 目标文件路径
+     * @param fileSize   文件大小
+     * @param speed      用于观测写入速度
+     * @param process    用于观测写入进度
+     * @return 文件Md5
+     * @throws InterruptedException 写入过程中被中断异常
+     */
     public static String writeInsToFile(InputStream ins, String targetPath, Long fileSize, AtomicInteger speed,
                                         AtomicInteger process) throws InterruptedException {
         File file = new File(targetPath);
