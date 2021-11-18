@@ -69,7 +69,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.message.BasicHeader;
 
 import java.io.File;
@@ -141,7 +140,7 @@ public class ArtifactoryClient {
         List<Header> headerList = new ArrayList<>();
         headerList.add(new BasicHeader("accept", "*/*"));
         headerList.add(new BasicHeader(ArtifactoryInterfaceConsts.AUTH_HEADER_KEY,
-                "Basic " + Base64Util.encodeContentToStr(username + ":" + password)));
+            "Basic " + Base64Util.encodeContentToStr(username + ":" + password)));
         return headerList;
     }
 
@@ -196,39 +195,39 @@ public class ArtifactoryClient {
 
     @SuppressWarnings("unchecked")
     private <R> void checkResult(
-            R result,
-            String method,
-            String url,
-            String reqStr,
-            String respStr
+        R result,
+        String method,
+        String url,
+        String reqStr,
+        String respStr
     ) {
         if (result == null) {
             log.error("fail:artifactoryResp is null after parse|method={}|url={}|reqStr={}|respStr={}", method,
-                    url, reqStr, respStr);
+                url, reqStr, respStr);
             throw new InternalException("artifactoryResp is null after parse", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         }
         if (result instanceof ArtifactoryResp) {
             ArtifactoryResp<R> artifactoryResp = (ArtifactoryResp<R>) result;
             if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK
-                    && artifactoryResp.getData() == null) {
+                && artifactoryResp.getData() == null) {
                 log.warn(
-                        "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
-                                ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}",
-                        artifactoryResp.getTraceId(),
-                        artifactoryResp.getCode(),
-                        artifactoryResp.getMessage(),
-                        method, url, reqStr, respStr
+                    "warn:artifactoryResp.getData() == null|artifactoryResp.requestId={}|artifactoryResp" +
+                        ".code={}|artifactoryResp.message={}|method={}|url={}|reqStr={}|respStr={}",
+                    artifactoryResp.getTraceId(),
+                    artifactoryResp.getCode(),
+                    artifactoryResp.getMessage(),
+                    method, url, reqStr, respStr
                 );
             }
         }
     }
 
     private <R> R getArtifactoryRespByReq(
-            String method,
-            String url,
-            ArtifactoryReq reqBody,
-            TypeReference<R> typeReference,
-            AbstractHttpHelper httpHelper
+        String method,
+        String url,
+        ArtifactoryReq reqBody,
+        TypeReference<R> typeReference,
+        AbstractHttpHelper httpHelper
     ) throws ServiceException {
         // URL模板变量替换
         url = StringUtil.replacePathVariables(url, reqBody);
@@ -271,7 +270,7 @@ public class ArtifactoryClient {
             long end = System.nanoTime();
             if (null != meterRegistry) {
                 meterRegistry.timer("artifactory.api", "api_name", url, "status", status)
-                        .record(end - start, TimeUnit.NANOSECONDS);
+                    .record(end - start, TimeUnit.NANOSECONDS);
             }
         }
     }
@@ -279,8 +278,8 @@ public class ArtifactoryClient {
     public boolean isAvailable() {
         try {
             getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_ACTUATOR_INFO,
-                    new ArtifactoryReq(), new TypeReference<Map<Object, Object>>() {
-                    }, httpHelper);
+                new ArtifactoryReq(), new TypeReference<Map<Object, Object>>() {
+                }, httpHelper);
             return true;
         } catch (Throwable t) {
             return false;
@@ -289,8 +288,8 @@ public class ArtifactoryClient {
 
     public List<ProjectDTO> listProject() {
         ArtifactoryResp<List<ProjectDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_PROJECT,
-                new ListProjectReq(), new TypeReference<ArtifactoryResp<List<ProjectDTO>>>() {
-                }, httpHelper);
+            new ListProjectReq(), new TypeReference<ArtifactoryResp<List<ProjectDTO>>>() {
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -301,8 +300,8 @@ public class ArtifactoryClient {
         req.setPageNumber(pageNumber);
         req.setPageSize(pageSize);
         ArtifactoryResp<PageData<RepoDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_REPO_PAGE,
-                req, new TypeReference<ArtifactoryResp<PageData<RepoDTO>>>() {
-                }, httpHelper);
+            req, new TypeReference<ArtifactoryResp<PageData<RepoDTO>>>() {
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -315,8 +314,8 @@ public class ArtifactoryClient {
         req.setPageNumber(pageNumber);
         req.setPageSize(pageSize);
         ArtifactoryResp<PageData<NodeDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_NODE_PAGE,
-                req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
-                }, httpHelper);
+            req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
+            }, httpHelper);
         return resp.getData();
     }
 
@@ -326,8 +325,8 @@ public class ArtifactoryClient {
         req.setRepoName(repoName);
         req.setFullPath(fullPath);
         ArtifactoryResp<NodeDTO> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_QUERY_NODE_DETAIL, req,
-                new TypeReference<ArtifactoryResp<NodeDTO>>() {
-                }, httpHelper);
+            new TypeReference<ArtifactoryResp<NodeDTO>>() {
+            }, httpHelper);
         if (resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
             return null;
         }
@@ -344,8 +343,8 @@ public class ArtifactoryClient {
         req.setRepoName(repoName);
         req.setForced(forced);
         ArtifactoryResp<Object> resp = getArtifactoryRespByReq(HttpDelete.METHOD_NAME, URL_DELETE_REPO, req,
-                new TypeReference<ArtifactoryResp<Object>>() {
-                }, httpHelper);
+            new TypeReference<ArtifactoryResp<Object>>() {
+            }, httpHelper);
         return resp.getCode() == 0;
     }
 
@@ -355,8 +354,8 @@ public class ArtifactoryClient {
         req.setRepoName(repoName);
         req.setFullPath(fullPath);
         ArtifactoryResp<Object> resp = getArtifactoryRespByReq(HttpDelete.METHOD_NAME, URL_DELETE_NODE, req,
-                new TypeReference<ArtifactoryResp<Object>>() {
-                }, httpHelper);
+            new TypeReference<ArtifactoryResp<Object>>() {
+            }, httpHelper);
         return resp.getCode() == 0;
     }
 
@@ -409,11 +408,11 @@ public class ArtifactoryClient {
     }
 
     public NodeDTO uploadGenericFileWithStream(
-            String projectId,
-            String repoName,
-            String filePath,
-            InputStream ins,
-            long fileSize
+        String projectId,
+        String repoName,
+        String filePath,
+        InputStream ins,
+        long fileSize
     ) {
         HttpEntity reqEntity = new InputStreamEntity(ins, fileSize);
         return uploadGenericFileWithEntity(projectId, repoName, filePath, reqEntity);
@@ -425,10 +424,10 @@ public class ArtifactoryClient {
     }
 
     private NodeDTO uploadGenericFileWithEntity(
-            String projectId,
-            String repoName,
-            String filePath,
-            HttpEntity reqEntity
+        String projectId,
+        String repoName,
+        String filePath,
+        HttpEntity reqEntity
     ) {
         UploadGenericFileReq req = new UploadGenericFileReq();
         req.setProject(projectId);
@@ -441,19 +440,19 @@ public class ArtifactoryClient {
             respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
             log.debug("respStr={}", respStr);
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
-                    respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
-                    }
+                respStr, new TypeReference<ArtifactoryResp<NodeDTO>>() {
+                }
             );
             if (resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
                 return resp.getData();
             } else {
                 throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
-                        new String[]{resp.getCode() + ":" + resp.getMessage()});
+                    new String[]{resp.getCode() + ":" + resp.getMessage()});
             }
         } catch (Throwable e) {
             log.error("Fail to uploadGenericFile", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
-                    new String[]{e.getMessage()});
+                new String[]{e.getMessage()});
         }
     }
 
@@ -466,36 +465,36 @@ public class ArtifactoryClient {
         req.setType("UPLOAD");
         req.setFullPathSet(filePathList);
         ArtifactoryResp<List<TempUrlInfo>> resp = getArtifactoryRespByReq(
-                HttpPost.METHOD_NAME,
-                URL_CREATE_TEMP_ACCESS_URL,
-                req,
-                new TypeReference<ArtifactoryResp<List<TempUrlInfo>>>() {
-                },
-                httpHelper
+            HttpPost.METHOD_NAME,
+            URL_CREATE_TEMP_ACCESS_URL,
+            req,
+            new TypeReference<ArtifactoryResp<List<TempUrlInfo>>>() {
+            },
+            httpHelper
         );
         return resp.getData();
     }
 
     public UserDetail userDetail(UserDetailReq req) {
         ArtifactoryResp<UserDetail> resp = getArtifactoryRespByReq(
-                HttpGet.METHOD_NAME,
-                URL_USER_DETAIL,
-                req,
-                new TypeReference<ArtifactoryResp<UserDetail>>() {
-                },
-                httpHelper
+            HttpGet.METHOD_NAME,
+            URL_USER_DETAIL,
+            req,
+            new TypeReference<ArtifactoryResp<UserDetail>>() {
+            },
+            httpHelper
         );
         return resp.getData();
     }
 
     public boolean createProject(CreateProjectReq req) {
         ArtifactoryResp<Object> resp = getArtifactoryRespByReq(
-                HttpPost.METHOD_NAME,
-                URL_CREATE_PROJECT,
-                req,
-                new TypeReference<ArtifactoryResp<Object>>() {
-                },
-                httpHelper
+            HttpPost.METHOD_NAME,
+            URL_CREATE_PROJECT,
+            req,
+            new TypeReference<ArtifactoryResp<Object>>() {
+            },
+            httpHelper
         );
         // 该接口正常创建情况下data字段返回也为null，用code判断
         return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
@@ -503,24 +502,24 @@ public class ArtifactoryClient {
 
     public boolean checkRepoExist(CheckRepoExistReq req) {
         ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
-                HttpGet.METHOD_NAME,
-                URL_CHECK_REPO_EXIST,
-                req,
-                new TypeReference<ArtifactoryResp<Boolean>>() {
-                },
-                httpHelper
+            HttpGet.METHOD_NAME,
+            URL_CHECK_REPO_EXIST,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
         );
         return resp.getData();
     }
 
     public boolean createRepo(CreateRepoReq req) {
         ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
-                HttpPost.METHOD_NAME,
-                URL_CREATE_REPO,
-                req,
-                new TypeReference<ArtifactoryResp<Boolean>>() {
-                },
-                httpHelper
+            HttpPost.METHOD_NAME,
+            URL_CREATE_REPO,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
         );
         // 该接口正常创建情况下data字段返回也为null，用code判断
         return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
@@ -528,12 +527,12 @@ public class ArtifactoryClient {
 
     public boolean createUserToProject(CreateUserToProjectReq req) {
         ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
-                HttpPost.METHOD_NAME,
-                URL_CREATE_USER_TO_PROJECT,
-                req,
-                new TypeReference<ArtifactoryResp<Boolean>>() {
-                },
-                httpHelper
+            HttpPost.METHOD_NAME,
+            URL_CREATE_USER_TO_PROJECT,
+            req,
+            new TypeReference<ArtifactoryResp<Boolean>>() {
+            },
+            httpHelper
         );
         return resp.getData();
     }
