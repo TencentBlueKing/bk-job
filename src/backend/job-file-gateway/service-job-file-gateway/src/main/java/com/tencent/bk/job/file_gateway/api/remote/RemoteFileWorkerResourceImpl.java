@@ -82,7 +82,8 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
     public Response<List<String>> offLineAndReDispatch(OffLineAndReDispatchReq offLineAndReDispatchReq) {
         return Response.buildSuccessResp(
             reDispatchService.reDispatchByWorker(
-                offLineAndReDispatchReq.getWorkerId(),
+                offLineAndReDispatchReq.getAccessHost(),
+                offLineAndReDispatchReq.getAccessPort(),
                 offLineAndReDispatchReq.getTaskIdList(),
                 offLineAndReDispatchReq.getInitDelayMills(),
                 offLineAndReDispatchReq.getIntervalMills())

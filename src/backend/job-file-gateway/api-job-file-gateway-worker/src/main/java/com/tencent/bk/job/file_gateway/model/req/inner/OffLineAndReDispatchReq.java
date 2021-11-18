@@ -35,8 +35,10 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class OffLineAndReDispatchReq {
-    @ApiModelProperty(value = "WorkerID")
-    Long workerId;
+    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    String accessHost;
+    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    Integer accessPort;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
     @ApiModelProperty(value = "密钥", required = true)

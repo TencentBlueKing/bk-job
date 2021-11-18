@@ -24,17 +24,31 @@
 
 package com.tencent.bk.job.file_gateway.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
-import com.tencent.bk.job.file_gateway.service.*;
+import com.tencent.bk.job.file_gateway.service.DispatchService;
+import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
+import com.tencent.bk.job.file_gateway.service.FileTaskService;
+import com.tencent.bk.job.file_gateway.service.FileWorkerService;
+import com.tencent.bk.job.file_gateway.service.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -69,11 +83,27 @@ public class ReDispatchServiceImpl implements ReDispatchService {
 
     @Override
     public List<String> reDispatchByWorker(
-        Long workerId,
+        String accessHost,
+        Integer accessPort,
         List<String> taskIdList,
         Long initDelayMills,
         Long intervalMills
     ) {
+        FileWorkerDTO fileWorkerDTO = fileWorkerService.getFileWorker(accessHost, accessPort);
+        if (fileWorkerDTO == null) {
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to find file-worker by accessHost:{} accessPort:{}", accessHost, accessPort
+            );
+            log.warn(msg.getMessage());
+            throw new InternalException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "accessHost/accessPort",
+                    msg.getMessage()
+                }
+            );
+        }
+        Long workerId = fileWorkerDTO.getId();
         log.debug("worker {} apply to reDispatch tasks:{}, initDelayMills={}, intervalMills={}", workerId, taskIdList
             , initDelayMills, intervalMills);
         // 1.立即下线Worker

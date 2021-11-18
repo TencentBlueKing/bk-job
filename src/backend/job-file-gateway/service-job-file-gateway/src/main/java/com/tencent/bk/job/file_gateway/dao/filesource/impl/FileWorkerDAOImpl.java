@@ -100,7 +100,6 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     public Long insertFileWorker(DSLContext dslContext, FileWorkerDTO fileWorkerDTO) {
         setDefaultValue(fileWorkerDTO);
         val query = dslContext.insertInto(defaultTable,
-            defaultTable.ID,
             defaultTable.APP_ID,
             defaultTable.NAME,
             defaultTable.DESCRIPTION,
@@ -123,7 +122,6 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.LAST_MODIFY_TIME,
             defaultTable.CONFIG_STR
         ).values(
-            fileWorkerDTO.getId(),
             fileWorkerDTO.getAppId(),
             fileWorkerDTO.getName(),
             fileWorkerDTO.getDescription(),

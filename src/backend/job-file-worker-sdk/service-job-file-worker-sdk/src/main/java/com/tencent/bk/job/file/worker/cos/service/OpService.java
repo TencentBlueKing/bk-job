@@ -47,14 +47,17 @@ public class OpService {
     private final WorkerConfig workerConfig;
     private final FileTaskService fileTaskService;
     private final GatewayInfoService gatewayInfoService;
+    private final EnvironmentService environmentService;
     private final TaskReporter taskReporter;
 
     @Autowired
     public OpService(WorkerConfig workerConfig, FileTaskService fileTaskService,
-                     GatewayInfoService gatewayInfoService, TaskReporter taskReporter) {
+                     GatewayInfoService gatewayInfoService, EnvironmentService environmentService,
+                     TaskReporter taskReporter) {
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
+        this.environmentService = environmentService;
         this.taskReporter = taskReporter;
     }
 
@@ -65,14 +68,15 @@ public class OpService {
         // 调网关接口下线自己
         String url = gatewayInfoService.getWorkerOffLineUrl();
         OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
-        offLineReq.setWorkerId(workerConfig.getId());
+        offLineReq.setAccessHost(environmentService.getAccessHost());
+        offLineReq.setAccessPort(workerConfig.getAccessPort());
         offLineReq.setAppId(workerConfig.getAppId());
         offLineReq.setToken(workerConfig.getToken());
         offLineReq.setTaskIdList(runningTaskIdList);
         offLineReq.setInitDelayMills(3000L);
         offLineReq.setIntervalMills(3000L);
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
-        String respStr = null;
+        String respStr;
         try {
             log.info(String.format("url=%s,body=%s,headers=%s", url, req.getBody(),
                 JsonUtils.toJson(req.getHeaders())));

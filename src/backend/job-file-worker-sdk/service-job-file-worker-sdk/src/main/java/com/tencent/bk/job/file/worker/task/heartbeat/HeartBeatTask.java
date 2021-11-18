@@ -24,33 +24,26 @@
 
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
+import com.tencent.bk.job.file.worker.cos.service.EnvironmentService;
 import com.tencent.bk.job.file.worker.cos.service.GatewayInfoService;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
-import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
 
 @Slf4j
 @Service
-public class HeartBeatTask implements ApplicationContextAware {
-
-    private ApplicationContext applicationContext;
+public class HeartBeatTask {
 
     public static volatile boolean runFlag = true;
 
@@ -59,28 +52,15 @@ public class HeartBeatTask implements ApplicationContextAware {
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-
-    private boolean isInK8s() {
-        String[] profileArr = applicationContext.getEnvironment().getActiveProfiles();
-        for (String profile : profileArr) {
-            if (JobConstants.PROFILE_KUBERNETES.equals(profile)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    private final EnvironmentService environmentService;
 
     @Autowired
     public HeartBeatTask(WorkerConfig workerConfig, GatewayInfoService gatewayInfoService,
-                         MetaDataService metaDataService) {
+                         MetaDataService metaDataService, EnvironmentService environmentService) {
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
+        this.environmentService = environmentService;
     }
 
     public static void stopHeartBeat() {
@@ -88,34 +68,18 @@ public class HeartBeatTask implements ApplicationContextAware {
     }
 
     private HeartBeatReq getWorkerInfo() {
-        String podIp = IpUtils.getFirstMachineIP();
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setId(workerConfig.getId());
         heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
-        if (isInK8s()) {
-            String podName = System.getenv("BK_JOB_POD_NAME");
-            String fileWorkerServiceName = System.getenv("BK_JOB_FILE_WORKER_SERVICE_NAME");
-            String accessHost = podName + "." + fileWorkerServiceName;
-            log.debug("accessHost={}", accessHost);
-            heartBeatReq.setAccessHost(accessHost);
-        } else {
-            heartBeatReq.setAccessHost(workerConfig.getAccessHost());
-        }
+
+        // 二进制部署环境与K8s环境差异处理
+        heartBeatReq.setAccessHost(environmentService.getAccessHost());
+        heartBeatReq.setInnerIp(environmentService.getInnerIp());
+
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
-        String nodeIP = System.getenv("BK_JOB_NODE_IP");
-        log.info("nodeIP={}", nodeIP);
-        if (StringUtils.isBlank(workerConfig.getInnerIp())) {
-            if (!StringUtils.isBlank(nodeIP)) {
-                heartBeatReq.setInnerIp(nodeIP);
-            } else {
-                heartBeatReq.setInnerIp(podIp);
-            }
-        } else {
-            heartBeatReq.setInnerIp(workerConfig.getInnerIp());
-        }
         heartBeatReq.setAbilityTagList(workerConfig.getAbilityTagList());
         heartBeatReq.setVersion(workerConfig.getVersion());
         heartBeatReq.setCpuOverload(MachineUtil.systemCPULoad());
