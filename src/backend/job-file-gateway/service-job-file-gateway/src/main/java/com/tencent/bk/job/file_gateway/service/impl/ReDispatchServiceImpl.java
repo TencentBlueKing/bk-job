@@ -96,10 +96,9 @@ public class ReDispatchServiceImpl implements ReDispatchService {
             );
             log.warn(msg.getMessage());
             throw new InternalException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                ErrorCode.FILE_WORKER_NOT_FOUND,
                 new String[]{
-                    "accessHost/accessPort",
-                    msg.getMessage()
+                    "accessHost:" + accessHost + ",accessPort:" + accessPort,
                 }
             );
         }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,6 +42,7 @@ public class OffLineAndReDispatchReq {
     Integer accessPort;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
+    @SkipLogFields
     @ApiModelProperty(value = "密钥", required = true)
     String token;
     @ApiModelProperty(value = "需要重调度的任务Id列表", required = true)

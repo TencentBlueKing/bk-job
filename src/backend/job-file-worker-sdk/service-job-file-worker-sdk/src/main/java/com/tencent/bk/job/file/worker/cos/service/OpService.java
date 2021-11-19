@@ -34,6 +34,8 @@ import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,8 +80,12 @@ public class OpService {
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
         String respStr;
         try {
-            log.info(String.format("url=%s,body=%s,headers=%s", url, req.getBody(),
-                JsonUtils.toJson(req.getHeaders())));
+            log.info(
+                "url={},body={},headers={}",
+                url,
+                JsonUtils.toJsonWithoutSkippedFields(req.getBody()),
+                JsonUtils.toJson(req.getHeaders())
+            );
             respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
             log.info(String.format("respStr=%s", respStr));
             // 停止任务
@@ -88,13 +94,20 @@ public class OpService {
             log.info("{} file tasks stopped", allStoppedFileCount);
             taskReporter.reportWorkerOffLine(runningTaskIdList, "FileWorker offline");
         } catch (Exception e) {
-            log.error("Fail to request file-gateway:", e);
+            FormattingTuple msg = MessageFormatter.arrayFormat(
+                "Fail to request file-gateway,url={},body={},headers={}",
+                new String[]{
+                    url,
+                    JsonUtils.toJsonWithoutSkippedFields(req.getBody()),
+                    JsonUtils.toJson(req.getHeaders())
+                }
+            );
+            log.error(msg.getMessage(), e);
         }
         return runningTaskIdList;
     }
 
     public List<String> taskList() {
-        List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
-        return runningTaskIdList;
+        return fileTaskService.getAllTaskIdList();
     }
 }
