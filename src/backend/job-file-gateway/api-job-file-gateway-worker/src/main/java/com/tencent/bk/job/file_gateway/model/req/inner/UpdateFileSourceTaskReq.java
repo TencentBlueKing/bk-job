@@ -55,8 +55,8 @@ public class UpdateFileSourceTaskReq {
 
     public void setContent(String content) {
         if (log.isDebugEnabled()) {
-//            this.content = "[" + Thread.currentThread().getName() + "]" + content;
-            this.content = content;
+            this.content = "[" + Thread.currentThread().getName() + "]" + content;
         }
+        this.content = content;
     }
 }

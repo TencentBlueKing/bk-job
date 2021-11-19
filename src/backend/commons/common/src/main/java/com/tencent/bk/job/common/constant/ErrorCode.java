@@ -290,6 +290,8 @@ public class ErrorCode {
     public static final int FAIL_TO_FIND_FILE_SOURCE_BY_CODE = 1260012;
     // 文件源服务异常
     public static final int FILE_SOURCE_SERVICE_INVALID = 1260013;
+    // 通过[{0}]找不到file-worker
+    public static final int FILE_WORKER_NOT_FOUND = 1260014;
 
     // 文件网关 end
     // 文件代理 start

@@ -32,7 +32,10 @@ import java.util.List;
  */
 public interface ReDispatchService {
 
-    List<String> reDispatchByWorker(Long workerId, List<String> taskIdList, Long initDelayMills, Long intervalMills);
+    List<String> reDispatchByWorker(
+        String accessHost, Integer accessPort,
+        List<String> taskIdList, Long initDelayMills, Long intervalMills
+    );
 
     boolean reDispatchByGateway(String fileSourceTaskId, Long initDelayMills, Long intervalMills);
 
