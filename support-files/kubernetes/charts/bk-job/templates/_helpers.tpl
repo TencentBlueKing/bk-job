@@ -245,10 +245,10 @@ Return the Redis config
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
 password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-{{- else -}}
+{{- else }}
 fail "Not supported redis architecture"
 {{- end -}}
-{{- else -}}
+{{- else }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- if eq .Values.externalRedis.architecture "standalone" }}
 host: {{ include "job.redis.host" . }}
