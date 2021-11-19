@@ -37,7 +37,9 @@ public class ExecuteActionReq {
     /**
      * 要执行的指令类型Code
      */
-    @ApiModelProperty(value = "要执行的指令类型Code，取值来源于listFileNode接口返回数据中的metaData.properties.action.actionCode")
+    @ApiModelProperty(
+        value = "要执行的指令类型Code，取值来源于listFileNode接口返回数据中的metaData.properties.action.actionCode"
+    )
     String actionCode;
 
     /**
