@@ -26,9 +26,9 @@ BEGIN
                        AND INDEX_NAME = 'PRIMARY'
                        AND COLUMN_NAME= 'execute_count'
         ) THEN
+        ALTER TABLE file_source_task_log ADD INDEX idx_step_instance_id_execute_count(`step_instance_id`,`execute_count`);
         ALTER TABLE file_source_task_log DROP PRIMARY KEY;
         ALTER TABLE file_source_task_log ADD COLUMN id BIGINT AUTO_INCREMENT PRIMARY KEY FIRST ;
-        ALTER TABLE file_source_task_log ADD INDEX idx_step_instance_id_execute_count(`step_instance_id`,`execute_count`);
     END IF;
 
     COMMIT;
