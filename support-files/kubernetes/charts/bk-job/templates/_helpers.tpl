@@ -249,10 +249,10 @@ password: {{ .Values.redis.existingPasswordKey | default "redis-password" | prin
 fail "Not supported redis architecture"
 {{- end -}}
 {{- else -}}
+password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- if eq .Values.externalRedis.architecture "standalone" }}
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
-password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- else if eq .Values.externalRedis.architecture "replication" }}
 sentinel:
   {{- if .Values.externalRedis.sentinel.auth }}
