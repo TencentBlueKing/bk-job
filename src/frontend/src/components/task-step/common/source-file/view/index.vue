@@ -295,11 +295,11 @@
             }
 
             &:last-child {
-                width: 90px !important;
+                width: 105px !important;
                 text-align: left;
 
                 .bk-button-text ~ .bk-button-text {
-                    margin-left: 8px;
+                    margin-left: 10px;
                 }
             }
         }
