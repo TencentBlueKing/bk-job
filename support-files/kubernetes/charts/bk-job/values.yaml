@@ -160,15 +160,17 @@ redis:
   master:
     persistence:
       size: 10Gi
+  ## @param redis.sentinel Redis sentinel config
+  ## sentinel:
+    ## @param redis.sentinel.masterSet Master set name
+    ## masterSet: 'mymaster'
+
   ## Redis Authentication parameters
   ##
   auth:
     ## @param redis.auth.enabled Enable password authentication
     ##
     enabled: true
-    ## @param redis.auth.sentinel Enable password authentication on sentinels too
-    ##
-    sentinel: true
     ## @param redis.auth.password Password for the database
     ##
     password: "job"
@@ -180,16 +182,20 @@ redis:
     ## NOTE: ignored unless `auth.existingSecret` parameter is set
     ##
     existingSecretPasswordKey: ""
-    ## @param auth.usePasswordFiles Mount credentials as files instead of using an environment variable
+    ## @param redis.auth.sentinel Enable password authentication on sentinels too
     ##
+    sentinel: true
 
 ## External Redis configuration
 ##
 externalRedis:
+  ## @param externalRedis.architecture : External Redis architecture. Allowed values: standalone or replication
+  ##
+  architecture: standalone
   ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
   ##
   existingPasswordSecret: ""
-  ## @param externalRedis.existingPasswordKey: Key in existingPasswordSecret, defaults to "redis-password"
+  ## @param externalRedis.existingPasswordKey: Redis password key, defaults to "redis-password"
   ##
   existingPasswordKey: ""
   ## @param externalRedis.host Host of the existing redis
@@ -201,6 +207,21 @@ externalRedis:
   ## @param externalRedis.password Password
   ##
   password: "job"
+  ## @param externalRedis.sentinel: Sentinel Config
+  ##
+  ## sentinel:
+    ## externalRedis.sentinel.auth: Enable password authentication on sentinels, defaults to false
+    ## auth: false
+    ## externalRedis.sentinel.master: Redis master name
+    ## master: "mymaster"
+    ## externalRedis.sentinel.nodes: Redis sentinel nodes
+    ## nodes: ""
+    ## externalRedis.sentinel.password: Redis sentinel password
+    ## password: ""
+    ## externalRedis.sentinel.existingPasswordKey: Redis sentinel password key, defaults to "redis-sentinel-password"
+    ## existingPasswordKey: "redis-sentinel-password"
+
+
 
 
 ## RabbitMQ chart configuration

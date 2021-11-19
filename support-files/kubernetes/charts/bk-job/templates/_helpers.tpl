@@ -236,6 +236,35 @@ Return the Redis secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the Redis config
+*/}}
+{{- define "job.redis.config" -}}
+{{- if .Values.redis.enabled }}
+{{- if eq .Values.redis.architecture "standalone" }}
+host: {{ include "job.redis.host" . }}
+port: {{ include "job.redis.port" . }}
+password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+{{- else }}
+fail "Not supported redis architecture"
+{{- end -}}
+{{- else }}
+password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+{{- if eq .Values.externalRedis.architecture "standalone" }}
+host: {{ include "job.redis.host" . }}
+port: {{ include "job.redis.port" . }}
+{{- else if eq .Values.externalRedis.architecture "replication" }}
+sentinel:
+  {{- if .Values.externalRedis.sentinel.auth }}
+  password: {{ .Values.externalRedis.sentinel.existingPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
+  {{- end }}
+  master: {{ .Values.externalRedis.sentinel.master }}
+  nodes: {{ .Values.externalRedis.sentinel.nodes }}
+{{- else -}}
+fail "Invalid external redis architecture"
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for RabbitMQ subchart
