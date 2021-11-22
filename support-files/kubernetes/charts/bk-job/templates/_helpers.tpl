@@ -398,7 +398,7 @@ Return the MongoDB connect uri
 {{- define "job.mongodb.connect.uri" -}}
 {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
 {{- if and (not .Values.mongodb.enabled) (eq .Values.externalMongoDB.architecture "replicaset") }}
-    {{- printf "%s&replicaSet=" $uri .Values.externalMongoDB.replicaSetName -}}
+    {{- printf "%s&replicaSet=%s" $uri .Values.externalMongoDB.replicaSetName -}}
 {{- else -}}
     {{- printf "%s" $uri -}}
 {{- end -}}
