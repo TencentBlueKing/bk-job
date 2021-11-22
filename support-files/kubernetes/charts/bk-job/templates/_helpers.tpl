@@ -362,7 +362,7 @@ Return the MongoDB authenticationDatabase
 {{- if .Values.mongodb.enabled }}
     {{- printf "%s" .Values.mongodb.auth.database -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalMongoDB.authenticationDatabase -}}
+    {{- (.Values.externalMongoDB.authenticationDatabase | default "admin" | printf "%s" -}}
 {{- end -}}
 {{- end -}}
 
