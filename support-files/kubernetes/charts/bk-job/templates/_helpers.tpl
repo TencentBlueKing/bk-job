@@ -396,11 +396,15 @@ Return the MongoDB secret name
 Return the MongoDB connect uri
 */}}
 {{- define "job.mongodb.connect.uri" -}}
-{{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
-{{- if and (not .Values.mongodb.enabled) (eq .Values.externalMongoDB.architecture "replicaset") }}
-    {{- printf "%s&replicaSet=%s" $uri .Values.externalMongoDB.replicaSetName -}}
+{{- if and (not .Values.mongodb.enabled) .Values.externalMongoDB.uri -}}
+  {{- printf "%s" .Values.externalMongoDB.uri -}}
 {{- else -}}
-    {{- printf "%s" $uri -}}
+  {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
+  {{- if and (not .Values.mongodb.enabled) (eq .Values.externalMongoDB.architecture "replicaset") }}
+      {{- printf "%s&replicaSet=%s" $uri .Values.externalMongoDB.replicaSetName -}}
+  {{- else -}}
+      {{- printf "%s" $uri -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
