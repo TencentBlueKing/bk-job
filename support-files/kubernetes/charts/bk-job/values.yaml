@@ -296,20 +296,50 @@ mongodb:
     database: joblog
     username: job
     password: job
+  service:
+    port: 27017
 
+## External MongoDB configuration
 ## If mongodb.enabled is false, use externalMongoDB
+## Reference documents https://docs.mongodb.com/manual/reference/connection-string/
+##
 externalMongoDB:
-  ## @param externalMongoDB.existingPasswordSecret: Existing secret with MongoDB
+  ## @param externalMongoDB.architecture  External MongoDB architecture. Allowed values: standalone/replicaset/shardedCluster
+  ##
+  architecture: ""
+  ## @param externalMongoDB.existingPasswordSecret Existing secret with MongoDB
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
   ##
   existingPasswordSecret: ""
-  ## @param externalMongoDB.existingPasswordKey: Key in existingPasswordSecret, defaults to "mongodb-password"
+  ## @param externalMongoDB.existingPasswordKey Key in existingPasswordSecret, defaults to "mongodb-password"
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
   ##
   existingPasswordKey: ""
-  host: ""
-  port: 27017
-  database: joblog
+  ## @param externalMongoDB.hostsAndPorts Mongo server hosts, schema: host1[:port1][,...hostN[:portN]]. for example:
+  ## hosts: "host1:27017,host2:27017"
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
+  ##
+  hostsAndPorts: ""
+  ## @param externalMongoDB.authenticationDatabase Authentication database name
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
+  ##
+  authenticationDatabase: "admin"
+  ## @param externalMongoDB.username Login user of the mongo server
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
+  ##
   username: ""
+  ## @param externalMongoDB.password Login password of the mongo server
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
+  ##
   password: ""
+  ## @param externalMongoDB.replicaSetName Required replica set name for the cluster
+  ## NOTE: ignored when `externalMongoDB.uri` parameter is set
+  ##
+  replicaSetName: ""
+  ## @param externalMongoDB.uri Mongo database URI, for example:
+  ## Reference documents https://docs.mongodb.com/manual/reference/connection-string/
+  ##
+  uri: ""
 
 nginx-ingress-controller:
   enabled: false
