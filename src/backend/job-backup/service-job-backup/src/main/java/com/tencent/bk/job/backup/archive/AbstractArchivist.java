@@ -61,6 +61,12 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected String tableName;
     private ArchiveSummary archiveSummary;
 
+    /**
+     * 查询(start,stop]内的数据
+     * @param start 不含start本身
+     * @param stop 含stop在内
+     * @return
+     */
     protected abstract List<T> listRecord(Long start, Long stop);
 
     protected abstract int batchInsert(List<T> recordList) throws IOException;
@@ -129,6 +135,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 if (stop > maxNeedArchiveId) {
                     stop = maxNeedArchiveId;
                 }
+                // 选取start<recordId<=stop的数据
                 List<T> records = listRecord(start, stop);
                 readRows += records.size();
                 log.info("Read {} rows from {}", records.size(), tableName);
@@ -190,6 +197,10 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         }
     }
 
+    /**
+     * 获取上一次已归档完成的最后一个数据Id，后续用大于该Id选取范围数据
+     * @return
+     */
     private long getLastArchivedId() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
         if (archiveProgress == null || archiveProgress.getLastArchivedId() == null
