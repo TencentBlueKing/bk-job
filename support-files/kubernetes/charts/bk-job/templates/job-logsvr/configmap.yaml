@@ -17,7 +17,7 @@ data:
         name: {{ include "common.names.fullname" . }}-logsvr
       data:
         mongodb:
-          uri: {{ include "job.mongodb.connect.uri" . }}
+          uri: {{ include "job.mongodb.connect.uri" . | quote }}
     job:
       logsvr:
         mongodb:
