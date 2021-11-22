@@ -397,7 +397,7 @@ Return the MongoDB connect uri
 */}}
 {{- define "job.mongodb.connect.uri" -}}
 {{- if .Values.mongodb.enabled -}}
-  {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (printf "${%s}" "mongodb-password") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
+  {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (printf "${%s}" "mongodb-password") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
 {{- else -}}
   {{- if .Values.externalMongoDB.uri -}}
     {{- printf "%s" .Values.externalMongoDB.uri -}}
