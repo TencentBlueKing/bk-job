@@ -5,11 +5,11 @@ kind: BkLogConfig
 metadata:
   name: bk-job
 spec:
-  data_id: {{ .Values.job.log.file.dataId }}
+  dataId: {{ .Values.job.log.file.dataId }}
 
-  log_config_type: container_log_config
+  logConfigType: container_log_config
   namespace: {{ .Release.Namespace }}
-  label_selector:
+  labelSelector:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
@@ -18,7 +18,7 @@ spec:
   encoding: 'utf-8'
   multiline:
     pattern: '^\[(?P<log_time>.*?)\]\s+?'
-    max_lines: 100
+    maxLines: 100
     timeout: '5s'
 {{- end }}
 {{- if .Values.job.log.std.collectEnabled }}
@@ -29,11 +29,11 @@ kind: BkLogConfig
 metadata:
   name: bk-job
 spec:
-  data_id: {{ .Values.job.log.std.dataId }}
+  dataId: {{ .Values.job.log.std.dataId }}
 
-  log_config_type: std_log_config
+  logConfigType: std_log_config
   namespace: {{ .Release.Namespace }}
-  label_selector:
+  labelSelector:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
