@@ -409,12 +409,12 @@ Return whether the mongodb is sharded
 */}}
 {{- define "job.mongodb.useShardingCluster" -}}
 {{- if .Values.mongodb.enabled -}}
-  {{- printf "%t" "false" -}}
+  {{- printf "%t" false -}}
 {{- else -}}
   {{- if eq "shardedCluster" .Values.externalMongoDB.architecture -}}
-    {{- printf "%t" "true" -}}
+    {{- printf "%t" true -}}
   {{- else -}}
-    {{- printf "%t" "false" -}}
+    {{- printf "%t" false -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}
