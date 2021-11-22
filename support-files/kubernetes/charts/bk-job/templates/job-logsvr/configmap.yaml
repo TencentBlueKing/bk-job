@@ -18,6 +18,7 @@ data:
       data:
         mongodb:
           uri: {{ include "job.mongodb.connect.uri" . | quote }}
+          database: "joblog"
     job:
       logsvr:
         mongodb:
