@@ -345,35 +345,24 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
-Return the MongoDB host
+Return the MongoDB hostsAndPorts
 */}}
-{{- define "job.mongodb.host" -}}
+{{- define "job.mongodb.hostsAndPorts" -}}
 {{- if .Values.mongodb.enabled }}
-    {{- printf "%s" (include "job.mongodb.fullname" .) -}}
-{{- else -}}
-    {{- printf "%s" .Values.externalMongoDB.host -}}
+    {{- printf "%s:%d" (include "job.mongodb.fullname" .) (.Values.mongodb.service.port | default 27017 | int ) -}}
+{{- else }}
+    {{- printf "%s" .Values.externalMongoDB.hostsAndPorts -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the MongoDB Port
+Return the MongoDB authenticationDatabase
 */}}
-{{- define "job.mongodb.port" -}}
-{{- if .Values.mongodb.enabled }}
-    {{- printf "27017" -}}
-{{- else -}}
-    {{- printf "%d" (.Values.externalMongoDB.port | int ) -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the MongoDB database
-*/}}
-{{- define "job.mongodb.database" -}}
+{{- define "job.mongodb.authenticationDatabase" -}}
 {{- if .Values.mongodb.enabled }}
     {{- printf "%s" .Values.mongodb.auth.database -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalMongoDB.database -}}
+    {{- printf "%s" .Values.externalMongoDB.authenticationDatabase -}}
 {{- end -}}
 {{- end -}}
 
@@ -398,6 +387,35 @@ Return the MongoDB secret name
     {{- printf "%s" (include "job.mongodb.fullname" .) -}}
 {{- else -}}
     {{- printf "%s-%s" (include "job.fullname" .) "external-mongodb" -}}
+{{- end -}}
+{{- end -}}
+
+
+
+{{/*
+Return the MongoDB connect uri
+*/}}
+{{- define "job.mongodb.connect.uri" -}}
+{{- $uri := {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
+{{- if and (not .Values.mongodb.enabled) (eq .Values.externalMongoDB.architecture "replicaset") }}
+    {{- printf "%s&replicaSet=" $uri .Values.externalMongoDB.replicaSetName -}}
+{{- else -}}
+    {{- printf "%s" $uri -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return whether the mongodb is sharded
+*/}}
+{{- define "job.mongodb.useShardingCluster" -}}
+{{- if .Values.mongodb.enabled -}}
+  {{- printf "%t" "false" -}}
+{{- else -}}
+  {{- if eq "shardedCluster" .Values.externalMongoDB.architecture -}}
+    {{- printf "%t" "true" -}}
+  {{- else -}}
+    {{- printf "%t" "false" -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
