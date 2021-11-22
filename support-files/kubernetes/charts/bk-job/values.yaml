@@ -166,13 +166,10 @@ redis:
     ## @param redis.auth.enabled Enable password authentication
     ##
     enabled: true
-    ## @param redis.auth.sentinel Enable password authentication on sentinels too
-    ##
-    sentinel: true
     ## @param redis.auth.password Password for the database
     ##
     password: "job"
-    ## @param redis.auth.existingSecret The name of an existing secret with Redis&trade; credentials
+    ## @param redis.auth.existingSecret The name of an existing secret with Redis credentials
     ## NOTE: When it's set, the previous `auth.password` parameter is ignored
     ##
     existingSecret: ""
@@ -180,27 +177,53 @@ redis:
     ## NOTE: ignored unless `auth.existingSecret` parameter is set
     ##
     existingSecretPasswordKey: ""
-    ## @param auth.usePasswordFiles Mount credentials as files instead of using an environment variable
+    ## @param redis.auth.sentinel Enable password authentication on sentinels too
     ##
+    sentinel: true
 
 ## External Redis configuration
 ##
 externalRedis:
-  ## @param externalRedis.existingPasswordSecret: Existing secret with Redis
+  ## @param externalRedis.architecture  External Redis architecture. Allowed values: standalone or replication
+  ##
+  architecture: standalone
+  ## @param externalRedis.existingPasswordSecret The name of an existing secret with Redis credentials
+  ## NOTE: When it's set, the previous `externalRedis.password` parameter is ignored
   ##
   existingPasswordSecret: ""
-  ## @param externalRedis.existingPasswordKey: Key in existingPasswordSecret, defaults to "redis-password"
+  ## @param externalRedis.existingPasswordKey Password key to be retrieved from existing secret, defaults to "redis-password"
+  ## NOTE: ignored unless `externalRedis.existingPasswordSecret` parameter is set
   ##
   existingPasswordKey: ""
-  ## @param externalRedis.host Host of the existing redis
+  ## @param externalRedis.host: Host of the external redis
   ##
   host: ""
-  ## @param externalRedis.port Port of the existing redis
+  ## @param externalRedis.port Port of the external redis when architecture is standalone
   ##
   port: 6379
-  ## @param externalRedis.password Password
+  ## @param externalRedis.password Password of the external redis when architecture is standalone
   ##
   password: "job"
+  ## @param externalRedis.sentinel Sentinel Config
+  ##
+  sentinel:
+    ## @param externalRedis.sentinel.auth Enable password authentication on sentinels, defaults to false
+    ##
+    auth: false
+    ## @param externalRedis.sentinel.master Redis master name, defaults to jobmaster
+    master: "jobmaster"
+    ## @param externalRedis.sentinel.nodes Redis sentinel nodes， for example:
+    ## nodes: "job-redis1:26379,job-redis2:26379"
+    ##
+    nodes: ""
+    ## @param externalRedis.sentinel.password Redis sentinel password
+    ##
+    password: ""
+    ## @param externalRedis.sentinel.existingPasswordKey Redis sentinel password key, defaults to "redis-sentinel-password"
+    ##
+    existingPasswordKey: "redis-sentinel-password"
+
+
 
 
 ## RabbitMQ chart configuration
