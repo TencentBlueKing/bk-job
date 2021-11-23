@@ -85,7 +85,7 @@ public class GseClient implements Closeable {
             GseServer gseServer = ApplicationContextRegister.getBean("gseServer");
             return gseServer.getClient();
         } catch (BeansException ignored) {
-            log.error("load gseSever failed！", ignored);
+            log.error("load gseSever failed!", ignored);
         }
         return null;
     }

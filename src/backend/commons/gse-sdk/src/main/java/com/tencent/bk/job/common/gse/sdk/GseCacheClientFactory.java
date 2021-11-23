@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.gse.sdk;
 
 import com.tencent.bk.gse.cacheapi.CacheAPI;
 import com.tencent.bk.job.common.gse.config.GseConfig;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.TException;
@@ -34,6 +35,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class GseCacheClientFactory {
 
-    private static AtomicInteger currentIpIndex = new AtomicInteger(0);
+    private static final AtomicInteger currentIpIndex = new AtomicInteger(0);
     private final GseConfig gseConfig;
 
     public GseCacheClientFactory(GseConfig gseConfig) {
@@ -49,23 +51,28 @@ public class GseCacheClientFactory {
     }
 
     public GseCacheClient getClient() {
-        if (gseConfig.getGseCacheApiServerHost().length == 1 && StringUtils.isBlank(gseConfig.getGseCacheApiServerHost()[0])) {
+        if (gseConfig.getGseCacheApiServerHost().length == 1
+            && StringUtils.isBlank(gseConfig.getGseCacheApiServerHost()[0])) {
             return null;
         }
 
         int tryTimes = gseConfig.getGseCacheApiServerHost().length;
         while (true) {
             int ipIndex = currentIpIndex.incrementAndGet() % gseConfig.getGseCacheApiServerHost().length;
+            String ip = "";
             if (tryTimes > 0) {
                 try {
-                    String ip = gseConfig.getGseCacheApiServerHost()[ipIndex];
+                    ip = gseConfig.getGseCacheApiServerHost()[ipIndex];
                     if (StringUtils.isBlank(ip)) {
                         continue;
                     }
                     return getAgent(ip, gseConfig.getGseCacheApiServerPort());
                 } catch (TException e) {
-                    log.error("Get GseCacheClient fail| msg={}| cause={}", e.getMessage(),
-                        e.getCause().getMessage());
+                    String msg = MessageFormatter.arrayFormat(
+                        "Get GseCacheClient fail|{}:{}|msg={}",
+                        ArrayUtil.toArray(ip, gseConfig.getGseCacheApiServerPort(), e.getMessage()))
+                        .getMessage();
+                    log.error(msg, e);
                     if ((--tryTimes) == 0) {
                         return null;
                     }
@@ -78,7 +85,7 @@ public class GseCacheClientFactory {
      * 构建gse访问客户端, 并连接服务端
      */
     private GseCacheClient getAgent(String ip, int port) throws TException {
-        log.info("enter getClient with ip=" + ip + ", port=" + port);
+        log.info("Enter getClient with ip=" + ip + ", port=" + port);
         TTransport tTransport;
         if (gseConfig.isEnableSsl()) {
             BKTSSLTransportFactory.TSSLTransportParameters params =
