@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -356,27 +355,10 @@ public class WebTaskExecutionResultResourceImpl
     @Override
     public Response<TaskExecuteResultVO> getTaskExecutionResult(String username, Long appId,
                                                                 Long taskInstanceId) {
-        try {
-            TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username, appId,
-                taskInstanceId);
-            TaskExecuteResultVO taskExecuteResultVO = convertToTaskExecuteResultVO(taskExecuteResult);
-            return Response.buildSuccessResp(taskExecuteResultVO);
-        } catch (PermissionDeniedException e) {
-            return handleInSufficientPermissionException(e);
-        } catch (ServiceException e) {
-            String errorMsg = "Fail to get task execution result, taskInstanceId=" + taskInstanceId;
-            log.warn(errorMsg, e);
-            return Response.buildCommonFailResp(e);
-        }
-    }
-
-    private <T> Response<T> handleInSufficientPermissionException(PermissionDeniedException e) {
-        AuthResult authResult = e.getAuthResult();
-        log.debug("Insufficient permission, authResult: {}", authResult);
-        if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-        }
-        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+        TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username, appId,
+            taskInstanceId);
+        TaskExecuteResultVO taskExecuteResultVO = convertToTaskExecuteResultVO(taskExecuteResult);
+        return Response.buildSuccessResp(taskExecuteResultVO);
     }
 
     private TaskExecuteResultVO convertToTaskExecuteResultVO(TaskExecuteResultDTO taskExecuteResultDTO) {
@@ -597,8 +579,7 @@ public class WebTaskExecutionResultResourceImpl
         }
         AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
         if (!authResult.isPass()) {
-            log.debug("Insufficient permission, authResult: {}", authResult);
-            return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+            throw new PermissionDeniedException(authResult);
         }
 
         ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
@@ -640,8 +621,7 @@ public class WebTaskExecutionResultResourceImpl
 
         AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
         if (!authResult.isPass()) {
-            log.debug("Insufficient permission, authResult: {}", authResult);
-            return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+            throw new PermissionDeniedException(authResult);
         }
 
         List<TaskVariableDTO> taskVars =

@@ -26,13 +26,13 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
-import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -53,32 +52,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebCredentialResourceImpl implements WebCredentialResource {
 
-    private final WebAuthService authService;
+    private final AuthService authService;
     private final CredentialService credentialService;
 
     @Autowired
-    public WebCredentialResourceImpl(WebAuthService authService, CredentialService credentialService) {
+    public WebCredentialResourceImpl(AuthService authService, CredentialService credentialService) {
         this.authService = authService;
         this.credentialService = credentialService;
-    }
-
-    private PageData<CredentialVO> mock() {
-        CredentialVO credentialVO = new CredentialVO();
-        credentialVO.setId("testId");
-        credentialVO.setName("凭据1");
-        credentialVO.setType(CredentialTypeEnum.APP_ID_SECRET_KEY.name());
-        credentialVO.setDescription("mock的凭据");
-        credentialVO.setValue1("value1");
-        credentialVO.setValue2("value2");
-        credentialVO.setValue3("value3");
-        credentialVO.setLastModifyUser("admin");
-        credentialVO.setLastModifyTime(System.currentTimeMillis());
-        PageData<CredentialVO> pageData = new PageData<>();
-        pageData.setStart(0);
-        pageData.setPageSize(10);
-        pageData.setTotal(1L);
-        pageData.setData(Collections.singletonList(credentialVO));
-        return pageData;
     }
 
     @Override
@@ -120,23 +100,23 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     @Override
     public Response<String> saveCredential(String username, Long appId,
                                            CredentialCreateUpdateReq createUpdateReq) {
-        AuthResultVO authResultVO = null;
+        AuthResult authResult = null;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
-            authResultVO = checkCreateTicketPermission(username, appId);
+            authResult = checkCreateTicketPermission(username, appId);
         } else {
-            authResultVO = checkManageTicketPermission(username, appId, createUpdateReq.getId());
+            authResult = checkManageTicketPermission(username, appId, createUpdateReq.getId());
         }
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(credentialService.saveCredential(username, appId, createUpdateReq));
     }
 
     @Override
     public Response<Integer> deleteCredentialById(String username, Long appId, String id) {
-        AuthResultVO authResultVO = checkManageTicketPermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageTicketPermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(credentialService.deleteCredentialById(username, appId, id));
     }
@@ -163,19 +143,19 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appId).isPass());
     }
 
-    public AuthResultVO checkUseTicketPermission(String username, Long appId, String credentialId) {
+    public AuthResult checkUseTicketPermission(String username, Long appId, String credentialId) {
         // 需要拥有在业务下使用某个凭证的权限
         return authService.auth(true, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, credentialId,
             PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
     }
 
-    public AuthResultVO checkCreateTicketPermission(String username, Long appId) {
+    public AuthResult checkCreateTicketPermission(String username, Long appId) {
         // 需要拥有在业务下创建凭证的权限
         return authService.auth(true, username, ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS,
             appId.toString(), null);
     }
 
-    public AuthResultVO checkManageTicketPermission(String username, Long appId, String credentialId) {
+    public AuthResult checkManageTicketPermission(String username, Long appId, String credentialId) {
         // 需要拥有在业务下管理某个具体凭证的权限
         return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET,
             credentialId, PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
