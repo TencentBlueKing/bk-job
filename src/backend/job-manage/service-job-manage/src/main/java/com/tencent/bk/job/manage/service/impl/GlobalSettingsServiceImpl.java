@@ -84,6 +84,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -120,6 +121,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private JobManageConfig jobManageConfig;
     private LocalFileConfigForManage localFileConfigForManage;
     private NotifyTemplateConverter notifyTemplateConverter;
+    private BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
     @Value("${job.feature.file-manage.enabled:false}")
@@ -132,8 +134,12 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         , AvailableEsbChannelDAO availableEsbChannelDAO
         , NotifyService notifyService
         , GlobalSettingDAO globalSettingDAO
-        , NotifyTemplateDAO notifyTemplateDAO, MessageI18nService i18nService, JobManageConfig jobManageConfig,
-        LocalFileConfigForManage localFileConfigForManage, NotifyTemplateConverter notifyTemplateConverter) {
+        , NotifyTemplateDAO notifyTemplateDAO,
+        MessageI18nService i18nService,
+        JobManageConfig jobManageConfig,
+        LocalFileConfigForManage localFileConfigForManage,
+        NotifyTemplateConverter notifyTemplateConverter,
+        BuildProperties buildProperties) {
         this.dslContext = dslContext;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
@@ -144,6 +150,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.jobManageConfig = jobManageConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.notifyTemplateConverter = notifyTemplateConverter;
+        this.buildProperties = buildProperties;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -246,7 +253,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         Long days = req.getDays();
         if (days == null || days <= 0) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[] {"days", "days must be positive"});
+                new String[]{"days", "days must be positive"});
         }
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
             days.toString(), String.format("执行记录保存天数(history expire days):%s,%s", username,
@@ -510,7 +517,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         );
     }
 
-    private TitleFooterVO getDefaultTitleFooterVO() {
+    private TitleFooterVO getDefaultTitleFooterVOWithoutVersion() {
         String jobEdition = jobManageConfig.getJobEdition();
         if (jobEdition.toLowerCase().equals("ee")) {
             return getEEDefaultTitleFooterVO();
@@ -534,11 +541,17 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public TitleFooterVO getTitleFooter() {
+        TitleFooterVO titleFooterVO = getTitleFooterWithoutVersion();
+        titleFooterVO.setFooterCopyRight(titleFooterVO.getFooterCopyRight() + " V" + buildProperties.getVersion());
+        return titleFooterVO;
+    }
+
+    public TitleFooterVO getTitleFooterWithoutVersion() {
         GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
             GlobalSettingKeys.KEY_TITLE_FOOTER);
         if (titleFooterSettingDTO == null) {
             log.warn("Default titleFooter not configured, use system default, plz contact admin to set");
-            return getDefaultTitleFooterVO();
+            return getDefaultTitleFooterVOWithoutVersion();
         }
         TitleFooterDTO titleFooterDTO = JsonUtils.fromJson(titleFooterSettingDTO.getValue(),
             new TypeReference<TitleFooterDTO>() {
@@ -555,20 +568,20 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 titleFooter.getFooterLink(), copyRight);
         } else {
             log.warn("TitleFooter of language:{} not configured, use default:zh_CN", normalLang);
-            return getDefaultTitleFooterVO();
+            return getDefaultTitleFooterVOWithoutVersion();
         }
     }
 
     @Override
     public TitleFooterWithDefaultVO getTitleFooterWithDefault(String username) {
-        return new TitleFooterWithDefaultVO(getTitleFooter(), getDefaultTitleFooterVO());
+        return new TitleFooterWithDefaultVO(getTitleFooterWithoutVersion(), getDefaultTitleFooterVOWithoutVersion());
     }
 
     @Override
     public Integer saveChannelTemplate(String username, ChannelTemplateReq req) {
         if (StringUtils.isBlank(req.getChannelCode()) || StringUtils.isBlank(req.getMessageTypeCode())) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[] {"channelCode", "channelCode cannot be blank"});
+                new String[]{"channelCode", "channelCode cannot be blank"});
         }
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(dslContext, req.getChannelCode(),
             req.getMessageTypeCode(), false);
