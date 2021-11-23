@@ -177,9 +177,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         initSourceServerIp();
         initFileSourceIntIpMapping();
 
-        log.info("[{}]Init file result handle task|fileSourceIpSet:{}|targetIpSet:{}|fileUploadTaskNumMap" +
-                ":{}|fileDownloadTaskNumMap:{}",
-            stepInstance.getId(), fileSourceIPSet, targetIpSet, fileUploadTaskNumMap, fileDownloadTaskNumMap);
+        log.info("InitFileResultHandleTask|stepInstanceId: {}|sendFiles: {}|fileSourceIpSet: {}|targetIpSet: {}|" +
+                "fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+            stepInstance.getId(), sendFiles, fileSourceIPSet, targetIpSet, fileUploadTaskNumMap,
+            fileDownloadTaskNumMap);
     }
 
 
@@ -196,9 +197,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             this.fileUploadTaskNumMap.put(ip, this.fileUploadTaskNumMap.get(ip) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(ip) + 1));
         }
-
-        log.info("[{}]: sendFileList={}| fileTaskNumMap={}", this.stepInstanceId, this.sendFiles,
-            this.fileDownloadTaskNumMap);
     }
 
     /*
@@ -393,7 +391,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         rst = GseTaskExecuteResult.FAILED;
                     }
                 }
-                log.info("[{}] AnalyseExecuteResult-> Job finished. All source and target ip tasks finished",
+                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed tasks",
                     this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
@@ -405,18 +403,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     int successTargetIpNum = this.successIpSet.size();
                     boolean isSuccess = this.invalidIpSet.isEmpty() && successTargetIpNum == targetIPNum;
                     rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
-                    log.info("[{}] AnalyseExecuteResult-> download tasks are finished, but upload tasks are not " +
-                        "finished after 15 seconds. Set job status finished", this.stepInstanceId);
+                    log.info("[{}] AnalyseExecuteResult-> Result: finished. Download tasks are finished, " +
+                            "but upload tasks are not finished after 15 seconds. Ignore upload tasks",
+                        this.stepInstanceId);
                 } else {
                     rst = GseTaskExecuteResult.RUNNING;
-                    log.info("[{}] AnalyseExecuteResult-> download tasks are finished, but upload tasks are not " +
-                            "finished",
-                        this.stepInstanceId);
+                    log.info("[{}] AnalyseExecuteResult-> Result: running. Download tasks are finished, " +
+                        "wait for upload task to complete.", this.stepInstanceId);
                 }
             }
 
         } else {
             rst = GseTaskExecuteResult.RUNNING;
+            log.info("[{}] AnalyseExecuteResult-> Result: running. Download tasks has not been finished",
+                this.stepInstanceId);
         }
         return rst;
     }
@@ -450,7 +450,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private CopyFileRsp parseCopyFileRspFromGSELog(Map.Entry<String, String> ipResult) {
-        log.info("[{}]: ipResult: {}", this.stepInstanceId, ipResult);
+        log.info("[{}]: ParseIpResult: {}", this.stepInstanceId, ipResult);
         String taskInfo = ipResult.getValue();
         CopyFileRsp copyFileRsp;
         try {
@@ -468,7 +468,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (!isStandardGSEProtocol) {
             copyFileRsp = parseCopyFileRspFromResultKey(copyFileRsp, ipResult.getKey());
             if (copyFileRsp != null) {
-                log.info("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
+                log.debug("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
             }
         }
         return copyFileRsp;
@@ -702,7 +702,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         String sourceFilePath = taskResult.getStandardSourceFilePath();
         String displayFilePath = sourceFileDisplayMap.get(sourceFilePath);
         boolean isLocalUploadFile = sourceFilePath.startsWith(this.localUploadDir);
-        log.info("StandardSourceFilePath: {}, localUploadDir: {}, isLocalUploadFile: {}, displayFilePath: {}",
+        log.debug("StandardSourceFilePath: {}, localUploadDir: {}, isLocalUploadFile: {}, displayFilePath: {}",
             sourceFilePath, this.localUploadDir, isLocalUploadFile, displayFilePath);
 
         addFileTaskLog(executionLogs, sourceCloudIp, new ServiceFileTaskLogDTO(
@@ -757,7 +757,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         GseTaskIpLogDTO ipLog = ipLogMap.get(cloudIp);
         if (finishedNum >= fileNum) {
-            log.info("[{}] cloudIp: {} finished analyse! finishedTaskNum: {}, expectedTaskNum: {}",
+            log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 stepInstanceId, cloudIp, finishedNum, fileNum);
             if (isTargetIp) {
                 dealIPFinish(cloudIp, startTime, endTime, ipLog);
