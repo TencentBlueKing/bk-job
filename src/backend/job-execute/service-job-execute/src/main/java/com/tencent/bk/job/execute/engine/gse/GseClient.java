@@ -61,8 +61,8 @@ public class GseClient implements Closeable {
     /**
      * gse服务接口
      */
-    private doSomeCmdV3.Client gseAgentClient;
-    private TTransport transport;
+    private final doSomeCmdV3.Client gseAgentClient;
+    private final TTransport transport;
 
     private GseClient(String ip, int port) throws TException {
         if (ENABLE_SSL) {

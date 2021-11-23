@@ -99,9 +99,9 @@ public class GseCacheClientFactory {
             tSocket.setTimeout(15000);
             tTransport = new TFramedTransport(tSocket);
         }
-        TProtocol tProtocal = new TBinaryProtocol(tTransport);
-        CacheAPI.Client gseAgentclient = new CacheAPI.Client(tProtocal);
-        return new GseCacheClient(gseAgentclient, tTransport);
+        TProtocol tProtocol = new TBinaryProtocol(tTransport);
+        CacheAPI.Client gseAgentClient = new CacheAPI.Client(tProtocol);
+        return new GseCacheClient(gseAgentClient, tTransport);
     }
 
 }
