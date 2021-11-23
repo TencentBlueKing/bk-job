@@ -46,7 +46,7 @@ public class HeartBeatReq {
     String token;
     @ApiModelProperty(value = "访问worker使用的host", required = true)
     String accessHost;
-    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    @ApiModelProperty(value = "访问worker使用的port", required = true)
     Integer accessPort;
     @ApiModelProperty(value = "worker所在云区域Id", required = true)
     Long cloudAreaId;

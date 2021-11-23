@@ -28,14 +28,13 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
+import com.tencent.bk.job.file.worker.cos.service.EnvironmentService;
 import com.tencent.bk.job.file.worker.cos.service.GatewayInfoService;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
-import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,13 +52,15 @@ public class HeartBeatTask {
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
+    private final EnvironmentService environmentService;
 
     @Autowired
     public HeartBeatTask(WorkerConfig workerConfig, GatewayInfoService gatewayInfoService,
-                         MetaDataService metaDataService) {
+                         MetaDataService metaDataService, EnvironmentService environmentService) {
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
+        this.environmentService = environmentService;
     }
 
     public static void stopHeartBeat() {
@@ -67,31 +68,18 @@ public class HeartBeatTask {
     }
 
     private HeartBeatReq getWorkerInfo() {
-        String podIp = IpUtils.getFirstMachineIP();
-        log.debug("podIp={}", podIp);
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setId(workerConfig.getId());
         heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
-        if (StringUtils.isBlank(workerConfig.getAccessHost())) {
-            heartBeatReq.setAccessHost(podIp);
-        } else {
-            heartBeatReq.setAccessHost(workerConfig.getAccessHost());
-        }
+
+        // 二进制部署环境与K8s环境差异处理
+        heartBeatReq.setAccessHost(environmentService.getAccessHost());
+        heartBeatReq.setInnerIp(environmentService.getInnerIp());
+
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
-        String nodeIP = System.getenv("BK_JOB_NODE_IP");
-        log.info("nodeIP={}", nodeIP);
-        if (StringUtils.isBlank(workerConfig.getInnerIp())) {
-            if (!StringUtils.isBlank(nodeIP)) {
-                heartBeatReq.setInnerIp(nodeIP);
-            } else {
-                heartBeatReq.setInnerIp(podIp);
-            }
-        } else {
-            heartBeatReq.setInnerIp(workerConfig.getInnerIp());
-        }
         heartBeatReq.setAbilityTagList(workerConfig.getAbilityTagList());
         heartBeatReq.setVersion(workerConfig.getVersion());
         heartBeatReq.setCpuOverload(MachineUtil.systemCPULoad());

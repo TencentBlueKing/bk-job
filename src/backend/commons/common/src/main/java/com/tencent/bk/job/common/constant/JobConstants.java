@@ -37,4 +37,8 @@ public class JobConstants {
      * 文件存储后端：制品库
      */
     public static final String FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
+    /**
+     * PROFILE-Kubernetes
+     */
+    public static final String PROFILE_KUBERNETES = "kubernetes";
 }

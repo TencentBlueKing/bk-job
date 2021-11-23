@@ -236,6 +236,35 @@ Return the Redis secret name
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the Redis config
+*/}}
+{{- define "job.redis.config" -}}
+{{- if .Values.redis.enabled }}
+{{- if eq .Values.redis.architecture "standalone" }}
+host: {{ include "job.redis.host" . }}
+port: {{ include "job.redis.port" . }}
+password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+{{- else }}
+fail "Not supported redis architecture"
+{{- end -}}
+{{- else }}
+password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+{{- if eq .Values.externalRedis.architecture "standalone" }}
+host: {{ include "job.redis.host" . }}
+port: {{ include "job.redis.port" . }}
+{{- else if eq .Values.externalRedis.architecture "replication" }}
+sentinel:
+  {{- if .Values.externalRedis.sentinel.auth }}
+  password: {{ .Values.externalRedis.sentinel.existingPasswordKey | default "redis-sentinel-password" | printf "${%s}" }}
+  {{- end }}
+  master: {{ .Values.externalRedis.sentinel.master }}
+  nodes: {{ .Values.externalRedis.sentinel.nodes }}
+{{- else -}}
+fail "Invalid external redis architecture"
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Create a default fully qualified app name for RabbitMQ subchart
@@ -316,35 +345,24 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
-Return the MongoDB host
+Return the MongoDB hostsAndPorts
 */}}
-{{- define "job.mongodb.host" -}}
+{{- define "job.mongodb.hostsAndPorts" -}}
 {{- if .Values.mongodb.enabled }}
-    {{- printf "%s" (include "job.mongodb.fullname" .) -}}
-{{- else -}}
-    {{- printf "%s" .Values.externalMongoDB.host -}}
+    {{- printf "%s:%d" (include "job.mongodb.fullname" .) (.Values.mongodb.service.port | default 27017 | int ) -}}
+{{- else }}
+    {{- printf "%s" .Values.externalMongoDB.hostsAndPorts -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the MongoDB Port
+Return the MongoDB authenticationDatabase
 */}}
-{{- define "job.mongodb.port" -}}
-{{- if .Values.mongodb.enabled }}
-    {{- printf "27017" -}}
-{{- else -}}
-    {{- printf "%d" (.Values.externalMongoDB.port | int ) -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the MongoDB database
-*/}}
-{{- define "job.mongodb.database" -}}
+{{- define "job.mongodb.authenticationDatabase" -}}
 {{- if .Values.mongodb.enabled }}
     {{- printf "%s" .Values.mongodb.auth.database -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalMongoDB.database -}}
+    {{- (.Values.externalMongoDB.authenticationDatabase | default "admin" | printf "%s" ) -}}
 {{- end -}}
 {{- end -}}
 
@@ -363,12 +381,49 @@ Return the MongoDB username
 Return the MongoDB secret name
 */}}
 {{- define "job.mongodb.secretName" -}}
-{{- if .Values.externalMongoDB.existingPasswordSecret -}}
-    {{- printf "%s" .Values.externalMongoDB.existingPasswordSecret -}}
-{{- else if .Values.mongodb.enabled }}
+{{- if .Values.mongodb.enabled -}}
     {{- printf "%s" (include "job.mongodb.fullname" .) -}}
+{{- else if .Values.externalMongoDB.existingPasswordSecret }}
+    {{- printf "%s" .Values.externalMongoDB.existingPasswordSecret -}}
 {{- else -}}
     {{- printf "%s-%s" (include "job.fullname" .) "external-mongodb" -}}
+{{- end -}}
+{{- end -}}
+
+
+
+{{/*
+Return the MongoDB connect uri
+*/}}
+{{- define "job.mongodb.connect.uri" -}}
+{{- if .Values.mongodb.enabled -}}
+  {{- printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (printf "${%s}" "mongodb-password") (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .) -}}
+{{- else -}}
+  {{- if .Values.externalMongoDB.uri -}}
+    {{- printf "%s" .Values.externalMongoDB.uri -}}
+  {{- else -}}
+    {{- $uri := (printf "mongodb://%s:%s@%s/?authSource=%s" (include "job.mongodb.username" .) (.Values.externalMongoDB.existingPasswordKey | default "mongodb-password" | printf "${%s}" ) (include "job.mongodb.hostsAndPorts" .) (include "job.mongodb.authenticationDatabase" .)) -}}
+    {{- if (eq .Values.externalMongoDB.architecture "replicaset") -}}
+        {{- printf "%s&replicaSet=%s" $uri .Values.externalMongoDB.replicaSetName -}}
+    {{- else -}}
+        {{- printf "%s" $uri -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return whether the mongodb is sharded
+*/}}
+{{- define "job.mongodb.useShardingCluster" -}}
+{{- if .Values.mongodb.enabled -}}
+  {{- printf "%t" false -}}
+{{- else -}}
+  {{- if eq "shardedCluster" .Values.externalMongoDB.architecture -}}
+    {{- printf "%t" true -}}
+  {{- else -}}
+    {{- printf "%t" false -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
