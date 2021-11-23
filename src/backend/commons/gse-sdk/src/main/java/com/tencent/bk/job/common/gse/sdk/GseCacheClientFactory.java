@@ -68,7 +68,7 @@ public class GseCacheClientFactory {
                     }
                     return getAgent(ip, gseConfig.getGseCacheApiServerPort());
                 } catch (TException e) {
-                    String msg = MessageFormatter.arrayFormat(
+                    String msg = MessageFormatter.format(
                         "Get GseCacheClient fail|{}:{}|msg={}",
                         ArrayUtil.toArray(ip, gseConfig.getGseCacheApiServerPort(), e.getMessage()))
                         .getMessage();

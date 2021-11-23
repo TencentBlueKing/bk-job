@@ -95,7 +95,7 @@ public class GseServer {
             try {
                 return GseClient.getClient(server.getKey(), server.getValue());
             } catch (Throwable e) {
-                String msg = MessageFormatter.arrayFormat(
+                String msg = MessageFormatter.format(
                     "Get GseClient fail|{}:{}|msg={}",
                     ArrayUtil.toArray(server.getKey(), server.getValue(), e.getMessage()))
                     .getMessage();
