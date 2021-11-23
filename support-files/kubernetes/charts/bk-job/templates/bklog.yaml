@@ -20,6 +20,8 @@ spec:
     pattern: '^\[(?P<log_time>.*?)\]\s+?'
     maxLines: 100
     timeout: '5s'
+  ext_meta:
+    logSourceType: "file"
 {{- end }}
 {{- if .Values.job.log.std.collectEnabled }}
 ---
@@ -37,4 +39,6 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+  ext_meta:
+    logSourceType: "std"
 {{- end }}
