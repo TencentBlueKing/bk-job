@@ -29,6 +29,8 @@ public class ArrayUtil {
         if (objects.length == 0) {
             return new Object[0];
         }
-        return new Object[]{objects};
+        Object[] array = new Object[objects.length];
+        System.arraycopy(objects, 0, array, 0, objects.length);
+        return array;
     }
 }
