@@ -25,11 +25,12 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.PageDataWithManagePermission;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.api.web.WebWhiteIPResource;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
@@ -47,10 +48,10 @@ import java.util.List;
 public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
 
     private final WhiteIPService whiteIPService;
-    private final WebAuthService authService;
+    private final AuthService authService;
 
     @Autowired
-    public WebWhiteIPResourceImpl(WhiteIPService whiteIPService, WebAuthService authService) {
+    public WebWhiteIPResourceImpl(WhiteIPService whiteIPService, AuthService authService) {
         this.whiteIPService = whiteIPService;
         this.authService = authService;
     }
@@ -69,9 +70,9 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
         String orderField,
         Integer order
     ) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         PageData<WhiteIPRecordVO> pageData = whiteIPService.listWhiteIPRecord(username, ipStr, appIdStr, appNameStr,
             actionScopeStr, creator, lastModifier, start, pageSize, orderField, order);
@@ -88,14 +89,14 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
     public Response<Long> saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
         Long id = createUpdateReq.getId();
         if (id != null && id > 0) {
-            AuthResultVO authResultVO = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
-            if (!authResultVO.isPass()) {
-                return Response.buildAuthFailResp(authResultVO);
+            AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
         } else {
-            AuthResultVO authResultVO = authService.auth(true, username, ActionId.CREATE_WHITELIST);
-            if (!authResultVO.isPass()) {
-                return Response.buildAuthFailResp(authResultVO);
+            AuthResult authResult = authService.auth(true, username, ActionId.CREATE_WHITELIST);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
         }
         return Response.buildSuccessResp(whiteIPService.saveWhiteIP(username, createUpdateReq));
@@ -103,9 +104,9 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
 
     @Override
     public Response<WhiteIPRecordVO> getWhiteIPDetailById(String username, Long id) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(whiteIPService.getWhiteIPDetailById(username, id));
     }
@@ -122,9 +123,9 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
 
     @Override
     public Response<Long> deleteWhiteIPById(String username, Long id) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authService.auth(true, username, ActionId.MANAGE_WHITELIST);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(whiteIPService.deleteWhiteIPById(username, id));
     }

@@ -63,7 +63,7 @@ public class Response<T> {
     @ApiModelProperty("请求 ID")
     private String requestId;
 
-    @ApiModelProperty("鉴权结果，当返回码为1238001时，该字段有值")
+    @ApiModelProperty("鉴权结果, 当http code 为 403 的时候，该字段有值")
     @JsonProperty("authResult")
     private AuthResultVO authResult;
 

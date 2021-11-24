@@ -33,12 +33,13 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -66,25 +67,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * @since 8/11/2019 15:41
- */
+
 @Slf4j
 @RestController
 public class WebAppAccountResourceImpl implements WebAppAccountResource {
-    private AccountService accountService;
-    private MessageI18nService i18nService;
-    private WebAuthService authService;
-    private ApplicationService applicationService;
-    private JobManageConfig jobManageConfig;
+    private final AccountService accountService;
+    private final MessageI18nService i18nService;
+    private final AuthService authService;
+    private final ApplicationService applicationService;
+    private final JobManageConfig jobManageConfig;
 
     @Autowired
-    public WebAppAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
-                                     WebAuthService webAuthService, ApplicationService applicationService,
+    public WebAppAccountResourceImpl(AccountService accountService,
+                                     MessageI18nService i18nService,
+                                     AuthService authService,
+                                     ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.authService = webAuthService;
+        this.authService = authService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
     }
@@ -96,9 +97,9 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         if (applicationInfoDTO == null) {
             return Response.buildCommonFailResp(ErrorCode.WRONG_APP_ID);
         }
-        AuthResultVO authResultVO = checkCreateAccountPermission(username, appId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkCreateAccountPermission(username, appId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         JobContextUtil.setAppId(appId);
         accountService.checkCreateParam(accountCreateUpdateReq, true, true);
@@ -123,9 +124,9 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
-        AuthResultVO authResultVO = checkManageAccountPermission(username, appId, accountId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageAccountPermission(username, appId, accountId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         if (!checkUpdateAccountParam(accountCreateUpdateReq)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -283,9 +284,9 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
-        AuthResultVO authResultVO = checkManageAccountPermission(username, appId, accountId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageAccountPermission(username, appId, accountId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         if (accountService.isAccountRefByAnyStep(accountId)) {
             log.info("Account:{} is ref by step, should not delete!", accountId);
@@ -343,7 +344,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         return Response.buildSuccessResp(accountVOS);
     }
 
-    private AuthResultVO checkCreateAccountPermission(String username, Long appId) {
+    private AuthResult checkCreateAccountPermission(String username, Long appId) {
         // 需要拥有在业务下创建账号的权限
         return authService.auth(
             true,
@@ -355,7 +356,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         );
     }
 
-    private AuthResultVO checkManageAccountPermission(String username, Long appId, Long accountId) {
+    private AuthResult checkManageAccountPermission(String username, Long appId, Long accountId) {
         // 需要拥有在业务下管理某个具体账号的权限
         return authService.auth(true, username, ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT,
             accountId.toString(), PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
