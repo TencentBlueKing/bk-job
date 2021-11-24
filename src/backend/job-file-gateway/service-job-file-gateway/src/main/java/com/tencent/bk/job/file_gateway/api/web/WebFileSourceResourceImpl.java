@@ -30,10 +30,11 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
@@ -57,15 +58,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
-    private final WebAuthService authService;
+    private final AuthService authService;
     private final FileSourceService fileSourceService;
 
     @Autowired
     public WebFileSourceResourceImpl(
-        WebAuthService webAuthService,
+        AuthService authService,
         FileSourceService fileSourceService
     ) {
-        this.authService = webAuthService;
+        this.authService = authService;
         this.fileSourceService = fileSourceService;
     }
 
@@ -84,10 +85,11 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     public Response<Integer> saveFileSource(String username, Long appId,
                                             FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
-            AuthResultVO authResultVO = checkCreateFileSourcePermission(username, appId);
-            if (!authResultVO.isPass()) {
-                return Response.buildAuthFailResp(authResultVO);
+            AuthResult authResult = checkCreateFileSourcePermission(username, appId);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
+
             checkParam(fileSourceCreateUpdateReq);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
             Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
@@ -107,37 +109,39 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
                                               FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, fileSourceDTO.getId());
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, fileSourceDTO.getId());
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(fileSourceService.updateFileSourceById(appId, fileSourceDTO));
     }
 
     @Override
     public Response<Integer> deleteFileSource(String username, Long appId, Integer id) {
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
+
         return Response.buildSuccessResp(fileSourceService.deleteFileSourceById(appId, id));
     }
 
     @Override
     public Response<Boolean> enableFileSource(String username, Long appId, Integer id, Boolean enableFlag) {
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
+
         return Response.buildSuccessResp(fileSourceService.enableFileSourceById(username, appId, id,
             enableFlag));
     }
 
     @Override
     public Response<FileSourceVO> getFileSourceDetail(String username, Long appId, Integer id) {
-        AuthResultVO authResultVO = checkViewFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkViewFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(FileSourceDTO.toVO(fileSourceService.getFileSourceById(appId, id)));
     }
@@ -274,20 +278,20 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         fileSourceVOPageData.setCanCreate(checkCreateFileSourcePermission(username, appId).isPass());
     }
 
-    public AuthResultVO checkViewFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public AuthResult checkViewFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下查看某个具体文件源的权限
         return authService.auth(true, username, ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),
             PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
     }
 
-    public AuthResultVO checkCreateFileSourcePermission(String username, Long appId) {
+    public AuthResult checkCreateFileSourcePermission(String username, Long appId) {
         // 需要拥有在业务下创建文件源的权限
         return authService.auth(true, username, ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS,
             appId.toString(), null);
     }
 
-    public AuthResultVO checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public AuthResult checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下管理某个具体文件源的权限
         return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),

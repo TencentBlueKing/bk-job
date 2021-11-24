@@ -432,7 +432,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
         GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, uin, owner);
         req.setAppId(appId);
-        EsbResp<BriefTopologyDTO> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
+        EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
             new TypeReference<EsbResp<BriefTopologyDTO>>() {
             });
         return TopologyUtil.convert(esbResp.getData());
@@ -448,7 +448,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
         GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, uin, owner);
         req.setAppId(appId);
-        EsbResp<List<InstanceTopologyDTO>> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
+        EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
             req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
             });
         if (esbResp.getData().size() > 0) {
@@ -456,6 +456,13 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         } else {
             return null;
         }
+    }
+
+    public <R> EsbResp<R> requestCmdbApi(String method,
+                                         String uri,
+                                         EsbReq reqBody,
+                                         TypeReference<EsbResp<R>> typeReference) {
+        return requestCmdbApi(method, uri, reqBody, typeReference, null);
     }
 
     public <R> EsbResp<R> requestCmdbApi(String method,
@@ -486,7 +493,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         long start = System.nanoTime();
         String status = "none";
         try {
-            EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference);
+            EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
             return esbResp;
         } catch (Throwable e) {
@@ -564,7 +571,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
         GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, uin, owner);
         req.setAppId(appId);
-        EsbResp<GetBizInternalModuleResult> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME,
+        EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(HttpGet.METHOD_NAME,
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
         GetBizInternalModuleResult setInfo = esbResp.getData();
@@ -655,7 +662,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     private FindModuleHostRelationResult getHostsByReq(FindModuleHostRelationReq req) {
-        EsbResp<FindModuleHostRelationResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+        EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             FIND_MODULE_HOST_RELATION, req, new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
             });
         return esbResp.getData();
@@ -882,7 +889,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         while (!isLastPage) {
             Page page = new Page(start, limit);
             req.setPage(page);
-            EsbResp<ListBizHostsTopoResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS_TOPO,
+            EsbResp<ListBizHostsTopoResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS_TOPO,
                 req, new TypeReference<EsbResp<ListBizHostsTopoResult>>() {
                 });
             ListBizHostsTopoResult pageData = esbResp.getData();
@@ -949,7 +956,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, owner);
             PageDTO page = new PageDTO(start, limit, orderField);
             req.setPage(page);
-            EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
                 new TypeReference<EsbResp<SearchAppResult>>() {
                 });
             SearchAppResult data = esbResp.getData();
@@ -1011,7 +1018,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             filedPattern.put("$regex", uin);
             conditionMap.put("bk_biz_maintainer", filedPattern);
             req.setCondition(conditionMap);
-            EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
                 new TypeReference<EsbResp<SearchAppResult>>() {
                 });
             SearchAppResult data = esbResp.getData();
@@ -1052,7 +1059,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("bk_biz_id", appId);
         req.setCondition(conditionMap);
-        EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
             new TypeReference<EsbResp<SearchAppResult>>() {
             });
         SearchAppResult data = esbResp.getData();
@@ -1094,7 +1101,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         while (!isLastPage) {
             req.getPage().setStart(start);
 
-            EsbResp<SearchDynamicGroupResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
                 SEARCH_DYNAMIC_GROUP, req, new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
                 });
             SearchDynamicGroupResult ccRespData = esbResp.getData();
@@ -1151,7 +1158,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
-            EsbResp<ExecuteDynamicGroupHostResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
                 EXECUTE_DYNAMIC_GROUP, req, new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
                 });
             ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
@@ -1209,7 +1216,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             PageDTO page = new PageDTO(start, limit, null);
             req.setPage(page);
             req.setCondition(Collections.emptyMap());
-            EsbResp<SearchCloudAreaResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
+            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
                 new TypeReference<EsbResp<SearchCloudAreaResult>>() {
                 });
             SearchCloudAreaResult data = esbResp.getData();
@@ -1251,7 +1258,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         uin = defaultUin;
         FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, uin, owner);
         req.setHostIdList(hostIdList);
-        EsbResp<List<FindHostBizRelationsResult>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+        EsbResp<List<FindHostBizRelationsResult>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<FindHostBizRelationsResult>>>() {
             });
         List<FindHostBizRelationsResult> results = esbResp.getData();
@@ -1303,7 +1310,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         while (!isLastPage) {
             PageDTO page = new PageDTO(start, limit, "");
             req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
                 LIST_HOSTS_WITHOUT_BIZ, req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
                 });
             ListHostsWithoutBizResult pageData = esbResp.getData();
@@ -1350,7 +1357,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         while (!isLastPage) {
             PageDTO page = new PageDTO(start, limit, "");
             req.setPage(page);
-            EsbResp<ListBizHostResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS, req,
+            EsbResp<ListBizHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS, req,
                 new TypeReference<EsbResp<ListBizHostResult>>() {
                 });
             ListBizHostResult pageData = esbResp.getData();
@@ -1397,7 +1404,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         int start = 0;
         PageDTO page = new PageDTO(start, limit, "");
         req.setPage(page);
-        EsbResp<ListHostsWithoutBizResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ
+        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ
             , req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
             });
         ListHostsWithoutBizResult pageData = esbResp.getData();
@@ -1412,7 +1419,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         GetObjAttributeReq req = makeBaseReqByWeb(
             GetObjAttributeReq.class, null, defaultUin, defaultSupplierAccount);
         req.setObjId(objId);
-        EsbResp<List<CcObjAttributeDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_OBJ_ATTRIBUTES, req,
+        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_OBJ_ATTRIBUTES, req,
             new TypeReference<EsbResp<List<CcObjAttributeDTO>>>() {
             });
         return esbResp.getData();
@@ -1426,7 +1433,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         condition.put("bk_biz_id", appId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
-        EsbResp<CcCountInfo> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+        EsbResp<CcCountInfo> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
             new TypeReference<EsbResp<CcCountInfo>>() {
             });
         searchResult = esbResp.getData();
@@ -1496,7 +1503,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {
-            EsbResp<List<TopoNodePathDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
+            EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
                 req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
                 });
             if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {

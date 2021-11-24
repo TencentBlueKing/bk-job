@@ -27,6 +27,7 @@ spec:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-backup"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.backupConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}

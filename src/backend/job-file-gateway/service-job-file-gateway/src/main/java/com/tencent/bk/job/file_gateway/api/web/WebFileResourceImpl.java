@@ -25,8 +25,9 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
 import com.tencent.bk.job.file_gateway.service.DispatchService;
@@ -59,17 +60,17 @@ public class WebFileResourceImpl implements WebFileResource {
     public Response<FileNodesVO> listFileNode(String username, Long appId, Integer fileSourceId, String path,
                                               String name, Integer start, Integer pageSize) {
         try {
-            AuthResultVO viewFileSourceAuthResultVO = webFileSourceResource.checkViewFileSourcePermission(username,
+            AuthResult viewFileSourceAuthResult = webFileSourceResource.checkViewFileSourcePermission(username,
                 appId, fileSourceId);
-            if (!viewFileSourceAuthResultVO.isPass()) {
-                return Response.buildAuthFailResp(viewFileSourceAuthResultVO);
+            if (!viewFileSourceAuthResult.isPass()) {
+                throw new PermissionDeniedException(viewFileSourceAuthResult);
             }
-            AuthResultVO manageFileSourceAuthResultVO =
+            AuthResult manageFileSourceAuthResult =
                 webFileSourceResource.checkManageFileSourcePermission(username, appId, fileSourceId);
             FileNodesVO fileNodesVO = fileService.listFileNode(username, appId, fileSourceId, path, name, start,
                 pageSize);
             for (Map<String, Object> map : fileNodesVO.getPageData().getData()) {
-                map.put("canManage", manageFileSourceAuthResultVO.isPass());
+                map.put("canManage", manageFileSourceAuthResult.isPass());
             }
             return Response.buildSuccessResp(fileNodesVO);
         } catch (ServiceException e) {
@@ -81,10 +82,10 @@ public class WebFileResourceImpl implements WebFileResource {
     public Response<Boolean> executeAction(String username, Long appId, Integer fileSourceId,
                                            ExecuteActionReq req) {
         try {
-            AuthResultVO authResultVO = webFileSourceResource.checkManageFileSourcePermission(username, appId,
+            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appId,
                 fileSourceId);
-            if (!authResultVO.isPass()) {
-                return Response.buildAuthFailResp(authResultVO);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
             return Response.buildSuccessResp(fileService.executeAction(username, appId, fileSourceId, req));
         } catch (ServiceException e) {

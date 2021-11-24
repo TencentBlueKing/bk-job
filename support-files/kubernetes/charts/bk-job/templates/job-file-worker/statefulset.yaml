@@ -28,6 +28,7 @@ spec:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-file-worker"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.fileWorkerConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}

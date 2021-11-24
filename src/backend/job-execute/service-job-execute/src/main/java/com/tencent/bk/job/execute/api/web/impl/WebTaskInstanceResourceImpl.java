@@ -33,11 +33,11 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -90,21 +90,23 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final TaskOperationLogService taskOperationLogService;
     private final MessageI18nService i18nService;
     private final ExecuteAuthService executeAuthService;
-    private final WebAuthService webAuthService;
+    private final AuthService authService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
                                        TaskInstanceVariableService taskInstanceVariableService,
-                                       ServerService serverService, TaskOperationLogService taskOperationLogService,
-                                       MessageI18nService i18nService, ExecuteAuthService executeAuthService,
-                                       WebAuthService webAuthService) {
+                                       ServerService serverService,
+                                       TaskOperationLogService taskOperationLogService,
+                                       MessageI18nService i18nService,
+                                       ExecuteAuthService executeAuthService,
+                                       AuthService authService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.serverService = serverService;
         this.taskOperationLogService = taskOperationLogService;
         this.i18nService = i18nService;
         this.executeAuthService = executeAuthService;
-        this.webAuthService = webAuthService;
+        this.authService = authService;
     }
 
     @Override
@@ -117,40 +119,25 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
-        AuthResultVO authResultVO = authViewStepInstance(username, appId, stepInstance);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
         return Response.buildSuccessResp(stepVO);
     }
 
-    private AuthResultVO authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
-        if (!authResult.isPass()) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
-                appId.toString()));
-            return webAuthService.toAuthResultVO(authResult);
-        } else {
-            return AuthResultVO.pass();
-        }
+    private AuthResult authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
+        return executeAuthService.authViewTaskInstance(username, appId, taskInstance);
     }
 
-    private AuthResultVO authViewStepInstance(String username, Long appId, StepInstanceDTO stepInstance) {
+    private AuthResult authViewStepInstance(String username, Long appId, StepInstanceDTO stepInstance) {
         String operator = stepInstance.getOperator();
         if (username.equals(operator)) {
-            return AuthResultVO.pass();
+            return AuthResult.pass();
         }
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId,
-            stepInstance.getTaskInstanceId());
-        if (!authResult.isPass()) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
-                appId.toString()));
-            return webAuthService.toAuthResultVO(authResult);
-        } else {
-            return AuthResultVO.pass();
-        }
+        return executeAuthService.authViewTaskInstance(username, appId, stepInstance.getTaskInstanceId());
     }
 
     private void convertFileSources(ExecuteFileStepVO fileStepVO, StepInstanceDTO stepInstance) {
@@ -311,9 +298,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authViewTaskInstance(username, appId, taskInstance);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
@@ -369,9 +356,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authViewTaskInstance(username, appId, taskInstance);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<OperationLogDTO> operationLogs = taskOperationLogService.listOperationLog(taskInstanceId);
@@ -440,9 +427,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        AuthResultVO authResultVO = authViewTaskInstance(username, appId, taskInstance);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = authViewTaskInstance(username, appId, taskInstance);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
     }
@@ -481,10 +468,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        AuthResultVO authResultVO = webAuthService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
             i18nService));

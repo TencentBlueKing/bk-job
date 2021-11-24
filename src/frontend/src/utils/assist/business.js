@@ -47,6 +47,14 @@ export const findUsedVariable = (stepList) => {
  * @returns { Boolean }
  */
 export const checkPublicScript = (route) => {
+    const { meta } = route;
+    if (!meta) {
+        return false;
+    }
+    if (meta.public) {
+        return true;
+    }
+    return false;
 };
 
 /**

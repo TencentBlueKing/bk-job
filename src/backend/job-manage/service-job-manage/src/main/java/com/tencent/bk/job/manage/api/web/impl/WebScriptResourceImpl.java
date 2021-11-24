@@ -34,13 +34,14 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -122,7 +123,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final ScriptDTOBuilder scriptDTOBuilder;
 
-    private final WebAuthService authService;
+    private final AuthService authService;
 
     private final TagService tagService;
 
@@ -132,13 +133,13 @@ public class WebScriptResourceImpl implements WebScriptResource {
         MessageI18nService i18nService,
         ScriptCheckService scriptCheckService,
         ScriptDTOBuilder scriptDTOBuilder,
-        WebAuthService webAuthService,
+        AuthService authService,
         TagService tagService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
-        this.authService = webAuthService;
+        this.authService = authService;
         this.tagService = tagService;
     }
 
@@ -159,9 +160,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         // 鉴权
-        AuthResultVO authResultVO = checkScriptViewPermission(username, appId, script);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptViewPermission(username, appId, script);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
@@ -181,8 +182,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return true;
         }
 
-        AuthResultVO authResultVO = checkScriptManagePermission(username, script.getAppId(), script.getId());
-        if (authResultVO.isPass()) {
+        AuthResult authResult = checkScriptManagePermission(username, script.getAppId(), script.getId());
+        if (authResult.isPass()) {
             return true;
         } else {
             // if user does not have public script management permission, only return online public script version list
@@ -194,8 +195,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                                                Long appId,
                                                                String scriptId,
                                                                List<ScriptVO> scriptVersions) {
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
-        if (authResultVO.isPass()) {
+        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        if (authResult.isPass()) {
             return scriptVersions;
         } else {
             // if user does not have public script management permission, only return online public script version list
@@ -213,9 +214,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         // 鉴权
-        AuthResultVO authResultVO = checkScriptViewPermission(username, appId, script);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptViewPermission(username, appId, script);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<ScriptDTO> scriptVersions = scriptService.listScriptVersion(username, appId, scriptId);
@@ -262,9 +263,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         // 鉴权
-        AuthResultVO authResultVO = checkScriptViewPermission(username, appId, onlineScriptVersion);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptViewPermission(username, appId, onlineScriptVersion);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         ScriptVO onlineScriptVO = ScriptConverter.convertToScriptVO(onlineScriptVersion);
@@ -463,9 +464,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         // 鉴权
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         if (isUpdateDesc) {
@@ -516,11 +517,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
     public Response<List<ScriptVO>> listScriptVersion(String username, Long appId, String scriptId) {
         JobContextUtil.setAppId(appId);
         // 鉴权
-        AuthResultVO viewAuthResultVO = checkScriptViewPermission(username, appId, scriptId);
-        if (!viewAuthResultVO.isPass()) {
-            return Response.buildAuthFailResp(viewAuthResultVO);
+        AuthResult viewAuthResult = checkScriptViewPermission(username, appId, scriptId);
+        if (!viewAuthResult.isPass()) {
+            throw new PermissionDeniedException(viewAuthResult);
         }
-        AuthResultVO manageAuthResultVO = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult manageAuthResult = checkScriptManagePermission(username, appId, scriptId);
 
         List<ScriptDTO> scripts = scriptService.listScriptVersion(username, appId, scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
@@ -534,10 +535,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 scriptVO.setContent(Base64Util.encodeContentToStr(scriptDTO.getContent()));
                 scriptVO.setTypeName(ScriptTypeEnum.getName(scriptVO.getType()));
 
-                scriptVO.setCanView(viewAuthResultVO.isPass());
-                scriptVO.setCanManage(manageAuthResultVO.isPass());
+                scriptVO.setCanView(viewAuthResult.isPass());
+                scriptVO.setCanManage(manageAuthResult.isPass());
                 // 克隆需要管理权限
-                scriptVO.setCanClone(manageAuthResultVO.isPass());
+                scriptVO.setCanClone(manageAuthResult.isPass());
 
                 // 统计被引用次数
                 Integer taskTemplateCiteCount = scriptService.getScriptTemplateCiteCount(username, appId,
@@ -570,9 +571,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         scriptCreateUpdateReq.setAppId(appId);
         log.info("Save script,operator={},appId={},script={}", username, appId, scriptCreateUpdateReq.toString());
 
-        AuthResultVO authResultVO = checkSaveScript(username, appId, scriptCreateUpdateReq);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkSaveScript(username, appId, scriptCreateUpdateReq);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         try {
@@ -625,7 +626,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return Response.buildSuccessResp(scriptVO);
     }
 
-    private AuthResultVO checkSaveScript(String username, long appId, ScriptCreateUpdateReq scriptCreateUpdateReq) {
+    private AuthResult checkSaveScript(String username, long appId, ScriptCreateUpdateReq scriptCreateUpdateReq) {
         Long scriptVersionId = scriptCreateUpdateReq.getScriptVersionId();
         boolean isCreateNew = scriptVersionId == null || scriptVersionId < 0;
         // 创建脚本版本鉴管理权限
@@ -646,9 +647,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         scriptService.publishScript(appId, username, scriptId, scriptVersionId);
@@ -661,9 +662,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         log.info("Disable script version, appId={}, scriptId={}, scriptVersionId={}, username={}", appId, scriptId,
             scriptVersionId, username);
 
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         scriptService.disableScript(appId, username, scriptId, scriptVersionId);
@@ -675,9 +676,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         JobContextUtil.setAppId(appId);
         log.info("Delete script[{}], operator={}, appId={}", scriptId, username, appId);
 
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, scriptId);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         scriptService.deleteScript(username, appId, scriptId);
@@ -694,9 +695,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return Response.buildCommonFailResp(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        AuthResultVO authResultVO = checkScriptManagePermission(username, appId, script.getId());
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkScriptManagePermission(username, appId, script.getId());
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         scriptService.deleteScriptVersion(username, appId, scriptVersionId);
@@ -735,7 +736,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         scriptList.forEach(script -> scriptIdList.add(script.getId()));
 
         if (PUBLIC_APP_ID == appId) {
-            AuthResultVO managePermAuthResult = authService.auth(
+            AuthResult managePermAuthResult = authService.auth(
                 false,
                 username,
                 ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE
@@ -845,27 +846,27 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return fileContent;
     }
 
-    private AuthResultVO checkScriptViewPermission(String username, long appId, String scriptId) {
+    private AuthResult checkScriptViewPermission(String username, long appId, String scriptId) {
         boolean isPublicScript = (appId == PUBLIC_APP_ID);
         if (isPublicScript) {
             // 公共脚本默认公开，无需查看权限
-            return AuthResultVO.pass();
+            return AuthResult.pass();
         }
         return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
             buildAppScriptPathInfo(appId));
     }
 
-    private AuthResultVO checkScriptViewPermission(String username, long appId, ScriptDTO script) {
+    private AuthResult checkScriptViewPermission(String username, long appId, ScriptDTO script) {
         if (script.isPublicScript()) {
             // 公共脚本默认公开，无需查看权限
-            return AuthResultVO.pass();
+            return AuthResult.pass();
         }
         return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT,
             script.getId(), buildAppScriptPathInfo(appId));
     }
 
 
-    private AuthResultVO checkScriptManagePermission(String username, long appId, String scriptId) {
+    private AuthResult checkScriptManagePermission(String username, long appId, String scriptId) {
         boolean isPublicScript = (appId == PUBLIC_APP_ID);
         if (isPublicScript) {
             return authService.auth(true, username, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
@@ -876,7 +877,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
     }
 
-    private AuthResultVO checkScriptCreatePermission(String username, long appId) {
+    private AuthResult checkScriptCreatePermission(String username, long appId) {
         boolean isPublicScript = (appId == PUBLIC_APP_ID);
         if (isPublicScript) {
             return authService.auth(true, username, ActionId.CREATE_PUBLIC_SCRIPT);
@@ -1052,9 +1053,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
         ResourceTypeEnum iamResourceType = isPublicScript ? ResourceTypeEnum.PUBLIC_SCRIPT : ResourceTypeEnum.SCRIPT;
         String actionId = isPublicScript ? ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE : ActionId.MANAGE_SCRIPT;
-        AuthResultVO authResultVO = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        AuthResult authResult = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<ResourceTagDTO> addResourceTags = null;
@@ -1076,7 +1077,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return Response.buildSuccessResp(true);
     }
 
-    private AuthResultVO batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
+    private AuthResult batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
                                          List<String> scriptIdList) {
         List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
             PermissionResource resource = new PermissionResource();
