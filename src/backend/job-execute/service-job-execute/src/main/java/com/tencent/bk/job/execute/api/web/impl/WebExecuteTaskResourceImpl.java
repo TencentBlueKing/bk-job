@@ -28,8 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -362,25 +360,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepExecuteVO.setStepInstanceId(stepInstance.getId());
         stepExecuteVO.setStepName(stepInstance.getName());
         return Response.buildSuccessResp(stepExecuteVO);
-//        try {
-//        } catch (InSufficientPermissionException e) {
-//            return handleInSufficientPermissionException(e);
-//        } catch (ServiceException e) {
-//            log.warn("Fail to start task", e);
-//            return ServiceResponse.buildCommonFailResp(e, i18nService);
-//        } catch (Exception e) {
-//            log.warn("Fail to start task", e);
-//            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-//        }
-    }
-
-    private <T> Response<T> handleInSufficientPermissionException(PermissionDeniedException e) {
-        AuthResult authResult = e.getAuthResult();
-        log.debug("Insufficient permission, authResult: {}", authResult);
-        if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-        }
-        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
     }
 
     private boolean checkFastPushFileRequest(WebFastPushFileRequest request) {

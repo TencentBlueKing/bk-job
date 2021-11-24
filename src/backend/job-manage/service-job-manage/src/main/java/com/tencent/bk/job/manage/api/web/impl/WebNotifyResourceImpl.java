@@ -26,9 +26,10 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
@@ -52,14 +53,14 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
-    private final WebAuthService authService;
+    private final AuthService authService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 WebAuthService webAuthService) {
+                                 AuthService authService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = webAuthService;
+        this.authService = authService;
     }
 
     @Override
@@ -73,10 +74,10 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
         Long appId,
         NotifyPoliciesCreateUpdateReq createUpdateReq
     ) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
+        AuthResult authResult = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return Response.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(notifyService.saveAppDefaultNotifyPolicies(
             username, appId, createUpdateReq));
