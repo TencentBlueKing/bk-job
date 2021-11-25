@@ -1,3 +1,4 @@
+{{- if .Values.job.monitor.collectEnabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -20,3 +21,4 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+{{- end }}

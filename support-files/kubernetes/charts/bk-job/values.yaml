@@ -469,6 +469,7 @@ job:
         enabled: true
   storage:
     rootPath: /data/job/local
+  # 蓝鲸日志平台数据采集
   log:
     file:
       collectEnabled: false
@@ -476,6 +477,9 @@ job:
     std:
       collectEnabled: false
       dataId: 1
+  # 蓝鲸监控数据采集
+  monitor:
+    collectEnabled: false
   migration:
     iamModel:
       enabled: true
