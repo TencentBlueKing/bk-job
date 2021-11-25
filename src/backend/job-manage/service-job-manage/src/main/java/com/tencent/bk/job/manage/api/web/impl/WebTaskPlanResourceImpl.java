@@ -354,13 +354,14 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
         TaskPlanInfoDTO taskPlan = planService.getDebugTaskPlan(username, appId, templateId);
+        TaskPlanVO taskPlanVO = null;
         if (taskPlan != null) {
             StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+            taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
+            taskPlanVO.setCanView(true);
+            taskPlanVO.setCanEdit(true);
+            taskPlanVO.setCanDelete(false);
         }
-        TaskPlanVO taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
-        taskPlanVO.setCanView(true);
-        taskPlanVO.setCanEdit(true);
-        taskPlanVO.setCanDelete(false);
         return Response.buildSuccessResp(taskPlanVO);
     }
 
