@@ -260,9 +260,6 @@ management:
       enabled: true
     info:
       enabled: true
-  metrics:
-    tags:
-      application: ${spring.cloud.consul.discovery.service-name}
 
 job:
   gateway:

@@ -12,7 +12,7 @@ spec:
         username:
           name: {{ include "common.names.fullname" . }}-actuator-basic-auth
           key: user
-    - interval: 3s # 采集周期
+      interval: 3s # 采集周期
       path: /actuator/prometheus # 指标接口路径
       port: http # service的端口名，必须使用端口名，不能使用数字
   namespaceSelector:
