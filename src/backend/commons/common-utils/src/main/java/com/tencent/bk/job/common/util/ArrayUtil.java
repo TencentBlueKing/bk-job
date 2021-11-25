@@ -25,11 +25,12 @@
 package com.tencent.bk.job.common.util;
 
 public class ArrayUtil {
-    public static Object[] toArray(Object obj) {
-        return new Object[]{obj};
-    }
-
-    public static Object[] toArray(Object obj1, Object obj2) {
-        return new Object[]{obj1, obj2};
+    public static Object[] toArray(Object... objects) {
+        if (objects.length == 0) {
+            return new Object[0];
+        }
+        Object[] array = new Object[objects.length];
+        System.arraycopy(objects, 0, array, 0, objects.length);
+        return array;
     }
 }
