@@ -81,7 +81,7 @@ public class JobSrcFileUtils {
     private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
         if (sourceFile.isDir()) {
             String destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(sourceFile.getDir()));
-            return new FileDest(destPath, destDirPath, null);
+            return new FileDest(destPath, destDirPath, "");
         } else {
             String destFileName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getFileName();
             String destPath = FilePathUtils.appendFileName(destDirPath, destFileName);
