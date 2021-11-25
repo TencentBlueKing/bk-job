@@ -28,7 +28,8 @@
 <template>
     <card-layout
         class="script-version-dashboard"
-        :title="$t('dashboard.脚本版本状态分布')">
+        :title="$t('dashboard.脚本版本状态分布')"
+        v-bkloading="{ isLoading, opacity: 0.8 }">
         <div class="wraper">
             <div ref="dashboard" style="width: 180px; height: 180px;" />
             <div class="item-list">
@@ -74,6 +75,7 @@
         },
         data () {
             return {
+                isLoading: true,
                 data: {
                     DISABLED: '',
                     OFFLINE: '',
@@ -117,13 +119,17 @@
         },
         methods: {
             fetchData () {
+                this.isLoading = true;
                 StatisticsService.fetchDistributionMetrics({
                     date: this.date,
                     metric: 'SCRIPT_VERSION_STATUS',
                 }).then((data) => {
                     this.data = data.labelAmountMap;
                     this.init();
-                });
+                })
+                    .finally(() => {
+                        this.isLoading = false;
+                    });
             },
             init () {
                 this.myChart = echarts.init(this.$refs.dashboard);
