@@ -354,6 +354,9 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
         TaskPlanInfoDTO taskPlan = planService.getDebugTaskPlan(username, appId, templateId);
+        if (taskPlan != null) {
+            StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+        }
         TaskPlanVO taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
         taskPlanVO.setCanView(true);
         taskPlanVO.setCanEdit(true);
