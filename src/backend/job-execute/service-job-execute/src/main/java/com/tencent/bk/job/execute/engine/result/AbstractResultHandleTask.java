@@ -299,7 +299,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
                 // 检查任务异常并处理
                 GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
-                if (checkTaskAbnormal(gseLog)) {
+                if (determineTaskAbnormal(gseLog)) {
                     return;
                 }
                 watch.stop();
@@ -383,8 +383,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /*
      * 检查任务是否异常，执行结果持续为空、超时未结束等
      */
-    private boolean checkTaskAbnormal(GseLog<?> gseLog) {
-        return checkTaskTimeout() && checkEmptyGseResult(gseLog);
+    private boolean determineTaskAbnormal(GseLog<?> gseLog) {
+        return checkTaskTimeout() || checkEmptyGseResult(gseLog);
     }
 
     private boolean checkTaskTimeout() {
