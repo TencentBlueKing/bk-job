@@ -183,10 +183,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     // ---------------- task lifecycle properties --------------------
     /**
-     * 拉取执行结果失败次数
-     */
-    private final AtomicInteger pullLogFailCount = new AtomicInteger(0);
-    /**
      * 最近一次成功拉取GSE执行结果的时间
      */
     private long latestPullGseLogSuccessTimeMillis;
@@ -385,7 +381,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /*
-     * 检查任务是否异常，拉取任务结果异常、执行结果持续为空、超时未结束等
+     * 检查任务是否异常，执行结果持续为空、超时未结束等
      */
     private boolean checkTaskAbnormal(GseLog<?> gseLog) {
         return checkTaskTimeout() && checkEmptyGseResult(gseLog);
@@ -408,6 +404,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         return isTimeout;
     }
 
+    /*
+     * 检查从GSE 拉取的任务执行结果是否持续为空
+     */
     private boolean checkEmptyGseResult(GseLog<?> gseLog) {
         if (latestPullGseLogSuccessTimeMillis == 0) {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
@@ -431,28 +430,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
         if (!gseLogBatchPullResult.isSuccess()) {
-            log.error("[{}] Pull gse log error", stepInstanceId);
+            log.error("[{}] Pull gse log error, errorMsg: {}", stepInstanceId, gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
             saveFailInfoForUnfinishedIpTask(IpStatus.LOG_ERROR.getValue(), gseLogBatchPullResult.getErrorMsg());
             handleExecuteResult(GseTaskExecuteResult.FAILED);
             return false;
         }
-
-        GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
-        if (null != gseLog && !gseLog.isNullResp() && gseLog.isError()) {
-            log.error("[{}]: Pull gse log error", stepInstanceId);
-            // 如果日志返回错误，默认重试3次
-            int failPullLogTimes = this.pullLogFailCount.incrementAndGet();
-            if (failPullLogTimes <= 3) {
-                return true;
-            }
-            this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedIpTask(IpStatus.LOG_ERROR.getValue(), gseLog.getErrorMsg());
-            handleExecuteResult(this.executeResult);
-            return false;
-        }
-        // reset pull log fail count if success
-        this.pullLogFailCount.set(0);
         return true;
     }
 
