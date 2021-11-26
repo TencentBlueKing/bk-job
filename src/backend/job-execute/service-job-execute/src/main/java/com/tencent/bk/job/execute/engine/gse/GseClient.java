@@ -74,7 +74,7 @@ public class GseClient implements Closeable {
         } else {
             this.transport = new TSocket(ip, port, 60000);
         }
-        TBinaryProtocol tProtocol = new TBinaryProtocol(transport, 1024, -1);
+        TBinaryProtocol tProtocol = new TBinaryProtocol(transport, 1024, 1024);
         this.gseAgentClient = new doSomeCmdV3.Client(tProtocol);
         if (!transport.isOpen())
             transport.open();
