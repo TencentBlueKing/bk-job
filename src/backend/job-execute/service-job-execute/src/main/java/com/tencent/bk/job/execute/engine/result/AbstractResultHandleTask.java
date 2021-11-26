@@ -73,9 +73,13 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Slf4j
 public abstract class AbstractResultHandleTask<T> implements ContinuousScheduledTask {
     /**
-     * GSE任务执行结果最大等待时间,10min.用于异常情况下的任务自动终止，防止长时间占用系统资源
+     * GSE任务执行结果为空,Job最大容忍时间,5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
-    private static final int GSE_TASK_EMPTY_RESULT_TIMEOUT = 600_000;
+    private static final int GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS = 300_000;
+    /**
+     * GSE任务超时未结束,Job最大容忍时间。5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
+     */
+    private static final int GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS = 300_000;
     /*
      * 同步锁
      */
@@ -297,9 +301,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                     return;
                 }
 
-                // 超时处理
+                // 检查任务异常并处理
                 GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
-                if (checkGseLogWaitingTimeout(gseLog)) {
+                if (checkTaskAbnormal(gseLog)) {
                     return;
                 }
                 watch.stop();
@@ -308,7 +312,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                     watch.start("analyse-task-result-batch-" + batch);
                     this.executeResult = analyseGseTaskLog(gseLog);
                     watch.stop();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     log.error("[" + stepInstanceId + "]: analyse gse task log result error.", e);
                     throw e;
                 }
@@ -317,7 +321,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.start("handle-execute-result");
             handleExecuteResult(this.executeResult);
             watch.stop();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("[" + stepInstanceId + "]: result handle error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
             handleExecuteResult(this.executeResult);
@@ -380,25 +384,49 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         gseTaskLogService.batchSaveIpLog(notFinishedIpLogs);
     }
 
-    private boolean checkGseLogWaitingTimeout(GseLog<?> gseLog) {
-        // 超时处理
+    /*
+     * 检查任务是否异常，拉取任务结果异常、执行结果持续为空、超时未结束等
+     */
+    private boolean checkTaskAbnormal(GseLog<?> gseLog) {
+        return checkTaskTimeout() && checkEmptyGseResult(gseLog);
+    }
+
+    private boolean checkTaskTimeout() {
+        long startTime = gseTaskLog.getStartTime();
+        long runDuration = System.currentTimeMillis() - startTime;
+        boolean isTimeout = false;
+        // 作业执行超时,但是GSE并没有按照预期结束作业;job最大容忍5min，然后判定任务异常
+        if (runDuration - 1000 * stepInstance.getTimeout() >= GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS) {
+            log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", stepInstanceId, runDuration,
+                stepInstance.getTimeout());
+            this.executeResult = GseTaskExecuteResult.FAILED;
+            saveFailInfoForUnfinishedIpTask(IpStatus.LOG_ERROR.getValue(),
+                "Task execution may be abnormal or timeout.");
+            handleExecuteResult(GseTaskExecuteResult.FAILED);
+            isTimeout = true;
+        }
+        return isTimeout;
+    }
+
+    private boolean checkEmptyGseResult(GseLog<?> gseLog) {
         if (latestPullGseLogSuccessTimeMillis == 0) {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
         }
-        boolean isTimeout = false;
+        boolean isAbnormal = false;
         if (null == gseLog || gseLog.isNullResp()) {
             long currentTimeMillis = System.currentTimeMillis();
-            if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_TIMEOUT) {// 执行结果持续为空.
+            // 执行结果持续为空
+            if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", stepInstanceId);
                 this.executeResult = GseTaskExecuteResult.FAILED;
                 saveFailInfoForUnfinishedIpTask(IpStatus.LOG_ERROR.getValue(), "Execution result log always empty.");
                 handleExecuteResult(GseTaskExecuteResult.FAILED);
-                isTimeout = true;
+                isAbnormal = true;
             }
         } else {
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
         }
-        return isTimeout;
+        return isAbnormal;
     }
 
     private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
@@ -423,6 +451,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             handleExecuteResult(this.executeResult);
             return false;
         }
+        // reset pull log fail count if success
+        this.pullLogFailCount.set(0);
         return true;
     }
 
