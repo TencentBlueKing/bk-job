@@ -40,7 +40,7 @@ public class IamCallbackExceptionControllerAdvice extends ExceptionControllerAdv
         CallbackBaseResponseDTO responseDTO = new CallbackBaseResponseDTO();
         responseDTO.setCode(CommonResponseCode.PARAMS_INVALID);
         responseDTO.setMessage(ex.getI18nMessage());
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.BAD_REQUEST);
     }
 
 }
