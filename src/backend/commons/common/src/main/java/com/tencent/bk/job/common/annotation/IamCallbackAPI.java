@@ -21,29 +21,16 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+package com.tencent.bk.job.common.annotation;
 
-package com.tencent.bk.job.crontab.api.iam;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import com.tencent.bk.job.common.annotation.IamCallbackAPI;
-import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-/**
- * @since 20/3/2020 21:44
- */
-@RequestMapping("/iam/api/v1/resources/cron")
-@IamCallbackAPI
-public interface IamCallbackController {
-
-    /**
-     * 权限中心回调
-     *
-     * @param callbackRequest 回调请求
-     * @return 权限中心回调响应
-     */
-    @PostMapping("/job")
-    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface IamCallbackAPI {
 }
