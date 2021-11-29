@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -74,7 +75,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
 
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_script_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_list"})
     public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(EsbGetScriptListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {

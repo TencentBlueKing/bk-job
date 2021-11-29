@@ -50,7 +50,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -129,18 +128,31 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         backupRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_BACKUP_ARTIFACTORY_REPO);
         logExportRepo = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_LOG_EXPORT_ARTIFACTORY_REPO);
         storageRootPath = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_STORAGE_ROOT_PATH);
-        enableMigrateLocalUploadFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE, "true"));
-        enableMigrateBackupFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE, "false"));
-        enableMigrateLogExportFile = Boolean.parseBoolean((String) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, "false"));
-        uploadConcurrency = (Integer) properties.getOrDefault(ParamNameConsts.CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY, 20);
-        uploadExecutor = new ThreadPoolExecutor(uploadConcurrency, uploadConcurrency, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(200), new RejectedExecutionHandler() {
-            @Override
-            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+        enableMigrateLocalUploadFile = Boolean.parseBoolean(
+            (String) properties.getOrDefault(
+                ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOCAL_UPLOAD_FILE, "true"
+            ));
+        enableMigrateBackupFile = Boolean.parseBoolean(
+            (String) properties.getOrDefault(
+                ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_BACKUP_FILE, "false"
+            ));
+        enableMigrateLogExportFile = Boolean.parseBoolean(
+            (String) properties.getOrDefault(
+                ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, "false"
+            ));
+        uploadConcurrency = Integer.parseInt(
+            (String) properties.getOrDefault(
+                ParamNameConsts.CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY, 20
+            ));
+        uploadExecutor = new ThreadPoolExecutor(
+            uploadConcurrency, uploadConcurrency,
+            1, TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(200),
+            (r, executor) -> {
                 // 使用当前线程上传
                 log.info("task queue full, use current thread to upload");
                 r.run();
-            }
-        });
+            });
     }
 
     private void initUserAndProject() {

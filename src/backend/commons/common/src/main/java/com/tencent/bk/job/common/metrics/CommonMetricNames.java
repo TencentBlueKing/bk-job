@@ -22,16 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.constants;
+package com.tencent.bk.job.common.metrics;
 
-public interface GseConstants {
+/**
+ * 公共监控指标
+ */
+public class CommonMetricNames {
     /**
-     * 直连云区域ID
+     * 调用CMDB API
      */
-    int DEFAULT_CLOUD_ID = 0;
+    public static final String CMDB_API = "job.client.cmdb.api";
 
     /**
-     * GSE API 度量指标名称前缀
+     * 被调用ESB API
      */
-    String GSE_API_METRICS_NAME_PREFIX = "job.client.gse.api";
+    public static final String ESB_API = "job.server.esb.api";
 }
