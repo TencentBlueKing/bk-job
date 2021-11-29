@@ -485,6 +485,8 @@ job:
       enabled: true
     mysqlSchema:
       enabled: true
+  # 各微服务Actuator监控端口
+  managePort: 19876
 
 ## @section job-gateway parameters
 gatewayConfig:

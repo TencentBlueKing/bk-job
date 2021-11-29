@@ -113,6 +113,10 @@ data:
     swagger:
       url: {{ .Values.swagger.url }}
     management:
+      server:
+        port: {{ .Values.job.managePort }}
+        ssl:
+          enabled: false
       metrics:
         tags:
           application: ${spring.application.name}
