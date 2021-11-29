@@ -99,7 +99,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: http
+              port: management
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
@@ -108,7 +108,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: http
+              port: management
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
