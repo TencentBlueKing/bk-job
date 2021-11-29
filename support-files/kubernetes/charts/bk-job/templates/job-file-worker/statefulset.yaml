@@ -98,6 +98,9 @@ spec:
             - name: http
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}
               protocol: TCP
+            - name: management
+              containerPort: {{ .Values.job.managePort }}
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

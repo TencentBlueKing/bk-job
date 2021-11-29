@@ -532,7 +532,6 @@ gatewayConfig:
   containerPort:
     https: 19802
     http: 9802
-    management: 19876
   service:
     type: ClusterIP
     port:
