@@ -86,7 +86,7 @@ spec:
               containerPort: {{ .Values.logsvrConfig.containerPort }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.logsvrConfig.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:

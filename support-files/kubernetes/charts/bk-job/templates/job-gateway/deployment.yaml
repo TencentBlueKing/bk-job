@@ -89,7 +89,7 @@ spec:
               containerPort: {{ .Values.gatewayConfig.containerPort.https }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.gatewayConfig.containerPort.management }}
               protocol: TCP
           livenessProbe:
             httpGet:

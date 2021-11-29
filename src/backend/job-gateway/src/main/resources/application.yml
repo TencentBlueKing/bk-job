@@ -224,6 +224,10 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+  server:
+    port: 19876
+    ssl:
+      enabled: false
   endpoints:
     web:
       exposure:

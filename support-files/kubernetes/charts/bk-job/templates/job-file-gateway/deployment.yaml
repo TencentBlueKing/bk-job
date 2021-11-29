@@ -88,7 +88,7 @@ spec:
               containerPort: {{ .Values.fileGatewayConfig.containerPort }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.fileGatewayConfig.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:

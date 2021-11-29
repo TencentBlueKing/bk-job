@@ -88,7 +88,7 @@ spec:
               containerPort: {{ .Values.backupConfig.containerPort }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.backupConfig.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:

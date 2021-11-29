@@ -99,7 +99,7 @@ spec:
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.fileWorkerConfig.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:

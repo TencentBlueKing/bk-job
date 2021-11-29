@@ -233,4 +233,7 @@ data:
         key-alias: job_server.p12
         trust-store: "file:/data/job/cert/job_server.truststore"
         trust-store-password: ${truststore.password}
+    management:
+      server:
+        port: {{ .Values.gatewayConfig.containerPort.management }}
 {{- end}}

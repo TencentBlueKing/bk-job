@@ -89,7 +89,7 @@ spec:
               containerPort: {{ .Values.crontabConfig.containerPort }}
               protocol: TCP
             - name: management
-              containerPort: {{ .Values.job.managePort }}
+              containerPort: {{ .Values.crontabConfig.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
