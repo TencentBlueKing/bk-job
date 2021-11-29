@@ -71,6 +71,10 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
      * 下发到gse的脚本文件根目录
      */
     protected String scriptFilePath;
+    /**
+     * 下发到gse的脚本文件名前缀
+     */
+    protected String scriptFileNamePrefix;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -90,8 +94,15 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                               Set<String> executeIps,
                               JobBuildInVariableResolver jobBuildInVariableResolver) {
         super(requestId, gseTasksExceptionCounter, taskInstance, stepInstance, executeIps);
+        this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
 
+    }
+
+    private String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
+        // job 下发到 GSE 的所有脚本，需要以 "bk_gse_script_" 作为前缀，GSE 会自动清理过期的脚本
+        return "bk_gse_script_" + stepInstance.getTaskInstanceId() +
+            "_" + stepInstance.getId();
     }
 
     private String buildScriptFilePath(String gseScriptFileRootPath, String account) {
@@ -139,14 +150,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         return request;
     }
 
-    private String buildScriptFileName(StepInstanceDTO stepInstance) {
-        String scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
-        return scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
-    }
-
-    public String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
-        return "task_" + stepInstance.getTaskInstanceId() +
-            "_" + stepInstance.getId();
+    protected String buildScriptFileName(StepInstanceDTO stepInstance) {
+        return this.scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
     }
 
     /**
@@ -242,15 +247,13 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         String userScriptFileName = buildScriptFileName(stepInstance);
         builder.addScriptFile(scriptFilePath, userScriptFileName, userScriptContent);
 
-        String scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
-
         //声明初始变量的脚本
-        String declareVarFileName = "stepInstanceId_" + stepInstance.getId() + "_params_input.env";
+        String declareVarFileName = this.scriptFileNamePrefix + "_params_input.env";
         String declareVarScriptContent = buildConstVarDeclareScript(taskVars, importVariables);
         builder.addScriptFile(scriptFilePath, declareVarFileName, declareVarScriptContent);
 
         //封装用户脚本
-        String wrapperScriptFileName = scriptFileNamePrefix + "_wrapper.sh";
+        String wrapperScriptFileName = this.scriptFileNamePrefix + "_wrapper.sh";
         String wrapperScriptContent = buildWrapperScriptWithConstParamOnly(declareVarFileName, userScriptFileName);
         builder.addScriptFile(scriptFilePath, wrapperScriptFileName, wrapperScriptContent);
 
@@ -390,17 +393,15 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         String userScriptContent = stepInstance.getScriptContent();
         String userScriptFileName = buildScriptFileName(stepInstance);
 
-        String scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
-
         //参数声明脚本
-        String declareVarFileName = scriptFileNamePrefix + "_params_input.env";
+        String declareVarFileName = this.scriptFileNamePrefix + "_params_input.env";
         String declareVarScriptContent = buildChangeableVarDeclareScript(taskVariablesAnalyzeResult,
             importVariables);
 
         //封装用户脚本
-        String wrapperScriptFileName = scriptFileNamePrefix + "_wrapper.sh";
+        String wrapperScriptFileName = this.scriptFileNamePrefix + "_wrapper.sh";
         //所有参数导出临时文件
-        String paramsOutputFileName = scriptFileNamePrefix + "_params_output.env";
+        String paramsOutputFileName = this.scriptFileNamePrefix + "_params_output.env";
         //命名空间参数导出文件
         String namespaceParamOutputFile = getNamespaceParamOutputFile();
         String wrapperScriptContent = buildWrapperScriptWhenExistChangeableVar(taskVariablesAnalyzeResult,
@@ -409,7 +410,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
         //获取参数脚本
         String getJobParamScriptContent = buildGetJobParamsScript(paramsOutputFileName);
-        String getJobParamScriptFileName = scriptFileNamePrefix + "_get_params.sh";
+        String getJobParamScriptFileName = this.scriptFileNamePrefix + "_get_params.sh";
 
         builder.addScriptFile(scriptFilePath, userScriptFileName, userScriptContent);
         builder.addScriptFile(scriptFilePath, declareVarFileName, declareVarScriptContent);
@@ -422,7 +423,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     }
 
     private String getNamespaceParamOutputFile() {
-        return "taskInstanceId_" + stepInstance.getTaskInstanceId() + "_namespace_params_output.env";
+        return this.scriptFileNamePrefix + "_namespace_params_output.env";
     }
 
     /*
