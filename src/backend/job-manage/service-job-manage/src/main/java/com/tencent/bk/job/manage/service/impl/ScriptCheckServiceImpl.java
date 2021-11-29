@@ -43,7 +43,9 @@ import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -99,6 +101,10 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     @Override
     public List<ScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
+        if (StringUtils.isBlank(content)) {
+            return checkResultList;
+        }
+
         try {
             List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
             int timeout = 5;
@@ -130,7 +136,10 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
 
         } catch (Exception e) {
             // 脚本检查非强制，如果检查过程中抛出异常不应该影响业务的使用
-            log.warn("Check script caught exception, return empty check result by default!", e);
+            String errorMsg = MessageFormatter.format(
+                "Check script caught exception! scriptType: {}, content: {}",
+                scriptType, content).getMessage();
+            log.error(errorMsg, e);
             return Collections.emptyList();
         }
         return checkResultList;
@@ -140,21 +149,27 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     public List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(ScriptTypeEnum scriptType, String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
 
+        if (StringUtils.isBlank(content)) {
+            return Collections.emptyList();
+        }
+
         try {
             int timeout = 5;
+            ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }
-
-            ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = executor.submit(
                 new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             checkResultList.addAll(dangerousRuleCheckResultItems.get(timeout, TimeUnit.SECONDS));
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
         } catch (Exception e) {
-            log.warn("Check script caught exception!", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+            String errorMsg = MessageFormatter.format(
+                "Check script caught exception! scriptType: {}, content: {}",
+                scriptType, content).getMessage();
+            log.error(errorMsg, e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }
