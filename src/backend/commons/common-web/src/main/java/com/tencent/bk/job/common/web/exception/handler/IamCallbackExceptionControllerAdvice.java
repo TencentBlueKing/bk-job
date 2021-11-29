@@ -1,8 +1,10 @@
 package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.annotation.IamCallbackAPI;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +29,8 @@ public class IamCallbackExceptionControllerAdvice extends ExceptionControllerAdv
         log.error("Handle Throwable", ex);
         CallbackBaseResponseDTO responseDTO = new CallbackBaseResponseDTO();
         responseDTO.setCode(CommonResponseCode.SYSTEM_ERROR);
-        responseDTO.setMessage(ex.getMessage());
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        responseDTO.setMessage(I18nUtil.getI18nMessage(String.valueOf(ErrorCode.INTERNAL_ERROR)));
+        return new ResponseEntity<>(responseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidParamException.class)
