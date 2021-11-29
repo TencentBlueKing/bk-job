@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateStepInstanceResource;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -57,7 +58,7 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_operate_step_instance"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_step_instance"})
     public EsbResp<EsbJobExecuteDTO> operateStepInstance(EsbOperateStepInstanceRequest request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {

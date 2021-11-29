@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -74,7 +75,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_job_instance_ip_log"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_ip_log"})
     public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(EsbGetJobInstanceIpLogV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {

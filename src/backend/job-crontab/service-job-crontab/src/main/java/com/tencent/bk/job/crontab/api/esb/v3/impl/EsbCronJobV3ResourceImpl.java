@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
@@ -131,7 +132,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_cron_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_cron_list"})
     public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronListUsingPost(EsbGetCronListV3Request request) {
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
@@ -196,7 +197,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_update_cron_status"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_cron_status"})
     public EsbResp<EsbCronInfoV3Response> updateCronStatus(EsbUpdateCronStatusV3Request request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
@@ -224,7 +225,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_save_cron"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_save_cron"})
     public EsbResp<EsbCronInfoV3Response> saveCron(EsbSaveCronV3Request request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();

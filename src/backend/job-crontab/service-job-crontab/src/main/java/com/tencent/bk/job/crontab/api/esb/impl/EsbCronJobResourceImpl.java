@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -79,7 +80,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_cron_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_cron_list"})
     public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
@@ -133,7 +134,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_update_cron_status"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_update_cron_status"})
     public EsbResp<EsbCronInfoResponse> updateCronStatus(EsbUpdateCronStatusRequest request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
@@ -165,7 +166,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_save_cron"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_save_cron"})
     public EsbResp<EsbCronInfoResponse> saveCron(EsbSaveCronRequest request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
