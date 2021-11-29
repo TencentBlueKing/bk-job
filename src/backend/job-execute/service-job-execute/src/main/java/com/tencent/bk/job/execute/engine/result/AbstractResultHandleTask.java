@@ -79,7 +79,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * GSE任务超时未结束,Job最大容忍时间。5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
-    private static final int GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS = 60_000;
+    private static final int GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS = 300_000;
     /*
      * 同步锁
      */
