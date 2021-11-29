@@ -25,7 +25,7 @@ public abstract class BaseIamCallbackService {
     }
 
     public CallbackBaseResponseDTO getNotFoundRespById(String id) {
-        String msg = String.format("cannot find resource by id %d, may be deleted", id);
+        String msg = String.format("cannot find resource by id %s, may be deleted", id);
         log.warn(msg);
         return getNotFoundResp(msg);
     }
