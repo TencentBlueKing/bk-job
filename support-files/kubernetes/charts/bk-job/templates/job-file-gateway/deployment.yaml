@@ -87,13 +87,10 @@ spec:
             - name: http
               containerPort: {{ .Values.fileGatewayConfig.containerPort }}
               protocol: TCP
-            - name: management
-              containerPort: {{ .Values.fileGatewayConfig.containerPort }}
-              protocol: TCP
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: management
+              port: http
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
@@ -102,7 +99,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: management
+              port: http
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
