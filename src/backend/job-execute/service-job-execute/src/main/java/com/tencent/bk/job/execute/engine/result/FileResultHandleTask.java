@@ -343,7 +343,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                             fileTaskResult.getSourceCloudIp(), fileTaskResult.getTaskId());
                     }
                     analyseIpResult(errorCode.getValue(), cloudIp, fileTaskResult.getStartTime(),
-                        fileTaskResult.getEndTime());
+                        fileTaskResult.getEndTime(), isDownloadLog);
                 } else {
                     ipLog.setStatus(IpStatus.RUNNING.getValue());
                     this.notStartedIpSet.remove(cloudIp);
@@ -359,11 +359,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         fileTaskResult.getSourceCloudIp(), fileTaskResult.getTaskId());
                 }
                 analyseIpResult(errorCode.getValue(), cloudIp, fileTaskResult.getStartTime(),
-                    fileTaskResult.getEndTime());
+                    fileTaskResult.getEndTime(), isDownloadLog);
                 this.isTerminatedSuccess = true;
                 break;
             default:
-                dealIpTaskFail(copyFileRsp, executionLogs);
+                dealIpTaskFail(copyFileRsp, executionLogs, isDownloadLog);
                 break;
         }
     }
@@ -596,7 +596,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
 
-    private void dealIpTaskFail(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs) {
+    private void dealIpTaskFail(
+        CopyFileRsp copyFileRsp,
+        Map<String, ServiceIpLogDTO> executionLogs,
+        boolean isDownloadLog
+    ) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         boolean isDownloadError = taskResult.isDownloadMode();
         // 被该错误影响的ip
@@ -659,9 +663,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         String cloudIp = isDownloadError ? taskResult.getDestCloudIp() : taskResult.getSourceCloudIp();
         for (String affectIp : affectIps) {
             if (affectIp.equals(cloudIp)) {
-                analyseIpResult(copyFileRsp.getFinalErrorCode(), affectIp, startTime, endTime);
+                analyseIpResult(copyFileRsp.getFinalErrorCode(), affectIp, startTime, endTime, isDownloadLog);
             } else {
-                analyseIpResult(0, affectIp, startTime, endTime);
+                analyseIpResult(0, affectIp, startTime, endTime, isDownloadLog);
             }
         }
     }
@@ -733,13 +737,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
     }
 
-    private void analyseIpResult(int errorCode, String cloudIp, long startTime, long endTime) {
+    private void analyseIpResult(int errorCode, String cloudIp, long startTime, long endTime, boolean isDownloadLog) {
         int finishedNum;
         int fileNum;
         int successNum;
         boolean isTargetIp = targetIpSet.contains(cloudIp);
         boolean isSourceIp = fileSourceIPSet.contains(cloudIp);
-        if (isTargetIp) {
+        if (isDownloadLog && isTargetIp) {
             finishedNum = this.finishedDownloadFileMap.get(cloudIp) == null ? 0 :
                 this.finishedDownloadFileMap.get(cloudIp).size();
             fileNum = this.fileDownloadTaskNumMap.get(cloudIp) == null ? 0 : this.fileDownloadTaskNumMap.get(cloudIp);
@@ -759,7 +763,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (finishedNum >= fileNum) {
             log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 stepInstanceId, cloudIp, finishedNum, fileNum);
-            if (isTargetIp) {
+            if (isDownloadLog && isTargetIp) {
                 dealIPFinish(cloudIp, startTime, endTime, ipLog);
             }
             if (isSourceIp) {
@@ -767,7 +771,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             }
             if (successNum >= fileNum) {
                 // 每个文件都处理完了，才算IP完成执行
-                if (isTargetIp) {
+                if (isDownloadLog && isTargetIp) {
                     ipLog.setStatus(IpStatus.SUCCESS.getValue());
                     this.successIpSet.add(cloudIp);
                 }
