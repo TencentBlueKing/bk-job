@@ -647,6 +647,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
     }
 
+    private long getStartTimeOrDefault(GSEFileTaskResult content) {
+        return (content != null && content.getStartTime() != null && content.getStartTime() > 0) ?
+            content.getStartTime() : System.currentTimeMillis();
+    }
+
+    private long getEndTimeOrDefault(GSEFileTaskResult content) {
+        return (content != null && content.getEndTime() != null && content.getEndTime() > 0) ?
+            content.getEndTime() : System.currentTimeMillis();
+    }
+
     private void dealIpTaskFail(
         CopyFileRsp copyFileRsp,
         Map<String, ServiceIpLogDTO> executionLogs,
@@ -674,10 +684,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
 
         GSEFileTaskResult content = copyFileRsp.getGseFileTaskResult();
-        long startTime = (content != null && content.getStartTime() != null && content.getStartTime() > 0) ?
-            copyFileRsp.getGseFileTaskResult().getStartTime() : System.currentTimeMillis();
-        long endTime = (content != null && content.getEndTime() != null && content.getEndTime() > 0) ?
-            copyFileRsp.getGseFileTaskResult().getEndTime() : System.currentTimeMillis();
+        long startTime = getStartTimeOrDefault(content);
+        long endTime = getEndTimeOrDefault(content);
 
         String cloudIp = isDownloadError ? taskResult.getDestCloudIp() : taskResult.getSourceCloudIp();
         for (String affectIp : affectIps) {
