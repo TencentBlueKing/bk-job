@@ -30,6 +30,10 @@ public class JobConstants {
      */
     public static final long PUBLIC_APP_ID = 0L;
     /**
+     * 执行结果分组标签最大长度
+     */
+    public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;
+    /**
      * 文件存储后端：本地
      */
     public static final String FILE_STORAGE_BACKEND_LOCAL = "local";
