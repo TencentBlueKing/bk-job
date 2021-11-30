@@ -32,7 +32,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,8 +49,9 @@ public class StringUtil {
 
     /**
      * 使用对象中的字段值替换路径中的占位符
+     *
      * @param path 原始路径
-     * @param obj 数据对象
+     * @param obj  数据对象
      * @return 替换后的路径
      */
     public static String replacePathVariables(String path, Object obj) {
@@ -72,8 +72,9 @@ public class StringUtil {
 
     /**
      * 去除字符串前后缀
+     *
      * @param rawStr 原始字符串
-     * @param fix 前缀/后缀
+     * @param fix    前缀/后缀
      * @return 去除前后缀后的字符串
      */
     public static String removePrefixAndSuffix(String rawStr, String fix) {
@@ -84,6 +85,7 @@ public class StringUtil {
 
     /**
      * 去除字符串前缀
+     *
      * @param rawStr 原始字符串
      * @param prefix 前缀
      * @return 去除前缀后的字符串
@@ -99,6 +101,7 @@ public class StringUtil {
 
     /**
      * 去除字符串后缀
+     *
      * @param rawStr 原始字符串
      * @param suffix 后缀
      * @return 去除后缀后的字符串
@@ -114,8 +117,9 @@ public class StringUtil {
 
     /**
      * 将list数据拼接为字符串，默认使用英文逗号作为分隔符
+     *
      * @param list 原始list
-     * @param <T> 数据类型
+     * @param <T>  数据类型
      * @return 拼接后的字符串
      */
     public static <T> String listToStr(List<T> list) {
@@ -124,9 +128,10 @@ public class StringUtil {
 
     /**
      * 将list数据拼接为字符串
-     * @param list 原始list
+     *
+     * @param list      原始list
      * @param separator 分隔符
-     * @param <T> 数据类型
+     * @param <T>       数据类型
      * @return 拼接后的字符串
      */
     public static <T> String listToStr(List<T> list, String separator) {
@@ -139,10 +144,11 @@ public class StringUtil {
 
     /**
      * 从字符串提取List
-     * @param str 字符串
-     * @param clazz 目标类型Class对象
+     *
+     * @param str       字符串
+     * @param clazz     目标类型Class对象
      * @param separator 分隔符
-     * @param <T> 目标类型
+     * @param <T>       目标类型
      * @return list
      */
     public static <T> List<T> strToList(String str, Class<T> clazz, String separator) {
@@ -172,8 +178,9 @@ public class StringUtil {
 
     /**
      * 从字符串中提取符合指定正则模式的占位符
+     *
      * @param rawData 原始字符串
-     * @param regex 正则表达式
+     * @param regex   正则表达式
      * @return 占位符字符串
      */
     public static List<String> findOneRegexPatterns(String rawData, String regex) {
@@ -198,8 +205,9 @@ public class StringUtil {
 
     /**
      * 使用变量Map中指定的值对原始字符串的指定模式进行替换，默认替换深度为3
-     * @param rawStr 原始字符串
-     * @param pattern 要替换的子串模式
+     *
+     * @param rawStr       原始字符串
+     * @param pattern      要替换的子串模式
      * @param variablesMap 变量表
      * @return 替换后的字符串
      */
@@ -209,10 +217,11 @@ public class StringUtil {
 
     /**
      * 使用变量Map中指定的值对原始字符串的指定模式进行替换
-     * @param rawStr 原始字符串
-     * @param pattern 要替换的子串模式
+     *
+     * @param rawStr       原始字符串
+     * @param pattern      要替换的子串模式
      * @param variablesMap 变量表
-     * @param depth 变量中包含变量时的最大递归替换深度
+     * @param depth        变量中包含变量时的最大递归替换深度
      * @return 替换后的字符串
      */
     public static String replaceByRegex(String rawStr, String pattern, Map<String, String> variablesMap, int depth) {
