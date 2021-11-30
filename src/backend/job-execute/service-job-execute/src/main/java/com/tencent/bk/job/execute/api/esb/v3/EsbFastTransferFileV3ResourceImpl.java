@@ -46,6 +46,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -272,7 +273,7 @@ public class EsbFastTransferFileV3ResourceImpl
         if (request.getTimeout() == null) {
             stepInstance.setTimeout(7200);
         } else {
-            stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+            stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
         }
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);

@@ -22,42 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.execute.common.util;
+
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
+import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
+import static com.tencent.bk.job.common.constant.JobConstants.MIN_JOB_TIMEOUT_SECONDS;
 
 /**
- * Job 全局通用常量
+ * 作业工具类
  */
-public class JobConstants {
+public class TaskUtil {
     /**
-     * 公共资源对应的业务ID(比如公共脚本)
+     * 计算作业超时时间
+     *
+     * @param timeout 超时时间
+     * @return 超时时间，单位秒
      */
-    public static final long PUBLIC_APP_ID = 0L;
-    /**
-     * 执行结果分组标签最大长度
-     */
-    public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;
-    /**
-     * 文件存储后端：本地
-     */
-    public static final String FILE_STORAGE_BACKEND_LOCAL = "local";
-    /**
-     * 文件存储后端：制品库
-     */
-    public static final String FILE_STORAGE_BACKEND_ARTIFACTORY = "artifactory";
-    /**
-     * PROFILE-Kubernetes
-     */
-    public static final String PROFILE_KUBERNETES = "kubernetes";
-    /**
-     * 作业默认超时时间，单位秒
-     */
-    public static final int DEFAULT_JOB_TIMEOUT_SECONDS = 7200;
-    /**
-     * 作业最小超时时间，单位秒
-     */
-    public static final int MIN_JOB_TIMEOUT_SECONDS = 60;
-    /**
-     * 作业最大超时时间，单位秒
-     */
-    public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    public static int calculateTimeout(Integer timeout) {
+        int finalTimeout = DEFAULT_JOB_TIMEOUT_SECONDS;
+        if (timeout != null && timeout > 0) {
+            if (timeout > MAX_JOB_TIMEOUT_SECONDS) {
+                finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
+            } else if (timeout < MIN_JOB_TIMEOUT_SECONDS) {
+                finalTimeout = MIN_JOB_TIMEOUT_SECONDS;
+            } else {
+                finalTimeout = timeout;
+            }
+        }
+        return finalTimeout;
+    }
 }
