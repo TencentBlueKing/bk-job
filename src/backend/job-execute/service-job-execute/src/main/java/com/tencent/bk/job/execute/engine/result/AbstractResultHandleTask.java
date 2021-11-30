@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -392,7 +393,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         long runDuration = System.currentTimeMillis() - startTime;
         boolean isTimeout = false;
         // 作业执行超时,但是GSE并没有按照预期结束作业;job最大容忍5min，然后判定任务异常
-        if (runDuration - 1000 * stepInstance.getTimeout() >= GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS) {
+        long timeout = stepInstance.getTimeout() == null ?
+            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : stepInstance.getTimeout();
+        if (runDuration - 1000 * timeout >= GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS) {
             log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", stepInstanceId, runDuration,
                 stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;

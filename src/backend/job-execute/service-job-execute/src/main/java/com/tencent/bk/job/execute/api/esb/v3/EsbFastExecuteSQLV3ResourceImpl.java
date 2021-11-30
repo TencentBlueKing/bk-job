@@ -38,6 +38,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
@@ -169,7 +170,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
         }
 
-        stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+        stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
