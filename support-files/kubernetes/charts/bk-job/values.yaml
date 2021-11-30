@@ -384,6 +384,10 @@ gse:
     zookeeper:
       connect:
         string: "gse-zk.example.com"
+  script:
+    ## @param gse.script.rootPath The root directory of the script file distributed by the JOB to the GSE agent
+    ##
+    rootPath: "/tmp/bkjob"
   query:
     threads:
       num: 5

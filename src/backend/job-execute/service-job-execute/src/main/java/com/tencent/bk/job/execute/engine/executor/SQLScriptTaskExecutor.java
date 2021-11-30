@@ -119,12 +119,12 @@ public class SQLScriptTaskExecutor extends ScriptTaskExecutor {
 
     protected api_script_request getScriptRequest(StepInstanceDTO stepInstance) {
         String sqlScriptContent = stepInstance.getScriptContent();
-        String fileNamePre = buildScriptFileNamePrefix(stepInstance);
-        String sqlScriptFileName = fileNamePre + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
+        String sqlScriptFileName = buildScriptFileName(stepInstance);
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
-        String publicScriptName = fileNamePre + ScriptTypeEnum.getExtByValue(ScriptTypeEnum.SHELL.getValue());
+        String publicScriptName = this.scriptFileNamePrefix
+            + ScriptTypeEnum.getExtByValue(ScriptTypeEnum.SHELL.getValue());
 
         RunSQLScriptFile param = new RunSQLScriptFile();
         param.setTimeout(timeout);

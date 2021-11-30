@@ -31,6 +31,8 @@ gse:
     threads:
       num: 5
     batchSize: 5000
+  script:
+    rootPath: "/tmp/bkjob"    
 iam:
   base-url: __BK_IAM_PRIVATE_URL__
   system-id: bk_job
