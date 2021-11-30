@@ -240,6 +240,4 @@ public class StringUtil {
             return replaceByRegex(resultStr, pattern, variablesMap, depth - 1);
         }
     }
-
-    public static String trunc
 }
