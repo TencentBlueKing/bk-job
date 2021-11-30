@@ -22,52 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.execute.common.util;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
+import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
+import static com.tencent.bk.job.common.constant.JobConstants.MIN_JOB_TIMEOUT_SECONDS;
 
-@Configuration
-@Data
-public class JobExecuteConfig {
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
-
+/**
+ * 作业工具类
+ */
+public class TaskUtil {
     /**
-     * 功能开关 - 启用账号鉴权
+     * 计算作业超时时间
+     *
+     * @param timeout 超时时间
+     * @return 超时时间，单位秒
      */
-    @Value("${feature.toggle.auth-account.mode:enabled}")
-    private String enableAuthAccountMode;
-
-    /**
-     * 账号鉴权灰度业务(用,分隔)
-     */
-    @Value("${feature.toggle.auth-account.gray.apps:}")
-    private String accountAuthGrayApps;
-
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
-    private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    /**
-     * Symmetric encryption password
-     */
-    @Value("${job.encrypt.password}")
-    private String encryptPassword;
-
-    @Value("${job.execute.limit.file-task.max-tasks:100000}")
-    private Integer fileTasksMax;
-
-    @Value("${job.execute.limit.script-task.max-target-server:50000}")
-    private Integer scriptTaskMaxTargetServer;
-
-    @Value("${gse.script.rootPath:/tmp/bkjob}")
-    private String gseScriptFileRootPath;
+    public static int calculateTimeout(Integer timeout) {
+        int finalTimeout = DEFAULT_JOB_TIMEOUT_SECONDS;
+        if (timeout != null && timeout > 0) {
+            if (timeout > MAX_JOB_TIMEOUT_SECONDS) {
+                finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
+            } else if (timeout < MIN_JOB_TIMEOUT_SECONDS) {
+                finalTimeout = MIN_JOB_TIMEOUT_SECONDS;
+            } else {
+                finalTimeout = timeout;
+            }
+        }
+        return finalTimeout;
+    }
 }

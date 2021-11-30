@@ -26,8 +26,6 @@ package com.tencent.bk.job.execute.engine.consts;
 
 
 public class GseConstants {
-    public static final String SCRIPT_PATH = "/tmp/bkjob";
-
     /**
      * 字节转换的进制
      */

@@ -24,11 +24,18 @@
 
 package com.tencent.bk.job.common.constant;
 
+/**
+ * Job 全局通用常量
+ */
 public class JobConstants {
     /**
      * 公共资源对应的业务ID(比如公共脚本)
      */
     public static final long PUBLIC_APP_ID = 0L;
+    /**
+     * 执行结果分组标签最大长度
+     */
+    public static final int RESULT_GROUP_TAG_MAX_LENGTH = 256;
     /**
      * 文件存储后端：本地
      */
@@ -41,4 +48,16 @@ public class JobConstants {
      * PROFILE-Kubernetes
      */
     public static final String PROFILE_KUBERNETES = "kubernetes";
+    /**
+     * 作业默认超时时间，单位秒
+     */
+    public static final int DEFAULT_JOB_TIMEOUT_SECONDS = 7200;
+    /**
+     * 作业最小超时时间，单位秒
+     */
+    public static final int MIN_JOB_TIMEOUT_SECONDS = 60;
+    /**
+     * 作业最大超时时间，单位秒
+     */
+    public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
 }

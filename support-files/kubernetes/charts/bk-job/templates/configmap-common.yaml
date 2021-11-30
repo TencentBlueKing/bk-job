@@ -50,6 +50,8 @@ data:
         threads:
           num: {{ .Values.gse.query.threads.num }}
         batchSize: {{ .Values.gse.query.batchSize }}
+      script:
+        rootPath: {{ .Values.gse.script.rootPath }}
     iam:
       base-url: {{ .Values.iam.baseUrl }}
       system-id: {{ .Values.iam.systemId }}
