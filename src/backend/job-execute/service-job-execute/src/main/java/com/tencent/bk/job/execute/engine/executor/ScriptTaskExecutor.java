@@ -76,6 +76,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
      */
     protected String scriptFileNamePrefix;
 
+    private final String GSE_SCRIPT_FILE_NAME_PREFIX = "bk_gse_script_";
+
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
     /**
@@ -101,7 +103,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
 
     private String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
         // job 下发到 GSE 的所有脚本，需要以 "bk_gse_script_" 作为前缀，GSE 会自动清理过期的脚本
-        return "bk_gse_script_" + stepInstance.getTaskInstanceId() +
+        return GSE_SCRIPT_FILE_NAME_PREFIX + stepInstance.getTaskInstanceId() +
             "_" + stepInstance.getId();
     }
 
@@ -423,7 +425,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     }
 
     private String getNamespaceParamOutputFile() {
-        return this.scriptFileNamePrefix + "_namespace_params_output.env";
+        return GSE_SCRIPT_FILE_NAME_PREFIX + stepInstance.getTaskInstanceId() + "_namespace_params_output.env";
     }
 
     /*
