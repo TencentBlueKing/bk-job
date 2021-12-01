@@ -26,13 +26,17 @@
 -->
 
 <template>
-    <bk-dialog
+    <jb-dialog
         v-model="isShowDialog"
         class="apply-permission-dialog"
         :mask-close="false"
         :esc-close="false"
         :width="768">
-        <ask-permission v-if="isShowDialog" :loading="isLoading" :permission-list="permissionList" :max-height="360" />
+        <ask-permission
+            v-if="isShowDialog"
+            :loading="isLoading"
+            :permission-list="permissionList"
+            :max-height="360" />
         <template #footer>
             <template v-if="!isLoading">
                 <bk-button
@@ -52,7 +56,7 @@
             </template>
             <bk-button @click="handleCancle">{{ cancelText }}</bk-button>
         </template>
-    </bk-dialog>
+    </jb-dialog>
 </template>
 <script>
     import PermissionCheckService from '@service/permission-check';

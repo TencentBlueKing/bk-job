@@ -29,28 +29,42 @@
     <div class="user-box" v-bkloading="{ isLoading }">
         <div class="user-name">Hi, {{ userInfo.username }}</div>
         <greeting />
-        <div class="work-tips" @mousemove="handleStopSwiper" @mouseleave="handleBeginSwiper">
+        <div
+            class="work-tips"
+            @mousemove="handleStopSwiper"
+            @mouseleave="handleBeginSwiper">
             <div class="work-tips-container" :style="workTipsStyles">
                 <div v-for="(analysis, index) in analysisList" :key="index" class="item">
                     <div v-html="analysis.description" @click="handleShowList" />
                 </div>
             </div>
         </div>
-        <bk-dialog v-model="isShowList" :title="listInfo.dialogTitle" :width="520" class="home-analysis-detail-dialog">
+        <jb-dialog
+            v-model="isShowList"
+            :title="listInfo.dialogTitle"
+            :width="520"
+            class="home-analysis-detail-dialog">
             <div class="list-wraper">
                 <div class="data-row-header">
                     <div class="td-name">{{ listInfo.columnName }}</div>
                     <div class="td-action">{{ $t('home.操作') }}</div>
                 </div>
-                <div v-for="(item, index) in listData" class="data-row" :key="`${item.id}_${index}`">
+                <div
+                    v-for="(item, index) in listData"
+                    class="data-row"
+                    :key="`${item.id}_${index}`">
                     <div class="td-name">{{ item.content }}</div>
                     <div class="td-action" @click="handleGoDetail(item)">{{ $t('home.查看详情') }}</div>
                 </div>
             </div>
             <template #footer>
-                <bk-button class="list-close-btn" @click="handleHideList">{{ $t('home.关闭') }}</bk-button>
+                <bk-button
+                    class="list-close-btn"
+                    @click="handleHideList">
+                    {{ $t('home.关闭') }}
+                </bk-button>
             </template>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>

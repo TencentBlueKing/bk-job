@@ -81,7 +81,7 @@
             </template>
         </smart-action>
         <back-top />
-        <bk-dialog
+        <jb-dialog
             v-model="isShowSave"
             class="save-debug-plan-dialog"
             :title="$t('template.另存为执行方案')"
@@ -109,7 +109,7 @@
                 </bk-button>
                 <bk-button @click="handleCloseSave">{{ $t('template.取消') }}</bk-button>
             </div>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>

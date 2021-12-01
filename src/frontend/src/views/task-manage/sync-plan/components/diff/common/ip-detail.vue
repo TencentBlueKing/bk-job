@@ -35,7 +35,7 @@
         </div>
         <div v-else class="ip-text" v-bk-overflow-tips>{{ ipText }}</div>
         <Icon v-if="isNotEmpty" class="look-ip-detail" type="audit" @click="handlerView" />
-        <bk-dialog
+        <jb-dialog
             v-model="isShowDetail"
             :width="1020"
             :ok-text="$t('template.关闭')"
@@ -71,7 +71,7 @@
                         :group-diff="groupDiff" />
                 </scroll-faker>
             </div>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>
