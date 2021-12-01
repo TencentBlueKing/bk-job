@@ -221,7 +221,7 @@
                         if (realHeight > lineHeight) {
                             this.renderLength = realLength - 4;
                         }
-                        // this.$refs.valueTextBox.removeChild($el);
+                        this.$refs.valueTextBox.removeChild($el);
                     });
                 });
             },
@@ -354,7 +354,7 @@
 
             &:hover {
                 .edit-action {
-                    opacity: 100%;
+                    opacity: 1;
                     transform: scale(1);
                 }
             }
@@ -386,7 +386,7 @@
                 padding: 4px 15px 4px 2px;
                 color: #979ba5;
                 cursor: pointer;
-                opacity: 0%;
+                opacity: 0;
                 transform: scale(0);
                 transition: 0.15s;
                 transform-origin: left center;
