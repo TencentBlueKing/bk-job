@@ -115,6 +115,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     taskVariableVO.setDelete(0);
                 }).collect(Collectors.toList()));
             }
+            templateCreateUpdateReq.setTags(taskTemplate.getTags());
 
             InternalResponse<Long> saveTemplateResult = serviceTemplateResourceClient.saveTemplateForMigration(
                 username,

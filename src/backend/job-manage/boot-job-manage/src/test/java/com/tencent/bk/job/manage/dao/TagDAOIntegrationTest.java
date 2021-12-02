@@ -223,6 +223,7 @@ public class TagDAOIntegrationTest {
     public void testCheckDuplicateTagName() {
         assertThat(tagDAO.isExistDuplicateName(1L, "test1")).isEqualTo(true);
         assertThat(tagDAO.isExistDuplicateName(1L, "new-tag")).isEqualTo(false);
+        assertThat(tagDAO.isExistDuplicateName(1L, "test3")).isEqualTo(false);
     }
 
 
