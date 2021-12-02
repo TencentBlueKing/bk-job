@@ -33,5 +33,5 @@ public interface GseConstants {
     /**
      * GSE API 度量指标名称前缀
      */
-    String GSE_API_METRICS_NAME_PREFIX = "gse.api";
+    String GSE_API_METRICS_NAME_PREFIX = "job.client.gse.api";
 }

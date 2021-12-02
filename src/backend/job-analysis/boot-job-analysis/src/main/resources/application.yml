@@ -43,9 +43,6 @@ management:
       enabled: true
     scheduledtasks:
       enabled: true
-  metrics:
-    tags:
-      application: ${spring.cloud.consul.discovery.service-name}
 server:
   port: 19807
   shutdown: graceful

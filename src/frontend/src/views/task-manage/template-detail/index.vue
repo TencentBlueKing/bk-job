@@ -111,7 +111,7 @@
                         v-test="{ type: 'button', value: 'syncPlan' }">
                         {{ $t('template.同步方案') }}
                         <div v-if="!isNotNeedUpdate" class="update-flag" v-bk-tooltips="$t('template.待同步')">
-                            <Icon type="sync-small" />
+                            <Icon type="sync-8" />
                         </div>
                     </bk-button>
                 </span>

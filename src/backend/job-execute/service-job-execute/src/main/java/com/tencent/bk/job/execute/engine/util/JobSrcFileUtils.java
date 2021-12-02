@@ -50,8 +50,8 @@ public class JobSrcFileUtils {
     /**
      * 构造源文件路径与目标文件路径的映射关系
      *
-     * @param srcFiles   源文件
-     * @param targetDir  目标目录
+     * @param srcFiles       源文件
+     * @param targetDir      目标目录
      * @param targetFileName 文件分发到目标主机的对应名称
      * @return 源文件路径与目标文件路径的映射关系
      */
@@ -90,12 +90,12 @@ public class JobSrcFileUtils {
     }
 
     /**
-     * 从步骤解析源文件
+     * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
      * @param localServerIp     job server ip
      * @param jobStorageRootDir job共享存储根目录
-     * @return 源文件
+     * @return 多个要分发的源文件信息集合
      */
     public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, String localServerIp,
                                                  String jobStorageRootDir) {
@@ -124,6 +124,7 @@ public class JobSrcFileUtils {
                     Predicate<IpDTO> predicate = LambdasUtil.not(ip -> invalidIpSet.contains(ip.convertToStrIp()));
                     for (IpDTO ipDTO : ipList) {
                         if (predicate.test(ipDTO)) {
+                            // 第三方源文件的displayName不同
                             if (isThirdFile) {
                                 sendFiles.add(new JobFile(false, ipDTO.convertToStrIp(), filePath,
                                     file.getThirdFilePathWithFileSourceName(), dir, fileName,

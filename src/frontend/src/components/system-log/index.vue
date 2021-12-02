@@ -26,7 +26,12 @@
 -->
 
 <template>
-    <bk-dialog :value="value" class="system-log-dialog" :show-footer="false" :width="1105" :mask-close="false">
+    <jb-dialog
+        :value="value"
+        class="system-log-dialog"
+        :show-footer="false"
+        :width="1105"
+        :mask-close="false">
         <div ref="log" class="system-log-layout" v-bkloading="{ isLoading }">
             <div class="layout-left">
                 <scroll-faker class="version-wraper">
@@ -49,7 +54,7 @@
                 <Icon type="close" class="log-close" @click="handleClose" />
             </div>
         </div>
-    </bk-dialog>
+    </jb-dialog>
 </template>
 <script>
     import marked from 'marked';

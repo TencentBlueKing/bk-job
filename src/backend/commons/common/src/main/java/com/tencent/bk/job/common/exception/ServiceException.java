@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.exception;
 
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -89,5 +90,9 @@ public class ServiceException extends RuntimeException {
         this.errorType = errorType;
         this.errorCode = errorCode;
         this.errorParams = errorParams;
+    }
+
+    public String getI18nMessage() {
+        return I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);
     }
 }

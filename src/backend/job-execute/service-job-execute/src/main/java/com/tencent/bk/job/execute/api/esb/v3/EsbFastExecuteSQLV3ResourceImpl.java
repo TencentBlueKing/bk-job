@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -37,6 +38,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
@@ -71,7 +73,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_fast_execute_sql"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_execute_sql"})
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(EsbFastExecuteSQLV3Request request) {
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
@@ -168,7 +170,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
         }
 
-        stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+        stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));

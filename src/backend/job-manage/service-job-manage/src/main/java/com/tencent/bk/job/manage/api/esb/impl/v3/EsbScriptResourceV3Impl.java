@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -130,7 +131,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(EsbGetScriptListV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -326,7 +327,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_list"})
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
@@ -404,7 +405,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_detail"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
         EsbGetScriptVersionDetailV3Req request) {
         ValidateResult checkResult = checkRequest(request);

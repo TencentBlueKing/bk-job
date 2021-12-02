@@ -37,7 +37,10 @@
                 @copy="handleCopy"
                 :style="boxStyles">
                 <slot v-bind:value="newVal">{{ renderText }}</slot>
-                <span v-if="renderLength > 0" class="text-whole" @click.stop="handleExpandAll">
+                <span
+                    v-if="isShowMore"
+                    class="text-whole"
+                    @click.stop="handleExpandAll">
                     <template v-if="isExpand">
                         <Icon type="angle-double-up" style="font-size: 12px;" />
                         <span>收起</span>
@@ -131,6 +134,9 @@
         },
         computed: {
             renderText () {
+                if (this.newVal.length === this.renderLength) {
+                    return this.newVal;
+                }
                 if (this.isExpand) {
                     return this.newVal;
                 }
@@ -141,6 +147,9 @@
                     return this.newVal;
                 }
                 return `${this.newVal.slice(0, this.renderLength)}...`;
+            },
+            isShowMore () {
+                return this.newVal.length > this.renderLength && this.renderLength > 0;
             },
             boxStyles () {
                 const styles = {
@@ -193,11 +202,14 @@
                     const $el = document.createElement('div');
                     $el.style.opacity = 0;
                     $el.style.zIndex = '-1';
-                    $el.style.wordBreak = 'keep-all';
-                    $el.style.whiteSpace = 'pre';
+                    if (this.singleRowRender) {
+                        $el.style.wordBreak = 'keep-all';
+                        $el.style.whiteSpace = 'pre';
+                    }
+                    
                     this.$refs.valueTextBox.appendChild($el);
 
-                    const lineHeight = 26;
+                    const lineHeight = 24;
                     const maxLine = 3;
                     const maxHeight = lineHeight * maxLine;
                     let realHeight = 0;
@@ -219,9 +231,9 @@
                     setTimeout(() => {
                         this.renderLength = 0;
                         if (realHeight > lineHeight) {
-                            this.renderLength = realLength - 4;
+                            this.renderLength = realLength >= valLength ? valLength : realLength - 4;
                         }
-                        // this.$refs.valueTextBox.removeChild($el);
+                        this.$refs.valueTextBox.removeChild($el);
                     });
                 });
             },
@@ -354,7 +366,7 @@
 
             &:hover {
                 .edit-action {
-                    opacity: 100%;
+                    opacity: 1;
                     transform: scale(1);
                 }
             }
@@ -386,7 +398,7 @@
                 padding: 4px 15px 4px 2px;
                 color: #979ba5;
                 cursor: pointer;
-                opacity: 0%;
+                opacity: 0;
                 transform: scale(0);
                 transition: 0.15s;
                 transform-origin: left center;

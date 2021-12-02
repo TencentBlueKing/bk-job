@@ -26,7 +26,11 @@
 -->
 
 <template>
-    <bk-dialog :value="isShow" fullscreen class="plan-confirm-cron-dialog" @cancel="handleClose">
+    <jb-dialog
+        :value="isShow"
+        fullscreen
+        class="plan-confirm-cron-dialog"
+        @cancel="handleClose">
         <div class="confirm-cron-wraper" v-bkloading="{ isLoading }" @keyup.esc="handleClose">
             <confirm-cron
                 v-if="!isLoading"
@@ -35,7 +39,7 @@
                 :cron-job-list="cronJobInfoList"
                 @on-change="handleConfirmCron" />
         </div>
-    </bk-dialog>
+    </jb-dialog>
 </template>
 <script>
     import TaskManageService from '@service/task-manage';
