@@ -182,6 +182,11 @@
             bottom: 0;
             left: 0;
         }
+        &.bk-info-box{
+            .bk-dialog-content-drag{
+                position: unset;
+            }
+        }
     }
 
     .header-on-left {
