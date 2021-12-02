@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -53,7 +54,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.*;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.MANUAL_CONFIRM;
+import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SEND_FILE;
 
 @Slf4j
 @Service
@@ -255,7 +259,9 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources) {
-        log.debug("updateResolvedSourceFile={}", resolvedFileSources);
+        if (log.isDebugEnabled()) {
+            log.debug("updateResolvedSourceFile={}", JsonUtils.toJson(resolvedFileSources));
+        }
         stepInstanceDAO.updateResolvedSourceFile(stepInstanceId, resolvedFileSources);
     }
 

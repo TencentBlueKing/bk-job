@@ -24,6 +24,14 @@
 
 package com.tencent.bk.job.execute.engine.prepare;
 
-public interface JobTaskContext {
-    boolean isForRetry();
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+
+import java.util.List;
+
+public interface FilePrepareTaskResultHandler {
+    void onFinished(StepInstanceDTO stepInstance, List<FilePrepareTaskResult> resultList);
+
+    void onTimeout(StepInstanceDTO stepInstance);
+
+    void onException(StepInstanceDTO stepInstance, Throwable t);
 }

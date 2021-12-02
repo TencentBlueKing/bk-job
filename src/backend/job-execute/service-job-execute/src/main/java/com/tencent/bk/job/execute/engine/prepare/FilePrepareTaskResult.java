@@ -24,6 +24,23 @@
 
 package com.tencent.bk.job.execute.engine.prepare;
 
-public interface JobTaskContext {
-    boolean isForRetry();
+public class FilePrepareTaskResult {
+    public static final int STATUS_SUCCESS = 0;
+    public static final int STATUS_STOPPED = 1;
+    public static final int STATUS_FAILED = 2;
+    int status;
+    JobTaskContext taskContext;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public JobTaskContext getTaskContext() {
+        return taskContext;
+    }
+
+    FilePrepareTaskResult(int status, JobTaskContext taskContext) {
+        this.status = status;
+        this.taskContext = taskContext;
+    }
 }
