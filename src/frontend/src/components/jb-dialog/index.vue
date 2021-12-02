@@ -34,7 +34,8 @@
         :draggable="false"
         :show-footer="showFooter"
         :title="title"
-        :before-close="beforeClose">
+        :before-close="beforeClose"
+        @input="handleInputValue">
         <template v-if="isRender">
             <slot />
         </template>
@@ -197,6 +198,10 @@
                     .finally(() => {
                         this.isSubmiting = false;
                     });
+            },
+            handleInputValue () {
+                console.log('fom adasdasd dalog clone ');
+                this.close();
             },
         },
     };

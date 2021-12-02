@@ -36,7 +36,11 @@
                 svg
                 style="font-size: 28px; color: #96a2b9;"
                 @click="handleRouterChange('home')" />
-            <span class="site-title" @click="handleRouterChange('home')">{{ $t('蓝鲸作业平台') }}</span>
+            <span
+                class="site-title"
+                @click="handleRouterChange('home')">
+                {{ $t('蓝鲸作业平台') }}
+            </span>
         </template>
         <template slot="headerCenter">
             <div class="top-menu-box">
