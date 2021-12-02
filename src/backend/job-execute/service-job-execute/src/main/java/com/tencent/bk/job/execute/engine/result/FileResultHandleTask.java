@@ -782,13 +782,50 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     /**
+     * 根据errorCode、fileNum、successNum更新successIpSet状态集合与ipLog状态
+     *
+     * @param errorCode  GSE错误码
+     * @param cloudIp    IP
+     * @param fileNum    文件总数
+     * @param successNum 成功分发的文件总数
+     * @param isDownload 是否为下载过程
+     * @param ipLog      ip对应日志
+     */
+    private void updateFinishedIpStatusAndLog(
+        int errorCode,
+        String cloudIp,
+        int fileNum,
+        int successNum,
+        boolean isDownload,
+        GseTaskIpLogDTO ipLog
+    ) {
+        boolean isTargetIp = targetIpSet.contains(cloudIp);
+        if (successNum >= fileNum) {
+            // 每个文件都处理完了，才算IP完成执行
+            if (isDownload && isTargetIp) {
+                ipLog.setStatus(IpStatus.SUCCESS.getValue());
+                this.successIpSet.add(cloudIp);
+            }
+        } else {
+            int ipStatus = IpStatus.FAILED.getValue();
+            if (errorCode != 0) {
+                ipStatus = Utils.getStatusByGseErrorCode(errorCode);
+                if (ipStatus < 0) {
+                    ipStatus = IpStatus.FILE_ERROR_UNCLASSIFIED.getValue();
+                }
+            }
+            ipLog.setStatus(ipStatus);
+        }
+    }
+
+    /**
      * 分析日志，更新successIpSet、notStartedIpSet等状态集合，用于判定最终整体任务状态
      *
-     * @param errorCode
-     * @param cloudIp
-     * @param startTime
-     * @param endTime
-     * @param isDownload
+     * @param errorCode  GSE错误码
+     * @param cloudIp    IP
+     * @param startTime  任务起始时间
+     * @param endTime    任务终止时间
+     * @param isDownload 是否为下载过程
      */
     private void analyseIpResult(int errorCode, String cloudIp, long startTime, long endTime, boolean isDownload) {
         int finishedNum;
@@ -824,22 +861,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                 // 更新IP统计状态集合
                 dealUploadIpFinished(cloudIp);
             }
-            if (successNum >= fileNum) {
-                // 每个文件都处理完了，才算IP完成执行
-                if (isDownload && isTargetIp) {
-                    ipLog.setStatus(IpStatus.SUCCESS.getValue());
-                    this.successIpSet.add(cloudIp);
-                }
-            } else {
-                int ipStatus = IpStatus.FAILED.getValue();
-                if (errorCode != 0) {
-                    ipStatus = Utils.getStatusByGseErrorCode(errorCode);
-                    if (ipStatus < 0) {
-                        ipStatus = IpStatus.FILE_ERROR_UNCLASSIFIED.getValue();
-                    }
-                }
-                ipLog.setStatus(ipStatus);
-            }
+            updateFinishedIpStatusAndLog(errorCode, cloudIp, fileNum, successNum, isDownload, ipLog);
         } else {
             ipLog.setStatus(IpStatus.RUNNING.getValue());
             this.notStartedIpSet.remove(cloudIp);
