@@ -443,6 +443,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
 
+    /**
+     * 更新IP统计状态集合，设置任务起止时间
+     *
+     * @param cloudIp   IP
+     * @param startTime 起始时间
+     * @param endTime   终止时间
+     * @param ipLog     日志
+     */
     protected void dealIPFinish(String cloudIp, Long startTime, Long endTime, GseTaskIpLogDTO ipLog) {
         log.info("[{}]: Deal ip finished| ip={}| startTime:{}, endTime:{}, ipLog:{}",
             stepInstanceId, cloudIp, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(ipLog));

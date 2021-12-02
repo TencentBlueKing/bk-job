@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 
 /**
- * 分发文件信息
+ * 分发的单个文件信息（一个IP+一个Path），含用户输入的原始路径、解析后的真实路径、用于展示的路径等信息
  */
 @Data
 @ToString(exclude = {"password"})
