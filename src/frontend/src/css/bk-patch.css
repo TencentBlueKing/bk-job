@@ -184,7 +184,7 @@
         }
         &.bk-info-box{
             .bk-dialog-content-drag{
-                position: unset;
+                position: relative;
             }
         }
     }
