@@ -222,6 +222,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         try {
             log.debug("[{}] SourceDestPathMap: {}", stepInstanceId, sourceDestPathMap);
             Map<String, ServiceIpLogDTO> logs = new HashMap<>();
+            // 每个要分发的源文件一条上传日志
             for (JobFile file : sendFiles) {
                 String fileSourceIp = file.isLocalUploadFile() ? IpHelper.fix1To0(localAgentIp) :
                     file.getCloudAreaIdAndIp();
@@ -230,6 +231,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                     fileSourceIp, fileSourceIp, file.getStandardFilePath(), file.getDisplayFilePath(), "--",
                     FileDistStatusEnum.WAITING.getValue(), FileDistStatusEnum.WAITING.getName(), "--", "--", null));
             }
+            // 每个目标IP从每个要分发的源文件下载的一条下载日志
             for (String fileTargetIp : jobIpSet) {
                 ServiceIpLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileTargetIp);
                 for (JobFile file : sendFiles) {
@@ -241,8 +243,8 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                         file.getDisplayFilePath(), "--",
                         FileDistStatusEnum.WAITING.getValue(), FileDistStatusEnum.WAITING.getName(), "--", "--", null));
                 }
-
             }
+            // 调用logService写入MongoDB
             writeLogs(logs);
         } catch (Throwable e) {
             log.warn("Save Initial File Task logs fail", e);
@@ -282,6 +284,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
 
     @Override
     protected GseTaskResponse startGseTask(StepInstanceDTO stepInstance) {
+        // 账号信息查询与填充
         AccountDTO accountInfo = accountService.getAccount(stepInstance.getAccountId(), AccountCategoryEnum.SYSTEM,
             stepInstance.getAccountAlias(), stepInstance.getAppId());
         if (accountInfo == null) {
@@ -292,11 +295,15 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             accountInfo.getPassword());
 
         List<api_copy_fileinfoV2> copyFileInfoList = new ArrayList<>();
+        // 路径中变量解析与路径标准化预处理
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
+        // 构造源路径与目标路径映射Map<String,FileDest>
         Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir,
             stepInstance.getFileTargetName());
+        // 构造源路径与目标路径映射Map<String,String>供后续状态判定使用
         initSourceDestPathMap(srcAndDestMap);
 
+        // 构造GSE文件分发请求
         for (JobFile file : sendFiles) {
             FileDest fileDest = srcAndDestMap.get(file.getFileUniqueKey());
             api_agent src = GseRequestUtils.buildAgent(file.getCloudAreaIdAndIp(), file.getAccount(),
