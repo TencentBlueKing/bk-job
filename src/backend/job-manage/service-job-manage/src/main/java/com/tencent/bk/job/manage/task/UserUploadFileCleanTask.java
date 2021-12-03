@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.config.ArtifactoryConfig;
@@ -47,16 +48,12 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
  * @since 25/1/2021 21:19
@@ -236,41 +233,11 @@ public class UserUploadFileCleanTask {
             }
 
             try {
-                deleteEmptyDirectory(aFile.getParentFile());
-                deleteEmptyDirectory(aFile.getParentFile().getParentFile());
+                FileUtil.deleteEmptyDirectory(aFile.getParentFile());
+                FileUtil.deleteEmptyDirectory(aFile.getParentFile().getParentFile());
             } catch (Exception e) {
                 log.warn("Error while delete empty parent of file {}", aFile.getPath());
             }
         }
-    }
-
-    private void deleteEmptyDirectory(File directory) {
-        if (directory == null) {
-            log.warn("Directory is null!");
-            return;
-        }
-
-        if (isEmpty(directory.toPath())) {
-            boolean delete = directory.delete();
-            if (delete) {
-                log.info("Delete empty directory {}", directory.getPath());
-            } else {
-                log.warn("Delete directory {} failed!", directory.getPath());
-            }
-        } else {
-            log.debug("Directory {} not empty!", directory.getPath());
-        }
-    }
-
-    private boolean isEmpty(Path path) {
-        if (Files.isDirectory(path)) {
-            try (Stream<Path> entries = Files.list(path)) {
-                return !entries.findFirst().isPresent();
-            } catch (IOException e) {
-                return false;
-            }
-        }
-
-        return false;
     }
 }
