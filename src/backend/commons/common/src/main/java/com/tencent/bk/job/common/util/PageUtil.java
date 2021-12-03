@@ -25,10 +25,13 @@
 package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.model.PageData;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PageUtil {
 
@@ -100,5 +103,81 @@ public class PageUtil {
             }
         }
         return pageData;
+    }
+
+    /**
+     * 分页查询
+     * @param isGetAll 是否全量获取
+     * @param prioritizedElements 需要优先的元素
+     * @param start 原始分页起始
+     * @param pageSize 分页大小
+     * @param dbQuery 查询
+     * @return 分页结果
+     */
+    public static <T> PageData<T> pageQuery(boolean isGetAll,
+                                            List<T> prioritizedElements,
+                                            int start,
+                                            int pageSize,
+                                            DbQuery<T> dbQuery) {
+        boolean isExistPrioritizedElement = CollectionUtils.isNotEmpty(prioritizedElements);
+        int finalStart = start;
+        if (isExistPrioritizedElement && !isGetAll) {
+            if (prioritizedElements.size() <= start) {
+                finalStart = start - prioritizedElements.size();
+            } else {
+                finalStart = 0;
+            }
+        }
+        PageData<T> pageData = dbQuery.query(finalStart);
+        rebuildPageData(pageData, prioritizedElements, isGetAll, isExistPrioritizedElement, finalStart, pageSize);
+        return pageData;
+    }
+
+    @FunctionalInterface
+    public interface DbQuery<T> {
+        PageData<T> query(int start);
+    }
+
+
+    private static <T> void rebuildPageData(PageData<T> pageData,
+                                            List<T> prioritizedElements,
+                                            boolean isGetAll,
+                                            boolean isExistPrioritizedElement,
+                                            Integer start,
+                                            Integer length) {
+        if (isExistPrioritizedElement) {
+            if (isGetAll) {
+                pageData.getData().addAll(0, prioritizedElements);
+            } else {
+                putPrioritizedElementsInFrontIfExist(pageData, prioritizedElements, start, length);
+            }
+        }
+
+        if (!isGetAll) {
+            pageData.setStart(start);
+            pageData.setPageSize(length);
+            if (isExistPrioritizedElement) {
+                pageData.setTotal(prioritizedElements.size() + pageData.getTotal());
+            }
+        }
+    }
+
+    private static <T> void putPrioritizedElementsInFrontIfExist(PageData<T> pageData,
+                                                                 List<T> prioritizedElements,
+                                                                 Integer start,
+                                                                 Integer length) {
+        // 处理需要优先的元素
+        if (CollectionUtils.isNotEmpty(prioritizedElements)) {
+            if (prioritizedElements.size() > start) {
+                pageData.getData().addAll(0, prioritizedElements.stream().skip(start).limit(length)
+                    .collect(Collectors.toList()));
+            }
+        }
+
+        // subList
+        if (pageData.getData().size() > length) {
+            List<T> templates = new ArrayList<>(pageData.getData().subList(0, length));
+            pageData.setData(templates);
+        }
     }
 }
