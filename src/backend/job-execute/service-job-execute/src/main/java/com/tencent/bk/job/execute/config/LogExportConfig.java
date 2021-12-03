@@ -38,4 +38,7 @@ public class LogExportConfig {
     @Value("${log-export.artifactory.repo:filedata}")
     private String logExportRepo;
 
+    @Value("${log-export.artifactory.file-expire-days:7}")
+    private Integer artifactoryFileExpireDays;
+
 }
