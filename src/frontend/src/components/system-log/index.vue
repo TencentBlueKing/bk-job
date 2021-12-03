@@ -31,8 +31,11 @@
         class="system-log-dialog"
         :show-footer="false"
         :width="1105"
-        :mask-close="false">
-        <div ref="log" class="system-log-layout" v-bkloading="{ isLoading }">
+        @input="handleClose">
+        <div
+            ref="log"
+            class="system-log-layout"
+            v-bkloading="{ isLoading }">
             <div class="layout-left">
                 <scroll-faker class="version-wraper">
                     <div
@@ -51,7 +54,10 @@
                 <scroll-faker class="content-wraper">
                     <div v-html="logContent" class="markdowm-container" />
                 </scroll-faker>
-                <Icon type="close" class="log-close" @click="handleClose" />
+                <Icon
+                    type="close"
+                    class="log-close"
+                    @click="handleClose" />
             </div>
         </div>
     </jb-dialog>
@@ -102,6 +108,9 @@
             }
         },
         methods: {
+            /**
+             * @desc 或版本日志数据
+             */
             fetchData () {
                 this.isLoading = true;
                 WebGlobalService.fetchVersionLog()
@@ -112,6 +121,9 @@
                         this.isLoading = false;
                     });
             },
+            /**
+             * @desc 日志收起时显示 tips
+             */
             showTips () {
                 if (!this.popperInstance) {
                     this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
@@ -137,9 +149,16 @@
                 `);
                 this.popperInstance.show();
             },
+            /**
+             * @desc 关闭日志收起 tips
+             */
             hideTips () {
                 this.popperInstance && this.popperInstance.hide();
             },
+            /**
+             * @desc 切换版本日志内容
+             * @param { Number } index 日志索引
+             */
             handleTabChange (index) {
                 this.activeIndex = index;
             },
