@@ -269,7 +269,7 @@
                 routerTitle: '',
                 ENABLE_FEATURE_FILE_MANAGE: false,
             });
-            
+            let memoNavRouterName = '';
             const methods = {
                 /**
                  * @desc 返回首页
@@ -301,9 +301,10 @@
                  * @param {String} routerName 跳转的路由名
                  */
                 handleRouterChange (routerName) {
-                    if (this.$route.name === routerName) {
+                    if (memoNavRouterName === routerName) {
                         return;
                     }
+                    memoNavRouterName = routerName;
                     this.$router.push({
                         name: routerName,
                     });
