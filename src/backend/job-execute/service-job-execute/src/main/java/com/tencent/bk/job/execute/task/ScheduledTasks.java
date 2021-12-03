@@ -22,9 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.execute.task;
 
-public class Consts {
-    public static long MAX_SEARCH_TASK_HISTORY_RANGE_MILLS = 30 * 24 * 60 * 60 * 1000L;
-    public static String LOCAL_FILE_DIR_NAME = "localupload";
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+/**
+ * 增加调度需要注意到ScheduleConfig中更新线程池配置
+ */
+@Slf4j
+@Component
+@EnableScheduling
+public class ScheduledTasks {
+
+    private final LocalTmpFileCleanTask localTmpFileCleanTask;
+
+    @Autowired
+    public ScheduledTasks(LocalTmpFileCleanTask localTmpFileCleanTask) {
+        this.localTmpFileCleanTask = localTmpFileCleanTask;
+    }
+
+    /**
+     * 本地临时文件清理：1h/次
+     */
+    @Scheduled(cron = "0 10 * * * ?")
+    public void localTmpFileCleanTask() {
+        log.info(Thread.currentThread().getId() + ":localTmpFileCleanTask start");
+        try {
+            localTmpFileCleanTask.execute();
+        } catch (Exception e) {
+            log.error("localTmpFileCleanTask fail", e);
+        }
+    }
 }
