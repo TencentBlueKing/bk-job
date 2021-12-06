@@ -86,9 +86,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: BK_JOB_POD_NAME
-                valueFrom:
-                  fieldRef:
-                    fieldPath: metadata.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.fileGatewayConfig.containerPort }}
