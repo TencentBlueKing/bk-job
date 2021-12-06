@@ -31,9 +31,15 @@
             <router-back />
         </template>
         <template slot="headerRight">
-            <bk-popover theme="light site-header-dropdown" style="margin-right: 8px;" :arrow="false">
+            <bk-popover
+                theme="light site-header-dropdown"
+                style="margin-right: 8px;"
+                :arrow="false">
                 <div class="flag-box">
-                    <Icon class="lang-flag" id="siteLocal" :type="currentLangType" />
+                    <Icon
+                        id="siteLocal"
+                        class="lang-flag"
+                        :type="currentLangType" />
                 </div>
                 <div slot="content">
                     <div

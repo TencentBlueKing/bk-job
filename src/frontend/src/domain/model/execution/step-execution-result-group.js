@@ -53,6 +53,14 @@ export default class ResultGroup {
     }
 
     /**
+     * @desc 最大长度的 tag (256)
+     * @returns { Boolean }
+     */
+    get tagMaxLength () {
+        return this.tag.length >= 256;
+    }
+
+    /**
      * @desc 分组结果的数据统计
      * @returns { Number }
      */

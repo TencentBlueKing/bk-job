@@ -35,6 +35,11 @@
                 :class="{ active: chooseGroupName === item.groupName }"
                 @click="handleGroupChange(item)">
                 <div class="group-name" v-bk-overflow-tips>{{ item.groupName }}</div>
+                <Icon
+                    v-if="item.tagMaxLength"
+                    class="max-length-info"
+                    v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                    type="info" />
                 <div class="group-nums">{{ item.agentTaskSize }}</div>
             </div>
             <div v-if="showGroupToggle" class="group-toggle" :class="groupToggleClass">
@@ -50,6 +55,11 @@
                         @click="handleGroupChange(item)"
                         :key="index">
                         <div class="group-name" v-bk-overflow-tips>{{ item.groupName }}</div>
+                        <Icon
+                            v-if="item.tagMaxLength"
+                            class="max-length-info"
+                            v-bk-tooltips="$t('history.分组标签长度最大支持256，超过会被自动截断，请留意！')"
+                            type="info" />
                         <div class="group-nums">{{ item.agentTaskSize }}</div>
                     </div>
                 </div>
@@ -266,6 +276,11 @@
                 text-align: center;
                 background: #e6e7eb;
                 border-radius: 8px;
+            }
+
+            .max-length-info {
+                font-size: 16px;
+                color: #ea3636;
             }
         }
 

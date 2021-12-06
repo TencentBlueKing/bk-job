@@ -36,7 +36,11 @@
                 svg
                 style="font-size: 28px; color: #96a2b9;"
                 @click="handleRouterChange('home')" />
-            <span class="site-title" @click="handleRouterChange('home')">{{ $t('蓝鲸作业平台') }}</span>
+            <span
+                class="site-title"
+                @click="handleRouterChange('home')">
+                {{ $t('蓝鲸作业平台') }}
+            </span>
         </template>
         <template slot="headerCenter">
             <div class="top-menu-box">
@@ -265,7 +269,7 @@
                 routerTitle: '',
                 ENABLE_FEATURE_FILE_MANAGE: false,
             });
-            
+            let memoNavRouterName = '';
             const methods = {
                 /**
                  * @desc 返回首页
@@ -297,9 +301,10 @@
                  * @param {String} routerName 跳转的路由名
                  */
                 handleRouterChange (routerName) {
-                    if (this.$route.name === routerName) {
+                    if (memoNavRouterName === routerName) {
                         return;
                     }
+                    memoNavRouterName = routerName;
                     this.$router.push({
                         name: routerName,
                     });
