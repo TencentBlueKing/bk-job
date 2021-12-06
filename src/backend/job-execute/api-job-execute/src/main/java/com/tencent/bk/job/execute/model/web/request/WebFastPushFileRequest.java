@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingExecutionConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -74,6 +75,9 @@ public class WebFastPushFileRequest {
      */
     @ApiModelProperty(value = "超时时间，单位秒", required = false)
     private Integer timeout;
+
+    @ApiModelProperty(value = "滚动配置")
+    private RollingExecutionConfigVO rollingExecutionConfig;
 
     /**
      * 传输模式

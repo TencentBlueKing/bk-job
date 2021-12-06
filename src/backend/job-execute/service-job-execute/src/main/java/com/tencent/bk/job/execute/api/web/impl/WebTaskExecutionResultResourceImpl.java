@@ -459,9 +459,13 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public Response<StepExecutionDetailVO> getStepExecutionResult(String username, Long appId,
-                                                                  Long stepInstanceId, Integer executeCount,
-                                                                  Integer resultType, String tag,
+    public Response<StepExecutionDetailVO> getStepExecutionResult(String username,
+                                                                  Long appId,
+                                                                  Long stepInstanceId,
+                                                                  Integer executeCount,
+                                                                  Integer batch,
+                                                                  Integer resultType,
+                                                                  String tag,
                                                                   Integer maxIpsPerResultGroup,
                                                                   String keyword,
                                                                   String searchIp,
@@ -487,6 +491,7 @@ public class WebTaskExecutionResultResourceImpl
     public Response<StepExecutionDetailVO> getFastTaskStepExecutionResult(String username,
                                                                           Long appId,
                                                                           Long taskInstanceId,
+                                                                          Integer batch,
                                                                           Integer resultType,
                                                                           String tag,
                                                                           Integer maxIpsPerResultGroup,
@@ -561,8 +566,10 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username, Long appId,
-                                                                  Long stepInstanceId, Integer executeCount,
+    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username,
+                                                                  Long appId,
+                                                                  Long stepInstanceId,
+                                                                  Integer executeCount,
                                                                   String ip) {
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");

@@ -108,8 +108,8 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("taskInstanceId") Long taskInstanceId);
 
     @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
-    @GetMapping(value = {"/app/{appId}/step-execution-result/{stepInstanceId}/{executeCount}", "/app/{appId}/step" +
-        "-execution-result/{stepInstanceId}"})
+    @GetMapping(value = {"/app/{appId}/step-execution-result/{stepInstanceId}/{executeCount}",
+        "/app/{appId}/step-execution-result/{stepInstanceId}"})
     Response<StepExecutionDetailVO> getStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
@@ -119,6 +119,8 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("stepInstanceId") Long stepInstanceId,
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
         @PathVariable(value = "executeCount", required = false) Integer executeCount,
+        @ApiParam(value = "滚动执行批次", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType")
         @RequestParam(value = "resultType", required = false) Integer resultType,
         @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag")
@@ -143,6 +145,8 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("appId") Long appId,
         @ApiParam(value = "任务实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId") Long taskInstanceId,
+        @ApiParam(value = "滚动执行批次", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType", required = false)
         @RequestParam(value = "resultType", required = false) Integer resultType,
         @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag", required = false)
