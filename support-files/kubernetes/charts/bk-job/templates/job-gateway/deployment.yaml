@@ -61,6 +61,8 @@ spec:
           image: {{ include "job-gateway.image" . }}
           imagePullPolicy: {{ .Values.gatewayConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-gateway"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.gatewayConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
@@ -81,6 +83,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.gatewayConfig.containerPort.http }}
@@ -112,6 +118,8 @@ spec:
           resources:
             {{- toYaml .Values.gatewayConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: job-gateway-tls-certs
               mountPath: /data/job/cert
               readOnly: true
@@ -119,6 +127,9 @@ spec:
               mountPath: /etc/secrets
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: bk-job-pv-claim
         - name: job-gateway-tls-certs
           secret:
             secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}

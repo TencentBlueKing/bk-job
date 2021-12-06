@@ -9,6 +9,6 @@ spec:
   capacity:
     storage: 200Gi
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   hostPath:
     path: "/data/bkjob"

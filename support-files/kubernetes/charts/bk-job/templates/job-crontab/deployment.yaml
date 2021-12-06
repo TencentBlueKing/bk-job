@@ -64,6 +64,8 @@ spec:
           image: {{ include "job-crontab.image" . }}
           imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-crontab"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.crontabConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
@@ -84,6 +86,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.crontabConfig.containerPort }}
@@ -109,6 +115,8 @@ spec:
           resources:
             {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -119,6 +127,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: bk-job-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

@@ -472,7 +472,7 @@ job:
       fileManage:
         enabled: true
   storage:
-    rootPath: /data/job/storage/local
+    rootPath: /data/job/local
   # 蓝鲸日志平台数据采集
   log:
     file:
