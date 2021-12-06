@@ -120,16 +120,16 @@ public class PageUtil {
                                             int pageSize,
                                             DbQuery<T> dbQuery) {
         boolean isExistPrioritizedElement = CollectionUtils.isNotEmpty(prioritizedElements);
-        int finalStart = start;
+        int actualStart = start;
         if (isExistPrioritizedElement && !isGetAll) {
             if (prioritizedElements.size() <= start) {
-                finalStart = start - prioritizedElements.size();
+                actualStart = start - prioritizedElements.size();
             } else {
-                finalStart = 0;
+                actualStart = 0;
             }
         }
-        PageData<T> pageData = dbQuery.query(finalStart);
-        rebuildPageData(pageData, prioritizedElements, isGetAll, isExistPrioritizedElement, finalStart, pageSize);
+        PageData<T> pageData = dbQuery.query(actualStart);
+        rebuildPageData(pageData, prioritizedElements, isGetAll, isExistPrioritizedElement, start, pageSize);
         return pageData;
     }
 
