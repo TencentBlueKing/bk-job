@@ -33,11 +33,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 分页工具
+ */
 public class PageUtil {
 
-    public static final int DEFAULT_START = 0;
-    public static final int DEFAULT_POSITIVE_LENGTH = 10;
-
+    /**
+     * 标准化分页参数start与pageSize
+     *
+     * @param start    分页起始位置
+     * @param pageSize 每页大小
+     * @return 标准化分页参数
+     */
     public static Pair<Integer, Integer> normalizePageParam(Integer start, Integer pageSize) {
         if (start == null) {
             start = 0;
@@ -52,9 +59,9 @@ public class PageUtil {
     /**
      * 标准化分页参数start与pageSize
      *
-     * @param start
-     * @param pageSize
-     * @return
+     * @param start    分页起始位置
+     * @param pageSize 每页大小
+     * @return 标准化分页参数
      */
     public static Pair<Long, Long> normalizePageParam(Long start, Long pageSize) {
         Long finalStart = start;
@@ -71,11 +78,11 @@ public class PageUtil {
     /**
      * 内存中分页
      *
-     * @param completeList
-     * @param start
-     * @param pageSize
-     * @param <T>
-     * @return
+     * @param completeList 需要分页的实例列表
+     * @param start        分页起始位置
+     * @param pageSize     每页大小
+     * @param <T>          分页的实例
+     * @return 分页结果
      */
     public static <T> PageData<T> pageInMem(List<T> completeList, Integer start, Integer pageSize) {
         if (start == null || start < 0) {
@@ -107,11 +114,12 @@ public class PageUtil {
 
     /**
      * 分页查询
-     * @param isGetAll 是否全量获取
-     * @param prioritizedElements 需要优先的元素
-     * @param start 原始分页起始
-     * @param pageSize 分页大小
-     * @param dbQuery 查询
+     *
+     * @param isGetAll            是否全量获取
+     * @param prioritizedElements 需要优先的实例
+     * @param start               原始分页起始
+     * @param pageSize            分页大小
+     * @param dbQuery             查询
      * @return 分页结果
      */
     public static <T> PageData<T> pageQuery(boolean isGetAll,
