@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
@@ -138,42 +139,18 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         boolean getAll = baseSearchCondition.isGetAll();
 
         List<TaskPlanInfoDTO> favoredPlanInfos = null;
-        boolean hasFavored = false;
         if (CollectionUtils.isNotEmpty(favoritePlanIdList)) {
             favoredPlanInfos = taskPlanDAO.listTaskPlanByIds(taskPlanQuery.getAppId(),
                 favoritePlanIdList, taskPlanQuery, baseSearchCondition);
-            if (CollectionUtils.isNotEmpty(favoredPlanInfos)) {
-                hasFavored = true;
+        }
+
+        PageData<TaskPlanInfoDTO> taskPlanInfoPageData = PageUtil.pageQuery(getAll, favoredPlanInfos, start, length,
+            finalStart -> {
+                baseSearchCondition.setStart(finalStart);
+                return taskPlanDAO.listPageTaskPlans(taskPlanQuery,
+                    baseSearchCondition, favoritePlanIdList);
             }
-        }
-
-        if (hasFavored && CollectionUtils.isNotEmpty(favoredPlanInfos) && !getAll) {
-            if (favoredPlanInfos.size() < start) {
-                baseSearchCondition.setStart(start - favoredPlanInfos.size());
-                favoredPlanInfos = null;
-            } else {
-                favoredPlanInfos.subList(0, start).clear();
-                baseSearchCondition.setStart(0);
-                baseSearchCondition.setLength(length - favoredPlanInfos.size());
-            }
-        }
-
-        PageData<TaskPlanInfoDTO> taskPlanInfoPageData = taskPlanDAO.listPageTaskPlans(taskPlanQuery,
-            baseSearchCondition, favoritePlanIdList);
-
-        if (hasFavored && CollectionUtils.isNotEmpty(favoredPlanInfos)) {
-            taskPlanInfoPageData.getData().addAll(0, favoredPlanInfos);
-            if (!getAll) {
-                if (length < taskPlanInfoPageData.getData().size()) {
-                    taskPlanInfoPageData.getData().subList(length, taskPlanInfoPageData.getData().size()).clear();
-                }
-            }
-        }
-
-        if (!getAll) {
-            taskPlanInfoPageData.setStart(start);
-            taskPlanInfoPageData.setPageSize(length);
-        }
+        );
 
         if (CollectionUtils.isNotEmpty(taskPlanInfoPageData.getData())) {
             taskPlanInfoPageData.setData(fillTemplateInfo(taskPlanInfoPageData.getData().get(0).getAppId(),
