@@ -25,6 +25,7 @@ chmod 777 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
 
 echo "BK_JOB_NODE_IP=$BK_JOB_NODE_IP"
 
+ln -s $BK_JOB_LOG_BASE_DIR /data/logs
 ls $BK_JOB_LOG_BASE_DIR
 
 java -server \

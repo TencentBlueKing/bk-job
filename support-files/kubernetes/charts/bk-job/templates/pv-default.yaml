@@ -7,8 +7,8 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 200Gi
+    storage: {{ .Values.job.pv.storage }}
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/data/bkjob"
+    path: {{ .Values.job.pv.path }}

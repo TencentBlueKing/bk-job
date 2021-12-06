@@ -19,6 +19,8 @@ echo "BK_JOB_LOG_DIR=$BK_JOB_LOG_DIR"
 mkdir -p "$BK_JOB_LOG_DIR"
 chmod 777 "$BK_JOB_LOG_DIR"
 
+# 创建软链接供容器内日志采集使用
+ln -s $BK_JOB_LOG_BASE_DIR /data/logs
 ls $BK_JOB_LOG_BASE_DIR
 
 java -server \
