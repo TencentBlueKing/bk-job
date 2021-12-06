@@ -70,9 +70,9 @@ spec:
             - name: BK_JOB_JAR
               value: job-analysis.jar
             - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
+              value: /data/job/storage/logs
             - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-analysis
+              value: /data/job/storage/logs/job-analysis
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-analysis
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -108,6 +108,8 @@ spec:
           resources:
             {{- toYaml .Values.analysisConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -118,6 +120,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: bk-job-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

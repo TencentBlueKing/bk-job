@@ -88,7 +88,7 @@ bitnami/rabbitmq
 | `job.security.actuator.user.name`    | actuator管理账号    | `actuator_name`       |
 | `job.security.actuator.user.password`    | actuator管理密码    | `actuator_password`       |
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
-| `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/local`       |
+| `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/storage/local`       |
 
 ### 微服务网关Job-Gateway配置
 |参数|描述|默认值 |
