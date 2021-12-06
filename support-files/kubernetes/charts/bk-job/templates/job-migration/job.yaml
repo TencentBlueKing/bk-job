@@ -33,7 +33,7 @@ spec:
           image: {{ include "job-migration.image" . }}
           imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
           command: ["bash"]
-          args: ["/data/job/startup.sh"]
+          args: ["/data/job/exec/startup.sh"]
           env:
             - name: BK_JOB_MYSQL_HOST
               value: {{ include "job.mariadb.host" . | quote }}
