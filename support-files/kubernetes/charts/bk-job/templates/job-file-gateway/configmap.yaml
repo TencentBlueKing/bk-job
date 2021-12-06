@@ -50,4 +50,8 @@ data:
           max-request-size: 5GB
     server:
       port: {{ .Values.fileGatewayConfig.containerPort }}
+    management:
+      metrics:
+        tags:
+          application: "job-file-gateway"
   {{- end}}

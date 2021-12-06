@@ -111,4 +111,8 @@ data:
             keep_days: 30
           delete:
             enabled: true
+    management:
+      metrics:
+        tags:
+          application: "job-backup"
   {{- end}}

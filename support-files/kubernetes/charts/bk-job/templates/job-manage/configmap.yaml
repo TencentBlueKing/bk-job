@@ -81,4 +81,8 @@ data:
           available: mail
     server:
       port: {{ .Values.manageConfig.containerPort }}
+    management:
+      metrics:
+        tags:
+          application: "job-manage"
   {{- end}}

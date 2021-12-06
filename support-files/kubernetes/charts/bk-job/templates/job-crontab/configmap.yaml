@@ -104,4 +104,8 @@ data:
           total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}
     server:
       port: {{ .Values.crontabConfig.containerPort }}
+    management:
+      metrics:
+        tags:
+          application: "job-crontab"
   {{- end}}

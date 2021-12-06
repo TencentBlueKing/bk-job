@@ -188,4 +188,8 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+    management:
+      metrics:
+        tags:
+          application: "job-execute"
   {{- end}}

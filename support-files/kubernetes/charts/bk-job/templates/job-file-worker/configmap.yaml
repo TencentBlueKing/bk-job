@@ -36,4 +36,8 @@ data:
           root-url: http://{{ include "common.names.fullname" . }}-gateway/job-file-gateway
     server:
       port: {{ .Values.fileWorkerConfig.containerPort }}
+    management:
+      metrics:
+        tags:
+          application: "job-file-worker"
   {{- end}}

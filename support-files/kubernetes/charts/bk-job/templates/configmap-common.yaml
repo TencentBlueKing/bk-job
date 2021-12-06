@@ -114,7 +114,3 @@ data:
         repo: {{ .Values.localFile.artifactory.repo }}
     swagger:
       url: {{ .Values.swagger.url }}
-    management:
-      metrics:
-        tags:
-          application: ${spring.application.name}
