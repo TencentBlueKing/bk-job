@@ -29,7 +29,9 @@
     <layout>
         <div class="sync-plan-step1">
             <detail-layout>
-                <detail-item :label="$t('template.全局变量.label')" style="margin-bottom: 20px;">
+                <detail-item
+                    :label="$t('template.全局变量.label')"
+                    style="margin-bottom: 20px;">
                     <render-global-var
                         :list="templateVariableList"
                         mode="diff"
@@ -37,13 +39,24 @@
                         :diff="variableDiff" />
                 </detail-item>
                 <detail-item :label="$t('template.执行步骤')">
-                    <render-task-step :list="templateStepList" mode="diff" :diff="stepDiff" />
+                    <render-task-step
+                        :list="templateStepList"
+                        mode="diff"
+                        :diff="stepDiff" />
                 </detail-item>
             </detail-layout>
         </div>
         <template #footer>
-            <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-            <bk-button theme="primary" class="w120" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+            <bk-button
+                @click="handleCancel">
+                {{ $t('template.取消') }}
+            </bk-button>
+            <bk-button
+                theme="primary"
+                class="w120"
+                @click="handleNext">
+                {{ $t('template.下一步') }}
+            </bk-button>
         </template>
     </layout>
 </template>
