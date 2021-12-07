@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-logsvr
       data:
         mongodb:
           uri: {{ include "job.mongodb.connect.uri" . | quote }}
@@ -26,8 +24,4 @@ data:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
     server:
       port: {{ .Values.logsvrConfig.containerPort }}
-    management:
-      metrics:
-        tags:
-          application: "job-logsvr"
   {{- end}}

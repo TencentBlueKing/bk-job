@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-analysis
       cloud:
         refresh:
           extra-refreshable: javax.sql.DataSource
@@ -56,8 +54,4 @@ data:
             readTimeout: 300000
     server:
       port: {{ .Values.analysisConfig.containerPort }}
-    management:
-      metrics:
-        tags:
-          application: "job-analysis"
   {{- end}}

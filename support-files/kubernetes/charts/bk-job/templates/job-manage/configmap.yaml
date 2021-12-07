@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-manage
       cloud:
         refresh:
           extra-refreshable: javax.sql.DataSource
@@ -81,8 +79,4 @@ data:
           available: mail
     server:
       port: {{ .Values.manageConfig.containerPort }}
-    management:
-      metrics:
-        tags:
-          application: "job-manage"
   {{- end}}

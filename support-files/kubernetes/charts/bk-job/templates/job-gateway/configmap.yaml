@@ -236,7 +236,4 @@ data:
     management:
       server:
         port: {{ .Values.gatewayConfig.containerPort.management }}
-      metrics:
-        tags:
-          application: "job-gateway"
 {{- end}}

@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-backup
       cloud:
         refresh:
           extra-refreshable: javax.sql.DataSource
@@ -111,8 +109,4 @@ data:
             keep_days: 30
           delete:
             enabled: true
-    management:
-      metrics:
-        tags:
-          application: "job-backup"
   {{- end}}

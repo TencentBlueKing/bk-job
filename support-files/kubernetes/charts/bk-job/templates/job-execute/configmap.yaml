@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-execute
       cloud:
         stream:
           bindings:
@@ -188,8 +186,4 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
-    management:
-      metrics:
-        tags:
-          application: "job-execute"
   {{- end}}
