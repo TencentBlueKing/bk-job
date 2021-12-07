@@ -604,6 +604,8 @@
         }
 
         .step-mode-diff {
+            cursor: default;
+
             &::after {
                 position: absolute;
                 top: 0;
