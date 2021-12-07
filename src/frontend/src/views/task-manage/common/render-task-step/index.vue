@@ -931,7 +931,7 @@
 
     /* diff 对比的样式 */
     .step-mode-diff {
-        position: relative;
+        cursor: default;
 
         &::after {
             position: absolute;
