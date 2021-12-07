@@ -45,12 +45,12 @@
                     {{ $t('template.批量编辑变量值') }}
                 </bk-button>
             </div>
-            <div class="variable-container">
+            <div class="task-global-variable-box">
                 <template v-for="(item, index) in variable">
                     <div
                         v-if="item.delete !== 1"
                         :key="`${item.name}_${index}`"
-                        class="variable-box"
+                        class="render-global-variable"
                         :class="[
                             {
                                 'step-mode-diff': isDiff,
@@ -60,12 +60,14 @@
                                 : '',
                         ]">
                         <div
-                            class="variable-wraper"
+                            class="global-variable-content"
                             :class="[diff[item.id] && diff[item.id].type]"
                             @mouseenter="handleShowPopoverDetail(item)"
                             @mouseleave="handleHidePopoverDetail"
                             @click="handlerOperation(item, index)">
-                            <div :id="`globalVariableWithName_${item.name}`" class="variable-type">
+                            <div
+                                :id="`globalVariableWithName_${item.name}`"
+                                class="variable-type">
                                 <Icon :type="item.icon" />
                             </div>
                             <div class="variable-info">
@@ -83,7 +85,7 @@
                 <div
                     v-if="isOperation"
                     key="create"
-                    class="variable-add"
+                    class="global-variable-new"
                     v-test="{ type: 'button', value: 'create_global_variable' }"
                     @click="handleCreate">
                     <Icon type="plus" />
@@ -443,20 +445,20 @@
 <style lang='postcss' scoped>
     @import "@/css/mixins/media";
 
-    .variable-container {
+    .task-global-variable-box {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         margin-top: -10px;
 
-        .variable-box {
+        .render-global-variable {
             margin-top: 10px;
             margin-right: 10px;
             cursor: pointer;
             border-color: #3a84ff;
 
             &.selected {
-                .variable-wraper {
+                .global-variable-content {
                     border-color: #3a84ff;
                 }
             }
@@ -468,7 +470,7 @@
             }
         }
 
-        .variable-wraper {
+        .global-variable-content {
             position: relative;
             display: flex;
             width: 160px;
@@ -553,7 +555,7 @@
             }
         }
 
-        .variable-add {
+        .global-variable-new {
             display: flex;
             width: 160px;
             height: 50px;
@@ -582,8 +584,8 @@
             }
         }
 
-        .variable-wraper,
-        .variable-add {
+        .global-variable-content,
+        .global-variable-new {
             @media (--small-viewports) {
                 width: 160px;
             }
@@ -602,7 +604,18 @@
         }
 
         .step-mode-diff {
-            .variable-wraper {
+            cursor: default;
+
+            &::after {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                content: "";
+            }
+
+            .global-variable-content {
                 &.same {
                     border-color: #c4c6cc;
 

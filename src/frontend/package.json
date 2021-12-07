@@ -13,7 +13,7 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/paas-login": "0.0.10",
+    "@blueking/paas-login": "0.0.11",
     "@blueking/user-selector": "^1.0.7",
     "@icon-cool/bk-icon-job": "0.0.8",
     "@vue/composition-api": "^1.0.0-beta.1",

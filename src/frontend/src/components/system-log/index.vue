@@ -30,6 +30,7 @@
         :value="value"
         class="system-log-dialog"
         :show-footer="false"
+        :close-icon="false"
         :width="1105"
         @input="handleClose">
         <div
