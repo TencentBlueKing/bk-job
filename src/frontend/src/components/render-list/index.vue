@@ -517,7 +517,7 @@
                     return false;
                 }
                 const searchControl = this.searchControl();
-                if (typeof searchControl.checkEmpty !== 'function') {
+                if (!searchControl || typeof searchControl.checkEmpty !== 'function') {
                     return false;
                 }
                 return searchControl.checkEmpty();
