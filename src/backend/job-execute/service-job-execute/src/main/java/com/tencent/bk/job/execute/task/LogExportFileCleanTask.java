@@ -82,8 +82,9 @@ public class LogExportFileCleanTask {
         }
     }
 
-    /*
+    /**
      * 从制品库中删除nodeList内指定的过期节点
+     *
      * @param nodeList 需要检查的节点列表
      * @return 删除的节点数
      */
