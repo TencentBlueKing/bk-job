@@ -140,7 +140,6 @@
             this.rules = [
                 {
                     validator: () => {
-                        console.log('from file validatae ');
                         if (this.sourceFileList.length < 1) {
                             this.updateFileUploadFailed(false);
                             this.updateFileUploading(false);

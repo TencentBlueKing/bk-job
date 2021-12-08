@@ -200,7 +200,6 @@
                     });
             },
             handleInputValue () {
-                console.log('fom adasdasd dalog clone ');
                 this.close();
             },
         },
