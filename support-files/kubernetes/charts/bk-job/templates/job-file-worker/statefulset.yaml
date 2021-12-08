@@ -70,10 +70,6 @@ spec:
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-file-worker.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-file-worker
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
               value: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
             - name: BK_JOB_NODE_IP
