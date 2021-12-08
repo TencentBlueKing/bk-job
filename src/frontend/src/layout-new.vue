@@ -269,7 +269,7 @@
                 routerTitle: '',
                 ENABLE_FEATURE_FILE_MANAGE: false,
             });
-            let memoNavRouterName = '';
+            
             const methods = {
                 /**
                  * @desc 返回首页
@@ -301,10 +301,10 @@
                  * @param {String} routerName 跳转的路由名
                  */
                 handleRouterChange (routerName) {
-                    if (memoNavRouterName === routerName) {
+                    if (this.routerName === routerName) {
                         return;
                     }
-                    memoNavRouterName = routerName;
+                    this.routerName = routerName;
                     this.$router.push({
                         name: routerName,
                     });
@@ -337,6 +337,7 @@
             $route: {
                 handler (route) {
                     this.routerTitle = (route.meta.title || route.meta.pageTitle);
+                    this.routerName = route.name;
 
                     // 确认路由分组
                     const {

@@ -33,7 +33,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 @Slf4j
 public class FileUtil {
@@ -186,5 +189,40 @@ public class FileUtil {
                 log.error("Fail to close fos", e);
             }
         }
+    }
+
+    /**
+     * 删除空目录
+     *
+     * @param directory 目录文件
+     */
+    public static void deleteEmptyDirectory(File directory) {
+        if (directory == null) {
+            log.warn("Directory is null!");
+            return;
+        }
+
+        if (isEmpty(directory.toPath())) {
+            boolean delete = directory.delete();
+            if (delete) {
+                log.info("Delete empty directory {}", directory.getPath());
+            } else {
+                log.warn("Delete directory {} failed!", directory.getPath());
+            }
+        } else {
+            log.debug("Directory {} not empty!", directory.getPath());
+        }
+    }
+
+    private static boolean isEmpty(Path path) {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> entries = Files.list(path)) {
+                return !entries.findFirst().isPresent();
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

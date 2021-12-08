@@ -26,4 +26,6 @@ package com.tencent.bk.job.execute.constants;
 
 public class Consts {
     public static long MAX_SEARCH_TASK_HISTORY_RANGE_MILLS = 30 * 24 * 60 * 60 * 1000L;
+    public static String LOCAL_FILE_DIR_NAME = "localupload";
+    public static String LOG_EXPORT_DIR_NAME = "filedata";
 }

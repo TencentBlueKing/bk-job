@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -225,6 +226,11 @@ public class ExportJobExecutor {
             // 8.上传至制品库
             if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(backupStorageConfig.getStorageBackend())) {
                 saveToArtifactory(fileName);
+                // 删除本地临时文件
+                String fullPath = storageService.getStoragePath().concat(fileName);
+                File tmpFile = new File(fullPath);
+                FileUtils.deleteQuietly(tmpFile);
+                FileUtil.deleteEmptyDirectory(tmpFile.getParentFile());
             }
 
             exportInfo.setPassword(null);

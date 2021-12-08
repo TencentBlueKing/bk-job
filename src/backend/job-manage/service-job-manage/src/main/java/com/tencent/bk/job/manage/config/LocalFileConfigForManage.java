@@ -38,4 +38,7 @@ public class LocalFileConfigForManage {
     @Value("${local-file.artifactory.repo:localupload}")
     private String localUploadRepo;
 
+    @Value("${local-file.expire-days:7}")
+    private Integer expireDays;
+
 }

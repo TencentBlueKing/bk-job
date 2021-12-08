@@ -22,23 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.execute.task;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-@Data
-@Configuration
-public class LogExportConfig {
+/**
+ * 增加调度需要注意到ScheduleConfig中更新线程池配置
+ */
+@Slf4j
+@Component
+@EnableScheduling
+public class ScheduledTasks {
 
-    @Value("${log-export.storage-backend:local}")
-    private String storageBackend;
+    private final LocalTmpFileCleanTask localTmpFileCleanTask;
 
-    @Value("${log-export.artifactory.repo:filedata}")
-    private String logExportRepo;
+    @Autowired
+    public ScheduledTasks(LocalTmpFileCleanTask localTmpFileCleanTask) {
+        this.localTmpFileCleanTask = localTmpFileCleanTask;
+    }
 
-    @Value("${log-export.artifactory.file-expire-days:7}")
-    private Integer artifactoryFileExpireDays;
-
+    /**
+     * 本地临时文件清理：1h/次
+     */
+    @Scheduled(cron = "0 10 * * * ?")
+    public void localTmpFileCleanTask() {
+        log.info(Thread.currentThread().getId() + ":localTmpFileCleanTask start");
+        try {
+            localTmpFileCleanTask.execute();
+        } catch (Exception e) {
+            log.error("localTmpFileCleanTask fail", e);
+        }
+    }
 }
