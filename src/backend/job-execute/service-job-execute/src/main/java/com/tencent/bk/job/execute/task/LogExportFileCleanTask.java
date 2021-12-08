@@ -61,12 +61,10 @@ public class LogExportFileCleanTask {
     private final StorageSystemConfig storageSystemConfig;
     private final ArtifactoryClient artifactoryClient;
 
-    public LogExportFileCleanTask(
-        LogExportConfig logExportConfig,
-        ArtifactoryConfig artifactoryConfig,
-        StorageSystemConfig storageSystemConfig,
-        ArtifactoryClient artifactoryClient
-    ) {
+    public LogExportFileCleanTask(LogExportConfig logExportConfig,
+                                  ArtifactoryConfig artifactoryConfig,
+                                  StorageSystemConfig storageSystemConfig,
+                                  ArtifactoryClient artifactoryClient) {
         this.logExportConfig = logExportConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.storageSystemConfig = storageSystemConfig;
@@ -84,9 +82,8 @@ public class LogExportFileCleanTask {
         }
     }
 
-    /**
+    /*
      * 从制品库中删除nodeList内指定的过期节点
-     *
      * @param nodeList 需要检查的节点列表
      * @return 删除的节点数
      */
