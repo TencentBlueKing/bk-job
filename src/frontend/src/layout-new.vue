@@ -301,7 +301,6 @@
                  * @param {String} routerName 跳转的路由名
                  */
                 handleRouterChange (routerName) {
-                    console.log('from route change == ', this.routerName, routerName);
                     if (this.routerName === routerName) {
                         return;
                     }
