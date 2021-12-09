@@ -401,7 +401,8 @@ public class ArtifactoryClient {
         CloseableHttpResponse resp;
         try {
             resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
-            return Pair.of(resp.getEntity().getContent(), resp.getEntity().getContentLength());
+            return Pair.of(resp.getEntity().getContent(),
+                Long.parseLong(resp.getFirstHeader("Content-Length").getValue()));
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
