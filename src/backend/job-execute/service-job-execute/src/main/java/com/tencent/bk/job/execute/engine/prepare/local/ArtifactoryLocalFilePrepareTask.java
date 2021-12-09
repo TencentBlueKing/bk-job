@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.InputStream;
@@ -217,13 +218,18 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             // 制品库的完整路径
             String fullFilePath = PathUtil.joinFilePath(jobLocalUploadRootPath, filePath);
             NodeDTO nodeDTO = artifactoryClient.getFileNode(fullFilePath);
-            InputStream ins = artifactoryClient.getFileInputStream(fullFilePath);
+            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(fullFilePath);
+            InputStream ins = pair.getLeft();
+            long length = pair.getRight();
+            if (nodeDTO.getSize() != length) {
+                log.warn("{},ins length={},node.size={}", filePath, length, nodeDTO.getSize());
+            }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);
             try {
                 log.debug("Download {} to {}", fullFilePath, localPath);
-                FileUtil.writeInsToFile(ins, localPath, nodeDTO.getSize(), speed, process);
+                FileUtil.writeInsToFile(ins, localPath, length, speed, process);
             } catch (InterruptedException e) {
                 log.warn("Interrupted:Download {} to {}", fullFilePath, localPath);
             } catch (Exception e) {

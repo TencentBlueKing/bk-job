@@ -31,6 +31,7 @@ import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.InputStream;
 
@@ -48,7 +49,7 @@ public class ArtifactoryRemoteClient extends ArtifactoryClient implements Remote
     }
 
     @Override
-    public InputStream getFileInputStream(String filePath) throws ServiceException {
+    public Pair<InputStream,Long> getFileInputStream(String filePath) throws ServiceException {
         return super.getFileInputStream(filePath);
     }
 
