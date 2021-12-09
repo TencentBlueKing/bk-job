@@ -61,6 +61,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -385,12 +386,12 @@ public class ArtifactoryClient {
         return nodeDTO;
     }
 
-    public InputStream getFileInputStream(String filePath) throws ServiceException {
+    public Pair<InputStream, Long> getFileInputStream(String filePath) throws ServiceException {
         List<String> pathList = parsePath(filePath);
         return getFileInputStream(pathList.get(0), pathList.get(1), pathList.get(2));
     }
 
-    public InputStream getFileInputStream(String projectId, String repoName, String filePath) throws ServiceException {
+    public Pair<InputStream, Long> getFileInputStream(String projectId, String repoName, String filePath) throws ServiceException {
         DownloadGenericFileReq req = new DownloadGenericFileReq();
         req.setProject(projectId);
         req.setRepo(repoName);
@@ -400,7 +401,7 @@ public class ArtifactoryClient {
         CloseableHttpResponse resp;
         try {
             resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
-            return resp.getEntity().getContent();
+            return Pair.of(resp.getEntity().getContent(), resp.getEntity().getContentLength());
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);

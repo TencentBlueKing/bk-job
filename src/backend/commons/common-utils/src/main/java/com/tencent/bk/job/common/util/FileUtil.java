@@ -77,6 +77,7 @@ public class FileUtil {
                 fos.write(content, 0, length);
                 Thread.sleep(0);
             }
+            closeFos(fos);
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);
         } catch (FileNotFoundException e) {
@@ -89,7 +90,7 @@ public class FileUtil {
             log.info("Download interrupted, targetPath:{}", targetPath);
             throw e;
         } finally {
-            closeStreams(ins, fos, fis);
+            closeStreams(ins, fis);
         }
     }
 
@@ -139,6 +140,8 @@ public class FileUtil {
                 }
                 Thread.sleep(0);
             }
+            closeFos(fos);
+            log.info("targetPath:{},totalLength={},fileSize={}", targetPath, totalLength, fileSize);
             currentSpeedWatchTime = System.currentTimeMillis();
             timeDelta = currentSpeedWatchTime - lastSpeedWatchTime;
             long fileSizeDelta = totalLength - lastSpeedWatchFileSize;
@@ -158,13 +161,23 @@ public class FileUtil {
             log.info("Download interrupted, targetPath:{}", targetPath);
             throw e;
         } finally {
-            closeStreams(ins, fos, fis);
+            closeStreams(ins, fis);
+        }
+    }
+
+    private static void closeFos(FileOutputStream fos) {
+        if (fos != null) {
+            try {
+                fos.flush();
+                fos.close();
+            } catch (IOException e) {
+                log.error("Fail to close fos", e);
+            }
         }
     }
 
     private static void closeStreams(
         InputStream ins,
-        FileOutputStream fos,
         FileInputStream fis
     ) {
         if (fis != null) {
@@ -179,14 +192,6 @@ public class FileUtil {
                 ins.close();
             } catch (IOException e) {
                 log.error("Fail to close ins", e);
-            }
-        }
-        if (fos != null) {
-            try {
-                fos.flush();
-                fos.close();
-            } catch (IOException e) {
-                log.error("Fail to close fos", e);
             }
         }
     }
