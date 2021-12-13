@@ -125,7 +125,7 @@ spec:
       volumes:
         - name: job-storage
           persistentVolumeClaim:
-            claimName: bk-job-pv-claim
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

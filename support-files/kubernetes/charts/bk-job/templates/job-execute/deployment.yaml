@@ -138,7 +138,7 @@ spec:
       volumes:
         - name: job-storage
           persistentVolumeClaim:
-            claimName: bk-job-pv-claim
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: local-file-dir
           hostPath:
             path: {{ .Values.job.storage.rootPath }}

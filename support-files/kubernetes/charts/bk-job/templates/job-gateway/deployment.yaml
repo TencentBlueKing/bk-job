@@ -125,7 +125,7 @@ spec:
       volumes:
         - name: job-storage
           persistentVolumeClaim:
-            claimName: bk-job-pv-claim
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: job-gateway-tls-certs
           secret:
             secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
