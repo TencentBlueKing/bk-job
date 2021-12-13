@@ -31,6 +31,7 @@
 <script>
     import ScriptName from '../common/name';
     import ErrorHandle from '../common/error-handle';
+    import Rolling from '../common/rolling';
     import ScriptSourceOfExecution from './strategy/script-source-of-execution';
     import ScriptSourceOfTemplate from './strategy/script-source-of-template';
     import ScriptContent from './strategy/script-content';
@@ -61,6 +62,7 @@
                     scriptAccount: ExecuteAccount,
                     executeTargetOfTemplate: ExecuteTargetOfTemplate,
                     executeTargetOfExecution: ExecuteTargetOfExecution,
+                    rolling: Rolling,
                 };
                 if (!Object.prototype.hasOwnProperty.call(comMap, this.name)) {
                     return 'div';

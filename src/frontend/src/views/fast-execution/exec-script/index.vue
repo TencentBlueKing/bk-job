@@ -79,6 +79,12 @@
                     field="targetServers"
                     :form-data="formData"
                     @on-change="handleChange" />
+                <item-factory
+                    name="rolling"
+                    rolling-expr-field="rollingExpr"
+                    rolling-mode-field="rollingMode"
+                    :form-data="formData"
+                    @on-change="handleChange" />
             </jb-form>
             <template #action>
                 <div style="display: flex;">
@@ -98,7 +104,10 @@
                 </div>
             </template>
         </smart-action>
-        <div v-if="historyList.length > 0" class="execution-history" :class="{ active: isShowHistory }">
+        <div
+            v-if="historyList.length > 0"
+            class="execution-history"
+            :class="{ active: isShowHistory }">
             <div class="toggle-btn" @click="handleShowHistory">
                 <Icon class="toggle-flag" type="angle-double-left" />
                 <div class="recent-result">{{ $t('execution.最近结果') }}</div>
@@ -155,6 +164,8 @@
         account: '',
         // 目标服务器
         targetServers: new TaskHostNodeModel({}),
+        rollingExpr: '10%',
+        rollingMode: 1,
     });
 
     export default {

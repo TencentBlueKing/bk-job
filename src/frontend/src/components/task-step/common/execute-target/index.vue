@@ -323,6 +323,11 @@
             handleHostChange (hostNodeInfo) {
                 this.localHost = Object.freeze(hostNodeInfo);
                 this.triggerChange();
+                this.$nextTick(() => {
+                    if (this.isShowServerPanel) {
+                        this.$refs.serverPanel.$el.scrollIntoView();
+                    }
+                });
             },
             /**
              * @desc 复制所有主机

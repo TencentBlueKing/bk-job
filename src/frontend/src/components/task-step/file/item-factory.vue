@@ -31,6 +31,7 @@
 <script>
     import ErrorHandle from '../common/error-handle';
     import StepName from '../common/name';
+    import Rolling from '../common/rolling';
     import SourceFileOfExecution from './strategy/source-file-of-execution';
     import SourceFileOfTemplate from './strategy/source-file-of-template';
     import TargetPath from './strategy/target-path';
@@ -53,6 +54,7 @@
         targetServerOfExecution: TargetServerOfExecution,
         timeout: Timeout,
         speedLimit: SpeedLimit,
+        rolling: Rolling,
     };
 
     export default {
