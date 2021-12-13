@@ -25,16 +25,26 @@
 package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.model.PageData;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * 分页工具
+ */
 public class PageUtil {
 
-    public static final int DEFAULT_START = 0;
-    public static final int DEFAULT_POSITIVE_LENGTH = 10;
-
+    /**
+     * 标准化分页参数start与pageSize
+     *
+     * @param start    分页起始位置
+     * @param pageSize 每页大小
+     * @return 标准化分页参数
+     */
     public static Pair<Integer, Integer> normalizePageParam(Integer start, Integer pageSize) {
         if (start == null) {
             start = 0;
@@ -49,9 +59,9 @@ public class PageUtil {
     /**
      * 标准化分页参数start与pageSize
      *
-     * @param start
-     * @param pageSize
-     * @return
+     * @param start    分页起始位置
+     * @param pageSize 每页大小
+     * @return 标准化分页参数
      */
     public static Pair<Long, Long> normalizePageParam(Long start, Long pageSize) {
         Long finalStart = start;
@@ -68,11 +78,11 @@ public class PageUtil {
     /**
      * 内存中分页
      *
-     * @param completeList
-     * @param start
-     * @param pageSize
-     * @param <T>
-     * @return
+     * @param completeList 需要分页的实例列表
+     * @param start        分页起始位置
+     * @param pageSize     每页大小
+     * @param <T>          分页的实例
+     * @return 分页结果
      */
     public static <T> PageData<T> pageInMem(List<T> completeList, Integer start, Integer pageSize) {
         if (start == null || start < 0) {
@@ -100,5 +110,82 @@ public class PageUtil {
             }
         }
         return pageData;
+    }
+
+    /**
+     * 分页查询
+     *
+     * @param isGetAll            是否全量获取
+     * @param prioritizedElements 需要优先的实例
+     * @param start               原始分页起始
+     * @param pageSize            分页大小
+     * @param dbQuery             查询
+     * @return 分页结果
+     */
+    public static <T> PageData<T> pageQuery(boolean isGetAll,
+                                            List<T> prioritizedElements,
+                                            int start,
+                                            int pageSize,
+                                            DbQuery<T> dbQuery) {
+        boolean isExistPrioritizedElement = CollectionUtils.isNotEmpty(prioritizedElements);
+        int actualStart = start;
+        if (isExistPrioritizedElement && !isGetAll) {
+            if (prioritizedElements.size() <= start) {
+                actualStart = start - prioritizedElements.size();
+            } else {
+                actualStart = 0;
+            }
+        }
+        PageData<T> pageData = dbQuery.query(actualStart);
+        rebuildPageData(pageData, prioritizedElements, isGetAll, isExistPrioritizedElement, start, pageSize);
+        return pageData;
+    }
+
+    @FunctionalInterface
+    public interface DbQuery<T> {
+        PageData<T> query(int start);
+    }
+
+
+    private static <T> void rebuildPageData(PageData<T> pageData,
+                                            List<T> prioritizedElements,
+                                            boolean isGetAll,
+                                            boolean isExistPrioritizedElement,
+                                            Integer start,
+                                            Integer length) {
+        if (isExistPrioritizedElement) {
+            if (isGetAll) {
+                pageData.getData().addAll(0, prioritizedElements);
+            } else {
+                putPrioritizedElementsInFrontIfExist(pageData, prioritizedElements, start, length);
+            }
+        }
+
+        if (!isGetAll) {
+            pageData.setStart(start);
+            pageData.setPageSize(length);
+            if (isExistPrioritizedElement) {
+                pageData.setTotal(prioritizedElements.size() + pageData.getTotal());
+            }
+        }
+    }
+
+    private static <T> void putPrioritizedElementsInFrontIfExist(PageData<T> pageData,
+                                                                 List<T> prioritizedElements,
+                                                                 Integer start,
+                                                                 Integer length) {
+        // 处理需要优先的元素
+        if (CollectionUtils.isNotEmpty(prioritizedElements)) {
+            if (prioritizedElements.size() > start) {
+                pageData.getData().addAll(0, prioritizedElements.stream().skip(start).limit(length)
+                    .collect(Collectors.toList()));
+            }
+        }
+
+        // subList
+        if (pageData.getData().size() > length) {
+            List<T> templates = new ArrayList<>(pageData.getData().subList(0, length));
+            pageData.setData(templates);
+        }
     }
 }

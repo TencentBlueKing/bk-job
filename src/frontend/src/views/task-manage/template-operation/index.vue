@@ -448,7 +448,6 @@
              * @param {Array} steps 最新的步骤列表
              */
             handleTaskStepChange (steps) {
-                console.log('from task sep change = ', steps);
                 this.formData.steps = steps;
                 this.$refs.templateOperateRef.clearError();
             },
