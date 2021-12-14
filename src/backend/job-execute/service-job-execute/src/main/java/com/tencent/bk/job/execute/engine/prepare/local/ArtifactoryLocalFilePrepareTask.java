@@ -220,16 +220,20 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             NodeDTO nodeDTO = artifactoryClient.getFileNode(fullFilePath);
             Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(fullFilePath);
             InputStream ins = pair.getLeft();
-            long length = pair.getRight();
-            if (nodeDTO.getSize() != length) {
+            Long length = pair.getRight();
+            Long fileSize = nodeDTO.getSize();
+            if (fileSize != null && !fileSize.equals(length)) {
                 log.warn("{},ins length={},node.size={}", filePath, length, nodeDTO.getSize());
+            }
+            if (fileSize == null || fileSize <= 0) {
+                fileSize = length;
             }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);
             try {
                 log.debug("Download {} to {}", fullFilePath, localPath);
-                FileUtil.writeInsToFile(ins, localPath, length, speed, process);
+                FileUtil.writeInsToFile(ins, localPath, fileSize, speed, process);
             } catch (InterruptedException e) {
                 log.warn("Interrupted:Download {} to {}", fullFilePath, localPath);
             } catch (Exception e) {
