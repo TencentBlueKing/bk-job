@@ -145,7 +145,7 @@ public class EsbPushConfigFileResourceV3Impl
         configFileList.forEach(configFile -> {
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
-            fileSourceDTO.setLocalUpload(true);
+            fileSourceDTO.setLocalUpload(false);
             fileSourceDTO.setFileType(TaskFileTypeEnum.LOCAL.getType());
             List<FileDetailDTO> files = new ArrayList<>();
             files.add(new FileDetailDTO(configFile.getFileName(), configFile.getContent()));

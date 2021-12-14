@@ -163,7 +163,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         configFileList.forEach(configFile -> {
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
-            fileSourceDTO.setLocalUpload(true);
+            fileSourceDTO.setLocalUpload(false);
             fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
             files.add(new FileDetailDTO(configFile.getFileName(), configFile.getContent()));
