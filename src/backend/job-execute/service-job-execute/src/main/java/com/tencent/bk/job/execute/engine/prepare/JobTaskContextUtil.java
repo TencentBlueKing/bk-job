@@ -22,45 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.task;
+package com.tencent.bk.job.execute.engine.prepare;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-/**
- * @since 3/10/2019 17:08
- */
-@Getter
-@AllArgsConstructor
-public enum TaskFileTypeEnum {
+public class JobTaskContextUtil {
     /**
-     * 服务器文件
+     * 根据必要参数生成简单的任务上下文
+     *
+     * @param isForRetry 是否为重试任务
+     * @return 任务上下文
      */
-    SERVER(1),
-
-    /**
-     * 本地文件
-     */
-    LOCAL(2),
-
-    /**
-     * 文件源文件
-     */
-    FILE_SOURCE(3),
-
-    /**
-     * 配置文件
-     */
-    CONFIG_FILE(4);
-
-    private int type;
-
-    public static TaskFileTypeEnum valueOf(int type) {
-        for (TaskFileTypeEnum fileType : values()) {
-            if (fileType.type == type) {
-                return fileType;
+    public static JobTaskContext getSimpleTaskContext(boolean isForRetry) {
+        return new JobTaskContext() {
+            @Override
+            public boolean isForRetry() {
+                return isForRetry;
             }
-        }
-        return null;
+        };
     }
 }

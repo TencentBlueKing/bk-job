@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.prepare.config.ConfigFilePrepareService;
+import com.tencent.bk.job.execute.engine.prepare.config.ConfigFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
@@ -34,6 +36,7 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -53,6 +56,7 @@ import java.util.concurrent.CountDownLatch;
 @Primary
 @Component
 public class FilePrepareServiceImpl implements FilePrepareService {
+    private final ConfigFilePrepareService configFilePrepareService;
     private final LocalFilePrepareService localFilePrepareService;
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
@@ -61,11 +65,13 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
     @Autowired
     public FilePrepareServiceImpl(
+        ConfigFilePrepareService configFilePrepareService,
         LocalFilePrepareService localFilePrepareService,
         ThirdFilePrepareService thirdFilePrepareService,
         TaskInstanceService taskInstanceService,
         TaskExecuteControlMsgSender taskControlMsgSender,
         ResultHandleManager resultHandleManager) {
+        this.configFilePrepareService = configFilePrepareService;
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
@@ -82,6 +88,15 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     public void clearPreparedTmpFile(long stepInstanceId) {
         localFilePrepareService.clearPreparedTmpFile(stepInstanceId);
         thirdFilePrepareService.clearPreparedTmpFile(stepInstanceId);
+    }
+
+    private boolean hasConfigFile(List<FileSourceDTO> fileSourceList) {
+        for (FileSourceDTO fileSourceDTO : fileSourceList) {
+            if (fileSourceDTO.getFileType() == TaskFileTypeEnum.CONFIG_FILE.getType()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasLocalFile(List<FileSourceDTO> fileSourceList) {
@@ -102,6 +117,42 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         return false;
     }
 
+    private void startPrepareConfigFileTask(
+        StepInstanceDTO stepInstance,
+        List<FileSourceDTO> fileSourceList,
+        List<FilePrepareTaskResult> resultList,
+        CountDownLatch latch
+    ) {
+        configFilePrepareService.prepareConfigFiles(
+            stepInstance.getId(),
+            stepInstance.getOperator(),
+            fileSourceList,
+            new ConfigFilePrepareTaskResultHandler() {
+
+                @Override
+                public void onSuccess(JobTaskContext taskContext) {
+                    log.info("stepInstanceId={},ConfigFilePrepareTask success", stepInstance.getId());
+                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onStopped(JobTaskContext taskContext) {
+                    log.info("stepInstanceId={},ConfigFilePrepareTask stopped", stepInstance.getId());
+                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailed(JobTaskContext taskContext) {
+                    log.info("stepInstanceId={},ConfigFilePrepareTask failed", stepInstance.getId());
+                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
+                    latch.countDown();
+                }
+            }
+        );
+    }
+
     private void startPrepareLocalFileTask(
         long stepInstanceId,
         List<FileSourceDTO> fileSourceList,
@@ -114,21 +165,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             new LocalFilePrepareTaskResultHandler() {
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.info("stepInstanceId={},LocalFilePrepareTask success", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.info("stepInstanceId={},LocalFilePrepareTask stopped", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.info("stepInstanceId={},LocalFilePrepareTask failed", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -146,21 +197,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask success", stepInstance.getId());
+                    log.info("stepInstanceId={},ThirdFilePrepareTask success", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask stopped", stepInstance.getId());
+                    log.info("stepInstanceId={},ThirdFilePrepareTask stopped", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
+                    log.info("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -178,18 +229,24 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             return;
         }
         int taskCount = 0;
+        boolean hasConfigFile = hasConfigFile(fileSourceList);
         boolean hasLocalFile = hasLocalFile(fileSourceList);
         boolean hasThirdFile = hasThirdFile(fileSourceList);
+        if (hasConfigFile) taskCount += 1;
         if (hasLocalFile) taskCount += 1;
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
-            // 没有需要准备文件的本地文件/第三方源文件
+            // 没有需要准备文件的配置文件/本地文件/第三方源文件
             taskControlMsgSender.startGseStep(stepInstance.getId());
             return;
         }
         log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);
         CountDownLatch latch = new CountDownLatch(taskCount);
         final List<FilePrepareTaskResult> resultList = Collections.synchronizedList(new ArrayList<>(taskCount));
+        if (hasConfigFile) {
+            // 启动异步准备配置文件任务
+            startPrepareConfigFileTask(stepInstance, fileSourceList, resultList, latch);
+        }
         if (hasLocalFile) {
             // 启动异步准备本地文件任务
             startPrepareLocalFileTask(stepInstanceId, fileSourceList, resultList, latch);

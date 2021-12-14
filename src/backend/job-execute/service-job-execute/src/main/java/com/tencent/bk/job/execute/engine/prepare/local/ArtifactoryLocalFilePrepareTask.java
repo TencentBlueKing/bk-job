@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.prepare.local;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.util.FileUtil;
+import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
@@ -65,7 +66,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final ArtifactoryClient artifactoryClient;
     private final String jobLocalUploadRootPath;
     private final String jobStorageRootPath;
-    private final List<Future<Void>> futureList = new ArrayList<>();
+    private final List<Future<Boolean>> futureList = new ArrayList<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
     public static FinalResultHandler finalResultHandler = null;
     /**
@@ -126,7 +127,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     }
 
     public void stop() {
-        for (Future<Void> future : futureList) {
+        for (Future<Boolean> future : futureList) {
             if (!future.isDone()) {
                 future.cancel(true);
             }
@@ -146,7 +147,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 List<FileDetailDTO> files = fileSourceDTO.getFiles();
                 for (FileDetailDTO file : files) {
                     FileDownloadTask task = new FileDownloadTask(file);
-                    Future<Void> future = threadPoolExecutor.submit(task);
+                    Future<Boolean> future = threadPoolExecutor.submit(task);
                     futureList.add(future);
                 }
             }
@@ -158,12 +159,12 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     class FinalResultHandler extends Thread {
 
         ArtifactoryLocalFilePrepareTask artifactoryLocalFilePrepareTask;
-        List<Future<Void>> futureList;
+        List<Future<Boolean>> futureList;
         LocalFilePrepareTaskResultHandler resultHandler;
 
         FinalResultHandler(
             ArtifactoryLocalFilePrepareTask artifactoryLocalFilePrepareTask,
-            List<Future<Void>> futureList,
+            List<Future<Boolean>> futureList,
             LocalFilePrepareTaskResultHandler resultHandler
         ) {
             this.artifactoryLocalFilePrepareTask = artifactoryLocalFilePrepareTask;
@@ -173,9 +174,10 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
 
         @Override
         public void run() {
-            for (Future<Void> future : futureList) {
+            List<Boolean> resultList = new ArrayList<>();
+            for (Future<Boolean> future : futureList) {
                 try {
-                    future.get(30, TimeUnit.MINUTES);
+                    resultList.add(future.get(30, TimeUnit.MINUTES));
                 } catch (InterruptedException e) {
                     log.info("task stopped");
                     resultHandler.onStopped(artifactoryLocalFilePrepareTask);
@@ -190,12 +192,17 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                     return;
                 }
             }
-            log.info("all task success");
-            resultHandler.onSuccess(artifactoryLocalFilePrepareTask);
+            if (ListUtil.isAllTrue(resultList)) {
+                log.info("all task success");
+                resultHandler.onSuccess(artifactoryLocalFilePrepareTask);
+            } else {
+                log.warn("some localFile prepare tasks failed");
+                resultHandler.onFailed(artifactoryLocalFilePrepareTask);
+            }
         }
     }
 
-    class FileDownloadTask implements Callable<Void> {
+    class FileDownloadTask implements Callable<Boolean> {
 
         private final FileDetailDTO file;
 
@@ -204,7 +211,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         }
 
         @Override
-        public Void call() throws Exception {
+        public Boolean call() throws Exception {
             String filePath = file.getFilePath();
             // 本地存储路径
             String localPath = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
@@ -230,12 +237,13 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             try {
                 log.debug("Download {} to {}", fullFilePath, localPath);
                 FileUtil.writeInsToFile(ins, localPath, length, speed, process);
+                return true;
             } catch (InterruptedException e) {
                 log.warn("Interrupted:Download {} to {}", fullFilePath, localPath);
             } catch (Exception e) {
-                throw e;
+                log.error("Fail to download {} to {}", fullFilePath, localPath);
             }
-            return null;
+            return false;
         }
     }
 }

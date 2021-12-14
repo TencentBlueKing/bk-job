@@ -22,45 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.task;
+package com.tencent.bk.job.execute.engine.prepare.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-/**
- * @since 3/10/2019 17:08
- */
-@Getter
-@AllArgsConstructor
-public enum TaskFileTypeEnum {
-    /**
-     * 服务器文件
-     */
-    SERVER(1),
+import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 
-    /**
-     * 本地文件
-     */
-    LOCAL(2),
+public interface ConfigFilePrepareTaskResultHandler {
 
-    /**
-     * 文件源文件
-     */
-    FILE_SOURCE(3),
+    void onSuccess(JobTaskContext taskContext);
 
-    /**
-     * 配置文件
-     */
-    CONFIG_FILE(4);
+    void onStopped(JobTaskContext taskContext);
 
-    private int type;
+    void onFailed(JobTaskContext taskContext);
 
-    public static TaskFileTypeEnum valueOf(int type) {
-        for (TaskFileTypeEnum fileType : values()) {
-            if (fileType.type == type) {
-                return fileType;
-            }
-        }
-        return null;
-    }
 }

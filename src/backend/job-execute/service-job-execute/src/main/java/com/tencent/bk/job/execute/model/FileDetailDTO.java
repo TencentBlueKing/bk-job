@@ -54,6 +54,10 @@ public class FileDetailDTO implements Cloneable {
      */
     private String fileName;
     /**
+     * base64编码的文件内容
+     */
+    private String base64Content;
+    /**
      * 文件hash，目前用md5
      */
     private String fileHash;
@@ -65,6 +69,11 @@ public class FileDetailDTO implements Cloneable {
 
     public FileDetailDTO(String filePath) {
         this.filePath = filePath;
+    }
+
+    public FileDetailDTO(String fileName, String base64Content) {
+        this.fileName = fileName;
+        this.base64Content = base64Content;
     }
 
     public FileDetailDTO(boolean localUpload, String filePath, String fileHash, Long fileSize) {

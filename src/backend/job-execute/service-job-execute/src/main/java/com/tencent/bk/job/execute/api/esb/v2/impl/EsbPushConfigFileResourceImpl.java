@@ -28,25 +28,18 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
-import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbPushConfigFileResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
-import com.tencent.bk.job.execute.engine.util.FileUtils;
-import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -63,7 +56,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,15 +66,11 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
 
     private final AccountService accountService;
 
-    private final StorageSystemConfig storageSystemConfig;
-
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
-                                         AccountService accountService,
-                                         StorageSystemConfig storageSystemConfig) {
+                                         AccountService accountService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
-        this.storageSystemConfig = storageSystemConfig;
     }
 
     @Override
@@ -96,45 +84,8 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
 
         request.trimIps();
 
-        String uploadPath = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
-            FileDirTypeConf.UPLOAD_FILE_DIR);
-
-        List<String> localFileList = new ArrayList<>();
-        for (EsbPushConfigFileRequest.EsbConfigFileDTO configFile : request.getFileList()) {
-            String fileName = configFile.getFileName();
-            String base64EncodeContent = configFile.getContent();
-            byte[] contentBytes = Base64Util.decodeContentToByte(base64EncodeContent);
-            String localFileRelativePath = JobUUID.getUUID() + File.separatorChar +
-                request.getUserName() + File.separatorChar + fileName;
-            String fullFilePath = uploadPath.concat(localFileRelativePath);
-            File theFile = new File(fullFilePath);
-            File parentDir = theFile.getParentFile();
-            if (!parentDir.exists()) {
-                if (!parentDir.mkdirs()) {
-                    log.warn("Push config file, mkdir parent dir fail!dir:{}", parentDir.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-                if (!parentDir.setWritable(true, false)) {
-                    log.warn("Push config file, set parent dir writeable fail!dir:{}", parentDir.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-            }
-            if (theFile.exists() && theFile.isFile()) {
-                if (!theFile.delete()) {
-                    log.warn("Push config file, delete old file fail!dir:{}", theFile.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-            }
-
-            if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
-                log.warn("Push config file, save file failed!fileName:{}", theFile.getAbsolutePath());
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
-            localFileList.add(localFileRelativePath);
-        }
-
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, localFileList);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, request.getFileList());
         long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
         taskExecuteService.startTask(taskInstanceId);
 
@@ -166,7 +117,8 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         return taskInstance;
     }
 
-    private StepInstanceDTO buildFastFileStepInstance(EsbPushConfigFileRequest request, List<String> localFileList) {
+    private StepInstanceDTO buildFastFileStepInstance(EsbPushConfigFileRequest request,
+                                                      List<EsbPushConfigFileRequest.EsbConfigFileDTO> configFileList) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         if (StringUtils.isNotEmpty(request.getName())) {
             stepInstance.setName(request.getName());
@@ -179,7 +131,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
-        stepInstance.setFileSourceList(convertFileSource(localFileList));
+        stepInstance.setFileSourceList(convertConfigFileSource(configFileList));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToStandardServers(null, request.getIpList(), null));
         stepInstance.setOperator(request.getUserName());
@@ -202,18 +154,19 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         return account;
     }
 
-    private List<FileSourceDTO> convertFileSource(List<String> configFiles) throws ServiceException {
-        if (configFiles == null) {
+    private List<FileSourceDTO> convertConfigFileSource(List<EsbPushConfigFileRequest.EsbConfigFileDTO> configFileList)
+        throws ServiceException {
+        if (configFileList == null) {
             return null;
         }
         List<FileSourceDTO> fileSourceDTOS = new ArrayList<>();
-        configFiles.forEach(configFile -> {
+        configFileList.forEach(configFile -> {
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
             fileSourceDTO.setLocalUpload(true);
-            fileSourceDTO.setFileType(TaskFileTypeEnum.LOCAL.getType());
+            fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
-            files.add(new FileDetailDTO(configFile));
+            files.add(new FileDetailDTO(configFile.getFileName(), configFile.getContent()));
             fileSourceDTO.setFiles(files);
             fileSourceDTOS.add(fileSourceDTO);
         });
