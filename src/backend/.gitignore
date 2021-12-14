@@ -6,3 +6,4 @@ build
 release
 
 **/bin
+.codecc

@@ -28,12 +28,24 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @ApiModel("滚动执行配置VO")
 @Data
-public class RollingExecutionConfigVO {
-    @ApiModelProperty(value = "滚动策略表达式")
-    private String rollingExpr;
+public class RollingConfigVO {
+    @ApiModelProperty(value = "滚动区间名称")
+    private String name;
 
-    @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-执行成功，自动滚动下一批；3-忽略失败，自动滚动下一批；4-人工确认")
-    private Integer rollingMode;
+    @ApiModelProperty(value = "滚动分批策略表达式")
+    private String batchExpr;
+
+    @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
+    private Integer mode;
+
+    @ApiModelProperty(value = "滚动区间包含的所有步骤ID,步骤ID按照滚动先后排序")
+    private List<Long> includeStepIdList;
+
+    @ApiModelProperty(value = "分批滚动的步骤,步骤ID按照滚动先后排序")
+    private List<Long> rollingStepIdList;
+
 }
