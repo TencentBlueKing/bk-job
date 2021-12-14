@@ -63,6 +63,8 @@ spec:
           image: {{ include "job-execute.image" . }}
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-execute"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.executeConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
@@ -73,10 +75,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-execute
             - name: BK_JOB_STORAGE_ROOT_PATH
               value: {{ .Values.job.storage.rootPath }}
             - name: JOB_APPLICATION_CONFIGMAP_NAME
@@ -89,6 +87,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
@@ -114,6 +116,8 @@ spec:
           resources:
             {{- toYaml .Values.executeConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: local-file-dir
               mountPath: {{ .Values.job.storage.rootPath }}
             - name: mariadb
@@ -132,6 +136,9 @@ spec:
               mountPath: /etc/secrets
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: local-file-dir
           hostPath:
             path: {{ .Values.job.storage.rootPath }}

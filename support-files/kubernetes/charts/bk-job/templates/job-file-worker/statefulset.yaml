@@ -62,16 +62,14 @@ spec:
           image: {{ include "job-file-worker.image" . }}
           imagePullPolicy: {{ .Values.fileWorkerConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-file-worker"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.fileWorkerConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-file-worker.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-file-worker
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
               value: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
             - name: BK_JOB_NODE_IP
@@ -94,6 +92,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}
@@ -119,9 +121,14 @@ spec:
           resources:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: workspace
               mountPath: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: workspace
           hostPath:
             path: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
