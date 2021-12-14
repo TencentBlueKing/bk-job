@@ -33,9 +33,6 @@ import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,7 +50,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -73,11 +69,6 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final List<Future<Boolean>> futureList = new ArrayList<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
     public static FinalResultHandler finalResultHandler = null;
-    /**
-     * 同步锁
-     */
-    volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
-    private LogService logService;
 
     public static void init(int concurrency) {
         if (threadPoolExecutor == null) {
@@ -116,17 +107,6 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         this.artifactoryProject = artifactoryProject;
         this.artifactoryRepo = artifactoryRepo;
         this.jobStorageRootPath = jobStorageRootPath;
-    }
-
-    public boolean isReadyForNext() {
-        return this.isReadyForNextStepWrapper.get();
-    }
-
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceIpLogDTO> logDTOList) {
-        for (ServiceIpLogDTO serviceLogDTO : logDTOList) {
-            logService.writeFileLogWithTimestamp(stepInstance.getCreateTime(), stepInstance.getId(),
-                stepInstance.getExecuteCount(), serviceLogDTO.getIp(), serviceLogDTO, System.currentTimeMillis());
-        }
     }
 
     @Override
@@ -233,7 +213,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             }
         }
 
-        public Boolean doCall() {
+        private Boolean doCall() {
             String filePath = file.getFilePath();
             // 本地存储路径
             String localPath = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
@@ -241,7 +221,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             File localFile = new File(localPath);
             // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段
             if (localFile.exists()) {
-                log.debug("[{}]:push config file, use generated file", stepInstanceId);
+                log.debug("[{}]:local file already exists", stepInstanceId);
                 return true;
             }
             // 制品库的完整路径

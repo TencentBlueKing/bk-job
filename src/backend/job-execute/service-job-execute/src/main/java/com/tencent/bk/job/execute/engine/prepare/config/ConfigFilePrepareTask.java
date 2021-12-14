@@ -43,7 +43,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 配置文件准备任务调度：从base64编码字符串生成文件
@@ -58,10 +57,6 @@ public class ConfigFilePrepareTask implements JobTaskContext {
     private final List<Future<Boolean>> futureList = new ArrayList<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
     public static FinalResultHandler finalResultHandler = null;
-    /**
-     * 同步锁
-     */
-    volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
 
     public static void init(int concurrency) {
         if (threadPoolExecutor == null) {
@@ -92,10 +87,6 @@ public class ConfigFilePrepareTask implements JobTaskContext {
         this.resultHandler = resultHandler;
         this.configFileSourceList = configFileSourceList;
         init(3);
-    }
-
-    public boolean isReadyForNext() {
-        return this.isReadyForNextStepWrapper.get();
     }
 
     @Override
@@ -151,15 +142,15 @@ public class ConfigFilePrepareTask implements JobTaskContext {
                 try {
                     resultList.add(future.get(30, TimeUnit.MINUTES));
                 } catch (InterruptedException e) {
-                    log.info("[{}]:task stopped", stepInstanceId);
+                    log.info("[{}]:generate task stopped", stepInstanceId);
                     resultHandler.onStopped(configFilePrepareTask);
                     return;
                 } catch (ExecutionException e) {
-                    log.info("[{}]:task download failed", stepInstanceId);
+                    log.info("[{}]:generate task failed", stepInstanceId);
                     resultHandler.onFailed(configFilePrepareTask);
                     return;
                 } catch (TimeoutException e) {
-                    log.info("[{}]:task download timeout", stepInstanceId);
+                    log.info("[{}]:generate task timeout", stepInstanceId);
                     resultHandler.onFailed(configFilePrepareTask);
                     return;
                 }
@@ -189,46 +180,7 @@ public class ConfigFilePrepareTask implements JobTaskContext {
         @Override
         public Boolean call() {
             try {
-                byte[] contentBytes = Base64Util.decodeContentToByte(base64Content);
-                File theFile = new File(fullFilePath);
-                File parentDir = theFile.getParentFile();
-                if (!parentDir.exists()) {
-                    if (!parentDir.mkdirs()) {
-                        log.warn(
-                            "[{}]:Push config file, mkdir parent dir fail!dir:{}",
-                            stepInstanceId,
-                            parentDir.getAbsolutePath()
-                        );
-                        return false;
-                    }
-                    if (!parentDir.setWritable(true, false)) {
-                        log.warn(
-                            "[{}]:Push config file, set parent dir writeable fail!dir:{}",
-                            stepInstanceId,
-                            parentDir.getAbsolutePath()
-                        );
-                        return false;
-                    }
-                }
-                if (theFile.exists() && theFile.isFile()) {
-                    if (!theFile.delete()) {
-                        log.warn(
-                            "[{}]:Push config file, delete old file fail!dir:{}",
-                            stepInstanceId,
-                            theFile.getAbsolutePath()
-                        );
-                        return false;
-                    }
-                }
-
-                if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
-                    log.warn(
-                        "[{}]:Push config file, save file failed!fileName:{}",
-                        stepInstanceId,
-                        theFile.getAbsolutePath()
-                    );
-                    return false;
-                }
+                return doCall();
             } catch (Exception e) {
                 FormattingTuple msg = MessageFormatter.format(
                     "[{}]:Fail to generate configFile {}",
@@ -236,6 +188,48 @@ public class ConfigFilePrepareTask implements JobTaskContext {
                     fullFilePath
                 );
                 log.warn(msg.getMessage(), e);
+                return false;
+            }
+        }
+
+        private Boolean doCall() {
+            byte[] contentBytes = Base64Util.decodeContentToByte(base64Content);
+            File theFile = new File(fullFilePath);
+            File parentDir = theFile.getParentFile();
+            if (!parentDir.exists()) {
+                if (!parentDir.mkdirs()) {
+                    log.warn(
+                        "[{}]:Push config file, mkdir parent dir fail!dir:{}",
+                        stepInstanceId,
+                        parentDir.getAbsolutePath()
+                    );
+                    return false;
+                }
+                if (!parentDir.setWritable(true, false)) {
+                    log.warn(
+                        "[{}]:Push config file, set parent dir writeable fail!dir:{}",
+                        stepInstanceId,
+                        parentDir.getAbsolutePath()
+                    );
+                    return false;
+                }
+            }
+            if (theFile.exists() && theFile.isFile()) {
+                if (!theFile.delete()) {
+                    log.warn(
+                        "[{}]:Push config file, delete old file fail!dir:{}",
+                        stepInstanceId,
+                        theFile.getAbsolutePath()
+                    );
+                    return false;
+                }
+            }
+            if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
+                log.warn(
+                    "[{}]:Push config file, save file failed!fileName:{}",
+                    stepInstanceId,
+                    theFile.getAbsolutePath()
+                );
                 return false;
             }
             return true;

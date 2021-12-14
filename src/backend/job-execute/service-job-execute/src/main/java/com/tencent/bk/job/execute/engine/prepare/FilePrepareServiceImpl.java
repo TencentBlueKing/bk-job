@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * 汇总控制多种文件准备任务：本地文件、第三方源文件
+ * 汇总控制多种文件准备任务：配置文件、本地文件、第三方源文件
  */
 @Slf4j
 @Primary
@@ -259,6 +259,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         FilePrepareTaskResultHandler filePrepareTaskResultHandler = new FilePrepareTaskResultHandler() {
             @Override
             public void onFinished(StepInstanceDTO stepInstance, List<FilePrepareTaskResult> resultList) {
+                log.info("stepInstanceId={},prepareTask finished", stepInstance.getId());
                 handleFinalTaskResult(resultList, stepInstance);
             }
 
