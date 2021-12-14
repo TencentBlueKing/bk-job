@@ -39,6 +39,8 @@ import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.File;
 import java.io.InputStream;
@@ -60,11 +62,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
 
+    private final Long stepInstanceId;
     private final boolean isForRetry;
     private final List<FileSourceDTO> fileSourceList;
     private final LocalFilePrepareTaskResultHandler resultHandler;
     private final ArtifactoryClient artifactoryClient;
-    private final String jobLocalUploadRootPath;
+    private final String artifactoryProject;
+    private final String artifactoryRepo;
     private final String jobStorageRootPath;
     private final List<Future<Boolean>> futureList = new ArrayList<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
@@ -95,18 +99,22 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     }
 
     public ArtifactoryLocalFilePrepareTask(
+        Long stepInstanceId,
         boolean isForRetry,
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler,
         ArtifactoryClient artifactoryClient,
-        String jobLocalUploadRootPath,
+        String artifactoryProject,
+        String artifactoryRepo,
         String jobStorageRootPath
     ) {
+        this.stepInstanceId = stepInstanceId;
         this.isForRetry = isForRetry;
         this.fileSourceList = fileSourceList;
         this.resultHandler = resultHandler;
         this.artifactoryClient = artifactoryClient;
-        this.jobLocalUploadRootPath = jobLocalUploadRootPath;
+        this.artifactoryProject = artifactoryProject;
+        this.artifactoryRepo = artifactoryRepo;
         this.jobStorageRootPath = jobStorageRootPath;
     }
 
@@ -140,7 +148,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     public void execute() {
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             if (fileSourceDTO == null) {
-                log.warn("fileSourceDTO is null");
+                log.warn("[{}]:fileSourceDTO is null", stepInstanceId);
                 continue;
             }
             if (fileSourceDTO.isLocalUpload() || fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
@@ -179,24 +187,24 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 try {
                     resultList.add(future.get(30, TimeUnit.MINUTES));
                 } catch (InterruptedException e) {
-                    log.info("task stopped");
+                    log.info("[{}]:task stopped", stepInstanceId);
                     resultHandler.onStopped(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (ExecutionException e) {
-                    log.info("task download failed");
+                    log.info("[{}]:task download failed", stepInstanceId);
                     resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 } catch (TimeoutException e) {
-                    log.info("task download timeout");
+                    log.info("[{}]:task download timeout", stepInstanceId);
                     resultHandler.onFailed(artifactoryLocalFilePrepareTask);
                     return;
                 }
             }
             if (ListUtil.isAllTrue(resultList)) {
-                log.info("all task success");
+                log.info("[{}]:all task success", stepInstanceId);
                 resultHandler.onSuccess(artifactoryLocalFilePrepareTask);
             } else {
-                log.warn("some localFile prepare tasks failed");
+                log.warn("[{}]:some localFile prepare tasks failed", stepInstanceId);
                 resultHandler.onFailed(artifactoryLocalFilePrepareTask);
             }
         }
@@ -211,7 +219,21 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         }
 
         @Override
-        public Boolean call() throws Exception {
+        public Boolean call() {
+            try {
+                return doCall();
+            } catch (Throwable t) {
+                FormattingTuple msg = MessageFormatter.format(
+                    "[{}]:Unexpected error when prepare localFile {}",
+                    stepInstanceId,
+                    file.getFilePath()
+                );
+                log.error(msg.getMessage(), t);
+                return false;
+            }
+        }
+
+        public Boolean doCall() {
             String filePath = file.getFilePath();
             // 本地存储路径
             String localPath = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
@@ -219,29 +241,63 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
             File localFile = new File(localPath);
             // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段
             if (localFile.exists()) {
-                log.debug("push config file, use generated file");
-                return null;
+                log.debug("[{}]:push config file, use generated file", stepInstanceId);
+                return true;
             }
             // 制品库的完整路径
-            String fullFilePath = PathUtil.joinFilePath(jobLocalUploadRootPath, filePath);
-            NodeDTO nodeDTO = artifactoryClient.getFileNode(fullFilePath);
-            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(fullFilePath);
+            NodeDTO nodeDTO = artifactoryClient.queryNodeDetail(artifactoryProject, artifactoryRepo, filePath);
+            if (nodeDTO == null) {
+                log.warn(
+                    "[{}]:File {} not exists in project {} repo {}",
+                    stepInstanceId,
+                    filePath,
+                    artifactoryProject,
+                    artifactoryRepo
+                );
+                return false;
+            }
+            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
+                artifactoryProject,
+                artifactoryRepo,
+                filePath
+            );
             InputStream ins = pair.getLeft();
             long length = pair.getRight();
             if (nodeDTO.getSize() != length) {
-                log.warn("{},ins length={},node.size={}", filePath, length, nodeDTO.getSize());
+                log.warn(
+                    "[{}]:{},ins length={},node.size={}",
+                    stepInstanceId,
+                    filePath,
+                    length,
+                    nodeDTO.getSize()
+                );
             }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);
             try {
-                log.debug("Download {} to {}", fullFilePath, localPath);
+                log.debug(
+                    "[{}]:begin to download {} to {}",
+                    stepInstanceId,
+                    filePath,
+                    localPath
+                );
                 FileUtil.writeInsToFile(ins, localPath, length, speed, process);
                 return true;
             } catch (InterruptedException e) {
-                log.warn("Interrupted:Download {} to {}", fullFilePath, localPath);
+                log.warn(
+                    "[{}]:Interrupted:Download {} to {}",
+                    stepInstanceId,
+                    filePath,
+                    localPath
+                );
             } catch (Exception e) {
-                log.error("Fail to download {} to {}", fullFilePath, localPath);
+                log.error(
+                    "[{}]:Fail to download {} to {}",
+                    stepInstanceId,
+                    filePath,
+                    localPath
+                );
             }
             return false;
         }

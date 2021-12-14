@@ -93,8 +93,8 @@ public class LocalFilePrepareService {
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
             artifactoryClient,
-            artifactoryConfig.getArtifactoryJobProject()
-                + "/" + localFileConfigForExecute.getLocalUploadRepo(),
+            artifactoryConfig.getArtifactoryJobProject(),
+            localFileConfigForExecute.getLocalUploadRepo(),
             storageSystemConfig.getJobStorageRootPath()
         );
         taskMap.put(stepInstanceId, task);
