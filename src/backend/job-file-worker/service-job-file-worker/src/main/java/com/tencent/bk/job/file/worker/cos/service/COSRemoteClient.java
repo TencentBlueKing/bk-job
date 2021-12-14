@@ -57,7 +57,7 @@ public class COSRemoteClient implements RemoteClient {
     }
 
     @Override
-    public Pair<InputStream,Long> getFileInputStream(String filePath) {
+    public Pair<InputStream, Long> getFileInputStream(String filePath) {
         List<String> pathList = parsePath(filePath);
         return jobTencentInnerCOSClient.getFileInputStream(pathList.get(0), pathList.get(1));
     }
