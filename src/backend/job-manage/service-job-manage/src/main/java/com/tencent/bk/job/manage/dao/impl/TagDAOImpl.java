@@ -291,7 +291,8 @@ public class TagDAOImpl implements TagDAO {
 
     @Override
     public boolean isExistDuplicateName(Long appId, String tagName) {
-        return context.fetchExists(TABLE, TABLE.NAME.eq(tagName));
+        return context.fetchExists(TABLE,
+            TABLE.APP_ID.eq(ULong.valueOf(appId)).and(TABLE.NAME.eq(tagName)));
     }
 
     @Override

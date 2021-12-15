@@ -39,4 +39,6 @@ public interface FileWorkerService {
     int offLine(Long workerId);
 
     List<FileWorkerDTO> listFileWorker(String username, Long appId, WorkerSelectScopeEnum workerSelectScope);
+
+    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
 }

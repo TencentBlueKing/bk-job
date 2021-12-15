@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -99,14 +100,14 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(EsbGetScriptListV3Req request) {
         request.setAppId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptListUsingPost(request);
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_version_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_version_list"})
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
@@ -115,7 +116,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_public_script_version_detail"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
         request.setAppId(JobConstants.PUBLIC_APP_ID);
         return esbScriptV3Resource.getScriptVersionDetailUsingPost(request);

@@ -40,6 +40,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Slf4j
@@ -246,13 +247,14 @@ public abstract class AbstractHttpHelper {
         put.setEntity(requestEntity);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity entity = httpResponse.getEntity();
+            String content = new String(EntityUtils.toByteArray(entity), CHARSET);
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Put request fail, statusCode={}, errorReason={}", statusCode, message);
+                log.info("Put request fail, statusCode={}, errorReason={}, content={}", statusCode, message, content);
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
-            HttpEntity entity = httpResponse.getEntity();
-            return new String(EntityUtils.toByteArray(entity), CHARSET);
+            return content;
         } catch (IOException e) {
             log.error("Put request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
@@ -261,10 +263,16 @@ public abstract class AbstractHttpHelper {
 
     public String delete(String url, String content, Header... headers) {
         FakeHttpDelete delete = new FakeHttpDelete(url);
+        HttpEntity requestEntity;
+        try {
+            requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Fail to get ByteArrayEntity", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        }
+        delete.setEntity(requestEntity);
+        delete.setHeaders(headers);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
-            HttpEntity requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
-            delete.setEntity(requestEntity);
-            delete.setHeaders(headers);
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();

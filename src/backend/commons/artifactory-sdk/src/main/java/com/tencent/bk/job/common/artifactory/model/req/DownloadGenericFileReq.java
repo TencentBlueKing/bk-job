@@ -25,8 +25,10 @@
 package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class DownloadGenericFileReq extends ArtifactoryReq {
     // 必传，项目Id
     String project;

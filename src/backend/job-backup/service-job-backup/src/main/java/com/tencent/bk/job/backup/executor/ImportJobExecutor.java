@@ -25,6 +25,8 @@
 package com.tencent.bk.job.backup.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
@@ -41,10 +43,14 @@ import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.util.FileUtil;
+import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -73,6 +79,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -98,12 +105,17 @@ public class ImportJobExecutor {
     private final LogService logService;
     private final StorageService storageService;
     private final MessageI18nService i18nService;
+    private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public ImportJobExecutor(ImportJobService importJobService, TaskTemplateService taskTemplateService,
                              TaskPlanService taskPlanService, ScriptService scriptService,
                              AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService) {
+                             StorageService storageService, MessageI18nService i18nService,
+                             ArtifactoryClient artifactoryClient,
+                             ArtifactoryConfig artifactoryConfig, BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -112,6 +124,9 @@ public class ImportJobExecutor {
         this.logService = logService;
         this.storageService = storageService;
         this.i18nService = i18nService;
+        this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
+        this.backupStorageConfig = backupStorageConfig;
 
         ImportJobExecutor.ImportJobExecutorThread importJobExecutorThread =
             new ImportJobExecutor.ImportJobExecutorThread();
@@ -183,10 +198,38 @@ public class ImportJobExecutor {
                 String.format(i18nService.getI18n(LogMessage.NAME_DUPLICATE_SUFFIX), importJob.getDuplicateSuffix()));
 
             File importFileDirectory = getImportFileDirectory(importJob);
-            if (importFileDirectory != null && importFileDirectory.exists() && importFileDirectory.isDirectory()) {
+            // 下载文件
+            if (!importFileDirectory.exists()) {
+                log.debug("begin to download from artifactory:{}", importJob.getFileName());
+                InputStream ins = artifactoryClient.getFileInputStream(
+                    artifactoryConfig.getArtifactoryJobProject(),
+                    backupStorageConfig.getBackupRepo(),
+                    importJob.getFileName()
+                );
+                String localPath = PathUtil.joinFilePath(
+                    storageService.getStoragePath(),
+                    importJob.getFileName()
+                );
+                try {
+                    FileUtil.writeInsToFile(ins, localPath);
+                    log.debug("end to download from artifactory:{}", importJob.getFileName());
+                } catch (InterruptedException e) {
+                    String msg = "Fail to write artifactory file to local";
+                    log.warn(msg, e);
+                    importJobService.markJobFailed(importJob, msg);
+                    return;
+                }
+                // 解压
+                log.debug("local path:{}", localPath);
+                File uploadFile = new File(localPath);
+                List<File> fileList = ZipUtil.unzip(uploadFile);
+                log.debug("unzipped:{} files", fileList.size());
+            }
+            if (importFileDirectory.exists() && importFileDirectory.isDirectory()) {
                 File[] importFileList = importFileDirectory.listFiles();
                 if (importFileList != null && importFileList.length > 0) {
                     for (File file : importFileList) {
+                        log.debug("process {}", file.getAbsolutePath());
                         if (processImportFile(file, importJob)) return;
                     }
                 } else {

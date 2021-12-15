@@ -33,7 +33,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 @Slf4j
 public class FileUtil {
@@ -49,6 +52,58 @@ public class FileUtil {
         }
     }
 
+    /**
+     * 将 InputStream 流中内容写入文件
+     *
+     * @param ins        流
+     * @param targetPath 目标文件路径
+     * @return 文件Md5
+     * @throws InterruptedException 写入过程中被中断异常
+     */
+    public static String writeInsToFile(InputStream ins, String targetPath) throws InterruptedException {
+        File file = new File(targetPath);
+        File parentFile = file.getParentFile();
+        if (!parentFile.exists()) {
+            tryToCreateFile(parentFile);
+        }
+        FileOutputStream fos = null;
+        FileInputStream fis = null;
+        try {
+            fos = new FileOutputStream(targetPath);
+            int batchSize = 20480;
+            byte[] content = new byte[batchSize];
+            int length;
+            while ((length = ins.read(content)) > 0) {
+                fos.write(content, 0, length);
+                Thread.sleep(0);
+            }
+            fis = new FileInputStream(targetPath);
+            return DigestUtils.md5Hex(fis);
+        } catch (FileNotFoundException e) {
+            log.error("File not found:{}", targetPath, e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            log.error("IOException occurred:{}", targetPath, e);
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            log.info("Download interrupted, targetPath:{}", targetPath);
+            throw e;
+        } finally {
+            closeStreams(ins, fos, fis);
+        }
+    }
+
+    /**
+     * 将 InputStream 流中内容写入文件
+     *
+     * @param ins        流
+     * @param targetPath 目标文件路径
+     * @param fileSize   文件大小
+     * @param speed      用于观测写入速度
+     * @param process    用于观测写入进度
+     * @return 文件Md5
+     * @throws InterruptedException 写入过程中被中断异常
+     */
     public static String writeInsToFile(InputStream ins, String targetPath, Long fileSize, AtomicInteger speed,
                                         AtomicInteger process) throws InterruptedException {
         File file = new File(targetPath);
@@ -134,5 +189,40 @@ public class FileUtil {
                 log.error("Fail to close fos", e);
             }
         }
+    }
+
+    /**
+     * 删除空目录
+     *
+     * @param directory 目录文件
+     */
+    public static void deleteEmptyDirectory(File directory) {
+        if (directory == null) {
+            log.warn("Directory is null!");
+            return;
+        }
+
+        if (isEmpty(directory.toPath())) {
+            boolean delete = directory.delete();
+            if (delete) {
+                log.info("Delete empty directory {}", directory.getPath());
+            } else {
+                log.warn("Delete directory {} failed!", directory.getPath());
+            }
+        } else {
+            log.debug("Directory {} not empty!", directory.getPath());
+        }
+    }
+
+    private static boolean isEmpty(Path path) {
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> entries = Files.list(path)) {
+                return !entries.findFirst().isPresent();
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

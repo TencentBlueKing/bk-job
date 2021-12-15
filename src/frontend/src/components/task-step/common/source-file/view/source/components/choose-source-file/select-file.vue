@@ -105,7 +105,7 @@
                     count: 0,
                     current: 1,
                     limit: 10,
-                    'limit-list': [14],
+                    'limit-list': [10],
                     small: true,
                     'show-total-count': true,
                     'show-limit': false,

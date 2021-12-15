@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -87,7 +88,7 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_fast_execute_script"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_fast_execute_script"})
     public EsbResp<EsbJobExecuteDTO> fastExecuteScript(EsbFastExecuteScriptRequest request) {
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {

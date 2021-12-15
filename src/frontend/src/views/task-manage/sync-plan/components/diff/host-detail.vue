@@ -28,7 +28,7 @@
 <template>
     <div class="step-view-global-variable" @click="handlerView">
         <Icon class="type-flag" type="audit" />
-        <bk-dialog
+        <jb-dialog
             v-model="isShowDetail"
             :title="title"
             :width="1020"
@@ -65,7 +65,7 @@
                         :group-diff="groupDiff" />
                 </scroll-faker>
             </div>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>

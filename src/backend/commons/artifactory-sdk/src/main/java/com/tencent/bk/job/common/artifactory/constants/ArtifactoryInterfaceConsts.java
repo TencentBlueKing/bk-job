@@ -29,5 +29,6 @@ package com.tencent.bk.job.common.artifactory.constants;
  */
 public class ArtifactoryInterfaceConsts {
     public static final int RESULT_CODE_OK = 0;
+    public static final int RESULT_CODE_NODE_NOT_FOUND = 251010;
     public static final String AUTH_HEADER_KEY = "Authorization";
 }

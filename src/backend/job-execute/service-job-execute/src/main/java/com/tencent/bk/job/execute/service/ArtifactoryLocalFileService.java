@@ -5,6 +5,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -15,22 +16,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class ArtifactoryLocalFileService {
 
+    private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final ArtifactoryClient artifactoryClient;
 
     @Autowired
     public ArtifactoryLocalFileService(
-        LocalFileConfigForExecute localFileConfigForExecute,
+        ArtifactoryConfig artifactoryConfig, LocalFileConfigForExecute localFileConfigForExecute,
         ArtifactoryClient artifactoryClient
     ) {
+        this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.artifactoryClient = artifactoryClient;
     }
 
     public FileDetailDTO getFileDetailFromArtifactory(String filePath) {
         String fullPath = PathUtil.joinFilePath(
-            localFileConfigForExecute.getArtifactoryJobProject()
-                + "/" + localFileConfigForExecute.getArtifactoryJobLocalUploadRepo(),
+            artifactoryConfig.getArtifactoryJobProject()
+                + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             filePath
         );
         NodeDTO nodeDTO = artifactoryClient.getFileNode(fullPath);

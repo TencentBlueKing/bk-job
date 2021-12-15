@@ -563,6 +563,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             watch.start("loadAllTasksFromDb");
             List<GseTaskIpLogDTO> tasks = gseTaskLogService.getIpLog(stepInstanceId, executeCount, true);
+            log.debug("tasks.size={}", tasks.size());
             watch.stop();
             watch.start("buildResultGroupsFromTasks");
             List<ExecutionResultGroupDTO> resultGroups = buildResultGroupsFromTasks(appId, tasks);
@@ -730,6 +731,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<ExecutionResultGroupDTO> buildResultGroupsFromTasks(long appId, List<GseTaskIpLogDTO> tasks) {
         Map<ExecutionResultGroupDTO, List<GseTaskIpLogDTO>> resultGroups = new HashMap<>();
+        // 对执行结果按状态status与标签tag进行分组
         tasks.forEach(task -> resultGroups.computeIfAbsent(task.getExecutionResultGroup(),
             resultGroup -> new ArrayList<>()).add(task));
         resultGroups.forEach((resultGroup, taskList) -> {

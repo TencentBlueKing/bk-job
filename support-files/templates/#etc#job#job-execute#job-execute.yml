@@ -168,3 +168,15 @@ feign:
       log:
         connectTimeout: 5000
         readTimeout: 30000
+
+# 执行日志导出产生的临时文件相关配置
+log-export:
+  # 存储后端：
+  # local表示存储于本地NFS
+  # artifactory表示存储于蓝鲸制品库，需要环境中部署有蓝鲸制品库
+  storage-backend: local
+  # 存储后端为蓝鲸制品库时的配置
+  # storage-backend: artifactory
+  # artifactory:
+  #   # 存储执行日志导出临时文件的仓库名称
+  #   repo: filedata

@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
@@ -48,6 +49,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
+import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -67,16 +70,18 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     private final TaskTemplateService templateService;
     private final AbstractTaskVariableService taskVariableService;
     private final WebAuthService authService;
+    private final TagService tagService;
 
     @Autowired
     public ServiceTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        WebAuthService authService
-    ) {
+        WebAuthService authService,
+        TagService tagService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.authService = authService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -153,18 +158,31 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         if (taskTemplateCreateUpdateReq.validate()) {
             TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username, appId,
                 taskTemplateCreateUpdateReq);
-            if (templateInfo != null) {
-                templateInfo.setCreator(username);
-                Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
-                    lastModifyTime, lastModifyUser);
-                authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
-                    ResourceId.TEMPLATE, username, null);
-                return InternalResponse.buildSuccessResp(finalTemplateId);
-            } else {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            }
+            bindExistTagsToImportedTemplate(appId, templateInfo);
+            templateInfo.setCreator(username);
+            Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
+                lastModifyTime, lastModifyUser);
+            authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
+                ResourceId.TEMPLATE, username, null);
+            return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+    }
+
+    /*
+     * 为导入的模板绑定已有的同名标签
+     */
+    private void bindExistTagsToImportedTemplate(long appId, TaskTemplateInfoDTO templateInfo) {
+        if (CollectionUtils.isNotEmpty(templateInfo.getTags())) {
+            Set<String> tagNames = templateInfo.getTags().stream().map(TagDTO::getName).collect(Collectors.toSet());
+            List<TagDTO> existTags = tagService.listTagsByAppId(appId);
+            if (CollectionUtils.isEmpty(existTags)) {
+                templateInfo.setTags(null);
+                return;
+            }
+            templateInfo.setTags(existTags.stream().filter(tag -> tagNames.contains(tag.getName()))
+                .collect(Collectors.toList()));
         }
     }
 

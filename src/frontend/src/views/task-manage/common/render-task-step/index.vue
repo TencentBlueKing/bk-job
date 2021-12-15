@@ -48,7 +48,7 @@
                         sort: isOperation && dragStartIndex > -1,
                     }">
                     <div
-                        class="step-wraper"
+                        class="step-content-wraper"
                         :class="{
                             'step-mode-diff': isDiff,
                             'select': isSelect,
@@ -357,6 +357,7 @@
                     return;
                 }
                 // 查看步骤详情
+                this.currentIndex = index;
                 this.operationType = 'detail';
                 this.detailInfo = this.steps[index];
                 this.isShowDetail = true;
@@ -526,7 +527,7 @@
 <style lang='postcss' scoped>
     @import "@/css/mixins/media";
 
-    @define-mixin step-active {
+    @mixin step-active {
         .step-content {
             color: #3a84ff;
             background: #e1ecff;
@@ -565,12 +566,13 @@
             width: 680px;
         }
 
+        &.detail,
         &.edit,
         &.create {
-            .step-wraper {
+            .step-content-wraper {
                 &.active {
                     .render-task-step {
-                        @mixin step-active;
+                        @include step-active;
                     }
                 }
             }
@@ -578,7 +580,7 @@
 
         &.create,
         &.clone {
-            .step-wraper {
+            .step-content-wraper {
                 &.active {
                     &::after {
                         display: block;
@@ -598,7 +600,7 @@
 
         &:hover,
         &.sort {
-            .step-wraper {
+            .step-content-wraper {
                 &::before {
                     content: attr(order);
                 }
@@ -606,7 +608,7 @@
         }
 
         &:hover {
-            .step-wraper {
+            .step-content-wraper {
                 &::before {
                     color: #3a84ff;
                     background: #e1ecff;
@@ -618,64 +620,39 @@
         & ~ .step-drag-box {
             margin-top: 10px;
         }
-
-        .step-wraper {
-            position: relative;
-
-            &::before {
-                position: absolute;
-                top: 0;
-                left: -2px;
-                height: 16px;
-                padding: 0 5px;
-                font-size: 12px;
-                font-weight: bold;
-                line-height: 16px;
-                color: #63656e;
-                background: #f0f1f5;
-                border: 1px solid #c4c6cc;
-                border-radius: 2px;
-                transform: translateX(-100%);
-            }
-
-            &.sortable-ghost {
-                height: 42px;
-                background: #e1ecff;
-
-                &::before {
-                    content: none !important;
-                }
-
-                .render-task-step {
-                    display: none;
-                }
-            }
-        }
     }
 
-    .step-wraper {
-        &:hover {
-            .step-content {
-                color: #63656e;
-                background: #e1ecff;
-                border-color: #3a84ff;
-            }
-
-            .select-flag {
-                border-color: #3a84ff;
-            }
-
-            .step-icon {
-                color: #3a84ff;
-                background: #e1ecff;
-                border-color: transparent;
-            }
-        }
-
+    .step-content-wraper {
+        position: relative;
         cursor: pointer;
 
-        &.is-hide {
-            display: none;
+        &::before {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            height: 16px;
+            padding: 0 5px;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 16px;
+            color: #63656e;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+            transform: translateX(-100%);
+        }
+
+        &.sortable-ghost {
+            height: 42px;
+            background: #e1ecff;
+
+            &::before {
+                content: none !important;
+            }
+
+            .render-task-step {
+                display: none;
+            }
         }
 
         &.select {
@@ -773,11 +750,7 @@
                 display: none;
             }
 
-            @mixin step-active;
-        }
-
-        &:last-child {
-            margin-bottom: 0;
+            @include step-active;
         }
 
         .step-content {
@@ -958,7 +931,7 @@
 
     /* diff 对比的样式 */
     .step-mode-diff {
-        position: relative;
+        cursor: default;
 
         &::after {
             position: absolute;

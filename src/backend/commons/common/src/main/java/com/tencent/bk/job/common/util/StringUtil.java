@@ -29,11 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,35 +40,56 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @Description
+ * @Description 字符串处理工具类
  * @Date 2020/3/6
  * @Version 1.0
  */
 @Slf4j
 public class StringUtil {
 
-    public static String replacePathVariables(String rawStr, Object obj) {
-        if (obj == null) return rawStr;
-        List<String> placeholderList = findOneRegexPatterns(rawStr, "(\\{.*?\\})");
+    /**
+     * 使用对象中的字段值替换路径中的占位符
+     *
+     * @param path 原始路径
+     * @param obj  数据对象
+     * @return 替换后的路径
+     */
+    public static String replacePathVariables(String path, Object obj) {
+        if (obj == null) return path;
+        List<String> placeholderList = findOneRegexPatterns(path, "(\\{.*?\\})");
         for (String placeholder : placeholderList) {
             String fieldName = placeholder.substring(1, placeholder.length() - 1);
             Object fieldValue = ReflectUtil.getFieldValue(obj, fieldName);
             if (null != fieldValue) {
-                rawStr = rawStr.replace(placeholder, URLEncoder.encode(fieldValue.toString()));
+                path = path.replace(placeholder, fieldValue.toString());
             } else {
                 log.warn("Fail to parse path variable {} because cannot find field {} in {}", placeholder, fieldName,
                     JsonUtils.toJson(obj));
             }
         }
-        return rawStr;
+        return path;
     }
 
+    /**
+     * 去除字符串前后缀
+     *
+     * @param rawStr 原始字符串
+     * @param fix    前缀/后缀
+     * @return 去除前后缀后的字符串
+     */
     public static String removePrefixAndSuffix(String rawStr, String fix) {
         rawStr = removePrefix(rawStr, fix);
         rawStr = removeSuffix(rawStr, fix);
         return rawStr;
     }
 
+    /**
+     * 去除字符串前缀
+     *
+     * @param rawStr 原始字符串
+     * @param prefix 前缀
+     * @return 去除前缀后的字符串
+     */
     public static String removePrefix(String rawStr, String prefix) {
         if (rawStr == null) return null;
         if (prefix == null) return rawStr;
@@ -80,6 +99,13 @@ public class StringUtil {
         return rawStr;
     }
 
+    /**
+     * 去除字符串后缀
+     *
+     * @param rawStr 原始字符串
+     * @param suffix 后缀
+     * @return 去除后缀后的字符串
+     */
     public static String removeSuffix(String rawStr, String suffix) {
         if (rawStr == null) return null;
         if (suffix == null) return rawStr;
@@ -89,10 +115,25 @@ public class StringUtil {
         return rawStr;
     }
 
+    /**
+     * 将list数据拼接为字符串，默认使用英文逗号作为分隔符
+     *
+     * @param list 原始list
+     * @param <T>  数据类型
+     * @return 拼接后的字符串
+     */
     public static <T> String listToStr(List<T> list) {
         return listToStr(list, ",");
     }
 
+    /**
+     * 将list数据拼接为字符串
+     *
+     * @param list      原始list
+     * @param separator 分隔符
+     * @param <T>       数据类型
+     * @return 拼接后的字符串
+     */
     public static <T> String listToStr(List<T> list, String separator) {
         String str = null;
         if (list != null) {
@@ -101,6 +142,15 @@ public class StringUtil {
         return str;
     }
 
+    /**
+     * 从字符串提取List
+     *
+     * @param str       字符串
+     * @param clazz     目标类型Class对象
+     * @param separator 分隔符
+     * @param <T>       目标类型
+     * @return list
+     */
     public static <T> List<T> strToList(String str, Class<T> clazz, String separator) {
         if (str == null || str.isEmpty() || StringUtils.isBlank(str)) {
             return Collections.emptyList();
@@ -126,6 +176,13 @@ public class StringUtil {
         return str;
     }
 
+    /**
+     * 从字符串中提取符合指定正则模式的占位符
+     *
+     * @param rawData 原始字符串
+     * @param regex   正则表达式
+     * @return 占位符字符串
+     */
     public static List<String> findOneRegexPatterns(String rawData, String regex) {
         List<String> result = new ArrayList<>();
         Pattern pattern = Pattern.compile(regex);
@@ -146,10 +203,27 @@ public class StringUtil {
         return result;
     }
 
+    /**
+     * 使用变量Map中指定的值对原始字符串的指定模式进行替换，默认替换深度为3
+     *
+     * @param rawStr       原始字符串
+     * @param pattern      要替换的子串模式
+     * @param variablesMap 变量表
+     * @return 替换后的字符串
+     */
     public static String replaceByRegex(String rawStr, String pattern, Map<String, String> variablesMap) {
         return replaceByRegex(rawStr, pattern, variablesMap, 3);
     }
 
+    /**
+     * 使用变量Map中指定的值对原始字符串的指定模式进行替换
+     *
+     * @param rawStr       原始字符串
+     * @param pattern      要替换的子串模式
+     * @param variablesMap 变量表
+     * @param depth        变量中包含变量时的最大递归替换深度
+     * @return 替换后的字符串
+     */
     public static String replaceByRegex(String rawStr, String pattern, Map<String, String> variablesMap, int depth) {
         log.debug("rawStr={},pattern={},variablesMap={},depth={}", rawStr, pattern, variablesMap, depth);
         String resultStr = rawStr;
@@ -174,15 +248,5 @@ public class StringUtil {
         } else {
             return replaceByRegex(resultStr, pattern, variablesMap, depth - 1);
         }
-    }
-
-    public static void main(String[] args) {
-        List<String> result = findOneRegexPatterns(
-            "adfakld${1}fajlkj${2}flaksjdflkjds${3}", "(\\$\\{(.*?)\\})");
-        result.forEach(System.out::println);
-        Map<String, String> map = new HashMap<>();
-        map.put("var1", "1111111");
-        System.out.println(replaceByRegex(
-            "ccc{{var1}}aaa{{var2}}ddd{{var1}}", "(\\{\\{(.*?)\\}\\})", map));
     }
 }

@@ -50,6 +50,8 @@ data:
         threads:
           num: {{ .Values.gse.query.threads.num }}
         batchSize: {{ .Values.gse.query.batchSize }}
+      script:
+        rootPath: {{ .Values.gse.script.rootPath }}
     iam:
       base-url: {{ .Values.iam.baseUrl }}
       system-id: {{ .Values.iam.systemId }}
@@ -95,20 +97,24 @@ data:
     nodeman:
       server:
         url: {{ .Values.nodeman.server.url }}
+    artifactory:
+      base-url: {{ .Values.artifactory.baseUrl }}
+      admin:
+        username: {{ .Values.artifactory.admin.username }}
+        password: {{ .Values.artifactory.admin.password }}
+      job:
+        username: {{ .Values.artifactory.job.username }}
+        password: {{ .Values.artifactory.job.password }}
+        project: {{ .Values.artifactory.job.project }}
     local-file:
       storage-backend: {{ .Values.localFile.storageBackend }}
       artifactory:
-        base-url: {{ .Values.localFile.artifactory.baseUrl }}
         download:
           concurrency: {{ .Values.localFile.artifactory.download.concurrency }}
-        admin:
-          username: {{ .Values.localFile.artifactory.admin.username }}
-          password: {{ .Values.localFile.artifactory.admin.password }}
-        job:
-          username: {{ .Values.localFile.artifactory.job.username }}
-          password: {{ .Values.localFile.artifactory.job.password }}
-          project: {{ .Values.localFile.artifactory.job.project }}
-          repo:
-            local-upload: {{ .Values.localFile.artifactory.job.repo.localUpload }}
+        repo: {{ .Values.localFile.artifactory.repo }}
     swagger:
       url: {{ .Values.swagger.url }}
+    management:
+      metrics:
+        tags:
+          application: ${spring.application.name}

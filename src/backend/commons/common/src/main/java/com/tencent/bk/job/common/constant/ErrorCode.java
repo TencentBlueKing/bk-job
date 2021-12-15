@@ -48,6 +48,7 @@ public class ErrorCode {
      * 日志服务-1246xxx
      * 用户服务-1247xxx
      * 业务网关-1248xxx
+     * 备份服务-1249xxx
      * 文件网关-1260xxx
      * 文件代理-1261xxx
      * 文件Worker-1262xxx
@@ -254,6 +255,13 @@ public class ErrorCode {
     // 业务网关 start
     // 业务网关 end
 
+    // 备份服务 start
+    // 从制品库获取节点信息失败
+    public static final int FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY = 1249001;
+    // 从制品库下载文件失败
+    public static final int FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY = 1249002;
+    // 备份服务 end
+
     // 文件网关 start
     // 文件源不存在:{0}
     public static final int FILE_SOURCE_NOT_EXIST = 1260001;
@@ -282,6 +290,8 @@ public class ErrorCode {
     public static final int FAIL_TO_FIND_FILE_SOURCE_BY_CODE = 1260012;
     // 文件源服务异常
     public static final int FILE_SOURCE_SERVICE_INVALID = 1260013;
+    // 通过[{0}]找不到file-worker
+    public static final int FILE_WORKER_NOT_FOUND = 1260014;
 
     // 文件网关 end
     // 文件代理 start

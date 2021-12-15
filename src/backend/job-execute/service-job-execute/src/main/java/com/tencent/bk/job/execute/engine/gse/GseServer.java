@@ -24,35 +24,28 @@
 
 package com.tencent.bk.job.execute.engine.gse;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.execute.config.GseConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class GseServer {
     private static final AtomicLong currentIpIndex = new AtomicLong(0);
-    private transient AtomicBoolean isInit = new AtomicBoolean(false);
+    private final transient AtomicBoolean isInit = new AtomicBoolean(false);
 
     private List<Map.Entry<String, Integer>> servers;
     @Autowired
     private GseConfig gseConfig;
-
-    /**
-     * 相同 IP在1分钟内只告警1次
-     */
-    private LoadingCache<String, Integer> alertCache;
 
     public GseServer() {
 
@@ -69,14 +62,6 @@ public class GseServer {
                 maps.put(gseServerIp, gseServerPort);
             }
             servers = Lists.newArrayList(maps.entrySet());
-            int alertInterval = 60000;
-            alertCache = CacheBuilder.newBuilder().expireAfterWrite(alertInterval, TimeUnit.MILLISECONDS)
-                .build(new CacheLoader<String, Integer>() {
-                    @Override
-                    public Integer load(String ip) {
-                        return 1;
-                    }
-                });
             isInit.compareAndSet(false, true);
         }
     }
@@ -88,7 +73,6 @@ public class GseServer {
         return getGseClient(Lists.newArrayList(servers));
     }
 
-    @SuppressWarnings("unused")
     List<Map.Entry<String, Integer>> getGseServer() {
         return servers;
     }
@@ -110,8 +94,12 @@ public class GseServer {
             Map.Entry<String, Integer> server = servers.get(ipIndex);
             try {
                 return GseClient.getClient(server.getKey(), server.getValue());
-            } catch (Exception e) {
-                log.error("get getClient {}:{} fail: {}", server.getKey(), server.getValue(), e.getLocalizedMessage());
+            } catch (Throwable e) {
+                String msg = MessageFormatter.format(
+                    "Get GseClient fail|{}:{}|msg={}",
+                    ArrayUtil.toArray(server.getKey(), server.getValue(), e.getMessage()))
+                    .getMessage();
+                log.error(msg, e);
                 if ((--tryTimes) == 0) {
                     return null;
                 }

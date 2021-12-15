@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-logsvr"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     {{ include "job.labelKeys.imageTag" . }}: {{ .Values.logsvrConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -26,6 +27,7 @@ spec:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-logsvr"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.logsvrConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}

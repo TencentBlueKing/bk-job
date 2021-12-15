@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.backup.executor;
 
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
+import com.tencent.bk.job.backup.config.LocalFileConfigForBackup;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.LogMessage;
@@ -38,11 +41,14 @@ import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -100,12 +106,20 @@ public class ExportJobExecutor {
     private final LogService logService;
     private final StorageService storageService;
     private final MessageI18nService i18nService;
+    private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
+    private final BackupStorageConfig backupStorageConfig;
+    private final LocalFileConfigForBackup localFileConfig;
 
     @Autowired
     public ExportJobExecutor(ExportJobService exportJobService, TaskTemplateService taskTemplateService,
                              TaskPlanService taskPlanService, ScriptService scriptService,
                              AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService) {
+                             StorageService storageService, MessageI18nService i18nService,
+                             ArtifactoryClient artifactoryClient,
+                             ArtifactoryConfig artifactoryConfig,
+                             BackupStorageConfig backupStorageConfig,
+                             LocalFileConfigForBackup localFileConfig) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -114,6 +128,10 @@ public class ExportJobExecutor {
         this.logService = logService;
         this.storageService = storageService;
         this.i18nService = i18nService;
+        this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
+        this.backupStorageConfig = backupStorageConfig;
+        this.localFileConfig = localFileConfig;
 
         File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
         checkDirectory(storageDirectory);
@@ -143,6 +161,15 @@ public class ExportJobExecutor {
         }
     }
 
+    private void saveToArtifactory(String fileName) {
+        String fullPath = storageService.getStoragePath().concat(fileName);
+        String project = artifactoryConfig.getArtifactoryJobProject();
+        String repo = backupStorageConfig.getBackupRepo();
+        File file = new File(fullPath);
+        artifactoryClient.uploadGenericFile(project, repo, fileName, file);
+        log.info("{} uploaded to {}:{}:{}", fullPath, project, repo, fileName);
+    }
+
     private void processExportJob(String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(-1L, jobId);
         if (BackupJobStatusEnum.INIT.equals(exportInfo.getStatus())) {
@@ -158,37 +185,53 @@ public class ExportJobExecutor {
             jobBackupInfo.setCreateTime(exportInfo.getCreateTime());
             jobBackupInfo.setExpireTime(exportInfo.getExpireTime());
             jobBackupInfo.setTemplateInfo(exportInfo.getTemplateInfo());
+            // 1.处理作业模板与执行方案详情
             processTemplatePlanDetail(exportInfo, jobBackupInfo);
             try {
+                // 2.处理账号
                 processAccount(exportInfo, jobBackupInfo);
             } catch (Exception e) {
                 log.error("Error while processing account!", e);
                 logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
-                    "Process account failed! Please " +
-                    "try again!");
+                    "Process account failed! Please try again!"
+                );
                 exportInfo.setPassword(null);
                 exportInfo.setStatus(BackupJobStatusEnum.FAILED);
                 exportJobService.updateExportJob(exportInfo);
             }
+            // 3.处理本地文件
             processLocalFile(exportInfo, jobBackupInfo);
+            // 4.处理关联脚本
             processLinkScript(exportInfo, jobBackupInfo);
+            // 5.处理全局变量
             processVariableValue(exportInfo, jobBackupInfo);
             String backupInfoString = JsonMapper.nonEmptyMapper().toJson(jobBackupInfo);
 
             logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
                 i18nService.getI18n(LogMessage.PROCESS_TEMPLATE_PLAN_FINISHED));
-
+            // 6.生成压缩文件
             File zipFile = generateFile(exportInfo, backupInfoString);
             if (zipFile == null) {
                 log.error("Fail to generate zipFile");
                 return;
             }
+            // 7.加密
             String fileName = encryptFile(exportInfo, zipFile);
             if (StringUtils.isBlank(fileName)) {
                 return;
             }
 
             fileName = getExportFilePrefix(exportInfo.getCreator(), exportInfo.getId()) + fileName;
+
+            // 8.上传至制品库
+            if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(backupStorageConfig.getStorageBackend())) {
+                saveToArtifactory(fileName);
+                // 删除本地临时文件
+                String fullPath = storageService.getStoragePath().concat(fileName);
+                File tmpFile = new File(fullPath);
+                FileUtils.deleteQuietly(tmpFile);
+                FileUtil.deleteEmptyDirectory(tmpFile.getParentFile());
+            }
 
             exportInfo.setPassword(null);
             exportInfo.setStatus(BackupJobStatusEnum.SUCCESS);
@@ -515,7 +558,10 @@ public class ExportJobExecutor {
                 }
             }
         }
-        localFileList.forEach(file -> copyFile(file, uploadFileDirectory));
+        // 本地文件若存储于NFS，导出时需要拷贝打包，存储于制品库则不需要
+        if (JobConstants.FILE_STORAGE_BACKEND_LOCAL.equals(localFileConfig.getStorageBackend())) {
+            localFileList.forEach(file -> copyFile(file, uploadFileDirectory));
+        }
         return localFileList;
     }
 

@@ -39,8 +39,8 @@ public @interface UpgradeTask {
     // 目标版本
     String targetVersion() default "";
 
-    // 执行时机：更新Job进程前/后，默认更新进程前执行
-    ExecuteTimeEnum targetExecuteTime() default ExecuteTimeEnum.BEFORE_UPDATE_JOB;
+    // 执行时机：更新Job进程前/后，默认更新进程后执行
+    ExecuteTimeEnum targetExecuteTime() default ExecuteTimeEnum.AFTER_UPDATE_JOB;
 
     // 优先级，越小越先执行
     int priority() default 5;

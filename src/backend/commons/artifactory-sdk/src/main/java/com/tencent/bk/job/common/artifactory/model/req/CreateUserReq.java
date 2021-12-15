@@ -25,10 +25,12 @@
 package com.tencent.bk.job.common.artifactory.model.req;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class CreateUserReq extends ArtifactoryReq {
     // 必传，用户名
     String name;

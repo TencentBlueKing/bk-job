@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,8 +39,12 @@ public class StringUtilTest {
     public void replaceByRegex() {
         Map<String, String> map = new HashMap<>();
         map.put("var1", "1111111");
-        assertEquals("ccc1111111aaa{{var2}}ddd1111111", StringUtil.replaceByRegex("ccc{{var1}}aaa{{var2}}ddd{{var1}}"
-            , "(\\{\\{(.*?)\\}\\})", map));
+        assertEquals("ccc1111111aaa{{var2}}ddd1111111",
+            StringUtil.replaceByRegex("ccc{{var1}}aaa{{var2}}ddd{{var1}}"
+                , "(\\{\\{(.*?)\\}\\})", map));
+        List<String> result = StringUtil.findOneRegexPatterns(
+            "adfakld${1}fajlkj${2}flaksjdflkjds${3}", "(\\$\\{(.*?)\\})");
+        assertEquals(3, result.size());
     }
 
     @Test

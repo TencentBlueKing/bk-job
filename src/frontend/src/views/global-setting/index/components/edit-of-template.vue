@@ -85,13 +85,13 @@
                 </div>
             </render-strategy>
         </div>
-        <bk-dialog
+        <jb-dialog
             v-model="isShowVariable"
             class="internal-variable-dialog"
             :width="960"
             :show-footer="false">
             <internalVariable :handle-close="toggleShowVariable" />
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 

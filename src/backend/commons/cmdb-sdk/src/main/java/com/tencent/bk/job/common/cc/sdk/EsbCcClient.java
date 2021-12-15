@@ -87,6 +87,7 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -504,7 +505,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             long end = System.nanoTime();
-            meterRegistry.timer("cmdb.api", "api_name", uri, "status", status)
+            meterRegistry.timer(CommonMetricNames.CMDB_API, "api_name", uri, "status", status)
                 .record(end - start, TimeUnit.NANOSECONDS);
         }
     }

@@ -76,8 +76,12 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort())
         ) {
-            fileWorkerDAO.insertFileWorker(dslContext, fileWorkerDTO);
+            id = fileWorkerDAO.insertFileWorker(dslContext, fileWorkerDTO);
         } else {
+            FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
+                dslContext, fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
+            );
+            fileWorkerDTO.setId(oldFileWorkerDTO.getId());
             fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
         }
         if (fileWorkerConfig != null) {
@@ -137,5 +141,10 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             fileWorkerDTO.setLatency(getLatency(fileWorkerDTO));
         });
         return fileWorkerDTOList;
+    }
+
+    @Override
+    public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
+        return fileWorkerDAO.getFileWorker(dslContext, accessHost, accessPort);
     }
 }

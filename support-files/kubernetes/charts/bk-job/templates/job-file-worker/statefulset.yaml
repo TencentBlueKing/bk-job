@@ -1,11 +1,12 @@
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "common.names.fullname" . }}-file-worker
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-file-worker"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     {{ include "job.labelKeys.imageTag" . }}: {{ .Values.fileWorkerConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -21,11 +22,13 @@ spec:
     matchLabels: 
       {{- include "common.labels.matchLabels" . | nindent 6 }}
       app.kubernetes.io/component: job-file-worker
+  serviceName: "job-file-worker-headless"
   template:
     metadata:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-file-worker"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.fileWorkerConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
@@ -75,6 +78,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BK_JOB_FILE_WORKER_SERVICE_NAME
+              value: "job-file-worker-headless"
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -110,27 +119,9 @@ spec:
           resources:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:
-            - name: mariadb
-              mountPath: /etc/secrets/mariadb
-              readOnly: true
-            - name: rabbitmq
-              mountPath: /etc/secrets/rabbitmq
-              readOnly: true
-            - name: redis
-              mountPath: /etc/secrets/redis
-              readOnly: true
             - name: workspace
               mountPath: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace
       volumes:
-        - name: mariadb
-          secret:
-            secretName: {{ include "job.mariadb.secretName" . }}
-        - name: rabbitmq
-          secret:
-            secretName: {{ include "job.rabbitmq.secretName" . }}
-        - name: redis
-          secret:
-            secretName: {{ include "job.redis.secretName" . }}
         - name: workspace
           hostPath:
             path: {{ .Values.fileWorkerConfig.downloadFile.dir }}/JobFileWorkerWorkspace

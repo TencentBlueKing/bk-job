@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
@@ -79,7 +80,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             param[6] = ipLog.getTotalTime();
             param[7] = ipLog.getErrCode();
             param[8] = ipLog.getExitCode();
-            param[9] = ipLog.getTag();
+            param[9] = StringUtils.truncate(ipLog.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
             param[10] = ipLog.getOffset();
             param[11] = ipLog.getDisplayIp();
             param[12] = ipLog.isTargetServer() ? 1 : 0;

@@ -61,8 +61,8 @@ public class GseClient implements Closeable {
     /**
      * gse服务接口
      */
-    private doSomeCmdV3.Client gseAgentClient;
-    private TTransport transport;
+    private final doSomeCmdV3.Client gseAgentClient;
+    private final TTransport transport;
 
     private GseClient(String ip, int port) throws TException {
         if (ENABLE_SSL) {
@@ -74,8 +74,8 @@ public class GseClient implements Closeable {
         } else {
             this.transport = new TSocket(ip, port, 60000);
         }
-        TBinaryProtocol tProtocal = new TBinaryProtocol(transport);
-        this.gseAgentClient = new doSomeCmdV3.Client(tProtocal);
+        TBinaryProtocol tProtocol = new TBinaryProtocol(transport);
+        this.gseAgentClient = new doSomeCmdV3.Client(tProtocol);
         if (!transport.isOpen())
             transport.open();
     }
@@ -85,7 +85,7 @@ public class GseClient implements Closeable {
             GseServer gseServer = ApplicationContextRegister.getBean("gseServer");
             return gseServer.getClient();
         } catch (BeansException ignored) {
-            log.error("load gseSever failed！", ignored);
+            log.error("load gseSever failed!", ignored);
         }
         return null;
     }
