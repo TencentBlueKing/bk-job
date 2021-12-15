@@ -59,6 +59,7 @@ import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
@@ -220,6 +221,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance, stepInstance);
         StopWatch watch = new StopWatch("createTaskInstanceFast");
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
+        adjustStepTimeout(stepInstance);
         try {
             // 设置脚本信息
             watch.start("checkAndSetScriptInfoIfScriptTask");
@@ -271,7 +273,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
 
+    /**
+     * 调整任务超时时间
+     *
+     * @param stepInstance 步骤
+     */
+    private void adjustStepTimeout(StepInstanceDTO stepInstance) {
+        if (stepInstance.getTimeout() != null) {
+            stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout()));
+        }
     }
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,
@@ -919,6 +931,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             List<StepInstanceDTO> stepInstanceList = taskInfo.getStepInstances();
             Map<String, TaskVariableDTO> finalVariableValueMap = taskInfo.getVariables();
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
+
+            // 调整超时时间
+            stepInstanceList.forEach(this::adjustStepTimeout);
 
             // 检查高危脚本
             watch.start("checkDangerousScript");
