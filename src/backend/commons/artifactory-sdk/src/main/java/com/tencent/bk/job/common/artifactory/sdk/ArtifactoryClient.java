@@ -409,7 +409,12 @@ public class ArtifactoryClient {
             } else {
                 log.debug("Content-Length from header is null or blank");
             }
-            return Pair.of(resp.getEntity().getContent(), contentLength);
+            if (resp.getStatusLine() != null && resp.getStatusLine().getStatusCode() == 200) {
+                return Pair.of(resp.getEntity().getContent(), contentLength);
+            } else {
+                log.info("resp.statusLine={},resp.entity={}", resp.getStatusLine(), resp.getEntity());
+                throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+            }
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
