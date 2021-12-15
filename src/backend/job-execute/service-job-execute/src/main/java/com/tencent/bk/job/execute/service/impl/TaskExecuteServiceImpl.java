@@ -281,9 +281,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param stepInstance 步骤
      */
     private void adjustStepTimeout(StepInstanceDTO stepInstance) {
-        if (stepInstance.getTimeout() != null) {
-            stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout()));
-        }
+        stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout()));
     }
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,
