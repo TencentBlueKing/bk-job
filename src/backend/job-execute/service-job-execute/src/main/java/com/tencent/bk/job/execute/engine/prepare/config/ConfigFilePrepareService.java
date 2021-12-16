@@ -24,16 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.prepare.config;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContextUtil;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -91,12 +88,7 @@ public class ConfigFilePrepareService {
                 if (!configFileList.isEmpty()) {
                     configFileSourceList.add(configFileList);
                 }
-                List<IpDTO> ipDTOList = new ArrayList<>();
-                ipDTOList.add(new IpDTO((long) Consts.DEFAULT_CLOUD_ID, agentService.getLocalAgentBindIp()));
-                ServersDTO servers = new ServersDTO();
-                servers.setStaticIpList(ipDTOList);
-                servers.setIpList(ipDTOList);
-                fileSourceDTO.setServers(servers);
+                fileSourceDTO.setServers(agentService.getLocalServersDTO());
             }
         });
         // 更新配置文件任务内容

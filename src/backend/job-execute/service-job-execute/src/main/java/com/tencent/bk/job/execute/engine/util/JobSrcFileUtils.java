@@ -33,6 +33,7 @@ import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -154,9 +155,19 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    sendFiles.add(new JobFile(fileSource.isLocalUpload(), IpHelper.fix1To0(localServerIp),
-                        file.getFilePath(), dir, fileName, "root", null,
-                        FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
+                        List<IpDTO> ipList = servers.getIpList();
+                        for (IpDTO ipDTO : ipList) {
+                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
+                                file.getFilePath(), dir, fileName, "root", null,
+                                FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                        }
+                    } else {
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), IpHelper.fix1To0(localServerIp),
+                            file.getFilePath(), dir, fileName, "root", null,
+                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    }
                 }
             } else if (fileSource.getFileType() == TaskFileTypeEnum.CONFIG_FILE.getType()) {
                 // 配置文件
