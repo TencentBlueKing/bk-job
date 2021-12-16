@@ -24,13 +24,17 @@
 
 package com.tencent.bk.job.execute.engine.prepare.config;
 
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContextUtil;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -47,11 +51,15 @@ import java.util.List;
 public class ConfigFilePrepareService {
 
     private final TaskInstanceService taskInstanceService;
+    private final AgentService agentService;
     private final StorageSystemConfig storageSystemConfig;
 
     @Autowired
-    public ConfigFilePrepareService(TaskInstanceService taskInstanceService, StorageSystemConfig storageSystemConfig) {
+    public ConfigFilePrepareService(TaskInstanceService taskInstanceService,
+                                    AgentService agentService,
+                                    StorageSystemConfig storageSystemConfig) {
         this.taskInstanceService = taskInstanceService;
+        this.agentService = agentService;
         this.storageSystemConfig = storageSystemConfig;
     }
 
@@ -64,6 +72,10 @@ public class ConfigFilePrepareService {
         List<List<Pair<String, String>>> configFileSourceList = new ArrayList<>();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.CONFIG_FILE.getType()) {
+                if (fileSourceDTO.isLocalUpload()) {
+                    log.warn("Config file was set localupload unexpectedly, please check");
+                    fileSourceDTO.setLocalUpload(false);
+                }
                 String uploadPath = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
                     FileDirTypeConf.UPLOAD_FILE_DIR);
                 List<Pair<String, String>> configFileList = new ArrayList<>();
@@ -79,6 +91,12 @@ public class ConfigFilePrepareService {
                 if (!configFileList.isEmpty()) {
                     configFileSourceList.add(configFileList);
                 }
+                List<IpDTO> ipDTOList = new ArrayList<>();
+                ipDTOList.add(new IpDTO((long) Consts.DEFAULT_CLOUD_ID, agentService.getLocalAgentBindIp()));
+                ServersDTO servers = new ServersDTO();
+                servers.setStaticIpList(ipDTOList);
+                servers.setIpList(ipDTOList);
+                fileSourceDTO.setServers(servers);
             }
         });
         // 更新配置文件任务内容
