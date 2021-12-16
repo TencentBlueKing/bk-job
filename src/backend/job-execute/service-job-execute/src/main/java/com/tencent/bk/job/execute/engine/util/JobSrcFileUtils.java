@@ -147,16 +147,30 @@ public class JobSrcFileUtils {
                     }
 
                 }
-            } else {
-                // 本地文件 or 配置文件
+            } else if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
+                // 本地文件
                 for (FileDetailDTO file : files) {
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(file.getFilePath());
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    sendFiles.add(new JobFile(true, IpHelper.fix1To0(localServerIp),
+                    sendFiles.add(new JobFile(fileSource.isLocalUpload(), IpHelper.fix1To0(localServerIp),
                         file.getFilePath(), dir, fileName, "root", null,
                         FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                }
+            } else if (fileSource.getFileType() == TaskFileTypeEnum.CONFIG_FILE.getType()) {
+                // 配置文件
+                for (FileDetailDTO file : files) {
+                    Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(file.getFilePath());
+                    String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
+                        + fileNameAndPath.getLeft();
+                    String fileName = fileNameAndPath.getRight();
+                    List<IpDTO> ipList = fileSource.getServers().getIpList();
+                    for (IpDTO ipDTO : ipList) {
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
+                            file.getFilePath(), dir, fileName, "root", null,
+                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    }
                 }
             }
         }
