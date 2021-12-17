@@ -53,10 +53,6 @@ public class JobConstants {
      */
     public static final int DEFAULT_JOB_TIMEOUT_SECONDS = 7200;
     /**
-     * 作业最小超时时间，单位秒
-     */
-    public static final int MIN_JOB_TIMEOUT_SECONDS = 60;
-    /**
      * 作业最大超时时间，单位秒
      */
     public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;

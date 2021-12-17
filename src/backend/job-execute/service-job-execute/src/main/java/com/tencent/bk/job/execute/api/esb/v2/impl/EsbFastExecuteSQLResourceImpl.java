@@ -184,7 +184,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
         }
 
-        stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+        stepInstance.setTimeout(request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),

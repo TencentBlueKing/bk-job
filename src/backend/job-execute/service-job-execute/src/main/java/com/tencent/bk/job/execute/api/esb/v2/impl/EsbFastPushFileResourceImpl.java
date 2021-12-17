@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
@@ -75,16 +74,14 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
     private final AccountService accountService;
 
-    private final AuthService authService;
-
 
     @Autowired
-    public EsbFastPushFileResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
-                                       AccountService accountService, AuthService authService) {
+    public EsbFastPushFileResourceImpl(TaskExecuteService taskExecuteService,
+                                       MessageI18nService i18nService,
+                                       AccountService accountService) {
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.accountService = accountService;
-        this.authService = authService;
     }
 
     @Override
@@ -245,11 +242,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setOperator(request.getUserName());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
-        if (request.getTimeout() == null) {
-            stepInstance.setTimeout(7200);
-        } else {
-            stepInstance.setTimeout(request.getTimeout());
-        }
+        stepInstance.setTimeout(request.getTimeout());
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
         }

@@ -31,18 +31,6 @@ import java.util.Map;
 public class Consts {
     public static final Map<Integer, Integer> GSE_ERROR_CODE_2_STATUS_MAP;
     /**
-     * 任务执行默认超时时间
-     */
-    public static final int DEFAULT_TIMEOUT = 1000;
-    /**
-     * 任务执行最小超时时间
-     */
-    public static final int MIN_TIMEOUT = 60;
-    /**
-     * 任务执行最大超时时间
-     */
-    public static final int MAX_TIMEOUT = 86400;
-    /**
      * 直连云区域ID
      */
     public static final int DEFAULT_CLOUD_ID = 0;
