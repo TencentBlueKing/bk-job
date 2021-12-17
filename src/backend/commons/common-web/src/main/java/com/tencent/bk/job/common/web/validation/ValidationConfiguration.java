@@ -28,6 +28,7 @@ package com.tencent.bk.job.common.web.validation;
 
 import com.google.common.base.Strings;
 import org.hibernate.validator.HibernateValidatorConfiguration;
+import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -41,6 +42,7 @@ import org.springframework.core.PrioritizedParameterNameDiscoverer;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.validation.beanvalidation.MessageSourceResourceBundleLocator;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.ConstraintViolation;
@@ -61,12 +63,11 @@ public class ValidationConfiguration {
         @Qualifier("messageSource") MessageSource messageSource) {
         LocalValidatorFactoryBean localValidatorFactoryBean = new JobLocalValidatorFactoryBean(messageSource);
         localValidatorFactoryBean.setParameterNameDiscoverer(new CustomParameterNameDiscoverer());
-        localValidatorFactoryBean.setValidationMessageSource(messageSource);
         return localValidatorFactoryBean;
     }
 
     public class JobLocalValidatorFactoryBean extends LocalValidatorFactoryBean {
-        private MessageSource messageSource;
+        private final MessageSource messageSource;
 
         JobLocalValidatorFactoryBean(MessageSource messageSource) {
             this.messageSource = messageSource;
@@ -85,9 +86,9 @@ public class ValidationConfiguration {
                     (HibernateValidatorConfiguration) configuration;
                 hibernateValidatorConfiguration.propertyNodeNameProvider(new JacksonPropertyNodeNameProvider());
                 hibernateValidatorConfiguration.failFast(true);
-//                hibernateValidatorConfiguration.messageInterpolator(new ResourceBundleMessageInterpolator(
-//                    new MessageSourceResourceBundleLocator(messageSource), getLocales(), Locale.ENGLISH,
-//                    LocaleResolver(), true));
+                hibernateValidatorConfiguration.messageInterpolator(new ResourceBundleMessageInterpolator(
+                    new MessageSourceResourceBundleLocator(messageSource), getLocales(), Locale.ENGLISH,
+                    localeResolver(), true));
             }
         }
 
@@ -101,7 +102,7 @@ public class ValidationConfiguration {
         }
     }
 
-    public class CustomParameterNameDiscoverer extends PrioritizedParameterNameDiscoverer {
+    public static class CustomParameterNameDiscoverer extends PrioritizedParameterNameDiscoverer {
 
         public CustomParameterNameDiscoverer() {
             this.addDiscoverer(new ReqParamNamesDiscoverer());
@@ -110,7 +111,7 @@ public class ValidationConfiguration {
         }
     }
 
-    public class ReqParamNamesDiscoverer implements ParameterNameDiscoverer {
+    public static class ReqParamNamesDiscoverer implements ParameterNameDiscoverer {
 
         public ReqParamNamesDiscoverer() {
         }
@@ -147,9 +148,7 @@ public class ValidationConfiguration {
     }
 
     @Bean("localeResolverForValidation")
-    public LocaleResolver LocaleResolver() {
+    public LocaleResolver localeResolver() {
         return context -> LocaleContextHolder.getLocale();
     }
-
-
 }

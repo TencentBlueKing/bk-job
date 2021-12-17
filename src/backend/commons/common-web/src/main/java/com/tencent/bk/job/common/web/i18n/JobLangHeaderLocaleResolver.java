@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.i18n;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -55,16 +56,18 @@ public class JobLangHeaderLocaleResolver implements LocaleResolver {
     }
 
     public Locale resolveLocale(HttpServletRequest request) {
+        Locale locale = null;
         if (StringUtils.isNotBlank(request.getHeader(LocaleUtils.COMMON_LANG_HEADER))) {
             String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
-            Locale locale = LocaleUtils.getLocale(lang);
-            if (locale == null) {
-                locale = getDefaultLocale();
-            }
-            return locale;
-        } else {
-            return getDefaultLocale();
+            locale = LocaleUtils.getLocale(lang);
         }
+        if (locale == null) {
+            locale = getDefaultLocale();
+        }
+        if (locale != null) {
+            LocaleContextHolder.setLocale(locale);
+        }
+        return locale;
     }
 
     public void setLocale(HttpServletRequest request, @Nullable HttpServletResponse response,

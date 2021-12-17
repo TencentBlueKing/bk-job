@@ -39,7 +39,6 @@ public class MessageSourceConfig {
         messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message",
             "classpath*:i18n/common/message", "classpath*:i18n/validation/ValidationMessages");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-//        messageSource.setUseCodeAsDefaultMessage(true);
         return messageSource;
     }
 
