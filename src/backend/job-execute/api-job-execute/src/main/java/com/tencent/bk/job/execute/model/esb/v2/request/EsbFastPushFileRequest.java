@@ -25,13 +25,16 @@
 package com.tencent.bk.job.execute.model.esb.v2.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.EsbFileSourceDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -105,6 +108,9 @@ public class EsbFastPushFileRequest extends EsbReq {
      * 超时时间，单位秒
      */
     @JsonProperty("timeout")
+    @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
     public void trimIps() {

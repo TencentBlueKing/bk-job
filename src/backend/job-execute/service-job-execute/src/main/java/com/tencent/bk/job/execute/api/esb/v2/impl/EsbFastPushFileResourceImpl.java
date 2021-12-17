@@ -134,10 +134,6 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
                 "ip_list|custom_query_id|target_servers");
         }
-        if (request.getTimeout() != null && (request.getTimeout() < 0 || request.getTimeout() > 86400)) {
-            log.warn("Fast transfer file, timeout is invalid!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "timeout");
-        }
 
         return ValidateResult.pass();
     }

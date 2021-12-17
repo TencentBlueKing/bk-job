@@ -1459,7 +1459,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else {
             stepInstance.setTimeout(1000);
         }
-        stepInstance.setSecureParam(scriptStepInfo.getSecureParam() == null ? false : scriptStepInfo.getSecureParam());
+        stepInstance.setSecureParam(scriptStepInfo.getSecureParam() != null && scriptStepInfo.getSecureParam());
         stepInstance.setScriptType(scriptStepInfo.getType());
         stepInstance.setScriptSource(scriptStepInfo.getScriptSource());
 

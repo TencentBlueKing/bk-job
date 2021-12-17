@@ -196,11 +196,6 @@ public class EsbFastTransferFileV3ResourceImpl
             if (result != null) return result;
         }
 
-        if (request.getTimeout() != null && (request.getTimeout() < 0 || request.getTimeout() > 86400)) {
-            log.warn("Fast transfer file, timeout is invalid!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "timeout");
-        }
-
         return ValidateResult.pass();
     }
 
@@ -269,11 +264,7 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setOperator(request.getUserName());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
-        if (request.getTimeout() == null) {
-            stepInstance.setTimeout(7200);
-        } else {
-            stepInstance.setTimeout(request.getTimeout());
-        }
+        stepInstance.setTimeout(request.getTimeout());
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
         }
