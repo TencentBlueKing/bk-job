@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.HibernateValidatorConfiguration;
 import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
-import org.hibernate.validator.spi.messageinterpolation.LocaleResolverContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -152,17 +151,6 @@ public class ValidationConfiguration {
 
     @Bean("localeResolverForValidation")
     public LocaleResolver localeResolver() {
-//        return context -> LocaleContextHolder.getLocale();
-        return new ValidationLocaleResolver();
-    }
-
-    private static class ValidationLocaleResolver implements LocaleResolver {
-
-        @Override
-        public Locale resolve(LocaleResolverContext context) {
-            Locale locale = LocaleContextHolder.getLocale();
-            log.info("locale:{}", locale);
-            return locale;
-        }
+        return context -> LocaleContextHolder.getLocale();
     }
 }
