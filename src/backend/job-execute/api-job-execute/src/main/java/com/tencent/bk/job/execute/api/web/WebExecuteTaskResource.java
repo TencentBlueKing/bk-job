@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/web/execution/")
 @RestController
 @WebAPI
+@Validated
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")

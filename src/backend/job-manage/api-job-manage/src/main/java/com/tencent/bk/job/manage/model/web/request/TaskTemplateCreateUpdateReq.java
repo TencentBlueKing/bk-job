@@ -40,6 +40,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,6 +57,7 @@ public class TaskTemplateCreateUpdateReq extends TemplateBasicInfoUpdateReq {
      * 模版步骤
      */
     @ApiModelProperty(value = "模版步骤, 新增、修改、删除时需要传入", required = true)
+    @Valid
     private List<TaskStepVO> steps;
 
     /**

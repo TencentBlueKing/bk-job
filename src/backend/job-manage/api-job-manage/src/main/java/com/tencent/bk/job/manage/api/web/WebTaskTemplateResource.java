@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,6 +55,7 @@ import java.util.List;
 @RequestMapping("/web/app/{appId}/task/template")
 @RestController
 @WebAPI
+@Validated
 public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "获取模版基本信息列表", produces = "application/json")
