@@ -161,7 +161,7 @@ public class ValidationConfiguration {
         @Override
         public Locale resolve(LocaleResolverContext context) {
             Locale locale = LocaleContextHolder.getLocale();
-            log.info("locale");
+            log.info("locale:{}", locale);
             return locale;
         }
     }
