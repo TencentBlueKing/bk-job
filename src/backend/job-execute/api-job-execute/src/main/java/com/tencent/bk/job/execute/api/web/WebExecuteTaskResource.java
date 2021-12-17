@@ -94,7 +94,7 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "业务ID", required = true, example = "1")
         @PathVariable("appId") Long appId,
         @ApiParam(value = "快速分发文件请求报文", name = "webPushFileRequest", required = true)
-        @RequestBody WebFastPushFileRequest request);
+        @RequestBody @Validated WebFastPushFileRequest request);
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
     @PostMapping("/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}")
