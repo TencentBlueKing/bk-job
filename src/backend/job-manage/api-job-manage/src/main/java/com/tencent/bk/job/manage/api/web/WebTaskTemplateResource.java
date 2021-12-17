@@ -55,7 +55,6 @@ import java.util.List;
 @RequestMapping("/web/app/{appId}/task/template")
 @RestController
 @WebAPI
-@Validated
 public interface WebTaskTemplateResource {
 
     @ApiOperation(value = "获取模版基本信息列表", produces = "application/json")
@@ -112,7 +111,7 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "模版 ID 新建填 0", required = true)
         @PathVariable("templateId") Long templateId,
         @ApiParam(value = "新增/更新的模版对象", name = "templateCreateUpdateReq", required = true)
-        @RequestBody TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
+        @RequestBody @Validated TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     );
 
     @ApiOperation(value = "删除模版", produces = "application/json")

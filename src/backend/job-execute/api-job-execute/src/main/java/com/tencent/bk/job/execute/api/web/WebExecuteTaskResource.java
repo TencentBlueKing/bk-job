@@ -54,7 +54,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/web/execution/")
 @RestController
 @WebAPI
-@Validated
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")
@@ -85,7 +84,7 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "业务ID", required = true, example = "1")
         @PathVariable("appId") Long appId,
         @ApiParam(value = "快速执行脚本请求报文", name = "webScriptExecuteRequest", required = true)
-        @RequestBody WebFastExecuteScriptRequest request);
+        @RequestBody @Validated WebFastExecuteScriptRequest request);
 
     @ApiOperation(value = "快速分发文件", produces = "application/json")
     @PostMapping("/app/{appId}/fast-push-file")
