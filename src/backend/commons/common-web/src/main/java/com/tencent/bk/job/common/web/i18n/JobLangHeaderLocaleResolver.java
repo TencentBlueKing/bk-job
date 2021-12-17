@@ -65,6 +65,7 @@ public class JobLangHeaderLocaleResolver implements LocaleResolver {
             locale = getDefaultLocale();
         }
         if (locale != null) {
+            log.info("Set locale for LocaleContextHolder, locale: {}", locale);
             LocaleContextHolder.setLocale(locale);
         }
         return locale;

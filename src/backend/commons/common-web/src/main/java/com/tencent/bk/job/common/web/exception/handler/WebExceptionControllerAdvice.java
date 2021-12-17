@@ -158,7 +158,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         BindingResult bindingResult = ex.getBindingResult();
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
-        Response<?> resp = Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, errorDetail);
+        Response<?> resp = Response.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -168,7 +168,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
                                                          ConstraintViolationException ex) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
-        Response<?> resp = Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, errorDetail);
+        Response<?> resp = Response.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 }
