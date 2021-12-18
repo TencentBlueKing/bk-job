@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
@@ -50,6 +51,8 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,7 +157,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             pullTimes += 1;
             InternalResponse<BatchTaskStatusDTO> resp = fileSourceTaskResource.getBatchTaskStatusAndLogs(batchTaskId,
                 logStart, logLength);
-            log.debug("resp={}", resp);
+            if (log.isDebugEnabled()) {
+                log.info(
+                    "stepInstanceId={},batchTaskId={},resp={}",
+                    stepInstance.getId(),
+                    batchTaskId,
+                    JsonUtils.toJson(resp)
+                );
+            }
             batchTaskStatusDTO = resp.getData();
             List<FileSourceTaskStatusDTO> fileSourceTaskStatusInfoList =
                 batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
@@ -176,14 +186,22 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             // 任务结束了，且日志拉取完毕才算结束
             isDone = batchTaskStatusDTO.isDone() && allLogDone;
         } catch (Exception e) {
-            log.warn("Exception occurred when getFileSourceTaskStatus, tried {} times", pullTimes, e);
+            FormattingTuple msg = MessageFormatter.format(
+                "[{}][{}]:Exception occurred when getFileSourceTaskStatus, tried {} times",
+                new Object[]{
+                    stepInstance.getId(),
+                    batchTaskId,
+                    pullTimes
+                }
+            );
+            log.warn(msg.getMessage(), e);
         }
         // 超时处理：1h
         if (!isDone && pullTimes > 3600) {
             batchTaskStatusDTO = new BatchTaskStatusDTO();
             batchTaskStatusDTO.setBatchTaskId(batchTaskId);
             batchTaskStatusDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
-            log.debug("{} timeout", batchTaskId);
+            log.info("stepInstanceId={},batchTaskId={} timeout 3600s", stepInstance.getId(), batchTaskId);
             isDone = true;
         }
         if (isDone) {
@@ -216,11 +234,23 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             boolean stopped = false;
             for (FileSourceTaskStatusDTO result : resultList) {
                 // 有一个文件源任务不成功则不成功
-                if (result == null || !TaskStatusEnum.SUCCESS.getStatus().equals(result.getStatus())) {
+                if (result == null) {
+                    log.warn("[{}]:some result is null", stepInstance.getId());
+                    allSuccess = false;
+                    continue;
+                }
+                if (!TaskStatusEnum.SUCCESS.getStatus().equals(result.getStatus())) {
+                    log.info(
+                        "[{}]:taskId={},status={},message={}",
+                        stepInstance.getId(),
+                        result.getTaskId(),
+                        TaskStatusEnum.valueOf(result.getStatus()),
+                        result.getMessage()
+                    );
                     allSuccess = false;
                 }
                 // 有一个文件源任务被成功终止即为终止成功
-                if (result != null && TaskStatusEnum.STOPPED.getStatus().equals(result.getStatus())) {
+                if (TaskStatusEnum.STOPPED.getStatus().equals(result.getStatus())) {
                     stopped = true;
                 }
             }

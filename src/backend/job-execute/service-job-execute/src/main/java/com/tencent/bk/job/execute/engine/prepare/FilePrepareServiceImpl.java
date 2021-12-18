@@ -145,7 +145,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},ConfigFilePrepareTask failed", stepInstance.getId());
+                    log.warn("stepInstanceId={},ConfigFilePrepareTask failed", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -179,7 +179,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},LocalFilePrepareTask failed", stepInstanceId);
+                    log.warn("stepInstanceId={},LocalFilePrepareTask failed", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -211,7 +211,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
+                    log.warn("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }

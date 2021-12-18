@@ -160,11 +160,11 @@ class DownloadFileTask extends Thread {
         try {
             taskReporter.reportFileDownloadStart(taskId, filePath, downloadPath);
             downloadFileToLocal(remoteClient, filePath, downloadPath, fileSize, speed, process);
-            watchingTask.stopWatching();
+            watchingTask.stopWatchingAndWaitReportDone();
             taskReporter.reportFileDownloadSuccess(taskId, filePath, downloadPath, fileSize.get(), speed.get(),
                 process.get());
         } catch (Throwable t) {
-            watchingTask.stopWatching();
+            watchingTask.stopWatchingAndWaitReportDone();
             if (t.getCause() instanceof InterruptedException) {
                 ThreadCommandBus.Command command = ThreadCommandBus.getCommandQueue(fileTaskKey).poll();
                 if (command == null) {
