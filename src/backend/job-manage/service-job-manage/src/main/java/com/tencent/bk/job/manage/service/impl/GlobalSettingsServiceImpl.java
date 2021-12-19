@@ -111,6 +111,7 @@ import java.util.stream.Collectors;
 public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     private static final Pattern PATTERN = Pattern.compile("^([+\\-]?\\d+)([a-zA-Z]{0,2})$");
+    private static final String STRING_TPL_KEY_VERSION = "current_ver";
     private DSLContext dslContext;
     private NotifyEsbChannelDAO notifyEsbChannelDAO;
     private AvailableEsbChannelDAO availableEsbChannelDAO;
@@ -542,7 +543,16 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public TitleFooterVO getTitleFooter() {
         TitleFooterVO titleFooterVO = getTitleFooterWithoutVersion();
-        titleFooterVO.setFooterCopyRight(titleFooterVO.getFooterCopyRight() + " V" + buildProperties.getVersion());
+        // 渲染版本号
+        Map<String, String> valuesMap = new HashMap<>();
+        String pattern = "(\\{\\{(.*?)\\}\\})";
+        valuesMap.put(STRING_TPL_KEY_VERSION, "V" + buildProperties.getVersion());
+        titleFooterVO.setFooterCopyRight(
+            StringUtil.replaceByRegex(titleFooterVO.getFooterCopyRight(), pattern, valuesMap)
+        );
+        titleFooterVO.setFooterLink(
+            StringUtil.replaceByRegex(titleFooterVO.getFooterLink(), pattern, valuesMap)
+        );
         return titleFooterVO;
     }
 
