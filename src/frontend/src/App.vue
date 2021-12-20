@@ -31,9 +31,15 @@
             <router-back />
         </template>
         <template slot="headerRight">
-            <bk-popover theme="light site-header-dropdown" style="margin-right: 8px;" :arrow="false">
+            <bk-popover
+                theme="light site-header-dropdown"
+                style="margin-right: 8px;"
+                :arrow="false">
                 <div class="flag-box">
-                    <Icon class="lang-flag" id="siteLocal" :type="currentLangType" />
+                    <Icon
+                        id="siteLocal"
+                        class="lang-flag"
+                        :type="currentLangType" />
                 </div>
                 <div slot="content">
                     <div
@@ -248,11 +254,10 @@
 </script>
 <style lang="postcss">
     .job-site {
-        opacity: 1;
-        transition: all 0.1s cubic-bezier(0.2, 1.02, 0.55, 0.96);
+        opacity: 100%;
 
         &.loading {
-            opacity: 0;
+            opacity: 0%;
         }
 
         .flag-box {

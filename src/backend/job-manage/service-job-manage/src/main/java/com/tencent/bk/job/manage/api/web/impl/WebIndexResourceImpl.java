@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.web.WebIndexResource;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
@@ -54,39 +54,39 @@ public class WebIndexResourceImpl implements WebIndexResource {
     }
 
     @Override
-    public ServiceResponse<List<GreetingVO>> listGreeting(String username, Long appId) {
-        return ServiceResponse.buildSuccessResp(indexService.listGreeting(username));
+    public Response<List<GreetingVO>> listGreeting(String username, Long appId) {
+        return Response.buildSuccessResp(indexService.listGreeting(username));
     }
 
     @Override
-    public ServiceResponse<AgentStatistics> getAgentStatistics(String username, Long appId) {
-        return ServiceResponse.buildSuccessResp(indexService.getAgentStatistics(username, appId));
+    public Response<AgentStatistics> getAgentStatistics(String username, Long appId) {
+        return Response.buildSuccessResp(indexService.getAgentStatistics(username, appId));
     }
 
     @Override
-    public ServiceResponse<PageData<HostInfoVO>> listHostsByAgentStatus(String username, Long appId,
-                                                                        Integer agentStatus, Long start,
-                                                                        Long pageSize) {
-        return ServiceResponse.buildSuccessResp(indexService.listHostsByAgentStatus(username, appId, agentStatus,
+    public Response<PageData<HostInfoVO>> listHostsByAgentStatus(String username, Long appId,
+                                                                 Integer agentStatus, Long start,
+                                                                 Long pageSize) {
+        return Response.buildSuccessResp(indexService.listHostsByAgentStatus(username, appId, agentStatus,
             start, pageSize));
     }
 
     @Override
-    public ServiceResponse<PageData<String>> listIPsByAgentStatus(String username, Long appId, Integer agentStatus,
-                                                                  Long start, Long pageSize) {
-        return ServiceResponse.buildSuccessResp(indexService.listIPsByAgentStatus(username, appId, agentStatus, start
+    public Response<PageData<String>> listIPsByAgentStatus(String username, Long appId, Integer agentStatus,
+                                                           Long start, Long pageSize) {
+        return Response.buildSuccessResp(indexService.listIPsByAgentStatus(username, appId, agentStatus, start
             , pageSize));
     }
 
     @Override
-    public ServiceResponse<JobAndScriptStatistics> getJobAndScriptStatistics(String username, Long appId) {
-        return ServiceResponse.buildSuccessResp(indexService.getJobAndScriptStatistics(username, appId));
+    public Response<JobAndScriptStatistics> getJobAndScriptStatistics(String username, Long appId) {
+        return Response.buildSuccessResp(indexService.getJobAndScriptStatistics(username, appId));
     }
 
     @Override
-    public ServiceResponse<List<TaskTemplateVO>> listMyFavorTasks(String username, Long appId, Long limit) {
+    public Response<List<TaskTemplateVO>> listMyFavorTasks(String username, Long appId, Long limit) {
         List<TaskTemplateVO> resultList = indexService.listMyFavorTasks(username, appId, limit);
         taskTemplateAuthService.processTemplatePermission(username, appId, resultList);
-        return ServiceResponse.buildSuccessResp(resultList);
+        return Response.buildSuccessResp(resultList);
     }
 }

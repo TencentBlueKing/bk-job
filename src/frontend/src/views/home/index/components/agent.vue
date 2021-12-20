@@ -263,7 +263,7 @@
                 width: 12px;
                 height: 3px;
                 margin-right: 8px;
-                content: '';
+                content: "";
             }
 
             &.normal {

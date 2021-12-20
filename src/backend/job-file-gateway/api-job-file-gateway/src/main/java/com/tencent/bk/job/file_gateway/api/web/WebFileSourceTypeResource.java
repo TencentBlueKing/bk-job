@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceTypeVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,7 +47,7 @@ public interface WebFileSourceTypeResource {
 
     @ApiOperation(value = "获取文件源类型列表", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<List<FileSourceTypeVO>> listFileSourceType(
+    Response<List<FileSourceTypeVO>> listFileSourceType(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam("存储类型Code:FILE_SYSTEM(文件系统)，OSS(对象存储)")

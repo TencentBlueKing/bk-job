@@ -28,7 +28,7 @@
 <template>
     <div class="render-file-server">
         <div class="server-agent-text" v-html="data.serverDesc" @click="handlerView" />
-        <bk-dialog
+        <jb-dialog
             v-model="isShowDetail"
             :width="1020"
             :ok-text="$t('template.关闭')"
@@ -46,7 +46,7 @@
                         :host-node-info="hostNodeInfo" />
                 </scroll-faker>
             </div>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>

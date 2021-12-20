@@ -89,7 +89,7 @@
     };
 </script>
 <style lang="postcss">
-    html[lang='en-US'] {
+    html[lang="en-US"] {
         .source-file-action-content {
             width: 154px;
         }
@@ -135,7 +135,7 @@
             color: #63656e;
             background: #fff;
             border: 1px solid #f0f1f5;
-            box-shadow: 0 2px 1px 0 rgba(185, 203, 222, 0.5);
+            box-shadow: 0 2px 1px 0 rgb(185 203 222 / 50%);
 
             .action-item {
                 padding-left: 15px;

@@ -28,6 +28,7 @@ dependencies {
     api project(":job-backup:model-job-backup")
     api project(":job-manage:api-job-manage")
     api project(":job-execute:model-job-execute")
+    api project(":commons:artifactory-sdk")
     api project(":commons:common-web")
     api project(":commons:common-security")
     api project(":commons:common-redis")

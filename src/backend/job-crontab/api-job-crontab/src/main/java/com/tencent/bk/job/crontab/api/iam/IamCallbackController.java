@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.iam;
 
+import com.tencent.bk.job.common.annotation.IamCallbackAPI;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @since 20/3/2020 21:44
  */
 @RequestMapping("/iam/api/v1/resources/cron")
+@IamCallbackAPI
 public interface IamCallbackController {
 
     /**

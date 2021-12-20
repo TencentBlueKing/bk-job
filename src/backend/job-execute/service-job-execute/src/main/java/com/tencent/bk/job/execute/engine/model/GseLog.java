@@ -34,7 +34,7 @@ public abstract class GseLog<T> {
     /**
      * GSE 任务执行结果
      */
-    private T gseLog;
+    private final T gseLog;
 
     GseLog(T gseLog) {
         this.gseLog = gseLog;

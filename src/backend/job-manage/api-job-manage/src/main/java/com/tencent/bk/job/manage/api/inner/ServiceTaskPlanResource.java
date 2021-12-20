@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
@@ -52,37 +52,37 @@ public interface ServiceTaskPlanResource {
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
     @GetMapping("/app/{appId}/plan/planId/{planId}/basic")
-    ServiceResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(
+    InternalResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(
         @ApiParam(value = "业务ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
     @GetMapping("/plan/{planId}/planName")
-    ServiceResponse<String> getPlanName(
+    InternalResponse<String> getPlanName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案全局变量name获取id", produces = "application/json")
     @GetMapping("/plan/{planId}/globalVar/getIdByName/{globalVarName}")
-    ServiceResponse<Long> getGlobalVarIdByName(
+    InternalResponse<Long> getGlobalVarIdByName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
     @ApiOperation(value = "根据执行方案全局变量id获取name", produces = "application/json")
     @GetMapping("/plan/{planId}/globalVar/getNameById/{globalVarId}")
-    ServiceResponse<String> getGlobalVarNameById(
+    InternalResponse<String> getGlobalVarNameById(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
     @ApiOperation(value = "根据执行方案ID获取执行方案业务Id", produces = "application/json")
     @GetMapping("/plan/{planId}/planAppId")
-    ServiceResponse<Long> getPlanAppId(
+    InternalResponse<Long> getPlanAppId(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
     @GetMapping("/app/{appId}/plan/planId/{planId}")
-    ServiceResponse<ServiceTaskPlanDTO> getPlanById(
+    InternalResponse<ServiceTaskPlanDTO> getPlanById(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案ID", required = true)
@@ -92,7 +92,7 @@ public interface ServiceTaskPlanResource {
             Boolean includeDisabledSteps);
 
     @PutMapping("/app/{appId}/plan/{templateId}/{planId}/createPlanWithId")
-    ServiceResponse<Long> createPlanWithIdForMigration(
+    InternalResponse<Long> createPlanWithIdForMigration(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId,
@@ -102,7 +102,7 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser);
 
     @GetMapping("/app/{appId}/plan/check")
-    ServiceResponse<ServiceIdNameCheckDTO> checkIdAndName(
+    InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @RequestParam("templateId") Long templateId,
         @ApiParam(value = "执行方案 ID") @RequestParam("planId") Long planId,
@@ -110,7 +110,7 @@ public interface ServiceTaskPlanResource {
 
     @ApiOperation(value = "导入执行方案", produces = "application/json")
     @PutMapping("/app/{appId}/plan/{templateId}/savePlanForImport")
-    ServiceResponse<Long> savePlanForImport(
+    InternalResponse<Long> savePlanForImport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId,
@@ -118,7 +118,7 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "执行方案信息", required = true) @RequestBody TaskPlanVO planInfo);
 
     @GetMapping("/app/{appId}/plan/{templateId}/{planId}/variable")
-    ServiceResponse<List<ServiceTaskVariableDTO>> getPlanVariable(
+    InternalResponse<List<ServiceTaskVariableDTO>> getPlanVariable(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId,
@@ -126,13 +126,13 @@ public interface ServiceTaskPlanResource {
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
     @GetMapping("/{templateId}")
-    ServiceResponse<List<ServiceTaskPlanDTO>> listPlans(
+    InternalResponse<List<ServiceTaskPlanDTO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);
 
     @ApiOperation(value = "获取模板对应的执行方案Id", produces = "application/json")
     @GetMapping("/plan/planIds/template/{templateId}")
-    ServiceResponse<List<Long>> listPlanIds(
+    InternalResponse<List<Long>> listPlanIds(
         @ApiParam(value = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);
 }

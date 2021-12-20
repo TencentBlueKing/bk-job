@@ -47,7 +47,25 @@
                     </div>
                     <div>{{ $t('history.加载中') }}</div>
                 </div>
-                <empty v-if="list.length < 1 && !listLoading" style="height: 100%;" />
+                <template v-if="list.length < 1 && !listLoading">
+                    <Empty v-if="!searchValue" style="height: 100%;" />
+                    <Empty v-else type="search" style="height: 100%;">
+                        <div>
+                            <div style="font-size: 14px; color: #63656e;">{{ $t('搜索结果为空') }}</div>
+                            <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+                                <span>{{ $t('可以尝试调整关键词') }}</span>
+                                <template>
+                                    <span>{{ $t('或') }}</span>
+                                    <bk-button
+                                        text
+                                        @click="handleClearSearch">
+                                        {{ $t('清空搜索条件') }}
+                                    </bk-button>
+                                </template>
+                            </div>
+                        </div>
+                    </Empty>
+                </template>
             </scroll-faker>
         </div>
         <div v-show="isSetting" class="list-column-select">
@@ -122,6 +140,7 @@
                 type: Number,
                 default: 0,
             },
+            searchValue: String,
         },
         data () {
             let allShowColumn = [
@@ -332,6 +351,12 @@
             handleSelect (row) {
                 this.$emit('on-change', row);
             },
+            /**
+             * @desc 清空搜索
+             */
+            handleClearSearch () {
+                this.$emit('on-clear-search');
+            },
         },
     };
 </script>
@@ -467,7 +492,7 @@
                     margin-right: 1em;
                     margin-left: -3px;
                     background: #2dc89d;
-                    content: '';
+                    content: "";
                 }
             }
 

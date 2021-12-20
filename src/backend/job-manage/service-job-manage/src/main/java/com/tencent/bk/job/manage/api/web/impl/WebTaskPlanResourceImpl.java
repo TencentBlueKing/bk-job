@@ -25,17 +25,19 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -45,6 +47,7 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.manager.variable.StepVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -88,9 +91,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
     private final CronJobService cronJobService;
-    private final WebAuthService authService;
-
-    private final MessageI18nService i18nService;
+    private final AuthService authService;
 
     @Autowired
     public WebTaskPlanResourceImpl(
@@ -98,19 +99,17 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         TaskTemplateService templateService,
         @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         CronJobService cronJobService,
-        WebAuthService webAuthService,
-        MessageI18nService i18nService
+        AuthService authService
     ) {
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
-        this.authService = webAuthService;
-        this.i18nService = i18nService;
+        this.authService = authService;
     }
 
     @Override
-    public ServiceResponse<PageData<TaskPlanVO>> listAllPlans(
+    public Response<PageData<TaskPlanVO>> listAllPlans(
         String username,
         Long appId,
         Long planId,
@@ -122,10 +121,10 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         Integer start,
         Integer pageSize
     ) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<Long> favoriteList = taskFavoriteService.listFavorites(appId, username);
@@ -144,7 +143,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             if (templateInfo != null) {
                 taskPlanQueryDTO.setTemplateId(templateId);
             } else {
-                return ServiceResponse.buildSuccessResp(makeEmptyResponse(start, pageSize));
+                return Response.buildSuccessResp(makeEmptyResponse(start, pageSize));
             }
         } else {
             if (StringUtils.isNotBlank(templateName)) {
@@ -163,7 +162,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                         templateIdList.add(taskTemplateInfo.getId()));
                     taskPlanQueryDTO.setTemplateIdList(templateIdList);
                 } else {
-                    return ServiceResponse.buildSuccessResp(makeEmptyResponse(start, pageSize));
+                    return Response.buildSuccessResp(makeEmptyResponse(start, pageSize));
                 }
             }
         }
@@ -189,7 +188,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             fillCronInfo(appId, taskPlanInfoPageData.getData());
             taskPlanInfoPageData.getData().forEach(taskPlanInfo -> resultPlans.add(TaskPlanInfoDTO.toVO(taskPlanInfo)));
         } else {
-            return ServiceResponse.buildCommonFailResp("No plan info found!");
+
+            return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
         }
 
         resultPlans.forEach(taskPlan -> taskPlan.setFavored(favoriteList.contains(taskPlan.getId()) ? 1 : 0));
@@ -201,25 +201,25 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         taskPlanPageData.setTotal(taskPlanInfoPageData.getTotal());
         taskPlanPageData.setData(resultPlans);
         taskPlanPageData.setExistAny(planService.isExistAnyAppPlan(appId));
-        return ServiceResponse.buildSuccessResp(taskPlanPageData);
+        return Response.buildSuccessResp(taskPlanPageData);
     }
 
     @Override
-    public ServiceResponse<List<TaskPlanVO>> listPlans(String username, Long appId, Long templateId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+    public Response<List<TaskPlanVO>> listPlans(String username, Long appId, Long templateId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<TaskPlanVO> taskPlanList = listPlansByTemplateId(username, appId, templateId);
-        return ServiceResponse.buildSuccessResp(taskPlanList);
+        return Response.buildSuccessResp(taskPlanList);
     }
 
     private List<TaskPlanVO> listPlansByTemplateId(String username, Long appId, Long templateId) {
         TaskTemplateInfoDTO taskTemplateBasicInfo = templateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateBasicInfo == null) {
-            throw new ServiceException(ErrorCode.TEMPLATE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
 
         List<TaskPlanInfoDTO> taskPlanInfoList = planService.listTaskPlansBasicInfo(appId, templateId);
@@ -271,11 +271,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public ServiceResponse<List<TaskPlanVO>> batchGetPlans(String username, Long appId,
-                                                           String templateIds) {
+    public Response<List<TaskPlanVO>> batchGetPlans(String username, Long appId,
+                                                    String templateIds) {
         if (StringUtils.isEmpty(templateIds)) {
             log.warn("TemplateIds is empty!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
 
         String[] templateIdArray = templateIds.split(",");
@@ -285,13 +285,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         if (CollectionUtils.isEmpty(templateIdList)) {
             log.warn("TemplateIdList is empty!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
 
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<TaskPlanVO> planList = new ArrayList<>();
@@ -302,22 +302,24 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             }
         }
 
-        return ServiceResponse.buildSuccessResp(planList);
+        return Response.buildSuccessResp(planList);
     }
 
     @Override
-    public ServiceResponse<TaskPlanVO> getPlanById(String username, Long appId, Long templateId, Long planId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.VIEW_JOB_PLAN,
+    public Response<TaskPlanVO> getPlanById(String username, Long appId, Long templateId, Long planId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.VIEW_JOB_PLAN,
             ResourceTypeEnum.PLAN, planId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         TaskTemplateInfoDTO taskTemplateBasicInfo = templateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateBasicInfo == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_PLAN_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
         TaskPlanInfoDTO taskPlan = planService.getTaskPlanById(appId, templateId, planId);
         if (taskPlan != null) {
+            StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+
             final String templateVersion = taskTemplateBasicInfo.getVersion();
             if (StringUtils.isNotEmpty(templateVersion)) {
                 taskPlan.setTemplateVersion(templateVersion);
@@ -334,51 +336,55 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                 .auth(false, username, ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN, planId.toString(),
                     IamPathUtil.buildPlanPathInfo(appId, templateId))
                 .isPass());
-            return ServiceResponse.buildSuccessResp(taskPlanVO);
+            return Response.buildSuccessResp(taskPlanVO);
         } else {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_PLAN_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
     }
 
     @Override
-    public ServiceResponse<TaskPlanVO> getDebugPlan(String username, Long appId, Long templateId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.VIEW_JOB_TEMPLATE,
+    public Response<TaskPlanVO> getDebugPlan(String username, Long appId, Long templateId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.VIEW_JOB_TEMPLATE,
             ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         TaskTemplateInfoDTO taskTemplateBasicInfo = templateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateBasicInfo == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.TASK_PLAN_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
         TaskPlanInfoDTO taskPlan = planService.getDebugTaskPlan(username, appId, templateId);
-        TaskPlanVO taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
-        taskPlanVO.setCanView(true);
-        taskPlanVO.setCanEdit(true);
-        taskPlanVO.setCanDelete(false);
-        return ServiceResponse.buildSuccessResp(taskPlanVO);
+        TaskPlanVO taskPlanVO = null;
+        if (taskPlan != null) {
+            StepVariableParser.parseStepRefVars(taskPlan.getStepList(), taskPlan.getVariableList());
+            taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
+            taskPlanVO.setCanView(true);
+            taskPlanVO.setCanEdit(true);
+            taskPlanVO.setCanDelete(false);
+        }
+        return Response.buildSuccessResp(taskPlanVO);
     }
 
     @Override
-    public ServiceResponse<Long> savePlan(String username, Long appId, Long templateId, Long planId,
-                                          TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
+    public Response<Long> savePlan(String username, Long appId, Long templateId, Long planId,
+                                   TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
         taskPlanCreateUpdateReq.setTemplateId(templateId);
-        AuthResultVO authResultVO;
+        AuthResult authResult;
         if (planId > 0) {
             if (planService.isDebugPlan(appId, templateId, planId)) {
-                authResultVO = authService.auth(true, username, ActionId.EDIT_JOB_TEMPLATE,
+                authResult = authService.auth(true, username, ActionId.EDIT_JOB_TEMPLATE,
                     ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
             } else {
-                authResultVO = authService.auth(true, username, ActionId.EDIT_JOB_PLAN,
+                authResult = authService.auth(true, username, ActionId.EDIT_JOB_PLAN,
                     ResourceTypeEnum.PLAN, planId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
             }
             taskPlanCreateUpdateReq.setId(planId);
         } else {
-            authResultVO = authService.auth(true, username, ActionId.CREATE_JOB_PLAN,
+            authResult = authService.auth(true, username, ActionId.CREATE_JOB_PLAN,
                 ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
         }
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         // 检查执行方案名称
         try {
@@ -387,145 +393,140 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             taskPlanCreateUpdateReq.setName(stringCheckHelper.checkAndGetResult(taskPlanCreateUpdateReq.getName()));
         } catch (StringCheckException e) {
             log.warn("TaskPlan name is invalid:", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         Long savedPlanId = planService.saveTaskPlan(TaskPlanInfoDTO.fromReq(username, appId, taskPlanCreateUpdateReq));
         if (planId == 0) {
             authService.registerResource(savedPlanId.toString(), taskPlanCreateUpdateReq.getName(), ResourceId.PLAN,
                 username, null);
         }
-        return ServiceResponse.buildSuccessResp(savedPlanId);
+        return Response.buildSuccessResp(savedPlanId);
     }
 
     @Override
-    public ServiceResponse<Boolean> deletePlan(String username, Long appId, Long templateId, Long planId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.DELETE_JOB_PLAN,
+    public Response<Boolean> deletePlan(String username, Long appId, Long templateId, Long planId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.DELETE_JOB_PLAN,
             ResourceTypeEnum.PLAN, planId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(planService.deleteTaskPlan(appId, templateId, planId));
+        return Response.buildSuccessResp(planService.deleteTaskPlan(appId, templateId, planId));
     }
 
     @Override
-    public ServiceResponse<List<TaskPlanVO>> listPlanBasicInfoByIds(String username, Long appId, String planIds) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+    public Response<List<TaskPlanVO>> listPlanBasicInfoByIds(String username, Long appId, String planIds) {
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         if (StringUtils.isNotEmpty(planIds)) {
-            List<Long> planIdList;
-            try {
-                planIdList = Arrays.stream(planIds.split(",")).filter(Objects::nonNull).map(Long::valueOf)
-                    .filter(id -> id > 0).collect(Collectors.toList());
-            } catch (Exception e) {
-                return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
-            }
+            List<Long> planIdList = Arrays.stream(planIds.split(",")).filter(Objects::nonNull).map(Long::valueOf)
+                .filter(id -> id > 0).collect(Collectors.toList());
             List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoByIds(appId, planIdList);
             fillCronInfo(appId, taskPlanInfoList);
             List<TaskPlanVO> taskPlanList =
                 taskPlanInfoList.stream().map(TaskPlanInfoDTO::toVO).collect(Collectors.toList());
             processPlanPermission(username, appId, taskPlanList);
-            return ServiceResponse.buildSuccessResp(taskPlanList);
+            return Response.buildSuccessResp(taskPlanList);
         } else {
-            return ServiceResponse.buildSuccessResp(new ArrayList<>());
+            return Response.buildSuccessResp(new ArrayList<>());
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> checkPlanName(String username, Long appId, Long templateId, Long planId,
-                                                  String name) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.VIEW_JOB_TEMPLATE,
+    public Response<Boolean> checkPlanName(String username, Long appId, Long templateId, Long planId,
+                                           String name) {
+        AuthResult authResult = authService.auth(true, username, ActionId.VIEW_JOB_TEMPLATE,
             ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(planService.checkPlanName(appId, templateId, planId, name));
+        return Response.buildSuccessResp(planService.checkPlanName(appId, templateId, planId, name));
     }
 
     @Override
-    public ServiceResponse<TaskPlanSyncInfoVO> syncInfo(String username, Long appId, Long templateId, Long planId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.SYNC_JOB_PLAN,
+    public Response<TaskPlanSyncInfoVO> syncInfo(String username, Long appId, Long templateId, Long planId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.SYNC_JOB_PLAN,
             ResourceTypeEnum.PLAN, planId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         TaskPlanInfoDTO taskPlan = planService.getTaskPlanById(appId, templateId, planId);
         if (taskPlan != null) {
             TaskTemplateInfoDTO taskTemplate = templateService.getTaskTemplateById(appId, templateId);
             if (taskTemplate == null) {
-                return ServiceResponse.buildCommonFailResp(ErrorCode.DB_ERROR, i18nService);
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
             }
             TaskPlanSyncInfoVO taskPlanSyncInfoVO = new TaskPlanSyncInfoVO();
             taskPlanSyncInfoVO.setPlanInfo(TaskPlanInfoDTO.toVO(taskPlan));
             taskPlanSyncInfoVO.setTemplateInfo(TaskTemplateInfoDTO.toVO(taskTemplate));
             taskPlanSyncInfoVO.getTemplateInfo().setVersion(taskTemplate.getVersion());
-            return ServiceResponse.buildSuccessResp(taskPlanSyncInfoVO);
+            return Response.buildSuccessResp(taskPlanSyncInfoVO);
         } else {
             log.debug("Cannot find plan {} for template {}", planId, templateId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, i18nService);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> syncConfirm(String username, Long appId, Long templateId, Long planId,
-                                                String templateVersion) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.SYNC_JOB_PLAN,
+    public Response<Boolean> syncConfirm(String username, Long appId, Long templateId, Long planId,
+                                         String templateVersion) {
+        AuthResult authResult = authService.auth(true, username, ActionId.SYNC_JOB_PLAN,
             ResourceTypeEnum.PLAN, planId.toString(), IamPathUtil.buildPlanPathInfo(appId, templateId));
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(planService.sync(appId, templateId, planId, templateVersion));
+        return Response.buildSuccessResp(planService.sync(appId, templateId, planId, templateVersion));
     }
 
     @Override
-    public ServiceResponse<Boolean> addFavorite(String username, Long appId, Long templateId, Long planId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+    public Response<Boolean> addFavorite(String username, Long appId, Long templateId, Long planId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(taskFavoriteService.addFavorite(appId, username, planId));
+        return Response.buildSuccessResp(taskFavoriteService.addFavorite(appId, username, planId));
     }
 
     @Override
-    public ServiceResponse<Boolean> removeFavorite(String username, Long appId, Long templateId, Long planId) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+    public Response<Boolean> removeFavorite(String username, Long appId, Long templateId, Long planId) {
+        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(taskFavoriteService.deleteFavorite(appId, username, planId));
+        return Response.buildSuccessResp(taskFavoriteService.deleteFavorite(appId, username, planId));
     }
 
     @Override
-    public ServiceResponse<TaskPlanVO> getPlanBasicInfoById(String username, Long planId) {
+    public Response<TaskPlanVO> getPlanBasicInfoById(String username, Long planId) {
         if (planId == null || planId <= 0) {
-            return ServiceResponse.buildSuccessResp(null);
+            return Response.buildSuccessResp(null);
         }
         TaskPlanInfoDTO taskPlanInfo = planService.getTaskPlanById(planId);
         if (taskPlanInfo != null) {
-            AuthResultVO authResultVO = authService.auth(true, username, ActionId.LIST_BUSINESS,
+            AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
                 ResourceTypeEnum.BUSINESS, taskPlanInfo.getAppId().toString(), null);
-            if (!authResultVO.isPass()) {
-                return ServiceResponse.buildSuccessResp(null);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
             taskPlanInfo.setStepList(null);
             taskPlanInfo.setVariableList(null);
-            return ServiceResponse.buildSuccessResp(TaskPlanInfoDTO.toVO(taskPlanInfo));
+            return Response.buildSuccessResp(TaskPlanInfoDTO.toVO(taskPlanInfo));
         }
-        return ServiceResponse.buildSuccessResp(null);
+        return Response.buildSuccessResp(null);
     }
 
     @Override
-    public ServiceResponse<Boolean> batchUpdatePlanVariableValueByName(
+    public Response<Boolean> batchUpdatePlanVariableValueByName(
         String username,
         Long appId,
         List<TaskVariableValueUpdateReq> planVariableInfoList
     ) {
         if (CollectionUtils.isEmpty(planVariableInfoList)) {
-            return ServiceResponse.buildSuccessResp(true);
+            return Response.buildSuccessResp(true);
         }
         List<PermissionResource> permissionResources = new ArrayList<>();
         Set<Long> planIdSet = new HashSet<>();
@@ -553,7 +554,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             permissionResources);
         if (CollectionUtils.isEmpty(canEditPlanIdList) || (canEditPlanIdList.size() != planIdSet.size())) {
             log.warn("Batch update variable failed! Auth plan perm failed!|{}|{}", planIdSet, canEditPlanIdList);
-            return ServiceResponse.buildSuccessResp(false);
+            return Response.buildSuccessResp(false);
         }
 
         Long modifyTime = System.currentTimeMillis();
@@ -580,7 +581,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             return planInfo;
         }).collect(Collectors.toList());
 
-        return ServiceResponse.buildSuccessResp(planService.batchUpdatePlanVariable(planInfoList));
+        return Response.buildSuccessResp(planService.batchUpdatePlanVariable(planInfoList));
     }
 
     private void fillCronInfo(Long appId, List<TaskPlanInfoDTO> planInfoList) {
@@ -613,12 +614,15 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         try {
             List<Long> planIds = Collections.singletonList(planInfo.getId());
             Map<Long, List<CronJobVO>> cronJobByPlanIds = cronJobService.batchListCronJobByPlanIds(appId, planIds);
-            if (MapUtils.isNotEmpty(cronJobByPlanIds)) {
-                planInfo.setHasCronJob(cronJobByPlanIds.containsKey(planInfo.getId()));
+            List<CronJobVO> cronJobs = cronJobByPlanIds != null ? cronJobByPlanIds.get(planInfo.getId()) : null;
+            if (CollectionUtils.isNotEmpty(cronJobs)) {
+                planInfo.setHasCronJob(true);
+                planInfo.setCronJobCount((long) cronJobs.size());
             } else {
                 planInfo.setHasCronJob(false);
+                planInfo.setCronJobCount(0L);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error while process plan's cronjob", e);
         }
     }

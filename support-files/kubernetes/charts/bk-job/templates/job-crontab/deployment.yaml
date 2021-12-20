@@ -1,3 +1,4 @@
+{{- if .Values.crontabConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -6,6 +7,7 @@ metadata:
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-crontab"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     {{ include "job.labelKeys.imageTag" . }}: {{ .Values.crontabConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -26,6 +28,7 @@ spec:
       labels:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-crontab"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.crontabConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
@@ -61,16 +64,14 @@ spec:
           image: {{ include "job-crontab.image" . }}
           imagePullPolicy: {{ .Values.crontabConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-crontab"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.crontabConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-crontab.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-crontab
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-crontab
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -81,6 +82,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.crontabConfig.containerPort }}
@@ -106,6 +111,8 @@ spec:
           resources:
             {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -116,6 +123,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
@@ -125,4 +135,4 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-
+{{- end }}

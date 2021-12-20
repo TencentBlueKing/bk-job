@@ -67,7 +67,8 @@ window.routerFlashBack = false;
  * @desc 浏览器框口关闭提醒
  */
 window.addEventListener('beforeunload', (event) => {
-    if (!window.changeAlert) {
+    // 需要做 Boolean 类型的值判断
+    if (window.changeAlert !== true) {
         return null;
     }
     const e = event || window.event;

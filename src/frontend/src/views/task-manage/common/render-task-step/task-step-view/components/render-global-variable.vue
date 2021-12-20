@@ -31,7 +31,7 @@
             <Icon type="host" />
         </div>
         <div class="name" :title="name">{{ name }}</div>
-        <bk-dialog
+        <jb-dialog
             v-model="isShowDetail"
             :title="title"
             :width="1020"
@@ -51,7 +51,7 @@
                         :host-node-info="hostNodeInfo" />
                 </scroll-faker>
             </div>
-        </bk-dialog>
+        </jb-dialog>
     </div>
 </template>
 <script>

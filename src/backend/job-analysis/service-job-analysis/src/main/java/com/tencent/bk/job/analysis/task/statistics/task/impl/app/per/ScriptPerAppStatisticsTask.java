@@ -30,7 +30,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -99,7 +99,7 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     public List<StatisticsDTO> calcAppScriptTotal(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
-        ServiceResponse<Integer> resp = manageMetricsClient.countScripts(
+        InternalResponse<Integer> resp = manageMetricsClient.countScripts(
             appId,
             null,
             null
@@ -117,7 +117,7 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         for (int i = 0; i < ScriptTypeEnum.values().length; i++) {
             ScriptTypeEnum scriptType = ScriptTypeEnum.values()[i];
-            ServiceResponse<Integer> resp = manageMetricsClient.countScripts(
+            InternalResponse<Integer> resp = manageMetricsClient.countScripts(
                 appId,
                 scriptType,
                 null
@@ -137,7 +137,7 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         for (int i = 0; i < JobResourceStatusEnum.values().length; i++) {
             JobResourceStatusEnum jobResourceStatus = JobResourceStatusEnum.values()[i];
-            ServiceResponse<Integer> resp = manageMetricsClient.countScriptVersions(
+            InternalResponse<Integer> resp = manageMetricsClient.countScriptVersions(
                 appId,
                 null,
                 jobResourceStatus

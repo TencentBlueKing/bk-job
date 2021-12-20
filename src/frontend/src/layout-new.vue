@@ -36,7 +36,11 @@
                 svg
                 style="font-size: 28px; color: #96a2b9;"
                 @click="handleRouterChange('home')" />
-            <span class="site-title" @click="handleRouterChange('home')">{{ $t('蓝鲸作业平台') }}</span>
+            <span
+                class="site-title"
+                @click="handleRouterChange('home')">
+                {{ $t('蓝鲸作业平台') }}
+            </span>
         </template>
         <template slot="headerCenter">
             <div class="top-menu-box">
@@ -297,9 +301,10 @@
                  * @param {String} routerName 跳转的路由名
                  */
                 handleRouterChange (routerName) {
-                    if (this.$route.name === routerName) {
+                    if (this.routerName === routerName) {
                         return;
                     }
+                    this.routerName = routerName;
                     this.$router.push({
                         name: routerName,
                     });
@@ -332,6 +337,7 @@
             $route: {
                 handler (route) {
                     this.routerTitle = (route.meta.title || route.meta.pageTitle);
+                    this.routerName = route.name;
 
                     // 确认路由分组
                     const {
@@ -351,7 +357,6 @@
     };
 </script>
 <style lang="postcss">
-
     #app {
         .site-title {
             padding-left: 16px;

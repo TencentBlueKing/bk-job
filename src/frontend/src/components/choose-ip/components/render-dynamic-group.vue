@@ -35,7 +35,7 @@
         </div>
         <template v-if="!isLoading">
             <div v-if="hasNotGroup" class="group-empty">
-                {{ $t('无数据') }}，<a :href="CMDBAppIndexUrl" target="_blank">{{ $t('去创建') }}</a>
+                {{ $t('无数据') }}，<a :href="CMDBCreateGroupUrl" target="_blank">{{ $t('去创建') }}</a>
             </div>
             <div v-else class="group-list">
                 <host-table :list="renderList">
@@ -116,7 +116,7 @@
                 list: [],
                 tempList: [],
                 checkedMap: {},
-                CMDBAppIndexUrl: '',
+                CMDBCreateGroupUrl: '',
                 pagination: {
                     page: 1,
                     pageSize: 0,
@@ -176,7 +176,7 @@
                         this.pagination.total = data.length;
                         this.hasNotGroup = data.length < 1;
                         if (this.hasNotGroup) {
-                            return this.fetchCMDBAppIndexUrl();
+                            return this.fetchCMDBUrl();
                         }
                     })
                     .finally(() => {
@@ -186,10 +186,10 @@
             /**
              * @desc 没有动态分组时可以去 cmdb 创建
              */
-            fetchCMDBAppIndexUrl () {
+            fetchCMDBUrl () {
                 return QueryGlobalSettingService.fetchRelatedSystemUrls()
                     .then((data) => {
-                        this.CMDBAppIndexUrl = data.BK_CMDB_APP_INDEX_URL;
+                        this.CMDBCreateGroupUrl = `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.APP_ID}/custom-query`;
                     });
             },
             /**

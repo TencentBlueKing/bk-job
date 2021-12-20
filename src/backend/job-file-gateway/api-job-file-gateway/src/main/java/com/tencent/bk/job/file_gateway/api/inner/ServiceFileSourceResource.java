@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -42,6 +42,6 @@ public interface ServiceFileSourceResource {
 
     @ApiOperation(value = "获取文件源ID", produces = "application/json")
     @GetMapping("getFileSourceIdByCode/codes/{code}")
-    ServiceResponse<Integer> getFileSourceIdByCode(
+    InternalResponse<Integer> getFileSourceIdByCode(
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
 }

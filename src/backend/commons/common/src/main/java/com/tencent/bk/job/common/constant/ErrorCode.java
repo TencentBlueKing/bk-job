@@ -48,6 +48,7 @@ public class ErrorCode {
      * 日志服务-1246xxx
      * 用户服务-1247xxx
      * 业务网关-1248xxx
+     * 备份服务-1249xxx
      * 文件网关-1260xxx
      * 文件代理-1261xxx
      * 文件Worker-1262xxx
@@ -76,8 +77,8 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
-    // 数据一致性异常，源数据：{0}，目标数据：{1}
-    public static final int DATA_CONSISTENCY_ERROR = 1241012;
+
+    public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
     // 业务通用 end
 
     // 配置服务 start
@@ -176,6 +177,8 @@ public class ErrorCode {
     public static final int BATCH_UPDATE_PLAN_VARIABLE_FAILED = 1243046;
     // 脚本版本不存在
     public static final int SCRIPT_VERSION_NOT_EXIST = 1243047;
+    // 凭证不存在
+    public static final int CREDENTIAL_NOT_EXIST = 1243048;
 
     // 作业管理 end
 
@@ -221,6 +224,9 @@ public class ErrorCode {
     // 作业执行历史查询时间范围必须小于30天
     public static final int TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS = 1244020;
     public static final int FILE_TASKS_EXCEEDS_LIMIT = 1244021;
+    public static final int SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT = 1244022;
+    // 本地文件{0}在后台不存在（本地/制品库）
+    public static final int LOCAL_FILE_NOT_EXIST_IN_BACKEND = 1244023;
     // 作业执行 end
 
     // 定时作业 start
@@ -249,6 +255,13 @@ public class ErrorCode {
     // 业务网关 start
     // 业务网关 end
 
+    // 备份服务 start
+    // 从制品库获取节点信息失败
+    public static final int FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY = 1249001;
+    // 从制品库下载文件失败
+    public static final int FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY = 1249002;
+    // 备份服务 end
+
     // 文件网关 start
     // 文件源不存在:{0}
     public static final int FILE_SOURCE_NOT_EXIST = 1260001;
@@ -258,6 +271,8 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_FILE_WORKER_FILE_AVAILABLE = 1260003;
     // 接入点响应异常：ExecuteAction，详情：{0}
     public static final int FAIL_TO_REQUEST_FILE_WORKER_EXECUTE_ACTION = 1260008;
+    // 接入点响应异常：DeleteBucketFile，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_DELETE_BUCKET_FILE = 1260009;
 
     // 文件源别名已存在：{0}
     public static final int FILE_SOURCE_ALIAS_ALREADY_EXISTS = 1260004;
@@ -275,6 +290,8 @@ public class ErrorCode {
     public static final int FAIL_TO_FIND_FILE_SOURCE_BY_CODE = 1260012;
     // 文件源服务异常
     public static final int FILE_SOURCE_SERVICE_INVALID = 1260013;
+    // 通过[{0}]找不到file-worker
+    public static final int FILE_WORKER_NOT_FOUND = 1260014;
 
     // 文件网关 end
     // 文件代理 start
@@ -297,13 +314,13 @@ public class ErrorCode {
     // ==================================== 系统级错误 ================================================//
     // ======== 系统错误-权限错误 ==================//
     // 用户权限不足
-    public static final int USER_NO_PERMISSION_COMMON = 1238001;
+    public static final int PERMISSION_DENIED = 1238001;
     // 蓝鲸统一权限错误码
-    public static final int API_NO_PERMISSION = 9900403;
+    public static final int BK_PERMISSION_DENIED = 9900403;
 
     // ========= 系统错误-请求 ====================//
     // 内部服务异常
-    public static final int SERVICE_INTERNAL_ERROR = 1240002;
+    public static final int INTERNAL_ERROR = 1240002;
     // 错误的请求
     public static final int BAD_REQUEST = 1240003;
     // Cookie过期或者不存在
@@ -368,7 +385,7 @@ public class ErrorCode {
     // IAM接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
 
-    // ESB接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
-    public static final int ESB_API_DATA_ERROR = 1216001;
+    // API 请求错误
+    public static final int API_ERROR = 1216001;
 
 }

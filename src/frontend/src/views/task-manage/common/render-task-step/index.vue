@@ -48,7 +48,7 @@
                         sort: isOperation && dragStartIndex > -1,
                     }">
                     <div
-                        class="step-wraper"
+                        class="step-content-wraper"
                         :class="{
                             'step-mode-diff': isDiff,
                             'select': isSelect,
@@ -325,12 +325,14 @@
                 },
                 immediate: true,
             },
-            steps: {
-                handler () {
-                    this.order = 0;
-                },
-                immediate: true,
-            },
+        },
+        created () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
+        },
+        beforeUpdate () {
+            // 重新计算每个步骤的索引值（被删除的步骤不被显示）
+            this.order = 0;
         },
         methods: {
             /**
@@ -355,6 +357,7 @@
                     return;
                 }
                 // 查看步骤详情
+                this.currentIndex = index;
                 this.operationType = 'detail';
                 this.detailInfo = this.steps[index];
                 this.isShowDetail = true;
@@ -522,9 +525,9 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
-    @define-mixin step-active {
+    @mixin step-active {
         .step-content {
             color: #3a84ff;
             background: #e1ecff;
@@ -563,12 +566,13 @@
             width: 680px;
         }
 
+        &.detail,
         &.edit,
         &.create {
-            .step-wraper {
+            .step-content-wraper {
                 &.active {
                     .render-task-step {
-                        @mixin step-active;
+                        @include step-active;
                     }
                 }
             }
@@ -576,7 +580,7 @@
 
         &.create,
         &.clone {
-            .step-wraper {
+            .step-content-wraper {
                 &.active {
                     &::after {
                         display: block;
@@ -584,7 +588,7 @@
                         margin-top: 10px;
                         background: #e1ecff;
                         border-radius: 2px;
-                        content: '';
+                        content: "";
                     }
                 }
             }
@@ -596,7 +600,7 @@
 
         &:hover,
         &.sort {
-            .step-wraper {
+            .step-content-wraper {
                 &::before {
                     content: attr(order);
                 }
@@ -604,7 +608,7 @@
         }
 
         &:hover {
-            .step-wraper {
+            .step-content-wraper {
                 &::before {
                     color: #3a84ff;
                     background: #e1ecff;
@@ -616,46 +620,39 @@
         & ~ .step-drag-box {
             margin-top: 10px;
         }
-
-        .step-wraper {
-            position: relative;
-
-            &::before {
-                position: absolute;
-                top: 0;
-                left: -2px;
-                height: 16px;
-                padding: 0 5px;
-                font-size: 12px;
-                font-weight: bold;
-                line-height: 16px;
-                color: #63656e;
-                background: #f0f1f5;
-                border: 1px solid #c4c6cc;
-                border-radius: 2px;
-                transform: translateX(-100%);
-            }
-
-            &.sortable-ghost {
-                height: 42px;
-                background: #e1ecff;
-
-                &::before {
-                    content: none !important;
-                }
-
-                .render-task-step {
-                    display: none;
-                }
-            }
-        }
     }
 
-    .step-wraper {
+    .step-content-wraper {
+        position: relative;
         cursor: pointer;
 
-        &.is-hide {
-            display: none;
+        &::before {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            height: 16px;
+            padding: 0 5px;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 16px;
+            color: #63656e;
+            background: #f0f1f5;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+            transform: translateX(-100%);
+        }
+
+        &.sortable-ghost {
+            height: 42px;
+            background: #e1ecff;
+
+            &::before {
+                content: none !important;
+            }
+
+            .render-task-step {
+                display: none;
+            }
         }
 
         &.select {
@@ -685,7 +682,7 @@
                     height: 22px;
                     margin-left: -22px;
                     background: #d8d8d8;
-                    content: '';
+                    content: "";
                 }
 
                 .select-checked {
@@ -716,15 +713,15 @@
         }
 
         &.not-select {
-            .step-content {
-                color: #979ba5;
-                background: transparent;
-                border-color: #dcdee5;
-            }
-
             .step-icon {
                 color: #c4c6cc;
                 background: #f0f1f5;
+                border-color: #dcdee5;
+            }
+
+            .step-content {
+                color: #979ba5;
+                background: transparent;
                 border-color: #dcdee5;
             }
 
@@ -736,24 +733,6 @@
                     &::after {
                         transform: scale(0);
                     }
-                }
-            }
-
-            &:hover {
-                .step-content {
-                    color: #63656e;
-                    background: #e1ecff;
-                    border-color: #3a84ff;
-                }
-
-                .select-flag {
-                    border-color: #3a84ff;
-                }
-
-                .step-icon {
-                    color: #3a84ff;
-                    background: #e1ecff;
-                    border-color: transparent;
                 }
             }
         }
@@ -771,11 +750,7 @@
                 display: none;
             }
 
-            @mixin step-active;
-        }
-
-        &:last-child {
-            margin-bottom: 0;
+            @include step-active;
         }
 
         .step-content {
@@ -910,7 +885,7 @@
                 margin-left: -22px;
                 border: 9px solid transparent;
                 border-right-color: #fdd;
-                content: '';
+                content: "";
             }
 
             &::after {
@@ -921,7 +896,7 @@
                 height: 4px;
                 background: #fff;
                 border-radius: 50%;
-                content: '';
+                content: "";
                 transform: translateY(-50%);
             }
         }
@@ -956,7 +931,7 @@
 
     /* diff 对比的样式 */
     .step-mode-diff {
-        position: relative;
+        cursor: default;
 
         &::after {
             position: absolute;
@@ -964,7 +939,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            content: '';
+            content: "";
         }
 
         .render-task-step {
@@ -980,7 +955,7 @@
                     color: #fff;
                     text-align: center;
                     background: #ffa86e;
-                    content: 'new';
+                    content: "new";
                 }
             }
 

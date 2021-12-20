@@ -27,7 +27,9 @@ package com.tencent.bk.job.manage.api.esb.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetDBAccountListResource;
@@ -60,12 +62,12 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_own_db_account_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_own_db_account_list"})
     public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(EsbGetDBAccountListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get db account list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
         List<AccountDTO> dbAccounts = accountService.listAllAppAccount(appId, AccountCategoryEnum.DB);

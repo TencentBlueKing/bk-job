@@ -90,7 +90,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .script-manage-list-layout {
         display: flex;

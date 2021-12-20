@@ -29,18 +29,25 @@ import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbFileSourceDTO;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastPushFileResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.FileDetailDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastPushFileRequest;
 import com.tencent.bk.job.execute.service.AccountService;
@@ -81,37 +88,27 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_fast_push_file"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_fast_push_file"})
     public EsbResp<EsbJobExecuteDTO> fastPushFile(EsbFastPushFileRequest request) {
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         if (StringUtils.isEmpty(request.getName())) {
             request.setName(generateDefaultFastTaskName());
         }
 
-        try {
-            TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-            StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
-            long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-            taskExecuteService.startTask(taskInstanceId);
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
+        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+        taskExecuteService.startTask(taskInstanceId);
 
-            EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
-            jobExecuteInfo.setTaskInstanceId(taskInstanceId);
-            jobExecuteInfo.setTaskName(stepInstance.getName());
-            return EsbResp.buildSuccessResp(jobExecuteInfo);
-        } catch (InSufficientPermissionException e) {
-            return authService.buildEsbAuthFailResp(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-        }
+        EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
+        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setTaskName(stepInstance.getName());
+        return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
     private ValidateResult checkFastPushFileRequest(EsbFastPushFileRequest request) {
@@ -268,11 +265,11 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         AccountDTO account = accountService.getSystemAccountByAlias(accountAlias, appId);
         if (account == null) {
             log.info("Account:{} is not exist in app:{}", accountAlias, appId);
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountAlias));
         }
         if (AccountCategoryEnum.SYSTEM != account.getCategory()) {
             log.info("Account:{} is not os account in app:{}", accountAlias, appId);
-            throw new ServiceException(ErrorCode.ACCOUNT_NOT_EXIST, accountAlias);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountAlias));
         }
         return account;
     }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbStepV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
@@ -34,6 +34,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @since 2/10/2019 20:30
@@ -78,6 +82,11 @@ public class TaskStepDTO {
 
     private Integer enable;
 
+    /**
+     * 步骤引用的变量
+     */
+    private List<TaskVariableDTO> refVariables;
+
     public static TaskStepVO toVO(TaskStepDTO taskStep) {
         if (taskStep == null) {
             return null;
@@ -91,13 +100,14 @@ public class TaskStepDTO {
         stepVO.setFileStepInfo(TaskFileStepDTO.toVO(taskStep.getFileStepInfo()));
         stepVO.setApprovalStepInfo(TaskApprovalStepDTO.toVO(taskStep.getApprovalStepInfo()));
         stepVO.setEnable(taskStep.getEnable());
+        if (CollectionUtils.isNotEmpty(taskStep.getRefVariables())) {
+            stepVO.setRefVariables(taskStep.getRefVariables().stream().map(TaskVariableDTO::getName)
+                .distinct().collect(Collectors.toList()));
+        }
         return stepVO;
     }
 
     public static TaskStepDTO fromVO(TaskStepVO stepVO) {
-        if (stepVO == null) {
-            throw new ParamErrorException(ErrorCode.MISSING_PARAM);
-        }
         TaskStepDTO taskStep = new TaskStepDTO();
         taskStep.setId(stepVO.getId());
         taskStep.setType(TaskStepTypeEnum.valueOf(stepVO.getType()));
@@ -115,7 +125,7 @@ public class TaskStepDTO {
             taskStep.setDelete(0);
         }
         if (taskStep.getType() == null) {
-            throw new ParamErrorException(ErrorCode.WRONG_STEP_TYPE);
+            throw new InvalidParamException(ErrorCode.WRONG_STEP_TYPE);
         }
         switch (taskStep.getType()) {
             case SCRIPT:
@@ -128,7 +138,7 @@ public class TaskStepDTO {
                 taskStep.setApprovalStepInfo(TaskApprovalStepDTO.fromVO(stepVO.getId(), stepVO.getApprovalStepInfo()));
                 break;
             default:
-                throw new ParamErrorException(ErrorCode.WRONG_STEP_TYPE);
+                throw new InvalidParamException(ErrorCode.WRONG_STEP_TYPE);
         }
         return taskStep;
     }

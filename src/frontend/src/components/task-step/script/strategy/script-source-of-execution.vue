@@ -69,10 +69,10 @@
                         <template slot="extension">
                             <auth-component :auth="authCreate">
                                 <div @click="handleGoCreate" style="cursor: pointer;">
-                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
                                 </div>
                                 <div slot="forbid">
-                                    <i class="bk-icon icon-plus-circle mr10" />{{ $t('新增.action') }}
+                                    <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
                                 </div>
                             </auth-component>
                         </template>
@@ -177,6 +177,15 @@
                     return this.publicScripList;
                 }
                 return [];
+            },
+            /**
+             * @desc 按钮的文本
+             * @returns { String }
+             */
+            newBtnText () {
+                return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+                    ? I18n.t('新建业务脚本')
+                    : I18n.t('新建公共脚本');
             },
             /**
              * @desc 表单想验证规则
@@ -347,7 +356,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .script-source-of-execution {
         .script-source-item {

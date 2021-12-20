@@ -26,8 +26,17 @@
 -->
 
 <template>
-    <bk-dialog :value="value" class="system-log-dialog" :show-footer="false" :width="1105" :mask-close="false">
-        <div ref="log" class="system-log-layout" v-bkloading="{ isLoading }">
+    <jb-dialog
+        :value="value"
+        class="system-log-dialog"
+        :show-footer="false"
+        :close-icon="false"
+        :width="1105"
+        @input="handleClose">
+        <div
+            ref="log"
+            class="system-log-layout"
+            v-bkloading="{ isLoading }">
             <div class="layout-left">
                 <scroll-faker class="version-wraper">
                     <div
@@ -46,10 +55,13 @@
                 <scroll-faker class="content-wraper">
                     <div v-html="logContent" class="markdowm-container" />
                 </scroll-faker>
-                <Icon type="close" class="log-close" @click="handleClose" />
+                <Icon
+                    type="close"
+                    class="log-close"
+                    @click="handleClose" />
             </div>
         </div>
-    </bk-dialog>
+    </jb-dialog>
 </template>
 <script>
     import marked from 'marked';
@@ -97,6 +109,9 @@
             }
         },
         methods: {
+            /**
+             * @desc 或版本日志数据
+             */
             fetchData () {
                 this.isLoading = true;
                 WebGlobalService.fetchVersionLog()
@@ -107,6 +122,9 @@
                         this.isLoading = false;
                     });
             },
+            /**
+             * @desc 日志收起时显示 tips
+             */
             showTips () {
                 if (!this.popperInstance) {
                     this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
@@ -132,9 +150,16 @@
                 `);
                 this.popperInstance.show();
             },
+            /**
+             * @desc 关闭日志收起 tips
+             */
             hideTips () {
                 this.popperInstance && this.popperInstance.hide();
             },
+            /**
+             * @desc 切换版本日志内容
+             * @param { Number } index 日志索引
+             */
             handleTabChange (index) {
                 this.activeIndex = index;
             },
@@ -194,7 +219,6 @@
     };
 </script>
 <style lang='postcss'>
-
     .system-log-dialog {
         .bk-dialog-tool,
         .bk-dialog-header {
@@ -214,7 +238,7 @@
 
         &.hide {
             overflow: hidden;
-            box-shadow: 0 1px 2px 0 rgba(99, 101, 110, 1);
+            box-shadow: 0 1px 2px 0 rgb(99 101 110 / 100%);
             transition: 0.4s cubic-bezier(0.74, 0.01, 0.2, 1);
             transform-origin: center;
         }
@@ -232,7 +256,7 @@
                 width: 1px;
                 height: 100%;
                 background: #dcdee5;
-                content: '';
+                content: "";
             }
         }
 
@@ -282,7 +306,7 @@
                 width: 4px;
                 height: 100%;
                 border: 1px solid transparent;
-                content: '';
+                content: "";
             }
 
             .title {
@@ -325,7 +349,15 @@
             h5 {
                 height: auto;
                 margin: 10px 0;
-                font: normal 14px/1.5 "Helvetica Neue", Helvetica, Arial, "Lantinghei SC", "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
+                font:
+                    normal 14px/1.5
+                    "Helvetica Neue",
+                    Helvetica,
+                    Arial,
+                    "Lantinghei SC",
+                    "Hiragino Sans GB",
+                    "Microsoft Yahei",
+                    sans-serif;
                 font-weight: bold;
                 color: #34383e;
             }
@@ -407,7 +439,7 @@
                     margin-left: -15px;
                     background: #000;
                     border-radius: 50%;
-                    content: '';
+                    content: "";
                 }
             }
 
@@ -460,8 +492,6 @@
                 font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
                 font-size: 14px;
                 color: #333;
-                -webkit-border-radius: 3px;
-                -moz-border-radius: 3px;
                 border-radius: 3px;
             }
 
@@ -483,7 +513,7 @@
                 white-space: pre-wrap;
                 background-color: #f6f6f6;
                 border: 1px solid #ddd;
-                border: 1px solid rgba(0, 0, 0, 0.15);
+                border: 1px solid rgb(0 0 0 / 15%);
                 border-radius: 2px;
             }
 
@@ -513,7 +543,7 @@
             }
 
             blockquote small::before {
-                content: '\2014 \00A0';
+                content: "\2014 \00A0";
             }
 
             blockquote::before,

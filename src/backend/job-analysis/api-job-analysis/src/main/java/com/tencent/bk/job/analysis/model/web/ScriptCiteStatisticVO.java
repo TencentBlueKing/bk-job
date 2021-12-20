@@ -37,11 +37,11 @@ import lombok.NoArgsConstructor;
 public class ScriptCiteStatisticVO {
 
     @ApiModelProperty("被引用的脚本总量，（脚本引用比例=被引用的脚本总量/脚本总量，版本复用率=引用了脚本的步骤总量/被引用的脚本总量）")
-    private Integer citedScriptCount;
+    private Long citedScriptCount;
 
     @ApiModelProperty("脚本总量")
-    private Integer scriptCount;
+    private Long scriptCount;
 
     @ApiModelProperty("引用了脚本的步骤总量")
-    private Integer citedScriptStepCount;
+    private Long citedScriptStepCount;
 }

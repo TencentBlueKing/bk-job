@@ -26,7 +26,7 @@ package com.tencent.bk.job.gateway.config;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,8 +80,8 @@ public class RouteConfig {
 
         Mono<ServerResponse> getUserByBkToken(ServerRequest request) {
             if (loginExemptionConfig.isEnableLoginExemption()) {
-                ServiceResponse<BkUserDTO> resp = ServiceResponse.buildSuccessResp(getLoginExemptUser());
-                return ServerResponse.ok().body(Mono.just(resp), ServiceResponse.class);
+                Response<BkUserDTO> resp = Response.buildSuccessResp(getLoginExemptUser());
+                return ServerResponse.ok().body(Mono.just(resp), Response.class);
             }
             MultiValueMap<String, HttpCookie> cookieMap = request.cookies();
             HttpCookie bkTokenCookie = cookieMap.get(loginService.getCookieNameForToken()).get(0);
@@ -89,12 +89,11 @@ public class RouteConfig {
             String bkToken = bkTokenCookie.getValue();
             BkUserDTO user = loginService.getUser(bkToken);
             if (user == null) {
-                ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN,
-                    i18nService);
-                return ServerResponse.ok().body(Mono.just(resp), ServiceResponse.class);
+                Response<?> resp = Response.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN);
+                return ServerResponse.ok().body(Mono.just(resp), Response.class);
             }
-            ServiceResponse<BkUserDTO> resp = ServiceResponse.buildSuccessResp(user);
-            return ServerResponse.ok().body(Mono.just(resp), ServiceResponse.class);
+            Response<BkUserDTO> resp = Response.buildSuccessResp(user);
+            return ServerResponse.ok().body(Mono.just(resp), Response.class);
         }
     }
 }

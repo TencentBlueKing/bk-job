@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClientImpl;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,9 @@ import org.springframework.context.annotation.Configuration;
 public class GseClientAutoConfig {
 
     @Bean
-    public QueryAgentStatusClient gseCacheClient(@Autowired GseConfig gseConfigForExecute) {
+    @Autowired
+    public QueryAgentStatusClient gseCacheClient(GseConfig gseConfigForExecute,
+                                                 MeterRegistry meterRegistry) {
         com.tencent.bk.job.common.gse.config.GseConfig gseConfig = new com.tencent.bk.job.common.gse.config.GseConfig();
         gseConfig.setEnableSsl(gseConfigForExecute.isGseSSLEnable());
         String[] cacheApiServerHosts = gseConfigForExecute.getGseCacheApiServerHost().split(",");
@@ -48,6 +51,6 @@ public class GseClientAutoConfig {
         gseConfig.setTrustManagerType(gseConfigForExecute.getGseSSLTruststoreManagerType());
         gseConfig.setQueryBatchSize(gseConfigForExecute.getGseQueryBatchSize());
         gseConfig.setQueryThreadsNum(gseConfigForExecute.getGseQueryThreadsNum());
-        return new QueryAgentStatusClientImpl(gseConfig);
+        return new QueryAgentStatusClientImpl(gseConfig, meterRegistry);
     }
 }

@@ -29,35 +29,45 @@
     <div id="templateVariableRender">
         <div v-if="showEmpty">--</div>
         <template v-else>
-            <div v-if="isOperation">
-                <bk-button text @click="handleShowBatchOperation">
+            <div class="variable-batch-action">
+                <bk-button
+                    v-if="isOperation"
+                    text
+                    @click="handleShowBatchOperation">
                     <Icon type="bulk-edit" />
                     {{ $t('template.批量编辑') }}
                 </bk-button>
-            </div>
-            <div v-if="isEditOfPlan">
-                <bk-button text @click="handleShowBatchEditOfPlan">
+                <bk-button
+                    v-if="isEditOfPlan"
+                    text
+                    @click="handleShowBatchEditOfPlan">
                     <Icon type="bulk-edit" />
                     {{ $t('template.批量编辑变量值') }}
                 </bk-button>
             </div>
-            <div class="variable-container">
+            <div class="task-global-variable-box">
                 <template v-for="(item, index) in variable">
                     <div
                         v-if="item.delete !== 1"
                         :key="`${item.name}_${index}`"
-                        class="variable-box"
-                        :class="{
-                            'step-mode-diff': isDiff,
-                            'not-selected': isSelect && !selectValue.includes(item.name),
-                        }">
+                        class="render-global-variable"
+                        :class="[
+                            {
+                                'step-mode-diff': isDiff,
+                            },
+                            isSelect ?
+                                selectValue.includes(item.name) ? 'selected' : 'not-selected'
+                                : '',
+                        ]">
                         <div
-                            class="variable-wraper"
+                            class="global-variable-content"
                             :class="[diff[item.id] && diff[item.id].type]"
                             @mouseenter="handleShowPopoverDetail(item)"
                             @mouseleave="handleHidePopoverDetail"
-                            @click="handlerOperation(item, index, isSelect && !selectValue.includes(item.name))">
-                            <div :id="`globalVariableWithName_${item.name}`" class="variable-type">
+                            @click="handlerOperation(item, index)">
+                            <div
+                                :id="`globalVariableWithName_${item.name}`"
+                                class="variable-type">
                                 <Icon :type="item.icon" />
                             </div>
                             <div class="variable-info">
@@ -75,7 +85,7 @@
                 <div
                     v-if="isOperation"
                     key="create"
-                    class="variable-add"
+                    class="global-variable-new"
                     v-test="{ type: 'button', value: 'create_global_variable' }"
                     @click="handleCreate">
                     <Icon type="plus" />
@@ -85,6 +95,8 @@
             <popover-detail
                 v-if="currentPopoverDetail.name"
                 :data="currentPopoverDetail"
+                :select-value="selectValue"
+                :edit-of-plan="isEditOfPlan"
                 :default-field="defaultField" />
             <jb-sideslider
                 v-if="isView || isEditOfPlan"
@@ -93,7 +105,10 @@
                 :show-footer="false"
                 ref="variableView"
                 :media="detailMedia">
-                <detail v-if="isShowDetail" :data="currentData" :default-field="defaultField" />
+                <detail
+                    v-if="isShowDetail"
+                    :data="currentData"
+                    :default-field="defaultField" />
             </jb-sideslider>
             <jb-sideslider
                 v-if="isEditOfPlan"
@@ -116,6 +131,7 @@
                 <batch-edit-of-plan
                     v-if="isShowBatchEditOfPlan"
                     ref="planGlobalVar"
+                    :selected-list="selectValue"
                     :variable-list="variable"
                     @on-change="handleBatchPlanEditSubmit" />
             </jb-sideslider>
@@ -427,59 +443,52 @@
     };
 </script>
 <style lang='postcss' scoped>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
-    .variable-container {
+    .task-global-variable-box {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         margin-top: -10px;
 
-        .variable-box {
+        .render-global-variable {
             margin-top: 10px;
             margin-right: 10px;
             cursor: pointer;
+            border-color: #3a84ff;
+
+            &.selected {
+                .global-variable-content {
+                    border-color: #3a84ff;
+                }
+            }
 
             &.not-selected {
-                border-color: #dcdee5;
-
-                .variable-wraper {
-                    background: transparent;
-
-                    &:hover {
-                        border-color: #dcdee5;
-                    }
-                }
-
                 .variable-type {
-                    background: rgba(58, 132, 255, 0.3);
-                }
-
-                .variable-name,
-                .variable-description {
-                    color: #c4c6cc;
+                    background: #dcdee5;
                 }
             }
         }
 
-        .variable-wraper {
+        .global-variable-content {
             position: relative;
             display: flex;
             width: 160px;
             height: 50px;
             padding: 0 10px;
             background: #fff;
-            border: 1px solid #dcdee5;
+            border: 1px solid #c4c6cc;
             border-radius: 2px;
             box-sizing: border-box;
             transition: all 0.15s;
             align-items: center;
 
             &:hover {
+                background: #e1ecff;
                 border-color: #3a84ff;
 
                 .variable-delete-btn {
-                    opacity: 1;
+                    opacity: 100%;
                     visibility: visible;
                     transform: scale(1);
                 }
@@ -497,6 +506,7 @@
             align-items: center;
             justify-content: center;
             flex: 0 0 30px;
+            transition: all 0.15s;
         }
 
         .variable-delete-btn {
@@ -511,7 +521,7 @@
             cursor: pointer;
             background: #c4c6cc;
             border-radius: 50%;
-            opacity: 0;
+            opacity: 0%;
             visibility: hidden;
             transform: scale(0.8);
             transition: all 0.25s;
@@ -545,7 +555,7 @@
             }
         }
 
-        .variable-add {
+        .global-variable-new {
             display: flex;
             width: 160px;
             height: 50px;
@@ -574,8 +584,8 @@
             }
         }
 
-        .variable-wraper,
-        .variable-add {
+        .global-variable-content,
+        .global-variable-new {
             @media (--small-viewports) {
                 width: 160px;
             }
@@ -594,7 +604,18 @@
         }
 
         .step-mode-diff {
-            .variable-wraper {
+            cursor: default;
+
+            &::after {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                content: "";
+            }
+
+            .global-variable-content {
                 &.same {
                     border-color: #c4c6cc;
 
@@ -615,7 +636,7 @@
                         color: #fff;
                         text-align: center;
                         background: #ffa86e;
-                        content: 'new';
+                        content: "new";
                     }
                 }
 

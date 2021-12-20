@@ -25,7 +25,8 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
@@ -82,7 +83,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
 
 
     @Override
-    public ServiceResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
+    public InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
         try {
             List<ApplicationHostInfoDTO> hosts = applicationHostService.getHostsByAppId(appId);
             List<ServiceHostInfoDTO> serviceHosts = new ArrayList<>();
@@ -90,66 +91,66 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
                 serviceHosts =
                     hosts.stream().map(host -> convertToServiceHostInfo(appId, host)).collect(Collectors.toList());
             }
-            return ServiceResponse.buildSuccessResp(serviceHosts);
+            return InternalResponse.buildSuccessResp(serviceHosts);
         } catch (Exception e) {
             log.warn("Get host by appId exception", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> syncHostByAppId(Long appId) {
-        return ServiceResponse.buildSuccessResp(syncService.syncAppHosts(appId));
+    public InternalResponse<Boolean> syncHostByAppId(Long appId) {
+        return InternalResponse.buildSuccessResp(syncService.syncAppHosts(appId));
     }
 
     @Override
-    public ServiceResponse<Boolean> enableAppWatch() {
-        return ServiceResponse.buildSuccessResp(syncService.enableAppWatch());
+    public InternalResponse<Boolean> enableAppWatch() {
+        return InternalResponse.buildSuccessResp(syncService.enableAppWatch());
     }
 
     @Override
-    public ServiceResponse<Boolean> disableAppWatch() {
-        return ServiceResponse.buildSuccessResp(syncService.disableAppWatch());
+    public InternalResponse<Boolean> disableAppWatch() {
+        return InternalResponse.buildSuccessResp(syncService.disableAppWatch());
     }
 
     @Override
-    public ServiceResponse<Boolean> enableHostWatch() {
-        return ServiceResponse.buildSuccessResp(syncService.enableHostWatch());
+    public InternalResponse<Boolean> enableHostWatch() {
+        return InternalResponse.buildSuccessResp(syncService.enableHostWatch());
     }
 
     @Override
-    public ServiceResponse<Boolean> disableHostWatch() {
-        return ServiceResponse.buildSuccessResp(syncService.disableHostWatch());
+    public InternalResponse<Boolean> disableHostWatch() {
+        return InternalResponse.buildSuccessResp(syncService.disableHostWatch());
     }
 
     @Override
-    public ServiceResponse<Boolean> enableSyncApp() {
-        return ServiceResponse.buildSuccessResp(syncService.enableSyncApp());
+    public InternalResponse<Boolean> enableSyncApp() {
+        return InternalResponse.buildSuccessResp(syncService.enableSyncApp());
     }
 
     @Override
-    public ServiceResponse<Boolean> disableSyncApp() {
-        return ServiceResponse.buildSuccessResp(syncService.disableSyncApp());
+    public InternalResponse<Boolean> disableSyncApp() {
+        return InternalResponse.buildSuccessResp(syncService.disableSyncApp());
     }
 
     @Override
-    public ServiceResponse<Boolean> enableSyncHost() {
-        return ServiceResponse.buildSuccessResp(syncService.enableSyncHost());
+    public InternalResponse<Boolean> enableSyncHost() {
+        return InternalResponse.buildSuccessResp(syncService.enableSyncHost());
     }
 
     @Override
-    public ServiceResponse<Boolean> disableSyncHost() {
-        return ServiceResponse.buildSuccessResp(syncService.disableSyncHost());
+    public InternalResponse<Boolean> disableSyncHost() {
+        return InternalResponse.buildSuccessResp(syncService.disableSyncHost());
     }
 
     @Override
-    public ServiceResponse<Boolean> enableSyncAgentStatus() {
-        return ServiceResponse.buildSuccessResp(syncService.enableSyncAgentStatus());
+    public InternalResponse<Boolean> enableSyncAgentStatus() {
+        return InternalResponse.buildSuccessResp(syncService.enableSyncAgentStatus());
     }
 
     @Override
-    public ServiceResponse<Boolean> disableSyncAgentStatus() {
-        return ServiceResponse.buildSuccessResp(syncService.disableSyncAgentStatus());
+    public InternalResponse<Boolean> disableSyncAgentStatus() {
+        return InternalResponse.buildSuccessResp(syncService.disableSyncAgentStatus());
     }
 
     private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostInfoDTO hostInfo) {

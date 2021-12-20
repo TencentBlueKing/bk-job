@@ -34,12 +34,12 @@ const TYPE_RELATE_ARRAY = 5;
 const TYPE_INDEX_ARRAY = 6;
 
 export default class GlobalVariable {
-    static TYPE_STRING = TYPE_STRING
-    static TYPE_NAMESPACE = TYPE_NAMESPACE
-    static TYPE_HOST = TYPE_HOST
-    static TYPE_PASSWORD = TYPE_PASSWORD
-    static TYPE_RELATE_ARRAY = TYPE_RELATE_ARRAY
-    static TYPE_INDEX_ARRAY = TYPE_INDEX_ARRAY
+    static TYPE_STRING = TYPE_STRING;
+    static TYPE_NAMESPACE = TYPE_NAMESPACE;
+    static TYPE_HOST = TYPE_HOST;
+    static TYPE_PASSWORD = TYPE_PASSWORD;
+    static TYPE_RELATE_ARRAY = TYPE_RELATE_ARRAY;
+    static TYPE_INDEX_ARRAY = TYPE_INDEX_ARRAY;
     static iconMap = {
         [TYPE_STRING]: 'string',
         [TYPE_NAMESPACE]: 'namespace',
@@ -47,7 +47,7 @@ export default class GlobalVariable {
         [TYPE_PASSWORD]: 'password',
         [TYPE_RELATE_ARRAY]: 'array',
         [TYPE_INDEX_ARRAY]: 'array',
-    }
+    };
 
     static typeTextMap = {
         [TYPE_STRING]: I18n.t('字符串'),
@@ -56,7 +56,7 @@ export default class GlobalVariable {
         [TYPE_PASSWORD]: I18n.t('密文'),
         [TYPE_RELATE_ARRAY]: I18n.t('数组'),
         [TYPE_INDEX_ARRAY]: I18n.t('数组'),
-    }
+    };
     
     constructor (payload, isClone = false) {
         this.id = isClone ? -payload.id : payload.id;

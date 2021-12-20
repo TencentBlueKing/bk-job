@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceCheckScriptResource;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
@@ -51,18 +51,18 @@ public class ServiceCheckScriptResourceImpl implements ServiceCheckScriptResourc
     }
 
     @Override
-    public ServiceResponse<List<ServiceScriptCheckResultItemDTO>> check(ServiceCheckScriptRequest checkScriptRequest) {
+    public InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(ServiceCheckScriptRequest checkScriptRequest) {
         if (StringUtils.isEmpty(checkScriptRequest.getScriptContent())) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
         ScriptTypeEnum scriptType = checkScriptRequest.getScriptType() == null ?
             null : ScriptTypeEnum.valueOf(checkScriptRequest.getScriptType());
         if (scriptType == null) {
-            return ServiceResponse.buildSuccessResp(Collections.emptyList());
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
         List<ScriptCheckResultItemDTO> checkResultItems = scriptCheckService.checkScriptWithDangerousRule(
             scriptType, checkScriptRequest.getScriptContent());
-        return ServiceResponse.buildSuccessResp(checkResultItems.stream()
+        return InternalResponse.buildSuccessResp(checkResultItems.stream()
             .map(ScriptCheckResultItemDTO::toServiceScriptCheckResultDTO)
             .collect(Collectors.toList()));
     }

@@ -50,11 +50,14 @@ public class JobSrcFileUtils {
     /**
      * 构造源文件路径与目标文件路径的映射关系
      *
-     * @param srcFiles  源文件
-     * @param targetDir 目标目录
+     * @param srcFiles       源文件
+     * @param targetDir      目标目录
+     * @param targetFileName 文件分发到目标主机的对应名称
      * @return 源文件路径与目标文件路径的映射关系
      */
-    public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles, String targetDir) {
+    public static Map<String, FileDest> buildSourceDestPathMapping(Set<JobFile> srcFiles,
+                                                                   String targetDir,
+                                                                   String targetFileName) {
         Map<String, FileDest> sourceDestPathMap = new HashMap<>();
         String standardTargetDir = FilePathUtils.standardizedDirPath(targetDir);
         long currentTime = System.currentTimeMillis();
@@ -63,33 +66,36 @@ public class JobSrcFileUtils {
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir, srcFile.isLocalUploadFile() ?
                 "0_0.0.0.0" : srcFile.getCloudAreaIdAndIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
-            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath);
+            addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
         return sourceDestPathMap;
     }
 
-    private static void addSourceDestPathMapping(Map<String, FileDest> sourceDestPathMap, JobFile sourceFile,
-                                                 String destDirPath) {
-        sourceDestPathMap.put(sourceFile.getFileUniqueKey(), buildFileDest(sourceFile, destDirPath));
+    private static void addSourceDestPathMapping(Map<String, FileDest> sourceDestPathMap,
+                                                 JobFile sourceFile,
+                                                 String destDirPath,
+                                                 String destName) {
+        sourceDestPathMap.put(sourceFile.getFileUniqueKey(), buildFileDest(sourceFile, destDirPath, destName));
     }
 
-    private static FileDest buildFileDest(JobFile sourceFile, String destDirPath) {
-        String destPath = "";
+    private static FileDest buildFileDest(JobFile sourceFile, String destDirPath, String destName) {
         if (sourceFile.isDir()) {
-            destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(sourceFile.getDir()));
+            String destPath = FilePathUtils.appendDirName(destDirPath, FilePathUtils.parseDirName(sourceFile.getDir()));
+            return new FileDest(destPath, destDirPath, "");
         } else {
-            destPath = FilePathUtils.appendFileName(destDirPath, sourceFile.getFileName());
+            String destFileName = StringUtils.isNotBlank(destName) ? destName : sourceFile.getFileName();
+            String destPath = FilePathUtils.appendFileName(destDirPath, destFileName);
+            return new FileDest(destPath, destDirPath, destFileName);
         }
-        return new FileDest(destPath, destDirPath, sourceFile.getFileName());
     }
 
     /**
-     * 从步骤解析源文件
+     * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
      * @param localServerIp     job server ip
      * @param jobStorageRootDir job共享存储根目录
-     * @return 源文件
+     * @return 多个要分发的源文件信息集合
      */
     public static Set<JobFile> parseSendFileList(StepInstanceDTO stepInstance, String localServerIp,
                                                  String jobStorageRootDir) {
@@ -118,6 +124,7 @@ public class JobSrcFileUtils {
                     Predicate<IpDTO> predicate = LambdasUtil.not(ip -> invalidIpSet.contains(ip.convertToStrIp()));
                     for (IpDTO ipDTO : ipList) {
                         if (predicate.test(ipDTO)) {
+                            // 第三方源文件的displayName不同
                             if (isThirdFile) {
                                 sendFiles.add(new JobFile(false, ipDTO.convertToStrIp(), filePath,
                                     file.getThirdFilePathWithFileSourceName(), dir, fileName,

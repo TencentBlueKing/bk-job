@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.service.TagService;
@@ -55,14 +55,14 @@ public class ServiceTagResourceImpl implements ServiceTagResource {
     }
 
     @Override
-    public ServiceResponse<List<ServiceTagDTO>> listTags(Long appId) {
+    public InternalResponse<List<ServiceTagDTO>> listTags(Long appId) {
         List<TagDTO> tags = tagService.listTags(appId, null);
-        return ServiceResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
+        return InternalResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
     }
 
     @Override
-    public ServiceResponse<List<ServiceTagDTO>> listPublicTags() {
+    public InternalResponse<List<ServiceTagDTO>> listPublicTags() {
         List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, null);
-        return ServiceResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
+        return InternalResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
     }
 }

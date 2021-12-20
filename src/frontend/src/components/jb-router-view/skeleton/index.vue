@@ -124,7 +124,7 @@
         padding: 20px 24px 0;
         overflow: hidden;
         background: #f5f7fa;
-        opacity: 1;
+        opacity: 100%;
         visibility: visible;
     }
 
@@ -133,7 +133,7 @@
     }
 
     .skeleton-leave-to {
-        opacity: 0;
+        opacity: 0%;
         visibility: hidden;
     }
 </style>

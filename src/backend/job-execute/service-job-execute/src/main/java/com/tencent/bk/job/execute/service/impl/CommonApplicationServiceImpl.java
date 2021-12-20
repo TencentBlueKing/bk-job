@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.service.CommonApplicationService;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
@@ -51,7 +51,7 @@ public class CommonApplicationServiceImpl implements CommonApplicationService {
         if (appId < 0 || StringUtils.isBlank(username)) {
             return false;
         }
-        ServiceResponse<Boolean> checkResp = applicationResourceClient.checkAppPermission(appId, username);
+        InternalResponse<Boolean> checkResp = applicationResourceClient.checkAppPermission(appId, username);
         if (checkResp != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Check app perm response|{}|{}|{}", appId, username, checkResp);

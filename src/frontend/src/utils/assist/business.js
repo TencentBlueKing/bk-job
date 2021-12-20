@@ -26,67 +26,16 @@
 /**
  * @desc 遍历查找step中使用到的全局变量
  * @param { Array } stepList
- * @returns { Array } 被使用了得全局变量列表
+ * @returns { Array } 被使用的全局变量
  */
 export const findUsedVariable = (stepList) => {
     const variableSet = new Set();
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < stepList.length; i++) {
-        const step = stepList[i];
-        if (step.isScript) {
-            // 执行脚本步骤
-            const { executeTarget, scriptParam } = step.scriptStepInfo;
-            // 1，脚本执行的执行目标使用全局变量
-            if (executeTarget.variable) {
-                variableSet.add(executeTarget.variable);
-            }
-            // 2，脚本执行的脚本参数使用全局变量
-            const patt = /\${([^}]+)}/g;
-            let scriptParamMatch;
-            while ((scriptParamMatch = patt.exec(scriptParam)) !== null) {
-                variableSet.add(scriptParamMatch[1]);
-            }
-            continue;
-        }
-        if (step.isFile) {
-            // 分发文件步骤
-            const { fileDestination, fileSourceList, destinationFileLocation } = step.fileStepInfo;
-            // 检测目标服务器
-            const { path, server } = fileDestination;
-            if (server.variable) {
-                variableSet.add(server.variable);
-            }
-            // 检测目标路径
-            if (path) {
-                const patt = /\${([^}]+)}/g;
-                let destinationFileLocationMatch;
-                while ((destinationFileLocationMatch = patt.exec(destinationFileLocation)) !== null) {
-                    variableSet.add(destinationFileLocationMatch[1]);
-                }
-            }
-            // 检测服务器源文件
-            // eslint-disable-next-line no-plusplus
-            for (let j = 0; j < fileSourceList.length; j++) {
-                const currentFile = fileSourceList[j];
-                if (currentFile.fileType === 1) {
-                    // 服务器文件_服务器列表
-                    if (currentFile.host.variable) {
-                        variableSet.add(currentFile.host.variable);
-                    }
-                    // 服务器文件_来源路径
-                    currentFile.fileLocation.forEach((fileLocation) => {
-                        const patt = /\${([^}]+)}/g;
-                        let fileLocationMatch;
-                        while ((fileLocationMatch = patt.exec(fileLocation)) !== null) {
-                            variableSet.add(fileLocationMatch[1]);
-                        }
-                    });
-                }
-            }
-            
-            continue;
-        }
-    }
+    stepList.forEach((step) => {
+        step.refVariables.forEach((variableName) => {
+            variableSet.add(variableName);
+        });
+    });
+    
     return [
         ...variableSet,
     ];

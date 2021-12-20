@@ -46,7 +46,6 @@
         </div>
         <scroll-faker style="height: calc(100% - 88px);">
             <div class="content">
-                asda
                 <div v-html="contentHtml" style="margin-top: -24px;" />
             </div>
         </scroll-faker>
@@ -205,7 +204,7 @@
                         vertical-align: middle;
                         background: #979ba5;
                         border-radius: 50%;
-                        content: '';
+                        content: "";
                     }
 
                     &:nth-child(n+2) {

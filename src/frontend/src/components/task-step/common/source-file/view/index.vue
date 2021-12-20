@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div v-show="isShow" class="source-file-edit-view-box" :class="mode ? mode : 'normal'">
+    <div
+        v-show="isShow"
+        class="source-file-edit-view-box"
+        :class="mode ? mode : 'normal'">
         <bk-collapse v-model="activeResult">
             <jb-collapse-item
                 v-show="isShowLocalFile"
@@ -256,115 +259,115 @@
     };
 </script>
 <style lang='postcss'>
-    .source-file-edit-view-box {
-        flex: 1;
+.source-file-edit-view-box {
+    flex: 1;
 
-        table {
-            width: 100%;
-            background: #fff;
-            table-layout: fixed;
+    table {
+        width: 100%;
+        background: #fff;
+        table-layout: fixed;
 
-            tr:nth-child(n + 2) {
-                td {
-                    border-top: 1px solid #dcdee5;
-                }
-            }
-
-            th,
+        tr:nth-child(n + 2) {
             td {
-                height: 41px;
-                padding: 5px 10px;
-                font-size: 12px;
-                text-align: left;
-                box-sizing: border-box;
-
-                &:first-child {
-                    width: 40%;
-                    padding-left: 60px;
-                }
-
-                &:nth-child(2) {
-                    width: 15%;
-                }
-
-                &:nth-child(4) {
-                    width: 20%;
-                }
-
-                &:last-child {
-                    width: 90px !important;
-                    text-align: right;
-
-                    .bk-button-text ~ .bk-button-text {
-                        margin-right: 8px;
-                    }
-                }
-            }
-
-            th {
-                font-weight: normal;
-                color: #313238;
-                border-bottom: 1px solid #dcdee5;
-            }
-
-            td {
-                line-height: 18px;
-                color: #63656e;
-                word-break: break-all;
+                border-top: 1px solid #dcdee5;
             }
         }
 
-        &.normal {
-            .render-server-agent {
-                .agent-text {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-
-                .splite {
-                    display: none;
-                }
-            }
-
-            .upload-progress {
-                position: absolute;
-                width: 160px;
-            }
-
-            .file-server-agent,
-            .server-edit-btn,
-            .file-edit-server {
-                white-space: pre;
-            }
-        }
-
-        &.onlyHost {
-            th,
-            td {
-                &:nth-child(3) {
-                    width: 20%;
-                }
-            }
-
-            .upload-progress {
-                position: absolute;
-                width: 257px;
-            }
-
-            .sep-location {
-                &::before {
-                    content: "，";
-                }
-            }
-        }
-
-        .bk-table-empty-block {
-            display: none;
-        }
-
-        .bk-button,
-        .bk-button-text {
+        th,
+        td {
+            height: 41px;
+            padding: 5px 10px;
             font-size: 12px;
+            text-align: left;
+            box-sizing: border-box;
+
+            &:first-child {
+                width: 40%;
+                padding-left: 60px;
+            }
+
+            &:nth-child(2) {
+                width: 15%;
+            }
+
+            &:nth-child(4) {
+                width: 20%;
+            }
+
+            &:last-child {
+                width: 105px !important;
+                text-align: left;
+
+                .bk-button-text ~ .bk-button-text {
+                    margin-left: 10px;
+                }
+            }
+        }
+
+        th {
+            font-weight: normal;
+            color: #313238;
+            border-bottom: 1px solid #dcdee5;
+        }
+
+        td {
+            line-height: 18px;
+            color: #63656e;
+            word-break: break-all;
         }
     }
+
+    &.normal {
+        .render-server-agent {
+            .agent-text {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .splite {
+                display: none;
+            }
+        }
+
+        .upload-progress {
+            position: absolute;
+            width: 160px;
+        }
+
+        .file-server-agent,
+        .server-edit-btn,
+        .file-edit-server {
+            white-space: pre;
+        }
+    }
+    /* stylelint-disable selector-class-pattern */
+    &.onlyHost {
+        th,
+        td {
+            &:nth-child(3) {
+                width: 20%;
+            }
+        }
+
+        .upload-progress {
+            position: absolute;
+            width: 257px;
+        }
+
+        .sep-location {
+            &::before {
+                content: "，";
+            }
+        }
+    }
+
+    .bk-table-empty-block {
+        display: none;
+    }
+
+    .bk-button,
+    .bk-button-text {
+        font-size: 12px;
+    }
+}
 </style>

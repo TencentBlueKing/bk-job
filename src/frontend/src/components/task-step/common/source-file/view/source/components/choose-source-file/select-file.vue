@@ -49,7 +49,7 @@
                     right-icon="bk-icon icon-search"
                     style="width: 480px;"
                     enter-trigger
-                    @change="handleSearch" />
+                    @submit="handleSearch" />
             </template>
         </list-action-layout>
         <div v-bkloading="{ isLoading }">
@@ -77,7 +77,7 @@
     import RenderFileListColumn, {
         checkIsCheckboxColumn,
         parseCondition,
-    } from '@components/render-file-list-column';
+        } from '@components/render-file-list-column';
 
     export default {
         components: {
@@ -105,7 +105,7 @@
                     count: 0,
                     current: 1,
                     limit: 10,
-                    'limit-list': [14],
+                    'limit-list': [10],
                     small: true,
                     'show-total-count': true,
                     'show-limit': false,

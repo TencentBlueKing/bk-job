@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.LogExportJobInfoVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,7 +52,7 @@ public interface WebTaskLogResource {
 
     @ApiOperation(value = "请求下载执行日志文件", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-result/{stepInstanceId}/log-file")
-    ServiceResponse<LogExportJobInfoVO> requestDownloadLogFile(
+    Response<LogExportJobInfoVO> requestDownloadLogFile(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")

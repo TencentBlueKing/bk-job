@@ -84,8 +84,10 @@ import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -95,8 +97,6 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.LongRetryableHttpHelper;
-import com.tencent.bk.job.common.util.http.RetryableHttpHelper;
-import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +107,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.springframework.util.StopWatch;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -133,11 +132,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
-    /**
-     * CMDB API 处理请求成功
-     */
-    private static final int RESULT_OK = 0;
-
     private static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
     private static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
     private static final String LIST_BIZ_HOSTS = "/api/c/compapi/v2/cc/list_biz_hosts/";
@@ -155,7 +149,6 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
 
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
-    private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
     private static final ConcurrentHashMap<String, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, ReentrantLock> bizInstTopoLockMap = new ConcurrentHashMap<>();
@@ -240,13 +233,6 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     public static void init() {
         initThreadPoolExecutor(ccConfig.getCmdbQueryThreadsNum(), ccConfig.getFindHostRelationLongTermConcurrency());
-    }
-
-    private static ServiceException caughtException(Exception e, int code) {
-        if (e instanceof UnknownHostException) {
-            code = ErrorCode.CMDB_UNREACHABLE_SERVER;
-        }
-        return new ServiceException(code);
     }
 
     public static void setCcConfig(CcConfig ccConfig) {
@@ -386,8 +372,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         try {
             return bizInstCompleteTopologyCache.get("" + appId + ":" + owner + ":" + uin);
         } catch (ExecutionException e) {
-            throw new ServiceException(e, ErrorCode.CMDB_API_DATA_ERROR, "Fail to get " +
-                "getCachedBizInstCompleteTopology");
+            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -439,64 +424,54 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         }
     }
 
-    public InstanceTopologyDTO getBriefCacheTopo(long appId, String owner, String uin) throws ServiceException {
-        try {
-            if (owner == null) {
-                owner = defaultSupplierAccount;
-            }
-            if (uin == null) {
-                uin = defaultUin;
-            }
-            GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, uin, owner);
-            req.setAppId(appId);
-            EsbResp<BriefTopologyDTO> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
-                new TypeReference<EsbResp<BriefTopologyDTO>>() {
-                });
-            return TopologyUtil.convert(esbResp.getData());
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, GET_BIZ_BRIEF_CACHE_TOPO, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+    public InstanceTopologyDTO getBriefCacheTopo(long appId, String owner, String uin) {
+        if (owner == null) {
+            owner = defaultSupplierAccount;
         }
+        if (uin == null) {
+            uin = defaultUin;
+        }
+        GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, uin, owner);
+        req.setAppId(appId);
+        EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
+            new TypeReference<EsbResp<BriefTopologyDTO>>() {
+            });
+        return TopologyUtil.convert(esbResp.getData());
     }
 
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoFromCMDB(long appId, String owner,
-                                                                             String uin) throws ServiceException {
-        try {
-            if (owner == null) {
-                owner = defaultSupplierAccount;
-            }
-            if (uin == null) {
-                uin = defaultUin;
-            }
-            GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, uin, owner);
-            req.setAppId(appId);
-            EsbResp<List<InstanceTopologyDTO>> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
-                req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
-                });
-            if (esbResp.getData().size() > 0) {
-                return esbResp.getData().get(0);
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_BIZ_INST_TOPO, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+                                                                             String uin) {
+        if (owner == null) {
+            owner = defaultSupplierAccount;
         }
-    }
-
-    public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                    TypeReference<R> typeReference) throws RuntimeException {
-        if (ccConfig.getEnableInterfaceRetry()) {
-            log.debug("using RetryableHttpHelper");
-            return getEsbRespByReq(method, uri, reqBody, typeReference, new RetryableHttpHelper());
+        if (uin == null) {
+            uin = defaultUin;
+        }
+        GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, uin, owner);
+        req.setAppId(appId);
+        EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
+            req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
+            });
+        if (esbResp.getData().size() > 0) {
+            return esbResp.getData().get(0);
         } else {
-            log.debug("using DefaultHttpHelper");
-            return getEsbRespByReq(method, uri, reqBody, typeReference, null);
+            return null;
         }
     }
 
-    public <T, R> R getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<R> typeReference,
-                                    AbstractHttpHelper httpHelper) throws RuntimeException {
+    public <R> EsbResp<R> requestCmdbApi(String method,
+                                         String uri,
+                                         EsbReq reqBody,
+                                         TypeReference<EsbResp<R>> typeReference) {
+        return requestCmdbApi(method, uri, reqBody, typeReference, null);
+    }
+
+    public <R> EsbResp<R> requestCmdbApi(String method,
+                                         String uri,
+                                         EsbReq reqBody,
+                                         TypeReference<EsbResp<R>> typeReference,
+                                         AbstractHttpHelper httpHelper) {
+
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
                 String resourceId = uri;
@@ -516,62 +491,21 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                 log.debug("globalFlowController not set, ignore this time");
             }
         }
-        String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
-        String respStr = null;
         long start = System.nanoTime();
         String status = "none";
         try {
-            if (method.equals(HttpGet.METHOD_NAME)) {
-                respStr = doHttpGet(uri, reqBody, httpHelper);
-            } else if (method.equals(HttpPost.METHOD_NAME)) {
-                respStr = doHttpPost(uri, reqBody, httpHelper);
-            }
-            if (StringUtils.isBlank(respStr)) {
-                log.error("fail:response is blank|method={}|uri={}|reqStr={}", method, uri, reqStr);
-                throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "response is blank");
-            } else {
-                log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
-            }
-            R result =
-                JSON_MAPPER.fromJson(respStr, typeReference);
-            EsbResp esbResp = (EsbResp) result;
-            if (esbResp == null) {
-                log.error("fail:esbResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
-                    reqStr, respStr);
-                status = "error";
-                throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "esbResp is null after parse");
-            } else if (esbResp.getCode() != RESULT_OK) {
-                log.error(
-                    "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
-                        ".message={}|method={}|uri={}|reqStr={}|respStr={}"
-                    , esbResp.getRequestId()
-                    , esbResp.getCode()
-                    , esbResp.getMessage()
-                    , method, uri, reqStr, respStr
-                );
-                status = "error";
-                throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "esbResp code!=0");
-            }
-            if (esbResp.getData() == null) {
-                log.warn(
-                    "warn:esbResp.getData() == null|esbResp.requestId={}|esbResp.code={}|esbResp" +
-                        ".message={}|method={}|uri={}|reqStr={}|respStr={}"
-                    , esbResp.getRequestId()
-                    , esbResp.getCode()
-                    , esbResp.getMessage()
-                    , method, uri, reqStr, respStr
-                );
-            }
+            EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
-            return result;
-        } catch (Exception e) {
+            return esbResp;
+        } catch (Throwable e) {
+            String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
             status = "error";
-            throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "Fail to request CMDB data");
+            throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             long end = System.nanoTime();
-            meterRegistry.timer("cmdb.api", "api_name", uri, "status", status)
+            meterRegistry.timer(CommonMetricNames.CMDB_API, "api_name", uri, "status", status)
                 .record(end - start, TimeUnit.NANOSECONDS);
         }
     }
@@ -630,43 +564,38 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     public InstanceTopologyDTO getBizInternalModuleFromCMDB(long appId, String owner,
                                                             String uin) throws ServiceException {
-        try {
-            if (owner == null) {
-                owner = defaultSupplierAccount;
-            }
-            if (uin == null) {
-                uin = defaultUin;
-            }
-            GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, uin, owner);
-            req.setAppId(appId);
-            EsbResp<GetBizInternalModuleResult> esbResp = getEsbRespByReq(HttpGet.METHOD_NAME,
-                GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
-                });
-            GetBizInternalModuleResult setInfo = esbResp.getData();
-            //将结果转换为Topo树
-            InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-            instanceTopologyDTO.setObjectId("set");
-            instanceTopologyDTO.setObjectName("Set");
-            instanceTopologyDTO.setInstanceId(setInfo.getSetId());
-            instanceTopologyDTO.setInstanceName(setInfo.getSetName());
-            List<InstanceTopologyDTO> childList = new ArrayList<>();
-            List<GetBizInternalModuleResult.Module> modules = setInfo.getModule();
-            if (modules != null && !modules.isEmpty()) {
-                modules.forEach(module -> {
-                    InstanceTopologyDTO childModule = new InstanceTopologyDTO();
-                    childModule.setObjectId("module");
-                    childModule.setObjectName("Module");
-                    childModule.setInstanceId(module.getModuleId());
-                    childModule.setInstanceName(module.getModuleName());
-                    childList.add(childModule);
-                });
-            }
-            instanceTopologyDTO.setChild(childList);
-            return instanceTopologyDTO;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, GET_BIZ_INTERNAL_MODULE, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+        if (owner == null) {
+            owner = defaultSupplierAccount;
         }
+        if (uin == null) {
+            uin = defaultUin;
+        }
+        GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, uin, owner);
+        req.setAppId(appId);
+        EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(HttpGet.METHOD_NAME,
+            GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
+            });
+        GetBizInternalModuleResult setInfo = esbResp.getData();
+        //将结果转换为Topo树
+        InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
+        instanceTopologyDTO.setObjectId("set");
+        instanceTopologyDTO.setObjectName("Set");
+        instanceTopologyDTO.setInstanceId(setInfo.getSetId());
+        instanceTopologyDTO.setInstanceName(setInfo.getSetName());
+        List<InstanceTopologyDTO> childList = new ArrayList<>();
+        List<GetBizInternalModuleResult.Module> modules = setInfo.getModule();
+        if (modules != null && !modules.isEmpty()) {
+            modules.forEach(module -> {
+                InstanceTopologyDTO childModule = new InstanceTopologyDTO();
+                childModule.setObjectId("module");
+                childModule.setObjectName("Module");
+                childModule.setInstanceId(module.getModuleId());
+                childModule.setInstanceName(module.getModuleName());
+                childList.add(childModule);
+            });
+        }
+        instanceTopologyDTO.setChild(childList);
+        return instanceTopologyDTO;
     }
 
 
@@ -734,7 +663,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     private FindModuleHostRelationResult getHostsByReq(FindModuleHostRelationReq req) {
-        EsbResp<FindModuleHostRelationResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+        EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             FIND_MODULE_HOST_RELATION, req, new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
             });
         return esbResp.getData();
@@ -945,45 +874,39 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<ListBizHostsTopoResult.HostInfo> listBizHostsTopo(long appId, String uin, String owner) {
-        try {
-            if (StringUtils.isBlank(owner)) {
-                owner = defaultSupplierAccount;
-            }
-            if (StringUtils.isBlank(uin)) {
-                uin = defaultUin;
-            }
-            List<ListBizHostsTopoResult.HostInfo> hostInfoList = new ArrayList<>();
-            ListBizHostsTopoReq req = makeBaseReq(ListBizHostsTopoReq.class, uin, owner);
-            req.setAppId(appId);
-
-            int limit = 200;
-            int start = 0;
-            boolean isLastPage = false;
-            while (!isLastPage) {
-                Page page = new Page(start, limit);
-                req.setPage(page);
-                EsbResp<ListBizHostsTopoResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS_TOPO,
-                    req, new TypeReference<EsbResp<ListBizHostsTopoResult>>() {
-                    });
-                ListBizHostsTopoResult pageData = esbResp.getData();
-                hostInfoList.addAll(pageData.getInfo());
-                // 如果该页未达到limit，说明是最后一页
-                if (pageData.getInfo().size() < limit) {
-                    isLastPage = true;
-                } else {
-                    start += limit;
-                }
-            }
-            Set<String> ipSet = new HashSet<>();
-            hostInfoList.forEach(hostInfo -> {
-                ipSet.add(hostInfo.getHost().getCloudId() + ":" + hostInfo.getHost().getIp());
-            });
-            log.info("ipSet.size=" + ipSet.size());
-            return hostInfoList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, LIST_BIZ_HOSTS_TOPO, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+        if (StringUtils.isBlank(owner)) {
+            owner = defaultSupplierAccount;
         }
+        if (StringUtils.isBlank(uin)) {
+            uin = defaultUin;
+        }
+        List<ListBizHostsTopoResult.HostInfo> hostInfoList = new ArrayList<>();
+        ListBizHostsTopoReq req = makeBaseReq(ListBizHostsTopoReq.class, uin, owner);
+        req.setAppId(appId);
+
+        int limit = 200;
+        int start = 0;
+        boolean isLastPage = false;
+        while (!isLastPage) {
+            Page page = new Page(start, limit);
+            req.setPage(page);
+            EsbResp<ListBizHostsTopoResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS_TOPO,
+                req, new TypeReference<EsbResp<ListBizHostsTopoResult>>() {
+                });
+            ListBizHostsTopoResult pageData = esbResp.getData();
+            hostInfoList.addAll(pageData.getInfo());
+            // 如果该页未达到limit，说明是最后一页
+            if (pageData.getInfo().size() < limit) {
+                isLastPage = true;
+            } else {
+                start += limit;
+            }
+        }
+        Set<String> ipSet = new HashSet<>();
+        hostInfoList.forEach(hostInfo -> {
+            ipSet.add(hostInfo.getHost().getCloudId() + ":" + hostInfo.getHost().getIp());
+        });
+        return hostInfoList;
     }
 
     private ApplicationHostInfoDTO convertHost(long appId, CcHostInfoDTO hostInfo) {
@@ -1024,44 +947,39 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      */
     @Override
     public List<ApplicationInfoDTO> getAllApps() {
-        try {
-            List<ApplicationInfoDTO> appList = new ArrayList<>();
-            int limit = 200;
-            int start = 0;
-            boolean isLastPage = false;
-            String orderField = "bk_biz_id";
-            while (!isLastPage) {
-                String owner = defaultSupplierAccount;
-                GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, owner);
-                PageDTO page = new PageDTO(start, limit, orderField);
-                req.setPage(page);
-                EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
-                    new TypeReference<EsbResp<SearchAppResult>>() {
-                    });
-                SearchAppResult data = esbResp.getData();
-                if (data == null) {
-                    appList.clear();
-                    throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "data is null");
-                }
-                List<BusinessInfoDTO> businessInfos = data.getInfo();
-                if (businessInfos != null && !businessInfos.isEmpty()) {
-                    for (BusinessInfoDTO businessInfo : businessInfos) {
-                        if (businessInfo.getDefaultApp() == 0) {
-                            appList.add(convertToAppInfo(businessInfo));
-                        }
-                    }
-                    start += businessInfos.size();
-                }
-                // 如果该页未达到limit，说明是最后一页
-                if (businessInfos == null || businessInfos.size() < limit) {
-                    isLastPage = true;
-                }
+        List<ApplicationInfoDTO> appList = new ArrayList<>();
+        int limit = 200;
+        int start = 0;
+        boolean isLastPage = false;
+        String orderField = "bk_biz_id";
+        while (!isLastPage) {
+            String owner = defaultSupplierAccount;
+            GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, owner);
+            PageDTO page = new PageDTO(start, limit, orderField);
+            req.setPage(page);
+            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+                new TypeReference<EsbResp<SearchAppResult>>() {
+                });
+            SearchAppResult data = esbResp.getData();
+            if (data == null) {
+                appList.clear();
+                throw new InternalException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
             }
-            return appList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_BUSINESS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+            List<BusinessInfoDTO> businessInfos = data.getInfo();
+            if (businessInfos != null && !businessInfos.isEmpty()) {
+                for (BusinessInfoDTO businessInfo : businessInfos) {
+                    if (businessInfo.getDefaultApp() == 0) {
+                        appList.add(convertToAppInfo(businessInfo));
+                    }
+                }
+                start += businessInfos.size();
+            }
+            // 如果该页未达到limit，说明是最后一页
+            if (businessInfos == null || businessInfos.size() < limit) {
+                isLastPage = true;
+            }
         }
+        return appList;
     }
 
     private ApplicationInfoDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
@@ -1087,48 +1005,43 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      */
     @Override
     public List<ApplicationInfoDTO> getAppByUser(String uin, String owner) throws ServiceException {
-        try {
-            List<ApplicationInfoDTO> appList = new ArrayList<>();
-            boolean isLastPage = false;
-            int limit = 200;
-            int start = 0;
-            String orderField = "bk_biz_id";
-            while (!isLastPage) {
-                GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
-                PageDTO page = new PageDTO(start, limit, orderField);
-                req.setPage(page);
-                Map<String, Object> conditionMap = new HashMap<>();
-                Map<String, Object> filedPattern = new HashMap<>();
-                filedPattern.put("$regex", uin);
-                conditionMap.put("bk_biz_maintainer", filedPattern);
-                req.setCondition(conditionMap);
-                EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
-                    new TypeReference<EsbResp<SearchAppResult>>() {
-                    });
-                SearchAppResult data = esbResp.getData();
-                if (data == null) {
-                    appList.clear();
-                    throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "data is null");
-                }
-                List<BusinessInfoDTO> businessInfos = data.getInfo();
-                if (businessInfos != null && !businessInfos.isEmpty()) {
-                    for (BusinessInfoDTO businessInfo : businessInfos) {
-                        if (businessInfo.getDefaultApp() == 0) {
-                            appList.add(convertToAppInfo(businessInfo));
-                        }
-                        start++;
+        List<ApplicationInfoDTO> appList = new ArrayList<>();
+        boolean isLastPage = false;
+        int limit = 200;
+        int start = 0;
+        String orderField = "bk_biz_id";
+        while (!isLastPage) {
+            GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
+            PageDTO page = new PageDTO(start, limit, orderField);
+            req.setPage(page);
+            Map<String, Object> conditionMap = new HashMap<>();
+            Map<String, Object> filedPattern = new HashMap<>();
+            filedPattern.put("$regex", uin);
+            conditionMap.put("bk_biz_maintainer", filedPattern);
+            req.setCondition(conditionMap);
+            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+                new TypeReference<EsbResp<SearchAppResult>>() {
+                });
+            SearchAppResult data = esbResp.getData();
+            if (data == null) {
+                appList.clear();
+                throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+            }
+            List<BusinessInfoDTO> businessInfos = data.getInfo();
+            if (businessInfos != null && !businessInfos.isEmpty()) {
+                for (BusinessInfoDTO businessInfo : businessInfos) {
+                    if (businessInfo.getDefaultApp() == 0) {
+                        appList.add(convertToAppInfo(businessInfo));
                     }
-                }
-                // 如果该页未达到limit，说明是最后一页
-                if (businessInfos == null || businessInfos.size() < limit) {
-                    isLastPage = true;
+                    start++;
                 }
             }
-            return appList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_BUSINESS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+            // 如果该页未达到limit，说明是最后一页
+            if (businessInfos == null || businessInfos.size() < limit) {
+                isLastPage = true;
+            }
         }
+        return appList;
     }
 
     /**
@@ -1141,30 +1054,24 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      */
     @Override
     public ApplicationInfoDTO getAppById(long appId, String owner, String uin) {
-        try {
-            owner = defaultSupplierAccount;
-            uin = defaultUin;
-            GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
-            Map<String, Object> conditionMap = new HashMap<>();
-            conditionMap.put("bk_biz_id", appId);
-            req.setCondition(conditionMap);
-            EsbResp<SearchAppResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
-                new TypeReference<EsbResp<SearchAppResult>>() {
-                });
-            SearchAppResult data = esbResp.getData();
-            if (data == null) {
-                throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "data == null");
-            }
-            List<BusinessInfoDTO> businessInfos = data.getInfo();
-            if (businessInfos == null || businessInfos.isEmpty()) {
-                throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR, "businessInfos == null || businessInfos" +
-                    ".isEmpty()");
-            }
-            return convertToAppInfo(businessInfos.get(0));
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_BUSINESS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+        owner = defaultSupplierAccount;
+        uin = defaultUin;
+        GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
+        Map<String, Object> conditionMap = new HashMap<>();
+        conditionMap.put("bk_biz_id", appId);
+        req.setCondition(conditionMap);
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+            new TypeReference<EsbResp<SearchAppResult>>() {
+            });
+        SearchAppResult data = esbResp.getData();
+        if (data == null) {
+            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
+        List<BusinessInfoDTO> businessInfos = data.getInfo();
+        if (businessInfos == null || businessInfos.isEmpty()) {
+            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+        }
+        return convertToAppInfo(businessInfos.get(0));
     }
 
     /**
@@ -1182,41 +1089,36 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public List<CcGroupDTO> getHostDynamicGroupListFromCMDB(long appId, String owner, String uin) {
-        try {
-            owner = defaultSupplierAccount;
-            uin = defaultUin;
-            SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, uin, owner);
-            req.setAppId(appId);
-            int start = 0;
-            int limit = 200;
+        owner = defaultSupplierAccount;
+        uin = defaultUin;
+        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, uin, owner);
+        req.setAppId(appId);
+        int start = 0;
+        int limit = 200;
+        req.getPage().setStart(start);
+        req.getPage().setLimit(limit);
+        List<CcDynamicGroupDTO> ccDynamicGroupList = new ArrayList<>();
+        boolean isLastPage = false;
+        while (!isLastPage) {
             req.getPage().setStart(start);
-            req.getPage().setLimit(limit);
-            List<CcDynamicGroupDTO> ccDynamicGroupList = new ArrayList<>();
-            boolean isLastPage = false;
-            while (!isLastPage) {
-                req.getPage().setStart(start);
 
-                EsbResp<SearchDynamicGroupResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
-                    SEARCH_DYNAMIC_GROUP, req, new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
-                    });
-                SearchDynamicGroupResult ccRespData = esbResp.getData();
-                if (ccRespData != null) {
-                    List<CcDynamicGroupDTO> groupInfos = ccRespData.getInfo();
-                    ccDynamicGroupList.addAll(groupInfos);
-                    start += groupInfos.size();
-                    // 如果该页未达到limit，说明是最后一页
-                    if (groupInfos.size() < limit) {
-                        isLastPage = true;
-                    }
+            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+                SEARCH_DYNAMIC_GROUP, req, new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
+                });
+            SearchDynamicGroupResult ccRespData = esbResp.getData();
+            if (ccRespData != null) {
+                List<CcDynamicGroupDTO> groupInfos = ccRespData.getInfo();
+                ccDynamicGroupList.addAll(groupInfos);
+                start += groupInfos.size();
+                // 如果该页未达到limit，说明是最后一页
+                if (groupInfos.size() < limit) {
+                    isLastPage = true;
                 }
             }
-            List<CcGroupDTO> ccGroupDTOList =
-                ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
-            return ccGroupDTOList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_DYNAMIC_GROUP, e);
-            return Collections.emptyList();
         }
+        List<CcGroupDTO> ccGroupDTOList =
+            ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
+        return ccGroupDTOList;
     }
 
     private CcGroupDTO convertToCcGroupDTO(CcDynamicGroupDTO ccDynamicGroupDTO) {
@@ -1244,58 +1146,52 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     public List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long appId, String owner, String uin,
                                                               String groupId) throws ServiceException {
-        try {
-            owner = defaultSupplierAccount;
-            uin = defaultUin;
-            ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, uin, owner);
-            req.setAppId(appId);
-            req.setGroupId(groupId);
-            int limit = 200;
-            int start = 0;
-            req.getPage().setLimit(limit);
+        owner = defaultSupplierAccount;
+        uin = defaultUin;
+        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, uin, owner);
+        req.setAppId(appId);
+        req.setGroupId(groupId);
+        int limit = 200;
+        int start = 0;
+        req.getPage().setLimit(limit);
 
-            List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
-            boolean isLastPage = false;
-            while (!isLastPage) {
-                req.getPage().setStart(start);
-                EsbResp<ExecuteDynamicGroupHostResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
-                    EXECUTE_DYNAMIC_GROUP, req, new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
-                    });
-                ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
-                if (ccRespData != null) {
-                    List<CcHostInfoDTO> hostInfoList = ccRespData.getInfo();
-                    for (CcHostInfoDTO ccHostInfo : hostInfoList) {
-                        if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
-                            log.warn("host(id=" + ccHostInfo.getHostId()
-                                + ",ip=" + ccHostInfo.getIp() + ") does not "
-                                + "have cloud area, ignore");
-                        } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
-                            log.warn("host(id=" + ccHostInfo.getHostId() + ",ip=" + ccHostInfo.getIp() + ") ip " +
-                                "invalid, ignore");
-                        } else {
-                            ccGroupHostList.add(convertToCcHost(ccHostInfo));
-                        }
-                    }
-                    start += hostInfoList.size();
-                    // 如果该页未达到limit，说明是最后一页
-                    if (hostInfoList.size() < limit) {
-                        isLastPage = true;
+        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+        boolean isLastPage = false;
+        while (!isLastPage) {
+            req.getPage().setStart(start);
+            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+                EXECUTE_DYNAMIC_GROUP, req, new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
+                });
+            ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
+            if (ccRespData != null) {
+                List<CcHostInfoDTO> hostInfoList = ccRespData.getInfo();
+                for (CcHostInfoDTO ccHostInfo : hostInfoList) {
+                    if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
+                        log.warn("host(id=" + ccHostInfo.getHostId()
+                            + ",ip=" + ccHostInfo.getIp() + ") does not "
+                            + "have cloud area, ignore");
+                    } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
+                        log.warn("host(id=" + ccHostInfo.getHostId() + ",ip=" + ccHostInfo.getIp() + ") ip " +
+                            "invalid, ignore");
+                    } else {
+                        ccGroupHostList.add(convertToCcHost(ccHostInfo));
                     }
                 }
-            }
-            if (queryAgentStatusClient != null) {
-                for (CcGroupHostPropDTO ccHost : ccGroupHostList) {
-                    // 多IP,需要设置agent绑定的IP
-                    ccHost.setIp(queryAgentStatusClient.getHostIpByAgentStatus(ccHost.getIp(),
-                        ccHost.getCloudIdList().get(0).getInstanceId()));
+                start += hostInfoList.size();
+                // 如果该页未达到limit，说明是最后一页
+                if (hostInfoList.size() < limit) {
+                    isLastPage = true;
                 }
             }
-            return ccGroupHostList;
-        } catch (Exception e) {
-            String errorMsg = String.format("Get host by dynamic group id %s fail", groupId);
-            log.error(errorMsg, e);
-            throw new ServiceException(ErrorCode.CMDB_API_DATA_ERROR);
         }
+        if (queryAgentStatusClient != null) {
+            for (CcGroupHostPropDTO ccHost : ccGroupHostList) {
+                // 多IP,需要设置agent绑定的IP
+                ccHost.setIp(queryAgentStatusClient.getHostIpByAgentStatus(ccHost.getIp(),
+                    ccHost.getCloudIdList().get(0).getInstanceId()));
+            }
+        }
+        return ccGroupHostList;
     }
 
     private CcGroupHostPropDTO convertToCcHost(CcHostInfoDTO ccHostInfo) {
@@ -1312,40 +1208,35 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<CcCloudAreaInfoDTO> getCloudAreaList() {
-        try {
-            List<CcCloudAreaInfoDTO> appCloudAreaList = new ArrayList<>();
-            boolean isLastPage = false;
-            int limit = 200;
-            int start = 0;
-            while (!isLastPage) {
-                GetCloudAreaInfoReq req = makeBaseReq(GetCloudAreaInfoReq.class, defaultUin, defaultSupplierAccount);
-                PageDTO page = new PageDTO(start, limit, null);
-                req.setPage(page);
-                req.setCondition(Collections.emptyMap());
-                EsbResp<SearchCloudAreaResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
-                    new TypeReference<EsbResp<SearchCloudAreaResult>>() {
-                    });
-                SearchCloudAreaResult data = esbResp.getData();
-                if (data == null) {
-                    appCloudAreaList.clear();
-                    return appCloudAreaList;
-                }
-                List<CcCloudAreaInfoDTO> cloudAreaInfoList = data.getInfo();
-                if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
-                    appCloudAreaList.addAll(cloudAreaInfoList);
-                }
-                // 如果该页未达到limit，说明是最后一页
-                if (cloudAreaInfoList == null || cloudAreaInfoList.size() < limit) {
-                    isLastPage = true;
-                } else {
-                    start += limit;
-                }
+        List<CcCloudAreaInfoDTO> appCloudAreaList = new ArrayList<>();
+        boolean isLastPage = false;
+        int limit = 200;
+        int start = 0;
+        while (!isLastPage) {
+            GetCloudAreaInfoReq req = makeBaseReq(GetCloudAreaInfoReq.class, defaultUin, defaultSupplierAccount);
+            PageDTO page = new PageDTO(start, limit, null);
+            req.setPage(page);
+            req.setCondition(Collections.emptyMap());
+            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
+                new TypeReference<EsbResp<SearchCloudAreaResult>>() {
+                });
+            SearchCloudAreaResult data = esbResp.getData();
+            if (data == null) {
+                appCloudAreaList.clear();
+                return appCloudAreaList;
             }
-            return appCloudAreaList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, GET_CLOUD_AREAS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+            List<CcCloudAreaInfoDTO> cloudAreaInfoList = data.getInfo();
+            if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
+                appCloudAreaList.addAll(cloudAreaInfoList);
+            }
+            // 如果该页未达到limit，说明是最后一页
+            if (cloudAreaInfoList == null || cloudAreaInfoList.size() < limit) {
+                isLastPage = true;
+            } else {
+                start += limit;
+            }
         }
+        return appCloudAreaList;
     }
 
     @Override
@@ -1364,23 +1255,18 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList) {
-        try {
-            String owner = defaultSupplierAccount;
-            uin = defaultUin;
-            FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, uin, owner);
-            req.setHostIdList(hostIdList);
-            EsbResp<List<FindHostBizRelationsResult>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
-                FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<FindHostBizRelationsResult>>>() {
-                });
-            List<FindHostBizRelationsResult> results = esbResp.getData();
-            if (esbResp.getData() == null) {
-                return Collections.emptyList();
-            }
-            return results;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, FIND_HOST_BIZ_RELATIONS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+        String owner = defaultSupplierAccount;
+        uin = defaultUin;
+        FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, uin, owner);
+        req.setHostIdList(hostIdList);
+        EsbResp<List<FindHostBizRelationsResult>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+            FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<FindHostBizRelationsResult>>>() {
+            });
+        List<FindHostBizRelationsResult> results = esbResp.getData();
+        if (esbResp.getData() == null) {
+            return Collections.emptyList();
         }
+        return results;
     }
 
     @Override
@@ -1403,145 +1289,130 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     private List<ApplicationHostInfoDTO> getHostByIpWithoutAppIdOnce(String uin, List<String> ipList) {
-        try {
-            String owner = defaultSupplierAccount;
-            uin = defaultUin;
-            List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
-            ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
-            ConditionDTO condition = new ConditionDTO();
-            condition.setCondition("AND");
-            List<BaseConditionDTO> rules = new ArrayList<>();
-            ipList.removeIf(StringUtils::isBlank);
-            BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
-            baseConditionDTO.setField("bk_host_innerip");
-            baseConditionDTO.setOperator("in");
-            baseConditionDTO.setValue(ipList);
-            rules.add(baseConditionDTO);
-            condition.setRules(rules);
-            req.setCondition(condition);
+        String owner = defaultSupplierAccount;
+        uin = defaultUin;
+        List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
+        ConditionDTO condition = new ConditionDTO();
+        condition.setCondition("AND");
+        List<BaseConditionDTO> rules = new ArrayList<>();
+        ipList.removeIf(StringUtils::isBlank);
+        BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
+        baseConditionDTO.setField("bk_host_innerip");
+        baseConditionDTO.setOperator("in");
+        baseConditionDTO.setValue(ipList);
+        rules.add(baseConditionDTO);
+        condition.setRules(rules);
+        req.setCondition(condition);
 
-            int limit = 200;
-            int start = 0;
-            boolean isLastPage = false;
-            while (!isLastPage) {
-                PageDTO page = new PageDTO(start, limit, "");
-                req.setPage(page);
-                EsbResp<ListHostsWithoutBizResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
-                    LIST_HOSTS_WITHOUT_BIZ, req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
-                    });
-                ListHostsWithoutBizResult pageData = esbResp.getData();
-                if (esbResp.getData() == null) {
-                    return Collections.emptyList();
-                }
-                for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
-                    start++;
-                    ApplicationHostInfoDTO host = convertHost(-1L, hostInfo);
-                    if (host != null) {
-                        hostInfoList.add(host);
-                    }
-                }
-                // 如果该页未达到limit，说明是最后一页
-                if (pageData.getInfo().size() < limit) {
-                    isLastPage = true;
+        int limit = 200;
+        int start = 0;
+        boolean isLastPage = false;
+        while (!isLastPage) {
+            PageDTO page = new PageDTO(start, limit, "");
+            req.setPage(page);
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
+                LIST_HOSTS_WITHOUT_BIZ, req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+                });
+            ListHostsWithoutBizResult pageData = esbResp.getData();
+            if (esbResp.getData() == null) {
+                return Collections.emptyList();
+            }
+            for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
+                start++;
+                ApplicationHostInfoDTO host = convertHost(-1L, hostInfo);
+                if (host != null) {
+                    hostInfoList.add(host);
                 }
             }
-            return hostInfoList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, LIST_HOSTS_WITHOUT_BIZ, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+            // 如果该页未达到limit，说明是最后一页
+            if (pageData.getInfo().size() < limit) {
+                isLastPage = true;
+            }
         }
+        return hostInfoList;
     }
 
     @Override
     public List<ApplicationHostInfoDTO> getHostByIp(GetHostByIpInput input) {
-        try {
-            input.owner = defaultSupplierAccount;
-            input.uin = defaultUin;
-            List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
-            ListBizHostReq req = makeBaseReq(ListBizHostReq.class, input.uin, input.owner);
-            req.setAppId(input.appId);
-            ConditionDTO condition = new ConditionDTO();
-            condition.setCondition("AND");
-            List<BaseConditionDTO> rules = new ArrayList<>();
-            input.ipList.removeIf(StringUtils::isBlank);
-            BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
-            baseConditionDTO.setField("bk_host_innerip");
-            baseConditionDTO.setOperator("in");
-            baseConditionDTO.setValue(input.ipList);
-            rules.add(baseConditionDTO);
-            condition.setRules(rules);
-            req.setCondition(condition);
+        input.owner = defaultSupplierAccount;
+        input.uin = defaultUin;
+        List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
+        ListBizHostReq req = makeBaseReq(ListBizHostReq.class, input.uin, input.owner);
+        req.setAppId(input.appId);
+        ConditionDTO condition = new ConditionDTO();
+        condition.setCondition("AND");
+        List<BaseConditionDTO> rules = new ArrayList<>();
+        input.ipList.removeIf(StringUtils::isBlank);
+        BaseConditionDTO baseConditionDTO = new BaseConditionDTO();
+        baseConditionDTO.setField("bk_host_innerip");
+        baseConditionDTO.setOperator("in");
+        baseConditionDTO.setValue(input.ipList);
+        rules.add(baseConditionDTO);
+        condition.setRules(rules);
+        req.setCondition(condition);
 
-            int limit = 200;
-            int start = 0;
-            boolean isLastPage = false;
-            while (!isLastPage) {
-                PageDTO page = new PageDTO(start, limit, "");
-                req.setPage(page);
-                EsbResp<ListBizHostResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS, req,
-                    new TypeReference<EsbResp<ListBizHostResult>>() {
-                    });
-                ListBizHostResult pageData = esbResp.getData();
-                if (esbResp.getData() == null) {
-                    return Collections.emptyList();
-                }
-                for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
-                    start++;
-                    ApplicationHostInfoDTO host = convertHost(input.appId, hostInfo);
-                    if (host != null) {
-                        hostInfoList.add(host);
-                    }
-                }
-                // 如果该页未达到limit，说明是最后一页
-                if (pageData.getInfo().size() < limit) {
-                    isLastPage = true;
+        int limit = 200;
+        int start = 0;
+        boolean isLastPage = false;
+        while (!isLastPage) {
+            PageDTO page = new PageDTO(start, limit, "");
+            req.setPage(page);
+            EsbResp<ListBizHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS, req,
+                new TypeReference<EsbResp<ListBizHostResult>>() {
+                });
+            ListBizHostResult pageData = esbResp.getData();
+            if (esbResp.getData() == null) {
+                return Collections.emptyList();
+            }
+            for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
+                start++;
+                ApplicationHostInfoDTO host = convertHost(input.appId, hostInfo);
+                if (host != null) {
+                    hostInfoList.add(host);
                 }
             }
-            return hostInfoList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, LIST_BIZ_HOSTS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+            // 如果该页未达到limit，说明是最后一页
+            if (pageData.getInfo().size() < limit) {
+                isLastPage = true;
+            }
         }
+        return hostInfoList;
     }
 
     @Override
     public ApplicationHostInfoDTO getHostByIp(Long cloudAreaId, String ip) {
-        try {
-            String owner = defaultSupplierAccount;
-            String uin = defaultUin;
-            ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
-            ConditionDTO condition = new ConditionDTO();
-            condition.setCondition("AND");
-            List<BaseConditionDTO> rules = new ArrayList<>();
-            BaseConditionDTO ipCondition = new BaseConditionDTO();
-            ipCondition.setField("bk_host_innerip");
-            ipCondition.setOperator("equal");
-            ipCondition.setValue(ip);
-            BaseConditionDTO cloudAreaIdCondition = new BaseConditionDTO();
-            cloudAreaIdCondition.setField("bk_cloud_id");
-            cloudAreaIdCondition.setOperator("equal");
-            cloudAreaIdCondition.setValue(cloudAreaId);
-            rules.add(ipCondition);
-            rules.add(cloudAreaIdCondition);
-            condition.setRules(rules);
-            req.setCondition(condition);
+        String owner = defaultSupplierAccount;
+        String uin = defaultUin;
+        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
+        ConditionDTO condition = new ConditionDTO();
+        condition.setCondition("AND");
+        List<BaseConditionDTO> rules = new ArrayList<>();
+        BaseConditionDTO ipCondition = new BaseConditionDTO();
+        ipCondition.setField("bk_host_innerip");
+        ipCondition.setOperator("equal");
+        ipCondition.setValue(ip);
+        BaseConditionDTO cloudAreaIdCondition = new BaseConditionDTO();
+        cloudAreaIdCondition.setField("bk_cloud_id");
+        cloudAreaIdCondition.setOperator("equal");
+        cloudAreaIdCondition.setValue(cloudAreaId);
+        rules.add(ipCondition);
+        rules.add(cloudAreaIdCondition);
+        condition.setRules(rules);
+        req.setCondition(condition);
 
-            int limit = 1;
-            int start = 0;
-            PageDTO page = new PageDTO(start, limit, "");
-            req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ
-                , req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
-                });
-            ListHostsWithoutBizResult pageData = esbResp.getData();
-            if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
-                return null;
-            }
-            return convertHost(-1L, pageData.getInfo().get(0));
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, LIST_HOSTS_WITHOUT_BIZ, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
+        int limit = 1;
+        int start = 0;
+        PageDTO page = new PageDTO(start, limit, "");
+        req.setPage(page);
+        EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ
+            , req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+            });
+        ListHostsWithoutBizResult pageData = esbResp.getData();
+        if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
+            return null;
         }
+        return convertHost(-1L, pageData.getInfo().get(0));
     }
 
     @Override
@@ -1549,34 +1420,25 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         GetObjAttributeReq req = makeBaseReqByWeb(
             GetObjAttributeReq.class, null, defaultUin, defaultSupplierAccount);
         req.setObjId(objId);
-        try {
-            EsbResp<List<CcObjAttributeDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_OBJ_ATTRIBUTES, req,
-                new TypeReference<EsbResp<List<CcObjAttributeDTO>>>() {
-                });
-            return esbResp.getData();
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, GET_OBJ_ATTRIBUTES, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
-        }
+        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_OBJ_ATTRIBUTES, req,
+            new TypeReference<EsbResp<List<CcObjAttributeDTO>>>() {
+            });
+        return esbResp.getData();
     }
 
     @Override
     public Set<String> getAppUsersByRole(Long appId, String role) throws ServiceException {
         CcCountInfo searchResult;
-        try {
-            GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
-            Map<String, Object> condition = new HashMap<>();
-            condition.put("bk_biz_id", appId);
-            req.setCondition(condition);
-            req.setFields(Collections.singletonList(role));
-            EsbResp<CcCountInfo> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
-                new TypeReference<EsbResp<CcCountInfo>>() {
-                });
-            searchResult = esbResp.getData();
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, SEARCH_BUSINESS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
-        }
+        GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
+        Map<String, Object> condition = new HashMap<>();
+        condition.put("bk_biz_id", appId);
+        req.setCondition(condition);
+        req.setFields(Collections.singletonList(role));
+        EsbResp<CcCountInfo> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+            new TypeReference<EsbResp<CcCountInfo>>() {
+            });
+        searchResult = esbResp.getData();
+
         if (searchResult == null || searchResult.getInfo() == null || searchResult.getInfo().isEmpty()) {
             return Collections.emptySet();
         }
@@ -1622,63 +1484,58 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     @Override
     public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
-        try {
-            String owner = defaultSupplierAccount;
-            String uin = defaultUin;
-            GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, uin, owner);
+        String owner = defaultSupplierAccount;
+        String uin = defaultUin;
+        GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, uin, owner);
 
-            // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
-            List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
-            List<Long> appNodes = new ArrayList<>();
-            for (InstanceTopologyDTO topoNode : getTopoNodePathReq.getTopoNodes()) {
-                if ("biz".equals(topoNode.getObjectId())) {
-                    appNodes.add(topoNode.getInstanceId());
-                } else {
-                    nonAppNodes.add(topoNode);
-                }
+        // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
+        List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
+        List<Long> appNodes = new ArrayList<>();
+        for (InstanceTopologyDTO topoNode : getTopoNodePathReq.getTopoNodes()) {
+            if ("biz".equals(topoNode.getObjectId())) {
+                appNodes.add(topoNode.getInstanceId());
+            } else {
+                nonAppNodes.add(topoNode);
             }
-
-            req.setTopoNodes(nonAppNodes);
-            req.setAppId(getTopoNodePathReq.getAppId());
-
-            List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
-            if (!nonAppNodes.isEmpty()) {
-                EsbResp<List<TopoNodePathDTO>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
-                    req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
-                    });
-                if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {
-                    return Collections.emptyList();
-                }
-                List<TopoNodePathDTO> nodePathList = esbResp.getData();
-
-                nodePathList.forEach(nodePath -> {
-                    InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
-                    hierarchyTopo.setObjectId(nodePath.getObjectId());
-                    hierarchyTopo.setInstanceId(nodePath.getInstanceId());
-                    hierarchyTopo.setInstanceName(nodePath.getObjectName());
-                    if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
-                        List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
-                        if (!CollectionUtils.isEmpty(parents)) {
-                            Collections.reverse(parents);
-                            parents.forEach(hierarchyTopo::addParent);
-                        }
-                    }
-                    hierarchyTopoList.add(hierarchyTopo);
-                });
-            }
-            if (!appNodes.isEmpty()) {
-                appNodes.forEach(appId -> {
-                    InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
-                    hierarchyTopo.setObjectId("biz");
-                    hierarchyTopo.setInstanceId(appId);
-                    hierarchyTopoList.add(hierarchyTopo);
-                });
-            }
-            return hierarchyTopoList;
-        } catch (Exception e) {
-            log.error("{}|{}", ErrorCode.CMDB_API_DATA_ERROR, GET_TOPO_NODE_PATHS, e);
-            throw caughtException(e, ErrorCode.CMDB_API_DATA_ERROR);
         }
+
+        req.setTopoNodes(nonAppNodes);
+        req.setAppId(getTopoNodePathReq.getAppId());
+
+        List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
+        if (!nonAppNodes.isEmpty()) {
+            EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
+                req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
+                });
+            if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<TopoNodePathDTO> nodePathList = esbResp.getData();
+
+            nodePathList.forEach(nodePath -> {
+                InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
+                hierarchyTopo.setObjectId(nodePath.getObjectId());
+                hierarchyTopo.setInstanceId(nodePath.getInstanceId());
+                hierarchyTopo.setInstanceName(nodePath.getObjectName());
+                if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
+                    List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
+                    if (!CollectionUtils.isEmpty(parents)) {
+                        Collections.reverse(parents);
+                        parents.forEach(hierarchyTopo::addParent);
+                    }
+                }
+                hierarchyTopoList.add(hierarchyTopo);
+            });
+        }
+        if (!appNodes.isEmpty()) {
+            appNodes.forEach(appId -> {
+                InstanceTopologyDTO hierarchyTopo = new InstanceTopologyDTO();
+                hierarchyTopo.setObjectId("biz");
+                hierarchyTopo.setInstanceId(appId);
+                hierarchyTopoList.add(hierarchyTopo);
+            });
+        }
+        return hierarchyTopoList;
     }
 
     @Override
@@ -1690,7 +1547,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
             req, new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
             }, new LongRetryableHttpHelper());
         return esbResp.getData();
@@ -1704,7 +1561,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME,
+        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             RESOURCE_WATCH, req, new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
             }, new LongRetryableHttpHelper());
         return esbResp.getData();
@@ -1719,7 +1576,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = getEsbRespByReq(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+        EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
             req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
             }, new LongRetryableHttpHelper());
         return esbResp.getData();

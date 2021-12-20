@@ -87,12 +87,10 @@
 .bk-table-fixed,
 .bk-table-fixed-right {
     border-bottom: none;
+}
 
-    /* .bk-table-row-last {
-        td {
-            border-bottom: none;
-        }
-    } */
+.bk-table-fixed-right {
+    bottom: 63px !important;
 }
 
 .bk-table-setting-popover-content-theme.tippy-tooltip {
@@ -124,6 +122,11 @@
     &:focus {
         background-color: #fff !important;
         border: 1px solid #3a84ff !important;
+    }
+    &.only-bottom-border{
+        border-top-color: transparent !important;
+        border-right-color: transparent !important;
+        border-left-color: transparent !important;
     }
 }
 
@@ -159,11 +162,31 @@
     覆盖 dialog 样式
  */
 .bk-dialog-wrapper {
-    .bk-dialog {
-        top: auto;
-        display: flex;
+    text-align: center;
+    &:after{
+        content: "";
+        display: inline-block;
         height: 100%;
-        align-items: center;
+        width: 1px;
+        vertical-align: middle;
+    }
+    .bk-dialog {
+        top: unset;
+        display: inline-block;
+        margin: unset;
+        text-align: initial;
+        vertical-align: middle;
+        &.bk-dialog-fullscreen{
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+        &.bk-info-box{
+            .bk-dialog-content-drag{
+                position: relative;
+            }
+        }
     }
 
     .header-on-left {

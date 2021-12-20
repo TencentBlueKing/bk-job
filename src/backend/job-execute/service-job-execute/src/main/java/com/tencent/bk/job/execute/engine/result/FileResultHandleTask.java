@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.gse.taskapi.api_map_rsp;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.FeatureToggleConfigHolder;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
@@ -56,17 +56,17 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.StopWatch;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * 文件任务执行结果处理
@@ -78,56 +78,60 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /**
      * 待分发文件，文件传输的源文件
      */
-    private Set<JobFile> sendFiles;
+    private final Set<JobFile> sendFiles;
     /**
      * 任务包含的源服务器
      */
-    private Set<String> fileSourceIPSet = new HashSet<>();
+    private final Set<String> fileSourceIPSet = new HashSet<>();
+    /**
+     * 已经分析结果完成的源服务器
+     */
+    protected Set<String> analyseFinishedSourceIpSet = new HashSet<>();
     /**
      * 成功的文件下载任务，key: ip, value: 成功的文件任务名称
      */
-    private Map<String, Set<String>> successDownloadFileMap = new HashMap<>();
+    private final Map<String, Set<String>> successDownloadFileMap = new HashMap<>();
     /**
      * 已经结束的文件下载任务，key: ip, value: 已完成文件任务名称
      */
-    private Map<String, Set<String>> finishedDownloadFileMap = new HashMap<>();
+    private final Map<String, Set<String>> finishedDownloadFileMap = new HashMap<>();
     /**
      * 下载文件任务数，key: ip, value: 主机对应的文件任务数
      */
-    private Map<String, Integer> fileDownloadTaskNumMap = new HashMap<>();
+    private final Map<String, Integer> fileDownloadTaskNumMap = new HashMap<>();
     /**
      * 成功的文件上传任务，key: ip, value: 成功的文件任务名称
      */
-    private Map<String, Set<String>> successUploadFileMap = new HashMap<>();
+    private final Map<String, Set<String>> successUploadFileMap = new HashMap<>();
     /**
      * 已经结束的文件上传任务，key: ip, value: 已完成文件任务名称
      */
-    private Map<String, Set<String>> finishedUploadFileMap = new HashMap<>();
+    private final Map<String, Set<String>> finishedUploadFileMap = new HashMap<>();
     /**
      * 上传文件任务数，key: ip, value: 主机对应的文件任务数
      */
-    private Map<String, Integer> fileUploadTaskNumMap = new HashMap<>();
+    private final Map<String, Integer> fileUploadTaskNumMap = new HashMap<>();
     /**
      * 文件任务进度表
      */
-    private Map<String, Integer> processMap = new HashMap<>();
+    private final Map<String, Integer> processMap = new HashMap<>();
     /**
      * 本地文件上传目录
      */
-    private String localUploadDir;
+    private final String localUploadDir;
     /**
      * 源文件ip与云区域IP的映射关系；为了规避GSE BUG，GSE Server的源IP在多文件的场景下会返回-1；
      * 为了解决GSE Server日志不返回源IP的云区域ID的问题
      */
-    private Map<String, String> intSourceIpMapping = new HashMap<>();
+    private final Map<String, String> intSourceIpMapping = new HashMap<>();
     /**
      * 分发的源文件路径与分发之后的目标文件路径的映射关系
      */
-    private Map<String, String> sourceDestPathMap;
+    private final Map<String, String> sourceDestPathMap;
     /**
      * 源文件真实路径与显示路径的映射关系，用于本地文件分发场景下的真实路径隐藏
      */
-    private Map<String, String> sourceFileDisplayMap;
+    private final Map<String, String> sourceFileDisplayMap;
     /**
      * 下载全部结束的时间
      */
@@ -135,12 +139,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     /**
      * 未开始任务的文件源服务器
      */
-    private Set<String> notStartedFileSourceIpSet = new HashSet<>();
+    private final Set<String> notStartedFileSourceIpSet = new HashSet<>();
     /**
      * 正在执行任务的文件源服务器
      */
-    private Set<String> runningFileSourceIpSet = new HashSet<>();
-    private Set<String> sensitiveSourceFiles;
+    private final Set<String> runningFileSourceIpSet = new HashSet<>();
     /**
      * 文件任务执行结果处理调度策略
      */
@@ -170,13 +173,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             this.sourceDestPathMap = new HashMap<>();
         }
         this.sourceFileDisplayMap = sourceFileDisplayMap;
-        log.debug("sourceFileDisplayMap={}", sourceFileDisplayMap);
-        this.sensitiveSourceFiles = this.sendFiles.stream().filter(JobFile::isSensitive)
-            .map(jobFile -> jobFile.getCloudAreaIdAndIp() + ":" + jobFile.getStandardFilePath())
-            .collect(Collectors.toSet());
         initFileTaskNumMap();
         initSourceServerIp();
         initFileSourceIntIpMapping();
+
+        log.info("InitFileResultHandleTask|stepInstanceId: {}|sendFiles: {}|fileSourceIpSet: {}|targetIpSet: {}|" +
+                "fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+            stepInstance.getId(), sendFiles, fileSourceIPSet, targetIpSet, fileUploadTaskNumMap,
+            fileDownloadTaskNumMap);
     }
 
 
@@ -193,9 +197,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             this.fileUploadTaskNumMap.put(ip, this.fileUploadTaskNumMap.get(ip) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(ip) + 1));
         }
-
-        log.info("[{}]: sendFileList={}| fileTaskNumMap={}", this.stepInstanceId, this.sendFiles,
-            this.fileDownloadTaskNumMap);
     }
 
     /*
@@ -224,7 +225,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     @Override
     GseLogBatchPullResult<api_map_rsp> pullGseTaskLogInBatches() {
-        api_map_rsp gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTaskLog.getGseTaskId());
+        api_map_rsp gseLog;
+        if (FeatureToggleConfigHolder.get().enablePullFileResultByIp(taskInstance.getAppId())
+            && (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
+            || CollectionUtils.isNotEmpty(this.analyseFinishedIpSet))) {
+            Set<String> notFinishedIps = new HashSet<>();
+            notFinishedIps.addAll(notStartedFileSourceIpSet);
+            notFinishedIps.addAll(runningFileSourceIpSet);
+            notFinishedIps.addAll(notStartedIpSet);
+            notFinishedIps.addAll(runningIpSet);
+            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTaskLog.getGseTaskId(),
+                notFinishedIps);
+        } else {
+            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTaskLog.getGseTaskId());
+        }
         GseLogBatchPullResult<api_map_rsp> pullResult;
         if (gseLog != null) {
             pullResult = new GseLogBatchPullResult<>(
@@ -237,11 +251,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     @Override
     GseTaskExecuteResult analyseGseTaskLog(GseLog<api_map_rsp> taskDetail) {
-        long currentTime = DateUtils.currentTimeMillis();
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
         // 执行日志, Map<ip, 日志>
         Map<String, ServiceIpLogDTO> executionLogs = new HashMap<>();
 
+        StopWatch watch = new StopWatch("analyse-gse-file-task");
+        watch.start("analyse");
         for (Map.Entry<String, String> ipResult : ipResults) {
             CopyFileRsp copyFileRsp = parseCopyFileRspFromGSELog(ipResult);
             if (copyFileRsp == null) {
@@ -257,12 +272,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             String cloudIp = isDownloadLog ?
                 fileTaskResult.getDestCloudIp() : fileTaskResult.getSourceCloudIp();
 
-            GseTaskIpLogDTO ipLog = this.ipLogMap.get(cloudIp);
-            if (ipLog.getStartTime() == null) {
-                ipLog.setStartTime(currentTime);
-            }
-            ipLog.setErrCode(copyFileRsp.getFinalErrorCode());
-
             if (isDownloadLog && this.targetIpSet.contains(cloudIp)) {
                 this.runningIpSet.add(cloudIp);
             } else if (!isDownloadLog && this.fileSourceIPSet.contains(cloudIp)) {
@@ -271,25 +280,38 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
             analyseFileResult(cloudIp, copyFileRsp, executionLogs, isDownloadLog);
         }
+        watch.stop();
+
         // 保存文件分发日志
+        watch.start("saveFileLog");
         writeFileTaskLogContent(executionLogs);
+        watch.stop();
 
         // 保存任务执行结果
-        ArrayList<GseTaskIpLogDTO> ipLogList = new ArrayList<>(ipLogMap.values());
-        gseTaskLogService.batchSaveIpLog(new ArrayList<>(ipLogList));
+        watch.start("saveIpLogs");
+        batchSaveChangedIpLogs();
+        watch.stop();
 
-        log.info("Analyse gse task log [{}] -> targetIpSet={}, fileSourceIpSet={}, runningTargetIpSet={}, " +
+        log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
                 "notStartedTargetIpSet={}, runningFileSourceIpSet={}, notStartedFileSourceIpSet={}, " +
-                "analyseFinishedIPSet={}, fileDownloadTaskNumMap={}, successDownloadFileMap={}, " +
-                "finishedDownloadFileMap={}, fileUploadTaskNumMap={}, successUploadFileMap={}, " +
-                "finishedUploadFileMap={}",
-            this.stepInstanceId, this.targetIpSet, this.fileSourceIPSet, this.runningIpSet, this.notStartedIpSet,
-            this.runningFileSourceIpSet, this.notStartedFileSourceIpSet, this.analyseFinishedIpSet,
-            this.fileDownloadTaskNumMap,
-            this.successDownloadFileMap, this.finishedDownloadFileMap, this.fileUploadTaskNumMap,
-            this.successUploadFileMap,
-            this.fileUploadTaskNumMap);
+                "analyseFinishedTargetIpSet={}, analyseFinishedSourceIpSet={}, finishedDownloadFileMap={}, " +
+                "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
+            this.stepInstanceId,
+            this.runningIpSet,
+            this.notStartedIpSet,
+            this.runningFileSourceIpSet,
+            this.notStartedFileSourceIpSet,
+            this.analyseFinishedIpSet,
+            this.analyseFinishedSourceIpSet,
+            this.finishedDownloadFileMap,
+            this.successDownloadFileMap,
+            this.finishedUploadFileMap,
+            this.successUploadFileMap
+        );
 
+        if (watch.getTotalTimeMillis() > 1000L) {
+            log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
+        }
         return analyseExecuteResult();
     }
 
@@ -320,8 +342,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         addFinishedFile(true, false,
                             fileTaskResult.getSourceCloudIp(), fileTaskResult.getTaskId());
                     }
+                    // 分析日志，更新successIpSet、notStartedIpSet等状态集合
                     analyseIpResult(errorCode.getValue(), cloudIp, fileTaskResult.getStartTime(),
-                        fileTaskResult.getEndTime());
+                        fileTaskResult.getEndTime(), isDownloadLog);
                 } else {
                     ipLog.setStatus(IpStatus.RUNNING.getValue());
                     this.notStartedIpSet.remove(cloudIp);
@@ -337,11 +360,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         fileTaskResult.getSourceCloudIp(), fileTaskResult.getTaskId());
                 }
                 analyseIpResult(errorCode.getValue(), cloudIp, fileTaskResult.getStartTime(),
-                    fileTaskResult.getEndTime());
+                    fileTaskResult.getEndTime(), isDownloadLog);
                 this.isTerminatedSuccess = true;
                 break;
             default:
-                dealIpTaskFail(copyFileRsp, executionLogs);
+                dealIpTaskFail(copyFileRsp, executionLogs, isDownloadLog);
                 break;
         }
     }
@@ -352,7 +375,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      * @return 任务执行结果
      */
     private GseTaskExecuteResult analyseExecuteResult() {
-        GseTaskExecuteResult rst = null;
+        GseTaskExecuteResult rst;
         // 目标下载全部完成
         if (this.notStartedIpSet.isEmpty() && this.runningIpSet.isEmpty()) {
             // 源上传全部完成
@@ -369,6 +392,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                         rst = GseTaskExecuteResult.FAILED;
                     }
                 }
+                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed tasks",
+                    this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
                 if (this.downloadFinishedTime == 0) {
@@ -379,13 +404,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     int successTargetIpNum = this.successIpSet.size();
                     boolean isSuccess = this.invalidIpSet.isEmpty() && successTargetIpNum == targetIPNum;
                     rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
+                    log.info("[{}] AnalyseExecuteResult-> Result: finished. Download tasks are finished, " +
+                            "but upload tasks are not finished after 15 seconds. Ignore upload tasks",
+                        this.stepInstanceId);
                 } else {
                     rst = GseTaskExecuteResult.RUNNING;
+                    log.info("[{}] AnalyseExecuteResult-> Result: running. Download tasks are finished, " +
+                        "wait for upload task to complete.", this.stepInstanceId);
                 }
             }
 
         } else {
             rst = GseTaskExecuteResult.RUNNING;
+            log.info("[{}] AnalyseExecuteResult-> Result: running. Download tasks has not been finished",
+                this.stepInstanceId);
         }
         return rst;
     }
@@ -419,7 +451,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private CopyFileRsp parseCopyFileRspFromGSELog(Map.Entry<String, String> ipResult) {
-        log.info("[{}]: ipResult: {}", this.stepInstanceId, ipResult);
+        log.info("[{}]: ParseIpResult: {}", this.stepInstanceId, ipResult);
         String taskInfo = ipResult.getValue();
         CopyFileRsp copyFileRsp;
         try {
@@ -437,7 +469,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (!isStandardGSEProtocol) {
             copyFileRsp = parseCopyFileRspFromResultKey(copyFileRsp, ipResult.getKey());
             if (copyFileRsp != null) {
-                log.info("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
+                log.debug("Parse from resultKey, copyFileRsp: {}", copyFileRsp);
             }
         }
         return copyFileRsp;
@@ -564,80 +596,117 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return this.intSourceIpMapping.get(intIp);
     }
 
-
-    private void dealIpTaskFail(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs) {
+    private void recordFinishedFileSourceIPSet(
+        CopyFileRsp copyFileRsp,
+        Map<String, ServiceIpLogDTO> executionLogs,
+        Set<String> affectIps
+    ) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
-        boolean isDownloadError = taskResult.isDownloadMode();
-        // 被该错误影响的ip
-        Set<String> affectIps = new HashSet<>();
+        String destCloudIp = taskResult.getDestCloudIp();
+        log.info("Target agent down, sourceIp is null");
+        for (String fileSourceIp : this.fileSourceIPSet) {
+            boolean isAddSuccess = addFinishedFile(false, true, destCloudIp,
+                buildTaskId(taskResult.getMode(), fileSourceIp, taskResult.getStandardSourceFilePath(),
+                    destCloudIp, taskResult.getStandardDestFilePath()));
+            if (isAddSuccess) {
+                addFileTaskLog(executionLogs, destCloudIp,
+                    new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
+                        destCloudIp, taskResult.getStandardDestFilePath(), fileSourceIp, fileSourceIp,
+                        taskResult.getStandardSourceFilePath(),
+                        taskResult.getStandardSourceFilePath() == null ? null :
+                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
+                        null, FileDistStatusEnum.FAILED.getValue(),
+                        FileDistStatusEnum.FAILED.getName(),
+                        null, null, copyFileRsp.getFinalErrorMsg()));
+                affectIps.add(fileSourceIp);
+            }
+        }
+    }
 
-        if (isDownloadError) {
+    private void recordFinishedFile(
+        CopyFileRsp copyFileRsp,
+        Map<String, ServiceIpLogDTO> executionLogs,
+        Set<String> affectIps
+    ) {
+        GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
+        String destCloudIp = taskResult.getDestCloudIp();
+        String sourceCloudIp = taskResult.getSourceCloudIp();
+        boolean isAddSuccess = addFinishedFile(false, true, destCloudIp,
+            buildTaskId(taskResult.getMode(), sourceCloudIp, taskResult.getStandardSourceFilePath(),
+                destCloudIp, taskResult.getStandardDestFilePath()));
+        if (isAddSuccess) {
+            addFileTaskLog(executionLogs, destCloudIp,
+                new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
+                    destCloudIp, taskResult.getStandardDestFilePath(), taskResult.getSourceCloudIp(),
+                    taskResult.getSourceCloudIp(),
+                    taskResult.getStandardSourceFilePath(),
+                    taskResult.getStandardSourceFilePath() == null ? null :
+                        sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()), null,
+                    FileDistStatusEnum.FAILED.getValue(),
+                    FileDistStatusEnum.FAILED.getName(), null, null, copyFileRsp.getFinalErrorMsg()));
+            affectIps.add(sourceCloudIp);
+        }
+    }
+
+    private long getStartTimeOrDefault(GSEFileTaskResult content) {
+        return (content != null && content.getStartTime() != null && content.getStartTime() > 0) ?
+            content.getStartTime() : System.currentTimeMillis();
+    }
+
+    private long getEndTimeOrDefault(GSEFileTaskResult content) {
+        return (content != null && content.getEndTime() != null && content.getEndTime() > 0) ?
+            content.getEndTime() : System.currentTimeMillis();
+    }
+
+    private void dealIpTaskFail(
+        CopyFileRsp copyFileRsp,
+        Map<String, ServiceIpLogDTO> executionLogs,
+        boolean isDownloadLog
+    ) {
+        GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
+
+        GSEFileTaskResult content = copyFileRsp.getGseFileTaskResult();
+        long startTime = getStartTimeOrDefault(content);
+        long endTime = getEndTimeOrDefault(content);
+        if (isDownloadLog) {
+            // 被该错误影响的目标ip
+            Set<String> affectedTargetIps = new HashSet<>();
             String destCloudIp = taskResult.getDestCloudIp();
             String sourceCloudIp = taskResult.getSourceCloudIp();
-            affectIps.add(destCloudIp);
+            affectedTargetIps.add(destCloudIp);
             if (copyFileRsp.getFinalErrorCode().equals(GSECode.AGENT_DOWN) && StringUtils.isEmpty(sourceCloudIp)) {
                 // GSE BUG, agent异常场景需要特殊处理，此时，返回的源IP可能是-1
                 // GSE Server 返回的download失败日志，在多个源文件的情况下，会丢失源ip的信息，需要job补全
-                log.info("Target agent down, sourceIp is null");
-                for (String fileSourceIp : this.fileSourceIPSet) {
-                    boolean isAddSuccess = addFinishedFile(false, true, destCloudIp,
-                        buildTaskId(taskResult.getMode(), fileSourceIp, taskResult.getStandardSourceFilePath(),
-                            destCloudIp, taskResult.getStandardDestFilePath()));
-                    if (isAddSuccess) {
-                        addFileTaskLog(executionLogs, destCloudIp,
-                            new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
-                            destCloudIp, taskResult.getStandardDestFilePath(), fileSourceIp, fileSourceIp,
-                            taskResult.getStandardSourceFilePath(),
-                            taskResult.getStandardSourceFilePath() == null ? null :
-                                sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
-                            null, FileDistStatusEnum.FAILED.getValue(),
-                            FileDistStatusEnum.FAILED.getName(),
-                                null, null, copyFileRsp.getFinalErrorMsg()));
-                        affectIps.add(fileSourceIp);
-                    }
-                }
-
+                recordFinishedFileSourceIPSet(copyFileRsp, executionLogs, affectedTargetIps);
             } else {
-                boolean isAddSuccess = addFinishedFile(false, true, destCloudIp,
-                    buildTaskId(taskResult.getMode(), sourceCloudIp, taskResult.getStandardSourceFilePath(),
-                        destCloudIp, taskResult.getStandardDestFilePath()));
-                if (isAddSuccess) {
-                    addFileTaskLog(executionLogs, destCloudIp,
-                        new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
-                        destCloudIp, taskResult.getStandardDestFilePath(), taskResult.getSourceCloudIp(),
-                            taskResult.getSourceCloudIp(),
-                        taskResult.getStandardSourceFilePath(),
-                        taskResult.getStandardSourceFilePath() == null ? null :
-                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()), null,
-                            FileDistStatusEnum.FAILED.getValue(),
-                        FileDistStatusEnum.FAILED.getName(), null, null, copyFileRsp.getFinalErrorMsg()));
-                    affectIps.add(sourceCloudIp);
+                recordFinishedFile(copyFileRsp, executionLogs, affectedTargetIps);
+            }
+
+            String cloudIp = taskResult.getDestCloudIp();
+            for (String affectIp : affectedTargetIps) {
+                if (affectIp.equals(cloudIp)) {
+                    analyseIpResult(copyFileRsp.getFinalErrorCode(), affectIp, startTime, endTime, true);
+                } else {
+                    analyseIpResult(0, affectIp, startTime, endTime, true);
                 }
             }
         } else {
-            // 如果上传源失败，除了影响上传，还会影响到下载的目标ip
-            dealUploadFail(copyFileRsp, executionLogs, affectIps);
-        }
+            // 上传源IP本身处理
+            String sourceCloudIp = taskResult.getSourceCloudIp();
+            analyseIpResult(copyFileRsp.getFinalErrorCode(), sourceCloudIp, startTime, endTime, false);
 
-        GSEFileTaskResult content = copyFileRsp.getGseFileTaskResult();
-        long startTime = (content != null && content.getStartTime() != null && content.getStartTime() > 0) ?
-            copyFileRsp.getGseFileTaskResult().getStartTime() : System.currentTimeMillis();
-        long endTime = (content != null && content.getEndTime() != null && content.getEndTime() > 0) ?
-            copyFileRsp.getGseFileTaskResult().getEndTime() : System.currentTimeMillis();
-
-        String cloudIp = isDownloadError ? taskResult.getDestCloudIp() : taskResult.getSourceCloudIp();
-        for (String affectIp : affectIps) {
-            if (affectIp.equals(cloudIp)) {
-                analyseIpResult(copyFileRsp.getFinalErrorCode(), affectIp, startTime, endTime);
-            } else {
-                analyseIpResult(0, affectIp, startTime, endTime);
+            // 如果上传源失败，除了影响上传，还会影响到下载的目标IP
+            Set<String> affectedTargetIps = new HashSet<>();
+            dealUploadFail(copyFileRsp, executionLogs, affectedTargetIps);
+            for (String affectedTargetIp : affectedTargetIps) {
+                analyseIpResult(0, affectedTargetIp, startTime, endTime, true);
             }
         }
     }
 
     private String buildTaskId(Integer mode, String sourceIp, String sourceFilePath, String destIp,
                                String destFilePath) {
-        String taskId = "";
+        String taskId;
         if (isDownloadLog(mode)) {
             if (StringUtils.isNotEmpty(sourceIp)) {
                 taskId = concat(mode.toString(), sourceIp, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
@@ -661,25 +730,33 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return sj.toString();
     }
 
+    /**
+     * 根据copyFileRsp内容填充executionLogs与affectIps
+     *
+     * @param copyFileRsp       GSE响应内容
+     * @param executionLogs     执行日志总Map
+     * @param affectedTargetIps 受影响的目标IP集合
+     */
     private void dealUploadFail(CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs,
-                                Set<String> affectIps) {
+                                Set<String> affectedTargetIps) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
         String sourceCloudIp = taskResult.getSourceCloudIp();
-        affectIps.add(sourceCloudIp);
+        // 记录源IP单个文件上传任务的结束状态
         addFinishedFile(false, false, taskResult.getSourceCloudIp(), taskResult.getTaskId());
 
         String sourceFilePath = taskResult.getStandardSourceFilePath();
         String displayFilePath = sourceFileDisplayMap.get(sourceFilePath);
         boolean isLocalUploadFile = sourceFilePath.startsWith(this.localUploadDir);
-        log.info("StandardSourceFilePath: {}, localUploadDir: {}, isLocalUploadFile: {}, displayFilePath: {}",
+        log.debug("StandardSourceFilePath: {}, localUploadDir: {}, isLocalUploadFile: {}, displayFilePath: {}",
             sourceFilePath, this.localUploadDir, isLocalUploadFile, displayFilePath);
 
+        // 增加一条上传源失败的上传日志
         addFileTaskLog(executionLogs, sourceCloudIp, new ServiceFileTaskLogDTO(
             FileDistModeEnum.UPLOAD.getValue(), null,
             null, sourceCloudIp, sourceCloudIp, sourceFilePath, displayFilePath, null,
             FileDistStatusEnum.FAILED.getValue(), FileDistStatusEnum.FAILED.getName(), null, null,
             copyFileRsp.getFinalErrorMsg()));
-        // 源失败了，会影响对应的目标agent上的download任务
+        // 源失败了，会影响所有目标IP对应的agent上的download任务
         for (String targetIp : this.targetIpSet) {
             String destFilePath;
             if (isLocalUploadFile) {
@@ -689,26 +766,74 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                     this.sourceDestPathMap.get(
                         taskResult.getSourceCloudIp() + ":" + taskResult.getStandardSourceFilePath());
             }
+            // 记录目标IP单个文件下载任务的结束状态
             addFinishedFile(false, true, targetIp,
                 buildTaskId(taskResult.getMode(), taskResult.getSourceCloudIp(),
-                taskResult.getStandardSourceFilePath(),
-                targetIp, destFilePath));
+                    taskResult.getStandardSourceFilePath(),
+                    targetIp, destFilePath));
+            // 每个目标IP增加一条下载失败的日志到日志总Map中
             addFileTaskLog(executionLogs, targetIp, new ServiceFileTaskLogDTO(FileDistModeEnum.DOWNLOAD.getValue(),
                 targetIp, destFilePath,
                 sourceCloudIp, sourceCloudIp, sourceFilePath, displayFilePath, null,
                 FileDistStatusEnum.FAILED.getValue(), FileDistStatusEnum.FAILED.getName(),
                 null, null, copyFileRsp.getFinalErrorMsg()));
-            affectIps.add(targetIp);
+            affectedTargetIps.add(targetIp);
         }
     }
 
-    private void analyseIpResult(int errorCode, String cloudIp, long startTime, long endTime) {
+    /**
+     * 根据errorCode、fileNum、successNum更新successIpSet状态集合与ipLog状态
+     *
+     * @param errorCode  GSE错误码
+     * @param cloudIp    IP
+     * @param fileNum    文件总数
+     * @param successNum 成功分发的文件总数
+     * @param isDownload 是否为下载过程
+     * @param ipLog      ip对应日志
+     */
+    private void updateFinishedIpStatusAndLog(
+        int errorCode,
+        String cloudIp,
+        int fileNum,
+        int successNum,
+        boolean isDownload,
+        GseTaskIpLogDTO ipLog
+    ) {
+        boolean isTargetIp = targetIpSet.contains(cloudIp);
+        if (successNum >= fileNum) {
+            // 每个文件都处理完了，才算IP完成执行
+            if (isDownload && isTargetIp) {
+                ipLog.setStatus(IpStatus.SUCCESS.getValue());
+                this.successIpSet.add(cloudIp);
+            }
+        } else {
+            int ipStatus = IpStatus.FAILED.getValue();
+            if (errorCode != 0) {
+                ipStatus = Utils.getStatusByGseErrorCode(errorCode);
+                if (ipStatus < 0) {
+                    ipStatus = IpStatus.FILE_ERROR_UNCLASSIFIED.getValue();
+                }
+            }
+            ipLog.setStatus(ipStatus);
+        }
+    }
+
+    /**
+     * 分析日志，更新successIpSet、notStartedIpSet等状态集合，用于判定最终整体任务状态
+     *
+     * @param errorCode  GSE错误码
+     * @param cloudIp    IP
+     * @param startTime  任务起始时间
+     * @param endTime    任务终止时间
+     * @param isDownload 是否为下载过程
+     */
+    private void analyseIpResult(int errorCode, String cloudIp, long startTime, long endTime, boolean isDownload) {
         int finishedNum;
         int fileNum;
         int successNum;
         boolean isTargetIp = targetIpSet.contains(cloudIp);
         boolean isSourceIp = fileSourceIPSet.contains(cloudIp);
-        if (isTargetIp) {
+        if (isDownload && isTargetIp) {
             finishedNum = this.finishedDownloadFileMap.get(cloudIp) == null ? 0 :
                 this.finishedDownloadFileMap.get(cloudIp).size();
             fileNum = this.fileDownloadTaskNumMap.get(cloudIp) == null ? 0 : this.fileDownloadTaskNumMap.get(cloudIp);
@@ -726,29 +851,17 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         GseTaskIpLogDTO ipLog = ipLogMap.get(cloudIp);
         if (finishedNum >= fileNum) {
-            log.info("[{}] cloudIp: {} finished analyse!", stepInstanceId, cloudIp);
-            if (isTargetIp) {
+            log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
+                stepInstanceId, cloudIp, finishedNum, fileNum);
+            if (isDownload && isTargetIp) {
+                // 更新IP统计状态集合，为ipLog设置任务起止时间
                 dealIPFinish(cloudIp, startTime, endTime, ipLog);
             }
             if (isSourceIp) {
+                // 更新IP统计状态集合
                 dealUploadIpFinished(cloudIp);
             }
-            if (successNum >= fileNum) {
-                // 每个文件都处理完了，才算IP完成执行
-                if (isTargetIp) {
-                    ipLog.setStatus(IpStatus.SUCCESS.getValue());
-                    this.successIpSet.add(cloudIp);
-                }
-            } else {
-                int ipStatus = IpStatus.FAILED.getValue();
-                if (errorCode != 0) {
-                    ipStatus = Utils.getStatusByGseErrorCode(errorCode);
-                    if (ipStatus < 0) {
-                        ipStatus = IpStatus.FILE_ERROR_UNCLASSIFIED.getValue();
-                    }
-                }
-                ipLog.setStatus(ipStatus);
-            }
+            updateFinishedIpStatusAndLog(errorCode, cloudIp, fileNum, successNum, isDownload, ipLog);
         } else {
             ipLog.setStatus(IpStatus.RUNNING.getValue());
             this.notStartedIpSet.remove(cloudIp);
@@ -758,6 +871,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     private void dealUploadIpFinished(String sourceCloudIp) {
         this.runningFileSourceIpSet.remove(sourceCloudIp);
         this.notStartedFileSourceIpSet.remove(sourceCloudIp);
+        this.analyseFinishedSourceIpSet.add(sourceCloudIp);
     }
 
     /*
@@ -868,10 +982,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return status;
     }
 
-    private boolean isSensitiveSourceFile(String filePath, String cloudIp) {
-        return sensitiveSourceFiles.contains(cloudIp + ":" + filePath);
-    }
-
     private boolean isDownloadLog(Integer mode) {
         return FileDistModeEnum.DOWNLOAD.getValue().equals(mode);
     }
@@ -881,6 +991,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         return formatter.format(speed);
     }
 
+    /**
+     * 将目标机器ip的日志fileTaskLog加入到总的日志表executionLogs中，若无ip对应日志则创建
+     *
+     * @param executionLogs 执行日志总的Map
+     * @param ip            目标机ip
+     * @param fileTaskLog   一条目标机日志
+     */
     private void addFileTaskLog(Map<String, ServiceIpLogDTO> executionLogs, String ip,
                                 ServiceFileTaskLogDTO fileTaskLog) {
         ServiceIpLogDTO ipExecutionLog = executionLogs.get(ip);
@@ -895,12 +1012,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     private void writeFileTaskLogContent(Map<String, ServiceIpLogDTO> executionLogs) {
-        executionLogs.forEach((ip, executionLog) -> {
+        executionLogs.forEach((ip, executionLog) ->
             logService.writeFileLogWithTimestamp(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), ip, executionLog, System.currentTimeMillis());
-        });
+                stepInstance.getExecuteCount(), ip, executionLog, System.currentTimeMillis()));
     }
 
+    /**
+     * 向某个IP上传/下载文件的已结束状态Map、已成功状态Map中添加记录
+     *
+     * @param isSuccess      单个文件上传/下载任务是否成功
+     * @param isDownloadMode 是否为下载
+     * @param cloudIp        含云区域ID的IP
+     * @param taskId         单个文件任务唯一Key
+     * @return 是否添加成功
+     */
     private boolean addFinishedFile(boolean isSuccess, boolean isDownloadMode, String cloudIp, String taskId) {
         if (isDownloadMode) {
             return addFinishedFile(isSuccess, cloudIp, taskId, finishedDownloadFileMap, successDownloadFileMap);

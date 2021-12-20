@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.file.worker.cos.service;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
-import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -116,8 +118,8 @@ class DownloadFileTask extends Thread {
                 Thread.sleep(0);
             } while (!downloadSuccess && count < 10);
             if (!downloadSuccess) {
-                throw new ServiceException(String.format("Fail to download %s because md5 not match 10 times, " +
-                    "filePath=%s", targetPath, filePath));
+                throw new InternalException(String.format("Fail to download %s because md5 not match 10 times, " +
+                    "filePath=%s", targetPath, filePath), ErrorCode.INTERNAL_ERROR);
             }
         } catch (InterruptedException e) {
             // 停止下载任务时，线程被主动中断，删除下一半的文件

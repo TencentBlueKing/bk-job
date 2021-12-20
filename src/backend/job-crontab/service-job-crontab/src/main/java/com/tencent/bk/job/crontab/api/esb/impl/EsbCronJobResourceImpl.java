@@ -27,11 +27,15 @@ package com.tencent.bk.job.crontab.api.esb.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -76,12 +80,8 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_cron_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_cron_list"})
     public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
-        if (request == null) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
-        }
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
@@ -134,7 +134,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_update_cron_status"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_update_cron_status"})
     public EsbResp<EsbCronInfoResponse> updateCronStatus(EsbUpdateCronStatusRequest request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
@@ -152,11 +152,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
                 updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
                     request.getStatus() == 1);
             } catch (TaskExecuteAuthFailedException e) {
-                if (e.getAuthResult() != null) {
-                    return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
-                } else {
-                    return EsbResp.buildAuthFailResult(null, i18nService);
-                }
+                throw new PermissionDeniedException(e.getAuthResult());
             }
             if (updateResult) {
                 EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
@@ -164,22 +160,19 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
                 return EsbResp.buildSuccessResp(esbCronInfoResponse);
             }
         } else {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return EsbResp.buildCommonFailResp(ErrorCode.UPDATE_CRON_JOB_FAILED,
-            i18nService.getI18n(String.valueOf(ErrorCode.UPDATE_CRON_JOB_FAILED)));
+        throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_save_cron"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_save_cron"})
     public EsbResp<EsbCronInfoResponse> saveCron(EsbSaveCronRequest request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(0L);
         if (request == null || !request.validate()) {
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         Long appId = request.getAppId();
         AuthResult authResult;
@@ -212,25 +205,19 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
             try {
                 cronId = cronJobService.saveCronJobInfo(cronJobInfo);
             } catch (TaskExecuteAuthFailedException e) {
-                if (e.getAuthResult() != null) {
-                    return authService.buildEsbAuthFailResp(e.getAuthResult().getRequiredActionResources());
-                } else {
-                    return EsbResp.buildAuthFailResult(null, i18nService);
-                }
+                throw new PermissionDeniedException(e.getAuthResult());
             }
             if (cronId > 0) {
                 esbCronInfoResponse.setId(cronId);
                 return EsbResp.buildSuccessResp(esbCronInfoResponse);
             } else {
-                return EsbResp.buildCommonFailResp(ErrorCode.UPDATE_CRON_JOB_FAILED,
-                    i18nService.getI18n(String.valueOf(ErrorCode.UPDATE_CRON_JOB_FAILED)));
+                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             }
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Validate request failed!|{}", JobContextUtil.getDebugMessage());
             }
-            return EsbResp.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 }

@@ -30,10 +30,20 @@ import com.tencent.bk.job.analysis.consts.DimensionEnum;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.ResourceEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.model.web.*;
-import com.tencent.bk.job.analysis.service.*;
+import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
+import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
+import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
+import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
+import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
+import com.tencent.bk.job.analysis.service.AppStatisticService;
+import com.tencent.bk.job.analysis.service.CommonStatisticService;
+import com.tencent.bk.job.analysis.service.ExecutedTaskStatisticService;
+import com.tencent.bk.job.analysis.service.FastFileStatisticService;
+import com.tencent.bk.job.analysis.service.FastScriptStatisticService;
+import com.tencent.bk.job.analysis.service.TagStatisticService;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -44,7 +54,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -81,7 +95,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
-    public ServiceResponse<CommonStatisticWithRateVO> totalStatistics(
+    public Response<CommonStatisticWithRateVO> totalStatistics(
         String username,
         TotalMetricEnum metric,
         List<Long> appIdList,
@@ -98,11 +112,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else {
             statisticWithRateVO = commonStatisticService.getCommonTotalStatistics(metric, appIdList, date);
         }
-        return ServiceResponse.buildSuccessResp(statisticWithRateVO);
+        return Response.buildSuccessResp(statisticWithRateVO);
     }
 
     @Override
-    public ServiceResponse<List<CommonTrendElementVO>> trends(
+    public Response<List<CommonTrendElementVO>> trends(
         String username,
         TotalMetricEnum metric,
         List<Long> appIdList,
@@ -135,7 +149,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         if (commonTrendElementVOList.isEmpty()) {
             CommonTrendElementVO lastDayElementVO = new CommonTrendElementVO();
             lastDayElementVO.setDate(endDate);
-            lastDayElementVO.setValue(0);
+            lastDayElementVO.setValue(0L);
             commonTrendElementVOList.add(lastDayElementVO);
         }
         CommonTrendElementVO commonTrendElementVO = commonTrendElementVOList.get(0);
@@ -145,18 +159,18 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
             String lastDayDateStr = DateUtils.getLastDateStr(dateStr);
             CommonTrendElementVO lastDayElementVO = new CommonTrendElementVO();
             lastDayElementVO.setDate(lastDayDateStr);
-            lastDayElementVO.setValue(0);
+            lastDayElementVO.setValue(0L);
             log.debug("add empty commonTrendElementVO for {}", lastDayDateStr);
             commonTrendElementVOList.add(0, lastDayElementVO);
             count += 1;
             dateStr = lastDayDateStr;
         }
         log.debug("commonTrendElementVOList={}", commonTrendElementVOList);
-        return ServiceResponse.buildSuccessResp(commonTrendElementVOList);
+        return Response.buildSuccessResp(commonTrendElementVOList);
     }
 
     @Override
-    public ServiceResponse<List<PerAppStatisticVO>> listByPerApp(
+    public Response<List<PerAppStatisticVO>> listByPerApp(
         String username,
         TotalMetricEnum metric,
         List<Long> appIdList,
@@ -180,11 +194,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
             perAppStatisticVOList = commonStatisticService.listByPerApp(StatisticsConstants.RESOURCE_GLOBAL, metric,
                 appIdList, date);
         }
-        return ServiceResponse.buildSuccessResp(perAppStatisticVOList);
+        return Response.buildSuccessResp(perAppStatisticVOList);
     }
 
     @Override
-    public ServiceResponse<CommonDistributionVO> distributionStatistics(
+    public Response<CommonDistributionVO> distributionStatistics(
         String username,
         DistributionMetricEnum metric,
         List<Long> appIdList,
@@ -199,7 +213,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else {
             commonDistributionVO = commonStatisticService.metricDistributionStatistics(metric, appIdList, date);
         }
-        return ServiceResponse.buildSuccessResp(commonDistributionVO);
+        return Response.buildSuccessResp(commonDistributionVO);
     }
 
     private List<DayDistributionElementVO> executedTaskByStartupModeDayDetail(
@@ -248,7 +262,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
-    public ServiceResponse<List<DayDistributionElementVO>> dayDetailStatistics(
+    public Response<List<DayDistributionElementVO>> dayDetailStatistics(
         String username,
         ResourceEnum resource,
         DimensionEnum dimension,
@@ -275,14 +289,14 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else if (ResourceEnum.EXECUTED_FAST_FILE == resource && DimensionEnum.FILE_TRANSFER_MODE == dimension) {
             dayDistributionElementVOList = fastFileByTransferModeDayDetail(username, appIdList, startDate, endDate);
         } else {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, String.format("dimension %s of " +
-                "resource %s not supported", dimension.name(), resource.name()));
+            throw new InvalidParamException(String.format("dimension %s of " +
+                "resource %s not supported", dimension.name(), resource.name()), ErrorCode.ILLEGAL_PARAM);
         }
-        return ServiceResponse.buildSuccessResp(dayDistributionElementVOList);
+        return Response.buildSuccessResp(dayDistributionElementVOList);
     }
 
     @Override
-    public ServiceResponse<Map<String, String>> getStatisticsDataInfo(String username) {
+    public Response<Map<String, String>> getStatisticsDataInfo(String username) {
         Map<String, String> statisticsDataInfoMap = new HashMap<>();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime targetDate = now.minusDays(statisticConfig.getExpireDays());
@@ -291,6 +305,6 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         String updateDateStr = redisTemplate.opsForValue().get(StatisticsConstants.KEY_DATA_UPDATE_TIME);
         if (updateDateStr == null) updateDateStr = "";
         statisticsDataInfoMap.put(StatisticsConstants.KEY_DATA_UPDATE_TIME, updateDateStr);
-        return ServiceResponse.buildSuccessResp(statisticsDataInfoMap);
+        return Response.buildSuccessResp(statisticsDataInfoMap);
     }
 }

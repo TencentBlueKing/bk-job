@@ -68,12 +68,12 @@
         height: calc(100vh - 158px);
 
         .wraper {
-            opacity: 1;
+            opacity: 100%;
             visibility: visible;
             transition: all 1s;
 
             &.loading {
-                opacity: 0;
+                opacity: 0%;
                 visibility: hidden;
             }
         }

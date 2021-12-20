@@ -34,29 +34,8 @@ data:
           idle-timeout: 600000
           poolName: "job-analysis"
           validationTimeout: 5000
-      rabbitmq:
-        host: {{ include "job.rabbitmq.host" . }}
-        port: {{ include "job.rabbitmq.port" . }}
-        username: {{ include "job.rabbitmq.username" . }}
-        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${rabbitmq-password}
-        {{- end }}
-        virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
-        mode: standalone
-        host: {{ include "job.redis.host" . }}
-        port: {{ include "job.redis.port" . }}
-        #sentinel:
-          #password:
-          #master:
-          #nodes:
-        {{ if .Values.externalRedis.existingPasswordSecret }}
-        password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${redis-password}
-        {{- end }}
+        {{- include "job.redis.config" . | indent 8 }}
         database: 0
         lettuce:
           pool:

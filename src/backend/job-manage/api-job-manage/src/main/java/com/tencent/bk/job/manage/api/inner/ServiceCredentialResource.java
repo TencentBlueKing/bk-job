@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.api.model.InnerServiceResponse;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceBasicCredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
@@ -50,7 +49,7 @@ public interface ServiceCredentialResource {
 
     @ApiOperation(value = "获取凭据详情", produces = "application/json")
     @GetMapping("/ids/{id}")
-    ServiceResponse<ServiceCredentialDTO> getCredentialById(
+    InternalResponse<ServiceCredentialDTO> getCredentialById(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId,
         @ApiParam("凭据ID")
@@ -60,7 +59,7 @@ public interface ServiceCredentialResource {
 
     @ApiOperation(value = "新建凭据", produces = "application/json")
     @PostMapping("/create")
-    InnerServiceResponse<ServiceBasicCredentialDTO> createCredential(
+    InternalResponse<ServiceBasicCredentialDTO> createCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -73,7 +72,7 @@ public interface ServiceCredentialResource {
 
     @ApiOperation(value = "更新凭据", produces = "application/json")
     @PutMapping("/update")
-    InnerServiceResponse<ServiceBasicCredentialDTO> updateCredential(
+    InternalResponse<ServiceBasicCredentialDTO> updateCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,

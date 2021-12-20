@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
@@ -99,7 +99,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
     public List<StatisticsDTO> calcAppCronStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 开启的
-        ServiceResponse<Integer> resp = cronMetricsResourceClient.countCronJob(appId, true, null);
+        InternalResponse<Integer> resp = cronMetricsResourceClient.countCronJob(appId, true, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCronJob, resp:{}", resp);
             return Collections.emptyList();

@@ -1,0 +1,40 @@
+<included>
+    <property name="ARCHIVE_ERROR_LOG_FILE" value="${APP_LOG_DIR}/archive_error.log"/>
+
+    <appender name="archive-error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${ARCHIVE_ERROR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${ARCHIVE_ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>168</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev &amp; !kubernetes">
+        <logger name="ArchiveFailedLogger" level="WARN" additivity="false">
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; !kubernetes">
+        <logger name="ArchiveFailedLogger" level="WARN" additivity="false">
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="dev &amp; kubernetes">
+        <logger name="ArchiveFailedLogger" level="WARN" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; kubernetes">
+        <logger name="ArchiveFailedLogger" level="WARN" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="archive-error-appender"/>
+        </logger>
+    </springProfile>
+</included>

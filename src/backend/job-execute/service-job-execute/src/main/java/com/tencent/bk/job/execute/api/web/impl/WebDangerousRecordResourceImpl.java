@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebDangerousRecordResource;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
@@ -52,12 +52,12 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
     }
 
     @Override
-    public ServiceResponse<PageData<DangerousRecordVO>> pageListDangerousRecords(String username, Long id, Long appId,
-                                                                                 Long ruleId, String ruleExpression,
-                                                                                 String startTime, String endTime,
-                                                                                 Integer start, Integer pageSize,
-                                                                                 Integer startupMode, Integer mode,
-                                                                                 String operator, String client) {
+    public Response<PageData<DangerousRecordVO>> pageListDangerousRecords(String username, Long id, Long appId,
+                                                                          Long ruleId, String ruleExpression,
+                                                                          String startTime, String endTime,
+                                                                          Integer start, Integer pageSize,
+                                                                          Integer startupMode, Integer mode,
+                                                                          String operator, String client) {
         DangerousRecordDTO query = new DangerousRecordDTO();
         query.setId(id);
         query.setRuleId(ruleId);
@@ -91,6 +91,6 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
             pageDataVO.setData(pageData.getData().stream().map(DangerousRecordDTO::toDangerousRecordVO)
                 .collect(Collectors.toList()));
         }
-        return ServiceResponse.buildSuccessResp(pageDataVO);
+        return Response.buildSuccessResp(pageDataVO);
     }
 }

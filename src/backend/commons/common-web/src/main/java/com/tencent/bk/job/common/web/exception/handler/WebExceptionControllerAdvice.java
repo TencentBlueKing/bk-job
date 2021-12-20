@@ -26,235 +26,149 @@ package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.exception.UnauthenticatedException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.web.exception.HttpStatusServiceException;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.ConversionNotSupportedException;
-import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.validation.BindException;
-import org.springframework.web.HttpMediaTypeNotAcceptableException;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingPathVariableException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
-import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 @ControllerAdvice(annotations = {WebAPI.class})
 @Slf4j
-public class WebExceptionControllerAdvice extends ResponseEntityExceptionHandler {
-    private final MessageI18nService i18nService;
+public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase {
     private final WebAuthService webAuthService;
 
     @Autowired
-    public WebExceptionControllerAdvice(MessageI18nService i18nService, WebAuthService webAuthService) {
-        this.i18nService = i18nService;
+    public WebExceptionControllerAdvice(WebAuthService webAuthService) {
         this.webAuthService = webAuthService;
-    }
-
-    @ExceptionHandler(ServiceException.class)
-    @ResponseBody
-    ResponseEntity<?> handleControllerServiceException(HttpServletRequest request, ServiceException ex) {
-        if (ex instanceof HttpStatusServiceException) {
-            log.warn("Handle service exception", ex);
-            HttpStatusServiceException httpStatusServiceException = (HttpStatusServiceException) ex;
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(httpStatusServiceException, i18nService),
-                httpStatusServiceException.getHttpStatus());
-        } else if (ex instanceof InSufficientPermissionException) {
-            InSufficientPermissionException inSufficientPermissionException = (InSufficientPermissionException) ex;
-            AuthResult authResult = inSufficientPermissionException.getAuthResult();
-            log.debug("Insufficient permission, authResult: {}", authResult);
-            if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-                authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-            }
-            return new ResponseEntity<>(ServiceResponse.buildAuthFailResp(
-                webAuthService.toAuthResultVO(inSufficientPermissionException.getAuthResult())), HttpStatus.OK);
-        } else {
-            log.warn("Handle service exception", ex);
-            return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ex, i18nService),
-                HttpStatus.OK);
-        }
     }
 
     @ExceptionHandler(Throwable.class)
     @ResponseBody
-    ResponseEntity<?> handleControllerException(HttpServletRequest request, Throwable ex) {
-        log.warn("Handle exception", ex);
-        // 默认处理
-        HttpStatus status = getStatus(request);
-        return new ResponseEntity<>(ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR,
-            i18nService), status);
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    Response<?> handleException(HttpServletRequest request, Throwable ex) {
+        String errorMsg = "Handle Exception, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return Response.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
     }
 
-    private HttpStatus getStatus(HttpServletRequest request) {
-        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-        if (statusCode == null) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
+    @ExceptionHandler(PermissionDeniedException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    Response<?> handlePermissionDeniedException(HttpServletRequest request,
+                                                PermissionDeniedException ex) {
+        AuthResult authResult = ex.getAuthResult();
+        log.info("Handle PermissionDeniedException, uri: {}, authResult: {}",
+            request.getRequestURI(), authResult);
+        if (StringUtils.isEmpty(authResult.getApplyUrl())) {
+            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
         }
-        return HttpStatus.valueOf(statusCode);
+        return Response.buildAuthFailResp(webAuthService.toAuthResultVO(ex.getAuthResult()));
+    }
+
+    @ExceptionHandler(ServiceException.class)
+    @ResponseBody
+    ResponseEntity<?> handleServiceException(HttpServletRequest request, ServiceException ex) {
+        String errorMsg = "Handle ServiceException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return new ResponseEntity<>(Response.buildCommonFailResp(ex), HttpStatus.OK);
+    }
+
+    @ExceptionHandler(InternalException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    Response<?> handleInternalException(HttpServletRequest request, InternalException ex) {
+        String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler({InvalidParamException.class})
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Response<?> handleInvalidParamException(HttpServletRequest request, InvalidParamException ex) {
+        String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
+        log.warn(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(FailedPreconditionException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    Response<?> handleBusinessException(HttpServletRequest request, FailedPreconditionException ex) {
+        String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    Response<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
+        String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(AlreadyExistsException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.CONFLICT)
+    Response<?> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
+        String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
+        log.info(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    Response<?> handleUnauthenticatedException(HttpServletRequest request, UnauthenticatedException ex) {
+        String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
+        log.error(errorMsg, ex);
+        return Response.buildCommonFailResp(ex);
+    }
+
+    @SuppressWarnings("all")
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  WebRequest request) {
+        BindingResult bindingResult = ex.getBindingResult();
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
+        Response<?> resp = Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, errorDetail);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
                                                          ConstraintViolationException ex) {
-        log.warn("Handle ConstraintViolationException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
+        Response<?> resp = Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM, errorDetail);
+        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
-                                                                         HttpHeaders headers, HttpStatus status,
-                                                                         WebRequest request) {
-        log.warn("Handle HttpRequestMethodNotSupportedException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
-                                                                     HttpHeaders headers, HttpStatus status,
-                                                                     WebRequest request) {
-        log.warn("Handle HttpMediaTypeNotSupportedException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
-                                                                      HttpHeaders headers, HttpStatus status,
-                                                                      WebRequest request) {
-        log.warn("Handle HttpMediaTypeNotAcceptableException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers,
-                                                               HttpStatus status, WebRequest request) {
-        log.warn("Handle MissingPathVariableException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
-                                                                          HttpHeaders headers, HttpStatus status,
-                                                                          WebRequest request) {
-        log.warn("Handle MissingServletRequestParameterException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
-                                                                          HttpHeaders headers, HttpStatus status,
-                                                                          WebRequest request) {
-        log.warn("Handle ServletRequestBindingException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
-        log.warn("Handle ConversionNotSupportedException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
-                                                        HttpStatus status, WebRequest request) {
-        log.warn("Handle TypeMismatchException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
-        log.warn("Handle HttpMessageNotReadableException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
-        log.warn("Handle HttpMessageNotWritableException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
-        log.warn("Handle MethodArgumentNotValidException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
-                                                                     HttpHeaders headers, HttpStatus status,
-                                                                     WebRequest request) {
-        log.warn("Handle MissingServletRequestPartException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
-                                                         WebRequest request) {
-        log.warn("Handle BindException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
-                                                                   HttpStatus status, WebRequest request) {
-        log.warn("Handle NoHandlerFoundException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.BAD_REQUEST, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
-                                                                        HttpHeaders headers, HttpStatus status,
-                                                                        WebRequest webRequest) {
-        log.warn("Handle AsyncRequestTimeoutException", ex);
-        ServiceResponse resp = ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_INTERNAL_ERROR, i18nService);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
 }

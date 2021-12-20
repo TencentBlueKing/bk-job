@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
@@ -46,17 +46,17 @@ public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
 
 
     @Override
-    public ServiceResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
-        return ServiceResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId));
+    public InternalResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
+        return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId));
     }
 
     @Override
-    public ServiceResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos() {
-        return ServiceResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos());
+    public InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos() {
+        return InternalResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos());
     }
 
     @Override
-    public ServiceResponse<Long> saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        return ServiceResponse.buildSuccessResp(whiteIPService.saveWhiteIP(username, createUpdateReq));
+    public InternalResponse<Long> saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
+        return InternalResponse.buildSuccessResp(whiteIPService.saveWhiteIP(username, createUpdateReq));
     }
 }

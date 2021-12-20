@@ -153,7 +153,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .job-textarea {
         position: relative;

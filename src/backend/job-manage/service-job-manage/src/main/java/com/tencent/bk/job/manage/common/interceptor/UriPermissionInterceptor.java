@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.common.interceptor;
 
 import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -107,22 +107,22 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+                throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_GLOBAL_SETTINGS, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+                throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_SERVICE_INFO, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.SERVICE_STATE_ACCESS);
             if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+                throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RULE, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RULE);
             if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+                throw new PermissionDeniedException(authResult);
             }
         }
         return true;

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
@@ -43,7 +43,7 @@ public interface HostService {
      *
      * @return 服务端响应
      */
-    ServiceResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId);
+    InternalResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId);
 
     /**
      * 获取主机的业务ID

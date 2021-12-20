@@ -356,7 +356,7 @@
                 left: 0;
                 z-index: 1;
                 background: #f5f7fa;
-                content: '';
+                content: "";
             }
 
             &::after {
@@ -368,7 +368,7 @@
                 background: #f5f7fa;
                 border-top: 1px solid #c4c6cc;
                 border-right: 1px solid #c4c6cc;
-                content: '';
+                content: "";
                 transform: translateX(-50%) rotateZ(-45deg);
             }
 
@@ -388,7 +388,7 @@
                 margin-right: 10px;
                 background-color: #ccc;
                 border-radius: 50%;
-                content: '';
+                content: "";
             }
 
             &.active {

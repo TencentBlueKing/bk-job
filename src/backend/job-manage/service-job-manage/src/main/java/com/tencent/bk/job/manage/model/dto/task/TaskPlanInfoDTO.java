@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanInfoV3DTO;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
@@ -216,10 +216,10 @@ public class TaskPlanInfoDTO {
 
     public static void buildPlanInfo(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         if (templateInfo == null) {
-            throw new ParamErrorException(ErrorCode.TEMPLATE_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         if (planInfo == null) {
-            throw new ParamErrorException(ErrorCode.TASK_PLAN_NOT_EXIST);
+            throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
         planInfo.setAppId(templateInfo.getAppId());
         planInfo.setTemplateId(templateInfo.getId());

@@ -27,9 +27,13 @@ package com.tencent.bk.job.analysis.api.op.impl;
 import com.tencent.bk.job.analysis.api.op.OpResource;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.analysis.model.op.*;
+import com.tencent.bk.job.analysis.model.op.CancelTasksReq;
+import com.tencent.bk.job.analysis.model.op.ClearStatisticsReq;
+import com.tencent.bk.job.analysis.model.op.ConfigStatisticsReq;
+import com.tencent.bk.job.analysis.model.op.ConfigThreadsReq;
+import com.tencent.bk.job.analysis.model.op.StartTasksReq;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +57,12 @@ public class OpResourceImpl implements OpResource {
     }
 
     @Override
-    public ServiceResponse<String> getStatisticsConfig(String username) {
-        return ServiceResponse.buildSuccessResp(JsonUtils.toJson(statisticConfig));
+    public Response<String> getStatisticsConfig(String username) {
+        return Response.buildSuccessResp(JsonUtils.toJson(statisticConfig));
     }
 
     @Override
-    public ServiceResponse<Boolean> configStatistics(String username, ConfigStatisticsReq req) {
+    public Response<Boolean> configStatistics(String username, ConfigStatisticsReq req) {
         if (req.getEnableExpire() != null) {
             statisticConfig.setEnableExpire(req.getEnableExpire());
         }
@@ -80,26 +84,26 @@ public class OpResourceImpl implements OpResource {
         if (req.getMaxTagNum() != null) {
             statisticConfig.setMaxTagNum(req.getMaxTagNum());
         }
-        return ServiceResponse.buildSuccessResp(true);
+        return Response.buildSuccessResp(true);
     }
 
     @Override
-    public ServiceResponse<Integer> clearStatistics(String username, ClearStatisticsReq req) {
+    public Response<Integer> clearStatistics(String username, ClearStatisticsReq req) {
         List<String> dateStrList = req.getDateStrList();
         int totalCount = 0;
         if (dateStrList != null) {
             for (String s : dateStrList) {
                 totalCount += statisticsDAO.deleteStatisticsByDate(s);
             }
-            return ServiceResponse.buildSuccessResp(totalCount);
+            return Response.buildSuccessResp(totalCount);
         } else {
-            return ServiceResponse.buildSuccessResp(0);
+            return Response.buildSuccessResp(0);
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> configThreads(String username, ConfigThreadsReq req) {
-        return ServiceResponse.buildSuccessResp(
+    public Response<Boolean> configThreads(String username, ConfigThreadsReq req) {
+        return Response.buildSuccessResp(
             statisticsTaskScheduler.configThreads(
                 req.getCurrentStatisticThreadsNum(),
                 req.getPastStatisticThreadsNum()
@@ -108,31 +112,31 @@ public class OpResourceImpl implements OpResource {
     }
 
     @Override
-    public ServiceResponse<List<String>> startTasks(String username, StartTasksReq req) {
+    public Response<List<String>> startTasks(String username, StartTasksReq req) {
         List<String> startedTaskNameList = statisticsTaskScheduler.startTasks(req.getStartDateStr(),
             req.getEndDateStr(), req.getTaskNameList());
-        return ServiceResponse.buildSuccessResp(startedTaskNameList);
+        return Response.buildSuccessResp(startedTaskNameList);
     }
 
     @Override
-    public ServiceResponse<List<String>> cancelAllTasks(String username) {
+    public Response<List<String>> cancelAllTasks(String username) {
         List<String> canceledTaskNameList = statisticsTaskScheduler.cancelAllTasks();
-        return ServiceResponse.buildSuccessResp(canceledTaskNameList);
+        return Response.buildSuccessResp(canceledTaskNameList);
     }
 
     @Override
-    public ServiceResponse<List<String>> cancelTasks(String username, CancelTasksReq req) {
+    public Response<List<String>> cancelTasks(String username, CancelTasksReq req) {
         List<String> canceledTaskNameList = statisticsTaskScheduler.cancelTasks(req.getTaskNameList());
-        return ServiceResponse.buildSuccessResp(canceledTaskNameList);
+        return Response.buildSuccessResp(canceledTaskNameList);
     }
 
     @Override
-    public ServiceResponse<List<String>> taskList(String username) {
-        return ServiceResponse.buildSuccessResp(statisticsTaskScheduler.listAllTasks());
+    public Response<List<String>> taskList(String username) {
+        return Response.buildSuccessResp(statisticsTaskScheduler.listAllTasks());
     }
 
     @Override
-    public ServiceResponse<List<Pair<String, Integer>>> arrangedTaskList(String username) {
-        return ServiceResponse.buildSuccessResp(statisticsTaskScheduler.listArrangedTasks());
+    public Response<List<Pair<String, Integer>>> arrangedTaskList(String username) {
+        return Response.buildSuccessResp(statisticsTaskScheduler.listArrangedTasks());
     }
 }

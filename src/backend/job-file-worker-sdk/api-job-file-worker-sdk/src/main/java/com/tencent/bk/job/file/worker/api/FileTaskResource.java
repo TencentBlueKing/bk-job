@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file.worker.model.req.ClearTaskFilesReq;
 import com.tencent.bk.job.file.worker.model.req.DownloadFilesTaskReq;
 import com.tencent.bk.job.file.worker.model.req.StopTasksReq;
@@ -46,19 +46,19 @@ public interface FileTaskResource {
     // 子路径与gateway转发请求子路径保持一致
     @ApiOperation(value = "从文件源下载文件至本地", produces = "application/json")
     @PostMapping("/downloadFiles/start")
-    ServiceResponse<Integer> downloadFiles(
+    Response<Integer> downloadFiles(
         @ApiParam(value = "文件下载任务", required = true) @RequestBody DownloadFilesTaskReq req
     );
 
     @ApiOperation(value = "停止正在进行中的任务", produces = "application/json")
     @PostMapping("/downloadFiles/stop")
-    ServiceResponse<Integer> stopTasks(
+    Response<Integer> stopTasks(
         @ApiParam(value = "停止任务请求", required = true) @RequestBody StopTasksReq req
     );
 
     @ApiOperation(value = "删除文件任务下载到本地的文件", produces = "application/json")
     @PostMapping("/clearFiles")
-    ServiceResponse<Integer> clearFiles(
+    Response<Integer> clearFiles(
         @ApiParam(value = "删除请求", required = true) @RequestBody ClearTaskFilesReq req
     );
 }

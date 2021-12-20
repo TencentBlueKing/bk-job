@@ -27,23 +27,39 @@
 
 <template>
     <div>
-        <jb-form-item ref="item" :label="$t('源文件')" required :property="field" :rules="rules">
+        <jb-form-item
+            ref="item"
+            :label="$t('源文件')"
+            required
+            :property="field"
+            :rules="rules">
             <div>
-                <bk-button class="mr10" @click="handleAddServerFile">
+                <bk-button
+                    class="mr10"
+                    @click="handleAddServerFile">
                     <Icon type="plus" />
                     {{ $t('添加服务器文件') }}
                 </bk-button>
-                <bk-button v-if="ENABLE_FEATURE_FILE_MANAGE" class="mr10" @click="handleAddSourceFile">
+                <bk-button
+                    v-if="ENABLE_FEATURE_FILE_MANAGE"
+                    class="mr10"
+                    @click="handleAddSourceFile">
                     <Icon type="plus" />
                     {{ $t('添加文件源文件') }}
                 </bk-button>
-                <bk-button class="mr10" :loading="isConfigLoading" @click="handlerUploadLocalFile">
+                <bk-button
+                    class="mr10"
+                    :loading="isConfigLoading"
+                    @click="handlerUploadLocalFile">
                     <Icon type="plus" />
                     {{ $t('添加本地文件') }}
                 </bk-button>
                 <span class="source-file-tips">
                     {{ $t('添加本地文件会有同名文件覆盖风险') }}
-                    <Icon type="info" class="tips-flag" v-bk-tooltips="uploadFileTipsConfig" />
+                    <Icon
+                        type="info"
+                        class="tips-flag"
+                        v-bk-tooltips="uploadFileTipsConfig" />
                 </span>
             </div>
             <view-file
@@ -131,7 +147,7 @@
                         return this.sourceFileList.length;
                     },
                     message: I18n.t('源文件必填'),
-                    trigger: 'change',
+                    trigger: 'blur',
                 },
                 {
                     validator: () => {
@@ -149,7 +165,7 @@
                         return true;
                     },
                     message: I18n.t('本地源文件上传失败'),
-                    trigger: 'change',
+                    trigger: 'blur',
                 },
                 {
                     validator: () => {
@@ -307,7 +323,7 @@
                 height: 4px;
                 background: currentColor;
                 border-radius: 50%;
-                content: '';
+                content: "";
             }
         }
     }

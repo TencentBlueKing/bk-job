@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.op;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -42,7 +42,7 @@ public interface OpResource {
     // 文件网关自有资源请求
     @ApiOperation(value = "获取当前重调度线程数", produces = "application/json")
     @GetMapping("/threadsNum/reDispatch")
-    ServiceResponse<Integer> getReDispatchThreadsNum(
+    Response<Integer> getReDispatchThreadsNum(
         @ApiParam("用户名")
         @RequestHeader("username")
             String username

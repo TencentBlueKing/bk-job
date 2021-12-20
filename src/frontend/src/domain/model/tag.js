@@ -39,7 +39,7 @@ export default class Tag extends Model {
         this.lastModifyTime = payload.lastModifyTime;
         
         // 权限
-        this.canManage = payload.canManage || true;
+        this.canManage = payload.canManage;
     }
 
     /**

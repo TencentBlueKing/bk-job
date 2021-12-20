@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricTags;
 import io.micrometer.core.instrument.Meter;
@@ -42,12 +44,12 @@ public class MetricsAutoConfig {
             @Override
             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
                 String metricName = id.getName();
-                if (metricName.startsWith("http.server.request") || metricName.startsWith("esb.api")) {
+                if (metricName.startsWith("http.server.request") || metricName.startsWith(CommonMetricNames.ESB_API)) {
                     return DistributionStatisticConfig.builder().percentilesHistogram(true)
                         // [10ms,3s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(3_000_000_000.0)
                         .build().merge(config);
-                } else if (metricName.startsWith(ExecuteMetricNames.GSE_API_PREFIX)) {
+                } else if (metricName.startsWith(GseConstants.GSE_API_METRICS_NAME_PREFIX)) {
                     return DistributionStatisticConfig.builder().percentilesHistogram(true)
                         // [10ms,1s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)

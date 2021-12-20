@@ -111,7 +111,7 @@
                         v-test="{ type: 'button', value: 'syncPlan' }">
                         {{ $t('template.同步方案') }}
                         <div v-if="!isNotNeedUpdate" class="update-flag" v-bk-tooltips="$t('template.待同步')">
-                            <Icon type="sync-small" />
+                            <Icon type="sync-8" />
                         </div>
                     </bk-button>
                 </span>
@@ -410,7 +410,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .task-template-detail {
         .task-template-detail-layout {

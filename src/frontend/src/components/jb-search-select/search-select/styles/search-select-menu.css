@@ -1,4 +1,4 @@
-@import '@/css/mixins/scroll';
+@import "@/css/mixins/scroll";
 
 .jb-bk-search-list {
     position: relative;
@@ -22,7 +22,7 @@
         &:hover {
             color: #3a84ff;
             cursor: pointer;
-            background-color: rgba(234, 243, 255, 0.7);
+            background-color: rgb(234 243 255 / 70%);
         }
     }
 
@@ -124,7 +124,7 @@
             &:hover {
                 color: #3a84ff;
                 cursor: pointer;
-                background-color: rgba(234, 243, 255, 0.7);
+                background-color: rgb(234 243 255 / 70%);
             }
 
             &:first-child {
@@ -217,6 +217,6 @@
 .tippy-tooltip {
     &.bk-search-select-theme-theme {
         border-radius: 2px;
-        box-shadow: 0 3px 9px 0 rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 9px 0 rgb(0 0 0 / 10%);
     }
 }

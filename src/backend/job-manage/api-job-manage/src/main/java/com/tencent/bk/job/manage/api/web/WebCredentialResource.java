@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import io.swagger.annotations.Api;
@@ -50,7 +50,7 @@ public interface WebCredentialResource {
 
     @ApiOperation(value = "获取凭据列表", produces = "application/json")
     @GetMapping("/list")
-    ServiceResponse<PageData<CredentialVO>> listCredentials(
+    Response<PageData<CredentialVO>> listCredentials(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -81,7 +81,7 @@ public interface WebCredentialResource {
 
     @ApiOperation(value = "新增/更新凭据", produces = "application/json")
     @PostMapping("")
-    ServiceResponse<String> saveCredential(
+    Response<String> saveCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -95,7 +95,7 @@ public interface WebCredentialResource {
 
     @ApiOperation(value = "删除凭据", produces = "application/json")
     @DeleteMapping("/ids/{id}")
-    ServiceResponse<Integer> deleteCredentialById(
+    Response<Integer> deleteCredentialById(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

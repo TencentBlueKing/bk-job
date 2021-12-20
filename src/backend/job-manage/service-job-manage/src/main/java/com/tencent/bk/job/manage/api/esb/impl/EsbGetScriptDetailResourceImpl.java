@@ -27,11 +27,14 @@ package com.tencent.bk.job.manage.api.esb.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptDetailResource;
@@ -60,12 +63,12 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v2_get_script_detail"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_detail"})
     public EsbResp<EsbScriptDTO> getScriptDetail(EsbGetScriptDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script detail, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
 
@@ -73,7 +76,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
         if (scriptVersion == null) {
             log.warn("Cannot find scriptVersion by id {}", request.getScriptVersionId());
-            return EsbResp.buildCommonFailResp(ErrorCode.SCRIPT_VERSION_NOT_EXIST, i18nService);
+            throw new NotFoundException(ErrorCode.SCRIPT_VERSION_NOT_EXIST);
         }
         String scriptId = scriptVersion.getId();
         // 非公共脚本鉴权
@@ -87,11 +90,11 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         if (!scriptVersion.isPublicScript()) {
             if (appId == null || appId < 1) {
                 log.warn("AppId:{} is empty or illegal", request.getAppId());
-                return EsbResp.buildCommonFailResp(ErrorCode.MISSING_OR_ILLEGAL_PARAM, i18nService);
+                throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
             } else {
                 if (!scriptVersion.getAppId().equals(appId)) {
                     log.warn("Script:{} is not in app:{}", request.getScriptVersionId(), request.getAppId());
-                    return EsbResp.buildCommonFailResp(ErrorCode.SCRIPT_NOT_IN_APP, i18nService);
+                    throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
                 }
             }
         }

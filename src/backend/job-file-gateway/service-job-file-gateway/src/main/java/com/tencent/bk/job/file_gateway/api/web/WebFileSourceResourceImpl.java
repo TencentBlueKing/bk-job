@@ -25,14 +25,16 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
@@ -56,37 +58,38 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
-    private final WebAuthService authService;
+    private final AuthService authService;
     private final FileSourceService fileSourceService;
 
     @Autowired
     public WebFileSourceResourceImpl(
-        WebAuthService webAuthService,
+        AuthService authService,
         FileSourceService fileSourceService
     ) {
-        this.authService = webAuthService;
+        this.authService = authService;
         this.fileSourceService = fileSourceService;
     }
 
     private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         if (StringUtils.isBlank(fileSourceCreateUpdateReq.getCredentialId())) {
-            throw new ServiceException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
+            throw new InternalException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> checkAlias(String username, Long appId, String alias, Integer fileSourceId) {
-        return ServiceResponse.buildSuccessResp(fileSourceService.checkFileSourceAlias(appId, alias, fileSourceId));
+    public Response<Boolean> checkAlias(String username, Long appId, String alias, Integer fileSourceId) {
+        return Response.buildSuccessResp(fileSourceService.checkFileSourceAlias(appId, alias, fileSourceId));
     }
 
     @Override
-    public ServiceResponse<Integer> saveFileSource(String username, Long appId,
-                                                   FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    public Response<Integer> saveFileSource(String username, Long appId,
+                                            FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
-            AuthResultVO authResultVO = checkCreateFileSourcePermission(username, appId);
-            if (!authResultVO.isPass()) {
-                return ServiceResponse.buildAuthFailResp(authResultVO);
+            AuthResult authResult = checkCreateFileSourcePermission(username, appId);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
+
             checkParam(fileSourceCreateUpdateReq);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
             Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
@@ -95,56 +98,58 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
             if (!registerResult) {
                 log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
             }
-            return ServiceResponse.buildSuccessResp(fileSourceId);
+            return Response.buildSuccessResp(fileSourceId);
         } catch (ServiceException e) {
-            return ServiceResponse.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
+            return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
         }
     }
 
     @Override
-    public ServiceResponse<Integer> updateFileSource(String username, Long appId,
-                                                     FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    public Response<Integer> updateFileSource(String username, Long appId,
+                                              FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, fileSourceDTO.getId());
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, fileSourceDTO.getId());
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(fileSourceService.updateFileSourceById(appId, fileSourceDTO));
+        return Response.buildSuccessResp(fileSourceService.updateFileSourceById(appId, fileSourceDTO));
     }
 
     @Override
-    public ServiceResponse<Integer> deleteFileSource(String username, Long appId, Integer id) {
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+    public Response<Integer> deleteFileSource(String username, Long appId, Integer id) {
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(fileSourceService.deleteFileSourceById(appId, id));
+
+        return Response.buildSuccessResp(fileSourceService.deleteFileSourceById(appId, id));
     }
 
     @Override
-    public ServiceResponse<Boolean> enableFileSource(String username, Long appId, Integer id, Boolean enableFlag) {
-        AuthResultVO authResultVO = checkManageFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+    public Response<Boolean> enableFileSource(String username, Long appId, Integer id, Boolean enableFlag) {
+        AuthResult authResult = checkManageFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(fileSourceService.enableFileSourceById(username, appId, id,
+
+        return Response.buildSuccessResp(fileSourceService.enableFileSourceById(username, appId, id,
             enableFlag));
     }
 
     @Override
-    public ServiceResponse<FileSourceVO> getFileSourceDetail(String username, Long appId, Integer id) {
-        AuthResultVO authResultVO = checkViewFileSourcePermission(username, appId, id);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+    public Response<FileSourceVO> getFileSourceDetail(String username, Long appId, Integer id) {
+        AuthResult authResult = checkViewFileSourcePermission(username, appId, id);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(FileSourceDTO.toVO(fileSourceService.getFileSourceById(appId, id)));
+        return Response.buildSuccessResp(FileSourceDTO.toVO(fileSourceService.getFileSourceById(appId, id)));
     }
 
     @Override
-    public ServiceResponse<PageData<FileSourceVO>> listAvailableFileSource(String username, Long appId,
-                                                                           String credentialId, String alias,
-                                                                           Integer start, Integer pageSize) {
+    public Response<PageData<FileSourceVO>> listAvailableFileSource(String username, Long appId,
+                                                                    String credentialId, String alias,
+                                                                    Integer start, Integer pageSize) {
         log.info("Input=({},{},{},{},{},{})", username, appId, credentialId, alias, start, pageSize);
         Pair<Integer, Integer> pair = PageUtil.normalizePageParam(start, pageSize);
         start = pair.getLeft();
@@ -158,13 +163,13 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         pageData.setStart(start);
         pageData.setPageSize(pageSize);
         addAvailableFileSourcePermissionData(username, appId, pageData);
-        return ServiceResponse.buildSuccessResp(pageData);
+        return Response.buildSuccessResp(pageData);
     }
 
     @Override
-    public ServiceResponse<PageData<FileSourceVO>> listWorkTableFileSource(String username, Long appId,
-                                                                           String credentialId, String alias,
-                                                                           Integer start, Integer pageSize) {
+    public Response<PageData<FileSourceVO>> listWorkTableFileSource(String username, Long appId,
+                                                                    String credentialId, String alias,
+                                                                    Integer start, Integer pageSize) {
         log.info("Input=({},{},{},{},{},{})", username, appId, credentialId, alias, start, pageSize);
         Pair<Integer, Integer> pair = PageUtil.normalizePageParam(start, pageSize);
         start = pair.getLeft();
@@ -178,14 +183,14 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         pageData.setStart(start);
         pageData.setPageSize(pageSize);
         addPermissionData(username, appId, pageData);
-        return ServiceResponse.buildSuccessResp(pageData);
+        return Response.buildSuccessResp(pageData);
     }
 
     @Override
-    public ServiceResponse<List<FileSourceStaticParam>> getFileSourceParams(String username, Long appId,
-                                                                            String fileSourceTypeCode) {
+    public Response<List<FileSourceStaticParam>> getFileSourceParams(String username, Long appId,
+                                                                     String fileSourceTypeCode) {
         log.info("Input=({},{},{})", username, appId, fileSourceTypeCode);
-        return ServiceResponse.buildSuccessResp(fileSourceService.getFileSourceParams(appId, fileSourceTypeCode));
+        return Response.buildSuccessResp(fileSourceService.getFileSourceParams(appId, fileSourceTypeCode));
     }
 
     private FileSourceDTO buildFileSourceDTO(String username, Long appId,
@@ -273,20 +278,20 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         fileSourceVOPageData.setCanCreate(checkCreateFileSourcePermission(username, appId).isPass());
     }
 
-    public AuthResultVO checkViewFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public AuthResult checkViewFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下查看某个具体文件源的权限
         return authService.auth(true, username, ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),
             PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
     }
 
-    public AuthResultVO checkCreateFileSourcePermission(String username, Long appId) {
+    public AuthResult checkCreateFileSourcePermission(String username, Long appId) {
         // 需要拥有在业务下创建文件源的权限
         return authService.auth(true, username, ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS,
             appId.toString(), null);
     }
 
-    public AuthResultVO checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public AuthResult checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下管理某个具体文件源的权限
         return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),

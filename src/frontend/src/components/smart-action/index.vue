@@ -163,7 +163,7 @@
         display: flex;
         height: 52px;
         background: #fff;
-        box-shadow: 0 -2px 4px 0 rgba(0, 0, 0, 0.06);
+        box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
         align-items: center;
     }
 </style>

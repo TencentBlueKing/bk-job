@@ -1,0 +1,73 @@
+<included>
+    <property name="SCHEDULE_LOG_FILE" value="${APP_LOG_DIR}/schedule.log"/>
+    <property name="TASK_MONITOR_LOG_FILE" value="${APP_LOG_DIR}/monitor_task.log"/>
+
+    <appender name="schedule-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${SCHEDULE_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${SCHEDULE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>24</maxHistory>
+            <totalSizeCap>24GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="task-monitor-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${TASK_MONITOR_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${TASK_MONITOR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev &amp; !kubernetes">
+        <logger name="com.tencent.bk.job.execute.schedule" level="DEBUG" additivity="false">
+            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="task-monitor-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; !kubernetes">
+        <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
+            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="task-monitor-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="dev &amp; kubernetes">
+        <logger name="com.tencent.bk.job.execute.schedule" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="task-monitor-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; kubernetes">
+        <logger name="com.tencent.bk.job.execute.schedule" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="schedule-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="TaskMonitorLogger" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="task-monitor-appender"/>
+        </logger>
+    </springProfile>
+</included>

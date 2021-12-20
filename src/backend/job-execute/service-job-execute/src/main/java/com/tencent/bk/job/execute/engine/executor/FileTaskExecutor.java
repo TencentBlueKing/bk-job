@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.util.VariableResolver;
+import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
@@ -75,7 +75,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     /*
      * 本地Agent ip
      */
-    private String localAgentIp;
+    private final String localAgentIp;
     /*
      * 待分发文件，文件传输的源文件
      */
@@ -83,16 +83,16 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     /*
      * 本地文件的存储根目录
      */
-    private String fileStorageRootPath;
+    private final String fileStorageRootPath;
     /**
      * 源文件路径与目标路径映射关系
      * 格式： Map<源IP:源文件路径，目标路径>
      */
-    private Map<String, String> sourceDestPathMap = new HashMap<>();
+    private final Map<String, String> sourceDestPathMap = new HashMap<>();
 
     private Map<String, String> sourceFileDisplayMap = new HashMap<>();
 
-    private String localUploadDir;
+    private final String localUploadDir;
 
     /**
      * FileTaskExecutor Constructor
@@ -184,7 +184,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         for (FileSourceDTO fileSource : fileSources) {
             if (CollectionUtils.isNotEmpty(fileSource.getFiles())) {
                 for (FileDetailDTO file : fileSource.getFiles()) {
-                    String resolvedFilePath = VariableResolver.resolve(file.getFilePath(),
+                    String resolvedFilePath = VariableValueResolver.resolve(file.getFilePath(),
                         stepInputGlobalVariableValueMap);
                     if (!resolvedFilePath.equals(file.getFilePath())) {
                         file.setResolvedFilePath(resolvedFilePath);
@@ -222,6 +222,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         try {
             log.debug("[{}] SourceDestPathMap: {}", stepInstanceId, sourceDestPathMap);
             Map<String, ServiceIpLogDTO> logs = new HashMap<>();
+            // 每个要分发的源文件一条上传日志
             for (JobFile file : sendFiles) {
                 String fileSourceIp = file.isLocalUploadFile() ? IpHelper.fix1To0(localAgentIp) :
                     file.getCloudAreaIdAndIp();
@@ -230,6 +231,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                     fileSourceIp, fileSourceIp, file.getStandardFilePath(), file.getDisplayFilePath(), "--",
                     FileDistStatusEnum.WAITING.getValue(), FileDistStatusEnum.WAITING.getName(), "--", "--", null));
             }
+            // 每个目标IP从每个要分发的源文件下载的一条下载日志
             for (String fileTargetIp : jobIpSet) {
                 ServiceIpLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount, fileTargetIp);
                 for (JobFile file : sendFiles) {
@@ -241,8 +243,8 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                         file.getDisplayFilePath(), "--",
                         FileDistStatusEnum.WAITING.getValue(), FileDistStatusEnum.WAITING.getName(), "--", "--", null));
                 }
-
             }
+            // 调用logService写入MongoDB
             writeLogs(logs);
         } catch (Throwable e) {
             log.warn("Save Initial File Task logs fail", e);
@@ -271,7 +273,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
      * 解析文件分发目标路径，替换变量
      */
     private void resolvedTargetPathWithVariable() {
-        String resolvedTargetPath = VariableResolver.resolve(stepInstance.getFileTargetPath(),
+        String resolvedTargetPath = VariableValueResolver.resolve(stepInstance.getFileTargetPath(),
             buildReferenceGlobalVarValueMap(stepInputVariables));
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);
@@ -282,6 +284,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
 
     @Override
     protected GseTaskResponse startGseTask(StepInstanceDTO stepInstance) {
+        // 账号信息查询与填充
         AccountDTO accountInfo = accountService.getAccount(stepInstance.getAccountId(), AccountCategoryEnum.SYSTEM,
             stepInstance.getAccountAlias(), stepInstance.getAppId());
         if (accountInfo == null) {
@@ -292,10 +295,15 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             accountInfo.getPassword());
 
         List<api_copy_fileinfoV2> copyFileInfoList = new ArrayList<>();
+        // 路径中变量解析与路径标准化预处理
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir);
+        // 构造源路径与目标路径映射Map<String,FileDest>
+        Map<String, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(sendFiles, targetDir,
+            stepInstance.getFileTargetName());
+        // 构造源路径与目标路径映射Map<String,String>供后续状态判定使用
         initSourceDestPathMap(srcAndDestMap);
 
+        // 构造GSE文件分发请求
         for (JobFile file : sendFiles) {
             FileDest fileDest = srcAndDestMap.get(file.getFileUniqueKey());
             api_agent src = GseRequestUtils.buildAgent(file.getCloudAreaIdAndIp(), file.getAccount(),
@@ -390,7 +398,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
                 requestId);
         fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
             taskInstanceVariableService, stepInstanceVariableValueService,
-            taskManager, resultHandleTaskKeepaliveManager);
+            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.api.inner.ServiceArchiveResource;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,13 +44,13 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     }
 
     @Override
-    public ServiceResponse archive(ServiceArchiveDBRequest request) {
+    public InternalResponse archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
         ArchiveConfig archiveConfig = new ArchiveConfig();
         archiveConfig.setDataKeepDays(request.getDataKeepDays());
         archiveConfig.setDeleteEnabled(request.isDeleteEnabled());
         archiveConfig.setArchiveEnabled(request.isArchiveEnabled());
         jobExecuteArchiveManage.archive(archiveConfig);
-        return ServiceResponse.buildSuccessResp(null);
+        return InternalResponse.buildSuccessResp(null);
     }
 }

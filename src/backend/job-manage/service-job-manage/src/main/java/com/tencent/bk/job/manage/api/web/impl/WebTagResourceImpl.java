@@ -26,17 +26,17 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
@@ -63,21 +63,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebTagResourceImpl implements WebTagResource {
     private final TagService tagService;
-    private final WebAuthService authService;
-    private final MessageI18nService i18nService;
+    private final AuthService authService;
 
     @Autowired
-    public WebTagResourceImpl(TagService tagService, WebAuthService webAuthService,
-                              MessageI18nService i18nService) {
+    public WebTagResourceImpl(TagService tagService,
+                              AuthService authService) {
         this.tagService = tagService;
-        this.authService = webAuthService;
-        this.i18nService = i18nService;
+        this.authService = authService;
     }
 
     @Override
-    public ServiceResponse<PageData<TagVO>> listPageTags(String username, Long appId, String name, String creator,
-                                                         String lastModifyUser, Integer start, Integer pageSize,
-                                                         String orderField, Integer order) {
+    public Response<PageData<TagVO>> listPageTags(String username, Long appId, String name, String creator,
+                                                  String lastModifyUser, Integer start, Integer pageSize,
+                                                  String orderField, Integer order) {
         TagDTO tagQuery = new TagDTO();
         tagQuery.setAppId(appId);
         tagQuery.setName(name);
@@ -115,7 +113,23 @@ public class WebTagResourceImpl implements WebTagResource {
             });
         }
 
-        return ServiceResponse.buildSuccessResp(pageTagVOs);
+        processManagePermission(username, appId, pageTagVOs.getData());
+
+        return Response.buildSuccessResp(pageTagVOs);
+    }
+
+    private void processManagePermission(String username, Long appId, List<TagVO> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return;
+        }
+        List<String> tagIds =
+            tags.stream().map(tag -> String.valueOf(tag.getId())).distinct().collect(Collectors.toList());
+
+        List<String> allowTagIds = authService
+            .batchAuth(username, ActionId.MANAGE_TAG, appId, ResourceTypeEnum.TAG, tagIds)
+            .parallelStream().collect(Collectors.toList());
+
+        tags.forEach(tagVO -> tagVO.setCanManage(allowTagIds.contains(String.valueOf(tagVO.getId()))));
     }
 
     private Map<Long, Map<Integer, List<ResourceTagDTO>>> groupByTagIdAndResourceType(
@@ -131,7 +145,7 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public ServiceResponse<List<TagVO>> listTagsBasic(String username, Long appId, String name) {
+    public Response<List<TagVO>> listTagsBasic(String username, Long appId, String name) {
         List<TagDTO> tags = tagService.listTags(appId, name);
         assert tags != null;
         List<TagVO> tagVOS = new ArrayList<>(tags.size());
@@ -141,29 +155,29 @@ public class WebTagResourceImpl implements WebTagResource {
             tagVO.setName(tag.getName());
             tagVOS.add(tagVO);
         }
-        return ServiceResponse.buildSuccessResp(tagVOS);
+        return Response.buildSuccessResp(tagVOS);
     }
 
     @Override
-    public ServiceResponse<Boolean> updateTagInfo(String username, Long appId, Long tagId,
-                                                  TagCreateUpdateReq tagCreateUpdateReq) {
-        AuthResultVO authResultVO = checkManageTagPermission(username, appId, tagId);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+    public Response<Boolean> updateTagInfo(String username, Long appId, Long tagId,
+                                           TagCreateUpdateReq tagCreateUpdateReq) {
+        AuthResult authResult = checkManageTagPermission(username, appId, tagId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         TagDTO tag = new TagDTO();
         tag.setId(tagId);
         tag.setAppId(appId);
         tag.setName(tagCreateUpdateReq.getName());
         tag.setDescription(tagCreateUpdateReq.getDescription());
-        return ServiceResponse.buildSuccessResp(tagService.updateTagById(username, tag));
+        return Response.buildSuccessResp(tagService.updateTagById(username, tag));
     }
 
     @Override
-    public ServiceResponse<TagVO> saveTagInfo(String username, Long appId, TagCreateUpdateReq tagCreateUpdateReq) {
-        AuthResultVO authResult = checkCreateTagPermission(username, appId);
+    public Response<TagVO> saveTagInfo(String username, Long appId, TagCreateUpdateReq tagCreateUpdateReq) {
+        AuthResult authResult = checkCreateTagPermission(username, appId);
         if (!authResult.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResult);
+            throw new PermissionDeniedException(authResult);
         }
         TagDTO tag = new TagDTO();
         tag.setAppId(appId);
@@ -173,16 +187,17 @@ public class WebTagResourceImpl implements WebTagResource {
         authService.registerResource(tagId.toString(), tagCreateUpdateReq.getName(), ResourceId.TAG, username, null);
 
         TagDTO savedTag = tagService.getTagInfoById(appId, tagId);
-        return ServiceResponse.buildSuccessResp(TagDTO.toVO(savedTag));
+        return Response.buildSuccessResp(TagDTO.toVO(savedTag));
     }
 
-    private AuthResultVO checkManageTagPermission(String username, Long appId, Long tagId) {
+    private AuthResult checkManageTagPermission(String username, Long appId, Long tagId) {
         return authService.auth(true, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG,
             String.valueOf(tagId), buildTagPathInfo(appId));
     }
 
-    private AuthResultVO checkCreateTagPermission(String username, Long appId) {
-        return authService.auth(true, username, ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, appId.toString(), null);
+    private AuthResult checkCreateTagPermission(String username, Long appId) {
+        return authService.auth(true, username, ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS,
+            appId.toString(), null);
     }
 
     private PathInfoDTO buildTagPathInfo(Long appId) {
@@ -190,30 +205,33 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> deleteTag(String username, Long appId, Long tagId) {
-        checkManageTagPermission(username, appId, tagId);
+    public Response<Boolean> deleteTag(String username, Long appId, Long tagId) {
+        AuthResult authResult = checkManageTagPermission(username, appId, tagId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
         tagService.deleteTag(tagId);
-        return ServiceResponse.buildSuccessResp(true);
+        return Response.buildSuccessResp(true);
     }
 
     @Override
-    public ServiceResponse<?> patchTagRefResourceTags(String username, Long appId, Long tagId,
-                                                      BatchPatchResourceTagReq tagBatchUpdateReq) {
+    public Response<?> patchTagRefResourceTags(String username, Long appId, Long tagId,
+                                               BatchPatchResourceTagReq tagBatchUpdateReq) {
         ValidateResult validateResult = checkBatchPatchResourceTagReq(tagId, tagBatchUpdateReq);
         if (!validateResult.isPass()) {
-            return ServiceResponse.buildValidateFailResp(i18nService, validateResult);
+            return Response.buildValidateFailResp(validateResult);
         }
 
         List<ResourceTagDTO> resourceTags = tagService.listResourceTagsByTagId(appId, tagId);
         Map<JobResourceTypeEnum, Set<String>> resourceGroups = filterAndClassifyResources(
             tagBatchUpdateReq.getResourceTypeList(), resourceTags);
         if (resourceGroups.isEmpty()) {
-            return ServiceResponse.buildSuccessResp(null);
+            return Response.buildSuccessResp(null);
         }
 
-        AuthResultVO authResultVO = checkTagRelatedResourcesUpdatePermission(username, appId, resourceGroups);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        AuthResult authResult = checkTagRelatedResourcesUpdatePermission(username, appId, resourceGroups);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
 
         List<ResourceTagDTO> addResourceTags = new ArrayList<>();
@@ -232,13 +250,13 @@ public class WebTagResourceImpl implements WebTagResource {
             tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
         });
 
-        return ServiceResponse.buildSuccessResp(null);
+        return Response.buildSuccessResp(null);
     }
 
-    private AuthResultVO checkTagRelatedResourcesUpdatePermission(String username, Long appId,
+    private AuthResult checkTagRelatedResourcesUpdatePermission(String username, Long appId,
                                                                   Map<JobResourceTypeEnum, Set<String>> resourceGroup) {
         if (resourceGroup.size() == 0) {
-            return AuthResultVO.pass();
+            return AuthResult.pass();
         }
 
         String appIdStr = String.valueOf(appId);
@@ -279,7 +297,6 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
 
-
     private ValidateResult checkBatchPatchResourceTagReq(Long baseTagId, BatchPatchResourceTagReq req) {
         if (CollectionUtils.isEmpty(req.getResourceTypeList())) {
             log.warn("BatchPatchResourceTagReq->resourceTypeList is empty");
@@ -309,7 +326,7 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     private Map<JobResourceTypeEnum, Set<String>> filterAndClassifyResources(List<Integer> filterResourceTypes,
-                                                                          List<ResourceTagDTO> resourceTags) {
+                                                                             List<ResourceTagDTO> resourceTags) {
         Map<JobResourceTypeEnum, Set<String>> resources = new HashMap<>();
         resourceTags.stream().filter(resourceTag -> filterResourceTypes.contains(resourceTag.getResourceType()))
             .forEach(resourceTag -> {
@@ -322,8 +339,8 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public ServiceResponse<Boolean> checkTagName(String username, Long appId, Long tagId, String name) {
+    public Response<Boolean> checkTagName(String username, Long appId, Long tagId, String name) {
         boolean isTagNameValid = tagService.checkTagName(appId, tagId, name);
-        return ServiceResponse.buildSuccessResp(isTagNameValid);
+        return Response.buildSuccessResp(isTagNameValid);
     }
 }

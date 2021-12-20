@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -40,6 +40,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Slf4j
@@ -56,7 +57,7 @@ public abstract class AbstractHttpHelper {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return
      */
-    public String post(String url, String content, String contentType) throws Exception {
+    public String post(String url, String content, String contentType) {
         return post(url, CHARSET, content, contentType);
     }
 
@@ -69,12 +70,17 @@ public abstract class AbstractHttpHelper {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return 返回字符串
      */
-    public String post(String url, String charset, String content, String contentType) throws Exception {
-        byte[] resp = post(url, content.getBytes(charset), contentType);
-        if (null == resp) {
-            return null;
+    public String post(String url, String charset, String content, String contentType) {
+        try {
+            byte[] resp = post(url, content.getBytes(charset), contentType);
+            if (null == resp) {
+                return null;
+            }
+            return new String(resp, charset);
+        } catch (IOException e) {
+            log.error("Post request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
-        return new String(resp, charset);
     }
 
     /**
@@ -84,7 +90,7 @@ public abstract class AbstractHttpHelper {
      * @param content 提交的内容字符串
      * @return 返回字符串
      */
-    public String post(String url, String content) throws Exception {
+    public String post(String url, String content) {
         return post(url, CHARSET, content, "application/x-www-form-urlencoded");
     }
 
@@ -96,7 +102,7 @@ public abstract class AbstractHttpHelper {
      * @param headers 自定义请求头
      * @return
      */
-    public String post(String url, String content, Header... headers) throws Exception {
+    public String post(String url, String content, Header... headers) {
         return post(url, CHARSET, content, headers);
     }
 
@@ -115,13 +121,18 @@ public abstract class AbstractHttpHelper {
      * @param headers 自定义请求头
      * @return
      */
-    public String post(String url, String charset, String content, Header... headers) throws Exception {
+    public String post(String url, String charset, String content, Header... headers) {
         log.debug("post:url={},charset={},content={},headers={}", url, charset, content, headers);
-        byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
-        if (null == resp) {
-            return null;
+        try {
+            byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
+            if (null == resp) {
+                return null;
+            }
+            return new String(resp, charset);
+        } catch (IOException e) {
+            log.error("Post request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
-        return new String(resp, charset);
     }
 
     /**
@@ -132,7 +143,7 @@ public abstract class AbstractHttpHelper {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return 返回字节数组
      */
-    public byte[] post(String url, byte[] content, String contentType) throws Exception {
+    public byte[] post(String url, byte[] content, String contentType) {
         return post(url, new ByteArrayEntity(content), contentType);
     }
 
@@ -144,12 +155,12 @@ public abstract class AbstractHttpHelper {
      * @param contentType   默认传null则为"application/x-www-form-urlencoded"
      * @return 返回字节数组
      */
-    public byte[] post(String url, HttpEntity requestEntity, String contentType) throws Exception {
+    public byte[] post(String url, HttpEntity requestEntity, String contentType) {
         return post(url, requestEntity,
             new BasicHeader("Content-Type", contentType == null ? "application/x-www-form-urlencoded" : contentType));
     }
 
-    public byte[] post(String url, HttpEntity requestEntity, Header... headers) throws Exception {
+    public byte[] post(String url, HttpEntity requestEntity, Header... headers) {
         HttpPost post = new HttpPost(url);
         // 设置为长连接，服务端判断有此参数就不关闭连接。
         post.setHeader("Connection", "Keep-Alive");
@@ -166,10 +177,13 @@ public abstract class AbstractHttpHelper {
                     url,
                     headers
                 );
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                throw new InternalException(message, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             return EntityUtils.toByteArray(entity);
+        } catch (IOException e) {
+            log.error("Post request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
@@ -179,20 +193,20 @@ public abstract class AbstractHttpHelper {
      * @param url 提交的地址
      * @return
      */
-    public String get(String url) throws IOException {
+    public String get(String url) {
         return get(url, (Header[]) null);
     }
 
-    public String get(String url, List<Header> headerList) throws IOException {
+    public String get(String url, List<Header> headerList) {
         Header[] headers = new Header[headerList.size()];
         return get(url, headerList.toArray(headers));
     }
 
-    public String get(String url, Header[] header) throws IOException {
+    public String get(String url, Header[] header) {
         return get(true, url, header);
     }
 
-    public String get(boolean keepAlive, String url, Header[] header) throws IOException {
+    public String get(boolean keepAlive, String url, Header[] header) {
         HttpGet get = new HttpGet(url);
         if (keepAlive) {
             get.setHeader("Connection", "Keep-Alive");
@@ -203,10 +217,13 @@ public abstract class AbstractHttpHelper {
         try (CloseableHttpResponse response = getHttpClient().execute(get)) {
             HttpEntity entity = response.getEntity();
             return EntityUtils.toString(entity, CHARSET);
+        } catch (IOException e) {
+            log.error("Get request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) throws IOException {
+    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
         HttpGet get = new HttpGet(url);
         if (keepAlive) {
             get.setHeader("Connection", "Keep-Alive");
@@ -214,10 +231,15 @@ public abstract class AbstractHttpHelper {
         if (header != null && header.length > 0) {
             get.setHeaders(header);
         }
-        return getHttpClient().execute(get);
+        try {
+            return getHttpClient().execute(get);
+        } catch (IOException e) {
+            log.error("Get request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
+        }
     }
 
-    public String put(String url, HttpEntity requestEntity, Header... headers) throws Exception {
+    public String put(String url, HttpEntity requestEntity, Header... headers) {
         HttpPut put = new HttpPut(url);
         // 设置为长连接，服务端判断有此参数就不关闭连接。
         put.setHeader("Connection", "Keep-Alive");
@@ -225,19 +247,29 @@ public abstract class AbstractHttpHelper {
         put.setEntity(requestEntity);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity entity = httpResponse.getEntity();
+            String content = new String(EntityUtils.toByteArray(entity), CHARSET);
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Put request fail, statusCode={}, errorReason={}", statusCode, message);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                log.info("Put request fail, statusCode={}, errorReason={}, content={}", statusCode, message, content);
+                throw new InternalException(message, ErrorCode.API_ERROR);
             }
-            HttpEntity entity = httpResponse.getEntity();
-            return new String(EntityUtils.toByteArray(entity), CHARSET);
+            return content;
+        } catch (IOException e) {
+            log.error("Put request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    public String delete(String url, String content, Header... headers) throws Exception {
+    public String delete(String url, String content, Header... headers) {
         FakeHttpDelete delete = new FakeHttpDelete(url);
-        HttpEntity requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
+        HttpEntity requestEntity;
+        try {
+            requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            log.error("Fail to get ByteArrayEntity", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        }
         delete.setEntity(requestEntity);
         delete.setHeaders(headers);
         try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
@@ -245,8 +277,8 @@ public abstract class AbstractHttpHelper {
             if (statusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
                 log.info("Delete request fail, url={}, statusCode={}, errorReason={}", url, statusCode, message);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, String.format("url=%s,statusCode=%s" +
-                    "，message=%s", url, statusCode, message));
+                throw new InternalException(String.format("url=%s,statusCode=%s" +
+                    "，message=%s", url, statusCode, message), ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
             byte[] respBytes = EntityUtils.toByteArray(entity);
@@ -254,11 +286,14 @@ public abstract class AbstractHttpHelper {
                 return null;
             }
             return new String(respBytes, CHARSET);
+        } catch (IOException e) {
+            log.error("Delete request fail", e);
+            throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
     private static class FakeHttpDelete extends HttpPost {
-        public FakeHttpDelete(String url) {
+        FakeHttpDelete(String url) {
             super(url);
         }
 

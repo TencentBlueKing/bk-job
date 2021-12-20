@@ -26,12 +26,10 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -107,35 +105,23 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public ServiceResponse<TaskExecuteVO> executeTask(String username, Long appId, WebTaskExecuteRequest request) {
+    public Response<TaskExecuteVO> executeTask(String username, Long appId, WebTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
         if (!checkExecuteTaskRequest(request)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
-        try {
-            TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
-                TaskExecuteParam.builder().appId(appId).planId(request.getTaskId()).operator(username)
-                    .executeVariableValues(executeVariableValues)
-                    .startupMode(TaskStartupModeEnum.NORMAL).build());
-            taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(
+            TaskExecuteParam.builder().appId(appId).planId(request.getTaskId()).operator(username)
+                .executeVariableValues(executeVariableValues)
+                .startupMode(TaskStartupModeEnum.NORMAL).build());
+        taskExecuteService.startTask(taskInstanceDTO.getId());
 
-            TaskExecuteVO result = new TaskExecuteVO();
-            result.setTaskInstanceId(taskInstanceDTO.getId());
-            result.setName(taskInstanceDTO.getName());
-            return ServiceResponse.buildSuccessResp(result);
-        } catch (InSufficientPermissionException e) {
-            return handleInSufficientPermissionException(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL,
-                i18nService.getI18n(String.valueOf(ErrorCode.STARTUP_TASK_FAIL)));
-        }
+        TaskExecuteVO result = new TaskExecuteVO();
+        result.setTaskInstanceId(taskInstanceDTO.getId());
+        result.setName(taskInstanceDTO.getName());
+        return Response.buildSuccessResp(result);
     }
 
     private boolean checkExecuteTaskRequest(WebTaskExecuteRequest request) {
@@ -160,32 +146,20 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public ServiceResponse<TaskExecuteVO> redoTask(String username, Long appId, RedoTaskRequest request) {
+    public Response<TaskExecuteVO> redoTask(String username, Long appId, RedoTaskRequest request) {
         log.info("Redo task, request={}", request);
         if (!checkRedoTaskRequest(request)) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
-        try {
-            TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appId,
-                request.getTaskInstanceId(), username, executeVariableValues);
-            taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appId,
+            request.getTaskInstanceId(), username, executeVariableValues);
+        taskExecuteService.startTask(taskInstanceDTO.getId());
 
-            TaskExecuteVO result = new TaskExecuteVO();
-            result.setTaskInstanceId(taskInstanceDTO.getId());
-            result.setName(taskInstanceDTO.getName());
-            return ServiceResponse.buildSuccessResp(result);
-        } catch (InSufficientPermissionException e) {
-            return handleInSufficientPermissionException(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to redo task", e);
-            return ServiceResponse.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to redo task", e);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL,
-                i18nService.getI18n(String.valueOf(ErrorCode.STARTUP_TASK_FAIL)));
-        }
+        TaskExecuteVO result = new TaskExecuteVO();
+        result.setTaskInstanceId(taskInstanceDTO.getId());
+        result.setName(taskInstanceDTO.getName());
+        return Response.buildSuccessResp(result);
     }
 
     private List<TaskVariableDTO> buildExecuteVariables(List<ExecuteVariableVO> webTaskVariables) {
@@ -233,13 +207,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public ServiceResponse<StepExecuteVO> fastExecuteScript(String username, Long appId,
-                                                            WebFastExecuteScriptRequest request) {
+    public Response<StepExecuteVO> fastExecuteScript(String username, Long appId,
+                                                     WebFastExecuteScriptRequest request) {
         log.debug("Fast execute script, appId={}, operator={}, request={}", appId, username, request);
         if (!checkFastExecuteScriptRequest(request)) {
             log.warn("Fast execute script request is illegal!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appId, request);
@@ -360,12 +333,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public ServiceResponse<StepExecuteVO> fastPushFile(String username, Long appId, WebFastPushFileRequest request) {
+    public Response<StepExecuteVO> fastPushFile(String username, Long appId, WebFastPushFileRequest request) {
         log.debug("Fast send file, appId={}, operator={}, request={}", appId, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appId, request);
@@ -374,8 +346,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return createAndStartFastTask(false, taskInstance, stepInstance);
     }
 
-    private ServiceResponse<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
-                                                                  StepInstanceDTO stepInstance) {
+    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
+                                                           StepInstanceDTO stepInstance) {
         long taskInstanceId;
         if (!isRedoTask) {
             taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
@@ -387,26 +359,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepExecuteVO.setTaskInstanceId(taskInstanceId);
         stepExecuteVO.setStepInstanceId(stepInstance.getId());
         stepExecuteVO.setStepName(stepInstance.getName());
-        return ServiceResponse.buildSuccessResp(stepExecuteVO);
-//        try {
-//        } catch (InSufficientPermissionException e) {
-//            return handleInSufficientPermissionException(e);
-//        } catch (ServiceException e) {
-//            log.warn("Fail to start task", e);
-//            return ServiceResponse.buildCommonFailResp(e, i18nService);
-//        } catch (Exception e) {
-//            log.warn("Fail to start task", e);
-//            return ServiceResponse.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-//        }
-    }
-
-    private <T> ServiceResponse<T> handleInSufficientPermissionException(InSufficientPermissionException e) {
-        AuthResult authResult = e.getAuthResult();
-        log.debug("Insufficient permission, authResult: {}", authResult);
-        if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
-        }
-        return ServiceResponse.buildAuthFailResp(webAuthService.toAuthResultVO(authResult));
+        return Response.buildSuccessResp(stepExecuteVO);
     }
 
     private boolean checkFastPushFileRequest(WebFastPushFileRequest request) {
@@ -575,39 +528,27 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    public ServiceResponse<StepOperationVO> doStepOperation(String username, Long appId, Long stepInstanceId,
-                                                            WebStepOperation operation) {
+    public Response<StepOperationVO> doStepOperation(String username, Long appId, Long stepInstanceId,
+                                                     WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        try {
-            StepOperationDTO stepOperation = new StepOperationDTO();
-            stepOperation.setStepInstanceId(stepInstanceId);
-            stepOperation.setOperation(stepOperationEnum);
-            stepOperation.setConfirmReason(operation.getConfirmReason());
-            int executeCount = taskExecuteService.doStepOperation(appId, username, stepOperation);
-            StepOperationVO stepOperationVO = new StepOperationVO(stepInstanceId, executeCount);
-            return ServiceResponse.buildSuccessResp(stepOperationVO);
-        } catch (ServiceException e) {
-            return ServiceResponse.buildCommonFailResp(e, i18nService);
-        }
+        StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setStepInstanceId(stepInstanceId);
+        stepOperation.setOperation(stepOperationEnum);
+        stepOperation.setConfirmReason(operation.getConfirmReason());
+        int executeCount = taskExecuteService.doStepOperation(appId, username, stepOperation);
+        StepOperationVO stepOperationVO = new StepOperationVO(stepInstanceId, executeCount);
+        return Response.buildSuccessResp(stepOperationVO);
     }
 
     @Override
-    public ServiceResponse terminateJob(String username, Long appId, Long taskInstanceId) {
+    public Response terminateJob(String username, Long appId, Long taskInstanceId) {
         if (taskInstanceId == null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM,
-                i18nService.getI18n(String.valueOf(ErrorCode.ILLEGAL_PARAM)));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        try {
-            taskExecuteService.terminateJob(username, appId, taskInstanceId);
-        } catch (ServiceException e) {
-            log.warn("Terminate job fail, username={}, appId={}, taskInstanceId={}, errorCode={}", username, appId,
-                taskInstanceId, e.getErrorCode());
-            return ServiceResponse.buildCommonFailResp(e, i18nService);
-        }
-        return ServiceResponse.buildSuccessResp(null);
+        taskExecuteService.terminateJob(username, appId, taskInstanceId);
+        return Response.buildSuccessResp(null);
     }
 }

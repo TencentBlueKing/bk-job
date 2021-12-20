@@ -24,26 +24,52 @@
 
 package com.tencent.bk.job.common.exception;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * 请求参数非法异常
- *
- * @Description
- * @Date 2019/12/23
- * @Version 1.0
  */
+@Getter
+@ToString
 public class InvalidParamException extends ServiceException {
-    private String paramName;
-    private String reason;
-
-    public InvalidParamException(String paramName, String reason) {
-        super(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{paramName, reason});
-        this.paramName = paramName;
+    public InvalidParamException(Integer errorCode) {
+        super(ErrorType.INVALID_PARAM, errorCode);
     }
 
-    public InvalidParamException(String paramName) {
-        super(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{paramName});
-        this.paramName = paramName;
+    public InvalidParamException(Integer errorCode, Object[] errorParams) {
+        super(ErrorType.INVALID_PARAM, errorCode, errorParams);
     }
+
+    public InvalidParamException(String message, Integer errorCode) {
+        super(message, ErrorType.INVALID_PARAM, errorCode);
+    }
+
+    public InvalidParamException(String message, Integer errorCode, Object[] errorParams) {
+        super(message, ErrorType.INVALID_PARAM, errorCode, errorParams);
+    }
+
+    public InvalidParamException(Throwable cause, Integer errorCode) {
+        super(cause, ErrorType.INVALID_PARAM, errorCode);
+    }
+
+    public InvalidParamException(Throwable cause, Integer errorCode, Object[] errorParams) {
+        super(cause, ErrorType.INVALID_PARAM, errorCode, errorParams);
+    }
+
+    public InvalidParamException(String message, Throwable cause, Integer errorCode) {
+        super(message, cause, ErrorType.INVALID_PARAM, errorCode);
+    }
+
+    public InvalidParamException(String message, Throwable cause, Integer errorCode,
+                                 Object[] errorParams) {
+        super(message, cause, ErrorType.INVALID_PARAM, errorCode, errorParams);
+    }
+
+    public InvalidParamException(ValidateResult validateResult) {
+        super(ErrorType.INVALID_PARAM, validateResult.getErrorCode(), validateResult.getErrorParams());
+    }
+
 }

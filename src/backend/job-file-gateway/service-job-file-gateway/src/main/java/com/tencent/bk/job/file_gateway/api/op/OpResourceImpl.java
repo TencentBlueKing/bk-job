@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.op;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.service.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class OpResourceImpl implements OpResource {
     }
 
     @Override
-    public ServiceResponse<Integer> getReDispatchThreadsNum(String username) {
-        return ServiceResponse.buildSuccessResp(reDispatchService.getReDispatchThreadsNum(username));
+    public Response<Integer> getReDispatchThreadsNum(String username) {
+        return Response.buildSuccessResp(reDispatchService.getReDispatchThreadsNum(username));
     }
 }

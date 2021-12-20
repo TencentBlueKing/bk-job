@@ -32,8 +32,7 @@
             class="jb-ace-content"
             :class="{ readonly }"
             :style="boxStyle"
-            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }"
-            @keyup.esc="handleExitByESC">
+            v-bkloading="{ isLoading: isLoading, opacity: 0.2 }">
             <div
                 v-if="showTabHeader"
                 class="jb-ace-title"
@@ -385,6 +384,7 @@
             this.initEditor();
             languageTools.addCompleter(this.completer);
             document.body.addEventListener('click', this.handleHideHistory);
+            document.body.addEventListener('keyup', this.handleExitByESC);
             this.$once('hook:beforeDestroy', () => {
                 clearTimeout(this.historyTimer);
                 if (this.isChange) {
@@ -392,6 +392,7 @@
                 }
                 _.remove(this.editor.completers, _ => _ === this.completer);
                 document.body.removeEventListener('click', this.handleHideHistory);
+                document.body.removeEventListener('keyup', this.handleExitByESC);
             });
         },
         methods: {
@@ -734,8 +735,8 @@
             /**
              * @desc esc快捷键退出编辑的全屏状态
              */
-            handleExitByESC () {
-                if (!this.isFullScreen) {
+            handleExitByESC (event) {
+                if (event.code !== 'Escape' || !this.isFullScreen) {
                     return;
                 }
                 this.handleExitFullScreen();
@@ -749,7 +750,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-
+        /* stylelint-disable selector-class-pattern */
         .ace_editor {
             padding-right: 14px;
             overflow: unset;
@@ -788,15 +789,15 @@
                 }
 
                 &.ace_info {
-                    background-image: url('/static/images/ace-editor/info.png');
+                    background-image: url("/static/images/ace-editor/info.png");
                 }
 
                 &.ace_warning {
-                    background-image: url('/static/images/ace-editor/warning.png');
+                    background-image: url("/static/images/ace-editor/warning.png");
                 }
 
                 &.ace_error {
-                    background-image: url('/static/images/ace-editor/error.png');
+                    background-image: url("/static/images/ace-editor/error.png");
                 }
             }
         }
@@ -815,7 +816,7 @@
         font-size: 14px;
         color: #fff;
         background: #202024;
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+        box-shadow: 0 2px 4px 0 "rgba(0, 0, 0, 16%)";
 
         .jb-ace-mode-item {
             display: flex;
@@ -844,7 +845,7 @@
         }
 
         .bk-loading {
-            background: rgba(0, 0, 0, 0.8) !important;
+            background: "rgba(0, 0, 0, 80%)" !important;
         }
     }
 
@@ -882,7 +883,7 @@
             width: 10px;
             height: 10px;
             background: inherit;
-            content: '';
+            content: "";
             transform: rotateZ(-45deg);
         }
 

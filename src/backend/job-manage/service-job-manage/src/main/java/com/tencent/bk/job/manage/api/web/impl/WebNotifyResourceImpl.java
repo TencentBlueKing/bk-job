@@ -26,9 +26,10 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
-import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
@@ -44,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.tencent.bk.job.common.constant.ErrorCode.USER_NO_PERMISSION_COMMON;
+import static com.tencent.bk.job.common.constant.ErrorCode.PERMISSION_DENIED;
 
 @RestController
 @Slf4j
@@ -52,62 +53,62 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
-    private final WebAuthService authService;
+    private final AuthService authService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 WebAuthService webAuthService) {
+                                 AuthService authService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = webAuthService;
+        this.authService = authService;
     }
 
     @Override
-    public ServiceResponse<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return ServiceResponse.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username, appId));
+    public Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username, Long appId) {
+        return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username, appId));
     }
 
     @Override
-    public ServiceResponse<Long> saveAppDefaultNotifyPolicies(
+    public Response<Long> saveAppDefaultNotifyPolicies(
         String username,
         Long appId,
         NotifyPoliciesCreateUpdateReq createUpdateReq
     ) {
-        AuthResultVO authResultVO = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
+        AuthResult authResult = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResultVO.isPass()) {
-            return ServiceResponse.buildAuthFailResp(authResultVO);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
-        return ServiceResponse.buildSuccessResp(notifyService.saveAppDefaultNotifyPolicies(
+        return Response.buildSuccessResp(notifyService.saveAppDefaultNotifyPolicies(
             username, appId, createUpdateReq));
     }
 
     @Override
-    public ServiceResponse<PageTemplateVO> getPageTemplate(String username) {
-        return ServiceResponse.buildSuccessResp(notifyService.getPageTemplate(username));
+    public Response<PageTemplateVO> getPageTemplate(String username) {
+        return Response.buildSuccessResp(notifyService.getPageTemplate(username));
     }
 
     @Override
-    public ServiceResponse<List<RoleVO>> listRoles(String username) {
-        return ServiceResponse.buildSuccessResp(notifyService.listRole(username));
+    public Response<List<RoleVO>> listRoles(String username) {
+        return Response.buildSuccessResp(notifyService.listRole(username));
     }
 
     @Override
-    public ServiceResponse<List<UserVO>> listUsers(
+    public Response<List<UserVO>> listUsers(
         String username,
         String prefixStr,
         Long offset,
         Long limit
     ) {
-        return ServiceResponse.buildSuccessResp(notifyService.listUsers(username, prefixStr, offset, limit, true));
+        return Response.buildSuccessResp(notifyService.listUsers(username, prefixStr, offset, limit, true));
     }
 
     @Override
-    public ServiceResponse sendNotification(String username, ServiceNotificationDTO notification) {
+    public Response sendNotification(String username, ServiceNotificationDTO notification) {
         if (localPermissionService.isAdmin(username)) {
-            return ServiceResponse.buildSuccessResp(notifyService.sendSimpleNotification(notification));
+            return Response.buildSuccessResp(notifyService.sendSimpleNotification(notification));
         } else {
-            return ServiceResponse.buildCommonFailResp(USER_NO_PERMISSION_COMMON);
+            return Response.buildCommonFailResp(PERMISSION_DENIED);
         }
     }
 }

@@ -26,8 +26,8 @@ package com.tencent.bk.job.upgrader.task;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
@@ -44,8 +44,6 @@ import org.apache.http.message.BasicHeader;
 
 import java.util.List;
 import java.util.Properties;
-
-import static com.tencent.bk.job.common.constant.ErrorCode.RESULT_OK;
 
 /**
  * DB账号密码加密
@@ -106,22 +104,22 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
             String respStr = HttpHelperFactory.getDefaultHttpHelper().post(url, "", headers);
             if (StringUtils.isBlank(respStr)) {
                 log.error("Fail:response is blank|uri={}", url);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
             }
-            ServiceResponse<List<Long>> resp = JsonUtils.fromJson(respStr,
-                new TypeReference<ServiceResponse<List<Long>>>() {
+            InternalResponse<List<Long>> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<InternalResponse<List<Long>>>() {
                 });
             if (resp == null) {
                 log.error("Fail:parse respStr fail|uri={}", url);
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
-            } else if (resp.getCode() != RESULT_OK) {
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
+            } else if (!resp.isSuccess()) {
                 log.error("Fail: code!=0");
-                throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
+                throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
             }
             log.info("Encrypt db account password successfully!accountIds: {}", resp.getData());
         } catch (Exception e) {
             log.error("Fail: caught exception", e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR, "Encrypt db account password fail");
+            throw new InternalException("Encrypt db account password fail", ErrorCode.INTERNAL_ERROR);
         }
         return 0;
     }

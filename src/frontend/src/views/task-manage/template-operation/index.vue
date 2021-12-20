@@ -33,7 +33,7 @@
                 :rules="rules"
                 ref="templateOperateRef"
                 v-test="{ type: 'form', value: 'template' }">
-                <bk-alert class="info" :title="$t('template.对作业模板的编辑不会直接作用于执行方案，需从执行方案处同步。')" />
+                <bk-alert class="info" :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
                 <jb-form-item
                     :label="$t('template.模板名称')"
                     required property="name">
@@ -104,15 +104,15 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
-    import TaskService from '@service/task-manage';
+    import TaskManageService from '@service/task-manage';
     import TaskPlanService from '@service/task-plan';
     import { taskTemplateName } from '@utils/validator';
     import JbTagSelect from '@components/jb-tag-select';
     import JbInput from '@components/jb-input';
     import BackTop from '@components/back-top';
-    import ToggleDisplay from './components/toggle-dispaly';
     import RenderGlobalVar from '../common/render-global-var';
     import RenderTaskStep from '../common/render-task-step';
+    import ToggleDisplay from './components/toggle-display';
 
     export default {
         name: '',
@@ -206,7 +206,7 @@
              */
             fetchData (isFirst = false) {
                 this.isLoading = true;
-                const requestHandler = this.isEdit ? TaskService.taskDetail : TaskService.taskClone;
+                const requestHandler = this.isEdit ? TaskManageService.taskDetail : TaskManageService.taskClone;
                 requestHandler({
                     id: this.taskId,
                 }, {
@@ -274,7 +274,7 @@
              *
              */
             checkName (name) {
-                return TaskService.taskCheckName({
+                return TaskManageService.taskCheckName({
                     id: this.isEdit ? this.taskId : 0,
                     name,
                 });
@@ -448,7 +448,6 @@
              * @param {Array} steps 最新的步骤列表
              */
             handleTaskStepChange (steps) {
-                console.log('from task sep change = ', steps);
                 this.formData.steps = steps;
                 this.$refs.templateOperateRef.clearError();
             },
@@ -472,7 +471,7 @@
                 // 再主动拉取作业模板对应的执行方案列表，判断执行方案是否为空和是否需要同步
                 this.isSubmiting = true;
                 this.$refs.templateOperateRef.validate()
-                    .then(() => TaskService.taskUpdate({
+                    .then(() => TaskManageService.taskUpdate({
                         ...this.formData,
                         id: this.isEdit ? this.taskId : 0,
                     }).then((taskId) => {
@@ -697,7 +696,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .template-operation {
         .info {

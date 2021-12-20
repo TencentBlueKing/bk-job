@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.manage.api.web.WebGlobalSettingsQueryResource;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -84,17 +84,17 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public ServiceResponse<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
+    public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
+        return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
     }
 
     @Override
-    public ServiceResponse<AccountNameRulesWithDefaultVO> getAccountNameRules(String username) {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getAccountNameRules());
+    public Response<AccountNameRulesWithDefaultVO> getAccountNameRules(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getAccountNameRules());
     }
 
     @Override
-    public ServiceResponse<Boolean> isAdmin(String username) {
+    public Response<Boolean> isAdmin(String username) {
         AtomicBoolean flag = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(9);
         executor.submit(() -> {
@@ -224,50 +224,50 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         } catch (InterruptedException e) {
             log.error("latch Interrupted", e);
         }
-        return ServiceResponse.buildSuccessResp(flag.get());
+        return Response.buildSuccessResp(flag.get());
     }
 
     @Override
-    public ServiceResponse<String> getCMDBServerUrl(String username) {
-        return ServiceResponse.buildSuccessResp(jobManageConfig.getCmdbServerUrl());
+    public Response<String> getCMDBServerUrl(String username) {
+        return Response.buildSuccessResp(jobManageConfig.getCmdbServerUrl());
     }
 
     @Override
-    public ServiceResponse<String> getApplyBusinessUrl(String username, Long appId) {
+    public Response<String> getApplyBusinessUrl(String username, Long appId) {
         ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
         if (applicationInfoDTO != null && applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL) {
-            return ServiceResponse.buildSuccessResp(authService.getBusinessApplyUrl(appId));
+            return Response.buildSuccessResp(authService.getBusinessApplyUrl(appId));
         } else if (applicationInfoDTO != null) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
+            return Response.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
         } else {
-            return ServiceResponse.buildSuccessResp(authService.getBusinessApplyUrl(null));
+            return Response.buildSuccessResp(authService.getBusinessApplyUrl(null));
         }
     }
 
     @Override
-    public ServiceResponse<String> getCMDBAppIndexUrl(String username, Long appId) {
-        return ServiceResponse.buildSuccessResp(jobManageConfig.getCmdbServerUrl()
+    public Response<String> getCMDBAppIndexUrl(String username, Long appId) {
+        return Response.buildSuccessResp(jobManageConfig.getCmdbServerUrl()
             + jobManageConfig.getCmdbAppIndexPath().replace("{appId}", appId.toString()));
     }
 
     @Override
-    public ServiceResponse<TitleFooterVO> getTitleFooter() {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getTitleFooter());
+    public Response<TitleFooterVO> getTitleFooter() {
+        return Response.buildSuccessResp(globalSettingsService.getTitleFooter());
     }
 
     @Override
-    public ServiceResponse<String> getDocCenterBaseUrl(String username) {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
+    public Response<String> getDocCenterBaseUrl(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getDocCenterBaseUrl());
     }
 
     @Override
-    public ServiceResponse<Map<String, String>> getRelatedSystemUrls(String username) {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getRelatedSystemUrls(username));
+    public Response<Map<String, String>> getRelatedSystemUrls(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getRelatedSystemUrls(username));
     }
 
     @Override
-    public ServiceResponse<Map<String, Object>> getJobConfig(String username) {
-        return ServiceResponse.buildSuccessResp(globalSettingsService.getJobConfig(username));
+    public Response<Map<String, Object>> getJobConfig(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getJobConfig(username));
     }
 
     @Override

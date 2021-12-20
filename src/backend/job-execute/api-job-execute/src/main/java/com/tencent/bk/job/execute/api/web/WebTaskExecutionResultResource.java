@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
@@ -61,7 +61,7 @@ import java.util.List;
 public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
     @GetMapping("/app/{appId}/task-execution-history/list")
-    ServiceResponse<PageData<TaskInstanceVO>> getTaskHistoryList(
+    Response<PageData<TaskInstanceVO>> getTaskHistoryList(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -99,7 +99,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取作业执行信息", produces = "application/json")
     @GetMapping("/app/{appId}/task-execution-result/{taskInstanceId}")
-    ServiceResponse<TaskExecuteResultVO> getTaskExecutionResult(
+    Response<TaskExecuteResultVO> getTaskExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -110,7 +110,7 @@ public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
     @GetMapping(value = {"/app/{appId}/step-execution-result/{stepInstanceId}/{executeCount}", "/app/{appId}/step" +
         "-execution-result/{stepInstanceId}"})
-    ServiceResponse<StepExecutionDetailVO> getStepExecutionResult(
+    Response<StepExecutionDetailVO> getStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -136,7 +136,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取快速作业的步骤执行信息", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-result/taskInstanceId/{taskInstanceId}")
-    ServiceResponse<StepExecutionDetailVO> getFastTaskStepExecutionResult(
+    Response<StepExecutionDetailVO> getFastTaskStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -157,7 +157,7 @@ public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取IP对应的脚本日志内容", produces = "application/json")
     @GetMapping(value = {"/app/{appId}/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}",
         "/app/{appId}/step-execution-result/log-content/script/{stepInstanceId}/{executeCount}/{ip}"})
-    ServiceResponse<IpScriptLogContentVO> getScriptLogContentByIp(
+    Response<IpScriptLogContentVO> getScriptLogContentByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -171,7 +171,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取文件分发步骤IP对应的日志", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}")
-    ServiceResponse<IpFileLogContentVO> getFileLogContentByIp(
+    Response<IpFileLogContentVO> getFileLogContentByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -187,7 +187,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
     @PostMapping("/app/{appId}/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids")
-    ServiceResponse<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(
+    Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -201,7 +201,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-result/variable/{stepInstanceId}/{ip}")
-    ServiceResponse<List<ExecuteVariableVO>> getStepVariableByIp(
+    Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -213,7 +213,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取执行结果分组下的主机列表", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-result/hosts/{stepInstanceId}/{executeCount}")
-    ServiceResponse<List<HostDTO>> getHostsByResultType(
+    Response<List<HostDTO>> getHostsByResultType(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")
@@ -231,7 +231,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
     @GetMapping("/app/{appId}/step-execution-history/{stepInstanceId}")
-    ServiceResponse<List<StepExecutionRecordVO>> listStepExecutionHistory(
+    Response<List<StepExecutionRecordVO>> listStepExecutionHistory(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = true, example = "1")

@@ -74,7 +74,7 @@
     };
 </script>
 <style lang="postcss" scoped>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     .iframe-navigation-container {
         .container-header {
@@ -84,7 +84,7 @@
             align-items: center;
             height: 52px;
             padding-left: 20px;
-            box-shadow: 0 2px 3px 0 rgba(99, 101, 110, 0.1);
+            box-shadow: 0 2px 3px 0 rgb(99 101 110 / 10%);
 
             .container-header-title {
                 display: flex;

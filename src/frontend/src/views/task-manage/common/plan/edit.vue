@@ -29,25 +29,41 @@
     <layout
         v-bind="$attrs"
         class="task-plan-edit-box"
-        :title="$t('template.编辑执行方案')"
         :plan-name="name"
         :loading="isLoading">
+        <jb-form
+            slot="title"
+            ref="titleForm"
+            style="width: 100%;"
+            :model="formData">
+            <jb-form-item
+                :rules="rules.name"
+                property="name"
+                error-display-type="tooltips"
+                style="margin-bottom: 0;">
+                <jb-input
+                    v-model="formData.name"
+                    class="name-input"
+                    behavior="simplicity"
+                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
+                    :native-attributes="{
+                        spellcheck: false,
+                        autofocus: true,
+                    }"
+                    :maxlength="60" />
+            </jb-form-item>
+        </jb-form>
         <jb-form
             ref="editPlanForm"
             :model="formData"
             :rules="rules"
+            form-type="vertical"
             v-test="{ type: 'form', value: 'editPlan' }">
-            <jb-form-item
-                :label="$t('template.方案名称')"
-                required
-                property="name">
-                <jb-input
-                    :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
-                    class="input"
-                    v-model="formData.name"
-                    :maxlength="60" />
-            </jb-form-item>
-            <jb-form-item :label="$t('template.全局变量.label')">
+            <jb-form-item style="margin-bottom: 40px;">
+                <div class="section-title">
+                    <span>{{ $t('template.全局变量.label') }}</span>
+                    <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
+                </div>
                 <render-global-var
                     :key="id"
                     :list="globalVariableList"
@@ -56,10 +72,14 @@
                     :default-field="$t('template.变量值')"
                     mode="editOfPlan" />
             </jb-form-item>
-            <jb-form-item label=" " property="enableSteps">
+            <jb-form-item
+                :rules="rules.enableSteps"
+                property="enableSteps">
                 <div class="task-step-selection">
-                    <!-- eslint-disable-next-line max-len -->
-                    <div>{{ $t('template.选择执行步骤') }}（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</div>
+                    <div class="section-title">
+                        <span>{{ $t('template.选择执行步骤') }}</span>
+                        <span>（ {{ formData.enableSteps.length }} / {{ taskStepList.length }} ）</span>
+                    </div>
                     <div class="step-check">
                         <bk-button
                             v-if="hasSelectAll"
@@ -85,14 +105,17 @@
             </jb-form-item>
         </jb-form>
         <template #footer>
-            <bk-button
-                theme="primary"
-                class="w120 mr10"
-                :loading="submitLoading"
-                @click="handleSumbit"
-                v-test="{ type: 'button', value: 'editPlanSave' }">
-                {{ $t('template.保存') }}
-            </bk-button>
+            <span v-bk-tooltips="isSubmitDisable ? $t('template.请至少勾选一个执行步骤') : ''">
+                <bk-button
+                    theme="primary"
+                    class="w120 mr10"
+                    :disabled="isSubmitDisable"
+                    :loading="submitLoading"
+                    @click="handleSumbit"
+                    v-test="{ type: 'button', value: 'editPlanSave' }">
+                    {{ $t('template.保存') }}
+                </bk-button>
+            </span>
             <bk-button
                 @click="handleCancle"
                 v-test="{ type: 'button', value: 'editPlanCancel' }">
@@ -104,18 +127,14 @@
 <script>
     import I18n from '@/i18n';
     import TaskPlanService from '@service/task-plan';
-    import JbForm from '@components/jb-form';
-    import JbInput from '@components/jb-input';
     import {
         findUsedVariable,
         leaveConfirm,
     } from '@utils/assist';
-    import {
-        planNameRule,
-    } from '@utils/validator';
-    import Layout from './layout';
+    import { planNameRule } from '@utils/validator';
     import RenderGlobalVar from '../../common/render-global-var';
     import RenderTaskStep from '../../common/render-task-step';
+    import Layout from './components/layout';
 
     const getDefaultData = () => ({
         id: 0,
@@ -128,8 +147,6 @@
     export default {
         name: '',
         components: {
-            JbForm,
-            JbInput,
             Layout,
             RenderGlobalVar,
             RenderTaskStep,
@@ -176,6 +193,13 @@
             hasSelectAll () {
                 return this.formData.enableSteps.length >= this.taskStepList.length;
             },
+            /**
+             * @desc 禁用提交按钮
+             * @returns { Boolean }
+             */
+            isSubmitDisable () {
+                return this.formData.enableSteps.length < 1;
+            },
         },
         watch: {
             id: {
@@ -200,7 +224,11 @@
                         trigger: 'blur',
                     },
                     {
-                        validator: this.checkName,
+                        validator: name => TaskPlanService.planCheckName({
+                            templateId: this.templateId,
+                            planId: this.formData.id,
+                            name,
+                        }),
                         message: I18n.t('template.方案名称已存在，请重新输入'),
                         trigger: 'blur',
                     },
@@ -213,6 +241,7 @@
                     },
                 ],
             };
+            
             this.formData.templateId = this.templateId;
         },
         methods: {
@@ -310,17 +339,19 @@
              */
             handleSumbit () {
                 this.submitLoading = true;
-                this.$refs.editPlanForm.validate()
-                    .then(() => TaskPlanService.planUpdate(this.formData)
-                        .then(() => {
-                            window.changeAlert = false;
-                            this.$emit('on-edit-success');
-                            this.$bkMessage({
-                                theme: 'success',
-                                message: I18n.t('template.操作成功'),
-                            });
-                            this.handleCancle();
-                        }))
+                Promise.all([
+                    this.$refs.titleForm.validate(),
+                    this.$refs.editPlanForm.validate(),
+                ]).then(() => TaskPlanService.planUpdate(this.formData)
+                    .then(() => {
+                        window.changeAlert = false;
+                        this.$emit('on-edit-success');
+                        this.$bkMessage({
+                            theme: 'success',
+                            message: I18n.t('template.操作成功'),
+                        });
+                        this.handleCancle();
+                    }))
                     .finally(() => {
                         this.submitLoading = false;
                     });
@@ -338,12 +369,42 @@
     };
 </script>
 <style lang="postcss">
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .task-plan-edit-box {
-        .input,
+        .variable-batch-action {
+            margin: 4px 0;
+        }
+
+        .layout-title {
+            padding-bottom: 0 !important;
+            border-bottom-color: transparent !important;
+
+            .name-input {
+                .bk-form-input {
+                    font-size: 18px;
+                    color: #313238;
+                }
+
+                .only-bottom-border {
+                    padding-top: 9px;
+                    padding-bottom: 16px;
+                    padding-left: 0;
+                }
+            }
+        }
+
+        .section-title {
+            font-size: 14px;
+            line-height: 19px;
+            color: #313238;
+        }
+
         .task-step-selection {
+            display: flex;
             width: 500px;
+            height: 19px;
+            margin-bottom: 16px;
 
             @media (--small-viewports) {
                 width: 500px;
@@ -360,14 +421,6 @@
             @media (--huge-viewports) {
                 width: 680px;
             }
-        }
-
-        .task-step-selection {
-            display: flex;
-            margin-bottom: 14px;
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
 
             .step-check {
                 margin-left: auto;

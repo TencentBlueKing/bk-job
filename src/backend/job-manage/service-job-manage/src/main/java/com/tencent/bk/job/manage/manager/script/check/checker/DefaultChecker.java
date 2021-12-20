@@ -55,6 +55,10 @@ public abstract class DefaultChecker implements ScriptChecker {
     protected void checkScriptLines(Long ruleId, String ruleExpression, RuleMatchHandleActionEnum action,
                                     List<ScriptCheckResultItemDTO> results, String[] lines,
                                     Pattern pattern, String checkItemCode, String description) {
+        if (lines == null || lines.length == 0) {
+            return;
+        }
+
         Matcher matcher;
         int tmpNum, lineNumber = 0;
         while (lineNumber < lines.length) {

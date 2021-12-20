@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
 import io.swagger.annotations.Api;
@@ -53,7 +53,7 @@ public interface WebPermissionResource {
      */
     @ApiOperation(value = "获取权限申请URL", produces = "application/json")
     @PostMapping("/apply-url")
-    ServiceResponse<String> getApplyUrl(
+    Response<String> getApplyUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("权限检查请求")
@@ -69,7 +69,7 @@ public interface WebPermissionResource {
      */
     @ApiOperation(value = "检查操作权限", produces = "application/json")
     @PostMapping("/check")
-    ServiceResponse<AuthResultVO> checkOperationPermission(
+    Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("权限检查请求")
@@ -88,7 +88,7 @@ public interface WebPermissionResource {
      */
     @ApiOperation(value = "检查操作权限", produces = "application/json")
     @GetMapping("/check")
-    ServiceResponse<AuthResultVO> checkOperationPermission(
+    Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "业务ID", required = false)

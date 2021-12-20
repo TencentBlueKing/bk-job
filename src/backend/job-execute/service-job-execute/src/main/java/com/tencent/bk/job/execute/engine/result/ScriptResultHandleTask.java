@@ -68,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * 脚本任务执行结果处理
@@ -133,13 +132,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
      */
-    public ScriptResultHandleTask(TaskInstanceDTO taskInstance,
-                                  StepInstanceDTO stepInstance,
-                                  TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                  Map<String, GseTaskIpLogDTO> ipLogMap,
-                                  GseTaskLogDTO gseTaskLog,
-                                  Set<String> targetIps,
-                                  String requestId) {
+    public ScriptResultHandleTask(
+        TaskInstanceDTO taskInstance,
+        StepInstanceDTO stepInstance,
+        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+        Map<String, GseTaskIpLogDTO> ipLogMap,
+        GseTaskLogDTO gseTaskLog,
+        Set<String> targetIps,
+        String requestId
+    ) {
         super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, targetIps, requestId);
         initLogPullProcess(ipLogMap.values());
     }
@@ -272,9 +273,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         watch.stop();
 
         watch.start("saveIpLogs");
-        List<GseTaskIpLogDTO> ipLogList = analysedIpSet.stream().map(analysedIp -> ipLogMap.get(analysedIp))
-            .collect(Collectors.toList());
-        gseTaskLogService.batchSaveIpLog(ipLogList);
+        batchSaveChangedIpLogs();
         watch.stop();
 
         GseTaskExecuteResult rst = analyseExecuteResult();
@@ -566,7 +565,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @return 任务执行结果
      */
     private GseTaskExecuteResult analyseExecuteResult() {
-        GseTaskExecuteResult rst = null;
+        GseTaskExecuteResult rst;
         if (this.notStartedIpSet.isEmpty() && this.runningIpSet.isEmpty()) {
             int targetIPNum = this.targetIpSet.size();
             int successTargetIpNum = this.successIpSet.size();

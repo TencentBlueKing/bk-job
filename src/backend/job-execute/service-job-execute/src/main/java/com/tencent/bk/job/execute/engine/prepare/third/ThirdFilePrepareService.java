@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.prepare.third;
 
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
@@ -72,7 +73,6 @@ public class ThirdFilePrepareService {
     private final AccountService accountService;
     private final LogService logService;
     private final TaskExecuteControlMsgSender taskControlMsgSender;
-    private ThirdFilePrepareTaskResultHandler resultHandler;
     private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -126,7 +126,10 @@ public class ThirdFilePrepareService {
         }
     }
 
-    public void retryPrepareFile(Long stepInstanceId) {
+    public void retryPrepareFile(
+        Long stepInstanceId,
+        ThirdFilePrepareTaskResultHandler resultHandler
+    ) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         int executeType = stepInstance.getExecuteType();
         // 当前仅有文件分发类步骤需要重试第三方文件源拉取
@@ -149,15 +152,16 @@ public class ThirdFilePrepareService {
         // 更新文件源任务状态
         taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         // 异步处理文件下载任务
-        ThirdFilePrepareTask pullingResultTask = asyncWatchThirdFilePulling(stepInstance,
-            fileSourceList, batchTaskInfoDTO.getBatchTaskId(), true);
+        ThirdFilePrepareTask pullingResultTask = asyncWatchThirdFilePulling(
+            stepInstance,
+            fileSourceList,
+            batchTaskInfoDTO.getBatchTaskId(),
+            true,
+            resultHandler
+        );
         // 重试先同步处理
         while (!pullingResultTask.isReadyForNext()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                log.error("Sleep Interrupted", e);
-            }
+            ThreadUtils.sleep(100);
         }
         log.debug("continue to retry...");
     }
@@ -199,7 +203,6 @@ public class ThirdFilePrepareService {
         StepInstanceDTO stepInstance,
         ThirdFilePrepareTaskResultHandler resultHandler
     ) {
-        this.resultHandler = resultHandler;
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         // 准备第三方源文件
         Pair<List<FileSourceDTO>, List<FileSourceTaskContent>> thirdFileSource = parseThirdFileSource(fileSourceList);
@@ -230,7 +233,8 @@ public class ThirdFilePrepareService {
             stepInstance,
             fileSourceList,
             batchTaskInfoDTO.getBatchTaskId(),
-            false
+            false,
+            resultHandler
         );
         taskMap.put(stepInstance.getId(), task);
         return task;
@@ -278,7 +282,8 @@ public class ThirdFilePrepareService {
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
         String batchTaskId,
-        boolean isForRetry
+        boolean isForRetry,
+        ThirdFilePrepareTaskResultHandler resultHandler
     ) {
         ThirdFilePrepareTask batchResultHandleTask =
             new ThirdFilePrepareTask(
@@ -302,12 +307,12 @@ public class ThirdFilePrepareService {
         req.setStepInstanceId(stepInstanceId);
         req.setExecuteCount(executeCount);
         req.setFileSourceTaskList(fileSourceTaskList);
-        ServiceResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
+        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
         log.debug("resp={}", resp);
         if (resp.isSuccess()) {
             return resp.getData();
         } else {
-            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
+            throw new InternalException(resp.getErrorMsg(), resp.getCode());
         }
     }
 

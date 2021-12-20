@@ -366,7 +366,7 @@
         .version-select-layout {
             display: flex;
             height: 51px;
-            margin: 6px 0 0 0;
+            margin: 6px 0 0;
             background: #2f3033;
             border-radius: 2px 2px 0 0;
 
@@ -418,7 +418,7 @@
                 margin-left: 13px;
                 background: #666;
                 border-radius: 50%;
-                content: '';
+                content: "";
             }
         }
 

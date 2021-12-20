@@ -27,12 +27,12 @@ import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
 
 export default class TaskScriptStep {
-    static STATUS_SCRIPT_NEED_UPDATE = 1
-    static STATUS_SCRIPT_DISABLED = 2
+    static STATUS_SCRIPT_NEED_UPDATE = 1;
+    static STATUS_SCRIPT_DISABLED = 2;
 
-    static TYPE_SOURCE_LOCAL = 1
-    static TYPE_SOURCE_BUSINESS = 2
-    static TYPE_SOURCE_PUBLIC = 3
+    static TYPE_SOURCE_LOCAL = 1;
+    static TYPE_SOURCE_BUSINESS = 2;
+    static TYPE_SOURCE_PUBLIC = 3;
 
     constructor (payload = {}) {
         this.scriptId = payload.scriptId;

@@ -25,7 +25,12 @@
 package com.tencent.bk.job.manage.service.plan.impl;
 
 import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
-import com.tencent.bk.job.manage.dao.*;
+import com.tencent.bk.job.manage.dao.ScriptDAO;
+import com.tencent.bk.job.manage.dao.TaskApprovalStepDAO;
+import com.tencent.bk.job.manage.dao.TaskFileInfoDAO;
+import com.tencent.bk.job.manage.dao.TaskFileStepDAO;
+import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
+import com.tencent.bk.job.manage.dao.TaskStepDAO;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,12 +47,14 @@ public class TaskPlanStepServiceImpl extends AbstractTaskStepService {
                                    @Qualifier("TaskPlanScriptStepDAOImpl") TaskScriptStepDAO taskScriptStepDAO,
                                    @Qualifier("TaskPlanFileStepDAOImpl") TaskFileStepDAO taskFileStepDAO,
                                    @Qualifier("TaskPlanApprovalStepDAOImpl") TaskApprovalStepDAO taskApprovalStepDAO,
-                                   @Qualifier("TaskPlanFileInfoDAOImpl") TaskFileInfoDAO taskFileInfoDAO) {
+                                   @Qualifier("TaskPlanFileInfoDAOImpl") TaskFileInfoDAO taskFileInfoDAO,
+                                   @Autowired ScriptDAO scriptDAO) {
         this.taskStepDAO = taskStepDAO;
         this.taskScriptStepDAO = taskScriptStepDAO;
         this.taskFileStepDAO = taskFileStepDAO;
         this.taskApprovalStepDAO = taskApprovalStepDAO;
         this.taskFileInfoDAO = taskFileInfoDAO;
+        this.scriptDAO = scriptDAO;
         this.taskType = TaskTypeEnum.PLAN;
     }
 }

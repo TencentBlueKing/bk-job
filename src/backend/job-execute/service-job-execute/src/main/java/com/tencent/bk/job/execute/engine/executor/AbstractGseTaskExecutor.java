@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -85,6 +86,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected TaskExecuteControlMsgSender taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExecuteMonitor executeMonitor;
+    protected ExceptionStatusManager exceptionStatusManager;
     protected JobExecuteConfig jobExecuteConfig;
     protected String requestId;
     protected Tracing tracing;
@@ -201,6 +203,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
+    }
+
+    public void setExceptionStatusManager(ExceptionStatusManager exceptionStatusManager) {
+        this.exceptionStatusManager = exceptionStatusManager;
     }
 
     private void analyseAndSetTaskVariables() {
@@ -392,8 +398,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         taskInstanceService.updateStepStatInfo(stepInstanceId, invalidIpNum + jobIpSet.size(), 0,
             invalidIpNum + jobIpSet.size());
         taskInstanceService.updateStepTotalTime(stepInstanceId, endTime - stepInstance.getStartTime());
-        taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.ABNORMAL_STATE.getValue());
-        taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.ABNORMAL_STATE.getValue());
+        exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
     }
 
     private void handleNotStartedIPResult(Long startTime, Long endTime, IpStatus status, String errorMsg) {
@@ -402,6 +407,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         Set<String> unfinishedIPSet = new HashSet<>();
         unfinishedIPSet.addAll(notStartedJobIPSet);
         unfinishedIPSet.addAll(this.fileSourceIPSet);
+        if (unfinishedIPSet.isEmpty()) {
+            log.debug("unfinishedIPSet is empty");
+            return;
+        }
         if (StringUtils.isNotEmpty(errorMsg)) {
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(),

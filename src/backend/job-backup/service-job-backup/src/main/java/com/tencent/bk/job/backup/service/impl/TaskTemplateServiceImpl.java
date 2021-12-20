@@ -27,7 +27,8 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.client.ServiceTemplateResourceClient;
 import com.tencent.bk.job.backup.client.WebTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
@@ -60,7 +61,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
-            ServiceResponse<TaskTemplateVO> templateByIdResponse =
+            Response<TaskTemplateVO> templateByIdResponse =
                 webTemplateResourceClient.getTemplateById(username, appId, id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
@@ -78,7 +79,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public ServiceIdNameCheckDTO checkIdAndName(Long appId, long id, String name) {
         try {
-            ServiceResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
+            InternalResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
                 serviceTemplateResourceClient.checkIdAndName(appId, id, name);
             if (idNameCheckResponse != null) {
                 if (0 == idNameCheckResponse.getCode()) {
@@ -114,8 +115,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     taskVariableVO.setDelete(0);
                 }).collect(Collectors.toList()));
             }
+            templateCreateUpdateReq.setTags(taskTemplate.getTags());
 
-            ServiceResponse<Long> saveTemplateResult = serviceTemplateResourceClient.saveTemplateForMigration(
+            InternalResponse<Long> saveTemplateResult = serviceTemplateResourceClient.saveTemplateForMigration(
                 username,
                 appId,
                 taskTemplate.getId(),
@@ -143,7 +145,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public List<ServiceTaskVariableDTO> getTemplateVariable(String username, Long appId, Long templateId) {
         try {
-            ServiceResponse<List<ServiceTaskVariableDTO>> templateVariableResponse =
+            InternalResponse<List<ServiceTaskVariableDTO>> templateVariableResponse =
                 serviceTemplateResourceClient.getTemplateVariable(username, appId, templateId);
             if (templateVariableResponse != null) {
                 if (0 == templateVariableResponse.getCode()) {

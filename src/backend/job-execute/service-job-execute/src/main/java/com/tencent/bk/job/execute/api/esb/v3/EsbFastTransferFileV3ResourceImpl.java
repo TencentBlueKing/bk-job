@@ -30,11 +30,14 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
@@ -43,12 +46,14 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
+import com.tencent.bk.job.execute.service.ArtifactoryLocalFileService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -75,51 +80,45 @@ public class EsbFastTransferFileV3ResourceImpl
 
     private final AuthService authService;
 
+    private final ArtifactoryLocalFileService artifactoryLocalFileService;
+
 
     @Autowired
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              FileSourceResourceClient fileSourceService,
                                              MessageI18nService i18nService,
-                                             AuthService authService) {
+                                             AuthService authService,
+                                             ArtifactoryLocalFileService artifactoryLocalFileService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceService = fileSourceService;
         this.i18nService = i18nService;
         this.authService = authService;
+        this.artifactoryLocalFileService = artifactoryLocalFileService;
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_fast_transfer_file"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_transfer_file"})
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(EsbFastTransferFileV3Request request) {
         ValidateResult checkResult = checkFastTransferFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         if (StringUtils.isEmpty(request.getName())) {
             request.setName(generateDefaultFastTaskName());
         }
 
-        try {
-            TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-            StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
-            long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
-            taskExecuteService.startTask(taskInstanceId);
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
+        long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
+        taskExecuteService.startTask(taskInstanceId);
 
-            EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
-            jobExecuteInfo.setTaskInstanceId(taskInstanceId);
-            jobExecuteInfo.setStepInstanceId(stepInstance.getId());
-            jobExecuteInfo.setTaskName(stepInstance.getName());
-            return EsbResp.buildSuccessResp(jobExecuteInfo);
-        } catch (InSufficientPermissionException e) {
-            return authService.buildEsbAuthFailResp(e);
-        } catch (ServiceException e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(e, i18nService);
-        } catch (Exception e) {
-            log.warn("Fail to start task", e);
-            return EsbResp.buildCommonFailResp(ErrorCode.STARTUP_TASK_FAIL, i18nService);
-        }
+        EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
+        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setStepInstanceId(stepInstance.getId());
+        jobExecuteInfo.setTaskName(stepInstance.getName());
+        return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
     private ValidateResult checkFileSource(EsbFileSourceV3DTO fileSource) {
@@ -135,8 +134,7 @@ public class EsbFastTransferFileV3ResourceImpl
         }
         for (String file : files) {
             if ((fileType == null
-                || TaskFileTypeEnum.SERVER.getType() == fileType
-                || TaskFileTypeEnum.LOCAL.getType() == fileType)
+                || TaskFileTypeEnum.SERVER.getType() == fileType)
                 && !validateFileSystemPath(file)) {
                 log.warn("Invalid path:{}", file);
                 return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.file_list");
@@ -265,6 +263,7 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
+        stepInstance.setFileTargetName(request.getTargetName());
         stepInstance.setFileSourceList(convertFileSource(request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
@@ -274,7 +273,7 @@ public class EsbFastTransferFileV3ResourceImpl
         if (request.getTimeout() == null) {
             stepInstance.setTimeout(7200);
         } else {
-            stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+            stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
         }
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
@@ -301,24 +300,33 @@ public class EsbFastTransferFileV3ResourceImpl
         List<FileSourceDTO> fileSourceDTOS = new ArrayList<>();
         fileSources.forEach(fileSource -> {
             Integer fileType = fileSource.getFileType();
+            if (fileType == null) {
+                // 默认服务器文件分发
+                fileType = TaskFileTypeEnum.SERVER.getType();
+            }
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
-            if (null == fileType || TaskFileTypeEnum.SERVER.getType() == fileType) {
+            if (TaskFileTypeEnum.SERVER.getType() == fileType) {
                 fileSourceDTO.setAccountId(fileSource.getAccount().getId());
                 fileSourceDTO.setAccountAlias(fileSource.getAccount().getAlias());
             }
-            fileSourceDTO.setLocalUpload(false);
-            // ESB接口仅支持服务器文件分发、文件源文件分发
-            if (fileType == null) {
-                // 不传该参数的默认值
-                fileSourceDTO.setFileType(TaskFileTypeEnum.SERVER.getType());
+            if (TaskFileTypeEnum.LOCAL.getType() == fileType) {
+                fileSourceDTO.setLocalUpload(true);
             } else {
-                fileSourceDTO.setFileType(fileType);
+                fileSourceDTO.setLocalUpload(false);
             }
+            fileSourceDTO.setFileType(fileType);
             List<FileDetailDTO> files = new ArrayList<>();
             if (fileSource.getFiles() != null) {
-                fileSource.getFiles().forEach(file -> {
-                    files.add(new FileDetailDTO(file));
-                });
+                for (String file : fileSource.getFiles()) {
+                    FileDetailDTO fileDetailDTO;
+                    if (fileType == TaskFileTypeEnum.LOCAL.getType()) {
+                        // 从制品库获取本地文件信息
+                        fileDetailDTO = artifactoryLocalFileService.getFileDetailFromArtifactory(file);
+                    } else {
+                        fileDetailDTO = new FileDetailDTO(file);
+                    }
+                    files.add(fileDetailDTO);
+                }
             }
             Integer fileSourceId = fileSource.getFileSourceId();
             String fileSourceCode = fileSource.getFileSourceCode();
@@ -326,22 +334,22 @@ public class EsbFastTransferFileV3ResourceImpl
                 fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             } else if (StringUtils.isNotBlank(fileSourceCode)) {
                 try {
-                    ServiceResponse<Integer> resp = fileSourceService.getFileSourceIdByCode(fileSourceCode);
+                    InternalResponse<Integer> resp = fileSourceService.getFileSourceIdByCode(fileSourceCode);
                     if (resp != null && resp.isSuccess()) {
                         if (resp.getData() != null) {
                             fileSourceDTO.setFileSourceId(resp.getData());
                         } else {
                             log.warn("fileSourceCode={},resp={}", fileSourceCode, resp);
-                            throw new ServiceException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE,
+                            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE,
                                 new String[]{fileSourceCode});
                         }
                     } else {
                         log.warn("fileSourceCode={},resp={}", fileSourceCode, resp);
-                        throw new ServiceException(ErrorCode.FILE_SOURCE_SERVICE_INVALID);
+                        throw new NotFoundException(ErrorCode.FILE_SOURCE_SERVICE_INVALID);
                     }
                 } catch (Exception e) {
                     log.error("Fail to parse fileSourceCode to id:{}", fileSourceCode, e);
-                    throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
             }
             fileSourceDTO.setFiles(files);

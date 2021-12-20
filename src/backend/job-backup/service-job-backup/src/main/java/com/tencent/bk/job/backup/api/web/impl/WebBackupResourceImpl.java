@@ -25,7 +25,8 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
-import com.tencent.bk.job.backup.config.BkConfig;
+import com.tencent.bk.job.backup.config.ArtifactoryConfig;
+import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
@@ -45,13 +46,18 @@ import com.tencent.bk.job.backup.service.ExportJobService;
 import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -62,6 +68,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -76,23 +84,30 @@ public class WebBackupResourceImpl implements WebBackupResource {
     private final ImportJobService importJobService;
     private final ExportJobService exportJobService;
     private final LogService logService;
-    private final BkConfig bkConfig;
     private final StorageService storageService;
+    private final ArtifactoryClient artifactoryClient;
+    private final ArtifactoryConfig artifactoryConfig;
+    private final BackupStorageConfig backupStorageConfig;
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService, ExportJobService exportJobService,
-                                 LogService logService, BkConfig bkConfig, StorageService storageService) {
+                                 LogService logService, StorageService storageService,
+                                 ArtifactoryClient artifactoryClient,
+                                 ArtifactoryConfig artifactoryConfig,
+                                 BackupStorageConfig backupStorageConfig) {
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;
-        this.bkConfig = bkConfig;
         this.storageService = storageService;
+        this.artifactoryClient = artifactoryClient;
+        this.artifactoryConfig = artifactoryConfig;
+        this.backupStorageConfig = backupStorageConfig;
     }
 
     @Override
-    public ServiceResponse<ExportInfoVO> startExport(String username, Long appId, ExportRequest exportRequest) {
+    public Response<ExportInfoVO> startExport(String username, Long appId, ExportRequest exportRequest) {
         if (!exportRequest.validate()) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         ExportJobInfoDTO exportJobInfoDTO = new ExportJobInfoDTO();
         exportJobInfoDTO.setAppId(appId);
@@ -122,24 +137,65 @@ public class WebBackupResourceImpl implements WebBackupResource {
             try {
                 ExportJobExecutor.startExport(id);
             } catch (Exception e) {
-                return ServiceResponse.buildCommonFailResp("Start job failed! System busy!");
+                throw new InternalException("Start job failed! System busy!", e, ErrorCode.INTERNAL_ERROR);
             }
-            return ServiceResponse.buildSuccessResp(exportInfoVO);
+            return Response.buildSuccessResp(exportInfoVO);
         }
-
-        return ServiceResponse.buildCommonFailResp("Start failed!");
+        throw new InternalException("Start failed!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
-    public ServiceResponse<ExportInfoVO> getExportInfo(String username, Long appId, String jobId) {
+    public Response<ExportInfoVO> getExportInfo(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             List<LogEntityDTO> exportLog = logService.getExportLogById(appId, jobId);
             ExportInfoVO exportInfoVO = ExportJobInfoDTO.toVO(exportInfo);
             exportInfoVO.setLog(exportLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
-            return ServiceResponse.buildSuccessResp(exportInfoVO);
+            return Response.buildSuccessResp(exportInfoVO);
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
+    }
+
+    private Pair<Long, StreamingResponseBody> getFileSizeAndStreamFromNFS(String fileName) throws FileNotFoundException {
+        File file = storageService.getFile(fileName);
+        if (file.exists()) {
+            StreamingResponseBody streamingResponseBody =
+                outputStream -> {
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        IOUtils.copy(fis, outputStream);
+                    }
+                };
+            return Pair.of(file.length(), streamingResponseBody);
+        } else {
+            throw new FileNotFoundException(file.getAbsolutePath());
+        }
+    }
+
+    private Pair<Long, StreamingResponseBody> getFileSizeAndStreamFromArtifactory(String fileName) {
+        NodeDTO nodeDTO;
+        InputStream ins;
+        try {
+            nodeDTO = artifactoryClient.queryNodeDetail(
+                artifactoryConfig.getArtifactoryJobProject(),
+                backupStorageConfig.getBackupRepo(),
+                fileName
+            );
+        } catch (Exception e) {
+            throw new InternalException(ErrorCode.FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY);
+        }
+        try {
+            ins = artifactoryClient.getFileInputStream(
+                artifactoryConfig.getArtifactoryJobProject(),
+                backupStorageConfig.getBackupRepo(),
+                fileName
+            );
+        } catch (Exception e) {
+            throw new InternalException(ErrorCode.FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY);
+        }
+        final InputStream finalIns = ins;
+        StreamingResponseBody streamingResponseBody =
+            outputStream -> IOUtils.copy(finalIns, outputStream);
+        return Pair.of(nodeDTO.getSize(), streamingResponseBody);
     }
 
     @Override
@@ -147,59 +203,66 @@ public class WebBackupResourceImpl implements WebBackupResource {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
-                File file = storageService.getFile(exportInfo.getFileName());
-                if (file != null && file.exists()) {
-                    StreamingResponseBody streamingResponseBody =
-                        outputStream -> {
-                            try (FileInputStream fis = new FileInputStream(file)) {
-                                IOUtils.copy(fis, outputStream);
-                            }
-                        };
-
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + exportInfo.getPackageName());
-                    headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-                    headers.add("Pragma", "no-cache");
-                    headers.add("Expires", "0");
-
-                    return ResponseEntity.ok().headers(headers).contentLength(file.length())
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM).body(streamingResponseBody);
+                Pair<Long, StreamingResponseBody> fileInfoPair;
+                switch (backupStorageConfig.getStorageBackend()) {
+                    case JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY:
+                        fileInfoPair = getFileSizeAndStreamFromArtifactory(exportInfo.getFileName());
+                        break;
+                    case JobConstants.FILE_STORAGE_BACKEND_LOCAL:
+                        try {
+                            fileInfoPair = getFileSizeAndStreamFromNFS(exportInfo.getFileName());
+                        } catch (FileNotFoundException e) {
+                            log.warn("export file not found", e);
+                            return ResponseEntity.notFound().build();
+                        }
+                        break;
+                    default:
+                        log.error("storage backend:{} not support yet", backupStorageConfig.getStorageBackend());
+                        return ResponseEntity.notFound().build();
                 }
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + exportInfo.getPackageName());
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                return ResponseEntity.ok().headers(headers).contentLength(fileInfoPair.getLeft())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).body(fileInfoPair.getRight());
             }
         }
         return ResponseEntity.notFound().build();
     }
 
     @Override
-    public ServiceResponse<Boolean> completeExport(String username, Long appId, String jobId) {
+    public Response<Boolean> completeExport(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
                 exportInfo.setFileName(null);
-                return ServiceResponse.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
+                return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
             } else {
-                return ServiceResponse.buildCommonFailResp("Wrong job status");
+                throw new InternalException("Wrong job status", ErrorCode.INTERNAL_ERROR);
             }
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
-    public ServiceResponse<Boolean> abortExport(String username, Long appId, String jobId) {
+    public Response<Boolean> abortExport(String username, Long appId, String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appId, jobId);
         if (exportInfo != null) {
             exportInfo.setStatus(BackupJobStatusEnum.CANCEL);
             exportInfo.setFileName(null);
-            return ServiceResponse.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
+            return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException("Not found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
-    public ServiceResponse<ImportInfoVO> getImportFileInfo(String username, Long appId, MultipartFile uploadFile) {
+    public Response<ImportInfoVO> getImportFileInfo(String username, Long appId, MultipartFile uploadFile) {
         if (uploadFile.isEmpty()) {
-            return ServiceResponse.buildCommonFailResp("No file");
+            throw new InternalException("No File", ErrorCode.INTERNAL_ERROR);
         }
         String originalFileName = uploadFile.getOriginalFilename();
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
@@ -210,42 +273,65 @@ public class WebBackupResourceImpl implements WebBackupResource {
                 ImportInfoVO importInfoVO = new ImportInfoVO();
                 importInfoVO.setId(jobId);
                 importInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
-                importJobService.parseFile(username, appId, id);
-                return ServiceResponse.buildSuccessResp(importInfoVO);
+                Boolean parseResult = importJobService.parseFile(username, appId, id);
+                if (parseResult
+                    && JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
+                    backupStorageConfig.getStorageBackend()
+                )) {
+                    // 上传至制品库
+                    String filePath = "import"
+                        + File.separator + username
+                        + File.separator + id
+                        + File.separator + originalFileName;
+                    File file = new File(storageService.getStoragePath() + filePath);
+                    try {
+                        log.debug("begin to upload to artifactory:{}", filePath);
+                        artifactoryClient.uploadGenericFile(
+                            artifactoryConfig.getArtifactoryJobProject(),
+                            backupStorageConfig.getBackupRepo(),
+                            filePath,
+                            file
+                        );
+                        log.debug("uploaded to artifactory:{}", filePath);
+                    } catch (Exception e) {
+                        log.error("Fail to save file to artifactory", e);
+                        return Response.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
+                    }
+                }
+                return Response.buildSuccessResp(importInfoVO);
             }
         } else {
             log.error("Upload unknown type of file!");
-            return ServiceResponse.buildCommonFailResp("Upload failed! Unknown file type!");
         }
-        return ServiceResponse.buildCommonFailResp("Upload failed!");
+        throw new InternalException("Upload failed! Unknown file type!", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
-    public ServiceResponse<Boolean> checkPassword(String username, Long appId, String jobId,
-                                                  CheckPasswordRequest passwordRequest) {
+    public Response<Boolean> checkPassword(String username, Long appId, String jobId,
+                                           CheckPasswordRequest passwordRequest) {
         boolean lockResult =
             LockUtils.tryGetDistributedLock(getImportJobLockKey(appId, jobId), JobContextUtil.getRequestId(), 60_000L);
         if (lockResult) {
             try {
-                return ServiceResponse.buildSuccessResp(
+                return Response.buildSuccessResp(
                     importJobService.checkPassword(username, appId, jobId, passwordRequest.getPassword()));
             } catch (Exception e) {
                 log.error("Error while check password!");
-                return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
+                return Response.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
             } finally {
                 LockUtils.releaseDistributedLock(getImportJobLockKey(appId, jobId), JobContextUtil.getRequestId());
             }
         } else {
             log.warn("Acquire import job lock failed!|{}|{}", appId, jobId);
-            return ServiceResponse.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
+            return Response.buildCommonFailResp(ErrorCode.SERVICE_UNAVAILABLE);
         }
     }
 
     @Override
-    public ServiceResponse<Boolean> startImport(String username, Long appId, String jobId,
-                                                ImportRequest importRequest) {
+    public Response<Boolean> startImport(String username, Long appId, String jobId,
+                                         ImportRequest importRequest) {
         if (!importRequest.validate()) {
-            return ServiceResponse.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         ImportJobInfoDTO importJobInfo = new ImportJobInfoDTO();
         importJobInfo.setId(jobId);
@@ -255,27 +341,27 @@ public class WebBackupResourceImpl implements WebBackupResource {
             importJobInfo.setTemplateInfo(importRequest.getTemplateInfo().stream().map(BackupTemplateInfoDTO::fromVO)
                 .collect(Collectors.toList()));
         } else {
-            return ServiceResponse.buildCommonFailResp("No template selected!");
+            throw new InternalException("No template selected!", ErrorCode.INTERNAL_ERROR);
         }
         importJobInfo.setDuplicateSuffix(importRequest.getDuplicateSuffix());
         importJobInfo.setDuplicateIdHandler(DuplicateIdHandlerEnum.valueOf(importRequest.getDuplicateIdHandler()));
-        return ServiceResponse.buildSuccessResp(importJobService.startImport(importJobInfo));
+        return Response.buildSuccessResp(importJobService.startImport(importJobInfo));
     }
 
     @Override
-    public ServiceResponse<ImportInfoVO> getImportInfo(String username, Long appId, String jobId) {
+    public Response<ImportInfoVO> getImportInfo(String username, Long appId, String jobId) {
         ImportJobInfoDTO importInfo = importJobService.getImportInfoById(appId, jobId);
         if (importInfo != null) {
             List<LogEntityDTO> importLog = logService.getImportLogById(appId, jobId);
             ImportInfoVO importInfoVO = ImportJobInfoDTO.toVO(importInfo);
             importInfoVO.setLog(importLog.stream().map(LogEntityDTO::toVO).collect(Collectors.toList()));
-            return ServiceResponse.buildSuccessResp(importInfoVO);
+            return Response.buildSuccessResp(importInfoVO);
         }
-        return ServiceResponse.buildCommonFailResp("Not found");
+        throw new InternalException("Not Found", ErrorCode.INTERNAL_ERROR);
     }
 
     @Override
-    public ServiceResponse<BackupJobInfoVO> getCurrentJob(String username, Long appId) {
+    public Response<BackupJobInfoVO> getCurrentJob(String username, Long appId) {
         List<ExportJobInfoDTO> exportJobInfoList = exportJobService.getCurrentJobByUser(username, appId);
         List<ImportJobInfoDTO> importJobInfoList = importJobService.getCurrentJobByUser(username, appId);
         BackupJobInfoVO backupJobInfo = new BackupJobInfoVO();
@@ -287,7 +373,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             backupJobInfo.setImportJob(
                 importJobInfoList.parallelStream().map(ImportJobInfoDTO::toVO).collect(Collectors.toList()));
         }
-        return ServiceResponse.buildSuccessResp(backupJobInfo);
+        return Response.buildSuccessResp(backupJobInfo);
     }
 
     private String getImportJobLockKey(Long appId, String jobId) {

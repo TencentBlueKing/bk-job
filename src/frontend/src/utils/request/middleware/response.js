@@ -32,6 +32,8 @@ import EventBus from '@utils/event-bus';
 import AuthResultModel from '@model/auth-result';
 import RequestError from '../lib/request-error';
 
+// 标记已经登录过状态
+// 第一次登录跳转登录页面，之后弹框登录
 let hasLogined = false;
 
 // 监听用户主动退出登录事件
@@ -60,11 +62,22 @@ export default (interceptors) => {
         }
         // 处理 http 错误响应逻辑
         if (error.response) {
+            // 登录状态失效
             if (error.response.status === 401
                 && error.response.headers['x-login-url']) {
                 return Promise.reject(new RequestError(401, error.response.headers['x-login-url']));
             }
-            return Promise.reject(new RequestError(error.response.status || -1, error.response.statusText));
+            // 默认使用 http 错误描述，
+            // 如果 response body 里面有自定义错误描述优先使用
+            let errorMessage = error.response.statusText;
+            if (error.response.data && error.response.data.errorMsg) {
+                errorMessage = error.response.data.errorMsg;
+            }
+            return Promise.reject(new RequestError(
+                error.response.status || -1,
+                errorMessage,
+                error.response,
+            ));
         }
         return Promise.reject(new RequestError(-1, `${window.PROJECT_CONFIG.AJAX_URL_PREFIX} 无法访问`));
     });
@@ -81,7 +94,7 @@ export default (interceptors) => {
                 }
                 break;
                 // 没权限
-            case 1238001: {
+            case 403: {
                 const requestPayload = error.response.config.payload;
                 const authResult = new AuthResultModel(error.response.data.authResult || {});
 

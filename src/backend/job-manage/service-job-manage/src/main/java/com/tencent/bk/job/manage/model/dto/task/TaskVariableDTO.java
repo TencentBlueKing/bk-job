@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.dto.task;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.common.exception.ParamErrorException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import lombok.AllArgsConstructor;
@@ -101,7 +101,7 @@ public class TaskVariableDTO {
         variableInfo.setName(variableVO.getName());
         variableInfo.setType(TaskVariableTypeEnum.valOf(variableVO.getType()));
         if (variableInfo.getType() == null) {
-            throw new ParamErrorException(ErrorCode.WRONG_VARIABLE_TYPE);
+            throw new InvalidParamException(ErrorCode.WRONG_VARIABLE_TYPE);
         }
         if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
             variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toString());

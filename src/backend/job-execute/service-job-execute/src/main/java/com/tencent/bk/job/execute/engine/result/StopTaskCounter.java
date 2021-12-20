@@ -39,7 +39,7 @@ import java.util.concurrent.CountDownLatch;
 public class StopTaskCounter {
     private final Object taskMonitor = new Object();
     private CountDownLatch latch;
-    private Set<String> taskIds = new HashSet<>();
+    private final Set<String> taskIds = new HashSet<>();
     private volatile boolean monitorInitial = false;
     private volatile boolean isAllTaskDone = false;
 

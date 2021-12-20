@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -56,59 +56,59 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public ServiceResponse<List<Long>> getJoinedAppIdList() {
-        return ServiceResponse.buildSuccessResp(taskInstanceService.getJoinedAppIdList());
+    public InternalResponse<List<Long>> getJoinedAppIdList() {
+        return InternalResponse.buildSuccessResp(taskInstanceService.getJoinedAppIdList());
     }
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public ServiceResponse<Boolean> hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
-        return ServiceResponse.buildSuccessResp(taskInstanceService.hasExecuteHistory(appId, cronTaskId, fromTime,
+    public InternalResponse<Boolean> hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
+        return InternalResponse.buildSuccessResp(taskInstanceService.hasExecuteHistory(appId, cronTaskId, fromTime,
             toTime));
     }
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public ServiceResponse<Integer> countFastPushFile(Long appId, Integer transferMode, Boolean localUpload,
-                                                      RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        return ServiceResponse.buildSuccessResp(taskInstanceService.countFastPushFile(appId, transferMode,
+    public InternalResponse<Integer> countFastPushFile(Long appId, Integer transferMode, Boolean localUpload,
+                                                  RunStatusEnum runStatus, Long fromTime, Long toTime) {
+        return InternalResponse.buildSuccessResp(taskInstanceService.countFastPushFile(appId, transferMode,
             localUpload, runStatus, fromTime, toTime));
     }
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public ServiceResponse<Integer> countStepInstances(Long appId, List<Long> stepIdList,
-                                                       StepExecuteTypeEnum stepExecuteType, Integer scriptType,
-                                                       RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        return ServiceResponse.buildSuccessResp(taskInstanceService.countStepInstances(appId, stepIdList,
+    public InternalResponse<Integer> countStepInstances(Long appId, List<Long> stepIdList,
+                                                   StepExecuteTypeEnum stepExecuteType, Integer scriptType,
+                                                   RunStatusEnum runStatus, Long fromTime, Long toTime) {
+        return InternalResponse.buildSuccessResp(taskInstanceService.countStepInstances(appId, stepIdList,
             stepExecuteType, ScriptTypeEnum.valueOf(scriptType), runStatus, fromTime, toTime));
     }
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public ServiceResponse<Integer> countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime,
-                                                       TaskStartupModeEnum taskStartupMode, TaskTypeEnum taskType,
-                                                       List<Byte> runStatusList, Long fromTime, Long toTime) {
-        return ServiceResponse.buildSuccessResp(taskInstanceService.countTaskInstances(appId, minTotalTime,
+    public InternalResponse<Integer> countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime,
+                                                   TaskStartupModeEnum taskStartupMode, TaskTypeEnum taskType,
+                                                   List<Byte> runStatusList, Long fromTime, Long toTime) {
+        return InternalResponse.buildSuccessResp(taskInstanceService.countTaskInstances(appId, minTotalTime,
             maxTotalTime, taskStartupMode, taskType, runStatusList, fromTime, toTime));
     }
 
     @Override
-    public ServiceResponse<StatisticsDTO> getStatistics(Long appId, String resource, String dimension,
-                                                        String dimensionValue, String dateStr) {
-        return ServiceResponse.buildSuccessResp(statisticsService.getStatistics(appId, resource, dimension,
+    public InternalResponse<StatisticsDTO> getStatistics(Long appId, String resource, String dimension,
+                                                    String dimensionValue, String dateStr) {
+        return InternalResponse.buildSuccessResp(statisticsService.getStatistics(appId, resource, dimension,
             dimensionValue, dateStr));
     }
 
     @Override
-    public ServiceResponse<List<StatisticsDTO>> listStatistics(Long appId, String resource, String dimension,
-                                                               String dimensionValue, String dateStr) {
-        return ServiceResponse.buildSuccessResp(statisticsService.listStatistics(appId, resource, dimension,
+    public InternalResponse<List<StatisticsDTO>> listStatistics(Long appId, String resource, String dimension,
+                                                           String dimensionValue, String dateStr) {
+        return InternalResponse.buildSuccessResp(statisticsService.listStatistics(appId, resource, dimension,
             dimensionValue, dateStr));
     }
 
     @Override
-    public ServiceResponse<Boolean> triggerStatistics(ServiceTriggerStatisticsRequest request) {
-        return ServiceResponse.buildSuccessResp(statisticsService.triggerStatistics(request.getDateList()));
+    public InternalResponse<Boolean> triggerStatistics(ServiceTriggerStatisticsRequest request) {
+        return InternalResponse.buildSuccessResp(statisticsService.triggerStatistics(request.getDateList()));
     }
 }

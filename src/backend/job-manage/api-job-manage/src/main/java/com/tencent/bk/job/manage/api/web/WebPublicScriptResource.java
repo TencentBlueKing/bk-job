@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ServiceResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
@@ -65,7 +65,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本版本ID获取脚本版本详情", produces = "application/json")
     @GetMapping("/scriptVersion/{scriptVersionId}")
-    ServiceResponse<ScriptVO> getScriptVersionDetail(
+    Response<ScriptVO> getScriptVersionDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本版本ID", required = true, example = "1")
@@ -73,7 +73,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本ID获取脚本详情", produces = "application/json")
     @GetMapping("/script/{scriptId}")
-    ServiceResponse<ScriptVO> getScript(
+    Response<ScriptVO> getScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = true, example = "1")
@@ -81,7 +81,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本ID获取脚本基本信息", produces = "application/json")
     @GetMapping("/script/basic/{scriptId}")
-    ServiceResponse<ScriptVO> getScriptBasicInfo(
+    Response<ScriptVO> getScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = true, example = "1")
@@ -89,7 +89,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本ID获取已上线脚本", produces = "application/json")
     @GetMapping("/scriptVersion/online/{scriptId}")
-    ServiceResponse<ScriptVO> getOnlineScriptVersionByScriptId(
+    Response<ScriptVO> getOnlineScriptVersionByScriptId(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = true, example = "1")
@@ -97,7 +97,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取脚本列表", produces = "application/json")
     @GetMapping("/script/list")
-    ServiceResponse<PageData<ScriptVO>> listPageScript(
+    Response<PageData<ScriptVO>> listPageScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本名称")
@@ -139,7 +139,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取脚本列表(仅包含基础信息)", produces = "application/json")
     @GetMapping("/script/basic/list")
-    ServiceResponse<List<ScriptVO>> listScriptBasicInfo(
+    Response<List<ScriptVO>> listScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID列表，多个ID之间用,分隔", required = true)
@@ -147,7 +147,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
     @GetMapping("/script/{scriptId}/scriptVersion/list")
-    ServiceResponse<List<ScriptVO>> listScriptVersion(
+    Response<List<ScriptVO>> listScriptVersion(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本ID")
@@ -156,7 +156,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据条件查询业务下的脚本名称列表", produces = "application/json")
     @GetMapping("/scriptNames")
-    ServiceResponse listAppScriptNames(
+    Response listAppScriptNames(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本名称")
@@ -165,7 +165,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取业务下面的已在线脚本列表", produces = "application/json")
     @GetMapping("/scripts/online")
-    ServiceResponse<List<BasicScriptVO>> listScriptOnline(
+    Response<List<BasicScriptVO>> listScriptOnline(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "publicScript", required = false, defaultValue = "false")
@@ -173,7 +173,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "更新脚本元数据，比如脚本描述、名称、标签", produces = "application/json")
     @PutMapping("/script/{scriptId}/info")
-    ServiceResponse updateScriptInfo(
+    Response updateScriptInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = true, example = "uuid")
@@ -185,7 +185,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "更新脚本", produces = "application/json")
     @PostMapping("/script")
-    ServiceResponse<ScriptVO> saveScript(
+    Response<ScriptVO> saveScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "新增/更新的脚本对象", name = "scriptCreateUpdateReq", required = true)
@@ -193,7 +193,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "上线脚本", produces = "application/json")
     @PutMapping("/script/{scriptId}/scriptVersion/{scriptVersionId}/publish")
-    ServiceResponse publishScriptVersion(
+    Response publishScriptVersion(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本ID")
@@ -205,7 +205,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "下线脚本", produces = "application/json")
     @PutMapping("/script/{scriptId}/scriptVersion/{scriptVersionId}/disable")
-    ServiceResponse disableScriptVersion(
+    Response disableScriptVersion(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本ID")
@@ -217,7 +217,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "删除脚本", produces = "application/json")
     @DeleteMapping("/script/{scriptId}")
-    ServiceResponse deleteScriptByScriptId(
+    Response deleteScriptByScriptId(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本ID")
@@ -226,7 +226,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "删除某个版本的脚本", produces = "application/json")
     @DeleteMapping("/scriptVersion/{scriptVersionId}")
-    ServiceResponse deleteScriptByScriptVersionId(
+    Response deleteScriptByScriptVersionId(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("脚本版本ID")
@@ -236,7 +236,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取脚本可以同步的模板与步骤信息", produces = "application/json")
     @GetMapping("/script/{scriptId}/scriptVersion/{scriptVersionId}/syncTemplateSteps")
-    ServiceResponse<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(
+    Response<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "scriptId", required = true)
@@ -246,7 +246,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "同步脚本", produces = "application/json")
     @PostMapping("/script/{scriptId}/scriptVersion/{scriptVersionId}/sync")
-    ServiceResponse<List<ScriptSyncResultVO>> syncScripts(
+    Response<List<ScriptSyncResultVO>> syncScripts(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = true)
@@ -258,7 +258,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本ID/脚本版本ID获取脚本被引次数", produces = "application/json")
     @GetMapping("/citeCount")
-    ServiceResponse<ScriptCiteCountVO> getPublicScriptCiteCount(
+    Response<ScriptCiteCountVO> getPublicScriptCiteCount(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = false, example = "1")
@@ -269,7 +269,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "根据脚本ID/脚本版本ID获取脚本引用信息", produces = "application/json")
     @GetMapping("/citeInfo")
-    ServiceResponse<ScriptCiteInfoVO> getPublicScriptCiteInfo(
+    Response<ScriptCiteInfoVO> getPublicScriptCiteInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本ID", required = false, example = "1")
@@ -280,7 +280,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "批量更新脚本标签-Patch方式", produces = "application/json")
     @PutMapping("/tag")
-    ServiceResponse<?> batchUpdatePublicScriptTags(
+    Response<?> batchUpdatePublicScriptTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本标签批量更新请求报文", name = "tagBatchUpdateReq", required = true)
@@ -289,7 +289,7 @@ public interface WebPublicScriptResource {
 
     @ApiOperation(value = "获取业务下标签关联的脚本数量", produces = "application/json")
     @GetMapping("/tag/count")
-    ServiceResponse<TagCountVO> getTagPublicScriptCount(
+    Response<TagCountVO> getTagPublicScriptCount(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username
     );

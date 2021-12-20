@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v2.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -51,7 +52,7 @@ public class JobExecuteCommonProcessor {
             script = scriptService.getScriptByScriptVersionId(operator, appId, scriptId);
             if (script == null) {
                 log.warn("Script:{} is not in app:{}", scriptId, appId);
-                throw new ServiceException(ErrorCode.SCRIPT_NOT_EXIST);
+                throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
             }
         }
         return script;

@@ -388,7 +388,7 @@
     };
 </script>
 <style lang='postcss'>
-    @import '@/css/mixins/scroll';
+    @import "@/css/mixins/scroll";
 
     %tab-item {
         display: flex;

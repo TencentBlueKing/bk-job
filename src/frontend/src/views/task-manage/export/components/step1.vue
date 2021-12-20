@@ -61,7 +61,7 @@
     };
 </script>
 <style lang="postcss">
-    @import '@/css/mixins/media';
+    @import "@/css/mixins/media";
 
     .task-export-step1-page {
         display: flex;

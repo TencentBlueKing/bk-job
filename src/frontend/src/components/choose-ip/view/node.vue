@@ -53,7 +53,7 @@
                                 </span>
                                 <span>{{ row.type }}#{{ row.id }}</span>
                             </td>
-                            <td>--</td>
+                            <td colspan="2">--</td>
                             <td v-if="editable" class="action-column">
                                 <bk-button
                                     text
@@ -69,7 +69,7 @@
                             :key="row.key"
                             :class="diff[row.key]">
                             <td
-                                style="width: 35%; cursor: pointer;"
+                                style="width: 40%; cursor: pointer;"
                                 @click="handleViewHostList(row.key)">
                                 <div class="cell-text">
                                     {{ wholePathMap[row.key] || row.name }}

@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -205,7 +206,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         public Void call() throws Exception {
             String filePath = file.getFilePath();
             // 本地存储路径
-            String localPath = PathUtil.joinFilePath(jobStorageRootPath, "localupload");
+            String localPath = PathUtil.joinFilePath(jobStorageRootPath, Consts.LOCAL_FILE_DIR_NAME);
             localPath = PathUtil.joinFilePath(localPath, filePath);
             File localFile = new File(localPath);
             // 如果本地文件还未下载就已存在，说明是分发配置文件，直接完成准备阶段

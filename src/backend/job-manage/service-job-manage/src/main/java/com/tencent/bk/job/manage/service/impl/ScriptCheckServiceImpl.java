@@ -28,17 +28,24 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
-import com.tencent.bk.job.manage.manager.script.check.checker.*;
+import com.tencent.bk.job.manage.manager.script.check.checker.BuildInDangerousScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.DangerousRuleScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.DeviceCrashScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.IOScriptChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.ScriptGrammarChecker;
+import com.tencent.bk.job.manage.manager.script.check.checker.ScriptLogicChecker;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +53,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -89,6 +101,10 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     @Override
     public List<ScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
+        if (StringUtils.isBlank(content)) {
+            return checkResultList;
+        }
+
         try {
             List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
             int timeout = 5;
@@ -120,7 +136,10 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
 
         } catch (Exception e) {
             // 脚本检查非强制，如果检查过程中抛出异常不应该影响业务的使用
-            log.warn("Check script caught exception, return empty check result by default!", e);
+            String errorMsg = MessageFormatter.format(
+                "Check script caught exception! scriptType: {}, content: {}",
+                scriptType, content).getMessage();
+            log.error(errorMsg, e);
             return Collections.emptyList();
         }
         return checkResultList;
@@ -130,21 +149,27 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     public List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(ScriptTypeEnum scriptType, String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
 
+        if (StringUtils.isBlank(content)) {
+            return Collections.emptyList();
+        }
+
         try {
             int timeout = 5;
+            ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             List<DangerousRuleDTO> dangerousRules = listDangerousRuleFromCache(scriptType.getValue());
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }
-
-            ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems = executor.submit(
                 new DangerousRuleScriptChecker(scriptCheckParam, dangerousRules));
             checkResultList.addAll(dangerousRuleCheckResultItems.get(timeout, TimeUnit.SECONDS));
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
         } catch (Exception e) {
-            log.warn("Check script caught exception!", e);
-            throw new ServiceException(ErrorCode.SERVICE_INTERNAL_ERROR);
+            String errorMsg = MessageFormatter.format(
+                "Check script caught exception! scriptType: {}, content: {}",
+                scriptType, content).getMessage();
+            log.error(errorMsg, e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }

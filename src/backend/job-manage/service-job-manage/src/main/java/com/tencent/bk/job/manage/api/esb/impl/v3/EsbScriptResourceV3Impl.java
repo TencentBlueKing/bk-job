@@ -29,9 +29,11 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -129,12 +131,12 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(EsbGetScriptListV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         boolean isQueryPublicScript = request.getAppId() == JobConstants.PUBLIC_APP_ID;
@@ -325,14 +327,14 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_list"})
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_list"})
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
         EsbGetScriptVersionListV3Req request
     ) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get scriptVersion list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         boolean isQueryPublicScript = request.getAppId() == JobConstants.PUBLIC_APP_ID;
@@ -367,9 +369,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             // 过滤掉公共脚本
             List<String> resourceIds =
                 scriptVersionDTOList.parallelStream().filter(it -> !it.isPublicScript()).map(it -> {
-                idNameMap.put(it.getId(), it.getName());
-                return it.getId();
-            }).collect(Collectors.toList());
+                    idNameMap.put(it.getId(), it.getName());
+                    return it.getId();
+                }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
                     appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
@@ -403,12 +405,13 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     @Override
-    @EsbApiTimed(value = "esb.api", extraTags = {"api_name", "v3_get_script_version_detail"})
-    public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(EsbGetScriptVersionDetailV3Req request) {
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_detail"})
+    public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
+        EsbGetScriptVersionDetailV3Req request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get scriptVersion list, request is illegal!");
-            return EsbResp.buildCommonFailResp(i18nService, checkResult);
+            throw new InvalidParamException(checkResult);
         }
 
         long appId = request.getAppId();

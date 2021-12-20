@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -69,7 +69,7 @@ public abstract class AbstractTaskStepDAO implements TaskStepDAO {
             }
         } catch (Exception e) {
             log.error("Error while processing step records! Sort failed!", e);
-            throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Sort step failed!");
+            throw new InternalException("Sort step failed!", e, ErrorCode.INTERNAL_ERROR);
         }
     }
 }

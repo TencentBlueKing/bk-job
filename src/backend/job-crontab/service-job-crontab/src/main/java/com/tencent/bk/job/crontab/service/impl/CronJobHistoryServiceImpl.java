@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
@@ -33,7 +33,11 @@ import com.tencent.bk.job.crontab.dao.CronJobHistoryDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobLaunchResultStatistics;
 import com.tencent.bk.job.crontab.service.CronJobHistoryService;
-import com.tencent.bk.job.crontab.timer.*;
+import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
+import com.tencent.bk.job.crontab.timer.QuartzJob;
+import com.tencent.bk.job.crontab.timer.QuartzJobBuilder;
+import com.tencent.bk.job.crontab.timer.QuartzTrigger;
+import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.CronHistoryCleanJobExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +107,7 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
             quartzTaskHandler.addJob(job);
         } catch (SchedulerException e) {
             log.error("Error while add job to quartz!", e);
-            throw new ServiceException(e, ErrorCode.SERVICE_INTERNAL_ERROR, "Add to quartz failed!");
+            throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
         }
     }
 

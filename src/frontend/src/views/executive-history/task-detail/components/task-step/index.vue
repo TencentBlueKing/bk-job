@@ -149,7 +149,7 @@
 
                     .step-info {
                         margin-right: -20px;
-                        opacity: 1;
+                        opacity: 100%;
                         visibility: visible;
                     }
                 }
@@ -186,10 +186,10 @@
                 background: #fff;
                 border: 1px solid #dcdee5;
                 border-radius: 4px;
-                opacity: 0;
+                opacity: 0%;
                 visibility: hidden;
                 transform: translate(100%, -50%);
-                box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
+                box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
                 transition: all 0.15s;
                 user-select: none;
                 flex-direction: column;
@@ -203,7 +203,7 @@
                     background: #fff;
                     border-top: 1px solid #dcdee5;
                     border-left: 1px solid #dcdee5;
-                    content: '';
+                    content: "";
                     transform: rotateZ(-45deg) translateY(-50%);
                 }
 
@@ -213,7 +213,7 @@
                     width: 30px;
                     height: 100%;
                     margin-left: -30px;
-                    content: '';
+                    content: "";
                 }
 
                 .jb-detail-layout {
@@ -230,7 +230,7 @@
             }
 
             .step-instance-action {
-                box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.06);
+                box-shadow: 0 2px 6px 0 rgb(0 0 0 / 6%);
             }
         }
 
@@ -320,7 +320,7 @@
                 font-size: 12px;
                 line-height: 18px;
                 color: #2dcb9d;
-                background: rgba(45, 203, 157, 0.14);
+                background: rgb(45 203 157 / 14%);
                 border-radius: 2px;
             }
 
@@ -369,7 +369,7 @@
 
             .loading-progress {
                 display: block;
-                animation: 'ani-rotate' 2s linear infinite;
+                animation: "ani-rotate" 2s linear infinite;
             }
         }
 
@@ -404,7 +404,7 @@
 
         &.fail,
         &.forced,
-        &.confirmForced {
+        &.confirm-forced {
             color: #979ba5;
 
             .theme-normal-wraper {

@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.common.interceptor;
 
 import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -88,7 +88,7 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
         if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
             AuthResult authResult = authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RECORD);
             if (!authResult.isPass()) {
-                throw new InSufficientPermissionException(authResult);
+                throw new PermissionDeniedException(authResult);
             }
         }
         return true;
