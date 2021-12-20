@@ -48,6 +48,12 @@ export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
     });
 };
 
+/**
+ * @desc 过滤 topo 数据
+ * @param { Array } topologyTreeData topo 数据
+ * @param { Boolean } showEmpty 是否显示主机数为空的 topo 节点
+ * @returns { Array }
+ */
 export const filterTopology = (topologyTreeData, showEmpty = true) => {
     if (!topologyTreeData || topologyTreeData.length < 1) {
         return [];

@@ -28,7 +28,10 @@
 <template>
     <div class="choose-ip-dynamic-group" v-bkloading="{ isLoading }">
         <div class="group-search">
-            <bk-input :placeholder="$t('搜索分组名称')" right-icon="bk-icon icon-search" @input="handleGroupSearch" />
+            <bk-input
+                :placeholder="$t('搜索分组名称')"
+                right-icon="bk-icon icon-search"
+                @input="handleGroupSearch" />
         </div>
         <template v-if="!isLoading">
             <div v-if="hasNotGroup" class="group-empty">
@@ -95,7 +98,7 @@
         },
         inheritAttrs: false,
         props: {
-            dynamicGroup: {
+            dynamicGroupList: {
                 type: Array,
                 required: true,
             },
@@ -138,14 +141,14 @@
             },
         },
         watch: {
-            dynamicGroup: {
-                handler (newDynamicGroup) {
+            dynamicGroupList: {
+                handler (dynamicGroupList) {
                     if (this.selfChange) {
                         this.selfChange = false;
                         return;
                     }
                     const checkedMap = {};
-                    newDynamicGroup.forEach((groupId) => {
+                    dynamicGroupList.forEach((groupId) => {
                         checkedMap[groupId] = true;
                     });
                     this.pagination.page = 1;
@@ -203,7 +206,7 @@
              */
             trigger () {
                 this.selfChange = true;
-                this.$emit('on-change', 'dynamicGroupId', Object.keys(this.checkedMap));
+                this.$emit('on-change', 'dynamicGroupList', Object.keys(this.checkedMap));
             },
             /**
              * @desc 本地搜索动态分组

@@ -61,9 +61,9 @@
                                 class="fade-in"
                                 :preview-id="previewId"
                                 :topology-node-tree="topologyNodeTree"
-                                :node="nodeId"
-                                :host="hostList"
-                                :dynamic-group="dynamicGroupId"
+                                :ip-list="ipList"
+                                :topo-node-list="topoNodeList"
+                                :dynamic-group-list="dynamicGroupList"
                                 :topology-loading="isLoading"
                                 :dialog-height="dialogHeight"
                                 @on-group-preview="handleGroupPreview"
@@ -80,9 +80,9 @@
             <template v-if="showChoosePreview">
                 <preview
                     v-model="showChoosePreview"
-                    :host="hostList"
-                    :node="nodeId"
-                    :group="dynamicGroupId"
+                    :host="ipList"
+                    :node="topoNodeList"
+                    :group="dynamicGroupList"
                     @on-change="handlePreviewChange">
                     <div slot="desc" v-html="actionResult" />
                 </preview>
@@ -175,7 +175,7 @@
             },
         },
         data () {
-            this.hostListTopolagyLast = [];
+            this.ipListTopolagyLast = [];
             return {
                 isShowDialog: false,
                 isLoading: true,
@@ -188,9 +188,9 @@
                 // 弹框的高度
                 dialogHeight: 0,
                 topologyNodeTree: [],
-                nodeId: [],
-                hostList: [],
-                dynamicGroupId: [],
+                topoNodeList: [],
+                ipList: [],
+                dynamicGroupList: [],
                 previewGroup: {},
                 error: '',
                 currentChangeClass: '',
@@ -235,7 +235,7 @@
              * @returns {Boolean}
              */
             isEmpty () {
-                return !this.nodeId.length && !this.hostList.length && !this.dynamicGroupId.length;
+                return !this.topoNodeList.length && !this.ipList.length && !this.dynamicGroupList.length;
             },
             /**
              * @desc 选择结果的展示
@@ -243,14 +243,14 @@
              */
             actionResult () {
                 const result = [];
-                if (this.hostList.length > 0) {
-                    result.push(`<span class="strong number choose-host">${this.hostList.length}</span>${I18n.t('台主机.select')}`);
+                if (this.ipList.length > 0) {
+                    result.push(`<span class="strong number choose-host">${this.ipList.length}</span>${I18n.t('台主机.select')}`);
                 }
-                if (this.nodeId.length > 0) {
-                    result.push(`<span class="strong number choose-node">${this.nodeId.length}</span>${I18n.t('个节点.select')}`);
+                if (this.topoNodeList.length > 0) {
+                    result.push(`<span class="strong number choose-node">${this.topoNodeList.length}</span>${I18n.t('个节点.select')}`);
                 }
-                if (this.dynamicGroupId.length > 0) {
-                    result.push(`<span class="strong number choose-group">${this.dynamicGroupId.length}</span>${I18n.t('个分组.select')}`);
+                if (this.dynamicGroupList.length > 0) {
+                    result.push(`<span class="strong number choose-group">${this.dynamicGroupList.length}</span>${I18n.t('个分组.select')}`);
                 }
                 if (result.length < 1) {
                     return '';
@@ -288,17 +288,21 @@
                         this.isSelfChange = false;
                         return;
                     }
-                    const { dynamicGroupList = [], ipList = [], topoNodeList = [] } = hostNodeInfo;
+                    const {
+                        dynamicGroupList = [],
+                        ipList = [],
+                        topoNodeList = [],
+                    } = hostNodeInfo;
 
-                    this.nodeId = Object.freeze([
+                    this.topoNodeList = Object.freeze([
                         ...topoNodeList,
                     ]);
-                    this.hostList = Object.freeze(ipList.map(host => Object.assign({
+                    this.ipList = Object.freeze(ipList.map(host => Object.assign({
                         realId: generateHostRealId(host),
                         ...host,
                     })));
-                    this.hostListTopolagyLast = this.hostList;
-                    this.dynamicGroupId = Object.freeze(dynamicGroupList);
+                    this.ipListTopolagyLast = this.ipList;
+                    this.dynamicGroupList = Object.freeze(dynamicGroupList);
                 },
                 immediate: true,
             },
@@ -353,21 +357,21 @@
             handleChange (field, value) {
                 this.error = '';
                 switch (field) {
-                    case 'hostTopology':
-                        this.hostList = Object.freeze(mergeTopologyHost(this.hostList, this.hostListTopolagyLast, value));
-                        this.hostListTopolagyLast = value;
+                    case 'ipList':
+                        this.ipList = Object.freeze(mergeTopologyHost(this.ipList, this.ipListTopolagyLast, value));
+                        this.ipListTopolagyLast = value;
                         this.currentChangeClass = 'host';
                         break;
-                    case 'hostInput':
-                        this.hostList = Object.freeze(mergeInputHost(this.hostList, value));
+                    case 'ipInput':
+                        this.ipList = Object.freeze(mergeInputHost(this.ipList, value));
                         this.currentChangeClass = 'host';
                         break;
-                    case 'nodeId':
-                        this.nodeId = Object.freeze(value);
+                    case 'topoNodeList':
+                        this.topoNodeList = Object.freeze(value);
                         this.currentChangeClass = 'node';
                         break;
-                    case 'dynamicGroupId':
-                        this.dynamicGroupId = Object.freeze(value);
+                    case 'dynamicGroupList':
+                        this.dynamicGroupList = Object.freeze(value);
                         this.currentChangeClass = 'group';
                         break;
                     default:
@@ -403,10 +407,14 @@
              *
              */
             handlePreviewChange (hostNodeInfo) {
-                const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
-                this.nodeId = Object.freeze(topoNodeList);
-                this.hostList = Object.freeze(ipList);
-                this.dynamicGroupId = Object.freeze(dynamicGroupList);
+                const {
+                    dynamicGroupList,
+                    ipList,
+                    topoNodeList,
+                } = hostNodeInfo;
+                this.topoNodeList = Object.freeze(topoNodeList);
+                this.ipList = Object.freeze(ipList);
+                this.dynamicGroupList = Object.freeze(dynamicGroupList);
             },
             /**
              * @desc 查看分组的主机详情
@@ -421,9 +429,9 @@
              * @desc 外部调用，重置选中状态
              */
             reset () {
-                this.nodeId = [];
-                this.hostList = [];
-                this.dynamicGroupId = [];
+                this.topoNodeList = [];
+                this.ipList = [];
+                this.dynamicGroupList = [];
             },
             /**
              * @desc 弹框关闭
@@ -449,9 +457,9 @@
                             .then(() => {
                                 this.isSelfChange = true;
                                 this.$emit('on-change', {
-                                    ipList: this.hostList,
-                                    topoNodeList: this.nodeId,
-                                    dynamicGroupList: this.dynamicGroupId,
+                                    ipList: this.ipList,
+                                    topoNodeList: this.topoNodeList,
+                                    dynamicGroupList: this.dynamicGroupList,
                                 });
                                 this.close();
                             });
@@ -469,15 +477,15 @@
                     topoNodeList = [],
                 } = this.hostNodeInfo;
 
-                this.nodeId = Object.freeze([
+                this.topoNodeList = Object.freeze([
                     ...topoNodeList,
                 ]);
-                this.hostList = Object.freeze(ipList.map(host => ({
+                this.ipList = Object.freeze(ipList.map(host => ({
                     ...host,
                     realId: generateHostRealId(host),
                 })));
-                this.dynamicGroupId = Object.freeze(dynamicGroupList);
-                this.hostListTopolagyLast = this.hostList;
+                this.dynamicGroupList = Object.freeze(dynamicGroupList);
+                this.ipListTopolagyLast = this.ipList;
                 this.isShowDialog = false;
                 this.close();
             },
