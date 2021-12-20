@@ -27,19 +27,22 @@
 
 <template>
     <jb-form-item :label="$t('超时时长')">
-        <bk-input
+        <div
             class="form-item-content"
-            type="number"
-            :palceholder="$t('此处留空将默认为7200s')"
-            :min="0"
-            :max="72000"
-            :precision="0"
-            @change="handleChange"
-            :value="formData[field]">
-            <template slot="append">
-                <div class="group-text">s</div>
-            </template>
-        </bk-input>
+            v-bk-tooltips.right.light="$t('允许最小 1s，最大为 86400s')">
+            <bk-input
+                type="number"
+                :palceholder="$t('此处留空将默认为7200s')"
+                :min="1"
+                :max="86400"
+                :precision="0"
+                @change="handleChange"
+                :value="formData[field]">
+                <template slot="append">
+                    <div class="group-text">s</div>
+                </template>
+            </bk-input>
+        </div>
     </jb-form-item>
 </template>
 <script>
