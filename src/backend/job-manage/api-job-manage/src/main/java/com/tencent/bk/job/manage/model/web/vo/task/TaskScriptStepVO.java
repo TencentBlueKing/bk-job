@@ -33,8 +33,6 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * @since 16/10/2019 14:46
  */
@@ -61,7 +59,6 @@ public class TaskScriptStepVO {
     private String scriptParam;
 
     @ApiModelProperty("脚本超时时间")
-    @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
     @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Long timeout;

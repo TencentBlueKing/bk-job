@@ -32,8 +32,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * 脚本执行请求
  */
@@ -85,7 +83,6 @@ public class WebFastExecuteScriptRequest {
      * 执行超时时间
      */
     @ApiModelProperty(value = "执行超时时间，单位秒", required = true)
-    @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
     @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
