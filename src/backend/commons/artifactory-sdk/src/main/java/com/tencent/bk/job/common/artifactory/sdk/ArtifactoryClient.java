@@ -54,9 +54,8 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
-import com.tencent.bk.job.common.util.http.LongRetryableHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -105,8 +104,8 @@ public class ArtifactoryClient {
     private final String password;
     private final MeterRegistry meterRegistry;
 
-    AbstractHttpHelper httpHelper = new DefaultHttpHelper();
-    AbstractHttpHelper longHttpHelper = new LongRetryableHttpHelper();
+    ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    ExtHttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
 
     public ArtifactoryClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
         this.baseUrl = StringUtil.removeSuffix(baseUrl, "/");
@@ -169,7 +168,7 @@ public class ArtifactoryClient {
         return headerList.toArray(headers);
     }
 
-    private String doHttpGet(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws IOException {
+    private String doHttpGet(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws IOException {
         if (null == reqBody) {
             return httpHelper.get(url, getJsonHeaders());
         } else {
@@ -177,7 +176,7 @@ public class ArtifactoryClient {
         }
     }
 
-    private String doHttpPost(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws Exception {
+    private String doHttpPost(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws Exception {
         if (null == reqBody) {
             return httpHelper.post(url, "{}", getJsonHeaders());
         } else {
@@ -185,7 +184,7 @@ public class ArtifactoryClient {
         }
     }
 
-    private String doHttpDelete(String url, ArtifactoryReq reqBody, AbstractHttpHelper httpHelper) throws Exception {
+    private String doHttpDelete(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) throws Exception {
         if (null == reqBody) {
             return httpHelper.delete(url, "{}", getJsonHeaders());
         } else {
@@ -227,7 +226,7 @@ public class ArtifactoryClient {
         String url,
         ArtifactoryReq reqBody,
         TypeReference<R> typeReference,
-        AbstractHttpHelper httpHelper
+        ExtHttpHelper httpHelper
     ) throws ServiceException {
         // URL模板变量替换
         url = StringUtil.replacePathVariables(url, reqBody);

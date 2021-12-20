@@ -22,42 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.impl;
+package com.tencent.bk.job.common.config;
 
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
-import com.tencent.bk.job.file_gateway.metrics.MetricsConstants;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Service
-public class FileWorkerHttpHelper extends DefaultHttpHelper {
+@Slf4j
+@Configuration
+public class HttpConfig {
 
-    private final MeterRegistry meterRegistry;
-
-    @Autowired
-    public FileWorkerHttpHelper(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
+    @Bean
+    public HttpConfigSetter ccConfigSetter(@Autowired MeterRegistry meterRegistry) {
+        HttpHelperFactory.setMeterRegistry(meterRegistry);
+        log.info("meterRegistry for HttpHelperFactory init");
+        return new HttpConfigSetter();
     }
 
-    @Override
-    public byte[] post(String url, HttpEntity requestEntity, Header... headers) {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        byte[] result = super.post(url, requestEntity, headers);
-        sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,
-            MetricsConstants.VALUE_MODULE_FILE_WORKER, "method", "post", "url", url));
-        return result;
-    }
-
-    @Override
-    public String delete(String url, String content, Header... headers) {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        String result = super.delete(url, content, headers);
-        sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,
-            MetricsConstants.VALUE_MODULE_FILE_WORKER, "method", "delete", "url", url));
-        return result;
+    static class HttpConfigSetter {
+        public HttpConfigSetter() {
+        }
     }
 }

@@ -30,16 +30,20 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
 import com.tencent.bk.job.common.paas.model.GetUserListReq;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
-import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,23 +127,24 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             }
             req.setNoPage(noPage);
 
-            String respStr = doHttpGet(API_GET_USER_LIST, req);
-            if (StringUtils.isBlank(respStr)) {
-                log.error("{}|response empty", API_GET_USER_LIST);
-                return null;
-            }
-            EsbResp<List<EsbListUsersResult>> esbResp = JsonUtils.fromJson(respStr,
+            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
+            JobContextUtil.addHttpMetricTag(
+                Tag.of("api_name", API_GET_USER_LIST)
+            );
+            EsbResp<List<EsbListUsersResult>> esbResp = getEsbRespByReq(
+                HttpGet.METHOD_NAME,
+                API_GET_USER_LIST,
+                req,
                 new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
-                });
-            if (esbResp == null || esbResp.getCode() != 0) {
-                log.error("Get {} error, response is null or response code is not success", API_GET_USER_LIST);
-                return null;
-            }
+                }
+            );
             oriUsers = esbResp.getData();
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
             throw new InternalException(errorMsg, e, ErrorCode.PAAS_API_DATA_ERROR);
+        } finally {
+            JobContextUtil.clearHttpMetricTags();
         }
         if (oriUsers == null || oriUsers.isEmpty()) {
             return null;
@@ -160,25 +165,22 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     @Override
     public List<EsbNotifyChannelDTO> getNotifyChannelList(String uin) {
         GetEsbNotifyChannelReq req = makeBaseReqByWeb(GetEsbNotifyChannelReq.class, null, uin, null);
-        String respStr = null;
         try {
-            respStr = doHttpGet(API_GET_NOTIFY_CHANNEL_LIST, req);
-        } catch (Exception e) {
-            log.error("Fail to get notify channel list:", e);
-            return null;
+            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            JobContextUtil.addHttpMetricTag(
+                Tag.of("api_name", API_GET_NOTIFY_CHANNEL_LIST)
+            );
+            EsbResp<List<EsbNotifyChannelDTO>> esbResp = getEsbRespByReq(
+                HttpGet.METHOD_NAME,
+                API_GET_NOTIFY_CHANNEL_LIST,
+                req,
+                new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
+                }
+            );
+            return esbResp.getData();
+        } finally {
+            JobContextUtil.clearHttpMetricTags();
         }
-        if (StringUtils.isBlank(respStr)) {
-            log.error("Get {} error, response is blank", API_GET_NOTIFY_CHANNEL_LIST);
-            return null;
-        }
-        EsbResp<List<EsbNotifyChannelDTO>> esbResp = JsonUtils.fromJson(respStr,
-            new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
-            });
-        if (esbResp == null || esbResp.getCode() != 0) {
-            log.error("Get {} error, response is null or response code is not success", API_GET_NOTIFY_CHANNEL_LIST);
-            return null;
-        }
-        return esbResp.getData();
     }
 
     @Override
@@ -198,27 +200,21 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         req.setReceiverUsername(String.join(",", receiverList));
         req.setTitle(title);
         req.setContent(content);
-        String respStr;
         long start = System.nanoTime();
         String status = "none";
         String uri = API_POST_SEND_MSG;
         try {
-            respStr = doHttpPost(uri, req);
+            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            EsbResp<List<Boolean>> esbResp = getEsbRespByReq(
+                HttpPost.METHOD_NAME,
+                uri,
+                req,
+                new TypeReference<EsbResp<List<Boolean>>>() {
+                }
+            );
 
-            if (StringUtils.isBlank(respStr)) {
-                log.error("Get {} error, response is blank", API_POST_SEND_MSG);
-                status = "fail";
-                return false;
-            }
-            EsbResp<Object> esbResp = JsonUtils.fromJson(respStr,
-                new TypeReference<EsbResp<Object>>() {
-                });
-            if (esbResp == null) {
-                log.warn("{}|req={}|respStr={}|esbResp == null after json parse",
-                    uri, JsonUtils.toJsonWithoutSkippedFields(req), respStr);
-                status = "fail";
-                return false;
-            } else if (esbResp.getCode() != 0) {
+            if (esbResp.getCode() != 0) {
                 Integer code = esbResp.getCode();
                 log.warn("{}|requestId={}|code={}|msg={}|esbResp.getCode() != 0",
                     uri, esbResp.getRequestId(), esbResp.getCode(), esbResp.getMessage());
@@ -237,10 +233,14 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             status = "error";
             return false;
         } finally {
+            JobContextUtil.clearHttpMetricTags();
             long end = System.nanoTime();
-            meterRegistry.timer("cmsi.api", "api_name", API_POST_SEND_MSG,
-                "status", status, "msg_type", msgType)
-                .record(end - start, TimeUnit.NANOSECONDS);
+            meterRegistry.timer(
+                CommonMetricNames.ESB_CMSI_API,
+                "api_name", API_POST_SEND_MSG,
+                "status", status,
+                "msg_type", msgType
+            ).record(end - start, TimeUnit.NANOSECONDS);
             String key = "today.msg." + msgType + "." + status;
             AtomicInteger valueWrapper = todayMsgStatisticsMap.computeIfAbsent(key,
                 str -> new AtomicInteger(0));
