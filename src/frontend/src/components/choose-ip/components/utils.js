@@ -23,9 +23,26 @@
  * IN THE SOFTWARE.
 */
 
+/**
+ * @desc 生成主机的唯一标识 KEY
+ * @param { Object } host
+ * @returns { String }
+ */
 export const generateHostRealId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
+
+/**
+ * @desc 从节点的唯一标识中解析节点的信息
+ * @param { String } id
+ * @returns { Array }
+ */
 export const parseIdInfo = id => id.match(/^#([^#]+)#(.+)$/).slice(1);
 
+/**
+ * @desc 遍历 topo 数据构造 bk-big-tree 需要的数据结构
+ * @param { Array } target api 返回 topo 数据
+ * @param { Number } level 层级
+ * @returns { Boolean }
+ */
 export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
     if (!target || target.length < 1) {
         return [];
@@ -77,6 +94,11 @@ export const filterTopology = (topologyTreeData, showEmpty = true) => {
     }, []);
 };
 
+/**
+ * @desc 统计主机的状态信息。总数、有效主机数、无效主机数
+ * @param { Boolean } name
+ * @returns { Boolean }
+ */
 export const statisticsHost = (list) => {
     // 主机的唯一标记是ip + 云区域
     const total = list.length;
@@ -97,6 +119,11 @@ export const statisticsHost = (list) => {
     };
 };
 
+/**
+ * @desc 获取指定节点下面的所有节点
+ * @param { Object } node
+ * @returns { Array }
+ */
 export const findAllChildNodeId = (node) => {
     const childs = [];
     if (node.children) {
@@ -108,6 +135,12 @@ export const findAllChildNodeId = (node) => {
     return childs;
 };
 
+/**
+ * @desc 合并手动输入的主机 IP 到已选的静态 IP中
+ * @param { Array } first 已选的主机列表
+ * @param { Array } second 手动输入的主机列表
+ * @returns { Boolean }
+ */
 export const mergeInputHost = (first, second) => {
     const result = [];
     const firstHostReadIdMap = {};
@@ -154,36 +187,27 @@ export const mergeTopologyHost = (target, preList, lastList) => {
     return mergeInputHost(target, lastList);
 };
 
-export const resetTree = (target, calllback) => {
-    if (!target || target.length < 1) {
+/**
+ * @desc 遍历 topo 数据执行 calllback
+ * @param { Array } topoList
+ * @param { Function } calllback
+ */
+export const resetTree = (topoList, calllback) => {
+    if (!topoList || topoList.length < 1) {
         return;
     }
 
-    target.forEach((curNode) => {
+    topoList.forEach((curNode) => {
         calllback(curNode);
         resetTree(curNode.children, calllback);
     });
 };
 
-export const toggleActive = (target, active, value) => {
-    const arrayAdd = (list, value) => [
-        ...new Set([
-            ...list, value,
-        ]),
-    ];
-    const arrayRemove = (list, value) => {
-        const s = new Set(list);
-        s.delete(value);
-        return [
-            ...s,
-        ];
-    };
-    if (target.length > 0) {
-        return arrayAdd(active, value);
-    }
-    return arrayRemove(active, value);
-};
-
+/**
+ * @desc 主机列表排序
+ * @param { Array } hostList
+ * @returns { Array }
+ */
 export const sortHost = (hostList) => {
     const hostMap = {};
     hostList.forEach((item) => {
