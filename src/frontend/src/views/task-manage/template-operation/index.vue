@@ -489,9 +489,8 @@
                                 }
                             }
                             this.planList = Object.freeze(planList);
-                            const isPlanEmpty = planList.length < 1;
                             if (this.isEdit) {
-                                this.editSuccessCallback(taskId, planSync, isPlanEmpty);
+                                this.editSuccessCallback(taskId, planSync);
                             } else {
                                 this.createSuccessCallback(taskId);
                             }
@@ -591,9 +590,8 @@
              * @desc 编辑作业模板成功
              * @param {Number} taskId 作业模板id
              * @param {Boolean} planSync 执行方案是否需要同步
-             * @param {Boolean} isPlanEmpty 作业模板关联的执行方案是否为空
              */
-            editSuccessCallback (taskId, planSync, isPlanEmpty) {
+            editSuccessCallback (taskId, planSync) {
                 let confirmInfo = '';
                 let isClickClose = false;
                 const handleGoTemplateDetail = () => {
@@ -651,7 +649,6 @@
                         </bk-button>
                         <bk-button
                             text
-                            disabled={isPlanEmpty}
                             onClick={handleGoPlan}>
                             {I18n.t('template.查看方案')}
                         </bk-button>
