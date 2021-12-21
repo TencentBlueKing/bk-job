@@ -29,7 +29,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.apache.thrift:libthrift:0.12.0'
+    implementation 'org.apache.thrift:libthrift:0.15.0'
     implementation 'org.apache.commons:commons-lang3'
     implementation 'org.apache.commons:commons-collections4'
     implementation 'org.apache.httpcomponents:httpclient'
