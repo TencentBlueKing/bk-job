@@ -26,11 +26,15 @@
 -->
 
 <template>
-    <component :is="itemCom" v-bind="$attrs" v-on="$listeners" />
+    <component
+        :is="itemCom"
+        v-bind="$attrs"
+        v-on="$listeners" />
 </template>
 <script>
     import ErrorHandle from '../common/error-handle';
     import StepName from '../common/name';
+    import Timeout from '../common/timeout';
     import SourceFileOfExecution from './strategy/source-file-of-execution';
     import SourceFileOfTemplate from './strategy/source-file-of-template';
     import TargetPath from './strategy/target-path';
@@ -38,7 +42,7 @@
     import ExecuteAccount from './strategy/execute-account';
     import TargetServerOfTemplate from './strategy/target-server-of-template';
     import TargetServerOfExecution from './strategy/target-server-of-execution';
-    import Timeout from './strategy/timeout';
+    
     import SpeedLimit from './strategy/speed-limit';
 
     const comMap = {
