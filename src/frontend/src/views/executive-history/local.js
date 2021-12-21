@@ -201,5 +201,6 @@ export default {
         '打包失败，': 'Package Failed',
         重试: 'Retry',
         准备就绪: 'Ready',
+        '分组标签长度最大支持256，超过会被自动截断，请留意！': 'The maximum length of the grouping tag is 256. If exceeded, it will be automatically truncated.',
     },
 };

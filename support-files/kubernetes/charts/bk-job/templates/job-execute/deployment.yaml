@@ -75,10 +75,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-execute
             - name: BK_JOB_STORAGE_ROOT_PATH
               value: {{ .Values.job.storage.rootPath }}
             - name: JOB_APPLICATION_CONFIGMAP_NAME
@@ -142,7 +138,7 @@ spec:
       volumes:
         - name: job-storage
           persistentVolumeClaim:
-            claimName: bk-job-pv-claim
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: local-file-dir
           hostPath:
             path: {{ .Values.job.storage.rootPath }}

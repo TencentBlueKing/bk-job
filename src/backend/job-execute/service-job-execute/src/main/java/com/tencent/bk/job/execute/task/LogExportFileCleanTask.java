@@ -61,12 +61,10 @@ public class LogExportFileCleanTask {
     private final StorageSystemConfig storageSystemConfig;
     private final ArtifactoryClient artifactoryClient;
 
-    public LogExportFileCleanTask(
-        LogExportConfig logExportConfig,
-        ArtifactoryConfig artifactoryConfig,
-        StorageSystemConfig storageSystemConfig,
-        ArtifactoryClient artifactoryClient
-    ) {
+    public LogExportFileCleanTask(LogExportConfig logExportConfig,
+                                  ArtifactoryConfig artifactoryConfig,
+                                  StorageSystemConfig storageSystemConfig,
+                                  ArtifactoryClient artifactoryClient) {
         this.logExportConfig = logExportConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.storageSystemConfig = storageSystemConfig;

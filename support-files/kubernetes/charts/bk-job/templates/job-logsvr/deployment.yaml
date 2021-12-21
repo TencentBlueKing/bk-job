@@ -69,10 +69,6 @@ spec:
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-logsvr.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-logsvr
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-logsvr
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -120,7 +116,7 @@ spec:
       volumes:
         - name: job-storage
           persistentVolumeClaim:
-            claimName: bk-job-pv-claim
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}

@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -197,22 +198,18 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
 
-        boolean existAnyMatchedFavoredTemplate;
         List<TaskTemplateInfoDTO> matchedFavoredTemplates = null;
         if (CollectionUtils.isNotEmpty(favoredTemplateIdList)) {
             matchedFavoredTemplates = queryFavoredTemplates(query, favoredTemplateIdList);
             query.setExcludeTemplateIds(favoredTemplateIdList);
         }
-        existAnyMatchedFavoredTemplate = CollectionUtils.isNotEmpty(matchedFavoredTemplates);
-        if (existAnyMatchedFavoredTemplate && !getAll) {
-            resetPageConditionWhenExistFavoredTemplate(baseSearchCondition, start, length, matchedFavoredTemplates);
-        }
 
-
-        PageData<TaskTemplateInfoDTO> templatePageData = taskTemplateDAO.listPageTaskTemplates(query);
-
-        rebuildTemplatePageData(templatePageData, matchedFavoredTemplates, getAll, existAnyMatchedFavoredTemplate,
-            start, length);
+        PageData<TaskTemplateInfoDTO> templatePageData =
+            PageUtil.pageQuery(getAll, matchedFavoredTemplates, start, length,
+                finalStart -> {
+                    query.getBaseSearchCondition().setStart(finalStart);
+                    return taskTemplateDAO.listPageTaskTemplates(query);
+                });
         setAdditionalAttributesForTemplates(query.getAppId(), templatePageData);
 
         return templatePageData;
@@ -249,60 +246,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         return matchedFavoredTemplates;
-    }
-
-    private void resetPageConditionWhenExistFavoredTemplate(BaseSearchCondition baseSearchCondition,
-                                                            Integer start,
-                                                            Integer length,
-                                                            List<TaskTemplateInfoDTO> matchedFavoredTemplates) {
-        if (matchedFavoredTemplates.size() <= start) {
-            baseSearchCondition.setStart(start - matchedFavoredTemplates.size());
-        } else {
-            baseSearchCondition.setStart(0);
-            baseSearchCondition.setLength(Math.max(1, start + length - matchedFavoredTemplates.size()));
-        }
-    }
-
-    private void rebuildTemplatePageData(PageData<TaskTemplateInfoDTO> templatePageData,
-                                         List<TaskTemplateInfoDTO> matchedFavoredTemplates,
-                                         boolean getAll,
-                                         boolean existAnyMatchedFavoredTemplate,
-                                         Integer start,
-                                         Integer length) {
-        if (existAnyMatchedFavoredTemplate) {
-            if (getAll) {
-                templatePageData.getData().addAll(0, matchedFavoredTemplates);
-            } else {
-                putFavoredTemplateInFrontIfExist(templatePageData, matchedFavoredTemplates, start, length);
-            }
-        }
-
-        if (!getAll) {
-            templatePageData.setStart(start);
-            templatePageData.setPageSize(length);
-            if (existAnyMatchedFavoredTemplate) {
-                templatePageData.setTotal(matchedFavoredTemplates.size() + templatePageData.getTotal());
-            }
-        }
-    }
-
-    private void putFavoredTemplateInFrontIfExist(PageData<TaskTemplateInfoDTO> templatePageData,
-                                         List<TaskTemplateInfoDTO> matchedFavoredTemplates,
-                                         Integer start,
-                                         Integer length) {
-        // 前置的模板
-        if (CollectionUtils.isNotEmpty(matchedFavoredTemplates)) {
-            if (matchedFavoredTemplates.size() > start) {
-                templatePageData.getData().addAll(0, matchedFavoredTemplates.stream().skip(start).limit(length)
-                    .collect(Collectors.toList()));
-            }
-        }
-
-        // subList
-        if (templatePageData.getData().size() > length) {
-            List<TaskTemplateInfoDTO> templates = new ArrayList<>(templatePageData.getData().subList(0, length));
-            templatePageData.setData(templates);
-        }
     }
 
     private List<Long> queryTemplateIdsByTags(TaskTemplateQuery query) {
@@ -645,7 +588,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateInfoDTO taskTemplateByName =
             taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
         if (taskTemplateByName != null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NAME_EXIST);
+            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST);
         }
         taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
 

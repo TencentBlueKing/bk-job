@@ -44,6 +44,7 @@ import com.tencent.cos.model.ResponseHeaderOverrides;
 import com.tencent.cos.region.Region;
 import com.tencent.cos.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -136,15 +137,15 @@ public class TencentInnerCOSUtil {
         }
     }
 
-    public static InputStream getFileInputStream(String accessKey, String secretKey, String regionName,
-                                                 String bucketName, String key) {
+    public static Pair<InputStream, Long> getFileInputStream(String accessKey, String secretKey, String regionName,
+                                                             String bucketName, String key) {
         COSClient cosClient = getCOSClient(accessKey, secretKey, regionName);
         COSObject cosObject = cosClient.getObject(bucketName, key);
         if (cosObject == null) {
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{String.format("Fail to getObject by bucketName %s key %s", bucketName, key)});
         }
-        return cosObject.getObjectContent();
+        return Pair.of(cosObject.getObjectContent(), cosObject.getObjectMetadata().getContentLength());
     }
 
     public static FileMetaData getFileMetaData(String accessKey, String secretKey, String regionName,
