@@ -49,7 +49,7 @@ public class ArtifactoryRemoteClient extends ArtifactoryClient implements Remote
     }
 
     @Override
-    public Pair<InputStream,Long> getFileInputStream(String filePath) throws ServiceException {
+    public Pair<InputStream, Long> getFileInputStream(String filePath) throws ServiceException {
         return super.getFileInputStream(filePath);
     }
 

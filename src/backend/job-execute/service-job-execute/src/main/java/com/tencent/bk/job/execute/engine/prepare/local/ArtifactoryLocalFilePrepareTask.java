@@ -242,8 +242,9 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                 filePath
             );
             InputStream ins = pair.getLeft();
-            long length = pair.getRight();
-            if (nodeDTO.getSize() != length) {
+            Long length = pair.getRight();
+            Long fileSize = nodeDTO.getSize();
+            if (fileSize != null && !fileSize.equals(length)) {
                 log.warn(
                     "[{}]:{},ins length={},node.size={}",
                     stepInstanceId,
@@ -251,6 +252,9 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                     length,
                     nodeDTO.getSize()
                 );
+            }
+            if (fileSize == null || fileSize <= 0) {
+                fileSize = length;
             }
             // 保存到本地临时目录
             AtomicInteger speed = new AtomicInteger(0);
@@ -262,7 +266,7 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
                     filePath,
                     localPath
                 );
-                FileUtil.writeInsToFile(ins, localPath, length, speed, process);
+                FileUtil.writeInsToFile(ins, localPath, fileSize, speed, process);
                 return true;
             } catch (InterruptedException e) {
                 log.warn(

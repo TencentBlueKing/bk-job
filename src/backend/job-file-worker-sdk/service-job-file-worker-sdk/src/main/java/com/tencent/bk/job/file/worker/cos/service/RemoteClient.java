@@ -34,7 +34,7 @@ public interface RemoteClient {
 
     FileMetaData getFileMetaData(String filePath);
 
-    Pair<InputStream,Long> getFileInputStream(String filePath) throws ServiceException;
+    Pair<InputStream, Long> getFileInputStream(String filePath) throws ServiceException;
 
     void shutdown();
 

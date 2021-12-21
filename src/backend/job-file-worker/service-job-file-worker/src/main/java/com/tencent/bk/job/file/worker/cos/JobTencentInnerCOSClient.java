@@ -106,7 +106,7 @@ public class JobTencentInnerCOSClient {
             key);
     }
 
-    public Pair<InputStream,Long> getFileInputStream(String bucketName, String key) {
+    public Pair<InputStream, Long> getFileInputStream(String bucketName, String key) {
         return TencentInnerCOSUtil.getFileInputStream(accessKey, secretKey, regionName, getRealBucketName(bucketName)
             , key);
     }

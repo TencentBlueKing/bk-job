@@ -104,11 +104,11 @@ class DownloadFileTask extends Thread {
                 fileSizeWrapper.set(fileSize);
                 Pair<InputStream, Long> pair = remoteClient.getFileInputStream(filePath);
                 ins = pair.getLeft();
-                long length = pair.getRight();
-                if (length != fileSize) {
+                Long length = pair.getRight();
+                if (length != null && length != fileSize) {
                     log.warn("{},fileSize={},ins length={}", filePath, fileSize, length);
                 }
-                currentMd5 = FileUtil.writeInsToFile(ins, targetPath, length, speed, process);
+                currentMd5 = FileUtil.writeInsToFile(ins, targetPath, fileSize, speed, process);
                 if (fileMd5 == null) {
                     log.warn("No Md5 in metadata, do not check,key={},targetPath={},fileMd5={},currentMd5={}",
                         filePath, targetPath, fileMd5, currentMd5);
