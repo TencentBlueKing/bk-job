@@ -23,5 +23,5 @@ jobs:
       - name: build
         run: |
           export JOB_VERSION=3.latest
-          npm i && npm run build
+          npm i --legacy-peer-deps && npm run build
         working-directory: src/frontend
