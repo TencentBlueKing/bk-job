@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 public class HttpConfig {
 
     @Bean
-    public HttpConfigSetter ccConfigSetter(@Autowired MeterRegistry meterRegistry) {
+    public HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
         HttpHelperFactory.setMeterRegistry(meterRegistry);
         log.info("meterRegistry for HttpHelperFactory init");
         return new HttpConfigSetter();
