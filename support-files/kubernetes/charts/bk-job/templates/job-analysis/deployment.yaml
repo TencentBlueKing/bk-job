@@ -63,16 +63,14 @@ spec:
           image: {{ include "job-analysis.image" . }}
           imagePullPolicy: {{ .Values.analysisConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-analysis"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.analysisConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-analysis.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-analysis
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-analysis
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -83,6 +81,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.analysisConfig.containerPort }}
@@ -108,6 +110,8 @@ spec:
           resources:
             {{- toYaml .Values.analysisConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -118,6 +122,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

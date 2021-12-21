@@ -26,9 +26,16 @@
 -->
 
 <template>
-    <div class="choose-ip-dinamic-business-topology" v-bkloading="{ isLoading: topologyLoading || isLoading }">
+    <div
+        class="choose-ip-dinamic-business-topology"
+        v-bkloading="{
+            isLoading: topologyLoading || isLoading,
+        }">
         <div class="node-search">
-            <bk-input :placeholder="$t('搜索拓扑节点')" right-icon="bk-icon icon-search" @input="handleSearch" />
+            <bk-input
+                :placeholder="$t('搜索拓扑节点')"
+                right-icon="bk-icon icon-search"
+                @input="handleSearch" />
         </div>
         <empty v-if="emptyTopologyOfAllBusiness" />
         <template v-else>
@@ -39,9 +46,23 @@
                         ref="tree"
                         show-link-line
                         show-checkbox
+                        :expand-on-click="false"
                         @check-change="handleCheckChange">
-                        <div class="node-box" slot-scope="{ data }">
+                        <div class="node-box" slot-scope="{ node: nodeItem, data }">
                             <div class="node-name">{{ data.name }}</div>
+                            <div
+                                v-if="nodeItem.level === 0"
+                                class="node-filter"
+                                @click="handleFilterEmptyToggle">
+                                <template v-if="isRenderEmptyTopoNode">
+                                    <Icon type="eye-slash-shape" />
+                                    <span>隐藏空节点</span>
+                                </template>
+                                <template v-else>
+                                    <Icon type="eye-shape" />
+                                    <span>恢复完整拓扑</span>
+                                </template>
+                            </div>
                             <div class="node-count">{{ data.payload.count }}</div>
                         </div>
                     </bk-big-tree>
@@ -54,12 +75,15 @@
 <script>
     import _ from 'lodash';
     import AppService from '@service/app-manage';
+    import UserService from '@service/user';
     import { ALL_APP_TYPE } from '@utils/constants';
+    import { topoNodeCache } from '@utils/cache-helper';
     import Empty from '@components/empty';
     import {
         findAllChildNodeId,
         resetTree,
         parseIdInfo,
+        filterTopology,
     } from './utils';
 
     export default {
@@ -77,7 +101,7 @@
                 type: Boolean,
                 default: true,
             },
-            node: {
+            topoNodeList: {
                 type: Array,
                 required: true,
             },
@@ -85,17 +109,23 @@
         data () {
             return {
                 isLoading: false,
+                currentUser: {},
+                isRenderEmptyTopoNode: false,
                 isSearchEmpty: false,
                 emptyTopologyOfAllBusiness: true,
             };
         },
         watch: {
-            node (newNode, oldNode) {
+            /**
+             * @desc 更新 topo 树节点的选中状态
+             */
+            topoNodeList (newTopoNodeList, oldTopoNodeList) {
                 if (this.isSelfChange) {
                     this.isSelfChange = false;
                     return;
                 }
-                if (newNode.length < 1) {
+                // 没有选中的节点时重置 topo 树节点的所有状态
+                if (newTopoNodeList.length < 1) {
                     resetTree(this.topologyNodeTree, (node) => {
                         this.$refs.tree.setChecked(node.id, {
                             checked: false,
@@ -106,17 +136,28 @@
                     });
                     return;
                 }
-                this.init(newNode, oldNode);
+                this.recoverTreeState(newTopoNodeList, oldTopoNodeList);
             },
         },
         created () {
             this.isSelfChange = false;
             this.isTreeRefresh = false;
+            this.fetchUserInfo();
         },
         mounted () {
             this.fetchAppList();
         },
         methods: {
+            /**
+             * @desc 获取登陆用户信息
+             */
+            fetchUserInfo () {
+                UserService.fetchUserInfo()
+                    .then((data) => {
+                        this.currentUser = Object.freeze(data);
+                        this.isRenderEmptyTopoNode = topoNodeCache.getItem(data.username);
+                    });
+            },
             /**
              * @desc 获取业务列表
              *
@@ -136,7 +177,7 @@
                             this.$refs.tree.setExpanded(this.topologyNodeTree[0].id, {
                                 expanded: true,
                             });
-                            this.init(this.node);
+                            this.recoverTreeState(this.topoNodeList);
                         });
                     })
                     .finally(() => {
@@ -150,11 +191,11 @@
              *
              * 外部传入值还原树的选中状态
              */
-            init (newNode, oldNode = []) {
+            recoverTreeState (newTopoNodeList, oldTopoNodeList = []) {
                 this.isSearchEmpty = this.topologyNodeTree.length < 1;
-                const isRemove = newNode.length < oldNode.length;
-                const oldNodeId = oldNode.map(item => `#${item.type}#${item.id}`);
-                const newNodeId = newNode.map(item => `#${item.type}#${item.id}`);
+                const isRemove = newTopoNodeList.length < oldTopoNodeList.length;
+                const oldNodeId = oldTopoNodeList.map(item => `#${item.type}#${item.id}`);
+                const newNodeId = newTopoNodeList.map(item => `#${item.type}#${item.id}`);
                 
                 if (isRemove) {
                     // 外部删除操作
@@ -176,8 +217,40 @@
                     }
                 }
             },
-            handleFilterEmptyToggle () {
-                this.$emit('on-topo-empty-filter');
+            
+            handleFilterEmptyToggle (event) {
+                this.isRenderEmptyTopoNode = !this.isRenderEmptyTopoNode;
+                if (this.isRenderEmptyTopoNode) {
+                    // 显示所有节点，节点的选中状态不变
+                    event.stopPropagation();
+                    topoNodeCache.clearItem();
+                } else {
+                    topoNodeCache.setItem(this.currentUser.username);
+                }
+                // 更新节点树时保留树中节点的展开状态
+                const expandIdListMemo = this.$refs.tree.nodes.reduce((result, node) => {
+                    if (node.expanded) {
+                        result.push(node.id);
+                    }
+                    return result;
+                }, []);
+                // 过滤 topo 树
+                const topologyNodeTree = filterTopology(this.topologyNodeTree, this.isRenderEmptyTopoNode);
+                // 重新渲染 topo 树
+                this.$refs.tree.setData(topologyNodeTree);
+                this.$nextTick(() => {
+                    if (topologyNodeTree.length < 1) {
+                        return;
+                    }
+                    // 还原选中状态
+                    this.$refs.tree.setChecked(this.topoNodeList.map(item => `#${item.type}#${item.id}`), {
+                        emitEvent: false,
+                    });
+                    // 还原展开状态
+                    expandIdListMemo.forEach((nodeId) => {
+                        this.$refs.tree.setExpanded(nodeId);
+                    });
+                });
             },
             /**
              * @desc 节点的选中状态改变
@@ -202,9 +275,6 @@
                             // eslint-disable-next-line no-plusplus
                             index++;
                         }
-                        list.forEach(() => {
-                            
-                        });
                         if (index >= list.length) {
                             return list;
                         }
@@ -225,7 +295,7 @@
                     return;
                 }
                 this.isSelfChange = true;
-                this.$emit('on-change', 'nodeId', checkNodeIds.map((item) => {
+                this.$emit('on-change', 'topoNodeList', checkNodeIds.map((item) => {
                     const [type, id] = parseIdInfo(item);
                     return {
                         type,

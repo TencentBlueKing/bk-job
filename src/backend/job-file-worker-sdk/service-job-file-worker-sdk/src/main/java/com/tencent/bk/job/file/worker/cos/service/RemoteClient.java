@@ -26,6 +26,7 @@ package com.tencent.bk.job.file.worker.cos.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.InputStream;
 
@@ -33,7 +34,7 @@ public interface RemoteClient {
 
     FileMetaData getFileMetaData(String filePath);
 
-    InputStream getFileInputStream(String filePath) throws ServiceException;
+    Pair<InputStream, Long> getFileInputStream(String filePath) throws ServiceException;
 
     void shutdown();
 

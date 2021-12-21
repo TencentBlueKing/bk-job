@@ -218,11 +218,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         }
         try {
             log.debug("get {} fileInputStream from artifactory", exportInfo.getZipFileName());
-            ins = artifactoryClient.getFileInputStream(
+            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
                 artifactoryConfig.getArtifactoryJobProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
             );
+            ins = pair.getLeft();
         } catch (Exception e) {
             throw new InternalException(ErrorCode.FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY);
         }

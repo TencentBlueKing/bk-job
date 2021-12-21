@@ -14,7 +14,7 @@ spec:
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
   path:
-    - /data/logs/job/job-*/*.log
+    - /data/logs/job-*/*.log
   encoding: 'utf-8'
   multiline:
     pattern: '^\[(?P<log_time>.*?)\]\s+?'

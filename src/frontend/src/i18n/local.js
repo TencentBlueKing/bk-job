@@ -488,6 +488,7 @@ export default {
     清空搜索条件: 'Empty it',
     提交: 'Commit',
     '标签名已存在，请重新输入': 'Tag name is exists, please try another one',
+    '允许最小 1s，最大为 86400s': 'The minimum is 1s, the maximum is 86400s',
     收起更多: 'Hide',
     展开更多: 'More',
     收起未引用的变量: 'unreferenced variables',

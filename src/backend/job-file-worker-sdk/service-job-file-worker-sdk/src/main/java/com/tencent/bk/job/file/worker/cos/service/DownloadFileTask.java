@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +54,7 @@ class DownloadFileTask extends Thread {
     TaskReporter taskReporter;
     DownloadFileTaskEventListener taskEventListener;
     FileProgressWatchingTask watchingTask;
+
     public DownloadFileTask(RemoteClient remoteClient, String taskId, String filePath, String downloadFileDir,
                             String filePrefix, AtomicLong fileSize, AtomicInteger speed, AtomicInteger process,
                             FileProgressWatchingTask watchingTask,
@@ -100,7 +102,12 @@ class DownloadFileTask extends Thread {
                 long fileSize = metaData.getSize();
                 fileMd5 = metaData.getMd5();
                 fileSizeWrapper.set(fileSize);
-                ins = remoteClient.getFileInputStream(filePath);
+                Pair<InputStream, Long> pair = remoteClient.getFileInputStream(filePath);
+                ins = pair.getLeft();
+                Long length = pair.getRight();
+                if (length != null && length != fileSize) {
+                    log.warn("{},fileSize={},ins length={}", filePath, fileSize, length);
+                }
                 currentMd5 = FileUtil.writeInsToFile(ins, targetPath, fileSize, speed, process);
                 if (fileMd5 == null) {
                     log.warn("No Md5 in metadata, do not check,key={},targetPath={},fileMd5={},currentMd5={}",
