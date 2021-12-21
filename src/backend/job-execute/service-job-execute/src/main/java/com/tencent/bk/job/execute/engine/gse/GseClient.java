@@ -28,6 +28,7 @@ import com.tencent.bk.gse.taskapi.doSomeCmdV3;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.execute.config.GseConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.thrift.TConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -72,7 +73,7 @@ public class GseClient implements Closeable {
             params.setKeyStore(KEY_STORE, KEY_STORE_PASS);
             transport = BKTSSLTransportFactory.getClientSocket(ip, port, 60000, params);
         } else {
-            this.transport = new TSocket(ip, port, 60000);
+            this.transport = new TSocket(new TConfiguration(), ip, port, 60000);
         }
         TBinaryProtocol tProtocol = new TBinaryProtocol(transport);
         this.gseAgentClient = new doSomeCmdV3.Client(tProtocol);
