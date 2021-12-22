@@ -23,6 +23,12 @@ spec:
   {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
+  {{- if .Values.gatewayConfig.ingress.https.enabled -}}
+  tls:
+  - hosts:
+      - {{ .Values.gatewayConfig.ingress.hostname }}
+    secretName: {{ include "common.names.fullname" . }}-gateway-ingress-tls
+  {{- end }}
   rules:
   {{- if .Values.gatewayConfig.ingress.hostname }}
   - host: {{ .Values.gatewayConfig.ingress.hostname }}
