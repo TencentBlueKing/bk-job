@@ -2,7 +2,7 @@
 apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ include "common.names.fullname" . }}-gateway-http
+  name: {{ include "common.names.fullname" . }}-gateway-{{- include "job.web.scheme" . }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: job-gateway-http
     {{- if .Values.commonLabels }}
@@ -23,11 +23,11 @@ spec:
   {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
-  {{- if .Values.gatewayConfig.ingress.https.enabled -}}
+  {{- if .Values.job.web.https.enabled -}}
   tls:
   - hosts:
-      - {{ .Values.gatewayConfig.ingress.hostname }}
-    secretName: {{ include "common.names.fullname" . }}-gateway-ingress-tls
+      - {{ .Values.job.web.apiDomain }}
+    secretName: {{ include "common.names.fullname" . }}-ingress-tls
   {{- end }}
   rules:
   {{- if .Values.gatewayConfig.ingress.hostname }}

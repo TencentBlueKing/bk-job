@@ -456,3 +456,21 @@ Return the gse secret
     {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the Job Web Scheme
+*/}}
+{{- define "job.web.scheme" -}}
+{{- if .Values.job.web.https.enabled -}}
+    {{- printf "https" -}}
+{{- else -}}
+    {{- printf "http" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Web API URL
+*/}}
+{{- define "job.web.api.url" -}}
+{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.apiDomain }}
+{{- end -}}

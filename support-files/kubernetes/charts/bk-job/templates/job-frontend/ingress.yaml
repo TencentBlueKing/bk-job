@@ -47,15 +47,10 @@ spec:
             {{- end }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
     {{- end }}
-  {{- if or .Values.frontendConfig.ingress.tls .Values.frontendConfig.ingress.extraTls }}
+  {{- if .Values.job.web.https.enabled }}
   tls:
-    {{- if .Values.frontendConfig.ingress.tls }}
     - hosts:
-        - {{ .Values.frontendConfig.ingress.hostname }}
-      secretName: {{ printf "%s-tls" .Values.frontendConfig.ingress.hostname }}
-    {{- end }}
-    {{- if .Values.frontendConfig.ingress.extraTls }}
-    {{- toYaml .Values.frontendConfig.ingress.extraTls | nindent 4 }}
-    {{- end }}
+        - {{ .Values.job.web.domain }}
+      secretName: {{ include "common.names.fullname" . }}-ingress-tls
   {{- end }}
 {{- end }}
