@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
+import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -82,13 +83,18 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
         );
         getApplyUrlRequest.setSystem(SystemId.JOB);
         getApplyUrlRequest.setAction(actionList);
-        EsbResp<String> esbResp = requestIamApi(
+        EsbResp<GetApplyUrlResponse> esbResp = requestIamApi(
             HttpPost.METHOD_NAME,
             API_GET_APPLY_URL,
             getApplyUrlRequest,
-            new TypeReference<EsbResp<String>>() {
+            new TypeReference<EsbResp<GetApplyUrlResponse>>() {
             });
-        return esbResp.getData();
+        GetApplyUrlResponse data = esbResp.getData();
+        if (data != null) {
+            return data.getUrl();
+        } else {
+            return null;
+        }
     }
 
     @Override
