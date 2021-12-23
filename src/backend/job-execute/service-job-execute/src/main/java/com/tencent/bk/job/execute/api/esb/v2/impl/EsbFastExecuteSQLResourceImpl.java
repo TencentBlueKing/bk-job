@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
@@ -73,17 +72,15 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
     private final ScriptService scriptService;
 
-    private final AuthService authService;
-
     @Autowired
-    public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService, AccountService accountService,
-                                         MessageI18nService i18nService, ScriptService scriptService,
-                                         AuthService authService) {
+    public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService,
+                                         AccountService accountService,
+                                         MessageI18nService i18nService,
+                                         ScriptService scriptService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.scriptService = scriptService;
-        this.authService = authService;
     }
 
     @Override

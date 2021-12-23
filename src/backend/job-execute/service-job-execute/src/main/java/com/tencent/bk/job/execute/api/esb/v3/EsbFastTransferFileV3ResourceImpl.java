@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -78,8 +77,6 @@ public class EsbFastTransferFileV3ResourceImpl
 
     private final MessageI18nService i18nService;
 
-    private final AuthService authService;
-
     private final ArtifactoryLocalFileService artifactoryLocalFileService;
 
 
@@ -87,12 +84,10 @@ public class EsbFastTransferFileV3ResourceImpl
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              FileSourceResourceClient fileSourceService,
                                              MessageI18nService i18nService,
-                                             AuthService authService,
                                              ArtifactoryLocalFileService artifactoryLocalFileService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceService = fileSourceService;
         this.i18nService = i18nService;
-        this.authService = authService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
     }
 
