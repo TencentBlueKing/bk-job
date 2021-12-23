@@ -21,6 +21,13 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+buildscript {
+    dependencies {
+        configurations {
+            all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-core'
+        }
+    }
+}
 plugins {
     id "com.github.johnrengelman.shadow" version "5.1.0"
 }
