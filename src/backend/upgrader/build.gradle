@@ -50,6 +50,10 @@ dependencies {
     implementation 'org.reflections:reflections'
     implementation("org.apache.logging.log4j:log4j-core:2.17.0")
 }
+
+configurations.all {
+    exclude group:'org.apache.logging.log4j', module:'log4j-core'
+}
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "application"
 
