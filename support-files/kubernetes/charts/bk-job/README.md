@@ -91,6 +91,9 @@ bitnami/rabbitmq
 | `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/local`       |
 | `job.web.domain` | 前端主站域名    | `job.example.com`       |
 | `job.web.apiDomain` | 暴露给前端的API地址    | `api.job.example.com`       |
+| `job.web.https.enabled` | 是否启用HTTPS    | `false`       |
+| `job.web.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
+| `job.web.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
 
 ### 微服务网关Job-Gateway配置
 |参数|描述|默认值 |
