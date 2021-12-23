@@ -79,4 +79,6 @@ public class StepExecutionVO {
     private Integer totalBatch;
     @ApiModelProperty("滚动执行当前执行批次;如果非滚动执行，那么该值为空")
     private Integer currentBatch;
+    @ApiModelProperty("滚动区间名称")
+    private String rollingConfigName;
 }

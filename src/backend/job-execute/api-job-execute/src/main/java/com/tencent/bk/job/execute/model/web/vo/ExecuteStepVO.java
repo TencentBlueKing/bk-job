@@ -49,4 +49,8 @@ public class ExecuteStepVO {
 
     @ApiModelProperty("审批步骤信息")
     private ExecuteApprovalStepVO approvalStepInfo;
+
+    @ApiModelProperty(value = "滚动配置")
+    private RollingConfigVO rollingExecutionConfig;
+
 }
