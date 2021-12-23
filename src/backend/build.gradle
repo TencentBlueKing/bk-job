@@ -70,7 +70,7 @@ ext {
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
     set("springBootVersion", "2.3.5.RELEASE")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springCloudVersion', "Hoxton.SR12")
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     set('swaggerVersion', "2.9.2")
     set('junitVersion', "5.5.2")
