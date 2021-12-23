@@ -23,15 +23,15 @@ spec:
   {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
-  {{- if .Values.job.web.https.enabled -}}
+  {{- if .Values.job.web.https.enabled }}
   tls:
   - hosts:
       - {{ .Values.job.web.apiDomain }}
     secretName: {{ include "common.names.fullname" . }}-ingress-tls
   {{- end }}
   rules:
-  {{- if .Values.gatewayConfig.ingress.hostname }}
-  - host: {{ .Values.gatewayConfig.ingress.hostname }}
+  {{- if .Values.job.web.apiDomain }}
+  - host: {{ .Values.job.web.apiDomain }}
     http:
       paths:
       {{- if .Values.gatewayConfig.ingress.extraPaths }}

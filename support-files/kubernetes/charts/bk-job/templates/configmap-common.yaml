@@ -67,7 +67,7 @@ data:
       encrypt:
         password: {{ .Values.job.encrypt.password }}
       web:
-        url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
+        url: {{ include "job.web.api.url" . }}
       feature:
         file-manage:
           enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}

@@ -24,8 +24,8 @@ spec:
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
   rules:
-    {{- if .Values.frontendConfig.ingress.hostname }}
-    - host: {{ .Values.frontendConfig.ingress.hostname }}
+    {{- if .Values.job.web.domain }}
+    - host: {{ .Values.job.web.domain }}
       http:
         paths:
           {{- if .Values.frontendConfig.ingress.extraPaths }}

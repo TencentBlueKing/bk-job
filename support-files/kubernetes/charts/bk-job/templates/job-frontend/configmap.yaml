@@ -28,7 +28,7 @@ data:
       access_log  /dev/stdout  main;
       server {
         listen                  80;
-        server_name             {{ .Values.frontendConfig.web.domain }};
+        server_name             {{ .Values.job.web.domain }};
         gzip on;
         client_max_body_size 5120M;
         root /data/job/job-frontend;

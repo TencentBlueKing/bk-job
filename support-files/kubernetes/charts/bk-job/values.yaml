@@ -558,7 +558,6 @@ gatewayConfig:
       http: 80
   ingress:
     enabled: true
-    hostname: "jobapi.example.com"
     path: "/"
     pathType: ImplementationSpecific
     annotations:
@@ -1001,16 +1000,8 @@ frontendConfig:
   service:
     type: ClusterIP
     port: 80
-  web:
-    scheme: "http"
-    domain: "job.example.com"
-  backend:
-    apiGateway:
-      scheme: "http"
-      domain: "jobapi.example.com"
   ingress:
     enabled: true
-    hostname: "job.example.com"
     pathType: ImplementationSpecific
     path: "/"
     annotations:
