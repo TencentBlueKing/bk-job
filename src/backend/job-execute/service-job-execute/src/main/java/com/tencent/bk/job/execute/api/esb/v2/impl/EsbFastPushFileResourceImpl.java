@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -238,7 +239,8 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setOperator(request.getUserName());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
-        stepInstance.setTimeout(request.getTimeout());
+        stepInstance.setTimeout(request.getTimeout() == null ?
+            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
         }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -184,7 +185,8 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
         }
 
-        stepInstance.setTimeout(request.getTimeout());
+        stepInstance.setTimeout(request.getTimeout() == null ?
+            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
