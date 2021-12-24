@@ -89,6 +89,11 @@ bitnami/rabbitmq
 | `job.security.actuator.user.password`    | actuator管理密码    | `actuator_password`       |
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
 | `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/local`       |
+| `job.web.domain` | 前端主站域名    | `job.example.com`       |
+| `job.web.apiDomain` | 暴露给前端的API地址    | `api.job.example.com`       |
+| `job.web.https.enabled` | 是否启用HTTPS    | `false`       |
+| `job.web.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
+| `job.web.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
 
 ### 微服务网关Job-Gateway配置
 |参数|描述|默认值 |
@@ -101,7 +106,6 @@ bitnami/rabbitmq
 | `gatewayConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `gatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `gatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
-| `gatewayConfig.ingress.hostname` | 暴露给前端的API地址    | `api.job.example.com`       |
 | `gatewayConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 最大请求体限制    | `10240m`       |
 
 ### Job-Manage配置
@@ -185,8 +189,6 @@ bitnami/rabbitmq
 ### Job-Frontend配置
 |参数|描述|默认值 |
 |---|---|---|
-| `frontendConfig.web.domain` | 前端主站域名    | `job.example.com`       |
-| `frontendConfig.backend.apiGateway.domain` | 对接的后台网关域名 | `api.job.example.com`       |
 | `frontendConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 前端资源最大请求体大小    | `2048m`       |
 
 ### Job-Migration配置
