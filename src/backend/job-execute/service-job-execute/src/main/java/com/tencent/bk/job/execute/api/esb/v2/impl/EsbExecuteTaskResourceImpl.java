@@ -31,8 +31,6 @@ import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -61,17 +59,9 @@ import java.util.List;
 public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implements EsbExecuteTaskResource {
 
     private final TaskExecuteService taskExecuteService;
-
-    private final MessageI18nService i18nService;
-
-    private final AuthService authService;
-
     @Autowired
-    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
-                                      AuthService authService) {
+    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.i18nService = i18nService;
-        this.authService = authService;
     }
 
     @Override

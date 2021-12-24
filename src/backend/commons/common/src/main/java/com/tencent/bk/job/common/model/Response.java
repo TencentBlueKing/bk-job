@@ -39,6 +39,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @ApiModel("服务调用通用返回结构")
 @Slf4j
@@ -113,9 +115,15 @@ public class Response<T> {
         return new Response<>(validateResult.getErrorCode(), validateResult.getErrorParams(), null);
     }
 
-    public static <T> Response<T> buildCommonFailResp(Integer errorCode,
-                                                      ErrorDetailDTO errorDetail) {
-        Response<T> resp = buildCommonFailResp(errorCode);
+    public static <T> Response<T> buildValidateFailResp(ErrorDetailDTO errorDetail) {
+        Response<T> resp = buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+        if (errorDetail != null
+            && errorDetail.getBadRequestDetail() != null
+            && CollectionUtils.isNotEmpty(errorDetail.getBadRequestDetail().getFieldViolations())
+            && StringUtils.isNotBlank(errorDetail.getBadRequestDetail().getFieldViolations().get(0).getDescription())) {
+            // set validation detailed message instead of common error message
+            resp.setErrorMsg(errorDetail.getBadRequestDetail().getFieldViolations().get(0).getDescription());
+        }
         resp.setErrorDetail(errorDetail);
         return resp;
     }
