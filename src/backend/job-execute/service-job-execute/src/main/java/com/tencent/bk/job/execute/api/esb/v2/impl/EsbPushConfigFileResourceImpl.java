@@ -35,11 +35,13 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.api.esb.v2.EsbPushConfigFileResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -48,6 +50,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbPushConfigFileRequest;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -65,12 +68,18 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final TaskExecuteService taskExecuteService;
 
     private final AccountService accountService;
+    private final StorageSystemConfig storageSystemConfig;
+    private final AgentService agentService;
 
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
-                                         AccountService accountService) {
+                                         AccountService accountService,
+                                         StorageSystemConfig storageSystemConfig,
+                                         AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
+        this.storageSystemConfig = storageSystemConfig;
+        this.agentService = agentService;
     }
 
     @Override
@@ -131,7 +140,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
-        stepInstance.setFileSourceList(convertConfigFileSource(configFileList));
+        stepInstance.setFileSourceList(convertConfigFileSource(request.getUserName(), configFileList));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToStandardServers(null, request.getIpList(), null));
         stepInstance.setOperator(request.getUserName());
@@ -154,7 +163,8 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         return account;
     }
 
-    private List<FileSourceDTO> convertConfigFileSource(List<EsbPushConfigFileRequest.EsbConfigFileDTO> configFileList)
+    private List<FileSourceDTO> convertConfigFileSource(String userName,
+                                                        List<EsbPushConfigFileRequest.EsbConfigFileDTO> configFileList)
         throws ServiceException {
         if (configFileList == null) {
             return null;
@@ -165,9 +175,18 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             fileSourceDTO.setAccount("root");
             fileSourceDTO.setLocalUpload(false);
             fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
+            // 保存配置文件至机器
+            String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
+                storageSystemConfig.getJobStorageRootPath(),
+                userName,
+                configFile.getFileName(),
+                configFile.getContent()
+            );
             List<FileDetailDTO> files = new ArrayList<>();
-            files.add(new FileDetailDTO(configFile.getFileName(), configFile.getContent()));
+            files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
+            // 设置配置文件所在机器IP信息
+            fileSourceDTO.setServers(agentService.getLocalServersDTO());
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;

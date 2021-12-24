@@ -71,11 +71,6 @@ public class FileDetailDTO implements Cloneable {
         this.filePath = filePath;
     }
 
-    public FileDetailDTO(String fileName, String base64Content) {
-        this.fileName = fileName;
-        this.base64Content = base64Content;
-    }
-
     public FileDetailDTO(boolean localUpload, String filePath, String fileHash, Long fileSize) {
         this.filePath = filePath;
         if (localUpload) {

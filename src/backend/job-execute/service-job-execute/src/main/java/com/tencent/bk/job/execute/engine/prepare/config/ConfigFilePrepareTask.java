@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.engine.prepare.config;
 
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
-import com.tencent.bk.job.execute.engine.util.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
@@ -224,7 +224,7 @@ public class ConfigFilePrepareTask implements JobTaskContext {
                     return false;
                 }
             }
-            if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
+            if (!FileUtil.saveBytesToFile(fullFilePath, contentBytes)) {
                 log.warn(
                     "[{}]:Push config file, save file failed!fileName:{}",
                     stepInstanceId,

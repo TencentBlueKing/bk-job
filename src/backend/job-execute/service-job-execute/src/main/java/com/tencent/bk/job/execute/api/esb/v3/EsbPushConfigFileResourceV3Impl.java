@@ -33,16 +33,19 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
+import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -59,10 +62,16 @@ public class EsbPushConfigFileResourceV3Impl
     extends JobExecuteCommonV3Processor
     implements EsbPushConfigFileV3Resource {
     private final TaskExecuteService taskExecuteService;
+    private final StorageSystemConfig storageSystemConfig;
+    private final AgentService agentService;
 
     @Autowired
-    public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService) {
+    public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
+                                           StorageSystemConfig storageSystemConfig,
+                                           AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
+        this.storageSystemConfig = storageSystemConfig;
+        this.agentService = agentService;
     }
 
     @Override
@@ -125,7 +134,7 @@ public class EsbPushConfigFileResourceV3Impl
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
-        stepInstance.setFileSourceList(convertConfigFileSource(configFileList));
+        stepInstance.setFileSourceList(convertConfigFileSource(request.getUserName(), configFileList));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
         stepInstance.setOperator(request.getUserName());
@@ -136,6 +145,7 @@ public class EsbPushConfigFileResourceV3Impl
     }
 
     private List<FileSourceDTO> convertConfigFileSource(
+        String userName,
         List<EsbPushConfigFileV3Request.EsbConfigFileDTO> configFileList
     ) throws ServiceException {
         if (configFileList == null) {
@@ -148,8 +158,17 @@ public class EsbPushConfigFileResourceV3Impl
             fileSourceDTO.setLocalUpload(false);
             fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
-            files.add(new FileDetailDTO(configFile.getFileName(), configFile.getContent()));
+            // 保存配置文件至机器
+            String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
+                storageSystemConfig.getJobStorageRootPath(),
+                userName,
+                configFile.getFileName(),
+                configFile.getContent()
+            );
+            files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
+            // 设置配置文件所在机器IP信息
+            fileSourceDTO.setServers(agentService.getLocalServersDTO());
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;
