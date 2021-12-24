@@ -183,7 +183,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (hasLocalFile) taskCount += 1;
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
-            // 没有需要准备文件的配置文件/本地文件/第三方源文件
+            // 没有需要准备文件的本地文件/第三方源文件
             taskControlMsgSender.startGseStep(stepInstance.getId());
             return;
         }
