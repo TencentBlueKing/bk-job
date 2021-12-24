@@ -30,6 +30,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -110,16 +111,15 @@ public class BuildInDangerousScriptChecker extends DefaultChecker {
 
     private void checkRM(ArrayList<ScriptCheckResultItemDTO> checkResults, String[] lines) {
         Matcher matcher;
-        int tmpNum, lineNumber = 0;
-        while (lineNumber < lines.length) {
-            while (lines[lineNumber].trim().startsWith("#")) {
+        int lineNumber = 1;
+        while (lineNumber <= lines.length) {
+            String lineContent = lines[lineNumber - 1];
+            if (isComment(param.getScriptType(), lineContent) || StringUtils.isBlank(lineContent)) {
                 lineNumber++;
+                continue;
             }
-            tmpNum = lineNumber++;
-            StringBuilder line = new StringBuilder(lines[tmpNum].length());
-            tmpNum = getTmpNum(lines, tmpNum, line);
 
-            matcher = rm.matcher(line);
+            matcher = rm.matcher(lineContent);
             while (matcher.find()) {
                 String dir = matcher.group("dir").replaceAll("[\"]", "").trim();
                 if (dir.contains(" ")) {
@@ -127,7 +127,7 @@ public class BuildInDangerousScriptChecker extends DefaultChecker {
                     for (String tDir : dirs) {
                         if (dangerDir(tDir.trim())) {
                             ScriptCheckResultItemDTO rm = createResult(lineNumber, DANGER_RM_FORCE_ALL, null,
-                                lines[lineNumber - 1], lines[lineNumber - 1]);
+                                lineContent, lineContent);
                             if (rm != null) {
                                 checkResults.add(rm);
                                 break;
@@ -142,16 +142,16 @@ public class BuildInDangerousScriptChecker extends DefaultChecker {
                     }
                     if (dangerDir(fullPath.toString())) {
                         checkResults.add(createResult(lineNumber, DANGER_RM_FORCE_ALL,
-                            null, lines[lineNumber - 1], lines[lineNumber - 1]));
+                            null, lineContent, lineContent));
                     }
                 } else {
                     if (dangerDir(dir)) {
                         checkResults.add(createResult(lineNumber, DANGER_RM_FORCE_ALL,
-                            null, lines[lineNumber - 1], lines[lineNumber - 1]));
+                            null, lineContent, lineContent));
                     }
                 }
             }
-            lineNumber = tmpNum;
+            lineNumber++;
         }
     }
 
