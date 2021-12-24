@@ -48,7 +48,7 @@ spec:
             - name: BK_JOB_APP_SECRET
               value: {{ .Values.app.secret | quote }}
             - name: BK_JOB_API_URL
-              value: http://{{ .Values.gatewayConfig.ingress.hostname }}
+              value: {{ include "job.web.api.url" . }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED
               value: {{ .Values.job.migration.mysqlSchema.enabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
