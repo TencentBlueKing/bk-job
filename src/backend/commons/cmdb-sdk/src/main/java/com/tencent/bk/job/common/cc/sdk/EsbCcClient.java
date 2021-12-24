@@ -92,6 +92,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
+import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -473,12 +474,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                          TypeReference<EsbResp<R>> typeReference,
                                          ExtHttpHelper httpHelper) {
 
+        String resourceId = uri;
+        if (interfaceNameMap.containsKey(uri)) {
+            resourceId = interfaceNameMap.get(uri);
+        }
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
-                String resourceId = uri;
-                if (interfaceNameMap.containsKey(uri)) {
-                    resourceId = interfaceNameMap.get(uri);
-                }
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -496,7 +497,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         String status = "none";
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, uri)));
             EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
             return esbResp;

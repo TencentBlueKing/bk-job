@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.GetEsbNotifyChannelReq;
 import com.tencent.bk.job.common.paas.model.GetUserListReq;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -48,6 +49,7 @@ import org.apache.http.client.methods.HttpPost;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,6 +66,15 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
     private static final String API_GET_USER_LIST = "/api/c/compapi/v2/usermanage/list_users/";
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
+
+    private static final Map<String, String> interfaceNameMap = new HashMap<>();
+
+    static {
+        interfaceNameMap.put(API_GET_USER_LIST, "list_users");
+        interfaceNameMap.put(API_GET_NOTIFY_CHANNEL_LIST, "get_msg_type");
+        interfaceNameMap.put(API_POST_SEND_MSG, "send_msg");
+    }
+
     private static final HashMap<String, AtomicInteger> todayMsgStatisticsMap = new HashMap<>();
 
     private final MeterRegistry meterRegistry;
@@ -129,7 +140,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
 
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
             JobContextUtil.addHttpMetricTag(
-                Tag.of("api_name", API_GET_USER_LIST)
+                Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, API_GET_USER_LIST))
             );
             EsbResp<List<EsbListUsersResult>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -168,7 +179,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             JobContextUtil.addHttpMetricTag(
-                Tag.of("api_name", API_GET_NOTIFY_CHANNEL_LIST)
+                Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, API_GET_NOTIFY_CHANNEL_LIST))
             );
             EsbResp<List<EsbNotifyChannelDTO>> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
@@ -205,7 +216,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         String uri = API_POST_SEND_MSG;
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, uri)));
             EsbResp<List<Boolean>> esbResp = getEsbRespByReq(
                 HttpPost.METHOD_NAME,
                 uri,
@@ -237,7 +248,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
             long end = System.nanoTime();
             meterRegistry.timer(
                 CommonMetricNames.ESB_CMSI_API,
-                "api_name", API_POST_SEND_MSG,
+                "api_name", ApiUtil.getApiNameByUri(interfaceNameMap, API_POST_SEND_MSG),
                 "status", status,
                 "msg_type", msgType
             ).record(end - start, TimeUnit.NANOSECONDS);
