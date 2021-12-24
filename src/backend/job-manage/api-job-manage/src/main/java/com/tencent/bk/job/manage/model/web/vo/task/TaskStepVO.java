@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -52,12 +53,15 @@ public class TaskStepVO {
     private Long templateStepId;
 
     @ApiModelProperty("脚本步骤信息")
+    @Valid
     private TaskScriptStepVO scriptStepInfo;
 
     @ApiModelProperty("文件步骤信息")
+    @Valid
     private TaskFileStepVO fileStepInfo;
 
     @ApiModelProperty("审批步骤信息")
+    @Valid
     private TaskApprovalStepVO approvalStepInfo;
 
     @ApiModelProperty(value = "删除 0-不删除 1-删除，仅在删除时填写")

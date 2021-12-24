@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -83,7 +84,7 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "业务ID", required = true, example = "1")
         @PathVariable("appId") Long appId,
         @ApiParam(value = "快速执行脚本请求报文", name = "webScriptExecuteRequest", required = true)
-        @RequestBody WebFastExecuteScriptRequest request);
+        @RequestBody @Validated WebFastExecuteScriptRequest request);
 
     @ApiOperation(value = "快速分发文件", produces = "application/json")
     @PostMapping("/app/{appId}/fast-push-file")
@@ -93,7 +94,7 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "业务ID", required = true, example = "1")
         @PathVariable("appId") Long appId,
         @ApiParam(value = "快速分发文件请求报文", name = "webPushFileRequest", required = true)
-        @RequestBody WebFastPushFileRequest request);
+        @RequestBody @Validated WebFastPushFileRequest request);
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
     @PostMapping("/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}")
