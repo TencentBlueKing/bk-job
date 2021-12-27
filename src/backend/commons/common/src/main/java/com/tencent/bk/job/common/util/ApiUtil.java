@@ -29,7 +29,7 @@ import java.util.Map;
 public class ApiUtil {
 
     /**
-     * 根据映射关系表或URI本身获取API名称，主要用于解决Prometheus标签不支持斜杠的问题
+     * 根据映射关系表或URI本身获取API名称
      *
      * @param interfaceNameMap key:uri,value:API名称
      * @param uri              路径

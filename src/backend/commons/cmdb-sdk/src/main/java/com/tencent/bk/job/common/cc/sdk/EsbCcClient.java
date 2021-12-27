@@ -474,10 +474,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                          TypeReference<EsbResp<R>> typeReference,
                                          ExtHttpHelper httpHelper) {
 
-        String resourceId = uri;
-        if (interfaceNameMap.containsKey(uri)) {
-            resourceId = interfaceNameMap.get(uri);
-        }
+        String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
                 log.debug("Flow control resourceId={}", resourceId);
@@ -497,7 +494,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         String status = "none";
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, uri)));
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
             EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
             return esbResp;

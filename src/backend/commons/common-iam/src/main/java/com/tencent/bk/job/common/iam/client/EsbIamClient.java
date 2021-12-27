@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -50,9 +49,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @since 16/6/2020 21:37
@@ -67,15 +64,6 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
         "/api/c/compapi/v2/iam/authorization/path/";
     private static final String API_BATCH_AUTH_BY_PATH_URL =
         "/api/c/compapi/v2/iam/authorization/batch_path/";
-
-    private static final Map<String, String> interfaceNameMap = new HashMap<>();
-
-    static {
-        interfaceNameMap.put(API_GET_APPLY_URL, "iam_application");
-        interfaceNameMap.put(API_REGISTER_RESOURCE_URL, "resource_creator_action");
-        interfaceNameMap.put(API_AUTH_BY_PATH_URL, "authorization_path");
-        interfaceNameMap.put(API_BATCH_AUTH_BY_PATH_URL, "authorization_batch_path");
-    }
 
     public EsbIamClient(String esbHostUrl, String appCode, String appSecret, boolean useEsbTestEnv) {
         super(esbHostUrl, appCode, appSecret, null, useEsbTestEnv);
@@ -189,7 +177,7 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
                                          TypeReference<EsbResp<R>> typeReference) {
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_IAM_API_HTTP);
-            JobContextUtil.addHttpMetricTag(Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, uri)));
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
             return getEsbRespByReq(method, uri, reqBody, typeReference);
         } finally {
             JobContextUtil.clearHttpMetricTags();

@@ -31,24 +31,14 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
-import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpGet;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Slf4j
 public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient {
     private static final String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
-
-    private static final Map<String, String> interfaceNameMap = new HashMap<>();
-
-    static {
-        interfaceNameMap.put(API_GET_USER_INFO, "bk_login_get_user");
-    }
 
     public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang, boolean useEsbTestEnv) {
         super(esbHostUrl, appCode, appSecret, lang, useEsbTestEnv);
@@ -80,7 +70,7 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
         try {
             JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_BK_LOGIN_API_HTTP);
             JobContextUtil.addHttpMetricTag(
-                Tag.of("api_name", ApiUtil.getApiNameByUri(interfaceNameMap, API_GET_USER_INFO))
+                Tag.of("api_name", API_GET_USER_INFO)
             );
             EsbResp<EsbUserDto> esbResp = getEsbRespByReq(
                 HttpGet.METHOD_NAME,
