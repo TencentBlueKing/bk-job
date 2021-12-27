@@ -563,7 +563,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServersDTO servers = stepInstance.getTargetServers().clone();
         stepInstance.getFileSourceList().stream()
-            .filter(fileSource -> !fileSource.isLocalUpload() && fileSource.getServers() != null)
+            .filter(fileSource -> !fileSource.isLocalUpload()
+                && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
+                && fileSource.getServers() != null)
             .forEach(fileSource -> {
                 servers.merge(fileSource.getServers());
             });
@@ -875,7 +877,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                             ":{}|totalFileTaskSize:{}|maxAllowedSize:{}",
                         taskName, appCode, appId, operator, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
                     throw new AbortedException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT,
-                        new Integer[]{ jobExecuteConfig.getFileTasksMax()});
+                        new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();

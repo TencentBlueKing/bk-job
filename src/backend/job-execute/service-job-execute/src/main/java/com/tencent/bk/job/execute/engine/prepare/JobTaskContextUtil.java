@@ -22,31 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.execute.engine.prepare;
 
-import lombok.extern.slf4j.Slf4j;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-@Slf4j
-public class FileUtils {
-    public static boolean saveFileWithByte(String filename, byte[] contentBytes) {
-        boolean isSuccess = false;
-        if (contentBytes == null || contentBytes.length == 0) {
-            return false;
-        }
-        try (FileOutputStream out = new FileOutputStream(filename)){
-            out.write(contentBytes);
-            out.flush();
-            File file = new File(filename);
-            isSuccess = file.setExecutable(true, false);
-        } catch (IOException e) {
-            log.warn("Save fail", e);
-        }
-
-        return isSuccess;
+public class JobTaskContextUtil {
+    /**
+     * 根据必要参数生成简单的任务上下文
+     *
+     * @param isForRetry 是否为重试任务
+     * @return 任务上下文
+     */
+    public static JobTaskContext getSimpleTaskContext(boolean isForRetry) {
+        return new JobTaskContext() {
+            @Override
+            public boolean isForRetry() {
+                return isForRetry;
+            }
+        };
     }
-
 }

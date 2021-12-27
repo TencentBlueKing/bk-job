@@ -76,6 +76,7 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
                 // 批量任务成功
                 fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
                 fileSourceBatchTaskDAO.updateFileSourceBatchTask(dslContext, fileSourceBatchTaskDTO);
+                logUpdatedBatchTaskStatus(batchTaskId, TaskStatusEnum.SUCCESS);
             } else {
                 // 主任务尚未成功
                 log.info("task {} done, batchTask not finished yet", fileSourceTaskDTO.getId());
@@ -84,11 +85,17 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
             // 批量任务失败
             fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
             fileSourceBatchTaskDAO.updateFileSourceBatchTask(dslContext, fileSourceBatchTaskDTO);
+            logUpdatedBatchTaskStatus(batchTaskId, TaskStatusEnum.FAILED);
         } else if (TaskStatusEnum.STOPPED.equals(currentStatus)) {
             // 批量任务停止
             fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
             fileSourceBatchTaskDAO.updateFileSourceBatchTask(dslContext, fileSourceBatchTaskDTO);
+            logUpdatedBatchTaskStatus(batchTaskId, TaskStatusEnum.STOPPED);
         }
         return false;
+    }
+
+    private void logUpdatedBatchTaskStatus(String batchTaskId, TaskStatusEnum status) {
+        log.info("updated batchTask:{},{}", batchTaskId, status.name());
     }
 }

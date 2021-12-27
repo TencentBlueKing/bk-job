@@ -89,6 +89,9 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
                 // 主任务RUNNING
                 fileSourceTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
                 fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+                logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.RUNNING);
+            } else {
+                log.info("fileSourceTask {} already done, do not update to running", fileSourceTaskId);
             }
         } else if (TaskStatusEnum.SUCCESS.equals(currentStatus)) {
             //检查主任务是否成功
@@ -97,6 +100,7 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
                 // 主任务成功
                 fileSourceTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
                 fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+                logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.SUCCESS);
             } else {
                 // 主任务尚未成功
                 log.info("{} of task {} done, main task not finished yet", fileTaskDTO.getFilePath(), fileSourceTaskId);
@@ -105,10 +109,12 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
             // 主任务失败
             fileSourceTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
             fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+            logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.FAILED);
         } else if (TaskStatusEnum.STOPPED.equals(currentStatus)) {
             // 主任务停止
             fileSourceTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
             fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+            logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.STOPPED);
         }
         // 通知其他关注事件的Listener
         TaskStatusEnum currentFileSourceTaskStatus = TaskStatusEnum.valueOf(fileSourceTaskDTO.getStatus());
@@ -117,5 +123,9 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
                 previousFileSourceTaskStatus, currentFileSourceTaskStatus);
         }
         return false;
+    }
+
+    private void logUpdatedFileSourceTaskStatus(String fileSourceTaskId, TaskStatusEnum status) {
+        log.info("updated fileSourceTask:{},{}", fileSourceTaskId, status.name());
     }
 }
