@@ -121,13 +121,13 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
         if (ancestor != null && ancestor.size() > 0) {
             registerResourceRequest.setAncestor(ancestor);
         }
-        EsbResp<Boolean> esbResp = requestIamApi(
+        EsbResp<List<EsbIamBatchAuthedPolicy>> esbResp = requestIamApi(
             HttpPost.METHOD_NAME,
             API_REGISTER_RESOURCE_URL,
             registerResourceRequest,
-            new TypeReference<EsbResp<Boolean>>() {
+            new TypeReference<EsbResp<List<EsbIamBatchAuthedPolicy>>>() {
             });
-        return esbResp.getData();
+        return esbResp.getResult();
     }
 
     @Override
