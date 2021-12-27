@@ -102,11 +102,10 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         return false;
     }
 
-    private void startPrepareLocalFileTask(
-        long stepInstanceId,
-        List<FileSourceDTO> fileSourceList,
-        List<FilePrepareTaskResult> resultList,
-        CountDownLatch latch
+    private void startPrepareLocalFileTask(long stepInstanceId,
+                                           List<FileSourceDTO> fileSourceList,
+                                           List<FilePrepareTaskResult> resultList,
+                                           CountDownLatch latch
     ) {
         localFilePrepareService.prepareLocalFilesAsync(
             stepInstanceId,
@@ -135,10 +134,9 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             });
     }
 
-    private void startPrepareThirdFileTask(
-        StepInstanceDTO stepInstance,
-        List<FilePrepareTaskResult> resultList,
-        CountDownLatch latch
+    private void startPrepareThirdFileTask(StepInstanceDTO stepInstance,
+                                           List<FilePrepareTaskResult> resultList,
+                                           CountDownLatch latch
     ) {
         thirdFilePrepareService.prepareThirdFileAsync(
             stepInstance,

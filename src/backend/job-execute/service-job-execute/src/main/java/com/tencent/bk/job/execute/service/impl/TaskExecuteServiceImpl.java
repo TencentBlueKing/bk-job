@@ -564,7 +564,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServersDTO servers = stepInstance.getTargetServers().clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
-                && fileSource.getFileType() != TaskFileTypeEnum.CONFIG_FILE.getType()
+                && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
                 && fileSource.getServers() != null)
             .forEach(fileSource -> {
                 servers.merge(fileSource.getServers());

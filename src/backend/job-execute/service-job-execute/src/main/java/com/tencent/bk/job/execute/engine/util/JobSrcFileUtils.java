@@ -169,7 +169,7 @@ public class JobSrcFileUtils {
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }
-            } else if (fileSource.getFileType() == TaskFileTypeEnum.CONFIG_FILE.getType()) {
+            } else if (fileSource.getFileType() == TaskFileTypeEnum.BASE64_FILE.getType()) {
                 // 配置文件
                 for (FileDetailDTO file : files) {
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(file.getFilePath());

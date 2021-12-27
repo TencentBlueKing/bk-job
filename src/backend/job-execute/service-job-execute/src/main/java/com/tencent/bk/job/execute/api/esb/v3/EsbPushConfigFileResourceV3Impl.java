@@ -156,7 +156,7 @@ public class EsbPushConfigFileResourceV3Impl
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
             fileSourceDTO.setLocalUpload(false);
-            fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
+            fileSourceDTO.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
             // 保存配置文件至机器
             String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(

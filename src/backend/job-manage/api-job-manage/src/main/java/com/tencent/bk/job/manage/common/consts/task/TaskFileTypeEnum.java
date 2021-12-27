@@ -49,9 +49,9 @@ public enum TaskFileTypeEnum {
     FILE_SOURCE(3),
 
     /**
-     * 配置文件
+     * Base64编码的文件
      */
-    CONFIG_FILE(4);
+    BASE64_FILE(4);
 
     private int type;
 

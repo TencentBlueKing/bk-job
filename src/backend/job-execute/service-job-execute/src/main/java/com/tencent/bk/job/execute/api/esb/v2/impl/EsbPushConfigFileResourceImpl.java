@@ -174,7 +174,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
             fileSourceDTO.setLocalUpload(false);
-            fileSourceDTO.setFileType(TaskFileTypeEnum.CONFIG_FILE.getType());
+            fileSourceDTO.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
             // 保存配置文件至机器
             String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
                 storageSystemConfig.getJobStorageRootPath(),
