@@ -264,11 +264,29 @@ CREATE TABLE IF NOT EXISTS `step_instance_variable`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
+CREATE TABLE IF NOT EXISTS `rolling_task`
 (
     `step_instance_id` bigint(20) NOT NULL DEFAULT '0',
     `batch`            smallint(6)    NOT NULL DEFAULT '0',
     `execute_count`    int(11)    NOT NULL DEFAULT '0',
+    `task_instance_id` bigint(20) NOT NULL DEFAULT '0',
+    `start_time`       bigint(20)          DEFAULT NULL,
+    `end_time`         bigint(20)          DEFAULT NULL,
+    `total_time`       bigint(11)          DEFAULT NULL,
+    `status`           tinyint(4)          DEFAULT '1',
+    `batch_detail`      varchar(64)         DEFAULT NULL,
+    `row_create_time`  DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`step_instance_id`, `batch`, `execute_count`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `rolling_task`
+(
+    `step_instance_id` bigint(20) NOT NULL DEFAULT '0',
+    `batch`            smallint(6)    NOT NULL DEFAULT '0',
+    `execute_count`    int(11)    NOT NULL DEFAULT '0',
+    `task_instance_id` bigint(20) NOT NULL DEFAULT '0',
     `start_time`       bigint(20)          DEFAULT NULL,
     `end_time`         bigint(20)          DEFAULT NULL,
     `total_time`       bigint(11)          DEFAULT NULL,
