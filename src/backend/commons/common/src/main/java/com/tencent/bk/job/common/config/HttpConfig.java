@@ -43,7 +43,7 @@ public class HttpConfig {
     }
 
     static class HttpConfigSetter {
-        public HttpConfigSetter() {
+        HttpConfigSetter() {
         }
     }
 }
