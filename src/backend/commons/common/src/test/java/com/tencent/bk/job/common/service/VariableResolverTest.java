@@ -158,6 +158,11 @@ public class VariableResolverTest {
             scriptContent = "#!/bin/bash\necho \"${var1}\" & echo \"$_var2\"";
             varNames = VariableResolver.resolveShellScriptVar(scriptContent);
             assertThat(varNames).containsOnly("var1", "_var2");
+
+            // 验证非贪婪匹配
+            scriptContent = "#!/bin/bash\n'{\"id\":\"'${cluster_id}'\",\"project_id\":\"'${project_id}'\"}'";
+            varNames = VariableResolver.resolveShellScriptVar(scriptContent);
+            assertThat(varNames).containsOnly("cluster_id", "project_id");
         }
 
         @Test
