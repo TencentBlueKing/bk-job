@@ -22,42 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.impl;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
-import com.tencent.bk.job.file_gateway.metrics.MetricsConstants;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
-@Service
-public class FileWorkerHttpHelper extends DefaultHttpHelper {
+public interface HttpHelper {
 
-    private final MeterRegistry meterRegistry;
+    CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header);
 
-    @Autowired
-    public FileWorkerHttpHelper(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
+    Pair<Integer, String> get(boolean keepAlive, String url, Header[] header);
 
-    @Override
-    public byte[] post(String url, HttpEntity requestEntity, Header... headers) {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        byte[] result = super.post(url, requestEntity, headers);
-        sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,
-            MetricsConstants.VALUE_MODULE_FILE_WORKER, "method", "post", "url", url));
-        return result;
-    }
+    Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers);
 
-    @Override
-    public String delete(String url, String content, Header... headers) {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        String result = super.delete(url, content, headers);
-        sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_WORKER_RESPONSE_TIME, MetricsConstants.TAG_MODULE,
-            MetricsConstants.VALUE_MODULE_FILE_WORKER, "method", "delete", "url", url));
-        return result;
-    }
+    Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers);
+
+    Pair<Integer, String> delete(String url, String content, Header... headers);
 }

@@ -34,8 +34,8 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -85,7 +85,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
     private final RedisTemplate redisTemplate;
-    private final AbstractHttpHelper httpHelper = new DefaultHttpHelper();
+    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired

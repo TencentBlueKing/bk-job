@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ public abstract class AbstractEsbSdkClient {
     private final String appSecret;
     private final String appCode;
     private final String lang;
-    private final AbstractHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+    private final ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
     /**
      * 是否对接ESB测试环境
      */
@@ -145,7 +145,7 @@ public abstract class AbstractEsbSdkClient {
         return doHttpGet(uri, params, defaultHttpHelper);
     }
 
-    public String doHttpGet(String uri, EsbReq params, AbstractHttpHelper httpHelper) {
+    public String doHttpGet(String uri, EsbReq params, ExtHttpHelper httpHelper) {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
@@ -182,15 +182,10 @@ public abstract class AbstractEsbSdkClient {
         }
     }
 
-    protected <T extends EsbReq> String doHttpPost(String uri, T params) {
-        return doHttpPost(uri, params, defaultHttpHelper);
-    }
-
     protected <T extends EsbReq> String doHttpPost(
         String uri,
         T params,
-        AbstractHttpHelper httpHelper)
-        {
+        ExtHttpHelper httpHelper) {
 
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
@@ -235,12 +230,12 @@ public abstract class AbstractEsbSdkClient {
 
 
     public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                 TypeReference<EsbResp<R>> typeReference) {
+                                          TypeReference<EsbResp<R>> typeReference) {
         return getEsbRespByReq(method, uri, reqBody, typeReference, null);
     }
 
     public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody, TypeReference<EsbResp<R>> typeReference,
-                                 AbstractHttpHelper httpHelper) {
+                                          ExtHttpHelper httpHelper) {
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
         String respStr = null;
         try {
@@ -264,11 +259,11 @@ public abstract class AbstractEsbSdkClient {
             } else if (!esbResp.getResult()) {
                 log.error(
                     "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
-                        ".message={}|method={}|uri={}|reqStr={}|respStr={}"
-                    , esbResp.getRequestId()
-                    , esbResp.getCode()
-                    , esbResp.getMessage()
-                    , method, uri, reqStr, respStr
+                        ".message={}|method={}|uri={}|reqStr={}|respStr={}",
+                    esbResp.getRequestId(),
+                    esbResp.getCode(),
+                    esbResp.getMessage(),
+                    method, uri, reqStr, respStr
                 );
                 throw new InternalException("Esb response code not success", ErrorCode.API_ERROR);
             }
@@ -284,7 +279,10 @@ public abstract class AbstractEsbSdkClient {
             }
             return esbResp;
         } catch (Throwable e) {
-            String errorMsg = "Fail to request ESB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
+            String errorMsg = "Fail to request ESB data|method=" + method
+                + "|uri=" + uri
+                + "|reqStr=" + reqStr
+                + "|respStr=" + respStr;
             log.error(errorMsg, e);
             throw new InternalException("Fail to request esb api", e, ErrorCode.API_ERROR);
         }

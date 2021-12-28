@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.upgrader.client;
 
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.IamReq;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
 @Slf4j
 public abstract class AbstractHttpClient {
     private String hostUrl;
-    private AbstractHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+    private ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
 
     public AbstractHttpClient(String hostUrl) {
         this.hostUrl = hostUrl;
@@ -52,7 +52,7 @@ public abstract class AbstractHttpClient {
 
     abstract List<Header> getBasicHeaders();
 
-    public String doHttpGet(String uri, BasicHttpReq params, AbstractHttpHelper httpHelper) throws Exception {
+    public String doHttpGet(String uri, BasicHttpReq params, ExtHttpHelper httpHelper) throws Exception {
         if (params == null) {
             params = new BasicHttpReq();
         }
@@ -89,7 +89,7 @@ public abstract class AbstractHttpClient {
 
     protected <T extends BasicHttpReq> String doHttpPost(
         String uri, T params,
-        AbstractHttpHelper httpHelper
+        ExtHttpHelper httpHelper
     ) throws Exception {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;

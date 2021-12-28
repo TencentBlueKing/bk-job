@@ -26,11 +26,13 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
+import io.micrometer.core.instrument.Tag;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -223,4 +225,37 @@ public class JobContextUtil {
         }
         return jobContext;
     }
+
+    public static String getHttpMetricName() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        String httpMetricName = null;
+        if (jobContext != null) {
+            httpMetricName = jobContext.getHttpMetricName();
+        }
+        return httpMetricName;
+    }
+
+    public static void setHttpMetricName(String httpMetricName) {
+        JobContext jobContext = getOrInitContext();
+        jobContext.setHttpMetricName(httpMetricName);
+    }
+
+    public static AbstractList<Tag> getHttpMetricTags() {
+        JobContext jobContext = getOrInitContext();
+        if (jobContext.getHttpMetricTags() == null) {
+            jobContext.setHttpMetricTags(new ArrayList<>());
+        }
+        return jobContext.getHttpMetricTags();
+    }
+
+    public static void addHttpMetricTag(Tag httpMetricTag) {
+        AbstractList<Tag> httpMetricTags = getHttpMetricTags();
+        httpMetricTags.add(httpMetricTag);
+    }
+
+    public static void clearHttpMetricTags() {
+        JobContext jobContext = getOrInitContext();
+        jobContext.setHttpMetricTags(null);
+    }
+
 }

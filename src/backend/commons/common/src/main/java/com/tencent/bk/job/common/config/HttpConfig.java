@@ -22,14 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.utils;
+package com.tencent.bk.job.common.config;
 
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class HttpHelperFactory {
-    private static DefaultHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+@Slf4j
+@Configuration
+public class HttpConfig {
 
-    public static DefaultHttpHelper getDefaultHttpHelper() {
-        return defaultHttpHelper;
+    @Bean
+    public HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
+        HttpHelperFactory.setMeterRegistry(meterRegistry);
+        log.info("meterRegistry for HttpHelperFactory init");
+        return new HttpConfigSetter();
+    }
+
+    static class HttpConfigSetter {
+        HttpConfigSetter() {
+        }
     }
 }

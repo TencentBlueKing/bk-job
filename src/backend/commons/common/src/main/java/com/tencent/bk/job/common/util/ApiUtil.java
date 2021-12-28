@@ -22,25 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-i18n')
-    api project(':commons:common-utils')
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'org.apache.commons:commons-lang3'
-    api 'org.apache.commons:commons-collections4'
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'net.sf.dozer:dozer'
-    implementation 'net.sourceforge.jchardet:jchardet'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.springframework:spring-jdbc'
-    implementation 'org.hibernate.validator:hibernate-validator'
-    implementation 'jakarta.validation:jakarta.validation-api'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    compileOnly 'org.springframework:spring-web'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.util;
+
+import java.util.Map;
+
+public class ApiUtil {
+
+    /**
+     * 根据映射关系表或URI本身获取API名称
+     *
+     * @param interfaceNameMap key:uri,value:API名称
+     * @param uri              路径
+     * @return API名称
+     */
+    public static String getApiNameByUri(Map<String, String> interfaceNameMap, String uri) {
+        if (interfaceNameMap != null && interfaceNameMap.containsKey(uri)) {
+            return interfaceNameMap.get(uri);
+        }
+        String uriSeparator = "/";
+        uri = StringUtil.removePrefix(uri, uriSeparator);
+        uri = StringUtil.removeSuffix(uri, uriSeparator);
+        if (uri.contains(uriSeparator)) {
+            String[] uriArr = uri.split(uriSeparator);
+            int len = uriArr.length;
+            String joinSeparator = "_";
+            if (len >= 2) {
+                return uriArr[len - 2] + joinSeparator + uriArr[len - 1];
+            }
+        }
+        return uri;
+    }
 }
