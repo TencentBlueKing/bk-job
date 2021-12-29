@@ -341,6 +341,54 @@ externalMongoDB:
   ##
   uri: ""
 
+## ServiceMonitor configuration
+##
+serviceMonitor:
+  ## @param serviceMonitor.enabled Creates a ServiceMonitor to monitor kube-state-metrics
+  ##
+  enabled: false
+  ## @param serviceMonitor.namespace Namespace in which Prometheus is running
+  ## e.g:
+  ## namespace: monitoring
+  ##
+  namespace: ""
+  ## @param serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+  ##
+  jobLabel: ""
+  ## @param serviceMonitor.interval Scrape interval (use by default, falling back to Prometheus' default)
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## interval: 10s
+  ##
+  interval: 30s
+  ## @param serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## scrapeTimeout: 10s
+  ##
+  scrapeTimeout: ""
+  ## @param serviceMonitor.selector ServiceMonitor selector labels
+  ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+  ## e.g:
+  ## selector:
+  ##   prometheus: my-prometheus
+  ##
+  selector: {}
+  ## @param serviceMonitor.honorLabels Honor metrics labels
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## honorLabels: false
+  ##
+  honorLabels: false
+  ## @param serviceMonitor.relabelings ServiceMonitor relabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  relabelings: []
+  ## @param serviceMonitor.metricRelabelings ServiceMonitor metricRelabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  metricRelabelings: []
+
 nginx-ingress-controller:
   enabled: false
 
