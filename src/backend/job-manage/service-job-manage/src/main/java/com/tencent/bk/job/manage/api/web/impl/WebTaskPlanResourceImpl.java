@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
 import com.tencent.bk.job.manage.common.util.IamPathUtil;
@@ -557,7 +558,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             return Response.buildSuccessResp(false);
         }
 
-        Long modifyTime = System.currentTimeMillis();
+        Long modifyTime = DateUtils.currentTimeSeconds();
 
         List<TaskPlanInfoDTO> planInfoList = planVariableInfoList.parallelStream().map(planVariableInfo -> {
             TaskPlanInfoDTO planInfo = new TaskPlanInfoDTO();
