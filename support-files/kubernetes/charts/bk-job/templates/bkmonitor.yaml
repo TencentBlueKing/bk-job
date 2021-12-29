@@ -8,12 +8,14 @@ metadata:
   {{- else }}
   namespace: {{ .Release.Namespace }}
   {{- end }}
-  labels: {{- include "common.labels.standard" . | nindent 4 }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  annotations:
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if .Values.serviceMonitor.jobLabel }}
@@ -67,12 +69,14 @@ metadata:
   {{- else }}
   namespace: {{ .Release.Namespace }}
   {{- end }}
-  labels: {{- include "common.labels.standard" . | nindent 4 }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  annotations:
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if .Values.serviceMonitor.jobLabel }}

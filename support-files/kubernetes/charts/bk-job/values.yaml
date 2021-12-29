@@ -521,17 +521,6 @@ job:
         enabled: true
   storage:
     rootPath: /data/job/local
-  # 蓝鲸日志平台数据采集
-  log:
-    file:
-      collectEnabled: false
-      dataId: 1
-    std:
-      collectEnabled: false
-      dataId: 1
-  # 蓝鲸监控数据采集
-  monitor:
-    collectEnabled: false
   migration:
     iamModel:
       enabled: true
@@ -553,6 +542,24 @@ job:
       certBase64: ""
       # 开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
+
+## 蓝鲸日志采集
+##
+bkLogConfig:
+  enabled: false
+  file:
+    serviceLog:
+      # 微服务日志采集到的dataId
+      # e.g: dataId: 1
+      dataId: ""
+    accessLog:
+      # 网关access日志采集到的dataId
+      # e.g: dataId: 2
+      dataId: ""
+  std:
+    # 容器标准输出日志采集到的dataId
+    # e.g: dataId: 3
+    dataId: ""
 
 ## @section job-gateway parameters
 gatewayConfig:
