@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbPushConfigFileRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +47,7 @@ public interface EsbPushConfigFileResource {
      */
     @PostMapping("/push_config_file")
     EsbResp<EsbJobExecuteDTO> pushConfigFile(
-        @RequestBody EsbPushConfigFileRequest request);
+        @RequestBody @Validated EsbPushConfigFileRequest request);
 
 
 }

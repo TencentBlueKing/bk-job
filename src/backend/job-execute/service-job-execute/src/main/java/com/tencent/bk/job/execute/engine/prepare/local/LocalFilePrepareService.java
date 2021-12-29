@@ -31,6 +31,9 @@ import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,18 +50,23 @@ public class LocalFilePrepareService {
     private final StorageSystemConfig storageSystemConfig;
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
+    private final AgentService agentService;
+    private final TaskInstanceService taskInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<Long, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
-    public LocalFilePrepareService(
-        StorageSystemConfig storageSystemConfig,
-        ArtifactoryConfig artifactoryConfig, LocalFileConfigForExecute localFileConfigForExecute,
-        ArtifactoryClient artifactoryClient
-    ) {
+    public LocalFilePrepareService(StorageSystemConfig storageSystemConfig,
+                                   ArtifactoryConfig artifactoryConfig,
+                                   LocalFileConfigForExecute localFileConfigForExecute,
+                                   AgentService agentService,
+                                   TaskInstanceService taskInstanceService,
+                                   ArtifactoryClient artifactoryClient) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
+        this.agentService = agentService;
+        this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
     }
 
@@ -88,13 +96,21 @@ public class LocalFilePrepareService {
             resultHandler.onSuccess(new NFSLocalFilePrepareTask(false));
             return;
         }
+        fileSourceList.forEach(fileSourceDTO -> {
+            if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
+                fileSourceDTO.setServers(agentService.getLocalServersDTO());
+            }
+        });
+        // 更新本地文件任务内容
+        taskInstanceService.updateResolvedSourceFile(stepInstanceId, fileSourceList);
         ArtifactoryLocalFilePrepareTask task = new ArtifactoryLocalFilePrepareTask(
+            stepInstanceId,
             false,
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
             artifactoryClient,
-            artifactoryConfig.getArtifactoryJobProject()
-                + "/" + localFileConfigForExecute.getLocalUploadRepo(),
+            artifactoryConfig.getArtifactoryJobProject(),
+            localFileConfigForExecute.getLocalUploadRepo(),
             storageSystemConfig.getJobStorageRootPath()
         );
         taskMap.put(stepInstanceId, task);

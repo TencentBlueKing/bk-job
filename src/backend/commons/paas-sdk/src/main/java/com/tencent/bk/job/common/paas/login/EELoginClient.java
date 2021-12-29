@@ -28,14 +28,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
-import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.HttpGet;
 
 @Slf4j
 public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient {
-    private final static String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
+    private static final String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
 
     public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang, boolean useEsbTestEnv) {
         super(esbHostUrl, appCode, appSecret, lang, useEsbTestEnv);
@@ -65,17 +68,20 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
 
     private BkUserDTO getUserInfo(EsbReq esbReq) {
         try {
-            String retStr = doHttpGet(API_GET_USER_INFO, esbReq);
-            EsbResp<EsbUserDto> resp = JsonUtils.fromJson(retStr, new TypeReference<EsbResp<EsbUserDto>>() {
-            });
-            int SUCCESS_CODE = 0;
-            if (resp == null || resp.getCode() != SUCCESS_CODE || resp.getData() == null) {
-                return null;
-            }
-            return convertToBkUserDTO(resp.getData());
-        } catch (Exception e) {
-            log.error("Get user info from paas fail", e);
-            return null;
+            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_BK_LOGIN_API_HTTP);
+            JobContextUtil.addHttpMetricTag(
+                Tag.of("api_name", API_GET_USER_INFO)
+            );
+            EsbResp<EsbUserDto> esbResp = getEsbRespByReq(
+                HttpGet.METHOD_NAME,
+                API_GET_USER_INFO,
+                esbReq,
+                new TypeReference<EsbResp<EsbUserDto>>() {
+                }
+            );
+            return convertToBkUserDTO(esbResp.getData());
+        } finally {
+            JobContextUtil.clearHttpMetricTags();
         }
     }
 

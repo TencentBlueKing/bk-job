@@ -66,13 +66,13 @@
             submit () {
                 const validateQueue = [];
                 if (this.$refs.used) {
-                    this.$refs.used.forEach((validate) => {
-                        validateQueue.push(validate());
+                    this.$refs.used.forEach((instance) => {
+                        validateQueue.push(instance.validate());
                     });
                 }
                 if (this.$refs.unused) {
-                    this.$refs.unused.forEach((validate) => {
-                        validateQueue.push(validate());
+                    this.$refs.unused.forEach((instance) => {
+                        validateQueue.push(instance.validate());
                     });
                 }
                 return Promise.all(validateQueue)

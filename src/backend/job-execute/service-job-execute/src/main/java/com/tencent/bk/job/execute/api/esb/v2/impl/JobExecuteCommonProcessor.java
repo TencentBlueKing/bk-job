@@ -58,27 +58,6 @@ public class JobExecuteCommonProcessor {
         return script;
     }
 
-
-    /**
-     * 计算作业超时时间
-     *
-     * @param timeout
-     * @return
-     */
-    protected int calculateTimeout(Integer timeout) {
-        int finalTimeout = 7200;
-        if (timeout != null && timeout > 0) {
-            if (timeout > 86400) {
-                finalTimeout = 86400;
-            } else if (timeout < 60) {
-                finalTimeout = 60;
-            } else {
-                finalTimeout = timeout;
-            }
-        }
-        return finalTimeout;
-    }
-
     /**
      * 转换目标服务器
      *

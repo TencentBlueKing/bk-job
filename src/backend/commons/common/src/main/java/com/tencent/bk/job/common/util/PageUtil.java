@@ -129,7 +129,9 @@ public class PageUtil {
                                             DbQuery<T> dbQuery) {
         boolean isExistPrioritizedElement = CollectionUtils.isNotEmpty(prioritizedElements);
         int actualStart = start;
-        if (isExistPrioritizedElement && !isGetAll) {
+        if (isGetAll) {
+            actualStart = -1;
+        } else if (isExistPrioritizedElement) {
             if (prioritizedElements.size() <= start) {
                 actualStart = start - prioritizedElements.size();
             } else {

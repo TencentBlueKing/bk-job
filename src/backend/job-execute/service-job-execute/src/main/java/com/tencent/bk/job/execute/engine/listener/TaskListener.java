@@ -185,13 +185,15 @@ public class TaskListener {
                 Long endTime = DateUtils.currentTimeMillis();
                 long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                     taskInstance.getTotalTime());
+                taskInstance.setEndTime(endTime);
+                taskInstance.setTotalTime(totalTime);
+                taskInstance.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
                 taskInstanceService.updateTaskExecutionInfo(taskInstanceId, RunStatusEnum.STOP_SUCCESS, null, null,
                     endTime, totalTime);
 
                 int status = stepStatus;
                 if (RunStatusEnum.SUCCESS.getValue() == stepStatus) {
                     status = RunStatusEnum.STOP_SUCCESS.getValue();
-                    taskInstance.setTotalTime(totalTime);
                     asyncNotifySuccess(taskInstance, currentStep);
                     // 触发任务结束统计分析
                     statisticsService.updateEndJobStatistics(taskInstance);
@@ -222,7 +224,9 @@ public class TaskListener {
                         taskInstance.getTotalTime());
                     taskInstanceService.updateTaskExecutionInfo(taskInstanceId, RunStatusEnum.SUCCESS, null, null,
                         endTime, totalTime);
+                    taskInstance.setEndTime(endTime);
                     taskInstance.setTotalTime(totalTime);
+                    taskInstance.setStatus(RunStatusEnum.SUCCESS.getValue());
                     asyncNotifySuccess(taskInstance, currentStep);
                     callback(taskInstance, taskInstanceId, RunStatusEnum.SUCCESS.getValue(), currentStepId, stepStatus);
                     // 触发任务结束统计分析
@@ -243,6 +247,9 @@ public class TaskListener {
                 Long endTime = DateUtils.currentTimeMillis();
                 long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                     taskInstance.getTotalTime());
+                taskInstance.setEndTime(endTime);
+                taskInstance.setTotalTime(totalTime);
+                taskInstance.setStatus(RunStatusEnum.FAIL.getValue());
                 taskInstanceService.updateTaskExecutionInfo(taskInstanceId, RunStatusEnum.FAIL, null, null, endTime,
                     totalTime);
                 asyncNotifyFail(taskInstance, currentStep);

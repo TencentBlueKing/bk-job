@@ -165,7 +165,6 @@
 </template>
 <script>
     import _ from 'lodash';
-    import Cookie from 'js-cookie';
     import AppManageService from '@service/app-manage';
     import UserService from '@service/user';
     import { topoNodeCache } from '@utils/cache-helper';
@@ -179,7 +178,6 @@
     import HostTable from './host-table';
     import DropdownMenu from './dropdown-menu';
 
-    const RENDER_EMPTY_TOPO_NODE_CACHE_KEY = 'ip_selector_render_empty_topo_node';
     const ROOT_NODE_ID = `#biz#${window.PROJECT_CONFIG.APP_ID}`;
 
     export default {
@@ -200,7 +198,7 @@
                 type: Boolean,
                 default: true,
             },
-            host: {
+            ipList: {
                 type: Array,
                 default: () => [],
             },
@@ -215,7 +213,7 @@
                 isLoading: true,
                 isNodeEmpty: false,
                 // 展示空的拓扑节点
-                isRenderEmptyTopoNode: Cookie.get(RENDER_EMPTY_TOPO_NODE_CACHE_KEY) !== undefined,
+                isRenderEmptyTopoNode: false,
                 // 登录用户
                 currentUser: {},
                 selectedNodeId: ROOT_NODE_ID,
@@ -256,14 +254,14 @@
             /**
              * @desc 选中的主机更新
              */
-            host: {
-                handler (newHost) {
+            ipList: {
+                handler (ipList) {
                     if (this.selfChange) {
                         this.selfChange = false;
                         return;
                     }
                     const checkedMap = {};
-                    newHost.forEach((host) => {
+                    ipList.forEach((host) => {
                         checkedMap[host.realId] = host;
                     });
                     this.pagination.page = 1;
@@ -354,7 +352,8 @@
                     const list = data.data;
                     list.forEach((realId) => {
                         const [
-                            cloudAreaId, ip,
+                            cloudAreaId,
+                            ip,
                         ] = realId.split(':');
                         if (check) {
                             checkedMap[realId] = {
@@ -410,7 +409,7 @@
              */
             triggerChange () {
                 this.selfChange = true;
-                this.$emit('on-change', 'hostTopology', Object.values(this.checkedMap));
+                this.$emit('on-change', 'ipList', Object.values(this.checkedMap));
             },
             /**
              * @desc 切换拓扑树中主机为空的节点
@@ -424,7 +423,6 @@
                     // 显示所有节点，节点的选中状态不变
                     event.stopPropagation();
                     topoNodeCache.clearItem();
-                    // Cookie.set(RENDER_EMPTY_TOPO_NODE_CACHE_KEY, true);
                 } else {
                     // 隐藏空节点时，如果已选的节点将被隐藏自动切换为选中根节点
                     if (selectNode.data.payload.count < 1) {
