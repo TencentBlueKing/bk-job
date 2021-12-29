@@ -12,9 +12,6 @@ metadata:
     {{- end }}
 data:
   application.yaml: |-
-    spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-file-worker
     job:
       file-worker:
         version: {{ .Values.fileWorkerConfig.version }}
