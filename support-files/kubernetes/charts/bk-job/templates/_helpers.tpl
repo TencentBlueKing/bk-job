@@ -39,16 +39,16 @@ Return the label value of bk-job scope backend
 {{- end -}}
 
 {{/*
-Return the label key of bk-job sha256SumCommonConfigMap
+Return the annotation key of bk-job sha256SumCommonConfigMap
 */}}
-{{- define "job.labelKeys.sha256SumCommonConfigMap" -}}
+{{- define "job.annotationKeys.sha256SumCommonConfigMap" -}}
     {{- printf "sha256sum/commonConfigmap" -}}
 {{- end -}}
 
 {{/*
-Return the label key of bk-job sha256SumServiceConfigMap
+Return the annotation key of bk-job sha256SumServiceConfigMap
 */}}
-{{- define "job.labelKeys.sha256SumServiceConfigMap" -}}
+{{- define "job.annotationKeys.sha256SumServiceConfigMap" -}}
     {{- printf "sha256sum/serviceConfigmap" -}}
 {{- end -}}
 
