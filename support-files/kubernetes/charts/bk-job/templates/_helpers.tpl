@@ -500,6 +500,6 @@ Return the Job Web API URL
 Return the sha256sum of configmap
 */}}
 {{- define "annotations.sha256sum.configmap" -}}
-{{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print $.Template.BasePath "/configmap-common.yaml") .context | sha256sum }}
-{{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print $.Template.BasePath "/" .service "/configmap.yaml") .context | sha256sum }}
+{{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print .context.Template.BasePath "/configmap-common.yaml") .context | sha256sum }}
+{{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print .context.Template.BasePath "/" .service "/configmap.yaml") .context | sha256sum }}
 {{- end -}}
