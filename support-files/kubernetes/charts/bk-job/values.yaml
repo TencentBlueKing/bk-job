@@ -16,12 +16,6 @@ global:
   imagePullSecrets: []
   storageClass: ""
 
-
-## @section job image parameters
-image:
-  imageRegistry: ""
-  imagePullSecrets: []
-
 ## @section Common parameters
 
 ## @param nameOverride String to partially override common.names.fullname
@@ -393,21 +387,30 @@ serviceMonitor:
 nginx-ingress-controller:
   enabled: false
 
-## @section job application common parameters
-##
+## 作业平台调用ESB/ApiGateway使用的APP_CODE与密钥信息
 app:
-  ## job app_code. Fixed Value
+  ## app_code
   code: bk_job
-  ## job app_secret
+  ## app_secret
   secret: ""
 
-## BlueKing ESB Config
-esb:
-  service:
-    ## ESB Service URL
-    url: "http://paas.example.com"
+## 集群内调用蓝鲸其他服务
 
-## BlueKing GSE Config
+## 集群外调用蓝鲸其他服务
+## 蓝鲸 ESB url
+bkComponentApiUrl: http://bkapi.paas.example.com
+## 蓝鲸 Login url
+bkLoginUrl: http://paas.example.com/login/
+## 蓝鲸 cmdb url
+bkCcUrl: http://cmdb.example.com
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: http://bkiam-api.example.com
+# 蓝鲸制品库 url
+bkRepoUrl: http://bkrepo.example.com
+# 节点管理 url
+bkNodemanUrl: http://nodeman.example.com
+
+## 蓝鲸GSE参数配置
 gse:
   ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
   ##
@@ -442,19 +445,7 @@ gse:
       num: 5
     batchSize: 5000
 
-## BlueKing IAM Config
-iam:
-  baseUrl: "http://bkiam.example.com"
-  ## The system ID of Job in the IAM. Fixed Value
-  systemId: bk_job
-
-## BlueKing PaaS Config
-paas:
-  login:
-    # 蓝鲸PaaS的登录地址
-    url: "http://paas.example.com/login"
-
-## BlueKing CMDB Config
+## 对接蓝鲸CMDB参数配置
 cmdb:
   app:
     index:
@@ -481,19 +472,9 @@ cmdb:
     threads:
       # 普通业务从CMDB查询主机的线程数量
       num: 20
-  server:
-    # CMDB根地址
-    url: http://cmdb.example.com
 
-## BlueKing NodeMan Config
-nodeman:
-  server:
-    # 节点管理根地址
-    url: http://nodeman.example.com
-## BlueKing Artifactory Config
+## 蓝鲸制品库配置
 artifactory:
-  # 制品库根地址
-  baseUrl: http://bkrepo.example.com
   admin:
     # 制品库admin账号
     username: admin
@@ -507,7 +488,7 @@ artifactory:
     # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
-## Job LocalFile Config
+## 本地文件上传配置
 localFile:
   # 本地文件存储后端，取值可为：制品库（artifactory）、本地NFS（local）
   storageBackend: artifactory
@@ -518,7 +499,7 @@ localFile:
     # 制品库中作业平台使用的本地文件仓库代码，初始化时由作业平台通过Admin账号自动创建
     repo: localupload
 
-## Swagger Doc
+## Swagger配置
 swagger:
   # 开启开发模式时的Swagger文档地址域名
   url: "swagger.job.com"
@@ -579,8 +560,7 @@ job:
       # 开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
 
-## 蓝鲸日志采集
-##
+## 蓝鲸日志采集配置
 bkLogConfig:
   # 是否开启蓝鲸日志采集
   enabled: false
@@ -598,7 +578,7 @@ bkLogConfig:
     # e.g: dataId: 3
     dataId: ""
 
-## @section job-gateway parameters
+## job-gateway网关配置
 gatewayConfig:
   loginExemption:
     # 是否开启登录豁免，默认不开启
@@ -684,7 +664,7 @@ gatewayConfig:
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
 
-## @section job-manage parameters
+## job-manage作业管理配置
 manageConfig:
   image:
     registry: mirrors.tencent.com
@@ -733,7 +713,7 @@ manageConfig:
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-execute parameters
+## job-execute执行引擎配置
 executeConfig:
   # 执行日志导出配置
   logExport:
@@ -789,7 +769,7 @@ executeConfig:
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-crontab parameters
+## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
   enabled: true
@@ -849,7 +829,7 @@ crontabConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-logsvr parameters
+## job-logsvr日志服务配置
 logsvrConfig:
   image:
     registry: mirrors.tencent.com
@@ -897,7 +877,7 @@ logsvrConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-backup parameters
+## job-backup备份服务配置
 backupConfig:
   # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
   storageBackend: artifactory
@@ -950,7 +930,7 @@ backupConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-analysis统计分析服务配置
 analysisConfig:
   image:
     registry: mirrors.tencent.com
@@ -998,7 +978,7 @@ analysisConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-file-gateway parameters
+## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
@@ -1046,7 +1026,7 @@ fileGatewayConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-file-worker文件源接入点配置
 fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
@@ -1117,7 +1097,7 @@ fileWorkerConfig:
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-frontend parameters
+## job-frontend前端配置
 frontendConfig:
   image:
     registry: mirrors.tencent.com
@@ -1173,6 +1153,7 @@ frontendConfig:
     extraTls: []
     secrets: []
 
+## migration迁移任务配置
 migration:
   image:
     # 镜像拉取仓库根地址

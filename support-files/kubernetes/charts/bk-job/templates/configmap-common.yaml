@@ -22,7 +22,7 @@ data:
       secret: {{ .Values.app.secret }}
     esb:
       service:
-        url: {{ .Values.esb.service.url }}
+        url: {{ .Values.bkComponentApiUrl }}
     gse:
       cache:
         apiserver:
@@ -53,11 +53,11 @@ data:
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:
-      base-url: {{ .Values.iam.baseUrl }}
-      system-id: {{ .Values.iam.systemId }}
+      base-url: {{ .Values.bkIamApiUrl }}
+      system-id: {{ .Values.app.code }}
     paas:
       login:
-        url: {{ .Values.paas.login.url }}
+        url: {{ .Values.bkLoginUrl }}
     job:
       security:
         service:
@@ -93,12 +93,12 @@ data:
        threads:
          num: {{ .Values.cmdb.query.threads.num }}
      server:
-       url: {{ .Values.cmdb.server.url }}
+       url: {{ .Values.bkCcUrl }}
     nodeman:
       server:
-        url: {{ .Values.nodeman.server.url }}
+        url: {{ .Values.bkNodemanUrl }}
     artifactory:
-      base-url: {{ .Values.artifactory.baseUrl }}
+      base-url: {{ .Values.bkRepoUrl }}
       admin:
         username: {{ .Values.artifactory.admin.username }}
         password: {{ .Values.artifactory.admin.password }}

@@ -1,33 +1,51 @@
 questions:
-  - variable: paas.login.url
-    label: "对接的蓝鲸PaaS登录地址"
+  - variable: bkLoginUrl
+    label: "对接的蓝鲸统一登录地址"
     type: string
     default: "http://paas.example.com/login"
-    description: "对接的蓝鲸PaaS登录地址"
+    description: "对接的蓝鲸统一登录地址"
+    group: "蓝鲸公共组件配置"
+  - variable: bkComponentApiUrl
+    label: "对接的蓝鲸组件服务根地址"
+    type: string
+    default: "http://bkapi.paas.example.com"
+    description: "对接的蓝鲸组件服务地址"
     group: "蓝鲸公共组件配置"
   - variable: app.code
-    label: "app_code"
+    label: "调用组件服务接口使用的app_code"
     type: string
     default: "bk_job"
-    description: "调用ESB接口使用的app_code"
+    description: "调用组件服务接口使用的app_code"
     group: "蓝鲸公共组件配置"
   - variable: app.secret
-    label: "调用ESB接口使用的app_secret"
+    label: "调用组件服务接口使用的app_secret"
     type: string
     default: ""
-    description: "调用ESB接口使用的app_secret"
+    description: "调用组件服务接口使用的app_secret"
     group: "蓝鲸公共组件配置"
-  - variable: iam.baseUrl
-    label: "对接的蓝鲸权限中心地址"
+  - variable: bkCcUrl
+    label: "对接的蓝鲸CMDB地址"
     type: string
-    default: "http://bkiam.example.com"
+    default: "http://cmdb.example.com"
+    description: "对接的蓝鲸CMDB地址"
+    group: "蓝鲸公共组件配置"
+  - variable: bkIamApiUrl
+    label: "对接的蓝鲸权限中心API地址"
+    type: string
+    default: "http://bkiam-api.example.com"
     description: "对接的蓝鲸权限中心地址"
     group: "蓝鲸公共组件配置"
-  - variable: localFile.artifactory.baseUrl
+  - variable: bkRepoUrl
     label: "对接的蓝鲸制品库地址"
     type: string
     default: "http://bkrepo.example.com"
     description: "对接的蓝鲸制品库地址"
+    group: "蓝鲸公共组件配置"
+  - variable: bkNodemanUrl
+    label: "对接的蓝鲸节点管理地址"
+    type: string
+    default: "http://nodeman.example.com"
+    description: "对接的蓝鲸节点管理地址"
     group: "蓝鲸公共组件配置"
 
   - variable: gse.ssl.keystore.password
