@@ -587,7 +587,7 @@ gatewayConfig:
     defaultUser: admin
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-gateway
+    repository: blueking/job-gateway
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -668,7 +668,7 @@ gatewayConfig:
 manageConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-manage
+    repository: blueking/job-manage
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -724,7 +724,7 @@ executeConfig:
       repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-execute
+    repository: blueking/job-execute
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -775,7 +775,7 @@ crontabConfig:
   enabled: true
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-crontab
+    repository: blueking/job-crontab
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -833,7 +833,7 @@ crontabConfig:
 logsvrConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-logsvr
+    repository: blueking/job-logsvr
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -886,7 +886,7 @@ backupConfig:
     repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-backup
+    repository: blueking/job-backup
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -934,7 +934,7 @@ backupConfig:
 analysisConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-analysis
+    repository: blueking/job-analysis
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -982,7 +982,7 @@ analysisConfig:
 fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-gateway
+    repository: blueking/job-file-gateway
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -1030,7 +1030,7 @@ fileGatewayConfig:
 fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-worker
+    repository: blueking/job-file-worker
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -1101,7 +1101,7 @@ fileWorkerConfig:
 frontendConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-frontend
+    repository: blueking/job-frontend
     tag: 3.4.4-beta.8
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -1159,7 +1159,7 @@ migration:
     # 镜像拉取仓库根地址
     registry: "mirrors.tencent.com"
     # 镜像拉取仓库组织与镜像名称
-    repository: "bkce/job-migration"
+    repository: "blueking/job-migration"
     # 镜像标签
     tag: 3.4.4-beta.8
     # 镜像拉取策略
