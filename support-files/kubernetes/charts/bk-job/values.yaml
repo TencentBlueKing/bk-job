@@ -614,8 +614,11 @@ gatewayConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -692,8 +695,11 @@ manageConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -745,8 +751,11 @@ executeConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -793,8 +802,11 @@ crontabConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -848,8 +860,11 @@ logsvrConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -898,8 +913,11 @@ backupConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -943,8 +961,11 @@ analysisConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -988,8 +1009,11 @@ fileGatewayConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -1033,8 +1057,11 @@ fileWorkerConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -1101,8 +1128,11 @@ frontendConfig:
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
