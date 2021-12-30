@@ -495,3 +495,11 @@ Return the Job Web API URL
 {{- define "job.web.api.url" -}}
 {{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.apiDomain }}
 {{- end -}}
+
+{{/*
+Return the sha256sum of configmap
+*/}}
+{{- define "annotations.sha256sum.configmap" -}}
+{{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print $.Template.BasePath "/configmap-common.yaml") .context | sha256sum }}
+{{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print $.Template.BasePath "/" .service "/configmap.yaml") .context | sha256sum }}
+{{- end -}}

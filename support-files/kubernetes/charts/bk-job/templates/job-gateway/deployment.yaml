@@ -12,8 +12,7 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   annotations:
-  {{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print $.Template.BasePath "/configmap-common.yaml") . | sha256sum }}
-  {{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print $.Template.BasePath "/job-gateway/configmap.yaml") . | sha256sum }}
+  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-gateway" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
   {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
