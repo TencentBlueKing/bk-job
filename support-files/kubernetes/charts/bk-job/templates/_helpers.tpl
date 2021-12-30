@@ -39,6 +39,20 @@ Return the label value of bk-job scope backend
 {{- end -}}
 
 {{/*
+Return the label value of bk-job sha256SumCommonConfigMap
+*/}}
+{{- define "job.labelValues.sha256SumCommonConfigMap" -}}
+    {{- printf "sha256sum/commonConfigmap" -}}
+{{- end -}}
+
+{{/*
+Return the label value of bk-job sha256SumServiceConfigMap
+*/}}
+{{- define "job.labelValues.sha256SumServiceConfigMap" -}}
+    {{- printf "sha256sum/serviceConfigmap" -}}
+{{- end -}}
+
+{{/*
 Return the proper job-frontend image name
 */}}
 {{- define "job-frontend.image" -}}

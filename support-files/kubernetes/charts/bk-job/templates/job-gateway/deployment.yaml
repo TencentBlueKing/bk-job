@@ -8,6 +8,8 @@ metadata:
     app.kubernetes.io/component: "job-gateway"
     {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     {{ include "job.labelKeys.imageTag" . }}: {{ .Values.gatewayConfig.image.tag | quote }}
+    {{ include "job.labelKeys.sha256SumCommonConfigMap" . }}: {{ include (print $.Template.BasePath "/configmap-common.yaml") . | sha256sum }}
+    {{ include "job.labelKeys.sha256SumServiceConfigMap" . }}: {{ include (print $.Template.BasePath "/job-gateway/configmap.yaml") . | sha256sum }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
