@@ -1,6 +1,6 @@
 apiVersion: v2
 name: "bk-job"
-description: A Helm Chart for Blueking Job
+description: The BK-JOB is a ops script management and execution system with the capability of dealing with multiple tasks simultaneously.
 type: application
 version: 0.1.37
 appVersion: "3.4.4-beta.8"
