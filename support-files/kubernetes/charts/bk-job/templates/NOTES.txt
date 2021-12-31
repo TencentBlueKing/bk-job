@@ -45,8 +45,8 @@ nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-gat
 pid=$!
 sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
-#（6）job-fileWorker
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward pod/job-file-worker-0 8081:{{ .Values.fileWorkerConfig.containerPort }} > /dev/null 2>&1 &
+#（6）job-file-worker
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward pod/{{ include "common.names.fullname" . }}-file-worker-0 8081:{{ .Values.fileWorkerConfig.containerPort }} > /dev/null 2>&1 &
 pid=$!
 sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
