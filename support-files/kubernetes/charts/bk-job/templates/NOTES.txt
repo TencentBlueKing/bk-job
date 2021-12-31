@@ -1,14 +1,12 @@
 1.感谢安装{{ .Chart.Name }}，当前Release为：{{ .Release.Name }}。
 
 2.访问地址
-{{- if .Values.ingress.enabled }}
-{{- range $host := .Values.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
-  {{- end }}
-{{- end }}
+浏览器访问地址（请确保已配置域名解析）：
+{{- if .Values.frontendConfig.ingress.enabled }}
+http{{ if $.Values.job.web.https.enabled }}s{{ end }}://{{ $.Values.job.web.domain }}
 {{- end }}
 
+本机curl访问：
 export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-frontend" -o jsonpath="{.items[0].metadata.name}")
 export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
 echo "http://127.0.0.1:8080"
