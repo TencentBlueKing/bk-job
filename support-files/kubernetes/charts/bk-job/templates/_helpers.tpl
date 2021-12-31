@@ -39,87 +39,101 @@ Return the label value of bk-job scope backend
 {{- end -}}
 
 {{/*
+Return the annotation key of bk-job sha256SumCommonConfigMap
+*/}}
+{{- define "job.annotationKeys.sha256SumCommonConfigMap" -}}
+    {{- printf "sha256sum/commonConfigmap" -}}
+{{- end -}}
+
+{{/*
+Return the annotation key of bk-job sha256SumServiceConfigMap
+*/}}
+{{- define "job.annotationKeys.sha256SumServiceConfigMap" -}}
+    {{- printf "sha256sum/serviceConfigmap" -}}
+{{- end -}}
+
+{{/*
 Return the proper job-frontend image name
 */}}
 {{- define "job-frontend.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.frontendConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.frontendConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-gateway image name
 */}}
 {{- define "job-gateway.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.gatewayConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.gatewayConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-manage image name
 */}}
 {{- define "job-manage.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.manageConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.manageConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-execute image name
 */}}
 {{- define "job-execute.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.executeConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.executeConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-crontab image name
 */}}
 {{- define "job-crontab.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.crontabConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.crontabConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-logsvr image name
 */}}
 {{- define "job-logsvr.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.logsvrConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.logsvrConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-backup image name
 */}}
 {{- define "job-backup.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.backupConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.backupConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-analysis image name
 */}}
 {{- define "job-analysis.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.analysisConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.analysisConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-file-gateway image name
 */}}
 {{- define "job-file-gateway.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.fileGatewayConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.fileGatewayConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-file-worker image name
 */}}
 {{- define "job-file-worker.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.fileWorkerConfig.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.fileWorkerConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper job-migration image name
 */}}
 {{- define "job-migration.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.migration.image "global" .Values.image) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.migration.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
-{{ include "common.images.pullSecrets" (dict "images" (list .Values.gatewayConfig.image .Values.manageConfig.image .Values.executeConfig.image .Values.crontabConfig.image .Values.logsvrConfig.image .Values.backupConfig.image .Values.analysisConfig.image .Values.fileGatewayConfig.image .Values.fileWorkerConfig.image) "global" .Values.image) }}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.gatewayConfig.image .Values.manageConfig.image .Values.executeConfig.image .Values.crontabConfig.image .Values.logsvrConfig.image .Values.backupConfig.image .Values.analysisConfig.image .Values.fileGatewayConfig.image .Values.fileWorkerConfig.image) "global" .Values.global) }}
 {{- end -}}
 
 
@@ -480,4 +494,12 @@ Return the Job Web API URL
 */}}
 {{- define "job.web.api.url" -}}
 {{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.apiDomain }}
+{{- end -}}
+
+{{/*
+Return the sha256sum of configmap
+*/}}
+{{- define "annotations.sha256sum.configmap" -}}
+{{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print .context.Template.BasePath "/configmap-common.yaml") .context | sha256sum }}
+{{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print .context.Template.BasePath "/" .service "/configmap.yaml") .context | sha256sum }}
 {{- end -}}

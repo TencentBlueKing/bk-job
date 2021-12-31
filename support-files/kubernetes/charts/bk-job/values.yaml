@@ -16,12 +16,6 @@ global:
   imagePullSecrets: []
   storageClass: ""
 
-
-## @section job image parameters
-image:
-  imageRegistry: ""
-  imagePullSecrets: []
-
 ## @section Common parameters
 
 ## @param nameOverride String to partially override common.names.fullname
@@ -50,6 +44,7 @@ rbac:
   create: true
 
 ingress:
+  # enabled是指是否开启ingress
   enabled: false
   ingressClassName: ""
 
@@ -341,24 +336,78 @@ externalMongoDB:
   ##
   uri: ""
 
+## ServiceMonitor configuration
+##
+serviceMonitor:
+  ## @param serviceMonitor.enabled Creates a ServiceMonitor to monitor kube-state-metrics
+  ##
+  enabled: false
+  ## @param serviceMonitor.namespace Namespace in which Prometheus is running
+  ## e.g:
+  ## namespace: monitoring
+  ##
+  namespace: ""
+  ## @param serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+  ##
+  jobLabel: ""
+  ## @param serviceMonitor.interval Scrape interval (use by default, falling back to Prometheus' default)
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## interval: 10s
+  ##
+  interval: 30s
+  ## @param serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## scrapeTimeout: 10s
+  ##
+  scrapeTimeout: ""
+  ## @param serviceMonitor.selector ServiceMonitor selector labels
+  ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+  ## e.g:
+  ## selector:
+  ##   prometheus: my-prometheus
+  ##
+  selector: {}
+  ## @param serviceMonitor.honorLabels Honor metrics labels
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## honorLabels: false
+  ##
+  honorLabels: false
+  ## @param serviceMonitor.relabelings ServiceMonitor relabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  relabelings: []
+  ## @param serviceMonitor.metricRelabelings ServiceMonitor metricRelabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  metricRelabelings: []
+
 nginx-ingress-controller:
   enabled: false
 
-## @section job application common parameters
-##
+## 作业平台调用ESB/ApiGateway使用的APP_CODE与密钥信息
 app:
-  ## job app_code. Fixed Value
+  ## app_code
   code: bk_job
-  ## job app_secret
+  ## app_secret
   secret: ""
 
-## BlueKing ESB Config
-esb:
-  service:
-    ## ESB Service URL
-    url: "http://paas.example.com"
+## 蓝鲸 ESB url
+bkComponentApiUrl: "http://bkapi.paas.example.com"
+## 蓝鲸 Login url
+bkLoginUrl: "http://paas.example.com/login/"
+## 蓝鲸 cmdb url
+bkCcUrl: "http://cmdb.example.com"
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: "http://bkiam-api.example.com"
+# 蓝鲸制品库 url
+bkRepoUrl: "http://bkrepo.example.com"
+# 节点管理 url
+bkNodemanUrl: "http://nodeman.example.com"
 
-## BlueKing GSE Config
+## 蓝鲸GSE参数配置
 gse:
   ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
   ##
@@ -393,110 +442,112 @@ gse:
       num: 5
     batchSize: 5000
 
-## BlueKing IAM Config
-iam:
-  baseUrl: "http://bkiam.example.com"
-  ## The system ID of Job in the IAM. Fixed Value
-  systemId: bk_job
-
-## BlueKing PaaS Config
-paas:
-  login:
-    url: "http://paas.example.com/login"
-
-## BlueKing CMDB Config
+## 对接蓝鲸CMDB参数配置
 cmdb:
   app:
     index:
+      # CMDB首页URI
       path: /#/business/{appId}/index
   interface:
     briefCacheTopo:
+      # 是否启用CMDB拓扑缓存接口，默认开启
       enabled: true
     findHostRelation:
       longTerm:
+        # 主机数量超过1w的大业务从CMDB查询主机的最大并发数量，默认为10
         concurrency: 10
     flowControl:
       default:
+        # CMDB接口资源默认流控频率，默认为50次/s
         limit: 50
+      # 是否开启CMDB接口资源流控，默认不开启
       enabled: false
     retry:
+      # CMDB接口资源调用时是否开启重试，默认开启
       enabled: true
   query:
     threads:
+      # 普通业务从CMDB查询主机的线程数量
       num: 20
-  server:
-    url: http://cmdb.example.com
 
-## BlueKing NodeMan Config
-nodeman:
-  server:
-    url: http://nodeman.example.com
-## BlueKing Artifactory Config
+## 蓝鲸制品库配置
 artifactory:
-  baseUrl: http://bkrepo.example.com
   admin:
+    # 制品库admin账号
     username: admin
+    # 制品库admin账号的密码
     password: blueking
   job:
+    # 作业平台在制品库的官方账号，初始化时由作业平台通过Admin账号自动创建
     username: bkjob
+    # 作业平台在制品库的官方账号对应的密码，初始化时由作业平台通过Admin账号自动创建
     password: bkjob
+    # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
-## Job LocalFile Config
+## 本地文件上传配置
 localFile:
+  # 本地文件存储后端，取值可为：制品库（artifactory）、本地NFS（local）
   storageBackend: artifactory
   artifactory:
     download:
+      # 从制品库下载本地文件的并发数，默认为10
       concurrency: 10
+    # 制品库中作业平台使用的本地文件仓库代码，初始化时由作业平台通过Admin账号自动创建
     repo: localupload
 
-## Swagger Doc
+## Swagger配置
 swagger:
+  # 开启开发模式时的Swagger文档地址域名
   url: "swagger.job.com"
 
 ## Job Common Config
 job:
+  # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
   profile: prod,kubernetes
+  # 作业平台版本(ce,ee)，默认社区版(ce)
   edition: ce
   security:
+    # base64编码的服务间调用私钥
     privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
+    # base64编码的服务间调用公钥
     publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFnZ3hWT0F4dmd2QkNuTG40eXBaVzIySEU3OS9NZ0V6amhZZ09LM2hVbEpJc1N1amlkZVZ2OTdZMVhMRjArSkdEdEM0UllGNStUWGQ3dFNCWG1hOWQwanpJMkpPREtBSDJtbW91MVd1Y0pHclVMT09yODlpL25zWkVnTGxiczVqdmlwZFRCSHF5cXVzWkM2RWQ3dEl5cW80SlF3dGo5QVVFSjB2WEJHVGQ3aXk1Q3BLSkdKa0ZRK0h0ejQ1bDcrMGY4V0tNcXpiU3JyU0ZHd01DTWJSUWNJdHlSV2VuTFdSaWUzcE12eUc3clRNZDBQWVoyc1VXemdTVUd1cUgzdWFpR1B2eE1aT2hKczlFK3ZJWlZiVUlYdi85d1NlNXg5d2hnVjg1TUZVTzFrL0Vrd1lPMWpiYWFDVVdHUkd0bGZpWnJYVDZkaC9ZK29lcElXQmN6MFdCVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
     actuator:
       user:
+        # 获取actuator监控数据的账号，部署时生成填入
         name: actuator_name
+        # 获取actuator监控数据的密码，部署时生成填入
         password: actuator_password
   encrypt:
+    # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
   feature:
     toggle:
       fileManage:
+        # 是否开启文件管理特性，默认不开启
         enabled: true
   storage:
+    # 存储文件（用户上传的本地文件、导入导出生成的临时文件等）到本地的根路径
     rootPath: /data/job/local
-  # 蓝鲸日志平台数据采集
-  log:
-    file:
-      collectEnabled: false
-      dataId: 1
-    std:
-      collectEnabled: false
-      dataId: 1
-  # 蓝鲸监控数据采集
-  monitor:
-    collectEnabled: false
   migration:
     iamModel:
+      # 是否开启权限模型migration
       enabled: true
     mysqlSchema:
+      # 是否开启Mysql数据库结构migration
       enabled: true
   # 各微服务Actuator监控端口
   managePort: 19876
   # 存储分配
   pv:
+    # 节点机器上用于挂载到容器内作为存储空间的路径
     path: "/data/bkjob"
+    # 分配的存储空间大小，默认100G
     storage: 100Gi
   web:
+    # 作业平台主站域名
     domain: "job.example.com"
+    # 作业平台API域名
     apiDomain: "jobapi.example.com"
     https:
       # 是否开启HTTPS
@@ -506,22 +557,45 @@ job:
       # 开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
 
-## @section job-gateway parameters
+## 蓝鲸日志采集配置
+bkLogConfig:
+  # 是否开启蓝鲸日志采集
+  enabled: false
+  file:
+    serviceLog:
+      # 微服务日志采集到的dataId
+      # e.g: dataId: 1
+      dataId: ""
+    accessLog:
+      # job-gateway网关access日志采集到的dataId
+      # e.g: dataId: 2
+      dataId: ""
+  std:
+    # 容器标准输出日志采集到的dataId
+    # e.g: dataId: 3
+    dataId: ""
+
+## job-gateway网关配置
 gatewayConfig:
   loginExemption:
+    # 是否开启登录豁免，默认不开启
     enabled: false
+    # 开启登录豁免时使用的默认用户名
     defaultUser: admin
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-gateway
-    tag: 3.4.4-beta.8
+    repository: blueking/job-gateway
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -547,21 +621,30 @@ gatewayConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  # 容器内的端口号
   containerPort:
+    # https端口号
     https: 19802
+    # http端口号
     http: 9802
+    # 管理端口号
     management: 19876
   service:
     type: ClusterIP
+    # 暴露出的Service端口号
     port:
+      # https端口号
       https: 443
+      # http端口号
       http: 80
   ingress:
+    # 是否开启ingress
     enabled: true
     path: "/"
     pathType: ImplementationSpecific
     annotations:
       kubernetes.io/ingress.class: nginx
+      # 开启ingress后的最大请求体大小
       nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
     extraHosts: []
     tls: []
@@ -570,24 +653,30 @@ gatewayConfig:
   server:
     ssl:
       keystore:
+        # job-gateway开启https时使用的keystore的密码
         password: "mLnuob1**4D74c@F"
       truststore:
+        # job-gateway开启https时使用的truststore的密码
         password: "mLnuob1**4D74c@F"
+  # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
 
-## @section job-manage parameters
+## job-manage作业管理配置
 manageConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-manage
-    tag: 3.4.4-beta.8
+    repository: blueking/job-manage
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -617,26 +706,33 @@ manageConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-execute parameters
+## job-execute执行引擎配置
 executeConfig:
+  # 执行日志导出配置
   logExport:
+    # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
     storageBackend: artifactory
     artifactory:
+      # 存储后端使用制品库时使用的仓库代码
       repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-execute
-    tag: 3.4.4-beta.8
+    repository: blueking/job-execute
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -666,23 +762,28 @@ executeConfig:
   service:
     type: ClusterIP
     port: 80
+  # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-crontab parameters
+## job-crontab定时任务配置
 crontabConfig:
+  # 是否部署定时任务微服务，默认部署
   enabled: true
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-crontab
-    tag: 3.4.4-beta.8
+    repository: blueking/job-crontab
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -722,21 +823,25 @@ crontabConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-logsvr parameters
+## job-logsvr日志服务配置
 logsvrConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-logsvr
-    tag: 3.4.4-beta.8
+    repository: blueking/job-logsvr
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -766,24 +871,30 @@ logsvrConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-backup parameters
+## job-backup备份服务配置
 backupConfig:
+  # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
   storageBackend: artifactory
   artifactory:
+    # 存储后端使用制品库时使用的备份服务仓库代码
     repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-backup
-    tag: 3.4.4-beta.8
+    repository: blueking/job-backup
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -813,21 +924,25 @@ backupConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-analysis统计分析服务配置
 analysisConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-analysis
-    tag: 3.4.4-beta.8
+    repository: blueking/job-analysis
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -857,21 +972,25 @@ analysisConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-file-gateway parameters
+## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-gateway
-    tag: 3.4.4-beta.8
+    repository: blueking/job-file-gateway
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -901,21 +1020,25 @@ fileGatewayConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-file-worker文件源接入点配置
 fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-worker
-    tag: 3.4.4-beta.8
+    repository: blueking/job-file-worker
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -946,32 +1069,47 @@ fileWorkerConfig:
     port: 80
     type: ClusterIP
   swaggerUrl: ""
+  # 实例名称
   instanceName: job-file-worker-public-1
+  # 版本号
   version: 0.0.1
+  # 安全凭据
   token: "testToken"
+  # 所属业务Id
   appId: -1
+  # 能力标签
   abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
+  # 外部如何访问file-worker相关配置
   access:
+    # 端口号
     port: 19810
+  # file-worker所在节点机器的云区域ID
   cloudAreaId: 0
+  # 文件下载相关配置
   downloadFile:
+    # 文件下载路径
     dir: /tmp/job
+    # 下载的文件过期时间
     expireDays: 7
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-frontend parameters
+## job-frontend前端配置
 frontendConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-frontend
-    tag: 3.4.4-beta.8
+    repository: blueking/job-frontend
+    tag: 3.4.4-beta.9
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -1012,9 +1150,14 @@ frontendConfig:
     extraTls: []
     secrets: []
 
+## migration迁移任务配置
 migration:
   image:
+    # 镜像拉取仓库根地址
     registry: "mirrors.tencent.com"
-    repository: "bkce/job-migration"
-    tag: 3.4.4-beta.8
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-migration"
+    # 镜像标签
+    tag: 3.4.4-beta.9
+    # 镜像拉取策略
     pullPolicy: IfNotPresent
