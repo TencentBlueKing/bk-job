@@ -394,21 +394,18 @@ app:
   ## app_secret
   secret: ""
 
-## 集群内调用蓝鲸其他服务
-
-## 集群外调用蓝鲸其他服务
 ## 蓝鲸 ESB url
-bkComponentApiUrl: http://bkapi.paas.example.com
+bkComponentApiUrl: "http://bkapi.paas.example.com"
 ## 蓝鲸 Login url
-bkLoginUrl: http://paas.example.com/login/
+bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
-bkCcUrl: http://cmdb.example.com
+bkCcUrl: "http://cmdb.example.com"
 # 蓝鲸 IAM 后台 url
-bkIamApiUrl: http://bkiam-api.example.com
+bkIamApiUrl: "http://bkiam-api.example.com"
 # 蓝鲸制品库 url
-bkRepoUrl: http://bkrepo.example.com
+bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
-bkNodemanUrl: http://nodeman.example.com
+bkNodemanUrl: "http://nodeman.example.com"
 
 ## 蓝鲸GSE参数配置
 gse:

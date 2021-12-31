@@ -21,7 +21,11 @@
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-frontend" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
   echo "http://127.0.0.1:8080"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+  nohup kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT > /dev/null 2>&1 &
+  pid=$!
+  # 若安装正常，则能够curl到前端页面html内容
+  curl http://127.0.0.1:8080
+  kill ${pid}
 {{- end }}
 
 3.验证系统已正确安装的方法
@@ -75,7 +79,7 @@ sleep 1 && curl http://127.0.0.1:{{ .Values.manageConfig.containerPort }}/actuat
 kill ${pid}
 
 4.卸载方式
-helm --namespace {{ .Release.Namespace }} uninstall {{ .Release.Namespace }}
+helm --namespace {{ .Release.Namespace }} uninstall {{ .Release.Name }}
 删除持久化数据：
 chart中所声明pv的reclaim policy均为Delete，卸载chart后将自动删除，但在节点机器上会存有日志等文件，可通过以下方式清理：
 在所有节点执行以下命令：
