@@ -48,12 +48,13 @@ pid=$!
 sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（6）job-fileWorker
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-worker 8081:{{ .Values.fileWorkerConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward pod/job-file-worker-0 8081:{{ .Values.fileWorkerConfig.containerPort }} > /dev/null 2>&1 &
 pid=$!
 sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（7）job-gateway
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "common.names.fullname" . }}-gateway 8081:{{ .Values.gatewayConfig.service.port.management }} > /dev/null 2>&1 &
+export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-gateway" -o jsonpath="{.items[0].metadata.name}")
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward pod/$POD_NAME 8081:{{ .Values.gatewayConfig.containerPort.management }} > /dev/null 2>&1 &
 pid=$!
 sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
