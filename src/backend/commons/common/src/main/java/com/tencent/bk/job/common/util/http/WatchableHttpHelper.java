@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util.http;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -73,7 +74,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null) {
+            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
@@ -100,7 +101,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null) {
+            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
@@ -127,7 +128,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null) {
+            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
@@ -154,7 +155,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = JobContextUtil.getHttpMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null) {
+            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
