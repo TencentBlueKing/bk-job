@@ -97,13 +97,18 @@ bitnami/rabbitmq
 | `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/local`       |
 | `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
 | `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
-| `job.pv.path`    | 节点机器上用于挂载到容器内作为存储空间的路径    | `/data/bkjob`       |
-| `job.pv.storage` | 节点机器上用于挂载到容器内的存储空间大小，默认100G    | `100Gi`       |
 | `job.web.domain` | 前端主站域名    | `job.example.com`       |
 | `job.web.apiDomain` | 暴露给前端的API地址    | `api.job.example.com`       |
 | `job.web.https.enabled` | 是否启用HTTPS    | `false`       |
 | `job.web.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
 | `job.web.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
+
+### 持久化存储配置
+|参数|描述|默认值 |
+|---|---|---|
+| `persistence.enabled`       | 是否开启持久化存储              | `true`           |
+| `persistence.accessMode`    | 持久化存储模式                 | `ReadWriteOnce`  |
+| `persistence.size`          | 持久化存储空间大小，默认200Gi    | `200Gi`          |
 
 ### 蓝鲸日志采集配置
 |参数|描述|默认值 |
