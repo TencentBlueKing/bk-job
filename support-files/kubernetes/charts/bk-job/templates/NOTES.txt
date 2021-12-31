@@ -7,75 +7,65 @@
   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
   {{- end }}
 {{- end }}
-
-{{- else if contains "NodePort" .Values.gatewayConfig.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "common.names.fullname" . }}-gateway)
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
-{{- else if contains "LoadBalancer" .Values.gatewayConfig.service.type }}
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "common-names.fullname" . }}-gateway'
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "job-gateway.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  echo http://$SERVICE_IP:{{ .Values.service.port }}
-{{- else if contains "ClusterIP" .Values.gatewayConfig.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-frontend" -o jsonpath="{.items[0].metadata.name}")
-  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].service.port}")
-  echo "http://127.0.0.1:8080"
-  nohup kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT > /dev/null 2>&1 &
-  pid=$!
-  # 若安装正常，则能够curl到前端页面html内容
-  curl http://127.0.0.1:8080
-  kill ${pid}
 {{- end }}
+
+export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-frontend" -o jsonpath="{.items[0].metadata.name}")
+export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+echo "http://127.0.0.1:8080"
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT > /dev/null 2>&1 &
+pid=$!
+# 若安装正常，则能够curl到前端页面html内容
+sleep 1 && curl http://127.0.0.1:8080
+kill ${pid}
 
 3.验证系统已正确安装的方法
 若系统正确安装，从浏览器访问上述访问地址时，应当能够跳转至登录页，且登录后能正常呈现页面无报错。
 
 各微服务健康状态查看方法：
 #（1）job-analysis
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-analysis {{ .Values.analysisConfig.service.port }}:{{ .Values.analysisConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-analysis 8081:{{ .Values.analysisConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.analysisConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（2）job-backup
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-backup {{ .Values.backupConfig.service.port }}:{{ .Values.backupConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-backup 8081:{{ .Values.backupConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.backupConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（3）job-crontab
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-crontab {{ .Values.crontabConfig.service.port }}:{{ .Values.crontabConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-crontab 8081:{{ .Values.crontabConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.crontabConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（4）job-execute
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-execute {{ .Values.executeConfig.service.port }}:{{ .Values.executeConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-execute 8081:{{ .Values.executeConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.executeConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（5）job-fileGateway
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-gateway {{ .Values.fileGatewayConfig.service.port }}:{{ .Values.fileGatewayConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-gateway 8081:{{ .Values.fileGatewayConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.fileGatewayConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（6）job-fileWorker
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-worker {{ .Values.fileWorkerConfig.service.port }}:{{ .Values.fileWorkerConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-worker 8081:{{ .Values.fileWorkerConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.fileWorkerConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（7）job-gateway
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "common.names.fullname" . }}-gateway {{ .Values.gatewayConfig.service.port.management }}:{{ .Values.gatewayConfig.service.port.management }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "common.names.fullname" . }}-gateway 8081:{{ .Values.gatewayConfig.service.port.management }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.gatewayConfig.service.port.management }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（8）job-logsvr
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-logsvr {{ .Values.logsvrConfig.service.port }}:{{ .Values.logsvrConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-logsvr 8081:{{ .Values.logsvrConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.logsvrConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 #（9）job-manage
-nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-manage {{ .Values.manageConfig.service.port }}:{{ .Values.manageConfig.service.port }} > /dev/null 2>&1 &
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-manage 8081:{{ .Values.manageConfig.service.port }} > /dev/null 2>&1 &
 pid=$!
-sleep 1 && curl http://127.0.0.1:{{ .Values.manageConfig.service.port }}/actuator/health
+sleep 1 && curl http://127.0.0.1:8081/actuator/health
 kill ${pid}
 
 4.卸载方式
