@@ -1,17 +1,13 @@
-Thank you for installing {{ .Chart.Name }}.
+1.感谢安装{{ .Chart.Name }}，当前Release为：{{ .Release.Name }}。
 
-Your release is named {{ .Release.Name }}.
-
-{{- $username := .Values.common.username | toString }}
-{{- $password := .Values.common.password | toString }}
-
-1. Get the application URL by running these commands:
+2.访问地址
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
   {{- end }}
 {{- end }}
+
 {{- else if contains "NodePort" .Values.gatewayConfig.service.type }}
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "common.names.fullname" . }}-gateway)
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
@@ -22,8 +18,67 @@ Your release is named {{ .Release.Name }}.
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "job-gateway.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.gatewayConfig.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component={{ include "common.names.name" . }}-gateway" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=job-frontend" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  echo "Visit http://127.0.0.1:8080 to use your application"
+  echo "http://127.0.0.1:8080"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
+
+3.验证系统已正确安装的方法
+若系统正确安装，从浏览器访问上述访问地址时，应当能够跳转至登录页，且登录后能正常呈现页面无报错。
+
+各微服务健康状态查看方法：
+#（1）job-analysis
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-analysis {{ .Values.analysisConfig.containerPort }}:{{ .Values.analysisConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.analysisConfig.containerPort }}/actuator/health
+kill ${pid}
+#（2）job-backup
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-backup {{ .Values.backupConfig.containerPort }}:{{ .Values.backupConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.backupConfig.containerPort }}/actuator/health
+kill ${pid}
+#（3）job-crontab
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-crontab {{ .Values.crontabConfig.containerPort }}:{{ .Values.crontabConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.crontabConfig.containerPort }}/actuator/health
+kill ${pid}
+#（4）job-execute
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-execute {{ .Values.executeConfig.containerPort }}:{{ .Values.executeConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.executeConfig.containerPort }}/actuator/health
+kill ${pid}
+#（5）job-fileGateway
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-gateway {{ .Values.fileGatewayConfig.containerPort }}:{{ .Values.fileGatewayConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.fileGatewayConfig.containerPort }}/actuator/health
+kill ${pid}
+#（6）job-fileWorker
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-file-worker {{ .Values.fileWorkerConfig.containerPort }}:{{ .Values.fileWorkerConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.fileWorkerConfig.containerPort }}/actuator/health
+kill ${pid}
+#（7）job-gateway
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "common.names.fullname" . }}-gateway {{ .Values.gatewayConfig.containerPort.management }}:{{ .Values.gatewayConfig.containerPort.management }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.gatewayConfig.containerPort.management }}/actuator/health
+kill ${pid}
+#（8）job-logsvr
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-logsvr {{ .Values.logsvrConfig.containerPort }}:{{ .Values.logsvrConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.logsvrConfig.containerPort }}/actuator/health
+kill ${pid}
+#（9）job-manage
+nohup kubectl --namespace {{ .Release.Namespace }} port-forward svc/job-manage {{ .Values.manageConfig.containerPort }}:{{ .Values.manageConfig.containerPort }} > /dev/null 2>&1 &
+pid=$!
+sleep 1 && curl http://127.0.0.1:{{ .Values.manageConfig.containerPort }}/actuator/health
+kill ${pid}
+
+4.卸载方式
+helm --namespace {{ .Release.Namespace }} uninstall {{ .Release.Namespace }}
+删除持久化数据：
+chart中所声明pv的reclaim policy均为Delete，卸载chart后将自动删除，但在节点机器上会存有日志等文件，可通过以下方式清理：
+在所有节点执行以下命令：
+rm -r {{ .Values.job.pv.path }}
+
+5.该chart未使用hooks，无需额外卸载。
