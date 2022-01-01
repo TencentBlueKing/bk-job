@@ -86,6 +86,7 @@
         methods: {
             handleTabToggle (tab) {
                 this.tab = tab;
+                console.log('fromasasd = =', this.tab);
             },
             handleClose () {
                 this.$emit('on-close');
@@ -106,6 +107,7 @@
 
     .variable-use-guide {
         position: relative;
+        width: 366px;
         height: 100%;
         background: #fff;
 
