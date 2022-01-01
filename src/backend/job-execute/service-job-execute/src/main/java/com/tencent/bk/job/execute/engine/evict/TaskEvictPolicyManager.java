@@ -47,9 +47,10 @@ public class TaskEvictPolicyManager {
 
     // 策略更新时间间隔：30s
     private final int POLICY_UPDATE_INTERVAL_MILLS = 30000;
-    private final RedisTemplate<String, String> redisTemplate;
     private String policyJsonStr = null;
     private volatile ComposedTaskEvictPolicy policy = null;
+
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     public TaskEvictPolicyManager(RedisTemplate<String, String> redisTemplate) {
@@ -60,6 +61,9 @@ public class TaskEvictPolicyManager {
         return policy;
     }
 
+    /**
+     * 从Redis加载并更新驱逐策略
+     */
     public void updatePolicy() {
         String loadedPolicyJsonStr = redisTemplate.opsForValue()
             .get(RedisConstants.KEY_EXECUTE_TASK_EVICT_POLICY);
@@ -87,7 +91,7 @@ public class TaskEvictPolicyManager {
     @PostConstruct
     private void init() {
         Thread taskEvictPolicyLoader = new Thread(() -> {
-            // 每隔一定时间从Redis加载驱逐策略
+            // 每隔一定时间更新驱逐策略
             try {
                 updatePolicy();
             } catch (Exception e) {
@@ -97,6 +101,7 @@ public class TaskEvictPolicyManager {
             }
         });
         taskEvictPolicyLoader.setName("taskEvictPolicyLoader");
+        // 设为守护线程，不阻塞进程退出
         taskEvictPolicyLoader.setDaemon(true);
         taskEvictPolicyLoader.start();
     }

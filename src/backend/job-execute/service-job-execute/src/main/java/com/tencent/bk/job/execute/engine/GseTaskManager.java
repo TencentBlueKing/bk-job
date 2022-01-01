@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.executor.AbstractGseTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.FileTaskExecutor;
@@ -102,6 +103,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobExecuteConfig jobExecuteConfig;
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
+    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     /**
      * 正在执行中的任务
      */
@@ -155,7 +157,8 @@ public class GseTaskManager implements SmartLifecycle {
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracing tracing,
                           ExecuteMonitor executeMonitor,
-                          JobExecuteConfig jobExecuteConfig) {
+                          JobExecuteConfig jobExecuteConfig,
+                          TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskLogService = gseTaskLogService;
@@ -173,6 +176,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.tracing = tracing;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
     /**
@@ -211,6 +215,12 @@ public class GseTaskManager implements SmartLifecycle {
             watch.start("get-task-and-step-from-db");
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+
+            // 如果任务应当被驱逐，直接置为放弃执行状态
+            if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+                taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                return;
+            }
 
             // 如果任务处于“终止中”状态，直接终止
             if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
@@ -328,6 +338,7 @@ public class GseTaskManager implements SmartLifecycle {
             accountService, taskInstanceVariableService, stepInstanceVariableValueService, agentService, logService,
             taskManager, resultHandleTaskKeepaliveManager, executeMonitor, jobExecuteConfig);
         gseTaskExecutor.setExceptionStatusManager(exceptionStatusManager);
+        gseTaskExecutor.setTaskEvictPolicyExecutor(taskEvictPolicyExecutor);
         gseTaskExecutor.setTracing(tracing);
         return gseTaskExecutor;
     }

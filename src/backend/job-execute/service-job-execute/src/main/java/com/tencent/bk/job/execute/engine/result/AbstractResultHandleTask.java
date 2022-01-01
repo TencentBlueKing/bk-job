@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -94,6 +95,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskExecuteControlMsgSender taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
+    protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -247,7 +249,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
                                      TaskExecuteControlMsgSender taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                     ExceptionStatusManager exceptionStatusManager
+                                     ExceptionStatusManager exceptionStatusManager,
+                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor
     ) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskLogService = gseTaskLogService;
@@ -257,6 +260,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskManager = taskManager;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
     public void execute() {
@@ -265,6 +269,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (!checkTaskActiveAndSetRunningStatus()) {
                 return;
             }
+
+            watch.start("check-evict-task");
+            if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+                log.info("taskInstance {} evicted before pulling gse log", taskInstance.getId());
+                taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                return;
+            }
+            watch.stop();
+
             watch.start("get-lock");
             if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
                 log.info("Fail to get result handle lock, stepInstanceId: {}", stepInstanceId);
@@ -289,6 +302,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             int batch = 0;
             do {
                 batch++;
+
+                if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+                    log.info("taskInstance {} evicted during pulling gse log", taskInstance.getId());
+                    taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                    return;
+                }
+
                 watch.start("pull-task-result-batch-" + batch);
                 // 分批拉取GSE任务执行结果
                 gseLogBatchPullResult = pullGseTaskLogInBatches();
