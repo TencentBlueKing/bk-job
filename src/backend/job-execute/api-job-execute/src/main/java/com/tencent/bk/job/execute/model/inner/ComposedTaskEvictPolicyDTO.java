@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.inner;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class ComposedTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
 
     public static final String classType = "ComposedTaskEvictPolicy";

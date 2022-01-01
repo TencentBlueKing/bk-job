@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
 import com.tencent.bk.job.execute.model.inner.TaskEvictPolicyDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class ComposedTaskEvictPolicy extends ComposedTaskEvictPolicyDTO implements ITaskEvictPolicy {
 
     public ComposedTaskEvictPolicy(ComposedTaskEvictPolicyDTO policyDTO) {

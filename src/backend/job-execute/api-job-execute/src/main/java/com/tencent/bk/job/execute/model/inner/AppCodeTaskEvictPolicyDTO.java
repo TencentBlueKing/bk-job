@@ -25,12 +25,14 @@
 package com.tencent.bk.job.execute.model.inner;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class AppCodeTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
 
     public static final String classType = "AppCodeTaskEvictPolicy";

@@ -31,6 +31,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,7 +50,7 @@ public interface ServiceTaskEvictPolicyResource {
         + "{\"@type\":\"AppCodeTaskEvictPolicy\",\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}\n",
         produces = "application/json")
     @PostMapping("/set")
-    InternalResponse<Boolean> setPolicy(ComposedTaskEvictPolicyDTO policyDTO);
+    InternalResponse<Boolean> setPolicy(@RequestBody ComposedTaskEvictPolicyDTO policyDTO);
 
     @ApiOperation(value = "清除任务驱逐策略", produces = "application/json")
     @PostMapping("/clear")

@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.evict;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class AppCodeTaskEvictPolicy extends AppCodeTaskEvictPolicyDTO implements ITaskEvictPolicy {
 
     public AppCodeTaskEvictPolicy(List<String> appCodesToEvict) {
