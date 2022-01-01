@@ -176,14 +176,14 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
 
     @ExceptionHandler({DefenseTriggeredException.class})
     @ResponseBody
-    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, InvalidParamException ex) {
+    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, DefenseTriggeredException ex) {
         String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
         if (log.isDebugEnabled()) {
             log.debug(errorMsg, ex);
         } else {
             log.info(errorMsg);
         }
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+        return new ResponseEntity<>(Response.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
 }

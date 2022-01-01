@@ -168,7 +168,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
 
     @ExceptionHandler({DefenseTriggeredException.class})
     @ResponseBody
-    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, InvalidParamException ex) {
+    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, DefenseTriggeredException ex) {
         String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
         if (log.isDebugEnabled()) {
             log.debug(errorMsg, ex);
