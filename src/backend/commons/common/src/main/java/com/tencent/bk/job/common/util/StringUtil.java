@@ -249,4 +249,20 @@ public class StringUtil {
             return replaceByRegex(resultStr, pattern, variablesMap, depth - 1);
         }
     }
+
+    /**
+     * 判断新字符串相比于老字符串是否改变
+     *
+     * @param oldStr 老字符串
+     * @param newStr 新字符串
+     * @return 是否改变
+     */
+    public static boolean isChanged(String oldStr, String newStr) {
+        if (oldStr == null && newStr == null) return false;
+        if (oldStr != null) {
+            return !oldStr.equals(newStr);
+        }
+        return true;
+    }
+
 }

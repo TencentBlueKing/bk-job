@@ -64,4 +64,13 @@ public class StringUtilTest {
         assertEquals("sssAAA", StringUtil.removeSuffix("sssAAA", "s"));
         assertEquals("", StringUtil.removeSuffix("sss", "s"));
     }
+
+    @Test
+    public void testIsChanged() {
+        assertEquals(StringUtil.isChanged(null, null), false);
+        assertEquals(StringUtil.isChanged("123", "123"), false);
+        assertEquals(StringUtil.isChanged(null, "123"), true);
+        assertEquals(StringUtil.isChanged("123", null), true);
+        assertEquals(StringUtil.isChanged("123", "123 "), true);
+    }
 }
