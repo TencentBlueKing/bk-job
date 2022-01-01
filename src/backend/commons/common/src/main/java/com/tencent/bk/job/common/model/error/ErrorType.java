@@ -43,7 +43,7 @@ public enum ErrorType {
     INTERNAL(11),
     UNAVAILABLE(12),
     TIMEOUT(13),
-    DEFENSE_POLICY(14);
+    DEFENSE_TRIGGERED(14);
 
     @JsonValue
     private final int type;

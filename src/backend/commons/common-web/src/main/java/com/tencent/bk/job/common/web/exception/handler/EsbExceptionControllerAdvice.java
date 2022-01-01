@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -165,6 +166,18 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
+    @ExceptionHandler({DefenseTriggeredException.class})
+    @ResponseBody
+    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, InvalidParamException ex) {
+        String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
+        if (log.isDebugEnabled()) {
+            log.debug(errorMsg, ex);
+        } else {
+            log.info(errorMsg);
+        }
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+    }
+
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
@@ -293,7 +306,6 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
-
 
 
     @Override

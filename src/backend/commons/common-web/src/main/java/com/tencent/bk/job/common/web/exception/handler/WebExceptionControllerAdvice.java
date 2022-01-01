@@ -26,7 +26,9 @@ package com.tencent.bk.job.common.web.exception.handler;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -171,4 +173,17 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         Response<?> resp = Response.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler({DefenseTriggeredException.class})
+    @ResponseBody
+    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, InvalidParamException ex) {
+        String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
+        if (log.isDebugEnabled()) {
+            log.debug(errorMsg, ex);
+        } else {
+            log.info(errorMsg);
+        }
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+    }
+
 }

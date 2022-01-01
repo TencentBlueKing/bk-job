@@ -273,7 +273,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.start("check-evict-task");
             if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
                 log.info("taskInstance {} evicted before pulling gse log", taskInstance.getId());
+                // 更新任务与步骤状态
                 taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                // 停止日志拉取调度
+                this.executeResult = GseTaskExecuteResult.DISCARDED;
                 return;
             }
             watch.stop();
@@ -305,7 +308,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
                 if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
                     log.info("taskInstance {} evicted during pulling gse log", taskInstance.getId());
+                    // 更新任务与步骤状态
                     taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                    // 停止日志拉取调度
+                    this.executeResult = GseTaskExecuteResult.DISCARDED;
                     return;
                 }
 

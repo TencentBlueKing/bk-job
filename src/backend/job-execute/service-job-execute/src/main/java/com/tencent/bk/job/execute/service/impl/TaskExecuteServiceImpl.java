@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
+import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -42,7 +43,6 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -60,7 +60,6 @@ import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyManager;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -285,7 +284,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            throw new ServiceException(ErrorType.DEFENSE_POLICY, ErrorCode.TASK_EVICTED);
+            throw new DefenseTriggeredException(ErrorCode.TASK_EVICTED);
         }
     }
 
