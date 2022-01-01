@@ -60,7 +60,7 @@ public class TaskEvictPolicyManager {
         return policy;
     }
 
-    private void updatePolicy() {
+    public void updatePolicy() {
         String loadedPolicyJsonStr = redisTemplate.opsForValue()
             .get(RedisConstants.KEY_EXECUTE_TASK_EVICT_POLICY);
         if (StringUtil.isChanged(policyJsonStr, loadedPolicyJsonStr)) {

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.evict;
 
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.AppIdTaskEvictPolicyDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -35,14 +36,10 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class AppIdTaskEvictPolicy implements ITaskEvictPolicy {
-
-    public static final String classType = "AppIdTaskEvictPolicy";
-
-    private List<Long> appIdsToEvict;
+public class AppIdTaskEvictPolicy extends AppIdTaskEvictPolicyDTO implements ITaskEvictPolicy {
 
     public AppIdTaskEvictPolicy(List<Long> appIdsToEvict) {
-        this.appIdsToEvict = appIdsToEvict;
+        super(appIdsToEvict);
     }
 
     @Override

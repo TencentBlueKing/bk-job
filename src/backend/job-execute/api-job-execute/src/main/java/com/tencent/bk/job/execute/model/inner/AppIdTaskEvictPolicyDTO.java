@@ -22,33 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.evict;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-/**
- * 驱逐策略：根据AppCode将任务驱逐出执行引擎
- */
 @Data
 @NoArgsConstructor
-public class AppCodeTaskEvictPolicy extends AppCodeTaskEvictPolicyDTO implements ITaskEvictPolicy {
+public class AppIdTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
 
-    public AppCodeTaskEvictPolicy(List<String> appCodesToEvict) {
-        super(appCodesToEvict);
+    public static final String classType = "AppIdTaskEvictPolicy";
+
+    protected List<Long> appIdsToEvict;
+
+    public AppIdTaskEvictPolicyDTO(List<Long> appIdsToEvict) {
+        this.appIdsToEvict = appIdsToEvict;
     }
 
-    @Override
-    public boolean needToEvict(TaskInstanceDTO taskInstance) {
-        String appCode = taskInstance.getAppCode();
-        if (StringUtils.isNotBlank(appCode)) {
-            return appCodesToEvict.contains(appCode);
-        }
-        return false;
-    }
 }

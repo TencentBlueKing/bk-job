@@ -24,18 +24,11 @@
 
 package com.tencent.bk.job.execute.engine.evict;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 /**
  * 执行引擎任务驱逐策略接口类
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = AppCodeTaskEvictPolicy.class, name = AppCodeTaskEvictPolicy.classType),
-    @JsonSubTypes.Type(value = AppIdTaskEvictPolicy.class, name = AppIdTaskEvictPolicy.classType),
-    @JsonSubTypes.Type(value = ComposedTaskEvictPolicy.class, name = ComposedTaskEvictPolicy.classType)})
 public interface ITaskEvictPolicy {
     boolean needToEvict(TaskInstanceDTO taskInstance);
 }

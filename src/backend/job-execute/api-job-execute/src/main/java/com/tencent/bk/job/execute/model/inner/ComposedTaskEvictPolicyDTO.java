@@ -22,33 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.evict;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * 驱逐策略：根据AppCode将任务驱逐出执行引擎
- */
 @Data
 @NoArgsConstructor
-public class AppCodeTaskEvictPolicy extends AppCodeTaskEvictPolicyDTO implements ITaskEvictPolicy {
+public class ComposedTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
 
-    public AppCodeTaskEvictPolicy(List<String> appCodesToEvict) {
-        super(appCodesToEvict);
+    public static final String classType = "ComposedTaskEvictPolicy";
+
+    public enum ComposeOperator {
+        AND, OR
     }
 
-    @Override
-    public boolean needToEvict(TaskInstanceDTO taskInstance) {
-        String appCode = taskInstance.getAppCode();
-        if (StringUtils.isNotBlank(appCode)) {
-            return appCodesToEvict.contains(appCode);
-        }
-        return false;
+    protected ComposeOperator operator = null;
+    protected List<TaskEvictPolicyDTO> policyList = new ArrayList<>();
+
+    public ComposedTaskEvictPolicyDTO(ComposeOperator operator, TaskEvictPolicyDTO... policyList) {
+        this.operator = operator;
+        this.policyList.addAll(Arrays.asList(policyList));
+    }
+
+    public ComposedTaskEvictPolicyDTO(ComposeOperator operator, List<TaskEvictPolicyDTO> policyList) {
+        this.operator = operator;
+        this.policyList.addAll(policyList);
     }
 }

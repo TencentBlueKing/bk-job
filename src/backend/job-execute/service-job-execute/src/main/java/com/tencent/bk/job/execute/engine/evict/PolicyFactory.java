@@ -24,31 +24,41 @@
 
 package com.tencent.bk.job.execute.engine.evict;
 
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import com.tencent.bk.job.execute.model.inner.AppIdTaskEvictPolicyDTO;
+import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
+import com.tencent.bk.job.execute.model.inner.TaskEvictPolicyDTO;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 /**
- * 驱逐策略：根据AppCode将任务驱逐出执行引擎
+ * 通过POJO实例创建Policy的工厂类
  */
-@Data
-@NoArgsConstructor
-public class AppCodeTaskEvictPolicy extends AppCodeTaskEvictPolicyDTO implements ITaskEvictPolicy {
+@Slf4j
+public class PolicyFactory {
 
-    public AppCodeTaskEvictPolicy(List<String> appCodesToEvict) {
-        super(appCodesToEvict);
-    }
-
-    @Override
-    public boolean needToEvict(TaskInstanceDTO taskInstance) {
-        String appCode = taskInstance.getAppCode();
-        if (StringUtils.isNotBlank(appCode)) {
-            return appCodesToEvict.contains(appCode);
+    /**
+     * 根据策略数据实体，创建任务驱逐策略对象
+     *
+     * @param policyDTO 策略数据实体
+     * @return 策略对象
+     */
+    public static ITaskEvictPolicy createPolicyByDTO(TaskEvictPolicyDTO policyDTO) {
+        if (policyDTO instanceof AppCodeTaskEvictPolicyDTO) {
+            return new AppCodeTaskEvictPolicy(((AppCodeTaskEvictPolicyDTO) policyDTO).getAppCodesToEvict());
+        } else if (policyDTO instanceof AppIdTaskEvictPolicyDTO) {
+            return new AppIdTaskEvictPolicy(((AppIdTaskEvictPolicyDTO) policyDTO).getAppIdsToEvict());
+        } else if (policyDTO instanceof ComposedTaskEvictPolicyDTO) {
+            ComposedTaskEvictPolicyDTO composedPolicyDTO = (ComposedTaskEvictPolicyDTO) policyDTO;
+            List<TaskEvictPolicyDTO> policyDTOList = composedPolicyDTO.getPolicyList();
+            return new ComposedTaskEvictPolicy(composedPolicyDTO.getOperator(), policyDTOList);
+        } else {
+            log.error("TaskEvictPolicyDTO not support yet:{}", policyDTO);
+            throw new InternalException(ErrorCode.NOT_SUPPORT_FEATURE);
         }
-        return false;
     }
+
 }

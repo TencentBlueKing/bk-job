@@ -25,11 +25,11 @@
 package com.tencent.bk.job.execute.engine.evict;
 
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
+import com.tencent.bk.job.execute.model.inner.TaskEvictPolicyDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,32 +37,26 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class ComposedTaskEvictPolicy implements ITaskEvictPolicy {
+public class ComposedTaskEvictPolicy extends ComposedTaskEvictPolicyDTO implements ITaskEvictPolicy {
 
-    public static final String classType = "ComposedTaskEvictPolicy";
-
-    public enum ComposeOperator {
-        AND, OR
+    public ComposedTaskEvictPolicy(ComposedTaskEvictPolicyDTO policyDTO) {
+        super(policyDTO.getOperator(), policyDTO.getPolicyList());
     }
 
-    private ComposeOperator operator = null;
-    private List<ITaskEvictPolicy> policyList = new ArrayList<>();
-
-    public ComposedTaskEvictPolicy(ComposeOperator operator, ITaskEvictPolicy... policyList) {
-        this.operator = operator;
-        this.policyList.addAll(Arrays.asList(policyList));
+    public ComposedTaskEvictPolicy(ComposeOperator operator, TaskEvictPolicyDTO... policyDTOList) {
+        super(operator, policyDTOList);
     }
 
-    public ComposedTaskEvictPolicy(ComposeOperator operator, List<ITaskEvictPolicy> policyList) {
-        this.operator = operator;
-        this.policyList.addAll(policyList);
+    public ComposedTaskEvictPolicy(ComposeOperator operator, List<TaskEvictPolicyDTO> policyDTOList) {
+        super(operator, policyDTOList);
     }
 
     @Override
     public boolean needToEvict(TaskInstanceDTO taskInstance) {
         if (operator == ComposeOperator.AND) {
             // 只要有一条策略不驱逐就保留
-            for (ITaskEvictPolicy policy : policyList) {
+            for (TaskEvictPolicyDTO policyDTO : policyList) {
+                ITaskEvictPolicy policy = PolicyFactory.createPolicyByDTO(policyDTO);
                 if (!policy.needToEvict(taskInstance)) {
                     return false;
                 }
@@ -70,7 +64,8 @@ public class ComposedTaskEvictPolicy implements ITaskEvictPolicy {
             return true;
         } else if (operator == ComposeOperator.OR) {
             // 只要有一条策略驱逐就驱逐
-            for (ITaskEvictPolicy policy : policyList) {
+            for (TaskEvictPolicyDTO policyDTO : policyList) {
+                ITaskEvictPolicy policy = PolicyFactory.createPolicyByDTO(policyDTO);
                 if (policy.needToEvict(taskInstance)) {
                     return true;
                 }

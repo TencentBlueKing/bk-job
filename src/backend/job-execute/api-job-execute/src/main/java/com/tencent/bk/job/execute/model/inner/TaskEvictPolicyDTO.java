@@ -22,33 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.evict;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * 驱逐策略：根据AppCode将任务驱逐出执行引擎
+ * 执行引擎任务驱逐策略POJO类
  */
-@Data
-@NoArgsConstructor
-public class AppCodeTaskEvictPolicy extends AppCodeTaskEvictPolicyDTO implements ITaskEvictPolicy {
-
-    public AppCodeTaskEvictPolicy(List<String> appCodesToEvict) {
-        super(appCodesToEvict);
-    }
-
-    @Override
-    public boolean needToEvict(TaskInstanceDTO taskInstance) {
-        String appCode = taskInstance.getAppCode();
-        if (StringUtils.isNotBlank(appCode)) {
-            return appCodesToEvict.contains(appCode);
-        }
-        return false;
-    }
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = AppCodeTaskEvictPolicyDTO.class, name = AppCodeTaskEvictPolicyDTO.classType),
+    @JsonSubTypes.Type(value = AppIdTaskEvictPolicyDTO.class, name = AppIdTaskEvictPolicyDTO.classType),
+    @JsonSubTypes.Type(value = ComposedTaskEvictPolicyDTO.class, name = ComposedTaskEvictPolicyDTO.classType)})
+public class TaskEvictPolicyDTO {
 }
