@@ -112,7 +112,7 @@ public class ClearFileTask {
      */
     public void checkVolumeAndClear() {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024 * 1024 * 1024;
-        File workDirFile = new File(workerConfig.getDownloadFileDir());
+        File workDirFile = new File(workerConfig.getWorkspaceDirPath());
         long currentSize = FileUtils.sizeOfDirectory(workDirFile);
         File[] files = workDirFile.listFiles();
         if (files == null || files.length == 0) return;
