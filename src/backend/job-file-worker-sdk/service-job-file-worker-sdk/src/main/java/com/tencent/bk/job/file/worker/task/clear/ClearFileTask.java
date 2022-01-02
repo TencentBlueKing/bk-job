@@ -108,6 +108,15 @@ public class ClearFileTask {
         }
     }
 
+    private void showVolumeUsage(String path, long maxSizeBytes, long currentSize) {
+        log.info(
+            "{},currentSize={},maxSizeBytes={}",
+            path,
+            FileSizeUtil.getFileSizeStr(currentSize),
+            FileSizeUtil.getFileSizeStr(maxSizeBytes)
+        );
+    }
+
     /**
      * 检查磁盘容量并清理最旧的文件
      */
@@ -115,6 +124,9 @@ public class ClearFileTask {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
         File workDirFile = new File(workerConfig.getWorkspaceDirPath());
         long currentSize = FileUtils.sizeOfDirectory(workDirFile);
+        if (log.isDebugEnabled()) {
+            showVolumeUsage(workDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
+        }
         File[] files = workDirFile.listFiles();
         if (files == null || files.length == 0) return;
         List<File> fileList = new ArrayList<>(Arrays.asList(files));
@@ -123,12 +135,6 @@ public class ClearFileTask {
         Set<String> deleteFailedFilePathSet = new HashSet<>();
         int count = 0;
         while (currentSize > maxSizeBytes) {
-            log.debug(
-                "{},currentSize={},maxSizeBytes={}",
-                workDirFile.getAbsolutePath(),
-                FileSizeUtil.getFileSizeStr(currentSize),
-                FileSizeUtil.getFileSizeStr(maxSizeBytes)
-            );
             if (fileList.isEmpty()) {
                 // 上一次拿到的文件列表已删完，空间依然超限，说明删除过程中又新产生了许多文件，重新列出
                 files = workDirFile.listFiles();
@@ -149,6 +155,7 @@ public class ClearFileTask {
                 log.info("delete file {} because of volume overlimit", oldestFile.getAbsolutePath());
             }
             currentSize = FileUtils.sizeOfDirectory(workDirFile);
+            showVolumeUsage(workDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
         }
         if (log.isDebugEnabled()) {
             log.debug("{} files deleted because of volume overlimit", count);
