@@ -70,7 +70,7 @@ public class WorkerConfig {
     private String downloadFileDir;
 
     @Value("${job.file-worker.download-file.max-size-gb:100}")
-    private Integer maxSizeGB;
+    private Long maxSizeGB;
 
     @Value("${job.file-worker.download-file.expire-days:7}")
     private Integer downloadFileExpireDays;

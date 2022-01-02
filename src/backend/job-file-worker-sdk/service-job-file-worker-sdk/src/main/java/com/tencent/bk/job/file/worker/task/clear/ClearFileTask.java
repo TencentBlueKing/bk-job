@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file.worker.task.clear;
 
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -111,7 +112,7 @@ public class ClearFileTask {
      * 检查磁盘容量并清理最旧的文件
      */
     public void checkVolumeAndClear() {
-        long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024 * 1024 * 1024;
+        long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
         File workDirFile = new File(workerConfig.getWorkspaceDirPath());
         long currentSize = FileUtils.sizeOfDirectory(workDirFile);
         File[] files = workDirFile.listFiles();
@@ -122,6 +123,12 @@ public class ClearFileTask {
         Set<String> deleteFailedFilePathSet = new HashSet<>();
         int count = 0;
         while (currentSize > maxSizeBytes) {
+            log.debug(
+                "{},currentSize={},maxSizeBytes={}",
+                workDirFile.getAbsolutePath(),
+                FileSizeUtil.getFileSizeStr(currentSize),
+                FileSizeUtil.getFileSizeStr(maxSizeBytes)
+            );
             if (fileList.isEmpty()) {
                 // 上一次拿到的文件列表已删完，空间依然超限，说明删除过程中又新产生了许多文件，重新列出
                 files = workDirFile.listFiles();
