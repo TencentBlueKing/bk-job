@@ -42,16 +42,13 @@ public class WorkerConfig {
     @Value("${job.file-worker.version:0.0.1}")
     private String version;
 
-    @Value("${job.file-worker.id:-1}")
-    private Long id;
-
     @Value("${job.file-worker.name:anon}")
     private String name;
 
-    @Value("${job.file-worker.token}")
+    @Value("${job.file-worker.token:}")
     private String token;
 
-    @Value("${job.file-worker.app-id}")
+    @Value("${job.file-worker.app-id:-1}")
     private Long appId;
 
     @Value("${job.file-worker.ability-tags:}")
@@ -71,6 +68,9 @@ public class WorkerConfig {
 
     @Value("${job.file-worker.download-file.dir:/tmp/job}")
     private String downloadFileDir;
+
+    @Value("${job.file-worker.download-file.max-size-gb:100}")
+    private Integer maxSizeGB;
 
     @Value("${job.file-worker.download-file.expire-days:7}")
     private Integer downloadFileExpireDays;
