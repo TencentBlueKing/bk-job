@@ -387,7 +387,7 @@ public class ErrorCode {
     // IAM接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
 
-    // API 请求错误
+    // 第三方API请求错误
     public static final int API_ERROR = 1216001;
 
 }
