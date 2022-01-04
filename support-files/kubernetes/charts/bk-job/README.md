@@ -218,6 +218,7 @@ bitnami/rabbitmq
 | `fileWorkerConfig.instanceName` | 实例名称    | `job-file-worker-public-1`       |
 | `fileWorkerConfig.token` | 实例凭据    | `testToken`       |
 | `fileWorkerConfig.downloadFile.dir` | 文件下载根路径    | `/tmp/job`       |
+| `fileWorkerConfig.downloadFile.maxSizeGB` | 最大占用空间（GB），超过则进行清理    | `100`       |
 | `fileWorkerConfig.downloadFile.expireDays` | 临时文件过期清理时间（天）    | `7`       |
 | `fileWorkerConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 

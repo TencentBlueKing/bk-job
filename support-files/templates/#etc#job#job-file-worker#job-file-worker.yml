@@ -1,0 +1,27 @@
+server:
+  # 服务端口
+  port: 19810
+job:
+  file-worker:
+    # file-worker版本
+    version: 0.0.1
+    # 外部如何访问file-worker
+    access:
+      # 访问端口，二进制部署环境中，与文件网关部署于同一云区域下，则与服务端口一致
+      port: 19810
+    # 文件下载配置
+    download-file:
+      # 存储路径
+      dir: /tmp/job
+      # 最大占用空间（GB），超过则进行清理
+      max-size-gb: 100
+      # 文件最长生存时间，超过则清理
+      expire-days: 7
+    # 名称
+    name: job-file-worker-public-1
+
+  # 文件网关
+  file-gateway:
+    api:
+      # API根地址
+      root-url: __BK_JOB_API_PUBLIC_URL__/job-file-gateway
