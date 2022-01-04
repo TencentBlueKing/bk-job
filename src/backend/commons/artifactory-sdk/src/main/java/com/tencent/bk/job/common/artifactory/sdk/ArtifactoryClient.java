@@ -255,6 +255,8 @@ public class ArtifactoryClient {
                 case HttpDelete.METHOD_NAME:
                     respStr = doHttpDelete(url, reqBody, httpHelper);
                     break;
+                default:
+                    throw new InternalException(ErrorCode.NOT_SUPPORT_FEATURE);
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
