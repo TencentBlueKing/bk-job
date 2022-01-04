@@ -23,7 +23,7 @@ questions:
     default: ""
     description: "调用组件服务接口使用的app_secret"
     group: "蓝鲸公共组件配置"
-  - variable: bkCcUrl
+  - variable: bkCmdbUrl
     label: "对接的蓝鲸CMDB地址"
     type: string
     default: "http://cmdb.example.com"

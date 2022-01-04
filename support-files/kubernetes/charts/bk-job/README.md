@@ -54,7 +54,7 @@ bitnami/rabbitmq
 | `app.secret` | 调用ESB接口使用的app_secret | ``  |
 | `bkComponentApiUrl`  | ESB接口根地址   | `http://bkapi.paas.example.com`        |
 | `bkLoginUrl`    | 统一登录根地址   | `http://paas.example.com/login/`        |
-| `bkCcUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
+| `bkCmdbUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
 | `bkIamApiUrl`   | 权限中心后台API根地址  | `http://bkiam-api.example.com`      |
 | `bkRepoUrl`     | 制品库根地址  | `http://bkrepo.example.com`      |
 | `bkNodemanUrl`  | 节点管理首页地址  | `http://nodeman.example.com`      |

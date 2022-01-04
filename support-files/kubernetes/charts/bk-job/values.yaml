@@ -16,6 +16,11 @@ global:
   imagePullSecrets: []
   storageClass: ""
 
+# 作业平台各模块镜像源公共配置
+jobImage:
+  imageRegistry: ""
+  imagePullSecrets: []
+
 ## @section Common parameters
 
 ## @param nameOverride String to partially override common.names.fullname
@@ -399,7 +404,7 @@ bkComponentApiUrl: "http://bkapi.paas.example.com"
 ## 蓝鲸 Login url
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
-bkCcUrl: "http://cmdb.example.com"
+bkCmdbUrl: "http://cmdb.example.com"
 # 蓝鲸 IAM 后台 url
 bkIamApiUrl: "http://bkiam-api.example.com"
 # 蓝鲸制品库 url
@@ -409,37 +414,45 @@ bkNodemanUrl: "http://nodeman.example.com"
 
 ## 蓝鲸GSE参数配置
 gse:
-  ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
-  ##
+  # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
+  # Agent状态查询接口相关配置
   cacheApiServer:
+    # 接口地址host
     host: "gse-api.example.com"
+    # 端口
     port: 59313
+  # ssl证书相关配置
   ssl:
     keystore:
-      ## @param gse.ssl.keystore.password: Password for gse keystore. Task effect when gse.existingTlsSecret is not set.
-      ##
+      ## keystore的密码
       password: "2y#8VI2B4Sm9Dk^J"
     truststore:
-      ## @param gse.ssl.truststore.password: Password for gse truststore. Task effect when gse.existingTlsSecret is not set.
-      ##
+      ## truststore的密码
       password: "2y#8VI2B4Sm9Dk^J"
+  # 任务下发接口相关配置
   taskserver:
+    # 接口地址host
     host: "gse-task.example.com"
+    # 端口
     port: 48673
+  # 服务发现配置
   server:
     discovery:
+      # 服务发现模式：取值为zookeeper，不使用zookeeper则无需配置
       type: zookeeper
     zookeeper:
       connect:
-        string: "gse-zk.example.com"
+        # zookeeper连接字符串，由host:port构成
+        string: "gse-zk.example.com:2181"
   script:
-    ## @param gse.script.rootPath The root directory of the script file distributed by the JOB to the GSE agent
-    ##
+    # 执行脚本时临时脚本在目标机器的存放与执行路径
     rootPath: "/tmp/bkjob"
   query:
     threads:
+      # 向GSE查询Agent状态的并发数
       num: 5
+    # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
 ## 对接蓝鲸CMDB参数配置
@@ -524,7 +537,7 @@ job:
   feature:
     toggle:
       fileManage:
-        # 是否开启文件管理特性，默认不开启
+        # 是否开启文件管理特性，容器化环境默认开启
         enabled: true
   storage:
     # 存储文件（用户上传的本地文件、导入导出生成的临时文件等）到本地的根路径
@@ -538,12 +551,6 @@ job:
       enabled: true
   # 各微服务Actuator监控端口
   managePort: 19876
-  # 存储分配
-  pv:
-    # 节点机器上用于挂载到容器内作为存储空间的路径
-    path: "/data/bkjob"
-    # 分配的存储空间大小，默认100G
-    storage: 100Gi
   web:
     # 作业平台主站域名
     domain: "job.example.com"

@@ -93,7 +93,7 @@ data:
        threads:
          num: {{ .Values.cmdb.query.threads.num }}
      server:
-       url: {{ .Values.bkCcUrl }}
+       url: {{ .Values.bkCmdbUrl }}
     nodeman:
       server:
         url: {{ .Values.bkNodemanUrl }}
