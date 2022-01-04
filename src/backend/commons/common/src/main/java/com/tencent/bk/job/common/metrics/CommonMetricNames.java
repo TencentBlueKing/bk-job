@@ -49,6 +49,14 @@ public class CommonMetricNames {
      */
     public static final String ESB_IAM_API_HTTP = "job.client.iam.api.http";
     /**
+     * 仅统计调用制品库 API的HTTP请求过程
+     */
+    public static final String BKREPO_API_HTTP = "job.client.bkrepo.api.http";
+    /**
+     * 统计调用制品库 API整个过程，含反序列化
+     */
+    public static final String BKREPO_API = "job.client.bkrepo.api";
+    /**
      * 仅统计调用ESB CMDB API的HTTP请求过程
      */
     public static final String ESB_CMDB_API_HTTP = "job.client.cmdb.api.http";
