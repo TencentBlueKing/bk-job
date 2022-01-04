@@ -16,9 +16,12 @@ BEGIN
 	-- bugfix: Using second instead of millsecond
     UPDATE task_plan SET last_modify_time = last_modify_time/1000 WHERE last_modify_time > 1000000000000;
 	-- bugfix: script_timeout=0 is invalid, convert from 0 to 86400
+    UPDATE task_template_step_script SET script_timeout=86400 WHERE script_timeout=0;
     UPDATE task_plan_step_script SET script_timeout=86400 WHERE script_timeout=0;
 	-- bugfix: timeout=0 is invalid, convert from 0 to 86400
-    UPDATE task_plan_step_file SET timeout=86400 WHERE timeout=0;
+    UPDATE task_template_step_script SET script_timeout=86400 WHERE script_timeout=0;
+    UPDATE task_template_step_file SET timeout=86400 WHERE timeout=0;
+    
 	
     COMMIT;
 END <JOB_UBF>
