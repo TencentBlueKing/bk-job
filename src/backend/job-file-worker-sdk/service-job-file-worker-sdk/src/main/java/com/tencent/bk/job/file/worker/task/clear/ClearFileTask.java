@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 @Service
 public class ClearFileTask {
 
+    private volatile boolean checkVolumeRunning = false;
     private final WorkerConfig workerConfig;
 
     @Autowired
@@ -121,6 +122,22 @@ public class ClearFileTask {
      * 检查磁盘容量并清理最旧的文件
      */
     public void checkVolumeAndClear() {
+        try {
+            // 上一次清理任务还未跑完则不清理
+            if (checkVolumeRunning) {
+                log.info("last checkVolumeAndClear task still running, skip");
+                return;
+            }
+            checkVolumeRunning = true;
+            doCheckVolumeAndClear();
+        } catch (Exception e) {
+            log.warn("Exception when checkVolumeAndClear", e);
+        } finally {
+            checkVolumeRunning = false;
+        }
+    }
+
+    private void doCheckVolumeAndClear() {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
         File workDirFile = new File(workerConfig.getWorkspaceDirPath());
         long currentSize = FileUtils.sizeOfDirectory(workDirFile);
