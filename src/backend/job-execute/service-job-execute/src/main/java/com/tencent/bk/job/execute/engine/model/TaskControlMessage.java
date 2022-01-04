@@ -30,11 +30,25 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 执行应请-任务操作消息
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskControlMessage {
+    /**
+     * 作业操作
+     *
+     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
+     */
     private int action;
+    /**
+     * 作业实例ID
+     */
     private long taskInstanceId;
+    /**
+     * 操作时间
+     */
     private LocalDateTime time;
 }

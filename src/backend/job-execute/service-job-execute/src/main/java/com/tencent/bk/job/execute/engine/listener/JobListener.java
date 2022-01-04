@@ -57,15 +57,16 @@ import java.util.List;
 @Component
 @EnableBinding({TaskProcessor.class})
 @Slf4j
-public class TaskListener {
+public class JobListener {
 
     private final TaskExecuteControlMsgSender taskExecuteControlMsgSender;
     private final StatisticsService statisticsService;
     private final TaskInstanceService taskInstanceService;
 
     @Autowired
-    public TaskListener(TaskExecuteControlMsgSender taskExecuteControlMsgSender,
-                        StatisticsService statisticsService, TaskInstanceService taskInstanceService) {
+    public JobListener(TaskExecuteControlMsgSender taskExecuteControlMsgSender,
+                       StatisticsService statisticsService,
+                       TaskInstanceService taskInstanceService) {
         this.taskExecuteControlMsgSender = taskExecuteControlMsgSender;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;

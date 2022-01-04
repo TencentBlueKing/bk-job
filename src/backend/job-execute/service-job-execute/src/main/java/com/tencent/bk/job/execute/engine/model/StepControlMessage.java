@@ -31,14 +31,35 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 执行应请-步骤操作消息
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StepControlMessage {
+    /**
+     * 步骤操作
+     *
+     * @see com.tencent.bk.job.execute.engine.consts.StepActionEnum
+     */
     private int action;
+    /**
+     * 步骤实例ID
+     */
     private long stepInstanceId;
+    /**
+     * 步骤执行次数
+     */
     private Integer executeCount;
+    /**
+     * 执行批次
+     */
+    private Integer batch;
+    /**
+     * 操作时间
+     */
     private LocalDateTime time;
     /**
      * 请求ID,防止重复下发任务
