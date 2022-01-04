@@ -11,8 +11,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  annotations:
+  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-backup" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if not .Values.backupConfig.autoscaling.enabled }}
@@ -63,16 +65,14 @@ spec:
           image: {{ include "job-backup.image" . }}
           imagePullPolicy: {{ .Values.backupConfig.image.pullPolicy }}
           env:
+            - name: BK_JOB_APP_NAME
+              value: "job-backup"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.backupConfig.jvmOptions | quote }}
             - name: BK_JOB_PROFILE
               value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-backup.jar
-            - name: BK_JOB_LOG_BASE_DIR
-              value: /data/logs/job
-            - name: BK_JOB_LOG_DIR
-              value: /data/logs/job/job-backup
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-backup
             - name: JOB_COMMON_CONFIGMAP_NAME
@@ -83,6 +83,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.backupConfig.containerPort }}
@@ -108,6 +112,8 @@ spec:
           resources:
             {{- toYaml .Values.backupConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: /data/job/storage
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -118,6 +124,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

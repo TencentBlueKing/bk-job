@@ -25,11 +25,15 @@
 package com.tencent.bk.job.execute.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 脚本执行请求
@@ -45,13 +49,13 @@ public class WebFastExecuteScriptRequest {
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数", required = false)
+    @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数")
     private String content;
 
-    @ApiModelProperty(value = "脚本ID,当引用脚本的时候传该参数", required = false)
+    @ApiModelProperty(value = "脚本ID,当引用脚本的时候传该参数")
     private String scriptId;
 
-    @ApiModelProperty(value = "脚本版本ID,当引用脚本的时候传该参数", required = false)
+    @ApiModelProperty(value = "脚本版本ID,当引用脚本的时候传该参数")
     private Long scriptVersionId;
 
     /**
@@ -75,13 +79,16 @@ public class WebFastExecuteScriptRequest {
     /**
      * 脚本参数
      */
-    @ApiModelProperty(value = "脚本参数", required = false)
+    @ApiModelProperty(value = "脚本参数")
     private String scriptParam;
 
     /**
      * 执行超时时间
      */
     @ApiModelProperty(value = "执行超时时间，单位秒", required = true)
+    @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
     /**
@@ -92,7 +99,7 @@ public class WebFastExecuteScriptRequest {
     /**
      * 是否敏感参数 0-否，1-是
      */
-    @ApiModelProperty(value = "是否敏感参数 0-否，1-是。默认0", required = false)
+    @ApiModelProperty(value = "是否敏感参数 0-否，1-是。默认0")
     private Integer secureParam = 0;
 
     @ApiModelProperty(value = "是否是重做任务")

@@ -45,7 +45,7 @@ dependencies {
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"
-    implementation 'org.apache.thrift:libthrift:0.12.0'
+    implementation 'org.apache.thrift:libthrift:0.15.0'
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-collections4'
     implementation 'com.google.guava:guava'

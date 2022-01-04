@@ -23,5 +23,9 @@ spec:
       port: {{ .Values.gatewayConfig.service.port.https }}
       targetPort: https
       protocol: TCP
+    - name: management
+      port: {{ .Values.gatewayConfig.containerPort.management }}
+      targetPort: management
+      protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: "job-gateway"

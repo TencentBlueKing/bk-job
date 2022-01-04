@@ -100,7 +100,7 @@ public class Base64Util {
             return Base64.decodeBase64(content);
         } catch (Exception e) {
             log.warn("Decode content fail", e);
-            return null;
+            throw e;
         }
     }
 }

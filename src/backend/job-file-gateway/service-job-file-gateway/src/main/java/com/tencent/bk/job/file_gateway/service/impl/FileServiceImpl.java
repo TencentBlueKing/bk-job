@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
@@ -52,15 +54,15 @@ public class FileServiceImpl implements FileService {
     private final FileSourceService fileSourceService;
     private final DispatchService dispatchService;
     private final FileSourceReqGenService fileSourceReqGenService;
-    private final FileWorkerHttpHelper fileWorkerHttpHelper;
+    private final ExtHttpHelper fileWorkerHttpHelper;
 
     @Autowired
     public FileServiceImpl(FileSourceService fileSourceService, DispatchService dispatchService,
-                           FileSourceReqGenService fileSourceReqGenService, FileWorkerHttpHelper fileWorkerHttpHelper) {
+                           FileSourceReqGenService fileSourceReqGenService) {
         this.fileSourceService = fileSourceService;
         this.dispatchService = dispatchService;
         this.fileSourceReqGenService = fileSourceReqGenService;
-        this.fileWorkerHttpHelper = fileWorkerHttpHelper;
+        this.fileWorkerHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
     }
 
     private FileWorkerDTO getFileWorker(Long appId, FileSourceDTO fileSourceDTO) {

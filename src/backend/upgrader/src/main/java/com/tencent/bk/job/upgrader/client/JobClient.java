@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.AppInfo;
@@ -72,7 +72,7 @@ public class JobClient extends AbstractJobClient {
         String uri,
         BasicHttpReq reqBody,
         TypeReference<R> typeReference,
-        AbstractHttpHelper httpHelper
+        ExtHttpHelper httpHelper
     ) {
         // URL模板变量替换
         uri = StringUtil.replacePathVariables(uri, reqBody);

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.web.request;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
@@ -33,7 +34,9 @@ import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -61,19 +64,22 @@ public class WebFastPushFileRequest {
     /**
      * 上传限速-MB
      */
-    @ApiModelProperty(value = "上传限速-MB", required = false)
+    @ApiModelProperty(value = "上传限速-MB")
     private Integer uploadSpeedLimit;
 
     /**
      * 下载限速-MB
      */
-    @ApiModelProperty(value = "下载限速-MB", required = false)
+    @ApiModelProperty(value = "下载限速-MB")
     private Integer downloadSpeedLimit;
 
     /**
      * 超时时间，单位秒
      */
-    @ApiModelProperty(value = "超时时间，单位秒", required = false)
+    @ApiModelProperty(value = "超时时间，单位秒", required = true)
+    @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
     @ApiModelProperty(value = "滚动配置")

@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteSQLRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,7 @@ public interface EsbFastExecuteSQLResource {
 
     @PostMapping("/fast_execute_sql")
     EsbResp<EsbJobExecuteDTO> fastExecuteSQL(
-        @RequestBody EsbFastExecuteSQLRequest request);
+        @RequestBody @Validated EsbFastExecuteSQLRequest request);
 
 
 }

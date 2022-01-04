@@ -223,7 +223,7 @@
                                 id: taskInstanceId,
                             },
                             query: {
-                                from: 'plan',
+                                from: 'planList',
                             },
                         });
                     }))

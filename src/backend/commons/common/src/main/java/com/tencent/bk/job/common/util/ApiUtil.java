@@ -22,31 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.common.util;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+public class ApiUtil {
 
-@Slf4j
-public class FileUtils {
-    public static boolean saveFileWithByte(String filename, byte[] contentBytes) {
-        boolean isSuccess = false;
-        if (contentBytes == null || contentBytes.length == 0) {
-            return false;
+    /**
+     * 根据映射关系表或URI本身获取API名称
+     *
+     * @param interfaceNameMap key:uri,value:API名称
+     * @param uri              路径
+     * @return API名称
+     */
+    public static String getApiNameByUri(Map<String, String> interfaceNameMap, String uri) {
+        if (interfaceNameMap != null && interfaceNameMap.containsKey(uri)) {
+            return interfaceNameMap.get(uri);
         }
-        try (FileOutputStream out = new FileOutputStream(filename)){
-            out.write(contentBytes);
-            out.flush();
-            File file = new File(filename);
-            isSuccess = file.setExecutable(true, false);
-        } catch (IOException e) {
-            log.warn("Save fail", e);
+        String uriSeparator = "/";
+        uri = StringUtil.removePrefix(uri, uriSeparator);
+        uri = StringUtil.removeSuffix(uri, uriSeparator);
+        if (uri.contains(uriSeparator)) {
+            String[] uriArr = uri.split(uriSeparator);
+            int len = uriArr.length;
+            String joinSeparator = "_";
+            if (len >= 2) {
+                return uriArr[len - 2] + joinSeparator + uriArr[len - 1];
+            }
         }
-
-        return isSuccess;
+        return uri;
     }
-
 }

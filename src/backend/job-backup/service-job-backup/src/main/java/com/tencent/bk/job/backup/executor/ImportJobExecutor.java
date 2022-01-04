@@ -72,6 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -201,11 +202,12 @@ public class ImportJobExecutor {
             // 下载文件
             if (!importFileDirectory.exists()) {
                 log.debug("begin to download from artifactory:{}", importJob.getFileName());
-                InputStream ins = artifactoryClient.getFileInputStream(
+                Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
                     artifactoryConfig.getArtifactoryJobProject(),
                     backupStorageConfig.getBackupRepo(),
                     importJob.getFileName()
                 );
+                InputStream ins = pair.getLeft();
                 String localPath = PathUtil.joinFilePath(
                     storageService.getStoragePath(),
                     importJob.getFileName()

@@ -227,6 +227,8 @@ public class ErrorCode {
     public static final int SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT = 1244022;
     // 本地文件{0}在后台不存在（本地/制品库）
     public static final int LOCAL_FILE_NOT_EXIST_IN_BACKEND = 1244023;
+    // 保存文件到本地失败
+    public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
     // 作业执行 end
 
     // 定时作业 start

@@ -217,7 +217,12 @@ public class ThirdFilePrepareService {
             stepInstance.getAppId(), stepInstance.getId(), stepInstance.getExecuteCount(), fileSourceTaskList);
         setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
         log.debug("fileSourceList={}", fileSourceList);
-        log.debug("Started batchTaskId:{}", batchTaskInfoDTO.getBatchTaskId());
+        log.info(
+            "stepInstanceId={},batchTaskId:{},taskInfoList={}",
+            stepInstance.getId(),
+            batchTaskInfoDTO.getBatchTaskId(),
+            batchTaskInfoDTO.getTaskInfoList()
+        );
         // 放进文件源下载任务进度表中
         FileSourceTaskLogDTO fileSourceTaskLogDTO = new FileSourceTaskLogDTO();
         fileSourceTaskLogDTO.setStepInstanceId(stepInstance.getId());

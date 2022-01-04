@@ -1,5 +1,16 @@
 #! /bin/sh
 
+BK_JOB_STORAGE_BASE_DIR="/data/job/storage"
+
+echo "BK_JOB_APP_NAME=$BK_JOB_APP_NAME"
+echo "KUBERNETES_NAMESPACE=$KUBERNETES_NAMESPACE"
+echo "BK_JOB_POD_NAME=$BK_JOB_POD_NAME"
+echo "BK_JOB_STORAGE_BASE_DIR=$BK_JOB_STORAGE_BASE_DIR"
+
+# 拼接日志相关路径
+BK_JOB_LOG_BASE_DIR="$BK_JOB_STORAGE_BASE_DIR/$KUBERNETES_NAMESPACE/$BK_JOB_POD_NAME/logs"
+BK_JOB_LOG_DIR="$BK_JOB_LOG_BASE_DIR/$BK_JOB_APP_NAME"
+
 echo "BK_JOB_LOG_BASE_DIR=$BK_JOB_LOG_BASE_DIR"
 mkdir -p "$BK_JOB_LOG_BASE_DIR"
 chmod 777 "$BK_JOB_LOG_BASE_DIR"
@@ -14,6 +25,7 @@ chmod 777 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
 
 echo "BK_JOB_NODE_IP=$BK_JOB_NODE_IP"
 
+ln -s $BK_JOB_LOG_BASE_DIR /data/logs
 ls $BK_JOB_LOG_BASE_DIR
 
 java -server \
@@ -31,4 +43,4 @@ java -server \
      -XX:ErrorFile=$BK_JOB_LOG_DIR/error_sys.log \
      -Dspring.profiles.active=$BK_JOB_PROFILE \
      $BK_JOB_JVM_OPTION \
-     -jar /data/job/$BK_JOB_JAR
+     -jar /data/job/exec/$BK_JOB_JAR

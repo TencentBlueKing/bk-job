@@ -128,17 +128,6 @@
                 return this.invalidIPList.length > 0 || this.errorIPList.length > 0;
             },
         },
-        deactivated () {
-            // this.errorMemo = this.isError;
-            // this.isError = false;
-        },
-        // keep-alive 组件切换时还原 isError 状态
-        activated () {
-            // this.isError = this.errorMemo;
-        },
-        created () {
-            // this.errorMemo = false;
-        },
         methods: {
             /**
              * @desc 更新输入框内容
@@ -310,7 +299,7 @@
                         // 提交输入内容
                         if (hostList.length > 0) {
                             this.shot(() => {
-                                this.$emit('on-change', 'hostInput', hostList);
+                                this.$emit('on-change', 'ipInput', hostList);
                             });
                         }
                         // 正确的 IP 输入，但是 IP 不存于当前业务下

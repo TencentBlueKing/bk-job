@@ -1,44 +1,104 @@
-{{- if .Values.job.log.file.collectEnabled }}
+{{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.file.serviceLog.dataId) }}
 # Container Log
 apiVersion: bk.tencent.com/v1alpha1
 kind: BkLogConfig
 metadata:
-  name: bk-job-file-log-config
+  name: {{ include "common.names.fullname" . }}-service-container-log
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations:
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- end }}
 spec:
-  dataId: {{ .Values.job.log.file.dataId }}
-
+  dataId: {{ .Values.bkLogConfig.file.serviceLog.dataId }}
   logConfigType: container_log_config
   namespace: {{ .Release.Namespace }}
   labelSelector:
     matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
   path:
-    - /data/logs/job/job-*/*.log
+    - /data/logs/job-*/*.log
   encoding: 'utf-8'
   multiline:
     pattern: '^\[(?P<log_time>.*?)\]\s+?'
     maxLines: 100
     timeout: '5s'
-  ext_meta:
+  extMeta:
     logSourceType: "file"
 {{- end }}
-{{- if .Values.job.log.std.collectEnabled }}
+{{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.file.accessLog.dataId) }}
+---
+# Container Log
+apiVersion: bk.tencent.com/v1alpha1
+kind: BkLogConfig
+metadata:
+  name: {{ include "common.names.fullname" . }}-access-container-log
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations:
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  dataId: {{ .Values.bkLogConfig.file.accessLog.dataId }}
+  logConfigType: container_log_config
+  namespace: {{ .Release.Namespace }}
+  labelSelector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "common.names.fullname" . }}
+      {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+  path:
+    - /data/logs/job-gateway/access.log
+  encoding: 'utf-8'
+  multiline:
+    pattern: '^\[(.*?)|(.*?)\](?P<src_ip>.*?):(?P<src_port>.*?)\s+?'
+    maxLines: 100
+    timeout: '5s'
+  extMeta:
+    logSourceType: "file"
+{{- end }}
+{{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.std.dataId) }}
 ---
 # Stdout
 apiVersion: bk.tencent.com/v1alpha1
 kind: BkLogConfig
 metadata:
-  name: bk-job-std-log-config
+  name: {{ include "common.names.fullname" . }}-stdout-log
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations:
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- end }}
 spec:
-  dataId: {{ .Values.job.log.std.dataId }}
+  dataId: {{ .Values.bkLogConfig.std.dataId }}
 
   logConfigType: std_log_config
   namespace: {{ .Release.Namespace }}
   labelSelector:
     matchLabels:
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
       app.kubernetes.io/name: {{ include "common.names.fullname" . }}
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
-  ext_meta:
+  extMeta:
     logSourceType: "std"
 {{- end }}
