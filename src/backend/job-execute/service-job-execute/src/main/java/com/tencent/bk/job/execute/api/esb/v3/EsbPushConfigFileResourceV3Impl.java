@@ -28,28 +28,24 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
-import com.tencent.bk.job.execute.engine.util.FileUtils;
-import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
+import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +53,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,14 +62,16 @@ public class EsbPushConfigFileResourceV3Impl
     extends JobExecuteCommonV3Processor
     implements EsbPushConfigFileV3Resource {
     private final TaskExecuteService taskExecuteService;
-
     private final StorageSystemConfig storageSystemConfig;
+    private final AgentService agentService;
 
     @Autowired
     public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
-                                           StorageSystemConfig storageSystemConfig) {
+                                           StorageSystemConfig storageSystemConfig,
+                                           AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
         this.storageSystemConfig = storageSystemConfig;
+        this.agentService = agentService;
     }
 
     @Override
@@ -88,45 +85,8 @@ public class EsbPushConfigFileResourceV3Impl
 
         request.trimIps();
 
-        String uploadPath = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
-            FileDirTypeConf.UPLOAD_FILE_DIR);
-
-        List<String> localFileList = new ArrayList<>();
-        for (EsbPushConfigFileV3Request.EsbConfigFileDTO configFile : request.getFileList()) {
-            String fileName = configFile.getFileName();
-            String base64EncodeContent = configFile.getContent();
-            byte[] contentBytes = Base64Util.decodeContentToByte(base64EncodeContent);
-            String localFileRelativePath = JobUUID.getUUID() + File.separatorChar +
-                request.getUserName() + File.separatorChar + fileName;
-            String fullFilePath = uploadPath.concat(localFileRelativePath);
-            File theFile = new File(fullFilePath);
-            File parentDir = theFile.getParentFile();
-            if (!parentDir.exists()) {
-                if (!parentDir.mkdirs()) {
-                    log.error("Push config file, mkdir parent dir fail!dir:{}", parentDir.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-                if (!parentDir.setWritable(true, false)) {
-                    log.error("Push config file, set parent dir writeable fail!dir:{}", parentDir.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-            }
-            if (theFile.exists() && theFile.isFile()) {
-                if (!theFile.delete()) {
-                    log.error("Push config file, delete old file fail!dir:{}", theFile.getAbsolutePath());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-                }
-            }
-
-            if (!FileUtils.saveFileWithByte(fullFilePath, contentBytes)) {
-                log.error("Push config file, save file failed!fileName:{}", theFile.getAbsolutePath());
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
-            localFileList.add(localFileRelativePath);
-        }
-
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, localFileList);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, request.getFileList());
         long taskInstanceId = taskExecuteService.createTaskInstanceFast(taskInstance, stepInstance);
         taskExecuteService.startTask(taskInstanceId);
 
@@ -159,7 +119,10 @@ public class EsbPushConfigFileResourceV3Impl
         return taskInstance;
     }
 
-    private StepInstanceDTO buildFastFileStepInstance(EsbPushConfigFileV3Request request, List<String> localFileList) {
+    private StepInstanceDTO buildFastFileStepInstance(
+        EsbPushConfigFileV3Request request,
+        List<EsbPushConfigFileV3Request.EsbConfigFileDTO> configFileList
+    ) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         if (StringUtils.isNotEmpty(request.getName())) {
             stepInstance.setName(request.getName());
@@ -171,7 +134,7 @@ public class EsbPushConfigFileResourceV3Impl
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
-        stepInstance.setFileSourceList(convertFileSource(localFileList));
+        stepInstance.setFileSourceList(convertConfigFileSource(request.getUserName(), configFileList));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
         stepInstance.setOperator(request.getUserName());
@@ -181,19 +144,31 @@ public class EsbPushConfigFileResourceV3Impl
         return stepInstance;
     }
 
-    private List<FileSourceDTO> convertFileSource(List<String> configFiles) throws ServiceException {
-        if (configFiles == null) {
+    private List<FileSourceDTO> convertConfigFileSource(
+        String userName,
+        List<EsbPushConfigFileV3Request.EsbConfigFileDTO> configFileList
+    ) throws ServiceException {
+        if (configFileList == null) {
             return null;
         }
         List<FileSourceDTO> fileSourceDTOS = new ArrayList<>();
-        configFiles.forEach(configFile -> {
+        configFileList.forEach(configFile -> {
             FileSourceDTO fileSourceDTO = new FileSourceDTO();
             fileSourceDTO.setAccount("root");
-            fileSourceDTO.setLocalUpload(true);
-            fileSourceDTO.setFileType(TaskFileTypeEnum.LOCAL.getType());
+            fileSourceDTO.setLocalUpload(false);
+            fileSourceDTO.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
-            files.add(new FileDetailDTO(configFile));
+            // 保存配置文件至机器
+            String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
+                storageSystemConfig.getJobStorageRootPath(),
+                userName,
+                configFile.getFileName(),
+                configFile.getContent()
+            );
+            files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
+            // 设置配置文件所在机器IP信息
+            fileSourceDTO.setServers(agentService.getLocalServersDTO());
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;

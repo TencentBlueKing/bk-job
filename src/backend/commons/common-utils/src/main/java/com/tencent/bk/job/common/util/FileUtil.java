@@ -41,6 +41,90 @@ import java.util.stream.Stream;
 @Slf4j
 public class FileUtil {
 
+    /**
+     * 创建文件的父目录
+     *
+     * @param path 文件路径
+     * @return 最终文件父目录是否存在
+     */
+    private static boolean checkOrCreateParentDirsForFile(String path) {
+        File theFile = new File(path);
+        File parentDir = theFile.getParentFile();
+        if (!parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                log.warn(
+                    "mkdir parent dir fail!dir:{}",
+                    parentDir.getAbsolutePath()
+                );
+                return false;
+            }
+            if (!parentDir.setWritable(true, false)) {
+                log.warn(
+                    "set parent dir writeable fail!dir:{}",
+                    parentDir.getAbsolutePath()
+                );
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 将字节数组数据保存至文件
+     *
+     * @param path         文件路径
+     * @param contentBytes 字节数组
+     * @return 是否保存成功
+     */
+    public static boolean saveBytesToFile(String path, byte[] contentBytes) {
+        if (!checkOrCreateParentDirsForFile(path)) {
+            return false;
+        }
+        boolean isSuccess = false;
+        if (contentBytes == null || contentBytes.length == 0) {
+            return false;
+        }
+        try (FileOutputStream out = new FileOutputStream(path)) {
+            out.write(contentBytes);
+            out.flush();
+            File file = new File(path);
+            isSuccess = file.setExecutable(true, false);
+        } catch (IOException e) {
+            log.warn("Save fail", e);
+        }
+
+        return isSuccess;
+    }
+
+    /**
+     * 将base64编码字符串的内容保存至文件
+     *
+     * @param path      文件路径
+     * @param base64Str base64编码字符串内容
+     * @return 是否保存成功
+     */
+    public static boolean saveBase64StrToFile(String path, String base64Str) {
+        byte[] contentBytes = Base64Util.decodeContentToByte(base64Str);
+        File theFile = new File(path);
+        if (theFile.exists() && theFile.isFile()) {
+            if (!theFile.delete()) {
+                log.warn(
+                    "delete old file fail!dir:{}",
+                    theFile.getAbsolutePath()
+                );
+                return false;
+            }
+        }
+        if (!saveBytesToFile(path, contentBytes)) {
+            log.warn(
+                "save file failed!fileName:{}",
+                theFile.getAbsolutePath()
+            );
+            return false;
+        }
+        return true;
+    }
+
     private static void tryToCreateFile(File file) {
         try {
             boolean flag = file.mkdirs();
@@ -77,6 +161,7 @@ public class FileUtil {
                 fos.write(content, 0, length);
                 Thread.sleep(0);
             }
+            closeFos(fos);
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);
         } catch (FileNotFoundException e) {
@@ -89,7 +174,7 @@ public class FileUtil {
             log.info("Download interrupted, targetPath:{}", targetPath);
             throw e;
         } finally {
-            closeStreams(ins, fos, fis);
+            closeStreams(ins, fis);
         }
     }
 
@@ -139,6 +224,8 @@ public class FileUtil {
                 }
                 Thread.sleep(0);
             }
+            closeFos(fos);
+            log.info("targetPath:{},totalLength={},fileSize={}", targetPath, totalLength, fileSize);
             currentSpeedWatchTime = System.currentTimeMillis();
             timeDelta = currentSpeedWatchTime - lastSpeedWatchTime;
             long fileSizeDelta = totalLength - lastSpeedWatchFileSize;
@@ -158,13 +245,23 @@ public class FileUtil {
             log.info("Download interrupted, targetPath:{}", targetPath);
             throw e;
         } finally {
-            closeStreams(ins, fos, fis);
+            closeStreams(ins, fis);
+        }
+    }
+
+    private static void closeFos(FileOutputStream fos) {
+        if (fos != null) {
+            try {
+                fos.flush();
+                fos.close();
+            } catch (IOException e) {
+                log.error("Fail to close fos", e);
+            }
         }
     }
 
     private static void closeStreams(
         InputStream ins,
-        FileOutputStream fos,
         FileInputStream fis
     ) {
         if (fis != null) {
@@ -179,14 +276,6 @@ public class FileUtil {
                 ins.close();
             } catch (IOException e) {
                 log.error("Fail to close ins", e);
-            }
-        }
-        if (fos != null) {
-            try {
-                fos.flush();
-                fos.close();
-            } catch (IOException e) {
-                log.error("Fail to close fos", e);
             }
         }
     }

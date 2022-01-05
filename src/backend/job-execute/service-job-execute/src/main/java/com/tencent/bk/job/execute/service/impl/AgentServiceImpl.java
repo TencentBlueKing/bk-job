@@ -25,7 +25,9 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.engine.consts.Consts;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +37,10 @@ import org.springframework.stereotype.Service;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -57,6 +61,16 @@ public class AgentServiceImpl implements AgentService {
             return agentBindIp;
         }
         return getAgentBindIp();
+    }
+
+    @Override
+    public ServersDTO getLocalServersDTO() {
+        List<IpDTO> ipDTOList = new ArrayList<>();
+        ipDTOList.add(new IpDTO((long) Consts.DEFAULT_CLOUD_ID, getLocalAgentBindIp()));
+        ServersDTO servers = new ServersDTO();
+        servers.setStaticIpList(ipDTOList);
+        servers.setIpList(ipDTOList);
+        return servers;
     }
 
     private String getAgentBindIp() {

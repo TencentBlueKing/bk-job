@@ -13,8 +13,6 @@ metadata:
 data:
   application.yaml: |-
     spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-file-gateway
       cloud:
         refresh:
           extra-refreshable: javax.sql.DataSource

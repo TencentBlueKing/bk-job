@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.machine.MachineUtil;
@@ -47,7 +47,7 @@ public class HeartBeatTask {
 
     public static volatile boolean runFlag = true;
 
-    private final AbstractHttpHelper httpHelper = new DefaultHttpHelper();
+    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
 
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;

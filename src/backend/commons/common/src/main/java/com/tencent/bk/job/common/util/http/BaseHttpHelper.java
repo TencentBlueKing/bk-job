@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util.http;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -36,131 +37,63 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 
 @Slf4j
-public abstract class AbstractHttpHelper {
+public class BaseHttpHelper implements HttpHelper {
     private final String CHARSET = "UTF-8";
 
-    abstract CloseableHttpClient getHttpClient();
+    private final CloseableHttpClient httpClient;
 
-    /**
-     * 提交POST请求，并返回数据，用encoding参数解析
-     *
-     * @param url         提交的地址
-     * @param content     提交的内容字符串
-     * @param contentType 默认传null则为"application/x-www-form-urlencoded"
-     * @return
-     */
-    public String post(String url, String content, String contentType) {
-        return post(url, CHARSET, content, contentType);
+    protected BaseHttpHelper(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
-    /**
-     * 提交POST请求，并返回数据，用encoding参数解析
-     *
-     * @param url         提交的地址
-     * @param charset     字符集，用于解析返回的字符串
-     * @param content     提交的内容字符串
-     * @param contentType 默认传null则为"application/x-www-form-urlencoded"
-     * @return 返回字符串
-     */
-    public String post(String url, String charset, String content, String contentType) {
+    CloseableHttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    @Override
+    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
+        HttpGet get = new HttpGet(url);
+        if (keepAlive) {
+            get.setHeader("Connection", "Keep-Alive");
+        }
+        if (header != null && header.length > 0) {
+            get.setHeaders(header);
+        }
         try {
-            byte[] resp = post(url, content.getBytes(charset), contentType);
-            if (null == resp) {
-                return null;
-            }
-            return new String(resp, charset);
+            return getHttpClient().execute(get);
         } catch (IOException e) {
-            log.error("Post request fail", e);
+            log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    /**
-     * 提交POST请求，并返回数据（默认采用encoding常量指定的字符集解析）
-     *
-     * @param url     提交的地址
-     * @param content 提交的内容字符串
-     * @return 返回字符串
-     */
-    public String post(String url, String content) {
-        return post(url, CHARSET, content, "application/x-www-form-urlencoded");
-    }
-
-    /**
-     * 支持自定义头的POST请求
-     *
-     * @param url     提交的地址
-     * @param content 提交的内容字符串
-     * @param headers 自定义请求头
-     * @return
-     */
-    public String post(String url, String content, Header... headers) {
-        return post(url, CHARSET, content, headers);
-    }
-
-    public String post(String url, String charset, String content, List<Header> headerList) throws Exception {
-        Header[] headers = new Header[headerList.size()];
-        return post(url, charset, content, headerList.toArray(headers));
-    }
-
-
-    /**
-     * 支持自定义头的POST请求
-     *
-     * @param url     提交的地址
-     * @param charset 字符集，用于解析返回的字符串
-     * @param content 提交的内容字符串
-     * @param headers 自定义请求头
-     * @return
-     */
-    public String post(String url, String charset, String content, Header... headers) {
-        log.debug("post:url={},charset={},content={},headers={}", url, charset, content, headers);
-        try {
-            byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
-            if (null == resp) {
-                return null;
-            }
-            return new String(resp, charset);
+    @Override
+    public Pair<Integer, String> get(boolean keepAlive, String url, Header[] header) {
+        HttpGet get = new HttpGet(url);
+        if (keepAlive) {
+            get.setHeader("Connection", "Keep-Alive");
+        }
+        if (header != null && header.length > 0) {
+            get.setHeaders(header);
+        }
+        try (CloseableHttpResponse response = getHttpClient().execute(get)) {
+            int httpStatusCode = response.getStatusLine().getStatusCode();
+            HttpEntity entity = response.getEntity();
+            return Pair.of(httpStatusCode, EntityUtils.toString(entity, CHARSET));
         } catch (IOException e) {
-            log.error("Post request fail", e);
+            log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    /**
-     * 提交POST请求，并返回字节数组
-     *
-     * @param url         提交的地址
-     * @param content     提交的内容字节数据
-     * @param contentType 默认传null则为"application/x-www-form-urlencoded"
-     * @return 返回字节数组
-     */
-    public byte[] post(String url, byte[] content, String contentType) {
-        return post(url, new ByteArrayEntity(content), contentType);
-    }
-
-    /**
-     * 提交POST请求，并返回字节数组
-     *
-     * @param url           提交的地址
-     * @param requestEntity 封装好的请求实体
-     * @param contentType   默认传null则为"application/x-www-form-urlencoded"
-     * @return 返回字节数组
-     */
-    public byte[] post(String url, HttpEntity requestEntity, String contentType) {
-        return post(url, requestEntity,
-            new BasicHeader("Content-Type", contentType == null ? "application/x-www-form-urlencoded" : contentType));
-    }
-
-    public byte[] post(String url, HttpEntity requestEntity, Header... headers) {
+    @Override
+    public Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers) {
         HttpPost post = new HttpPost(url);
         // 设置为长连接，服务端判断有此参数就不关闭连接。
         post.setHeader("Connection", "Keep-Alive");
@@ -180,66 +113,15 @@ public abstract class AbstractHttpHelper {
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
             HttpEntity entity = httpResponse.getEntity();
-            return EntityUtils.toByteArray(entity);
+            return Pair.of(statusCode, EntityUtils.toByteArray(entity));
         } catch (IOException e) {
             log.error("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    /**
-     * GET请求，并返回字符串
-     *
-     * @param url 提交的地址
-     * @return
-     */
-    public String get(String url) {
-        return get(url, (Header[]) null);
-    }
-
-    public String get(String url, List<Header> headerList) {
-        Header[] headers = new Header[headerList.size()];
-        return get(url, headerList.toArray(headers));
-    }
-
-    public String get(String url, Header[] header) {
-        return get(true, url, header);
-    }
-
-    public String get(boolean keepAlive, String url, Header[] header) {
-        HttpGet get = new HttpGet(url);
-        if (keepAlive) {
-            get.setHeader("Connection", "Keep-Alive");
-        }
-        if (header != null && header.length > 0) {
-            get.setHeaders(header);
-        }
-        try (CloseableHttpResponse response = getHttpClient().execute(get)) {
-            HttpEntity entity = response.getEntity();
-            return EntityUtils.toString(entity, CHARSET);
-        } catch (IOException e) {
-            log.error("Get request fail", e);
-            throw new InternalException(e, ErrorCode.API_ERROR);
-        }
-    }
-
-    public CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header) {
-        HttpGet get = new HttpGet(url);
-        if (keepAlive) {
-            get.setHeader("Connection", "Keep-Alive");
-        }
-        if (header != null && header.length > 0) {
-            get.setHeaders(header);
-        }
-        try {
-            return getHttpClient().execute(get);
-        } catch (IOException e) {
-            log.error("Get request fail", e);
-            throw new InternalException(e, ErrorCode.API_ERROR);
-        }
-    }
-
-    public String put(String url, HttpEntity requestEntity, Header... headers) {
+    @Override
+    public Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers) {
         HttpPut put = new HttpPut(url);
         // 设置为长连接，服务端判断有此参数就不关闭连接。
         put.setHeader("Connection", "Keep-Alive");
@@ -254,14 +136,15 @@ public abstract class AbstractHttpHelper {
                 log.info("Put request fail, statusCode={}, errorReason={}, content={}", statusCode, message, content);
                 throw new InternalException(message, ErrorCode.API_ERROR);
             }
-            return content;
+            return Pair.of(statusCode, content);
         } catch (IOException e) {
             log.error("Put request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
-    public String delete(String url, String content, Header... headers) {
+    @Override
+    public Pair<Integer, String> delete(String url, String content, Header... headers) {
         FakeHttpDelete delete = new FakeHttpDelete(url);
         HttpEntity requestEntity;
         try {
@@ -285,7 +168,7 @@ public abstract class AbstractHttpHelper {
             if (respBytes == null) {
                 return null;
             }
-            return new String(respBytes, CHARSET);
+            return Pair.of(statusCode, new String(respBytes, CHARSET));
         } catch (IOException e) {
             log.error("Delete request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);

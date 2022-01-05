@@ -22,33 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.util;
+package com.tencent.bk.job.execute.engine.prepare;
 
-import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MIN_JOB_TIMEOUT_SECONDS;
-
-/**
- * 作业工具类
- */
-public class TaskUtil {
+public class JobTaskContextUtil {
     /**
-     * 计算作业超时时间
+     * 根据必要参数生成简单的任务上下文
      *
-     * @param timeout 超时时间
-     * @return 超时时间，单位秒
+     * @param isForRetry 是否为重试任务
+     * @return 任务上下文
      */
-    public static int calculateTimeout(Integer timeout) {
-        int finalTimeout = DEFAULT_JOB_TIMEOUT_SECONDS;
-        if (timeout != null && timeout > 0) {
-            if (timeout > MAX_JOB_TIMEOUT_SECONDS) {
-                finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
-            } else if (timeout < MIN_JOB_TIMEOUT_SECONDS) {
-                finalTimeout = MIN_JOB_TIMEOUT_SECONDS;
-            } else {
-                finalTimeout = timeout;
+    public static JobTaskContext getSimpleTaskContext(boolean isForRetry) {
+        return new JobTaskContext() {
+            @Override
+            public boolean isForRetry() {
+                return isForRetry;
             }
-        }
-        return finalTimeout;
+        };
     }
 }

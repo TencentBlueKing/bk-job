@@ -33,7 +33,9 @@ import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -89,6 +91,15 @@ public class JobSrcFileUtils {
         }
     }
 
+    private static boolean isServerOrThirdFileSource(FileSourceDTO fileSource) {
+        // 兼容没有fileType字段的数据
+        if (fileSource.getFileType() == null) {
+            return !fileSource.isLocalUpload();
+        }
+        return fileSource.getFileType() == TaskFileTypeEnum.SERVER.getType()
+            || fileSource.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType();
+    }
+
     /**
      * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
@@ -102,7 +113,7 @@ public class JobSrcFileUtils {
         Set<JobFile> sendFiles = Sets.newTreeSet();
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
             List<FileDetailDTO> files = fileSource.getFiles();
-            if (!fileSource.isLocalUpload()) {
+            if (isServerOrThirdFileSource(fileSource)) {
                 boolean isThirdFile = false;
                 Integer fileSourceId = fileSource.getFileSourceId();
                 if (fileSourceId != null && fileSourceId > 0) {
@@ -137,16 +148,40 @@ public class JobSrcFileUtils {
                     }
 
                 }
-            } else {
+            } else if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
                 // 本地文件
                 for (FileDetailDTO file : files) {
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(file.getFilePath());
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    sendFiles.add(new JobFile(true, IpHelper.fix1To0(localServerIp),
-                        file.getFilePath(), dir, fileName, "root", null,
-                        FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    ServersDTO servers = fileSource.getServers();
+                    if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
+                        List<IpDTO> ipList = servers.getIpList();
+                        for (IpDTO ipDTO : ipList) {
+                            sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
+                                file.getFilePath(), dir, fileName, "root", null,
+                                FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                        }
+                    } else {
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), IpHelper.fix1To0(localServerIp),
+                            file.getFilePath(), dir, fileName, "root", null,
+                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    }
+                }
+            } else if (fileSource.getFileType() == TaskFileTypeEnum.BASE64_FILE.getType()) {
+                // 配置文件
+                for (FileDetailDTO file : files) {
+                    Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(file.getFilePath());
+                    String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
+                        + fileNameAndPath.getLeft();
+                    String fileName = fileNameAndPath.getRight();
+                    List<IpDTO> ipList = fileSource.getServers().getIpList();
+                    for (IpDTO ipDTO : ipList) {
+                        sendFiles.add(new JobFile(fileSource.isLocalUpload(), ipDTO.convertToStrIp(),
+                            file.getFilePath(), dir, fileName, "root", null,
+                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                    }
                 }
             }
         }

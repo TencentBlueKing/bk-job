@@ -22,14 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.utils;
+package com.tencent.bk.job.common.util.http;
 
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
-public class HttpHelperFactory {
-    private static DefaultHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+public interface HttpHelper {
 
-    public static DefaultHttpHelper getDefaultHttpHelper() {
-        return defaultHttpHelper;
-    }
+    CloseableHttpResponse getRawResp(boolean keepAlive, String url, Header[] header);
+
+    Pair<Integer, String> get(boolean keepAlive, String url, Header[] header);
+
+    Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers);
+
+    Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers);
+
+    Pair<Integer, String> delete(String url, String content, Header... headers);
 }

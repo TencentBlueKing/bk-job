@@ -92,13 +92,15 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
+import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.LongRetryableHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -470,14 +472,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                          String uri,
                                          EsbReq reqBody,
                                          TypeReference<EsbResp<R>> typeReference,
-                                         AbstractHttpHelper httpHelper) {
+                                         ExtHttpHelper httpHelper) {
 
+        String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (ccConfig != null && ccConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
-                String resourceId = uri;
-                if (interfaceNameMap.containsKey(uri)) {
-                    resourceId = interfaceNameMap.get(uri);
-                }
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -494,6 +493,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         long start = System.nanoTime();
         String status = "none";
         try {
+            JobContextUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", uri));
             EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
             status = "ok";
             return esbResp;
@@ -504,8 +505,9 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             status = "error";
             throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
+            JobContextUtil.clearHttpMetricTags();
             long end = System.nanoTime();
-            meterRegistry.timer(CommonMetricNames.CMDB_API, "api_name", uri, "status", status)
+            meterRegistry.timer(CommonMetricNames.ESB_CMDB_API, "api_name", uri, "status", status)
                 .record(end - start, TimeUnit.NANOSECONDS);
         }
     }
@@ -1549,7 +1551,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
             req, new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
-            }, new LongRetryableHttpHelper());
+            }, HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 
@@ -1563,7 +1565,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
             RESOURCE_WATCH, req, new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
-            }, new LongRetryableHttpHelper());
+            }, HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 
@@ -1578,7 +1580,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
             req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
-            }, new LongRetryableHttpHelper());
+            }, HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 

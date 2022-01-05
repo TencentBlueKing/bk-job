@@ -102,11 +102,10 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         return false;
     }
 
-    private void startPrepareLocalFileTask(
-        long stepInstanceId,
-        List<FileSourceDTO> fileSourceList,
-        List<FilePrepareTaskResult> resultList,
-        CountDownLatch latch
+    private void startPrepareLocalFileTask(long stepInstanceId,
+                                           List<FileSourceDTO> fileSourceList,
+                                           List<FilePrepareTaskResult> resultList,
+                                           CountDownLatch latch
     ) {
         localFilePrepareService.prepareLocalFilesAsync(
             stepInstanceId,
@@ -114,31 +113,30 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             new LocalFilePrepareTaskResultHandler() {
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.info("stepInstanceId={},LocalFilePrepareTask success", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.info("stepInstanceId={},LocalFilePrepareTask stopped", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.debug("LocalFilePrepareTask end");
+                    log.warn("stepInstanceId={},LocalFilePrepareTask failed", stepInstanceId);
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
             });
     }
 
-    private void startPrepareThirdFileTask(
-        StepInstanceDTO stepInstance,
-        List<FilePrepareTaskResult> resultList,
-        CountDownLatch latch
+    private void startPrepareThirdFileTask(StepInstanceDTO stepInstance,
+                                           List<FilePrepareTaskResult> resultList,
+                                           CountDownLatch latch
     ) {
         thirdFilePrepareService.prepareThirdFileAsync(
             stepInstance,
@@ -146,21 +144,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask success", stepInstance.getId());
+                    log.info("stepInstanceId={},ThirdFilePrepareTask success", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask stopped", stepInstance.getId());
+                    log.info("stepInstanceId={},ThirdFilePrepareTask stopped", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.debug("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
+                    log.warn("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -202,6 +200,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         FilePrepareTaskResultHandler filePrepareTaskResultHandler = new FilePrepareTaskResultHandler() {
             @Override
             public void onFinished(StepInstanceDTO stepInstance, List<FilePrepareTaskResult> resultList) {
+                log.info("stepInstanceId={},prepareTask finished", stepInstance.getId());
                 handleFinalTaskResult(resultList, stepInstance);
             }
 

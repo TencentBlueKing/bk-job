@@ -24,16 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
-public class TimeoutUtils {
-    /**
-     * 任务默认超时时间
-     */
-    public static final int DEFAULT_TIMEOUT = 7200;
+import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
+import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
 
-    /**
-     * 任务最大超时时间
-     */
-    public static final int MAX_TIMEOUT = 86400;
+public class TimeoutUtils {
 
     /**
      * 调整任务超时时间
@@ -43,11 +37,11 @@ public class TimeoutUtils {
      */
     public static Integer adjustTaskTimeout(Integer timeout) {
         if (timeout == null) {
-            return DEFAULT_TIMEOUT;
+            return DEFAULT_JOB_TIMEOUT_SECONDS;
         }
         Integer finalTimeout = timeout;
-        if (timeout <= 0 || timeout > MAX_TIMEOUT) {
-            finalTimeout = MAX_TIMEOUT;
+        if (timeout <= 0 || timeout > MAX_JOB_TIMEOUT_SECONDS) {
+            finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
         }
         return finalTimeout;
     }

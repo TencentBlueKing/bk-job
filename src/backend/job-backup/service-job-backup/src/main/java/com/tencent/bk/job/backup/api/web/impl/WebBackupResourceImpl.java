@@ -184,11 +184,12 @@ public class WebBackupResourceImpl implements WebBackupResource {
             throw new InternalException(ErrorCode.FAIL_TO_GET_NODE_INFO_FROM_ARTIFACTORY);
         }
         try {
-            ins = artifactoryClient.getFileInputStream(
+            Pair<InputStream, Long> pair = artifactoryClient.getFileInputStream(
                 artifactoryConfig.getArtifactoryJobProject(),
                 backupStorageConfig.getBackupRepo(),
                 fileName
             );
+            ins = pair.getLeft();
         } catch (Exception e) {
             throw new InternalException(ErrorCode.FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY);
         }

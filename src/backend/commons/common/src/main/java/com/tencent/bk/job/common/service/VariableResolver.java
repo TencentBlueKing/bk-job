@@ -154,7 +154,7 @@ public class VariableResolver {
                 varNames.add(varName);
             }
         }
-        Matcher m2 = Pattern.compile("\\$\\{[#!]?([_a-zA-Z][0-9_a-zA-Z]*)\\S*}").matcher(content);
+        Matcher m2 = Pattern.compile("\\$\\{[#!]?([_a-zA-Z][0-9_a-zA-Z]*)\\S*?}").matcher(content);
         while (m2.find()) {
             String varName = m2.group(1);
             if (!varNames.contains(varName)) {

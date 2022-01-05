@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -110,7 +111,7 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "模版 ID 新建填 0", required = true)
         @PathVariable("templateId") Long templateId,
         @ApiParam(value = "新增/更新的模版对象", name = "templateCreateUpdateReq", required = true)
-        @RequestBody TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
+        @RequestBody @Validated TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     );
 
     @ApiOperation(value = "删除模版", produces = "application/json")

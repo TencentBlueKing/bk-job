@@ -27,7 +27,11 @@
 
 <template>
     <div>
-        <jb-form-item :label="$t('目标路径')" required :property="field" :rules="rules">
+        <jb-form-item
+            :label="$t('目标路径')"
+            required
+            :property="field"
+            :rules="rules">
             <div
                 class="form-item-content"
                 @mouseenter="handleMouseenter"

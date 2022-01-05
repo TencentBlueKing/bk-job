@@ -79,7 +79,7 @@ ext {
     set('jacksonVersion', "2.11.0")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    set('logbackVersion', "1.2.3")
+    set('logbackVersion', "1.2.10")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "1.7.30")
     set('servletVersion', "3.0.1")
@@ -98,7 +98,7 @@ ext {
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.10")
-    set('apacheThriftVersion', "0.12.0")
+    set('apacheThriftVersion', "0.15.0")
     set('commonsIOVersion', "2.6")
     set('javaxServletVersion', "4.0.1")
     set('guavaVersion', "28.2-jre")

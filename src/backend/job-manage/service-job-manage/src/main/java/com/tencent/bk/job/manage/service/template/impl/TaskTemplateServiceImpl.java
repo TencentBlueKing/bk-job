@@ -588,7 +588,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateInfoDTO taskTemplateByName =
             taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
         if (taskTemplateByName != null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NAME_EXIST);
+            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST);
         }
         taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
 

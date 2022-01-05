@@ -55,16 +55,15 @@ public class JobLangHeaderLocaleResolver implements LocaleResolver {
     }
 
     public Locale resolveLocale(HttpServletRequest request) {
+        Locale locale = null;
         if (StringUtils.isNotBlank(request.getHeader(LocaleUtils.COMMON_LANG_HEADER))) {
             String lang = request.getHeader(LocaleUtils.COMMON_LANG_HEADER);
-            Locale locale = LocaleUtils.getLocale(lang);
-            if (locale == null) {
-                locale = getDefaultLocale();
-            }
-            return locale;
-        } else {
-            return getDefaultLocale();
+            locale = LocaleUtils.getLocale(lang);
         }
+        if (locale == null) {
+            locale = getDefaultLocale();
+        }
+        return locale;
     }
 
     public void setLocale(HttpServletRequest request, @Nullable HttpServletResponse response,
