@@ -33,6 +33,9 @@ public interface TaskReporter {
     void reportFileDownloadProgress(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed
         , Integer progress);
 
+    void reportFileDownloadProgressWithContent(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed
+        , Integer progress, String content);
+
     void reportFileDownloadSuccess(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed,
                                    Integer progress);
 
