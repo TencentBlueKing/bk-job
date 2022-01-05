@@ -40,7 +40,7 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -157,7 +157,7 @@ public class HostRelationWatchThread extends Thread {
                 log.debug("handle hostRelationEvent:" + watch.prettyPrint());
             }
         } catch (Throwable t) {
-            log.error("Fail to handle hostRelationEvent of appId {}, event:{}", appId, event, t);
+            log.error(String.format("Fail to handle hostRelationEvent of appId %d, event:%s", appId, event), t);
         } finally {
             appHostsUpdateHelper.endToUpdateAppHosts(appId);
         }
@@ -176,7 +176,7 @@ public class HostRelationWatchThread extends Thread {
                     if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
                         // 若已存在则忽略
                     } else {
-                        log.error("insertHostTopo fail:hostTopoInfo={}", hostTopoDTO, e);
+                        log.error("insertHostTopo fail:hostTopoInfo=" + hostTopoDTO, e);
                     }
                 }
                 // 若主机存在需将拓扑信息同步至主机信息冗余字段
