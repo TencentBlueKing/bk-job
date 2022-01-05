@@ -262,7 +262,7 @@ public class ArtifactoryClient {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
                 throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
-                log.debug("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
+                log.info("success|method={}|url={}|reqStr={}|respStr={}", method, url, reqStr, respStr);
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
             try {
@@ -392,7 +392,11 @@ public class ArtifactoryClient {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
         if (null == nodeDTO) {
-            throw new InternalException("can not find node by filePath", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            throw new InternalException(
+                "can not find node by filePath",
+                ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY,
+                new Object[]{filePath}
+            );
         }
         return nodeDTO;
     }
