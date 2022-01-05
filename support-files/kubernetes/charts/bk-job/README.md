@@ -64,8 +64,10 @@ bitnami/rabbitmq
 |---|---|---|
 | `gse.cacheApiServer.host`     | GSE API接口根地址  | `gse-api.example.com`      |
 | `gse.cacheApiServer.port`     | GSE API接口端口  | `59313`      |
-| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | ``      |
-| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | ``      |
+| `gse.ssl.keystore.base64Content`   | GSE 接口SSL证书keystore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | `2y#8VI2B4Sm9Dk^J`      |
+| `gse.ssl.truststore.base64Content`   | GSE 接口SSL证书truststore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | `2y#8VI2B4Sm9Dk^J`      |
 | `gse.taskserver.host`   | GSE TASK接口根地址  | `gse-task.example.com`      |
 | `gse.taskserver.port`   | GSE TASK接口端口  | `48673`      |
 | `gse.server.zookeeper.connect.string`   | GSE Zookeeper根地址  | `gse-zk.example.com`      |
