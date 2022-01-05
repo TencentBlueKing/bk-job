@@ -52,12 +52,15 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -224,13 +227,13 @@ public class ArtifactoryClient {
 
     private <R> R getArtifactoryRespByReq(
         String method,
-        String url,
+        String urlTemplate,
         ArtifactoryReq reqBody,
         TypeReference<R> typeReference,
         ExtHttpHelper httpHelper
     ) throws ServiceException {
         // URL模板变量替换
-        url = StringUtil.replacePathVariables(url, reqBody);
+        String url = StringUtil.replacePathVariables(urlTemplate, reqBody);
         url = getCompleteUrl(url);
         String reqStr = "{}";
         if (reqBody != null) {
@@ -240,12 +243,20 @@ public class ArtifactoryClient {
         long start = System.nanoTime();
         String status = "none";
         try {
-            if (method.equals(HttpGet.METHOD_NAME)) {
-                respStr = doHttpGet(url, reqBody, httpHelper);
-            } else if (method.equals(HttpPost.METHOD_NAME)) {
-                respStr = doHttpPost(url, reqBody, httpHelper);
-            } else if (method.equals(HttpDelete.METHOD_NAME)) {
-                respStr = doHttpDelete(url, reqBody, httpHelper);
+            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", urlTemplate));
+            switch (method) {
+                case HttpGet.METHOD_NAME:
+                    respStr = doHttpGet(url, reqBody, httpHelper);
+                    break;
+                case HttpPost.METHOD_NAME:
+                    respStr = doHttpPost(url, reqBody, httpHelper);
+                    break;
+                case HttpDelete.METHOD_NAME:
+                    respStr = doHttpDelete(url, reqBody, httpHelper);
+                    break;
+                default:
+                    throw new InternalException(ErrorCode.NOT_SUPPORT_FEATURE);
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
@@ -267,9 +278,10 @@ public class ArtifactoryClient {
             status = "error";
             throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {
+            JobContextUtil.clearHttpMetricTags();
             long end = System.nanoTime();
             if (null != meterRegistry) {
-                meterRegistry.timer("artifactory.api", "api_name", url, "status", status)
+                meterRegistry.timer(CommonMetricNames.BKREPO_API, "api_name", urlTemplate, "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
         }
@@ -399,6 +411,8 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         CloseableHttpResponse resp;
         try {
+            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
             resp = longHttpHelper.getRawResp(false, url, getJsonHeaders());
             Header contentLengthHeader = resp.getFirstHeader("Content-Length");
             Long contentLength = null;
@@ -417,6 +431,8 @@ public class ArtifactoryClient {
         } catch (IOException e) {
             log.error("Fail to getFileInputStream", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
+        } finally {
+            JobContextUtil.clearHttpMetricTags();
         }
     }
 
@@ -450,6 +466,8 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String respStr = null;
         try {
+            JobContextUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            JobContextUtil.addHttpMetricTag(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
             respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
             log.debug("respStr={}", respStr);
             ArtifactoryResp<NodeDTO> resp = JsonUtils.fromJson(
@@ -466,6 +484,8 @@ public class ArtifactoryClient {
             log.error("Fail to uploadGenericFile", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE,
                 new String[]{e.getMessage()});
+        } finally {
+            JobContextUtil.clearHttpMetricTags();
         }
     }
 
