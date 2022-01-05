@@ -20,7 +20,7 @@ BEGIN
     UPDATE task_plan_step_script SET script_timeout=86400 WHERE script_timeout=0;
 	-- bugfix: file step timeout=0 is invalid, convert from 0 to 86400
     UPDATE task_template_step_file SET timeout=86400 WHERE timeout=0;
-	UPDATE task_plan_step_file SET script_timeout=86400 WHERE script_timeout=0;
+	UPDATE task_plan_step_file SET timeout=86400 WHERE timeout=0;
     
 	
     COMMIT;
