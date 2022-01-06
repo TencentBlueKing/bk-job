@@ -42,7 +42,7 @@ jobs:
         run: |
           echo "npm version=$(npm -v)"
           export JOB_VERSION=${{ steps.variables.outputs.version }}
-          npm i && npm run build
+          npm i --legacy-peer-deps && npm run build
           mkdir -p release/job/frontend
           cp -r dist/* release/job/frontend
         working-directory: src/frontend
