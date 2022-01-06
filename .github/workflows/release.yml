@@ -57,6 +57,7 @@ jobs:
           echo ${{ steps.variables.outputs.version }} > ./VERSION
           chmod 755 ./package.sh
           ./package.sh -m all -v ${{ steps.variables.outputs.version }}
+        working-directory: ./
 
       - name: Create Release
         id: create_release
