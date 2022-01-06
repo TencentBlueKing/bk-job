@@ -43,7 +43,7 @@
                     allowHtml: true,
                     width: 240,
                     distance: 15,
-                    trigger: 'mouseover',
+                    trigger: 'mouseenter',
                     theme: 'light',
                     content: `#${sefId}`,
                     placement: 'right-start',

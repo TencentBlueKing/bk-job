@@ -81,20 +81,6 @@
                             :remote-hander="val => handleUpdate(rule, val)" />
                     </td>
                     <td>
-                        <!-- <bk-select
-                            class="script-type-edit"
-                            :value="rule.scriptTypeList"
-                            multiple
-                            show-select-all
-                            @toggle="handleSubmitScriptTypeChange"
-                            @change="val => handleScriptTypeUpdate(rule, val)"
-                            :clearable="false">
-                            <bk-option
-                                v-for="item in scriptTypeList"
-                                :key="item.id"
-                                :name="item.name"
-                                :id="item.id" />
-                        </bk-select> -->
                         <jb-edit-select
                             field="scriptTypeList"
                             mode="block"
