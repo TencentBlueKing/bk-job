@@ -231,7 +231,6 @@
             z-index: 0;
             width: 366px;
             height: calc(100% - 56px);
-            border-left: 1px solid #dcdee5;
         }
     }
 </style>

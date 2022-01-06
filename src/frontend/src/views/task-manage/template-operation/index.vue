@@ -30,7 +30,7 @@
         id="templateOperation"
         class="template-operation">
         <div class="layout-left">
-            <scroll-faker>
+            <scroll-faker ref="contentScroll">
                 <div class="template-container">
                     <smart-action offset-target="bk-form-content">
                         <jb-form
@@ -104,11 +104,10 @@
                         </template>
                     </smart-action>
                 </div>
-                
             </scroll-faker>
+            <back-top :target="getScrollParent" />
         </div>
         <div id="templateOperationLayoutRight" class="layout-right" />
-        <back-top />
     </div>
 </template>
 <script>
@@ -288,6 +287,9 @@
                     id: this.isEdit ? this.taskId : 0,
                     name,
                 });
+            },
+            getScrollParent () {
+                return this.$refs.contentScroll.$el.querySelector('.scroll-faker-content');
             },
             /**
              * @desc 克隆作业模板时提示密文变量
@@ -715,6 +717,7 @@
             height: calc(100vh - 124px);
             margin-right: auto;
             flex: 0 1 auto;
+            transform: translate(0, 0);
 
             .template-container {
                 padding-right: 100px;

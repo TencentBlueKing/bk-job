@@ -85,13 +85,19 @@
                 <div
                     v-if="isOperation"
                     key="create"
-                    class="global-variable-new"
-                    v-test="{ type: 'button', value: 'create_global_variable' }"
-                    @click="handleCreate">
-                    <Icon type="plus" class="create-flag" />
-                    <span>{{ $t('template.全局变量.label') }}</span>
+                    class="global-variable-new">
+                    <div
+                        class="new-btn"
+                        v-test="{ type: 'button', value: 'create_global_variable' }"
+                        @click="handleCreate">
+                        <Icon type="plus" class="create-flag" />
+                        <span>{{ $t('template.全局变量.label') }}</span>
+                    </div>
                     <div
                         class="use-guide"
+                        :class="{
+                            active: isShowUseGuide,
+                        }"
                         v-bk-tooltips="$t('template.使用指引')"
                         @click.stop="handleUseGuideToggle">
                         <Icon type="help-document-fill" />
@@ -579,41 +585,53 @@
 
         .global-variable-new {
             position: relative;
-            display: flex;
             width: 160px;
-            height: 50px;
             margin-top: 10px;
-            font-size: 14px;
-            color: #979ba5;
-            cursor: pointer;
-            border: 1px dashed #c4c6cc;
-            border-radius: 2px;
-            box-sizing: border-box;
-            align-items: center;
-            justify-content: center;
 
-            &:hover {
-                color: #3a84ff;
-                border-color: #3a84ff;
+            .new-btn,
+            .use-guide {
+                cursor: pointer;
 
-                i {
+                &:hover,
+                &.active {
                     color: #3a84ff;
+                    border-color: #3a84ff;
+
+                    i {
+                        color: #3a84ff;
+                    }
                 }
             }
 
-            .create-flag {
-                margin-right: 5px;
-                color: #c4c6cc;
+            .new-btn {
+                display: flex;
+                width: 100%;
+                height: 50px;
+                font-size: 14px;
+                color: #979ba5;
+                border: 1px dashed #c4c6cc;
+                border-radius: 2px;
+                box-sizing: border-box;
+                align-items: center;
+                justify-content: center;
+
+                .create-flag {
+                    margin-right: 5px;
+                    color: #c4c6cc;
+                }
             }
 
             .use-guide {
                 position: absolute;
+                top: 50%;
                 right: -29px;
-                display: none;
                 display: flex;
                 width: 30px;
                 font-size: 14px;
+                color: #979ba5;
                 justify-content: center;
+                align-items: center;
+                transform: translateY(-50%);
             }
         }
 
