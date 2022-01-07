@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -155,7 +154,6 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
         Response<?> resp = Response.buildValidateFailResp(errorDetail);

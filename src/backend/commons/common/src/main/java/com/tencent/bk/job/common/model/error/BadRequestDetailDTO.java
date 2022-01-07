@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,28 @@ public class BadRequestDetailDTO {
     @JsonProperty("field_violations")
     private List<FieldViolationDTO> fieldViolations;
 
+    /**
+     * 新增参数校验错误
+     *
+     * @param fieldViolation 参数校验错误
+     */
     public void addFieldViolation(FieldViolationDTO fieldViolation) {
         if (fieldViolations == null) {
             this.fieldViolations = new ArrayList<>();
         }
         this.fieldViolations.add(fieldViolation);
+    }
+
+    /**
+     * 返回第一个参数校验错误描述
+     *
+     * @return 错误描述
+     */
+    public String findFirstFieldErrorDesc() {
+        if (CollectionUtils.isEmpty(this.fieldViolations)) {
+            return "";
+        }
+        return this.fieldViolations.get(0).getDescription();
     }
 
 }
