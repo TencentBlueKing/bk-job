@@ -11,13 +11,13 @@ questions:
     default: "http://bkapi.paas.example.com"
     description: "对接的蓝鲸组件服务地址"
     group: "蓝鲸公共组件配置"
-  - variable: app.code
+  - variable: appCode
     label: "调用组件服务接口使用的app_code"
     type: string
     default: "bk_job"
     description: "调用组件服务接口使用的app_code"
     group: "蓝鲸公共组件配置"
-  - variable: app.secret
+  - variable: appSecret
     label: "调用组件服务接口使用的app_secret"
     type: string
     default: ""
