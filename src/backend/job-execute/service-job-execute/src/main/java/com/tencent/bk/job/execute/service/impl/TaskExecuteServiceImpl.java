@@ -57,7 +57,7 @@ import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -148,7 +148,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ApplicationService applicationService;
     private final AccountService accountService;
     private final ScriptService scriptService;
-    private final TaskExecuteControlMsgSender controlMsgSender;
+    private final TaskExecuteEventDispatcher controlMsgSender;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ServerService serverService;
@@ -168,7 +168,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public TaskExecuteServiceImpl(ApplicationService applicationService,
                                   AccountService accountService,
                                   TaskInstanceService taskInstanceService,
-                                  TaskExecuteControlMsgSender controlMsgSender,
+                                  TaskExecuteEventDispatcher controlMsgSender,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
                                   ServerService serverService,

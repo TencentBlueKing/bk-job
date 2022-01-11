@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.NotifyDTO;
@@ -71,12 +71,12 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.STOP;
 @Slf4j
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteControlMsgSender taskControlMsgSender;
+    private final TaskExecuteEventDispatcher taskControlMsgSender;
     private final FilePrepareService filePrepareService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
-                        TaskExecuteControlMsgSender taskControlMsgSender,
+                        TaskExecuteEventDispatcher taskControlMsgSender,
                         FilePrepareService filePrepareService) {
         this.taskInstanceService = taskInstanceService;
         this.taskControlMsgSender = taskControlMsgSender;
@@ -88,7 +88,7 @@ public class StepListener {
      */
     @StreamListener(StepProcessor.INPUT)
     public void handleEvent(StepEvent stepEvent) {
-        log.info("Receive step control message, stepInstanceId={}, action={}, msgSendTime={}",
+        log.info("Handle step event, stepInstanceId={}, action={}, msgSendTime={}",
             stepEvent.getStepInstanceId(),
             stepEvent.getAction(), stepEvent.getTime());
         long stepInstanceId = stepEvent.getStepInstanceId();
@@ -140,7 +140,7 @@ public class StepListener {
                 log.warn("Error step control action:{}", action);
             }
         } catch (Exception e) {
-            String errorMsg = "Handling step control message error,stepInstanceId:" + stepInstanceId;
+            String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;
             log.warn(errorMsg, e);
         }
 

@@ -268,16 +268,16 @@ CREATE TABLE IF NOT EXISTS `step_instance_variable`
   DEFAULT CHARSET = utf8mb4;
 
 
-CREATE TABLE IF NOT EXISTS `rolling_config`
+CREATE TABLE IF NOT EXISTS `task_instance_rolling_config`
 (
     `id`                  bigint(20)   NOT NULL AUTO_INCREMENT,
     `task_instance_id`    bigint(20)   NOT NULL DEFAULT '0',
-    `rolling_name`        varchar(128) NOT NULL,
+    `config_name`         varchar(128) NOT NULL,
     `config`              longtext     NOT NULL,
     `row_create_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`),
-    KEY (`task_instance_id`)
+    UNIQUE KEY (`task_instance_id`,`config_name`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -293,7 +293,8 @@ CREATE TABLE IF NOT EXISTS `step_instance_task`
     `status`           tinyint(4)  NOT NULL DEFAULT '1',
     `row_create_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`step_instance_id`, `execute_count`, `batch`)
+    PRIMARY KEY(`id`),
+    UNIQUE KEY (`step_instance_id`, `execute_count`, `batch`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

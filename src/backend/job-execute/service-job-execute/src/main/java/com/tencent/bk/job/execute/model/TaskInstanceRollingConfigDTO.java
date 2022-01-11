@@ -22,35 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+package com.tencent.bk.job.execute.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
- * Job事件
+ * 执行作业实例滚动区间配置
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobEvent {
+public class TaskInstanceRollingConfigDTO {
     /**
-     * 作业操作
-     *
-     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
+     * id
      */
-    private int action;
+    private Long id;
+
     /**
-     * 作业实例ID
+     * 执行作业实例id
      */
-    private long taskInstanceId;
+    private Long taskInstanceId;
+
     /**
-     * 操作时间
+     * 滚动区间名称
      */
-    private LocalDateTime time;
+    private String configName;
+
+    /**
+     * 滚动配置
+     */
+    private RollingConfigDO config;
 }
+

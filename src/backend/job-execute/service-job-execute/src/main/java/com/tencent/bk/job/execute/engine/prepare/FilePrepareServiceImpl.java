@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
@@ -56,7 +56,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final LocalFilePrepareService localFilePrepareService;
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteControlMsgSender taskControlMsgSender;
+    private final TaskExecuteEventDispatcher taskControlMsgSender;
     private final ResultHandleManager resultHandleManager;
 
     @Autowired
@@ -64,7 +64,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         LocalFilePrepareService localFilePrepareService,
         ThirdFilePrepareService thirdFilePrepareService,
         TaskInstanceService taskInstanceService,
-        TaskExecuteControlMsgSender taskControlMsgSender,
+        TaskExecuteEventDispatcher taskControlMsgSender,
         ResultHandleManager resultHandleManager) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;

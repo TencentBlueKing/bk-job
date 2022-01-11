@@ -64,7 +64,7 @@ public class GseStepListener {
 
     @StreamListener(GseTaskProcessor.INPUT)
     public void handleEvent(@Payload StepEvent gseStepEvent) {
-        log.info("Receive gse step control message, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",
+        log.info("Handel gse step event, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",
             gseStepEvent.getStepInstanceId(),
             gseStepEvent.getAction(), gseStepEvent.getRequestId(), gseStepEvent.getTime());
         long stepInstanceId = gseStepEvent.getStepInstanceId();
@@ -80,10 +80,10 @@ public class GseStepListener {
             } else if (GseStepActionEnum.RETRY_ALL.getValue() == action) {
                 gseTaskManager.retryAll(stepInstanceId, requestId);
             } else {
-                log.error("Error gse step control action:{}", action);
+                log.error("Error gse step action:{}", action);
             }
         } catch (Throwable e) {
-            String errorMsg = "Handling gse step control message error,stepInstanceId:" + stepInstanceId;
+            String errorMsg = "Handling gse step event error,stepInstanceId:" + stepInstanceId;
             log.error(errorMsg, e);
             handleException(stepInstanceId, e);
         }

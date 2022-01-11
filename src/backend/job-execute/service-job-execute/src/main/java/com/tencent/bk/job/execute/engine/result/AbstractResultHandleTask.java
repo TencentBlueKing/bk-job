@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -91,7 +91,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected GseTaskLogService gseTaskLogService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
-    protected TaskExecuteControlMsgSender taskManager;
+    protected TaskExecuteEventDispatcher taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
     /**
@@ -245,7 +245,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      LogService logService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
-                                     TaskExecuteControlMsgSender taskManager,
+                                     TaskExecuteEventDispatcher taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExceptionStatusManager exceptionStatusManager
     ) {

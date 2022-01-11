@@ -22,14 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine;
+package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
-import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
-import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
 import com.tencent.bk.job.execute.engine.message.NotifyMsgProcessor;
@@ -50,7 +48,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSender {
+public class TaskExecuteEventDispatcherImpl implements TaskExecuteEventDispatcher {
     /**
      * 消息通道-作业
      */
@@ -79,12 +77,12 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     private final MessageChannel resultHandleTaskResumeOutput;
 
     @Autowired
-    public TaskExecuteControlMsgSenderImpl(@Qualifier(TaskProcessor.OUTPUT) MessageChannel taskOutput,
-                                           @Qualifier(StepProcessor.OUTPUT) MessageChannel stepOutput,
-                                           @Qualifier(GseTaskProcessor.OUTPUT) MessageChannel gseTaskOutput,
-                                           @Qualifier(NotifyMsgProcessor.OUTPUT) MessageChannel notifyMsgOutput,
-                                           @Qualifier(CallbackProcessor.OUTPUT) MessageChannel callbackOutput,
-                                           @Qualifier(TaskResultHandleResumeProcessor.OUTPUT) MessageChannel resultHandleTaskResumeOutput) {
+    public TaskExecuteEventDispatcherImpl(@Qualifier(TaskProcessor.OUTPUT) MessageChannel taskOutput,
+                                          @Qualifier(StepProcessor.OUTPUT) MessageChannel stepOutput,
+                                          @Qualifier(GseTaskProcessor.OUTPUT) MessageChannel gseTaskOutput,
+                                          @Qualifier(NotifyMsgProcessor.OUTPUT) MessageChannel notifyMsgOutput,
+                                          @Qualifier(CallbackProcessor.OUTPUT) MessageChannel callbackOutput,
+                                          @Qualifier(TaskResultHandleResumeProcessor.OUTPUT) MessageChannel resultHandleTaskResumeOutput) {
         this.taskOutput = taskOutput;
         this.stepOutput = stepOutput;
         this.gseTaskOutput = gseTaskOutput;

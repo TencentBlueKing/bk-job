@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
@@ -82,7 +82,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private LogService logService;
-    private TaskExecuteControlMsgSender taskControlMsgSender;
+    private TaskExecuteEventDispatcher taskControlMsgSender;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private ThirdFilePrepareTaskResultHandler resultHandler;
     private int pullTimes = 0;
@@ -112,7 +112,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         TaskInstanceService taskInstanceService,
         AccountService accountService,
         LogService logService,
-        TaskExecuteControlMsgSender taskControlMsgSender,
+        TaskExecuteEventDispatcher taskControlMsgSender,
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;

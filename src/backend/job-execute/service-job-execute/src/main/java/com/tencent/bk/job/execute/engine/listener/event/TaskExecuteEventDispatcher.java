@@ -22,137 +22,137 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine;
+package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 
 /**
- * 作业执行控制消息发送
+ * 作业执行事件分发
  */
-public interface TaskExecuteControlMsgSender {
+public interface TaskExecuteEventDispatcher {
 
     /**
-     * 发送启动作业的作业控制消息
+     * 发送启动作业事件
      *
      * @param taskInstanceId 作业实例ID
      */
     void startTask(long taskInstanceId);
 
     /**
-     * 发送停止作业的作业控制消息
+     * 发送停止作业事件
      *
      * @param taskInstanceId 作业实例ID
      */
     void stopTask(long taskInstanceId);
 
     /**
-     * 发送重头执行作业的作业控制消息
+     * 发送重头执行作业事件
      *
      * @param taskInstanceId 作业实例ID
      */
     void restartTask(long taskInstanceId);
 
     /**
-     * 触发作业继续后续步骤的作业控制消息
+     * 触发作业继续后续步骤事件
      *
      * @param taskInstanceId 作业实例ID
      */
     void refreshTask(long taskInstanceId);
 
     /**
-     * 触发忽略错误的作业控制消息
+     * 触发忽略错误事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void ignoreStepError(long stepInstanceId);
 
     /**
-     * 发送进入下一步骤的作业控制消息
+     * 发送进入下一步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void nextStep(long stepInstanceId);
 
     /**
-     * 发送进入下一步骤的作业控制消息
+     * 发送进入下一步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void confirmStepContinue(long stepInstanceId);
 
     /**
-     * 人工确认-终止流程
+     * 人工确认-终止流程事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void confirmStepTerminate(long stepInstanceId);
 
     /**
-     * 人工确认-重新发起确认
+     * 人工确认-重新发起确认事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void confirmStepRestart(long stepInstanceId);
 
     /**
-     * 发送启动步骤的步骤控制消息
+     * 发送启动步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void startStep(long stepInstanceId);
 
     /**
-     * 发送跳过步骤的步骤控制消息
+     * 发送跳过步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void skipStep(long stepInstanceId);
 
     /**
-     * 发送强制终止步骤的步骤控制消息
+     * 发送强制终止步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void stopStep(long stepInstanceId);
 
     /**
-     * 重新执行步骤中失败的ip
+     * 重新执行步骤中失败的ip事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void retryStepFail(long stepInstanceId);
 
     /**
-     * 重新执行步骤
+     * 重新执行步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void retryStepAll(long stepInstanceId);
 
     /**
-     * 发送继续GSE文件分发步骤的步骤控制消息
+     * 发送继续GSE文件分发步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void continueGseFileStep(long stepInstanceId);
 
     /**
-     * 发送清理步骤的步骤控制消息：清理步骤中产生的临时文件等
+     * 发送清理步骤事件：清理步骤中产生的临时文件等
      *
      * @param stepInstanceId 步骤实例ID
      */
     void clearStep(long stepInstanceId);
 
     /**
-     * 发送执行gse步骤的消息
+     * 发送执行gse步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void startGseStep(long stepInstanceId);
 
     /**
-     * 恢复GSE任务执行
+     * 恢复GSE任务执行事件
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
@@ -161,37 +161,37 @@ public interface TaskExecuteControlMsgSender {
     void resumeGseStep(long stepInstanceId, int executeCount, String requestId);
 
     /**
-     * 重新执行步骤中失败的ip
+     * 重新执行步骤中失败的ip事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void retryGseStepFail(long stepInstanceId);
 
     /**
-     * 重新执行步骤
+     * 重新执行步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void retryGseStepAll(long stepInstanceId);
 
     /**
-     * 发送强制终止TSC步骤的消息
+     * 发送强制终止GSE步骤事件
      *
      * @param stepInstanceId 步骤实例ID
      */
     void stopGseStep(long stepInstanceId);
 
     /**
-     * 异步发送消息通知
+     * 异步发送消息通知事件
      *
      * @param notification 消息内容
      */
     void asyncSendNotifyMsg(TaskNotifyDTO notification);
 
     /**
-     * 发送回调信息
+     * 发送回调信息事件
      *
-     * @param jobCallbackDto
+     * @param jobCallbackDto 回调内容
      */
     void sendCallback(JobCallbackDTO jobCallbackDto);
 }

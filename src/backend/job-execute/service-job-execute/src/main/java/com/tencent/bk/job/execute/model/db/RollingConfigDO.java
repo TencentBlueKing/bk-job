@@ -22,35 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+package com.tencent.bk.job.execute.model.db;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * Job事件
+ * 执行作业实例滚动区间配置DO
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobEvent {
+public class RollingConfigDO {
     /**
-     * 作业操作
-     *
-     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
+     * 滚动区间名称
      */
-    private int action;
+    private String name;
     /**
-     * 作业实例ID
+     * 滚动区间包含的步骤实例ID
      */
-    private long taskInstanceId;
+    private List<Long> includeStepInstanceIdList;
     /**
-     * 操作时间
+     * 参与滚动的步骤实例ID
      */
-    private LocalDateTime time;
+    private List<Long> rollingStepInstanceIdList;
+    /**
+     * 不参与滚动的步骤实例ID(全量执行)
+     */
+    private List<Long> excludeStepInstanceIdList;
+    /**
+     * 滚动策略
+     */
+    private Integer rollingMode;
+    /**
+     * 滚动表达式
+     */
+    private String rollingExpr;
+    /**
+     * 目标服务器滚动分批
+     */
+    private List<ServerBatch> rollingTargetServerBatch;
+
+    @Data
+    private static class ServerBatch {
+        /**
+         * 滚动执行批次
+         */
+        private Integer batch;
+        /**
+         * 该批次的目标服务器
+         */
+        private List<IpDTO> servers;
+    }
 }

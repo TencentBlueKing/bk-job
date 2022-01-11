@@ -26,11 +26,11 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
@@ -91,7 +91,7 @@ public class ResultHandleResumeListener {
 
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
 
-    private final TaskExecuteControlMsgSender taskExecuteControlMsgSender;
+    private final TaskExecuteEventDispatcher taskExecuteEventDispatcher;
 
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
 
@@ -107,7 +107,7 @@ public class ResultHandleResumeListener {
         AgentService agentService,
         LogService logService,
         StepInstanceVariableValueService stepInstanceVariableValueService,
-        TaskExecuteControlMsgSender taskExecuteControlMsgSender,
+        TaskExecuteEventDispatcher taskExecuteEventDispatcher,
         ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
         ExceptionStatusManager exceptionStatusManager
     ) {
@@ -120,7 +120,7 @@ public class ResultHandleResumeListener {
         this.logService = logService;
 
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteControlMsgSender = taskExecuteControlMsgSender;
+        this.taskExecuteEventDispatcher = taskExecuteEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
     }
@@ -168,7 +168,7 @@ public class ResultHandleResumeListener {
                     taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, ipLogMap.keySet(),
                     requestId);
                 scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
-                    taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
+                    taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteEventDispatcher,
                     resultHandleTaskKeepaliveManager, exceptionStatusManager);
                 resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
             } else if (stepInstance.isFileStep()) {
@@ -190,7 +190,7 @@ public class ResultHandleResumeListener {
                     storageSystemConfig.getJobStorageRootPath(), sourceDestPathMap, sourceFileDisplayMap,
                     requestId);
                 fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
-                    taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
+                    taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteEventDispatcher,
                     resultHandleTaskKeepaliveManager, exceptionStatusManager);
                 resultHandleManager.handleDeliveredTask(fileResultHandleTask);
             } else {
