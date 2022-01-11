@@ -30,10 +30,10 @@ import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
-import com.tencent.bk.job.execute.engine.model.StepControlMessage;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
@@ -130,14 +130,14 @@ public class ResultHandleResumeListener {
      * 恢复被中断的作业结果处理任务
      */
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
-    public void handleMessage(StepControlMessage stepControlMessage) {
+    public void handleEvent(StepEvent stepEvent) {
         log.info("Receive result handle task resume control message, action: {}, stepInstanceId: {}, executeCount: {}, requestId: {}, msgSendTime={}",
-            stepControlMessage.getAction(), stepControlMessage.getStepInstanceId(),
-            stepControlMessage.getExecuteCount(),
-            stepControlMessage.getRequestId(), stepControlMessage.getTime());
-        long stepInstanceId = stepControlMessage.getStepInstanceId();
-        int executeCount = stepControlMessage.getExecuteCount();
-        String requestId = StringUtils.isNotEmpty(stepControlMessage.getRequestId()) ? stepControlMessage.getRequestId()
+            stepEvent.getAction(), stepEvent.getStepInstanceId(),
+            stepEvent.getExecuteCount(),
+            stepEvent.getRequestId(), stepEvent.getTime());
+        long stepInstanceId = stepEvent.getStepInstanceId();
+        int executeCount = stepEvent.getExecuteCount();
+        String requestId = StringUtils.isNotEmpty(stepEvent.getRequestId()) ? stepEvent.getRequestId()
             : UUID.randomUUID().toString();
         try {
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);

@@ -22,9 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.model;
+package com.tencent.bk.job.execute.engine.listener.event;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,37 +31,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 执行应请-步骤操作消息
+ * Job事件
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class StepControlMessage {
+public class JobEvent {
     /**
-     * 步骤操作
+     * 作业操作
      *
-     * @see com.tencent.bk.job.execute.engine.consts.StepActionEnum
+     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
      */
     private int action;
     /**
-     * 步骤实例ID
+     * 作业实例ID
      */
-    private long stepInstanceId;
-    /**
-     * 步骤执行次数
-     */
-    private Integer executeCount;
-    /**
-     * 执行批次
-     */
-    private Integer batch;
+    private long taskInstanceId;
     /**
      * 操作时间
      */
     private LocalDateTime time;
-    /**
-     * 请求ID,防止重复下发任务
-     */
-    private String requestId;
 }

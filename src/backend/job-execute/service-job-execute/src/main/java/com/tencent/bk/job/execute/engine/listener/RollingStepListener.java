@@ -29,8 +29,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
-import com.tencent.bk.job.execute.engine.model.StepControlMessage;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.NotifyDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -87,13 +87,13 @@ public class RollingStepListener {
      * 处理步骤控制相关消息，包含：预启动步骤、启动步骤、重新执行步骤和跳过步骤
      */
     @StreamListener(StepProcessor.INPUT)
-    public void handleMessage(StepControlMessage stepControlMessage) {
+    public void handleEvent(StepEvent stepEvent) {
         log.info("Receive step control message, stepInstanceId={}, action={}, msgSendTime={}",
-            stepControlMessage.getStepInstanceId(),
-            stepControlMessage.getAction(), stepControlMessage.getTime());
-        long stepInstanceId = stepControlMessage.getStepInstanceId();
+            stepEvent.getStepInstanceId(),
+            stepEvent.getAction(), stepEvent.getTime());
+        long stepInstanceId = stepEvent.getStepInstanceId();
         try {
-            int action = stepControlMessage.getAction();
+            int action = stepEvent.getAction();
             StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
             if (START.getValue() == action) {
                 log.info("Start step, stepInstanceId={}", stepInstanceId);

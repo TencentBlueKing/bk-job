@@ -31,9 +31,9 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.message.TaskProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
-import com.tencent.bk.job.execute.engine.model.TaskControlMessage;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
@@ -77,31 +77,30 @@ public class JobListener {
      * 处理和作业相关的控制消息：启动作业、停止作业、重启作业、忽略错误和作业状态刷新
      */
     @StreamListener(TaskProcessor.INPUT)
-    public void handleMessage(TaskControlMessage taskControlMessage) {
-        log.info("Receive task control message, taskInstanceId={}, action={}, msgSendTime={}",
-            taskControlMessage.getTaskInstanceId(),
-            taskControlMessage.getAction(), taskControlMessage.getTime());
-        long taskInstanceId = taskControlMessage.getTaskInstanceId();
-        int action = taskControlMessage.getAction();
+    public void handleEvent(JobEvent jobEvent) {
+        log.info("Handle job event, taskInstanceId={}, action={}, eventTime={}",
+            jobEvent.getTaskInstanceId(), jobEvent.getAction(), jobEvent.getTime());
+        long taskInstanceId = jobEvent.getTaskInstanceId();
+        int action = jobEvent.getAction();
         try {
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
             if (JobActionEnum.START.getValue() == action) {
-                log.info("Start task, taskInstanceId={}", taskInstanceId);
+                log.info("Start job, taskInstanceId={}", taskInstanceId);
                 startJob(taskInstance);
             } else if (JobActionEnum.STOP.getValue() == action) {
-                log.info("Stop task, taskInstanceId={}", taskInstanceId);
+                log.info("Stop job, taskInstanceId={}", taskInstanceId);
                 stopJob(taskInstance);
             } else if (JobActionEnum.RESTART.getValue() == action) {
-                log.info("Restart task, taskInstanceId={}", taskInstanceId);
+                log.info("Restart job, taskInstanceId={}", taskInstanceId);
                 restartJob(taskInstance);
             } else if (JobActionEnum.REFRESH.getValue() == action) {
-                log.info("Refresh task, taskInstanceId={}", taskInstanceId);
+                log.info("Refresh job, taskInstanceId={}", taskInstanceId);
                 refreshJob(taskInstance);
             } else {
                 log.warn("Error task control action:{}", action);
             }
         } catch (Exception e) {
-            String errorMsg = "Handling task control message error,taskInstanceId=" + taskInstanceId;
+            String errorMsg = "Handle job event error, taskInstanceId=" + taskInstanceId;
             log.error(errorMsg, e);
         }
     }

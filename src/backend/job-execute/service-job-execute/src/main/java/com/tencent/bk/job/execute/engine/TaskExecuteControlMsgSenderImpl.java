@@ -28,10 +28,15 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
-import com.tencent.bk.job.execute.engine.message.*;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
+import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
+import com.tencent.bk.job.execute.engine.message.NotifyMsgProcessor;
+import com.tencent.bk.job.execute.engine.message.StepProcessor;
+import com.tencent.bk.job.execute.engine.message.TaskProcessor;
+import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
-import com.tencent.bk.job.execute.engine.model.StepControlMessage;
-import com.tencent.bk.job.execute.engine.model.TaskControlMessage;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +96,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void startTask(long taskInstanceId) {
         log.info("Begin to send start task control message, taskInstanceId={}", taskInstanceId);
-        TaskControlMessage msg = new TaskControlMessage();
+        JobEvent msg = new JobEvent();
         msg.setTaskInstanceId(taskInstanceId);
         msg.setAction(JobActionEnum.START.getValue());
         msg.setTime(LocalDateTime.now());
@@ -102,7 +107,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void stopTask(long taskInstanceId) {
         log.info("Begin to send stop task control message, taskInstanceId={}", taskInstanceId);
-        TaskControlMessage msg = new TaskControlMessage();
+        JobEvent msg = new JobEvent();
         msg.setTaskInstanceId(taskInstanceId);
         msg.setAction(JobActionEnum.STOP.getValue());
         msg.setTime(LocalDateTime.now());
@@ -113,7 +118,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void restartTask(long taskInstanceId) {
         log.info("Begin to send restart task control message, taskInstanceId={}", taskInstanceId);
-        TaskControlMessage msg = new TaskControlMessage();
+        JobEvent msg = new JobEvent();
         msg.setTaskInstanceId(taskInstanceId);
         msg.setAction(JobActionEnum.RESTART.getValue());
         msg.setTime(LocalDateTime.now());
@@ -124,7 +129,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void refreshTask(long taskInstanceId) {
         log.info("Begin to send refresh task control message, taskInstanceId={}", taskInstanceId);
-        TaskControlMessage msg = new TaskControlMessage();
+        JobEvent msg = new JobEvent();
         msg.setTaskInstanceId(taskInstanceId);
         msg.setAction(JobActionEnum.REFRESH.getValue());
         msg.setTime(LocalDateTime.now());
@@ -135,7 +140,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void ignoreStepError(long stepInstanceId) {
         log.info("Begin to send ignore-error step control message, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.IGNORE_ERROR.getValue());
         msg.setTime(LocalDateTime.now());
@@ -146,7 +151,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void nextStep(long stepInstanceId) {
         log.info("Begin to send next-step step control message, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.NEXT_STEP.getValue());
         msg.setTime(LocalDateTime.now());
@@ -157,7 +162,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void confirmStepContinue(long stepInstanceId) {
         log.info("Begin to send confirm-continue step control message, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.CONFIRM_CONTINUE.getValue());
         msg.setTime(LocalDateTime.now());
@@ -168,7 +173,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void confirmStepTerminate(long stepInstanceId) {
         log.info("Begin to send confirm-terminate step control message, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.CONFIRM_TERMINATE.getValue());
         msg.setTime(LocalDateTime.now());
@@ -179,7 +184,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void confirmStepRestart(long stepInstanceId) {
         log.info("Begin to send confirm-restart step control message, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.CONFIRM_RESTART.getValue());
         msg.setTime(LocalDateTime.now());
@@ -189,7 +194,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
 
     @Override
     public void startStep(long stepInstanceId) {
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.START.getValue());
         msg.setTime(LocalDateTime.now());
@@ -200,7 +205,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void skipStep(long stepInstanceId) {
         log.info("Begin to send skip step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.SKIP.getValue());
         msg.setTime(LocalDateTime.now());
@@ -211,7 +216,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void stopStep(long stepInstanceId) {
         log.info("Begin to send stop step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.STOP.getValue());
         msg.setTime(LocalDateTime.now());
@@ -222,7 +227,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void retryStepFail(long stepInstanceId) {
         log.info("Begin to send retry-step-fail step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.RETRY_FAIL.getValue());
         msg.setTime(LocalDateTime.now());
@@ -233,7 +238,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void retryStepAll(long stepInstanceId) {
         log.info("Begin to send retry-step-all step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.RETRY_ALL.getValue());
         msg.setTime(LocalDateTime.now());
@@ -245,7 +250,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     public void continueGseFileStep(long stepInstanceId) {
         log.info("Begin to send continue-gse-file-step step control message successfully, stepInstanceId={}",
             stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
         msg.setTime(LocalDateTime.now());
@@ -256,7 +261,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void clearStep(long stepInstanceId) {
         log.info("Begin to send clear-step step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(StepActionEnum.CLEAR.getValue());
         msg.setTime(LocalDateTime.now());
@@ -267,7 +272,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void startGseStep(long stepInstanceId) {
         log.info("Begin to send start gse step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(GseStepActionEnum.START.getValue());
         msg.setTime(LocalDateTime.now());
@@ -281,7 +286,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
         log.info("Begin to send resume gse step control message successfully, stepInstanceId={}, executeCount={}, " +
                 "requestId={}",
             stepInstanceId, executeCount, requestId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setExecuteCount(executeCount);
         msg.setAction(StepActionEnum.RESUME.getValue());
@@ -295,7 +300,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void retryGseStepFail(long stepInstanceId) {
         log.info("Begin to send retry gse step fail control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(GseStepActionEnum.RETRY_FAIL.getValue());
         msg.setTime(LocalDateTime.now());
@@ -307,7 +312,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void retryGseStepAll(long stepInstanceId) {
         log.info("Begin to send retry gse step all control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(GseStepActionEnum.RETRY_ALL.getValue());
         msg.setTime(LocalDateTime.now());
@@ -319,7 +324,7 @@ public class TaskExecuteControlMsgSenderImpl implements TaskExecuteControlMsgSen
     @Override
     public void stopGseStep(long stepInstanceId) {
         log.info("Begin to send stop gse step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepControlMessage msg = new StepControlMessage();
+        StepEvent msg = new StepEvent();
         msg.setStepInstanceId(stepInstanceId);
         msg.setAction(GseStepActionEnum.STOP.getValue());
         msg.setTime(LocalDateTime.now());

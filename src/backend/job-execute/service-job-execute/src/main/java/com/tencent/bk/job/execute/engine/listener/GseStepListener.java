@@ -29,8 +29,8 @@ import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableExce
 import com.tencent.bk.job.execute.engine.GseTaskManager;
 import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
-import com.tencent.bk.job.execute.engine.model.StepControlMessage;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,27 +54,25 @@ public class GseStepListener {
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
 
     @Autowired
-    public GseStepListener(
-        GseTaskManager gseTaskManager,
-        ExceptionStatusManager exceptionStatusManager,
-        GseTasksExceptionCounter gseTasksExceptionCounter
-    ) {
+    public GseStepListener(GseTaskManager gseTaskManager,
+                           ExceptionStatusManager exceptionStatusManager,
+                           GseTasksExceptionCounter gseTasksExceptionCounter) {
         this.gseTaskManager = gseTaskManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
     }
 
     @StreamListener(GseTaskProcessor.INPUT)
-    public void handleMessage(@Payload StepControlMessage gseStepControlMessage) {
+    public void handleEvent(@Payload StepEvent gseStepEvent) {
         log.info("Receive gse step control message, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",
-            gseStepControlMessage.getStepInstanceId(),
-            gseStepControlMessage.getAction(), gseStepControlMessage.getRequestId(), gseStepControlMessage.getTime());
-        long stepInstanceId = gseStepControlMessage.getStepInstanceId();
-        String requestId = gseStepControlMessage.getRequestId();
+            gseStepEvent.getStepInstanceId(),
+            gseStepEvent.getAction(), gseStepEvent.getRequestId(), gseStepEvent.getTime());
+        long stepInstanceId = gseStepEvent.getStepInstanceId();
+        String requestId = gseStepEvent.getRequestId();
         try {
-            int action = gseStepControlMessage.getAction();
+            int action = gseStepEvent.getAction();
             if (GseStepActionEnum.START.getValue() == action) {
-                gseTaskManager.startStep(stepInstanceId, gseStepControlMessage.getRequestId());
+                gseTaskManager.startStep(stepInstanceId, gseStepEvent.getRequestId());
             } else if (GseStepActionEnum.STOP.getValue() == action) {
                 gseTaskManager.stopStep(stepInstanceId, requestId);
             } else if (GseStepActionEnum.RETRY_FAIL.getValue() == action) {
