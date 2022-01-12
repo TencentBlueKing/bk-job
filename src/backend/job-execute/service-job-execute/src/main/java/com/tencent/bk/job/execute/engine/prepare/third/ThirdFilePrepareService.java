@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -72,7 +72,7 @@ public class ThirdFilePrepareService {
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
     private final LogService logService;
-    private final TaskExecuteEventDispatcher taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskControlMsgSender;
     private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -80,7 +80,7 @@ public class ThirdFilePrepareService {
                                    FileSourceTaskResourceClient fileSourceTaskResource,
                                    TaskInstanceService taskInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO, AccountService accountService,
-                                   LogService logService, TaskExecuteEventDispatcher taskControlMsgSender) {
+                                   LogService logService, TaskExecuteMQEventDispatcher taskControlMsgSender) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;

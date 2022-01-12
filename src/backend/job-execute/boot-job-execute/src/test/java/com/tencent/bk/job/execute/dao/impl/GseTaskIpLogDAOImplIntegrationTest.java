@@ -68,10 +68,10 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(gseTaskIpLog.getStartTime()).isEqualTo(expectStartTime);
         assertThat(gseTaskIpLog.getEndTime()).isEqualTo(expectEndTime);
         assertThat(gseTaskIpLog.getTotalTime()).isEqualTo(1316L);
-        assertThat(gseTaskIpLog.getErrCode()).isEqualTo(0);
+        assertThat(gseTaskIpLog.getErrorCode()).isEqualTo(0);
         assertThat(gseTaskIpLog.getExitCode()).isEqualTo(0);
         assertThat(gseTaskIpLog.getTag()).isEqualTo("succ");
-        assertThat(gseTaskIpLog.getOffset()).isEqualTo(0);
+        assertThat(gseTaskIpLog.getScriptLogOffset()).isEqualTo(0);
         assertThat(gseTaskIpLog.getCloudAreaId()).isEqualTo(0);
         assertThat(gseTaskIpLog.getDisplayIp()).isEqualTo("10.0.0.1");
         assertThat(gseTaskIpLog.isTargetServer()).isEqualTo(true);
@@ -86,7 +86,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         ipLog1.setExecuteCount(0);
         ipLog1.setCloudAreaAndIp("0:10.0.0.1");
         ipLog1.setDisplayIp("10.0.0.1");
-        ipLog1.setErrCode(99);
+        ipLog1.setErrorCode(99);
         ipLog1.setStatus(1);
         ipLog1.setExitCode(1);
         ipLogList.add(ipLog1);
@@ -95,7 +95,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         ipLog2.setStepInstanceId(3L);
         ipLog2.setExecuteCount(0);
         ipLog2.setCloudAreaAndIp("0:10.0.0.1");
-        ipLog2.setErrCode(88);
+        ipLog2.setErrorCode(88);
         ipLog2.setExitCode(1);
         ipLog2.setDisplayIp("10.0.0.1");
         long startTime = 1572858330000L;
@@ -111,7 +111,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(ipLog1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(ipLog1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(ipLog1Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
-        assertThat(ipLog1Return.getErrCode()).isEqualTo(99);
+        assertThat(ipLog1Return.getErrorCode()).isEqualTo(99);
         assertThat(ipLog1Return.getStatus()).isEqualTo(1);
         assertThat(ipLog1Return.getExitCode()).isEqualTo(1);
 
@@ -122,7 +122,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         assertThat(ipLog2Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
         assertThat(ipLog2Return.getStartTime()).isEqualTo(startTime);
         assertThat(ipLog2Return.getEndTime()).isEqualTo(endTime);
-        assertThat(ipLog2Return.getErrCode()).isEqualTo(88);
+        assertThat(ipLog2Return.getErrorCode()).isEqualTo(88);
         assertThat(ipLog2Return.getStatus()).isEqualTo(2);
         assertThat(ipLog2Return.getExitCode()).isEqualTo(1);
     }

@@ -24,32 +24,50 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import lombok.Data;
 
 /**
- * 作业实例滚动区间配置
+ * 步骤实例滚动任务
  */
 @Data
-public class TaskInstanceRollingConfigDTO {
+public class StepInstanceRollingTaskDTO {
     /**
      * id
      */
     private Long id;
 
     /**
-     * 执行作业实例id
+     * 步骤实例ID
      */
-    private Long taskInstanceId;
+    private Long stepInstanceId;
 
     /**
-     * 滚动区间名称
+     * 步骤执行次数
      */
-    private String configName;
+    private Integer executeCount;
 
     /**
-     * 滚动配置
+     * 滚动批次
      */
-    private RollingConfigDO config;
+    private Integer batch;
+    /**
+     * 执行状态
+     *
+     * @see RunStatusEnum
+     */
+    protected Integer status;
+    /**
+     * 开始时间
+     */
+    protected Long startTime;
+    /**
+     * 结束时间
+     */
+    protected Long endTime;
+    /**
+     * 总耗时，单位：毫秒秒
+     */
+    protected Long totalTime;
 }
 

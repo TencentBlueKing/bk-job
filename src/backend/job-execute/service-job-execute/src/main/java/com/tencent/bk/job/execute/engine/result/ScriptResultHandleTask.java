@@ -149,7 +149,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         ipLogs.forEach(ipLog -> {
             LogPullProgress process = new LogPullProgress();
             process.setIp(ipLog.getCloudAreaAndIp());
-            process.setByteOffset(ipLog.getOffset());
+            process.setByteOffset(ipLog.getScriptLogOffset());
             process.setMid(0);
             logPullProgressMap.put(ipLog.getCloudAreaAndIp(), process);
         });
@@ -292,18 +292,18 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst ipResult,
                                                      String cloudIp, GseTaskIpLogDTO ipLog, long currentTime) {
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), ipLog.getOffset(),
+            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), ipLog.getScriptLogOffset(),
                 currentTime));
         } else {
             String content = ipResult.getScreen();
             if (StringUtils.isEmpty(content)) {
                 return;
             }
-            int offset = ipLog.getOffset();
+            int offset = ipLog.getScriptLogOffset();
             if (StringUtils.isNotEmpty(content)) {
                 int bytes = content.getBytes(StandardCharsets.UTF_8).length;
                 offset += bytes;
-                ipLog.setOffset(offset);
+                ipLog.setScriptLogOffset(offset);
             }
             logs.add(new ServiceScriptLogDTO(cloudIp, offset, ipResult.getScreen()));
         }
@@ -323,7 +323,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         if (ipLog.getStartTime() == null) {
             ipLog.setStartTime(currentTime);
         }
-        ipLog.setErrCode(ipResult.getBk_error_code());
+        ipLog.setErrorCode(ipResult.getBk_error_code());
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
             // 脚本执行失败
             dealIPFinish(cloudIp, ipResult, ipLog);
@@ -603,7 +603,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         ips.forEach(ip -> {
             GseTaskIpLogDTO ipLog = ipLogMap.get(ip);
             if (ipLog != null) {
-                ipAndLogOffsetMap.put(ip, ipLog.getOffset());
+                ipAndLogOffsetMap.put(ip, ipLog.getScriptLogOffset());
             } else {
                 ipAndLogOffsetMap.put(ip, 0);
             }

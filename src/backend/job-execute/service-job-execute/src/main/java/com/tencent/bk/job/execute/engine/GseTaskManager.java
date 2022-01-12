@@ -39,7 +39,7 @@ import com.tencent.bk.job.execute.engine.executor.AbstractGseTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.FileTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.SQLScriptTaskExecutor;
 import com.tencent.bk.job.execute.engine.executor.ScriptTaskExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -88,7 +88,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskLogService gseTaskLogService;
-    private final TaskExecuteEventDispatcher taskManager;
+    private final TaskExecuteMQEventDispatcher taskManager;
     private final AccountService accountService;
     private final LogService logService;
     private final TaskInstanceVariableService taskInstanceVariableService;
@@ -143,7 +143,7 @@ public class GseTaskManager implements SmartLifecycle {
     public GseTaskManager(ResultHandleManager resultHandleManager,
                           TaskInstanceService taskInstanceService,
                           GseTaskLogService gseTaskLogService,
-                          TaskExecuteEventDispatcher taskManager,
+                          TaskExecuteMQEventDispatcher taskManager,
                           AccountService accountService,
                           LogService logService,
                           TaskInstanceVariableService taskInstanceVariableService,

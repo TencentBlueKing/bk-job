@@ -32,7 +32,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -84,7 +84,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
     protected AgentService agentService;
     protected LogService logService;
-    protected TaskExecuteEventDispatcher taskManager;
+    protected TaskExecuteMQEventDispatcher taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExecuteMonitor executeMonitor;
     protected ExceptionStatusManager exceptionStatusManager;
@@ -188,7 +188,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
                                      AgentService agentService,
                                      LogService logService,
-                                     TaskExecuteEventDispatcher taskManager,
+                                     TaskExecuteMQEventDispatcher taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExecuteMonitor executeMonitor,
                                      JobExecuteConfig jobExecuteConfig) {
@@ -261,7 +261,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         ips.forEach(ip -> {
             GseTaskIpLogDTO ipLog = ipLogMap.get(ip);
             if (ipLog != null) {
-                ipAndLogOffsetMap.put(ip, ipLog.getOffset());
+                ipAndLogOffsetMap.put(ip, ipLog.getScriptLogOffset());
             } else {
                 ipAndLogOffsetMap.put(ip, 0);
             }

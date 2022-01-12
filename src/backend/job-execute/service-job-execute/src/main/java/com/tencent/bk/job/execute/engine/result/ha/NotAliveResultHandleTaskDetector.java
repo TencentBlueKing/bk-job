@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.result.ha;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,15 +44,15 @@ import java.util.UUID;
 @EnableScheduling
 public class NotAliveResultHandleTaskDetector {
     private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    private final TaskExecuteEventDispatcher taskExecuteEventDispatcher;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ExecuteMonitor executeMonitor;
     private final String requestId = UUID.randomUUID().toString();
 
     public NotAliveResultHandleTaskDetector(ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                            TaskExecuteEventDispatcher taskExecuteEventDispatcher,
+                                            TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                             ExecuteMonitor executeMonitor) {
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.taskExecuteEventDispatcher = taskExecuteEventDispatcher;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.executeMonitor = executeMonitor;
     }
 

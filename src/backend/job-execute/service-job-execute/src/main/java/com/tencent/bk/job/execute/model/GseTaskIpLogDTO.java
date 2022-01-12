@@ -38,16 +38,22 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class GseTaskIpLogDTO {
-
+    /**
+     * 步骤实例ID
+     */
     private long stepInstanceId;
-
+    /**
+     * 步骤执行次数
+     */
     private int executeCount = 0;
-
+    /**
+     * 滚动执行批次
+     */
+    private Integer batch;
     /**
      * 服务器IP,包含云区域
      */
     private String cloudAreaAndIp;
-
     /**
      * 服务器IP,不包含云区域
      */
@@ -60,49 +66,50 @@ public class GseTaskIpLogDTO {
      * 是否文件源服务器
      */
     private boolean isSourceServer = false;
-
     /**
      * 云区域ID
      */
     private Long cloudAreaId;
-
-    private String displayIp;
-
     /**
-     * 状态： 0.系统错误、1.Agent 异常、3.上次已成功、5.等待执行、7.正在执行、9.执行成功、11.执行失败、13.任务超时、15.任务日志错误、101.脚本执行失败、102.脚本执行超时、202.拷贝文件失败
+     * 展示给用户的IP
+     */
+    private String displayIp;
+    /**
+     * 任务状态
      */
     private int status = -1;
-
+    /**
+     * 任务开始时间
+     */
     private Long startTime;
-
+    /**
+     * 任务结束时间
+     */
     private Long endTime;
-
     /**
      * 耗时，毫秒
      */
     private Long totalTime;
-
     /**
      * GSE返回错误码
      */
-    private int errCode;
-
+    private int errorCode;
     /**
      * 执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
      */
     private Integer exitCode;
-
     /**
-     * IP 结果标签
+     * 执行结果分组
      */
     private String tag = "";
     /**
-     * 当前日志偏移量
+     * 脚本任务日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
      */
-    private int offset;
-
-    private String logContent;
-
+    private int scriptLogOffset;
+    /**
+     * 脚本任务执行日志
+     */
+    private String scriptLogContent;
     /**
      * 结果是否发生变化
      */
@@ -128,9 +135,9 @@ public class GseTaskIpLogDTO {
         this.totalTime = totalTime;
     }
 
-    public void setErrCode(int errCode) {
+    public void setErrorCode(int errorCode) {
         this.changed = true;
-        this.errCode = errCode;
+        this.errorCode = errorCode;
     }
 
     public void setExitCode(Integer exitCode) {
@@ -138,9 +145,9 @@ public class GseTaskIpLogDTO {
         this.exitCode = exitCode;
     }
 
-    public void setOffset(int offset) {
-        this.changed = this.offset != offset;
-        this.offset = offset;
+    public void setScriptLogOffset(int scriptLogOffset) {
+        this.changed = this.scriptLogOffset != scriptLogOffset;
+        this.scriptLogOffset = scriptLogOffset;
     }
 
     /**

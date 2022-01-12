@@ -321,7 +321,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         if (ipLog.getStartTime() == null) {
             ipLog.setStartTime(System.currentTimeMillis());
         }
-        ipLog.setErrCode(copyFileRsp.getFinalErrorCode());
+        ipLog.setErrorCode(copyFileRsp.getFinalErrorCode());
         GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(copyFileRsp.getFinalErrorCode());
         GSEFileTaskResult fileTaskResult = copyFileRsp.getGseFileTaskResult();
         switch (errorCode) {

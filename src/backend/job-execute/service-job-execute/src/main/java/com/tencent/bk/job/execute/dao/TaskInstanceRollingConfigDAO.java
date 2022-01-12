@@ -22,34 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.dao;
 
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
-import lombok.Data;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 
 /**
- * 作业实例滚动区间配置
+ * 作业滚动配置DAO
  */
-@Data
-public class TaskInstanceRollingConfigDTO {
+public interface TaskInstanceRollingConfigDAO {
     /**
-     * id
+     * 保存滚动区间配置
+     *
+     * @param rollingConfig 滚动区间配置
      */
-    private Long id;
+    void saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
 
     /**
-     * 执行作业实例id
+     * 通过滚动区间配置ID获取滚动区间配置
+     *
+     * @param id 滚动区间配置ID
+     * @return 滚动区间配置
      */
-    private Long taskInstanceId;
-
-    /**
-     * 滚动区间名称
-     */
-    private String configName;
-
-    /**
-     * 滚动配置
-     */
-    private RollingConfigDO config;
+    TaskInstanceRollingConfigDTO queryRollingConfigById(Long id);
 }
-

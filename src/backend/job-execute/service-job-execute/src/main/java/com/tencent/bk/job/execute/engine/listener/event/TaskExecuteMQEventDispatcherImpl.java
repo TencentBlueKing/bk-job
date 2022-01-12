@@ -48,7 +48,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class TaskExecuteEventDispatcherImpl implements TaskExecuteEventDispatcher {
+public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispatcher {
     /**
      * 消息通道-作业
      */
@@ -77,12 +77,12 @@ public class TaskExecuteEventDispatcherImpl implements TaskExecuteEventDispatche
     private final MessageChannel resultHandleTaskResumeOutput;
 
     @Autowired
-    public TaskExecuteEventDispatcherImpl(@Qualifier(TaskProcessor.OUTPUT) MessageChannel taskOutput,
-                                          @Qualifier(StepProcessor.OUTPUT) MessageChannel stepOutput,
-                                          @Qualifier(GseTaskProcessor.OUTPUT) MessageChannel gseTaskOutput,
-                                          @Qualifier(NotifyMsgProcessor.OUTPUT) MessageChannel notifyMsgOutput,
-                                          @Qualifier(CallbackProcessor.OUTPUT) MessageChannel callbackOutput,
-                                          @Qualifier(TaskResultHandleResumeProcessor.OUTPUT) MessageChannel resultHandleTaskResumeOutput) {
+    public TaskExecuteMQEventDispatcherImpl(@Qualifier(TaskProcessor.OUTPUT) MessageChannel taskOutput,
+                                            @Qualifier(StepProcessor.OUTPUT) MessageChannel stepOutput,
+                                            @Qualifier(GseTaskProcessor.OUTPUT) MessageChannel gseTaskOutput,
+                                            @Qualifier(NotifyMsgProcessor.OUTPUT) MessageChannel notifyMsgOutput,
+                                            @Qualifier(CallbackProcessor.OUTPUT) MessageChannel callbackOutput,
+                                            @Qualifier(TaskResultHandleResumeProcessor.OUTPUT) MessageChannel resultHandleTaskResumeOutput) {
         this.taskOutput = taskOutput;
         this.stepOutput = stepOutput;
         this.gseTaskOutput = gseTaskOutput;

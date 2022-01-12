@@ -78,10 +78,10 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             param[4] = ipLog.getStartTime();
             param[5] = ipLog.getEndTime();
             param[6] = ipLog.getTotalTime();
-            param[7] = ipLog.getErrCode();
+            param[7] = ipLog.getErrorCode();
             param[8] = ipLog.getExitCode();
             param[9] = StringUtils.truncate(ipLog.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[10] = ipLog.getOffset();
+            param[10] = ipLog.getScriptLogOffset();
             param[11] = ipLog.getDisplayIp();
             param[12] = ipLog.isTargetServer() ? 1 : 0;
             param[13] = ipLog.isSourceServer() ? 1 : 0;
@@ -298,10 +298,10 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         ipLog.setStartTime(record.get(t.START_TIME));
         ipLog.setEndTime(record.get(t.END_TIME));
         ipLog.setTotalTime(record.get(t.TOTAL_TIME));
-        ipLog.setErrCode(record.get(t.ERROR_CODE));
+        ipLog.setErrorCode(record.get(t.ERROR_CODE));
         ipLog.setExitCode(record.get(t.EXIT_CODE, Integer.class));
         ipLog.setTag(record.get(t.TAG));
-        ipLog.setOffset(record.get(t.LOG_OFFSET));
+        ipLog.setScriptLogOffset(record.get(t.LOG_OFFSET));
         ipLog.setDisplayIp(record.get(t.DISPLAY_IP));
         String[] cloudAreaIdAndIpArray = record.get(t.IP).split(":");
         ipLog.setCloudAreaId(Long.valueOf(cloudAreaIdAndIpArray[0]));

@@ -28,9 +28,9 @@ import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 
 /**
- * 作业执行事件分发
+ * 作业执行MQ事件分发
  */
-public interface TaskExecuteEventDispatcher {
+public interface TaskExecuteMQEventDispatcher {
 
     /**
      * 发送启动作业事件

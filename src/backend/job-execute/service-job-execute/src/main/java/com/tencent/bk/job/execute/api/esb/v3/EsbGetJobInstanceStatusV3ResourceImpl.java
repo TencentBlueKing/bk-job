@@ -147,7 +147,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
                         stepIpResult.setCloudAreaId(ipLog.getCloudAreaId());
                         stepIpResult.setIp(ipLog.getIp());
                         stepIpResult.setExitCode(ipLog.getExitCode());
-                        stepIpResult.setErrorCode(ipLog.getErrCode());
+                        stepIpResult.setErrorCode(ipLog.getErrorCode());
                         stepIpResult.setStartTime(ipLog.getStartTime());
                         stepIpResult.setEndTime(ipLog.getEndTime());
                         stepIpResult.setTotalTime(ipLog.getTotalTime());

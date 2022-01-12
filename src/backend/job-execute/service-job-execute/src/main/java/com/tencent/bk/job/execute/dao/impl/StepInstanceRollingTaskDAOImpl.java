@@ -22,34 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.execute.model.db.RollingConfigDO;
-import lombok.Data;
+import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
+import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
+import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 
-/**
- * 作业实例滚动区间配置
- */
-@Data
-public class TaskInstanceRollingConfigDTO {
-    /**
-     * id
-     */
-    private Long id;
+@Repository
+public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
 
-    /**
-     * 执行作业实例id
-     */
-    private Long taskInstanceId;
+    private final DSLContext ctx;
 
-    /**
-     * 滚动区间名称
-     */
-    private String configName;
+    @Autowired
+    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+        this.ctx = ctx;
+    }
 
-    /**
-     * 滚动配置
-     */
-    private RollingConfigDO config;
+    @Override
+    public void saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
+
+    }
 }
-

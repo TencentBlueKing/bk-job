@@ -31,7 +31,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -59,22 +59,24 @@ import java.util.List;
 @Slf4j
 public class JobListener {
 
-    private final TaskExecuteEventDispatcher taskExecuteEventDispatcher;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StatisticsService statisticsService;
     private final TaskInstanceService taskInstanceService;
 
     @Autowired
-    public JobListener(TaskExecuteEventDispatcher taskExecuteEventDispatcher,
+    public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                        StatisticsService statisticsService,
                        TaskInstanceService taskInstanceService) {
-        this.taskExecuteEventDispatcher = taskExecuteEventDispatcher;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
     }
 
 
     /**
-     * 处理和作业相关的控制消息：启动作业、停止作业、重启作业、忽略错误和作业状态刷新
+     * 处理作业执行相关的事件
+     *
+     * @param jobEvent 作业执行相关的事件
      */
     @StreamListener(TaskProcessor.INPUT)
     public void handleEvent(JobEvent jobEvent) {
@@ -115,7 +117,7 @@ public class JobListener {
             long firstStepId = taskInstanceService.getTaskStepIdList(taskInstanceId).get(0);
             taskInstanceService.updateTaskExecutionInfo(taskInstanceId, RunStatusEnum.RUNNING, firstStepId,
                 DateUtils.currentTimeMillis(), null, null);
-            taskExecuteEventDispatcher.startStep(firstStepId);
+            taskExecuteMQEventDispatcher.startStep(firstStepId);
             // 触发任务开始统计分析
             statisticsService.updateStartJobStatistics(taskInstance);
         } else {
@@ -159,7 +161,7 @@ public class JobListener {
                 taskInstanceService.resetStepStatus(stepInstanceId);
             }
 
-            taskExecuteEventDispatcher.startTask(taskInstanceId);
+            taskExecuteMQEventDispatcher.startTask(taskInstanceId);
         } else {
             log.warn("Unsupported task instance run status for restart task, taskInstanceId={}, status={}",
                 taskInstanceId, taskInstance.getStatus());
@@ -233,10 +235,10 @@ public class JobListener {
                     statisticsService.updateEndJobStatistics(taskInstance);
                 } else { // 进入下一步
                     taskInstanceService.updateTaskCurrentStepId(taskInstanceId, nextStepId);
-                    taskExecuteEventDispatcher.startStep(nextStepId);
+                    taskExecuteMQEventDispatcher.startStep(nextStepId);
                 }
                 // 步骤执行成功后清理产生的临时文件
-                taskExecuteEventDispatcher.clearStep(currentStepId);
+                taskExecuteMQEventDispatcher.clearStep(currentStepId);
             } else if (RunStatusEnum.FAIL.getValue() == stepStatus) {
                 if (currentStep.isIgnoreError()) {
                     taskInstanceService.updateStepStatus(currentStepId, RunStatusEnum.IGNORE_ERROR.getValue());
@@ -285,7 +287,7 @@ public class JobListener {
         } else { // 进入下一步
             taskInstanceService.updateTaskCurrentStepId(taskInstanceId, nextStepId);
 
-            taskExecuteEventDispatcher.startStep(nextStepId);
+            taskExecuteMQEventDispatcher.startStep(nextStepId);
         }
     }
 
@@ -302,7 +304,7 @@ public class JobListener {
             e.setStatus(stepStatus);
             instances.add(e);
             dto.setStepInstances(instances);
-            taskExecuteEventDispatcher.sendCallback(dto);
+            taskExecuteMQEventDispatcher.sendCallback(dto);
         }
     }
 
@@ -335,7 +337,7 @@ public class JobListener {
         taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.FAIL.getStatus());
         taskNotifyDTO.setStepName(stepInstance.getName());
         setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
     }
 
     private void asyncNotifySuccess(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
@@ -343,7 +345,7 @@ public class JobListener {
         taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.SUCCESS.getStatus());
         taskNotifyDTO.setCost(taskInstance.getTotalTime());
         setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
     }
 
     private TaskNotifyDTO buildCommonTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {

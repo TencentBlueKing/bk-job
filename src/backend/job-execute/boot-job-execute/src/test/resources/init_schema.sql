@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS `task_instance_rolling_config`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `step_instance_task`
+CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 (
     `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
     `step_instance_id` bigint(20)  NOT NULL DEFAULT '0',

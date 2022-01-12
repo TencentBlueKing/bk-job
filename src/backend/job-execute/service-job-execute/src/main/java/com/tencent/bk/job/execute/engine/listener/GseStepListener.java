@@ -62,6 +62,11 @@ public class GseStepListener {
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
     }
 
+    /**
+     * 处理GSE任务相关的事件
+     *
+     * @param gseStepEvent GSE任务事件
+     */
     @StreamListener(GseTaskProcessor.INPUT)
     public void handleEvent(@Payload StepEvent gseStepEvent) {
         log.info("Handel gse step event, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",

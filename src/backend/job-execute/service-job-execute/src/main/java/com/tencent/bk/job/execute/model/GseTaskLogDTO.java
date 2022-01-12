@@ -31,20 +31,36 @@ import lombok.Data;
  */
 @Data
 public class GseTaskLogDTO {
+    /**
+     * 步骤实例ID
+     */
     private Long stepInstanceId;
-
+    /**
+     * 步骤执行次数
+     */
     private Integer executeCount;
-
+    /**
+     * 滚动执行批次
+     */
+    private Integer batch;
+    /**
+     * 任务开始时间
+     */
     private Long startTime;
-
+    /**
+     * 任务结束时间
+     */
     private Long endTime;
     /**
-     * 耗时，毫秒
+     * 任务耗时，单位毫秒
      */
     private Long totalTime;
-
+    /**
+     * 任务状态
+     */
     private Integer status = 1;
-
+    /**
+     * GSE 任务ID
+     */
     private String gseTaskId;
-
 }

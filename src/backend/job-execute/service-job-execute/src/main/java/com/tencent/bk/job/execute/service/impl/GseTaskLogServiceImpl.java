@@ -33,7 +33,14 @@ import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.model.*;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.FileIpLogContent;
+import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ScriptIpLogContent;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import lombok.extern.slf4j.Slf4j;
@@ -196,12 +203,12 @@ public class GseTaskLogServiceImpl implements GseTaskLogService {
             if (stepInstance.isScriptStep()) {
                 ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount
                     , IpDTO.fromCloudAreaIdAndIpStr(gseTaskIpLog.getCloudAreaAndIp()));
-                gseTaskIpLog.setLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
+                gseTaskIpLog.setScriptLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
                     IpDTO.fromCloudAreaIdAndIpStr(gseTaskIpLog.getCloudAreaAndIp()),
                     FileDistModeEnum.DOWNLOAD.getValue());
-                gseTaskIpLog.setLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
+                gseTaskIpLog.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
             }
             log.debug("stepInstanceId={}|ip={}|time={} ms", stepInstanceId, gseTaskIpLog.getCloudAreaAndIp(),
                 (System.currentTimeMillis() - startTime));

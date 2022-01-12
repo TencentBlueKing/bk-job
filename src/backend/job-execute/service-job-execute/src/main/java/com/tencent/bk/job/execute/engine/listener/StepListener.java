@@ -29,7 +29,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteEventDispatcher;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.NotifyDTO;
@@ -71,12 +71,12 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.STOP;
 @Slf4j
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteEventDispatcher taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskControlMsgSender;
     private final FilePrepareService filePrepareService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
-                        TaskExecuteEventDispatcher taskControlMsgSender,
+                        TaskExecuteMQEventDispatcher taskControlMsgSender,
                         FilePrepareService filePrepareService) {
         this.taskInstanceService = taskInstanceService;
         this.taskControlMsgSender = taskControlMsgSender;
@@ -84,7 +84,9 @@ public class StepListener {
     }
 
     /**
-     * 处理步骤控制相关消息，包含：预启动步骤、启动步骤、重新执行步骤和跳过步骤
+     * 处理步骤执行相关的事件
+     *
+     * @param stepEvent 步骤执行相关的事件
      */
     @StreamListener(StepProcessor.INPUT)
     public void handleEvent(StepEvent stepEvent) {

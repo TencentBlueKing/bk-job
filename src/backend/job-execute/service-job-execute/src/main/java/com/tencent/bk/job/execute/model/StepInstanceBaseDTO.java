@@ -48,7 +48,6 @@ public class StepInstanceBaseDTO {
      * 执行次数
      */
     protected int executeCount;
-
     /**
      * 执行步骤id
      */
@@ -91,7 +90,7 @@ public class StepInstanceBaseDTO {
      */
     protected Long endTime;
     /**
-     * 总耗时，单位：毫秒秒
+     * 总耗时，单位：毫秒
      */
     protected Long totalTime;
     /**
@@ -146,11 +145,19 @@ public class StepInstanceBaseDTO {
      * 当前步骤在作业中的顺序
      */
     protected Integer stepOrder;
+    /**
+     * 滚动执行批次
+     */
+    protected int batch;
+    /**
+     * 滚动配置ID
+     */
+    private Long rollingConfigId;
 
     /**
      * 获取步骤类型
      *
-     * @return
+     * @return 步骤类型
      * @see TaskStepTypeEnum
      */
     public Integer getStepType() {
@@ -194,5 +201,12 @@ public class StepInstanceBaseDTO {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * 是否滚动步骤
+     */
+    public boolean isRollingStep() {
+        return this.rollingConfigId != null && this.rollingConfigId > 0;
     }
 }

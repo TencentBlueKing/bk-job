@@ -408,7 +408,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         agentTaskExecution.setDisplayIp(gseTaskIpLog.getDisplayIp());
         agentTaskExecution.setStatus(gseTaskIpLog.getStatus());
         agentTaskExecution.setTag(gseTaskIpLog.getTag());
-        agentTaskExecution.setErrorCode(gseTaskIpLog.getErrCode());
+        agentTaskExecution.setErrorCode(gseTaskIpLog.getErrorCode());
         agentTaskExecution.setExitCode(gseTaskIpLog.getExitCode());
         agentTaskExecution.setStartTime(gseTaskIpLog.getStartTime());
         agentTaskExecution.setEndTime(gseTaskIpLog.getEndTime());

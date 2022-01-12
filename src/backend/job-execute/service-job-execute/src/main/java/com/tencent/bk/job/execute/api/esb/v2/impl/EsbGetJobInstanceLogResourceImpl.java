@@ -112,11 +112,11 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                     Lists.newArrayListWithCapacity(ipLogList.size());
                 for (GseTaskIpLogDTO taskIpLog : ipLogList) {
                     EsbStepInstanceResultAndLog.IpLogDTO ipLogDTO = new EsbStepInstanceResultAndLog.IpLogDTO();
-                    ipLogDTO.setLogContent(Utils.htmlEncode(taskIpLog.getLogContent()));
+                    ipLogDTO.setLogContent(Utils.htmlEncode(taskIpLog.getScriptLogContent()));
                     ipLogDTO.setExecuteCount(taskIpLog.getExecuteCount());
                     ipLogDTO.setEndTime(taskIpLog.getEndTime());
                     ipLogDTO.setStartTime(taskIpLog.getStartTime());
-                    ipLogDTO.setErrCode(taskIpLog.getErrCode());
+                    ipLogDTO.setErrCode(taskIpLog.getErrorCode());
                     ipLogDTO.setExitCode(taskIpLog.getExitCode());
                     ipLogDTO.setTotalTime(taskIpLog.getTotalTime());
                     ipLogDTO.setCloudAreaId(taskIpLog.getCloudAreaId());
