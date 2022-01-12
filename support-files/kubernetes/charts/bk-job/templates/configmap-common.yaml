@@ -18,8 +18,8 @@ data:
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
     app:
-      code: {{ .Values.app.code }}
-      secret: {{ .Values.app.secret }}
+      code: {{ .Values.appCode }}
+      secret: {{ .Values.appSecret }}
     esb:
       service:
         url: {{ .Values.bkComponentApiUrl }}
@@ -54,7 +54,7 @@ data:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:
       base-url: {{ .Values.bkIamApiUrl }}
-      system-id: {{ .Values.app.code }}
+      system-id: {{ .Values.appCode }}
     paas:
       login:
         url: {{ .Values.bkLoginUrl }}
