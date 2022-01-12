@@ -222,7 +222,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
             throw new PermissionDeniedException(e.getAuthResult());
         }
         if (cronId > 0) {
-            esbCronInfoResponse.setId(cronId);
+            esbCronInfoResponse = CronJobInfoDTO.toEsbCronInfo(cronJobService.getCronJobInfoById(cronId));
             return EsbResp.buildSuccessResp(esbCronInfoResponse);
         } else {
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);

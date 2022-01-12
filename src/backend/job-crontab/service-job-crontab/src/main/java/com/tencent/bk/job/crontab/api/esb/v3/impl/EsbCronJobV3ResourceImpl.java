@@ -340,7 +340,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             throw new PermissionDeniedException(e.getAuthResult());
         }
         if (cronId > 0) {
-            esbCronInfoV3Response.setId(cronId);
+            esbCronInfoV3Response = CronJobInfoDTO.toEsbCronInfoV3Response(cronJobService.getCronJobInfoById(cronId));
             return EsbResp.buildSuccessResp(esbCronInfoV3Response);
         } else {
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);

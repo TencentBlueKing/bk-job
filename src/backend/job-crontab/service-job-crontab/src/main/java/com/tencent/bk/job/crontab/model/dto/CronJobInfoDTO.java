@@ -162,22 +162,22 @@ public class CronJobInfoDTO {
     /**
      * 通知提前时间
      */
-    private Long notifyOffset;
+    private Long notifyOffset = 0L;
 
     /**
      * 通知接收人列表
      */
-    private UserRoleInfoDTO notifyUser;
+    private UserRoleInfoDTO notifyUser = new UserRoleInfoDTO();
 
     /**
      * 通知渠道列表
      */
-    private List<String> notifyChannel;
+    private List<String> notifyChannel = Collections.emptyList();
 
     /**
      * 周期执行结束时间
      */
-    private Long endTime;
+    private Long endTime = 0L;
 
     public static CronJobVO toVO(CronJobInfoDTO cronJobInfo) {
         if (cronJobInfo == null) {
@@ -294,7 +294,7 @@ public class CronJobInfoDTO {
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
         if (StringUtils.isNotBlank(cronJobInfoDTO.getCronExpression())) {
             esbCronInfoResponse.setCronExpression(
-                cronJobInfoDTO.getCronExpression().substring(2).replace("?", "*"));
+                CronExpressionUtil.fixExpressionForUser(cronJobInfoDTO.getCronExpression()));
         }
         esbCronInfoResponse.setCreator(cronJobInfoDTO.getCreator());
         esbCronInfoResponse
@@ -303,6 +303,37 @@ public class CronJobInfoDTO {
         esbCronInfoResponse
             .setLastModifyTime(DateUtils.formatUnixTimestamp(cronJobInfoDTO.getLastModifyTime(), ChronoUnit.SECONDS));
         return esbCronInfoResponse;
+    }
+
+    public static EsbCronInfoV3Response toEsbCronInfoV3Response(CronJobInfoDTO cronJobInfoDTO) {
+        if (cronJobInfoDTO == null) {
+            return null;
+        }
+        EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
+        esbCronInfoV3Response.setId(cronJobInfoDTO.getId());
+        esbCronInfoV3Response.setAppId(cronJobInfoDTO.getAppId());
+        esbCronInfoV3Response.setPlanId(cronJobInfoDTO.getTaskPlanId());
+        esbCronInfoV3Response.setName(cronJobInfoDTO.getName());
+        esbCronInfoV3Response.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
+        if (StringUtils.isNotBlank(cronJobInfoDTO.getCronExpression())) {
+            esbCronInfoV3Response.setCronExpression(
+                CronExpressionUtil.fixExpressionForUser(cronJobInfoDTO.getCronExpression()));
+        }
+        List<CronJobVariableDTO> variableValue = cronJobInfoDTO.getVariableValue();
+        if (variableValue != null) {
+            esbCronInfoV3Response.setGlobalVarList(
+                variableValue.stream()
+                    .map(CronJobVariableDTO::toEsbGlobalVarV3)
+                    .collect(Collectors.toList())
+            );
+        }
+        esbCronInfoV3Response.setCreator(cronJobInfoDTO.getCreator());
+        esbCronInfoV3Response
+            .setCreateTime(cronJobInfoDTO.getCreateTime());
+        esbCronInfoV3Response.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
+        esbCronInfoV3Response
+            .setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
+        return esbCronInfoV3Response;
     }
 
     public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
