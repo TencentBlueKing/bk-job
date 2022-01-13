@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine;
 
 import brave.Tracing;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -101,6 +103,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final ExecuteMonitor executeMonitor;
     private final StorageSystemConfig storageSystemConfig;
     private final JobExecuteConfig jobExecuteConfig;
+    private final RollingConfigService rollingConfigService;
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
     /**
@@ -156,7 +159,8 @@ public class GseTaskManager implements SmartLifecycle {
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracing tracing,
                           ExecuteMonitor executeMonitor,
-                          JobExecuteConfig jobExecuteConfig) {
+                          JobExecuteConfig jobExecuteConfig,
+                          RollingConfigService rollingConfigService) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskLogService = gseTaskLogService;
@@ -174,6 +178,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.tracing = tracing;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.rollingConfigService = rollingConfigService;
     }
 
     /**
@@ -226,9 +231,14 @@ public class GseTaskManager implements SmartLifecycle {
             watch.start("init-task-executor");
             int executeCount = stepInstance.getExecuteCount();
             Set<String> executeIps = new HashSet<>();
-            stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
-                executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp());
-            });
+            if (stepInstance.isRollingStep()) {
+                List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance.getRollingConfigId()
+                    , stepInstanceId, stepInstance.getBatch());
+                rollingServers.forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
+            } else {
+                stepInstance.getTargetServers().getIpList()
+                    .forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
+            }
             watch.stop();
 
             watch.start("init-gse-task-executor");

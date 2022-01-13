@@ -209,4 +209,11 @@ public class StepInstanceBaseDTO {
     public boolean isRollingStep() {
         return this.rollingConfigId != null && this.rollingConfigId > 0;
     }
+
+    /**
+     * 是否滚动执行第一批次
+     */
+    public boolean isFirstRollingBatch() {
+        return this.batch == 1;
+    }
 }

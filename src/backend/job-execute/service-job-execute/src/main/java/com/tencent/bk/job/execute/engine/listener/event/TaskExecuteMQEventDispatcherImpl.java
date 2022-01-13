@@ -192,12 +192,12 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
 
     @Override
     public void startStep(long stepInstanceId) {
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.START.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send start step control message successfully, stepInstanceId={}", stepInstanceId);
+        StepEvent event = new StepEvent();
+        event.setStepInstanceId(stepInstanceId);
+        event.setAction(StepActionEnum.START.getValue());
+        event.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(event).build());
+        log.info("Send start step event successfully, event={}", event);
     }
 
     @Override

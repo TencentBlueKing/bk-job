@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
@@ -71,14 +72,17 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.STOP;
 @Slf4j
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final TaskExecuteMQEventDispatcher taskControlMsgSender;
     private final FilePrepareService filePrepareService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
+                        StepInstanceService stepInstanceService,
                         TaskExecuteMQEventDispatcher taskControlMsgSender,
                         FilePrepareService filePrepareService) {
         this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskControlMsgSender = taskControlMsgSender;
         this.filePrepareService = filePrepareService;
     }
@@ -234,17 +238,29 @@ public class StepListener {
         long stepInstanceId = stepInstance.getId();
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
-        // 只有当步骤状态为'等待用户'和'未执行'时可以启动步骤
-        if (RunStatusEnum.BLANK.getValue() == stepStatus || RunStatusEnum.WAITING.getValue() == stepStatus) {
+        // 只有当步骤状态为“等待用户”、“未执行”、“滚动等待”时可以启动步骤
+        if (RunStatusEnum.BLANK.getValue() == stepStatus
+            || RunStatusEnum.WAITING.getValue() == stepStatus
+            || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus) {
+
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
                 DateUtils.currentTimeMillis(), null, null);
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
+
+            // 如果是滚动步骤，需要更新滚动进度
+            if (stepInstance.isRollingStep()) {
+                int currentRollingBatch = stepInstance.getBatch() + 1;
+                stepInstance.setBatch(currentRollingBatch);
+                stepInstanceService.updateStepCurrentBatch(stepInstanceId, currentRollingBatch);
+            }
 
             int stepType = stepInstance.getExecuteType();
             if (EXECUTE_SCRIPT.getValue() == stepType || StepExecuteTypeEnum.EXECUTE_SQL.getValue() == stepType) {
                 taskControlMsgSender.startGseStep(stepInstanceId);
             } else if (TaskStepTypeEnum.FILE.getValue() == stepType) {
-                filePrepareService.prepareFileForGseTask(stepInstanceId);
+                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
+                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
+                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                }
             } else if (TaskStepTypeEnum.APPROVAL.getValue() == stepType) {
                 executeConfirmStep(stepInstance);
             } else {

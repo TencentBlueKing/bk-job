@@ -22,45 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.service.impl;
 
-import lombok.Data;
+import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.service.RollingConfigService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
-/**
- * GSE任务执行结果
- */
-@Data
-public class GseTaskLogDTO {
-    /**
-     * 步骤实例ID
-     */
-    private Long stepInstanceId;
-    /**
-     * 步骤执行次数
-     */
-    private Integer executeCount;
-    /**
-     * 滚动执行批次
-     */
-    private int batch;
-    /**
-     * 任务开始时间
-     */
-    private Long startTime;
-    /**
-     * 任务结束时间
-     */
-    private Long endTime;
-    /**
-     * 任务耗时，单位毫秒
-     */
-    private Long totalTime;
-    /**
-     * 任务状态
-     */
-    private Integer status = 1;
-    /**
-     * GSE 任务ID
-     */
-    private String gseTaskId;
+import java.util.List;
+
+@Service
+@Slf4j
+public class RollingConfigServiceImpl implements RollingConfigService {
+    @Override
+    public List<IpDTO> getRollingServers(long rollingConfigId, long stepInstanceId, int batch) {
+        return null;
+    }
 }

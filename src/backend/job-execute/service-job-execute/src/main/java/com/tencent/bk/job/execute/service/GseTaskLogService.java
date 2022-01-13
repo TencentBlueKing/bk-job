@@ -51,8 +51,6 @@ public interface GseTaskLogService {
 
     GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount);
 
-    void deleteGseTaskLog(long stepInstanceId, int executeCount);
-
     void clearAllIpLog(long stepInstanceId, int executeCount);
 
     void batchSaveIpLog(List<GseTaskIpLogDTO> ipLogList);

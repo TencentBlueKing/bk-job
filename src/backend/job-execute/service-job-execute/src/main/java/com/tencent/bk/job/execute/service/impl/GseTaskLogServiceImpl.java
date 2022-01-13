@@ -92,11 +92,6 @@ public class GseTaskLogServiceImpl implements GseTaskLogService {
     }
 
     @Override
-    public void deleteGseTaskLog(long stepInstanceId, int executeCount) {
-        gseTaskLogDao.deleteGseTaskLog(stepInstanceId, executeCount);
-    }
-
-    @Override
     public void clearAllIpLog(long stepInstanceId, int executeCount) {
         gseTaskIpLogDao.deleteAllIpLog(stepInstanceId, executeCount);
 

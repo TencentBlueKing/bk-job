@@ -33,6 +33,4 @@ public interface GseTaskLogDAO {
 
     GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount);
 
-    void deleteGseTaskLog(long stepInstanceId, int executeCount);
-
 }

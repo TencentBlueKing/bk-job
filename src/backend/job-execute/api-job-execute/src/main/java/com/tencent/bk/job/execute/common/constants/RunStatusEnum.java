@@ -31,17 +31,63 @@ import java.util.List;
  * 作业执行状态
  */
 public enum RunStatusEnum {
-    BLANK(1, "等待执行"), RUNNING(2, "正在执行"), SUCCESS(3, "执行成功"),
-    FAIL(4, "执行失败"), SKIPPED(5, "跳过"), IGNORE_ERROR(6, "忽略错误"),
-    WAITING(7, "等待用户"), TERMINATED(8, "手动结束"), ABNORMAL_STATE(9, "状态异常"),
-    STOPPING(10, "强制终止中"), STOP_SUCCESS(11, "强制终止成功"), CONFIRM_TERMINATED(13, "确认终止");
+    /**
+     * 等待执行
+     */
+    BLANK(1),
+    /**
+     * 正在执行
+     */
+    RUNNING(2),
+    /**
+     * 执行成功
+     */
+    SUCCESS(3),
+    /**
+     * 执行失败
+     */
+    FAIL(4),
+    /**
+     * 跳过
+     */
+    SKIPPED(5),
+    /**
+     * 忽略错误
+     */
+    IGNORE_ERROR(6),
+    /**
+     * 等待用户
+     */
+    WAITING(7),
+    /**
+     * 手动结束
+     */
+    TERMINATED(8),
+    /**
+     * 状态异常
+     */
+    ABNORMAL_STATE(9),
+    /**
+     * 强制终止中
+     */
+    STOPPING(10),
+    /**
+     * 强制终止成功
+     */
+    STOP_SUCCESS(11),
+    /**
+     * 确认终止
+     */
+    CONFIRM_TERMINATED(13),
+    /**
+     * 滚动等待
+     */
+    ROLLING_WAITING(14);
 
     private final Integer value;
-    private final String name;
 
-    RunStatusEnum(Integer val, String name) {
+    RunStatusEnum(Integer val) {
         this.value = val;
-        this.name = name;
     }
 
     public static RunStatusEnum valueOf(int status) {
@@ -55,8 +101,6 @@ public enum RunStatusEnum {
 
     /**
      * 获取终止态的状态列表
-     *
-     * @return
      */
     public static List<Integer> getFinishedStatusValueList() {
         List<Integer> finishedStatusValueList = new ArrayList<>();
@@ -75,10 +119,10 @@ public enum RunStatusEnum {
         return value;
     }
 
-    public String getName() {
-        return name;
-    }
-
+    /**
+     * 获取国际化Key
+     *
+     **/
     public String getI18nKey() {
         return "task.run.status." + this.name().toLowerCase();
     }
