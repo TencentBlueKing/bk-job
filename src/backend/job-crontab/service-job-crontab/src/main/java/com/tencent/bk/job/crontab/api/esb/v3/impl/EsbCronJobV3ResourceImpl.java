@@ -43,7 +43,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.crontab.api.common.ParamCheckUtil;
+import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
 import com.tencent.bk.job.crontab.client.ServiceTaskPlanResourceClient;
 import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
@@ -54,7 +54,7 @@ import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronDetailV3Request
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbSaveCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbUpdateCronStatusV3Request;
-import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3Response;
+import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
@@ -91,20 +91,20 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronList(String username,
-                                                                     String appCode,
-                                                                     Long appId,
-                                                                     Long id,
-                                                                     String creator,
-                                                                     String name,
-                                                                     Integer status,
-                                                                     Long createTimeStart,
-                                                                     Long createTimeEnd,
-                                                                     String lastModifyUser,
-                                                                     Long lastModifyTimeStart,
-                                                                     Long lastModifyTimeEnd,
-                                                                     Integer start,
-                                                                     Integer length) {
+    public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(String username,
+                                                                String appCode,
+                                                                Long appId,
+                                                                Long id,
+                                                                String creator,
+                                                                String name,
+                                                                Integer status,
+                                                                Long createTimeStart,
+                                                                Long createTimeEnd,
+                                                                String lastModifyUser,
+                                                                Long lastModifyTimeStart,
+                                                                Long lastModifyTimeEnd,
+                                                                Integer start,
+                                                                Integer length) {
         EsbGetCronListV3Request request = new EsbGetCronListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
@@ -124,7 +124,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     @Override
-    public EsbResp<EsbCronInfoV3Response> getCronDetail(String username, String appCode, Long appId, Long id) {
+    public EsbResp<EsbCronInfoV3DTO> getCronDetail(String username, String appCode, Long appId, Long id) {
         EsbGetCronDetailV3Request request = new EsbGetCronDetailV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
@@ -135,7 +135,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_cron_list"})
-    public EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronListUsingPost(EsbGetCronListV3Request request) {
+    public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(EsbGetCronListV3Request request) {
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
@@ -146,9 +146,9 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             if (request.getId() != null && request.getId() > 0) {
                 CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
                 cronJobInfoById.setVariableValue(null);
-                List<EsbCronInfoV3Response> data =
+                List<EsbCronInfoV3DTO> data =
                     Collections.singletonList(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));
-                EsbPageDataV3<EsbCronInfoV3Response> esbPageDataV3 = new EsbPageDataV3<>();
+                EsbPageDataV3<EsbCronInfoV3DTO> esbPageDataV3 = new EsbPageDataV3<>();
                 esbPageDataV3.setTotal(1L);
                 esbPageDataV3.setStart(request.getStart());
                 esbPageDataV3.setLength(request.getLength());
@@ -183,11 +183,11 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                 }
                 PageData<CronJobInfoDTO> cronJobInfoPageData =
                     cronJobService.listPageCronJobInfos(cronJobCondition, baseSearchCondition);
-                List<EsbCronInfoV3Response> cronInfoV3ResponseData = cronJobInfoPageData.getData().parallelStream()
+                List<EsbCronInfoV3DTO> cronInfoV3ResponseData = cronJobInfoPageData.getData().parallelStream()
                     .peek(cronJobInfoDTO ->
                         cronJobInfoDTO.setVariableValue(null))
                     .map(CronJobInfoDTO::toEsbCronInfoV3).collect(Collectors.toList());
-                EsbPageDataV3<EsbCronInfoV3Response> esbPageDataV3 = new EsbPageDataV3<>();
+                EsbPageDataV3<EsbCronInfoV3DTO> esbPageDataV3 = new EsbPageDataV3<>();
                 esbPageDataV3.setTotal(cronJobInfoPageData.getTotal());
                 esbPageDataV3.setStart(cronJobInfoPageData.getStart());
                 esbPageDataV3.setLength(cronJobInfoPageData.getPageSize());
@@ -200,7 +200,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_cron_status"})
-    public EsbResp<EsbCronInfoV3Response> updateCronStatus(EsbUpdateCronStatusV3Request request) {
+    public EsbResp<EsbCronInfoV3DTO> updateCronStatus(EsbUpdateCronStatusV3Request request) {
         String username = request.getUserName();
         Long appId = request.getAppId();
         request.validate();
@@ -219,9 +219,9 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             throw new PermissionDeniedException(e.getAuthResult());
         }
         if (updateResult) {
-            EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
-            esbCronInfoV3Response.setId(request.getId());
-            return EsbResp.buildSuccessResp(esbCronInfoV3Response);
+            EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
+            esbCronInfoV3DTO.setId(request.getId());
+            return EsbResp.buildSuccessResp(esbCronInfoV3DTO);
         }
         throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
     }
@@ -235,16 +235,16 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         }
         // 定时任务表达式有效性校验
         if (StringUtils.isNotBlank(request.getCronExpression())) {
-            ParamCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
+            CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
         }
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_save_cron"})
-    public EsbResp<EsbCronInfoV3Response> saveCron(EsbSaveCronV3Request request) {
+    public EsbResp<EsbCronInfoV3DTO> saveCron(EsbSaveCronV3Request request) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
-        EsbCronInfoV3Response esbCronInfoV3Response = new EsbCronInfoV3Response();
-        esbCronInfoV3Response.setId(0L);
+        EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
+        esbCronInfoV3DTO.setId(0L);
         checkRequest(request);
         Long appId = request.getAppId();
         AuthResult authResult;
@@ -340,15 +340,15 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             throw new PermissionDeniedException(e.getAuthResult());
         }
         if (cronId > 0) {
-            esbCronInfoV3Response = CronJobInfoDTO.toEsbCronInfoV3Response(cronJobService.getCronJobInfoById(cronId));
-            return EsbResp.buildSuccessResp(esbCronInfoV3Response);
+            esbCronInfoV3DTO = CronJobInfoDTO.toEsbCronInfoV3Response(cronJobService.getCronJobInfoById(cronId));
+            return EsbResp.buildSuccessResp(esbCronInfoV3DTO);
         } else {
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
         }
     }
 
     @Override
-    public EsbResp<EsbCronInfoV3Response> getCronDetailUsingPost(EsbGetCronDetailV3Request request) {
+    public EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(EsbGetCronDetailV3Request request) {
         AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {

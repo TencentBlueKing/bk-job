@@ -34,7 +34,7 @@ import java.util.List;
  * @since 26/2/2020 20:58
  */
 @Data
-public class EsbCronInfoV3Response {
+public class EsbCronInfoV3DTO {
 
     /**
      * 业务ID

@@ -5,7 +5,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
 import org.quartz.CronExpression;
 
-public class ParamCheckUtil {
+public class CronCheckUtil {
 
     public static void checkCronExpression(String cronExpression, String paramName) {
         // 校验cron表达式的有效性

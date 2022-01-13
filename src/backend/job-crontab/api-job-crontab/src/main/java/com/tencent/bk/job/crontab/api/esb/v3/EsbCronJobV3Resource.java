@@ -32,7 +32,7 @@ import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronDetailV3Request
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbSaveCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbUpdateCronStatusV3Request;
-import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3Response;
+import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 public interface EsbCronJobV3Resource {
 
     @GetMapping("/get_cron_list")
-    EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronList(
+    EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_biz_id") Long appId,
@@ -67,7 +67,7 @@ public interface EsbCronJobV3Resource {
         @RequestParam(value = "length", required = false) Integer length);
 
     @GetMapping("/get_cron_detail")
-    EsbResp<EsbCronInfoV3Response> getCronDetail(
+    EsbResp<EsbCronInfoV3DTO> getCronDetail(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_biz_id") Long appId,
@@ -81,7 +81,7 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务列表
      */
     @PostMapping("/get_cron_list")
-    EsbResp<EsbPageDataV3<EsbCronInfoV3Response>> getCronListUsingPost(
+    EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(
         @RequestBody EsbGetCronListV3Request request);
 
     /**
@@ -91,7 +91,7 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping("/get_cron_detail")
-    EsbResp<EsbCronInfoV3Response> getCronDetailUsingPost(
+    EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(
         @RequestBody EsbGetCronDetailV3Request request);
 
     /**
@@ -101,7 +101,7 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping(value = "/update_cron_status")
-    EsbResp<EsbCronInfoV3Response> updateCronStatus(
+    EsbResp<EsbCronInfoV3DTO> updateCronStatus(
         @RequestBody EsbUpdateCronStatusV3Request request);
 
     /**
@@ -111,6 +111,6 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping(value = "/save_cron")
-    EsbResp<EsbCronInfoV3Response> saveCron(
+    EsbResp<EsbCronInfoV3DTO> saveCron(
         @RequestBody EsbSaveCronV3Request request);
 }

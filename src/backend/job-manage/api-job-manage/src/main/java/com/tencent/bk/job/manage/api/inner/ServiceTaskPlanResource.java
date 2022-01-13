@@ -30,7 +30,6 @@ import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -70,7 +69,7 @@ public interface ServiceTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案全局变量name获取实例", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/getByName/{globalVarName}")
+    @GetMapping("/plan/{planId}/globalVar/name/{globalVarName}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarByName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
@@ -83,8 +82,8 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
-    @ApiOperation(value = "根据执行方案全局变量id获取name", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/getById/{globalVarId}")
+    @ApiOperation(value = "根据执行方案全局变量id获取实例", produces = "application/json")
+    @GetMapping("/plan/{planId}/globalVar/id/{globalVarId}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarById(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId

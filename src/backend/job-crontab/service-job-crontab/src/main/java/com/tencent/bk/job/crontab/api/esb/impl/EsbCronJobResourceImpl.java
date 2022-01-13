@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.crontab.api.common.ParamCheckUtil;
+import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.EsbCronJobResource;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -176,7 +176,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
         }
         request.validate();
         if (StringUtils.isNotBlank(request.getCronExpression())) {
-            ParamCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
+            CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
         }
     }
 

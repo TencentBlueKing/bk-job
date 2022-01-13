@@ -71,6 +71,24 @@ public class EsbSaveCronRequest extends EsbReq {
     @JsonProperty("cron_expression")
     private String cronExpression;
 
+    private boolean hasChange() {
+        boolean hasChange = false;
+        if (planId != null && planId > 0) {
+            hasChange = true;
+        }
+        if (StringUtils.isNotBlank(name)) {
+            hasChange = true;
+        } else {
+            name = null;
+        }
+        if (StringUtils.isNotBlank(cronExpression)) {
+            hasChange = true;
+        } else {
+            cronExpression = null;
+        }
+        return hasChange;
+    }
+
     public void validate() {
         if (appId == null || appId <= 0) {
             throw new InvalidParamException(
@@ -114,21 +132,8 @@ public class EsbSaveCronRequest extends EsbReq {
                     });
             }
         } else {
-            boolean hasChange = false;
-            if (planId != null && planId > 0) {
-                hasChange = true;
-            }
-            if (StringUtils.isNotBlank(name)) {
-                hasChange = true;
-            } else {
-                name = null;
-            }
-            if (StringUtils.isNotBlank(cronExpression)) {
-                hasChange = true;
-            } else {
-                cronExpression = null;
-            }
-            if (!hasChange) {
+
+            if (!hasChange()) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                     new String[]{"bk_job_id/cron_name/cron_expression",
                         "At least one of bk_job_id/cron_name/cron_expression must be given to update cron " + id

@@ -46,12 +46,8 @@ public class UserRoleInfoVO {
     @ApiModelProperty("角色列表")
     private List<String> roleList;
 
-    public boolean isEmpty() {
-        return !CollectionUtils.isEmpty(userList) || !CollectionUtils.isEmpty(roleList);
-    }
-
-    public boolean validate(boolean isCreate) {
-        if (isEmpty()) {
+    public boolean validate() {
+        if (CollectionUtils.isEmpty(userList) && CollectionUtils.isEmpty(roleList)) {
             JobContextUtil.addDebugMessage("Approval user info is empty!");
             return false;
         }
