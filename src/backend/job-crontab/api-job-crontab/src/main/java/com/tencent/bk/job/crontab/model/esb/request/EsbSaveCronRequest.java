@@ -98,6 +98,7 @@ public class EsbSaveCronRequest extends EsbReq {
                     "bk_biz_id must be a positive number"
                 });
         }
+        // 更新定时任务需要校验id值的有效性
         if (id != null && id <= 0) {
             throw new InvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
@@ -106,7 +107,9 @@ public class EsbSaveCronRequest extends EsbReq {
                     "id must be a positive number"
                 });
         }
-        if (id == null) {
+        boolean isCreate = id == null;
+        // 创建定时任务需要校验依赖参数的有效性
+        if (isCreate) {
             if (planId == null || planId <= 0) {
                 throw new InvalidParamException(
                     ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
