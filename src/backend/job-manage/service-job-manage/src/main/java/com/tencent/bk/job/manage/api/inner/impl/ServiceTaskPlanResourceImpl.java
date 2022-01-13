@@ -142,12 +142,30 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
+    public InternalResponse<ServiceTaskVariableDTO> getGlobalVarByName(Long planId, String globalVarName) {
+        TaskVariableDTO taskVariableDTO = taskVariableService.getVariableByName(planId, globalVarName);
+        if (taskVariableDTO == null) {
+            throw new InvalidParamException("Cannot find globalVar by name " + globalVarName, ErrorCode.ILLEGAL_PARAM);
+        }
+        return InternalResponse.buildSuccessResp(TaskVariableDTO.toServiceDTO(taskVariableDTO));
+    }
+
+    @Override
     public InternalResponse<String> getGlobalVarNameById(Long planId, Long globalVarId) {
         TaskVariableDTO taskVariableDTO = taskVariableService.getVariableById(planId, globalVarId);
         if (taskVariableDTO == null) {
             throw new InvalidParamException("Cannot find globalVar by id " + globalVarId, ErrorCode.ILLEGAL_PARAM);
         }
         return InternalResponse.buildSuccessResp(taskVariableDTO.getName());
+    }
+
+    @Override
+    public InternalResponse<ServiceTaskVariableDTO> getGlobalVarById(Long planId, Long globalVarId) {
+        TaskVariableDTO taskVariableDTO = taskVariableService.getVariableById(planId, globalVarId);
+        if (taskVariableDTO == null) {
+            throw new InvalidParamException("Cannot find globalVar by id " + globalVarId, ErrorCode.ILLEGAL_PARAM);
+        }
+        return InternalResponse.buildSuccessResp(TaskVariableDTO.toServiceDTO(taskVariableDTO));
     }
 
     @Override

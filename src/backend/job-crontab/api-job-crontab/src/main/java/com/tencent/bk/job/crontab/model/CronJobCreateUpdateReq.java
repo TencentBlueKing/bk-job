@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -111,7 +112,7 @@ public class CronJobCreateUpdateReq {
      * 定时任务启用状态
      */
     @ApiModelProperty(value = "是否启用", required = true)
-    private Boolean enable;
+    private Boolean enable = false;
 
     /**
      * 通知提前时间
@@ -119,7 +120,7 @@ public class CronJobCreateUpdateReq {
      * 单位分钟
      */
     @ApiModelProperty("通知提前时间，单位分钟")
-    private Long notifyOffset;
+    private Long notifyOffset = 0L;
 
     /**
      * 通知接收人列表
@@ -135,12 +136,12 @@ public class CronJobCreateUpdateReq {
      * 若 notifyOffset > 0，不可为空
      */
     @ApiModelProperty("通知渠道，若 notifyOffset > 0，不可为空")
-    private List<String> notifyChannel;
+    private List<String> notifyChannel = Collections.emptyList();
 
     /**
      * 周期执行的结束时间
      */
     @ApiModelProperty("周期执行的结束时间")
-    private Long endTime;
+    private Long endTime = 0L;
 
 }
