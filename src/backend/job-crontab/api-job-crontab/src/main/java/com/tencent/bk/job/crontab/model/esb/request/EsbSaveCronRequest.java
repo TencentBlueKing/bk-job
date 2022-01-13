@@ -98,7 +98,7 @@ public class EsbSaveCronRequest extends EsbReq {
                     "bk_biz_id must be a positive number"
                 });
         }
-        if (id != null && id < 0) {
+        if (id != null && id <= 0) {
             throw new InvalidParamException(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new Object[]{
@@ -106,7 +106,7 @@ public class EsbSaveCronRequest extends EsbReq {
                     "id must be a positive number"
                 });
         }
-        if (id == null || id == 0) {
+        if (id == null) {
             if (planId == null || planId <= 0) {
                 throw new InvalidParamException(
                     ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
