@@ -24,16 +24,24 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
+import java.util.List;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import com.tencent.bk.job.manage.validation.common.Update;
+import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-import javax.validation.constraints.NotNull;
-
+@GroupSequenceProvider(DangerousRuleGroupSequenceProvider.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -42,14 +50,21 @@ public class AddOrUpdateDangerousRuleReq {
     @ApiModelProperty("高危语句规则Id，新增传-1")
     private Long id;
     @ApiModelProperty("表达式")
-    @NotNull(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
+    @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
     private String expression;
     @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
+    @NotEmpty(message = "{validation.constraints.ScriptTypeList_empty.message}")
     private List<Byte> scriptTypeList;
     @ApiModelProperty("描述")
     private String description;
     @ApiModelProperty("处理动作,1:扫描,2:拦截")
+    @NotNull(message = "{validation.constraints.InvalidHandleAction_empty.message}")
+    @Range(min = 1L, max= 2L,
+        message = "{validation.constraints.InvalidHandleAction_outOfRange.message}")
     private Integer action;
     @ApiModelProperty("规则启停状态，1:启用,2:停止")
+    @NotNull(message = "{validation.constraints.InvalidRuleUseStatus_empty.message}", groups = {Update.class})
+    @Range(min = 0L, max= 1L,
+        message = "{validation.constraints.InvalidRuleUseStatus_outOfRange.message}", groups = {Update.class})
     private Integer status;
 }
