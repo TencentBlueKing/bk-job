@@ -65,7 +65,7 @@ public class TaskEvictPolicyExecutor {
     }
 
     /**
-     * 更新被驱逐的任务的状态为放弃执行状态
+     * 更新被驱逐的任务的状态为异常中止状态
      *
      * @param taskInstance 任务实例
      * @return 是否更新成功

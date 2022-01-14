@@ -35,7 +35,7 @@ public enum RunStatusEnum {
     FAIL(4, "执行失败"), SKIPPED(5, "跳过"), IGNORE_ERROR(6, "忽略错误"),
     WAITING(7, "等待用户"), TERMINATED(8, "手动结束"), ABNORMAL_STATE(9, "状态异常"),
     STOPPING(10, "强制终止中"), STOP_SUCCESS(11, "强制终止成功"),
-    CONFIRM_TERMINATED(13, "确认终止"), EVICTED(14, "放弃执行");
+    CONFIRM_TERMINATED(13, "确认终止"), EVICTED(14, "异常中止");
 
     private final Integer value;
     private final String name;
