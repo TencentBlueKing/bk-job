@@ -254,10 +254,10 @@
 </script>
 <style lang="postcss">
     .job-site {
-        opacity: 100%;
+        opacity: 1;
 
         &.loading {
-            opacity: 0%;
+            opacity: 0;
         }
 
         .flag-box {
