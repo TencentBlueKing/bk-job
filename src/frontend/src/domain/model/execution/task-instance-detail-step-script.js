@@ -47,6 +47,7 @@ export default class TaskInstanceDetailStepScript {
         this.account = payload.account;
         this.status = payload.status;
         this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
+        this.rollingExecutionConfig = this.initRollingExecutionConfig(payload.rollingExecutionConfig);
     }
 
     /**
@@ -103,5 +104,31 @@ export default class TaskInstanceDetailStepScript {
      */
     get ignoreErrorText () {
         return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
+    }
+
+    /**
+     * @desc 处理滚动执行配置
+     * @param { Object } rollingExecutionConfig 滚动执行配置
+     * @returns { Object }
+     */
+    initRollingExecutionConfig (rollingExecutionConfig) {
+        const config = {
+            enabled: false,
+            expr: '',
+            mode: 1,
+        };
+        if (rollingExecutionConfig) {
+            const {
+                enabled = false,
+                expr = '',
+                mode = 1,
+            } = rollingExecutionConfig;
+            Object.assign(config, {
+                enabled,
+                expr,
+                mode,
+            });
+        }
+        return config;
     }
 }

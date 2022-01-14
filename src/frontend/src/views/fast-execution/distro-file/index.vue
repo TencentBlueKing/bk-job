@@ -89,6 +89,14 @@
                         field="server"
                         :form-data="formData"
                         @on-change="handleChange" />
+                    <item-factory
+                        name="rolling"
+                        enabled-field="rollingEnabled"
+                        expr-field="rollingExpr"
+                        mode-field="rollingMode"
+                        :form-data="formData"
+                        @on-reset="handleReset"
+                        @on-change="handleChange" />
                 </card-layout>
             </jb-form>
             <template #action>
@@ -164,6 +172,16 @@
         path: '',
         // 目标服务器
         server: new TaskHostNodeModel({}),
+        // 滚动执行配置，编辑时拍平
+        // 提交时合并
+        // rollingExecutionConfig: {
+        //     enabled: false
+        //     expr: '10%',
+        //     mode: 1,
+        // }
+        rollingEnabled: false,
+        rollingExpr: '',
+        rollingMode: 1,
     });
 
     export default {
@@ -189,6 +207,7 @@
             }),
         },
         created () {
+            window.IPInputScope = 'FILE_DISTRIBUTION';
             this.init();
             this.calcTargetPathTipsPlacement();
         },
@@ -197,7 +216,6 @@
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
             });
-            window.IPInputScope = 'FILE_DISTRIBUTION';
             this.$once('hook:beforeDestroy', () => {
                 window.IPInputScope = '';
             });
@@ -217,17 +235,22 @@
                     const { stepInfo } = data;
                     const {
                         downloadSpeedLimit,
-                        fileDestination,
+                        fileDestination: {
+                            account,
+                            path,
+                            server,
+                        },
                         fileSourceList,
                         timeout,
                         transferMode,
                         uploadSpeedLimit,
+                        rollingExecutionConfig: {
+                            enabled: rollingEnabled,
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
                     } = stepInfo.fileStepInfo;
-                    const {
-                        account,
-                        path,
-                        server,
-                    } = fileDestination;
+                    
                     this.formData = {
                         ...this.formData,
                         name: stepInfo.name,
@@ -239,6 +262,9 @@
                         timeout,
                         fileSourceList,
                         transferMode,
+                        rollingEnabled,
+                        rollingExpr,
+                        rollingMode,
                     };
                 })
                     .finally(() => {
@@ -326,10 +352,19 @@
              * @desc 表单值更新
              * @param {String} field 字段名
              * @param {Any} value  字段最新值
-             *
              */
             handleChange (field, value) {
                 this.formData[field] = value;
+            },
+            /**
+             * @desc 批量更新字段
+             * @param {Object} payload 将要更新的字段值
+             */
+            handleReset (payload) {
+                this.formData = {
+                    ...this.formData,
+                    ...payload,
+                };
             },
             /**
              * @desc 执行
@@ -427,6 +462,9 @@
                             account,
                             path,
                             server,
+                            rollingEnabled,
+                            rollingExpr,
+                            rollingMode,
                         } = this.formData;
                         
                         return TaskExecuteService.pushFile({
@@ -440,6 +478,11 @@
                                 account,
                                 path,
                                 server,
+                            },
+                            rollingExecutionConfig: {
+                                enable: rollingEnabled,
+                                expr: rollingExpr,
+                                mode: rollingMode,
                             },
                         }).then((data) => {
                             window.changeAlert = false;

@@ -31,9 +31,14 @@ const all = /^\*$/;
 
 export default function (exprStr) {
     const batchStack = exprStr.trim().split(' ');
+    if (batchStack.length < 1) {
+        return '';
+    }
   
     let lastFixedNum = 0;
     let lastPerNum = '';
+
+    const lastBatchPre = batchStack.length > 1 ? '后面' : '';
   
     const translateSequence = (value) => {
         const batchTotal = value.length;
@@ -47,7 +52,7 @@ export default function (exprStr) {
                 lastFixedNum = fixedNum;
   
                 if (batchNum === batchTotal) {
-                    return [`后面按每${fixedNum}台一批直至结束`];
+                    return [`${lastBatchPre}按每${fixedNum}台一批直至结束`];
                 }
                 return [`第${batchNum}批${fixedNum}台`];
             }
@@ -60,7 +65,7 @@ export default function (exprStr) {
                 lastPerNum = perNum;
   
                 if (batchNum === batchTotal) {
-                    return [`后面按每${perNum}%台一批直至结束`];
+                    return [`${lastBatchPre}按每${perNum}%台一批直至结束`];
                 }
                 return [`第${batchNum}批${perNum}%台`];
             }

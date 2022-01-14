@@ -45,6 +45,7 @@ export default class TaskInstanceDetailStepFile {
         
         this.fileDestination = this.initFileDestination(payload.fileDestination);
         this.fileSourceList = this.initFileSourceList(payload.fileSourceList);
+        this.rollingExecutionConfig = this.initRollingExecutionConfig(payload.rollingExecutionConfig);
     }
 
     /**
@@ -122,5 +123,31 @@ export default class TaskInstanceDetailStepFile {
             host: new TaskHostNodeModel(item.host || {}),
             account: item.account || 0,
         }));
+    }
+
+    /**
+     * @desc 处理滚动执行配置
+     * @param { Object } rollingExecutionConfig 滚动执行配置
+     * @returns { Object }
+     */
+    initRollingExecutionConfig (rollingExecutionConfig) {
+        const config = {
+            enabled: false,
+            expr: '',
+            mode: 1,
+        };
+        if (rollingExecutionConfig) {
+            const {
+                enabled = false,
+                expr = '',
+                mode = 0,
+            } = rollingExecutionConfig;
+            Object.assign(config, {
+                enabled,
+                expr,
+                mode,
+            });
+        }
+        return config;
     }
 }

@@ -81,9 +81,11 @@
                     @on-change="handleChange" />
                 <item-factory
                     name="rolling"
-                    rolling-expr-field="rollingExpr"
-                    rolling-mode-field="rollingMode"
+                    enabled-field="rollingEnabled"
+                    expr-field="rollingExpr"
+                    mode-field="rollingMode"
                     :form-data="formData"
+                    @on-reset="handleReset"
                     @on-change="handleChange" />
             </jb-form>
             <template #action>
@@ -164,7 +166,15 @@
         account: '',
         // 目标服务器
         targetServers: new TaskHostNodeModel({}),
-        rollingExpr: '10%',
+        // 滚动执行配置，编辑时拍平
+        // 提交时合并
+        // rollingExecutionConfig: {
+        //     enabled: false
+        //     expr: '10%',
+        //     mode: 1,
+        // }
+        rollingEnabled: false,
+        rollingExpr: '',
         rollingMode: 1,
     });
 
@@ -220,6 +230,11 @@
                         secureParam,
                         timeout,
                         executeTarget,
+                        rollingExecutionConfig: {
+                            enabled: rollingEnabled,
+                            expr: rollingExpr,
+                            mode: rollingMode,
+                        },
                     } = data.stepInfo.scriptStepInfo;
 
                     this.formData = {
@@ -236,6 +251,9 @@
                         secureParam,
                         timeout,
                         targetServers: executeTarget,
+                        rollingEnabled,
+                        rollingExpr,
+                        rollingMode,
                     };
                 })
                     .finally(() => {
@@ -372,6 +390,9 @@
                             timeout,
                             account,
                             targetServers,
+                            rollingEnabled,
+                            rollingExpr,
+                            rollingMode,
                         } = this.formData;
 
                         const params = {
@@ -386,6 +407,11 @@
                             timeout,
                             account,
                             targetServers,
+                            rollingExecutionConfig: {
+                                enabled: rollingEnabled,
+                                expr: rollingExpr,
+                                mode: rollingMode,
+                            },
                         };
                         // 重做时需要带上taskInstanceId，主要处理敏感参数
                         // 标记是重做任务
