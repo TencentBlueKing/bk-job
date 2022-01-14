@@ -66,7 +66,7 @@ public class StringUtilTest {
     }
 
     @Test
-    public void testIsChanged() {
+    public void testIsDifferent() {
         assertEquals(StringUtil.isDifferent(null, null), false);
         assertEquals(StringUtil.isDifferent("123", "123"), false);
         assertEquals(StringUtil.isDifferent(null, "123"), true);
