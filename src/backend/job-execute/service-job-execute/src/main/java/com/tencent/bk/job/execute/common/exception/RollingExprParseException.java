@@ -22,49 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.execute.common.exception;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 
 /**
- * 滚动机制
+ * 滚动执行策略表达式解析异常
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+public class RollingExprParseException extends InternalException {
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
-
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        return null;
-    }
-
-    public int getValue() {
-        return mode;
+    public RollingExprParseException() {
+        super(ErrorCode.OBTAIN_HOST_FAIL);
     }
 }

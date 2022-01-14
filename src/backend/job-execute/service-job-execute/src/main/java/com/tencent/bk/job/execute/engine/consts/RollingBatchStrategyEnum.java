@@ -22,49 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+package com.tencent.bk.job.execute.engine.consts;
 
 /**
- * 滚动机制
+ * 滚动分批策略
  */
-public enum RollingModeEnum {
+public enum RollingBatchStrategyEnum {
     /**
-     * 执行失败则暂停
+     * 按数量分批
      */
-    PAUSE_IF_FAIL(1),
+    QUANTITY(1),
     /**
-     * 忽略失败，自动滚动下一批
+     * 按百分比分批
      */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    PERCENT(2);
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    private final int value;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        return null;
+    RollingBatchStrategyEnum(int value) {
+        this.value = value;
     }
 
     public int getValue() {
-        return mode;
+        return value;
     }
 }

@@ -22,49 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.execute.engine.rolling;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.common.model.dto.IpDTO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
 
 /**
- * 滚动机制
+ * 滚动策略表达式部分
  */
-public enum RollingModeEnum {
+@Getter
+@Setter
+@ToString
+public abstract class RollingExprPart {
     /**
-     * 执行失败则暂停
+     * 滚动表达式部分
      */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    private String expr;
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    public abstract RollingExprPart parseExpr(String expr);
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    public abstract List<IpDTO> compute(int total, List<IpDTO> candidateServers);
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        return null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
 }
