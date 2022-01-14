@@ -29,8 +29,9 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,11 +50,11 @@ public interface ServiceTaskEvictPolicyResource {
         + "\"policyList\":[{\"@type\":\"AppIdTaskEvictPolicy\",\"appIdsToEvict\":[2,3]},"
         + "{\"@type\":\"AppCodeTaskEvictPolicy\",\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}\n",
         produces = "application/json")
-    @PostMapping("/set")
+    @PutMapping("/")
     InternalResponse<Boolean> setPolicy(@RequestBody ComposedTaskEvictPolicyDTO policyDTO);
 
-    @ApiOperation(value = "清除任务驱逐策略", produces = "application/json")
-    @PostMapping("/clear")
+    @ApiOperation(value = "清除所有任务驱逐策略", produces = "application/json")
+    @DeleteMapping("/clear")
     InternalResponse<Boolean> clearPolicy();
 
 }

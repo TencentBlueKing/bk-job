@@ -277,6 +277,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
             // 停止日志拉取调度
             this.executeResult = GseTaskExecuteResult.DISCARDED;
+            watch.stop();
             return true;
         }
         watch.stop();
@@ -289,7 +290,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @param watch 外部传入的耗时统计watch对象
      * @return 是否应当继续后续流程
      */
-    private boolean pullGSELogs(StopWatch watch) {
+    private boolean pullGSELogsAndCheckPullResult(StopWatch watch) {
         log.info("[{}]: Start pull log, times: {}", stepInstanceId, pullLogTimes.addAndGet(1));
         GseLogBatchPullResult<T> gseLogBatchPullResult;
         int batch = 0;
@@ -327,8 +328,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     public void execute() {
         StopWatch watch = new StopWatch("Result-Handle-Task-" + stepInstanceId);
         try {
-            if (!checkTaskActiveAndSetRunningStatus()) return;
-            if (checkAndEvictTaskIfNeed(watch)) return;
+            if (!checkTaskActiveAndSetRunningStatus()) {
+                return;
+            }
+            if (checkAndEvictTaskIfNeed(watch)) {
+                return;
+            }
 
             watch.start("get-lock");
             if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
@@ -349,7 +354,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.stop();
 
             // 拉取执行结果日志
-            if (!pullGSELogs(watch)) return;
+            if (!pullGSELogsAndCheckPullResult(watch)) {
+                return;
+            }
 
             watch.start("handle-execute-result");
             handleExecuteResult(this.executeResult);

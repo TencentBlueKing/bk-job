@@ -67,10 +67,10 @@ public class StringUtilTest {
 
     @Test
     public void testIsChanged() {
-        assertEquals(StringUtil.isChanged(null, null), false);
-        assertEquals(StringUtil.isChanged("123", "123"), false);
-        assertEquals(StringUtil.isChanged(null, "123"), true);
-        assertEquals(StringUtil.isChanged("123", null), true);
-        assertEquals(StringUtil.isChanged("123", "123 "), true);
+        assertEquals(StringUtil.isDifferent(null, null), false);
+        assertEquals(StringUtil.isDifferent("123", "123"), false);
+        assertEquals(StringUtil.isDifferent(null, "123"), true);
+        assertEquals(StringUtil.isDifferent("123", null), true);
+        assertEquals(StringUtil.isDifferent("123", "123 "), true);
     }
 }

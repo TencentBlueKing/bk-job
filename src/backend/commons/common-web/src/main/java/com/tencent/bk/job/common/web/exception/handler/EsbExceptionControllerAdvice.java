@@ -28,11 +28,11 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
-import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -177,10 +177,10 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
-    @ExceptionHandler({DefenseTriggeredException.class})
+    @ExceptionHandler({ResourceExhaustedException.class})
     @ResponseBody
-    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, DefenseTriggeredException ex) {
-        String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
+    ResponseEntity<?> handleResourceExhaustedException(HttpServletRequest request, ResourceExhaustedException ex) {
+        String errorMsg = "Handle ResourceExhaustedException, uri: " + request.getRequestURI();
         if (log.isDebugEnabled()) {
             log.debug(errorMsg, ex);
         } else {

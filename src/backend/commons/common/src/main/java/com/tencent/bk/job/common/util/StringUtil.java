@@ -251,16 +251,16 @@ public class StringUtil {
     }
 
     /**
-     * 判断新字符串相比于老字符串是否改变
+     * 判断两个字符串对象是否不同
      *
-     * @param oldStr 老字符串
-     * @param newStr 新字符串
-     * @return 是否改变
+     * @param str1 字符串1
+     * @param str2 字符串2
+     * @return 是否不同
      */
-    public static boolean isChanged(String oldStr, String newStr) {
-        if (oldStr == null && newStr == null) return false;
-        if (oldStr != null) {
-            return !oldStr.equals(newStr);
+    public static boolean isDifferent(String str1, String str2) {
+        if (str1 == null && str2 == null) return false;
+        if (str1 != null) {
+            return !str1.equals(str2);
         }
         return true;
     }

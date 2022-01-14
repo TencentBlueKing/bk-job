@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +68,10 @@ public class TaskEvictPolicyManager {
     public void updatePolicy() {
         String loadedPolicyJsonStr = redisTemplate.opsForValue()
             .get(RedisConstants.KEY_EXECUTE_TASK_EVICT_POLICY);
-        if (StringUtil.isChanged(policyJsonStr, loadedPolicyJsonStr)) {
+        if (StringUtil.isDifferent(policyJsonStr, loadedPolicyJsonStr)) {
             policyJsonStr = loadedPolicyJsonStr;
             try {
-                policy = JsonUtils.fromJson(
+                policy = StringUtils.isBlank(loadedPolicyJsonStr) ? null : JsonUtils.fromJson(
                     loadedPolicyJsonStr, new TypeReference<ComposedTaskEvictPolicy>() {
                     }
                 );

@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
-import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -284,7 +283,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            throw new DefenseTriggeredException(ErrorCode.TASK_EVICTED);
+            throw new ResourceExhaustedException(ErrorCode.TASK_EVICTED);
         }
     }
 

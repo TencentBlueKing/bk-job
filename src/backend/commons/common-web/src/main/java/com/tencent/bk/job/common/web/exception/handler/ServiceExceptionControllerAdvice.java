@@ -27,11 +27,11 @@ package com.tencent.bk.job.common.web.exception.handler;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
-import com.tencent.bk.job.common.exception.DefenseTriggeredException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -161,10 +161,10 @@ public class ServiceExceptionControllerAdvice extends ExceptionControllerAdviceB
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({DefenseTriggeredException.class})
+    @ExceptionHandler({ResourceExhaustedException.class})
     @ResponseBody
-    ResponseEntity<?> handleDefenseTriggeredException(HttpServletRequest request, DefenseTriggeredException ex) {
-        String errorMsg = "Handle DefenseTriggeredException, uri: " + request.getRequestURI();
+    ResponseEntity<?> handleResourceExhaustedException(HttpServletRequest request, ResourceExhaustedException ex) {
+        String errorMsg = "Handle ResourceExhaustedException, uri: " + request.getRequestURI();
         if (log.isDebugEnabled()) {
             log.debug(errorMsg, ex);
         } else {

@@ -31,5 +31,5 @@ public class RedisConstants {
     /**
      * Key:执行引擎中任务驱逐策略
      */
-    public static final String KEY_EXECUTE_TASK_EVICT_POLICY = "taskEvictPolicy";
+    public static final String KEY_EXECUTE_TASK_EVICT_POLICY = "job:taskEvictPolicy";
 }
