@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @Getter
@@ -123,6 +124,19 @@ public class InternalResponse<T> {
     public static <T> InternalResponse<T> buildCommonFailResp(ErrorType errorType, Integer errorCode,
                                                               ErrorDetailDTO errorDetail) {
         InternalResponse<T> resp = buildCommonFailResp(errorType, errorCode);
+        resp.setErrorDetail(errorDetail);
+        return resp;
+    }
+
+    public static <T> InternalResponse<T> buildValidateFailResp(ErrorDetailDTO errorDetail) {
+        InternalResponse<T> resp = buildCommonFailResp(ErrorType.INVALID_PARAM, ErrorCode.BAD_REQUEST);
+        if (errorDetail != null && errorDetail.getBadRequestDetail() != null) {
+            String errorMsg = errorDetail.getBadRequestDetail().findFirstFieldErrorDesc();
+            if (StringUtils.isNotBlank(errorMsg)) {
+                // set validation detailed message instead of common error message
+                resp.setErrorMsg(errorMsg);
+            }
+        }
         resp.setErrorDetail(errorDetail);
         return resp;
     }

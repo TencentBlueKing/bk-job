@@ -86,6 +86,8 @@ fi
 function packageJarAndScript()
 {
   backend_module="$1"
+  log "current dir:$(pwd)"
+  ls
   log "Packaging $backend_module ..."
   if [[ ! -d "release" ]]; then
     mkdir release

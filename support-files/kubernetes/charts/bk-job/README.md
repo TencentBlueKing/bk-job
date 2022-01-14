@@ -54,7 +54,7 @@ bitnami/rabbitmq
 | `app.secret` | 调用ESB接口使用的app_secret | ``  |
 | `bkComponentApiUrl`  | ESB接口根地址   | `http://bkapi.paas.example.com`        |
 | `bkLoginUrl`    | 统一登录根地址   | `http://paas.example.com/login/`        |
-| `bkCcUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
+| `bkCmdbUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
 | `bkIamApiUrl`   | 权限中心后台API根地址  | `http://bkiam-api.example.com`      |
 | `bkRepoUrl`     | 制品库根地址  | `http://bkrepo.example.com`      |
 | `bkNodemanUrl`  | 节点管理首页地址  | `http://nodeman.example.com`      |
@@ -64,8 +64,10 @@ bitnami/rabbitmq
 |---|---|---|
 | `gse.cacheApiServer.host`     | GSE API接口根地址  | `gse-api.example.com`      |
 | `gse.cacheApiServer.port`     | GSE API接口端口  | `59313`      |
-| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | ``      |
-| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | ``      |
+| `gse.ssl.keystore.base64Content`   | GSE 接口SSL证书keystore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | `2y#8VI2B4Sm9Dk^J`      |
+| `gse.ssl.truststore.base64Content`   | GSE 接口SSL证书truststore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | `2y#8VI2B4Sm9Dk^J`      |
 | `gse.taskserver.host`   | GSE TASK接口根地址  | `gse-task.example.com`      |
 | `gse.taskserver.port`   | GSE TASK接口端口  | `48673`      |
 | `gse.server.zookeeper.connect.string`   | GSE Zookeeper根地址  | `gse-zk.example.com`      |
@@ -130,7 +132,9 @@ bitnami/rabbitmq
 | `gatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `gatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
 | `gatewayConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 最大请求体限制    | `10240m`       |
+| `gatewayConfig.server.ssl.keystore.base64Content` | job-gateway开启https时使用的p12证书keystore单行base64编码内容    | `见values文件`       |
 | `gatewayConfig.server.ssl.keystore.password` | job-gateway开启https时使用的keystore的密码    | `mLnuob1**4D74c@F`       |
+| `gatewayConfig.server.ssl.truststore.base64Content` | job-gateway开启https时使用的p12证书truststore单行base64编码内容    | `见values文件`       |
 | `gatewayConfig.server.ssl.truststore.password` | job-gateway开启https时使用的truststore的密码    | `mLnuob1**4D74c@F`       |
 | `gatewayConfig.jvmOptions` | 运行时JVM参数    | `-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC`       |
 
@@ -218,6 +222,7 @@ bitnami/rabbitmq
 | `fileWorkerConfig.instanceName` | 实例名称    | `job-file-worker-public-1`       |
 | `fileWorkerConfig.token` | 实例凭据    | `testToken`       |
 | `fileWorkerConfig.downloadFile.dir` | 文件下载根路径    | `/tmp/job`       |
+| `fileWorkerConfig.downloadFile.maxSizeGB` | 最大占用空间（GB），超过则进行清理    | `100`       |
 | `fileWorkerConfig.downloadFile.expireDays` | 临时文件过期清理时间（天）    | `7`       |
 | `fileWorkerConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
