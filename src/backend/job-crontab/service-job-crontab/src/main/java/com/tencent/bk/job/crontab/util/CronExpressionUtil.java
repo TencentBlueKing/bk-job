@@ -49,4 +49,8 @@ public class CronExpressionUtil {
     public static String fixExpressionForUser(String expression) {
         return CronMapper.fromQuartzToUnix().map(QUARTZ_PARSER.parse(expression)).asString();
     }
+
+    public static void main(String[] args) {
+        System.out.println(CronExpressionUtil.fixExpressionForUser("0 30 10 8 * ? *"));
+    }
 }
