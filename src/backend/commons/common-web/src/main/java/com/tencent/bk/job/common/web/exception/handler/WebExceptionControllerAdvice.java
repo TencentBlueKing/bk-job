@@ -180,7 +180,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         } else {
             log.info(errorMsg);
         }
-        return new ResponseEntity<>(Response.buildCommonFailResp(ex), HttpStatus.OK);
+        return new ResponseEntity<>(Response.buildCommonFailResp(ex), HttpStatus.TOO_MANY_REQUESTS);
     }
 
 }

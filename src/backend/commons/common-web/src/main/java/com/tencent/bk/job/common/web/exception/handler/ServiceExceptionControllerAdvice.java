@@ -170,7 +170,7 @@ public class ServiceExceptionControllerAdvice extends ExceptionControllerAdviceB
         } else {
             log.info(errorMsg);
         }
-        return new ResponseEntity<>(InternalResponse.buildCommonFailResp(ex), HttpStatus.OK);
+        return new ResponseEntity<>(InternalResponse.buildCommonFailResp(ex), HttpStatus.TOO_MANY_REQUESTS);
     }
 
 }
