@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -97,20 +98,21 @@ public class ResultHandleResumeListener {
 
     private final ExceptionStatusManager exceptionStatusManager;
 
+    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
+
     @Autowired
-    public ResultHandleResumeListener(
-        TaskInstanceService taskInstanceService,
-        ResultHandleManager resultHandleManager,
-        TaskInstanceVariableService taskInstanceVariableService,
-        GseTaskLogService gseTaskLogService,
-        StorageSystemConfig storageSystemConfig,
-        AgentService agentService,
-        LogService logService,
-        StepInstanceVariableValueService stepInstanceVariableValueService,
-        TaskExecuteControlMsgSender taskExecuteControlMsgSender,
-        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-        ExceptionStatusManager exceptionStatusManager
-    ) {
+    public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
+                                      ResultHandleManager resultHandleManager,
+                                      TaskInstanceVariableService taskInstanceVariableService,
+                                      GseTaskLogService gseTaskLogService,
+                                      StorageSystemConfig storageSystemConfig,
+                                      AgentService agentService,
+                                      LogService logService,
+                                      StepInstanceVariableValueService stepInstanceVariableValueService,
+                                      TaskExecuteControlMsgSender taskExecuteControlMsgSender,
+                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                      ExceptionStatusManager exceptionStatusManager,
+                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -123,6 +125,7 @@ public class ResultHandleResumeListener {
         this.taskExecuteControlMsgSender = taskExecuteControlMsgSender;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
 
@@ -169,7 +172,7 @@ public class ResultHandleResumeListener {
                     requestId);
                 scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
-                    resultHandleTaskKeepaliveManager, exceptionStatusManager);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
                 resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
             } else if (stepInstance.isFileStep()) {
                 Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
@@ -191,7 +194,7 @@ public class ResultHandleResumeListener {
                     requestId);
                 fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteControlMsgSender,
-                    resultHandleTaskKeepaliveManager, exceptionStatusManager);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
                 resultHandleManager.handleDeliveredTask(fileResultHandleTask);
             } else {
                 log.warn("Not support resume step type! stepType: {}", stepInstance.getExecuteType());
