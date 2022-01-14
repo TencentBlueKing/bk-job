@@ -61,7 +61,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
 
     @Override
     public Long heartBeat(FileWorkerDTO fileWorkerDTO) {
-        Long id = fileWorkerDTO.getId();
+        Long id;
         String configStr = fileWorkerDTO.getConfigStr();
         FileWorkerConfig fileWorkerConfig = null;
         if (StringUtils.isNotBlank(configStr)) {
@@ -81,9 +81,11 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
                 dslContext, fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
             );
-            fileWorkerDTO.setId(oldFileWorkerDTO.getId());
+            id = oldFileWorkerDTO.getId();
+            fileWorkerDTO.setId(id);
             fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
         }
+        log.debug("file worker id={}", id);
         if (fileWorkerConfig != null) {
             List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
             List<FileSourceTypeDTO> fileSourceTypeDTOList = new ArrayList<>();
