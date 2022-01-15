@@ -232,8 +232,7 @@ public class GseTaskManager implements SmartLifecycle {
             int executeCount = stepInstance.getExecuteCount();
             Set<String> executeIps = new HashSet<>();
             if (stepInstance.isRollingStep()) {
-                List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance.getRollingConfigId()
-                    , stepInstanceId, stepInstance.getBatch());
+                List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance);
                 rollingServers.forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
             } else {
                 stepInstance.getTargetServers().getIpList()

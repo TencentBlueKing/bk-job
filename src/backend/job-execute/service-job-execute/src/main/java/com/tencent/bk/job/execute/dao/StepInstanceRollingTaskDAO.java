@@ -30,12 +30,26 @@ import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
  * 步骤滚动任务DAO
  */
 public interface StepInstanceRollingTaskDAO {
+
     /**
-     * 保存滚动任务
+     * 查询步骤滚动任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          滚动批次
+     * @return 步骤滚动任务
+     */
+    StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
+                                                int executeCount,
+                                                int batch);
+
+    /**
+     * 保存步骤滚动任务
      *
      * @param rollingTask 滚动任务
+     * @return 步骤滚动任务ID
      */
-    void saveRollingTask(StepInstanceRollingTaskDTO rollingTask);
+    long saveRollingTask(StepInstanceRollingTaskDTO rollingTask);
 
 
 }

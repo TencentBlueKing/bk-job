@@ -22,26 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+truncate table task_instance_rolling_config;
+insert into job_execute.task_instance_rolling_config (id,task_instance_id,config_name,config) values (1,1,'config1', '{"name":"config1","includeStepInstanceIdList":[100,101,102,103],"rollingStepInstanceIdList":[100,102,103],"excludeStepInstanceIdList":[101],"mode":1,"expr":"1 10% 100%","serverBatchList":[{"batch":1,"servers":[{"cloudAreaId":0,"ip":"10.0.0.1"}]},{"batch":2,"servers":[{"cloudAreaId":0,"ip":"10.0.0.2"}]},{"batch":3,"servers":[{"cloudAreaId":0,"ip":"10.0.0.3"},{"cloudAreaId":0,"ip":"10.0.0.4"}]}]}');
 
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-
-/**
- * 作业滚动配置DAO
- */
-public interface TaskInstanceRollingConfigDAO {
-    /**
-     * 保存滚动区间配置
-     *
-     * @param rollingConfig 滚动区间配置
-     */
-    long saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
-
-    /**
-     * 通过滚动区间配置ID获取滚动区间配置
-     *
-     * @param rollingConfigId 滚动区间配置ID
-     * @return 滚动区间配置
-     */
-    TaskInstanceRollingConfigDTO queryRollingConfigById(Long rollingConfigId);
-}

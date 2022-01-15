@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.execute.model.db;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -33,6 +34,7 @@ import java.util.List;
  * 执行作业实例滚动区间配置DO
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RollingConfigDO {
     /**
      * 滚动区间名称
@@ -53,25 +55,24 @@ public class RollingConfigDO {
     /**
      * 滚动策略
      */
-    private Integer rollingMode;
+    private Integer mode;
     /**
      * 滚动表达式
      */
-    private String rollingExpr;
+    private String expr;
     /**
      * 目标服务器滚动分批
      */
-    private List<ServerBatch> rollingTargetServerBatch;
+    private List<RollingServerBatchDO> serverBatchList;
 
-    @Data
-    private static class ServerBatch {
-        /**
-         * 滚动执行批次
-         */
-        private Integer batch;
-        /**
-         * 该批次的目标服务器
-         */
-        private List<IpDTO> servers;
+    /**
+     * 判断是否滚动步骤
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    public boolean isRollingStep(long stepInstanceId) {
+        return CollectionUtils.isNotEmpty(this.rollingStepInstanceIdList)
+            && this.rollingStepInstanceIdList.contains(stepInstanceId);
     }
+
 }

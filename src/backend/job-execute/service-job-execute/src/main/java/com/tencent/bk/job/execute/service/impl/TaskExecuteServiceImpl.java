@@ -227,14 +227,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("checkAndSetScriptInfoIfScriptTask");
             checkAndSetScriptInfoForFast(taskInstance, stepInstance);
             watch.stop();
+
             // 设置账号信息
             watch.start("setAccountInfo");
             checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
             watch.stop();
+
             // 获取ip列表
             watch.start("setServerInfoFastJob");
             setServerInfoFastJob(stepInstance);
             watch.stop();
+
             //检查ip
             watch.start("checkHosts");
             checkHosts(stepInstance, shouldIgnoreInvalidHost(taskInstance));
@@ -245,14 +248,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkStepInstanceConstraint(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
+            // 鉴权
             watch.start("authFastExecute");
             authFastExecute(taskInstance, stepInstance);
             watch.stop();
 
+            // 保存
             watch.start("saveInstance");
             Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
             taskInstance.setId(taskInstanceId);
-
             stepInstance.setTaskInstanceId(taskInstanceId);
             stepInstance.setStepNum(1);
             stepInstance.setStepOrder(1);
@@ -260,10 +264,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setId(stepInstanceId);
             watch.stop();
 
+            // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
             watch.stop();
+
             return taskInstanceId;
         } finally {
             if (watch.isRunning()) {

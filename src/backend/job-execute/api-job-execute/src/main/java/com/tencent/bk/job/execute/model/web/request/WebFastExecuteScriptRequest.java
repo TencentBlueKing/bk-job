@@ -110,6 +110,6 @@ public class WebFastExecuteScriptRequest {
     private Long taskInstanceId;
 
     @ApiModelProperty(value = "滚动配置")
-    private RollingConfigVO rollingExecutionConfig;
+    private RollingConfigVO rollingConfig;
 
 }

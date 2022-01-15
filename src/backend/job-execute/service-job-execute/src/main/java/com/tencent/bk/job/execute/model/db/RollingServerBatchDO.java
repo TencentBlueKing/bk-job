@@ -22,26 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.execute.model.db;
 
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.model.dto.IpDTO;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 作业滚动配置DAO
+ * 滚动执行-服务器分批
  */
-public interface TaskInstanceRollingConfigDAO {
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+public class RollingServerBatchDO {
     /**
-     * 保存滚动区间配置
-     *
-     * @param rollingConfig 滚动区间配置
+     * 滚动执行批次
      */
-    long saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
+    private Integer batch;
+    /**
+     * 该批次的目标服务器
+     */
+    private List<IpDTO> servers;
 
-    /**
-     * 通过滚动区间配置ID获取滚动区间配置
-     *
-     * @param rollingConfigId 滚动区间配置ID
-     * @return 滚动区间配置
-     */
-    TaskInstanceRollingConfigDTO queryRollingConfigById(Long rollingConfigId);
+    public RollingServerBatchDO(Integer batch, List<IpDTO> servers) {
+        this.batch = batch;
+        this.servers = servers;
+    }
 }

@@ -25,8 +25,13 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
+import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,8 +39,32 @@ import java.util.List;
 @Service
 @Slf4j
 public class RollingConfigServiceImpl implements RollingConfigService {
+
+    private final TaskInstanceRollingConfigDAO taskInstanceRollingConfigDAO;
+
+    @Autowired
+    public RollingConfigServiceImpl(TaskInstanceRollingConfigDAO taskInstanceRollingConfigDAO) {
+        this.taskInstanceRollingConfigDAO = taskInstanceRollingConfigDAO;
+    }
+
     @Override
-    public List<IpDTO> getRollingServers(long rollingConfigId, long stepInstanceId, int batch) {
-        return null;
+    public List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance) {
+        long rollingConfigId = stepInstance.getRollingConfigId();
+        long stepInstanceId = stepInstance.getId();
+        int batch = stepInstance.getBatch();
+
+        TaskInstanceRollingConfigDTO taskInstanceRollingConfig =
+            taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
+        RollingConfigDO rollingConfig = taskInstanceRollingConfig.getConfig();
+        if (rollingConfig.isRollingStep(stepInstanceId)) {
+            return rollingConfig.getServerBatchList().get(batch - 1).getServers();
+        } else {
+            return stepInstance.getTargetServers().getIpList();
+        }
+    }
+
+    @Override
+    public void saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig) {
+        taskInstanceRollingConfigDAO.saveRollingConfig(rollingConfig);
     }
 }

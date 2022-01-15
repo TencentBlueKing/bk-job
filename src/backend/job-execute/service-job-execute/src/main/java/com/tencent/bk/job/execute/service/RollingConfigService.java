@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 
 import java.util.List;
 
@@ -35,10 +37,15 @@ public interface RollingConfigService {
     /**
      * 获取步骤当前批次对应的主机
      *
-     * @param rollingConfigId 滚动配置ID
-     * @param stepInstanceId  步骤实例ID
-     * @param batch           滚动执行批次
+     * @param stepInstance 步骤实例
      * @return 主机列表
      */
-    List<IpDTO> getRollingServers(long rollingConfigId, long stepInstanceId, int batch);
+    List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance);
+
+    /**
+     * 保存作业执行滚动区间配置
+     *
+     * @param rollingConfig 滚动区间配置
+     */
+    void saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
 }

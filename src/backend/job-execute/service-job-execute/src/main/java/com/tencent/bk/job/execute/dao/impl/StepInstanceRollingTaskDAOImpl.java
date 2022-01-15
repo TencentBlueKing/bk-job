@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.generated.tables.StepInstanceRollingTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -34,15 +37,71 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
 
-    private final DSLContext ctx;
+    private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
+    private final DSLContext CTX;
 
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+        this.CTX = CTX;
     }
 
     @Override
-    public void saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
+    public StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId, int executeCount, int batch) {
+        Record record = CTX.select(
+            TABLE.ID,
+            TABLE.STEP_INSTANCE_ID,
+            TABLE.EXECUTE_COUNT,
+            TABLE.BATCH,
+            TABLE.STATUS,
+            TABLE.START_TIME,
+            TABLE.END_TIME,
+            TABLE.TOTAL_TIME)
+            .from(TABLE)
+            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount)))
+            .and(TABLE.BATCH.eq(JooqDataTypeUtil.toShort(batch)))
+            .fetchOne();
+        return extract(record);
+    }
 
+    private StepInstanceRollingTaskDTO extract(Record record) {
+        if (record == null) {
+            return null;
+        }
+        StepInstanceRollingTaskDTO stepInstanceRollingTask = new StepInstanceRollingTaskDTO();
+        stepInstanceRollingTask.setId(record.get(TABLE.ID));
+        stepInstanceRollingTask.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
+        stepInstanceRollingTask.setExecuteCount(record.get(TABLE.EXECUTE_COUNT).intValue());
+        stepInstanceRollingTask.setBatch(record.get(TABLE.BATCH).intValue());
+        stepInstanceRollingTask.setStatus(record.get(TABLE.STATUS).intValue());
+        stepInstanceRollingTask.setStartTime(record.get(TABLE.START_TIME));
+        stepInstanceRollingTask.setEndTime(record.get(TABLE.END_TIME));
+        stepInstanceRollingTask.setTotalTime(record.get(TABLE.TOTAL_TIME));
+        return stepInstanceRollingTask;
+    }
+
+    @Override
+    public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
+        Record record = CTX.insertInto(
+            TABLE,
+            TABLE.STEP_INSTANCE_ID,
+            TABLE.EXECUTE_COUNT,
+            TABLE.BATCH,
+            TABLE.STATUS,
+            TABLE.START_TIME,
+            TABLE.END_TIME,
+            TABLE.TOTAL_TIME)
+            .values(
+                rollingTask.getStepInstanceId(),
+                JooqDataTypeUtil.toByte(rollingTask.getExecuteCount()),
+                JooqDataTypeUtil.toShort(rollingTask.getBatch()),
+                JooqDataTypeUtil.toByte(rollingTask.getStatus()),
+                rollingTask.getStartTime(),
+                rollingTask.getEndTime(),
+                rollingTask.getTotalTime())
+            .returning(TABLE.ID)
+            .fetchOne();
+        assert record != null;
+        return record.get(TABLE.ID);
     }
 }

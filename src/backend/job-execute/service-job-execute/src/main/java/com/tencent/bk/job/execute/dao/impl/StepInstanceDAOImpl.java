@@ -98,9 +98,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.getTaskInstanceId(),
                 stepInstance.getAppId(),
                 stepInstance.getName(),
-                JooqDataTypeUtil.getByteFromInteger(stepInstance.getExecuteType()),
+                JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
                 stepInstance.getOperator(),
-                JooqDataTypeUtil.getByteFromInteger(stepInstance.getStatus()),
+                JooqDataTypeUtil.toByte(stepInstance.getStatus()),
                 stepInstance.getExecuteCount(),
                 stepInstance.getStartTime(),
                 stepInstance.getEndTime(),
@@ -134,22 +134,22 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             t.IS_SECURE_PARAM)
             .values(stepInstance.getId(),
                 stepInstance.getScriptContent(),
-                JooqDataTypeUtil.getByteFromInteger(stepInstance.getScriptType()),
+                JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
                 stepInstance.getScriptParam(),
                 stepInstance.getResolvedScriptParam(),
                 stepInstance.getTimeout(),
                 stepInstance.getAccountId(),
                 stepInstance.getAccount(),
                 stepInstance.getDbAccountId(),
-                JooqDataTypeUtil.getByteFromInteger(stepInstance.getDbType()),
+                JooqDataTypeUtil.toByte(stepInstance.getDbType()),
                 stepInstance.getDbAccount(),
                 stepInstance.getDbPass(),
                 stepInstance.getDbPort(),
                 scriptSourceByteValue,
                 stepInstance.getScriptId(),
                 stepInstance.getScriptVersionId(),
-                stepInstance.isSecureParam() ? JooqDataTypeUtil.getByteFromInteger(1) :
-                    JooqDataTypeUtil.getByteFromInteger(0)
+                stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
+                    JooqDataTypeUtil.toByte(0)
             ).execute();
     }
 
@@ -165,8 +165,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.getFileTargetName(),
                 stepInstance.getFileUploadSpeedLimit(),
                 stepInstance.getFileDownloadSpeedLimit(),
-                JooqDataTypeUtil.getByteFromInteger(stepInstance.getFileDuplicateHandle()),
-                JooqDataTypeUtil.getUByteFromInteger(stepInstance.getNotExistPathHandler()),
+                JooqDataTypeUtil.toByte(stepInstance.getFileDuplicateHandle()),
+                JooqDataTypeUtil.toUByte(stepInstance.getNotExistPathHandler()),
                 stepInstance.getTimeout(),
                 stepInstance.getAccountId(),
                 stepInstance.getAccount()
@@ -208,14 +208,14 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
-        stepInstance.setScriptType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.SCRIPT_TYPE)));
+        stepInstance.setScriptType(JooqDataTypeUtil.toInteger(record.get(t.SCRIPT_TYPE)));
         stepInstance.setScriptParam(record.get(t.SCRIPT_PARAM));
         stepInstance.setResolvedScriptParam(record.get(t.RESOLVED_SCRIPT_PARAM));
         stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
         stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
         stepInstance.setDbAccountId(record.get(t.DB_ACCOUNT_ID));
-        stepInstance.setDbType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.DB_TYPE)));
+        stepInstance.setDbType(JooqDataTypeUtil.toInteger(record.get(t.DB_TYPE)));
         stepInstance.setDbAccount(record.get(t.DB_ACCOUNT));
         stepInstance.setDbPass(record.get(t.DB_PASSWORD));
         stepInstance.setDbPort(record.get(t.DB_PORT));
@@ -268,7 +268,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
         stepInstance.setFileUploadSpeedLimit(record.get(t.FILE_UPLOAD_SPEED_LIMIT));
         stepInstance.setFileDownloadSpeedLimit(record.get(t.FILE_DOWNLOAD_SPEED_LIMIT));
-        stepInstance.setFileDuplicateHandle(JooqDataTypeUtil.getIntegerFromByte(record.get(t.FILE_DUPLICATE_HANDLE)));
+        stepInstance.setFileDuplicateHandle(JooqDataTypeUtil.toInteger(record.get(t.FILE_DUPLICATE_HANDLE)));
         UByte notExistPathHandlerRecordValue = record.get(t.NOT_EXIST_PATH_HANDLER);
         if (notExistPathHandlerRecordValue == null) {
             // 默认为创建目录
@@ -329,9 +329,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStepId(record.get(t.STEP_ID));
         stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setName(record.get(t.NAME));
-        stepInstance.setExecuteType(JooqDataTypeUtil.getIntegerFromByte(record.get(t.TYPE)));
+        stepInstance.setExecuteType(JooqDataTypeUtil.toInteger(record.get(t.TYPE)));
         stepInstance.setOperator(record.get(t.OPERATOR));
-        stepInstance.setStatus(JooqDataTypeUtil.getIntegerFromByte(record.get(t.STATUS)));
+        stepInstance.setStatus(JooqDataTypeUtil.toInteger(record.get(t.STATUS)));
         stepInstance.setExecuteCount(record.get(t.EXECUTE_COUNT));
         stepInstance.setStartTime(record.get(t.START_TIME));
         stepInstance.setEndTime(record.get(t.END_TIME));
@@ -348,8 +348,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setFailIPNum(record.get(t.FAIL_IP_NUM));
         stepInstance.setSuccessIPNum(record.get(t.SUCCESS_IP_NUM));
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
-        stepInstance.setIgnoreError(JooqDataTypeUtil.getIntegerFromByte(record.get(t.IGNORE_ERROR)) != null
-            && JooqDataTypeUtil.getIntegerFromByte(record.get(t.IGNORE_ERROR)).equals(1));
+        stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null
+            && JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)).equals(1));
         stepInstance.setStepNum(record.get(t.STEP_NUM));
         stepInstance.setStepOrder(record.get(t.STEP_ORDER));
         return stepInstance;
@@ -405,7 +405,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void updateStepStatus(long stepInstanceId, int status) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        ctx.update(t).set(t.STATUS, JooqDataTypeUtil.getByteFromInteger(status))
+        ctx.update(t).set(t.STATUS, JooqDataTypeUtil.toByte(status))
             .where(t.ID.eq(stepInstanceId)).execute();
     }
 
@@ -438,7 +438,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         ctx.update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId)
-                .and(t.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(RunStatusEnum.BLANK.getValue())))).execute();
+                .and(t.STATUS.eq(JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue())))).execute();
     }
 
     @Override
@@ -505,7 +505,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = ctx.update(t).set(t.STATUS, JooqDataTypeUtil.getByteFromInteger(status.getValue()));
+            updateSetMoreStep = ctx.update(t).set(t.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {

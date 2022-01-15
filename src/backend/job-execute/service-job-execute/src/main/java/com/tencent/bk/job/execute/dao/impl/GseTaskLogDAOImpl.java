@@ -96,13 +96,13 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
                 gseTaskLog.getStartTime(),
                 gseTaskLog.getEndTime(),
                 gseTaskLog.getTotalTime(),
-                JooqDataTypeUtil.getByteFromInteger(gseTaskLog.getStatus()),
+                JooqDataTypeUtil.toByte(gseTaskLog.getStatus()),
                 gseTaskLog.getGseTaskId())
             .onDuplicateKeyUpdate()
             .set(TABLE.START_TIME, gseTaskLog.getStartTime())
             .set(TABLE.END_TIME, gseTaskLog.getEndTime())
             .set(TABLE.TOTAL_TIME, gseTaskLog.getTotalTime())
-            .set(TABLE.STATUS, JooqDataTypeUtil.getByteFromInteger(gseTaskLog.getStatus()))
+            .set(TABLE.STATUS, JooqDataTypeUtil.toByte(gseTaskLog.getStatus()))
             .set(TABLE.GSE_TASK_ID, gseTaskLog.getGseTaskId())
             .execute();
     }
