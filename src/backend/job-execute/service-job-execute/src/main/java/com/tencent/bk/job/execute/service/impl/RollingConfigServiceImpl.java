@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDO;
@@ -64,7 +65,16 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public void saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig) {
-        taskInstanceRollingConfigDAO.saveRollingConfig(rollingConfig);
+    public long saveRollingConfigForFastJob(FastTaskDTO fastTask) {
+        TaskInstanceRollingConfigDTO taskInstanceRollingConfig = new TaskInstanceRollingConfigDTO();
+        taskInstanceRollingConfig.setTaskInstanceId(fastTask.getTaskInstance().getId());
+        taskInstanceRollingConfig.setConfigName("default");
+
+        RollingConfigDO rollingConfig = new RollingConfigDO();
+        rollingConfig.setName("default");
+        rollingConfig.setMode(fastTask.getRollingMode());
+        rollingConfig.setExpr(fastTask.getRollingExpr());
+        taskInstanceRollingConfig.setConfig(rollingConfig);
+        return taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
     }
 }

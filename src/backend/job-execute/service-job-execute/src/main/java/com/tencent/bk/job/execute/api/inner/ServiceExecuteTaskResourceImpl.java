@@ -80,8 +80,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskExecuteParam executeParam = buildExecuteParam(request);
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForTask(executeParam);
-        taskExecuteService.startTask(taskInstanceDTO.getId());
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(executeParam);
 
         ServiceTaskExecuteResult result = new ServiceTaskExecuteResult();
         result.setTaskInstanceId(taskInstanceDTO.getId());

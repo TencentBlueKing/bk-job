@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 
 import java.util.List;
 
@@ -43,9 +43,10 @@ public interface RollingConfigService {
     List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance);
 
     /**
-     * 保存作业执行滚动区间配置
+     * 保存快速执行作业滚动配置
      *
-     * @param rollingConfig 滚动区间配置
+     * @param fastTask 快速执行作业
+     * @return 滚动配置ID
      */
-    void saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
+    long saveRollingConfigForFastJob(FastTaskDTO fastTask);
 }

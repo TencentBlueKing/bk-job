@@ -40,6 +40,11 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
+    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
+
+    }
+
+    @Override
     public List<IpDTO> getRollingServers(long stepInstanceId, int batch) {
         return null;
     }

@@ -90,6 +90,7 @@ public class StepInstanceDAOImplIntegrationTest {
         List<IpDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new IpDTO(0L, "10.0.0.1"));
         assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(stepInstance.getBatch()).isEqualTo(0);
     }
 
     @Test
@@ -139,6 +140,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(returnStepInstance.getStepNum()).isEqualTo(3);
         assertThat(returnStepInstance.getStepOrder()).isEqualTo(1);
+        assertThat(returnStepInstance.getBatch()).isEqualTo(0);
     }
 
     @Test

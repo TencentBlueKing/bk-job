@@ -63,6 +63,7 @@ import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
@@ -80,6 +81,7 @@ import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -155,11 +157,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final HostService hostService;
     private final ServiceUserResourceClient userResource;
     private final ExecuteAuthService executeAuthService;
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
+    private final RollingConfigServiceImpl rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
@@ -175,11 +179,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
+                                  StepInstanceService stepInstanceService,
                                   HostService hostService,
                                   ServiceUserResourceClient userResource,
                                   ExecuteAuthService executeAuthService,
                                   Tracing tracing,
                                   DangerousScriptCheckService dangerousScriptCheckService,
+                                  RollingConfigServiceImpl rollingConfigService,
                                   JobExecuteConfig jobExecuteConfig) {
         this.applicationService = applicationService;
         this.accountService = accountService;
@@ -191,12 +197,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
+        this.stepInstanceService = stepInstanceService;
         this.hostService = hostService;
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
         this.GET_HOSTS_BY_TOPO_EXECUTOR = new TraceableExecutorService(new ThreadPoolExecutor(50,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
+        this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
     }
 
@@ -214,11 +222,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Long createTaskInstanceFast(TaskInstanceDTO taskInstance,
-                                       StepInstanceDTO stepInstance) throws ServiceException {
-        log.info("Begin to create task instance and step instance for fast-execution-task, taskInstance: {}, " +
-                "stepInstance: {}",
-            taskInstance, stepInstance);
+    public Long executeFastTask(FastTaskDTO fastTask) {
+        log.info("Begin to create task instance and step instance for fast-execution-task, task: {}", fastTask);
+        TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
         StopWatch watch = new StopWatch("createTaskInstanceFast");
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
         adjustStepTimeout(stepInstance);
@@ -253,7 +260,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             authFastExecute(taskInstance, stepInstance);
             watch.stop();
 
-            // 保存
+            // 保存作业、步骤实例
             watch.start("saveInstance");
             Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
             taskInstance.setId(taskInstanceId);
@@ -264,10 +271,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setId(stepInstanceId);
             watch.stop();
 
+            // 保存滚动配置
+            if (fastTask.isRollingEnabled()) {
+                watch.start("saveRollingConfig");
+                long rollingConfigId = rollingConfigService.saveRollingConfigForFastJob(fastTask);
+                stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
+                watch.stop();
+            }
+
             // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
+            watch.stop();
+
+            // 启动作业
+            watch.start("startJob");
+            startTask(taskInstanceId);
             watch.stop();
 
             return taskInstanceId;
@@ -904,8 +924,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Long createTaskInstanceForFastTaskRedo(TaskInstanceDTO taskInstance,
-                                                  StepInstanceDTO stepInstance) throws ServiceException {
+    public Long redoFastTask(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
         long taskInstanceId = taskInstance.getId();
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
@@ -917,7 +936,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setScriptParam(originStepInstance.getScriptParam());
             stepInstance.setSecureParam(originStepInstance.isSecureParam());
         }
-        return createTaskInstanceFast(taskInstance, stepInstance);
+        return executeFastTask(FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build());
     }
 
     @Override
@@ -927,7 +946,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public TaskInstanceDTO createTaskInstanceForTask(TaskExecuteParam executeParam) throws ServiceException {
+    public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
         try {
 
@@ -971,6 +990,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
                 UserOperationEnum.START));
             watch.stop();
+
+            // 启动作业
+            watch.start("startJob");
+            startTask(taskInstance.getId());
+            watch.stop();
+
             return taskInstance;
         } finally {
             if (watch.isRunning()) {
@@ -1304,6 +1329,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
+
+        // 启动作业
+        startTask(taskInstanceId);
+
         return taskInstance;
     }
 
