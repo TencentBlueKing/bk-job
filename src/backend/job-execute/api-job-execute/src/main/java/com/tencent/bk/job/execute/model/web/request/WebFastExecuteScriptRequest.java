@@ -112,4 +112,7 @@ public class WebFastExecuteScriptRequest {
     @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
     private RollingConfigVO rollingConfig;
 
+    @ApiModelProperty(value = "是否启用滚动执行")
+    private boolean rollingEnabled;
+
 }

@@ -271,7 +271,6 @@ public class GseTaskManager implements SmartLifecycle {
             watch.stop();
 
             watch.start("init-task-executor");
-            int executeCount = stepInstance.getExecuteCount();
             Set<String> executeIps = new HashSet<>();
             if (stepInstance.isRollingStep()) {
                 List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance);
