@@ -82,7 +82,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private LogService logService;
-    private TaskExecuteMQEventDispatcher taskControlMsgSender;
+    private TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private ThirdFilePrepareTaskResultHandler resultHandler;
     private int pullTimes = 0;
@@ -112,14 +112,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         TaskInstanceService taskInstanceService,
         AccountService accountService,
         LogService logService,
-        TaskExecuteMQEventDispatcher taskControlMsgSender,
+        TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.accountService = accountService;
         this.logService = logService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.TaskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
     }
 
@@ -227,7 +227,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         List<FileSourceTaskStatusDTO> resultList = batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
         if (resultList.isEmpty()) {
             // 直接进行下一步
-            taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
         } else {
             // 需要处理业务
             boolean allSuccess = true;
@@ -270,7 +270,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                             //业务无root账号，报错提示
                             log.warn("No root account in appId={}, plz config one", stepInstance.getAppId());
                             taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-                            taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
+                            TaskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
                             return;
                         }
                         fileSourceDTO.setAccountId(accountDTO.getId());

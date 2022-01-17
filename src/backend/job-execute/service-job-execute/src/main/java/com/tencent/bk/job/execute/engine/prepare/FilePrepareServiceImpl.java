@@ -56,7 +56,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final LocalFilePrepareService localFilePrepareService;
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteMQEventDispatcher taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher;
     private final ResultHandleManager resultHandleManager;
 
     @Autowired
@@ -64,12 +64,12 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         LocalFilePrepareService localFilePrepareService,
         ThirdFilePrepareService thirdFilePrepareService,
         TaskInstanceService taskInstanceService,
-        TaskExecuteMQEventDispatcher taskControlMsgSender,
+        TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
         ResultHandleManager resultHandleManager) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.TaskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
         this.resultHandleManager = resultHandleManager;
     }
 
@@ -172,7 +172,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (fileSourceList == null) {
             log.warn("stepInstanceId={},fileSourceList is null", stepInstanceId);
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
             return;
         }
         int taskCount = 0;
@@ -182,7 +182,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
             return;
         }
         log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);
@@ -272,7 +272,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
         }
     }
 
@@ -280,14 +280,14 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         // 步骤状态变更
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
-        taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
+        TaskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
         // 强制终止成功后就不再下发GSE Task了
-        // taskControlMsgSender.continueGseFileStep(stepInstance.getId());
+        // TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
     }
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-        taskControlMsgSender.refreshTask(stepInstance.getTaskInstanceId());
+        TaskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
     }
 }

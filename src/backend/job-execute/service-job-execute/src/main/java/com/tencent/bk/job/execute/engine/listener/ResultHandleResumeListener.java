@@ -120,7 +120,6 @@ public class ResultHandleResumeListener {
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
         this.logService = logService;
-
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;

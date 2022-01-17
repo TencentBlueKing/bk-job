@@ -72,7 +72,7 @@ public class ThirdFilePrepareService {
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
     private final LogService logService;
-    private final TaskExecuteMQEventDispatcher taskControlMsgSender;
+    private final TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher;
     private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -80,14 +80,14 @@ public class ThirdFilePrepareService {
                                    FileSourceTaskResourceClient fileSourceTaskResource,
                                    TaskInstanceService taskInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO, AccountService accountService,
-                                   LogService logService, TaskExecuteMQEventDispatcher taskControlMsgSender) {
+                                   LogService logService, TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.accountService = accountService;
         this.logService = logService;
-        this.taskControlMsgSender = taskControlMsgSender;
+        this.TaskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
     }
 
     private void setTaskInfoIntoThirdFileSource(TaskInfoDTO taskInfoDTO, FileSourceDTO fileSourceDTO) {
@@ -209,7 +209,7 @@ public class ThirdFilePrepareService {
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
         if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
-            taskControlMsgSender.startGseStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
             return null;
         }
         log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);
@@ -299,7 +299,7 @@ public class ThirdFilePrepareService {
                 new RecordableThirdFilePrepareTaskResultHandler(stepInstance.getId(), resultHandler)
             );
         batchResultHandleTask.initDependentService(fileSourceTaskResource, taskInstanceService, accountService,
-            logService, taskControlMsgSender, fileSourceTaskLogDAO);
+            logService, TaskExecuteMQEventDispatcher, fileSourceTaskLogDAO);
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;
     }
