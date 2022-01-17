@@ -51,6 +51,6 @@ public class ExecuteStepVO {
     private ExecuteApprovalStepVO approvalStepInfo;
 
     @ApiModelProperty(value = "滚动配置")
-    private RollingConfigVO rollingExecutionConfig;
+    private FastJobRollingConfigVO rollingExecutionConfig;
 
 }

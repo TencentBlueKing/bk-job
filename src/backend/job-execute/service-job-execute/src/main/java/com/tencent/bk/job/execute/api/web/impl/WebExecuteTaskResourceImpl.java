@@ -65,7 +65,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
-import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.model.web.vo.FastJobRollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
@@ -221,9 +221,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
     }
 
-    private RollingConfigDTO buildRollingConfig(RollingConfigVO rollingConfigVO) {
+    private RollingConfigDTO buildRollingConfig(FastJobRollingConfigVO rollingConfigVO) {
         RollingConfigDTO rollingConfigDTO = new RollingConfigDTO();
-        rollingConfigDTO.setName(rollingConfigVO.getName());
+        rollingConfigDTO.setName("default");
         rollingConfigDTO.setMode(rollingConfigVO.getMode());
         rollingConfigDTO.setExpr(rollingConfigVO.getBatchExpr());
         return rollingConfigDTO;

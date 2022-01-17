@@ -82,7 +82,7 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public void batchSaveGseIpTasks(List<GseAgentTaskDTO> gseAgentTasks) {
+    public void batchSaveGseAgentTasks(List<GseAgentTaskDTO> gseAgentTasks) {
         if (gseAgentTasks.size() == 0) {
             return;
         }

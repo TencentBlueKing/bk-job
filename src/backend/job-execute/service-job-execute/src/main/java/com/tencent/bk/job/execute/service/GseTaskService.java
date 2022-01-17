@@ -60,7 +60,7 @@ public interface GseTaskService {
      *
      * @param gseAgentTasks GSE Agent 任务列表
      */
-    void batchSaveGseIpTasks(List<GseAgentTaskDTO> gseAgentTasks);
+    void batchSaveGseAgentTasks(List<GseAgentTaskDTO> gseAgentTasks);
 
     /**
      * 批量更新 GSE Agent 任务

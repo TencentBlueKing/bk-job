@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.model.web.vo.FastJobRollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -86,7 +86,7 @@ public class WebFastPushFileRequest {
     private boolean rollingEnabled;
 
     @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
-    private RollingConfigVO rollingConfig;
+    private FastJobRollingConfigVO rollingConfig;
 
     /**
      * 传输模式

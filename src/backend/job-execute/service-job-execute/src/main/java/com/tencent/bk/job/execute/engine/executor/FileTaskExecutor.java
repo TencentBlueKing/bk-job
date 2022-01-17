@@ -147,7 +147,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             }
         }
         if (!fileSourceGseAgentTasks.isEmpty()) {
-            gseTaskService.batchSaveGseIpTasks(fileSourceGseAgentTasks);
+            gseTaskService.batchSaveGseAgentTasks(fileSourceGseAgentTasks);
         }
     }
 

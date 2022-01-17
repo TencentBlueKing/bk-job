@@ -69,22 +69,22 @@ public class GseAgentTaskDAOImpl implements GseAgentTaskDAO {
             "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         Object[][] params = new Object[gseAgentTasks.size()][14];
         int batchCount = 0;
-        for (GseAgentTaskDTO ipLog : gseAgentTasks) {
+        for (GseAgentTaskDTO gseAgentTask : gseAgentTasks) {
             Object[] param = new Object[14];
-            param[0] = ipLog.getStepInstanceId();
-            param[1] = ipLog.getExecuteCount();
-            param[2] = ipLog.getCloudAreaAndIp();
-            param[3] = ipLog.getStatus();
-            param[4] = ipLog.getStartTime();
-            param[5] = ipLog.getEndTime();
-            param[6] = ipLog.getTotalTime();
-            param[7] = ipLog.getErrorCode();
-            param[8] = ipLog.getExitCode();
-            param[9] = StringUtils.truncate(ipLog.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[10] = ipLog.getScriptLogOffset();
-            param[11] = ipLog.getDisplayIp();
-            param[12] = ipLog.isTargetServer() ? 1 : 0;
-            param[13] = ipLog.isSourceServer() ? 1 : 0;
+            param[0] = gseAgentTask.getStepInstanceId();
+            param[1] = gseAgentTask.getExecuteCount();
+            param[2] = gseAgentTask.getCloudAreaAndIp();
+            param[3] = gseAgentTask.getStatus();
+            param[4] = gseAgentTask.getStartTime();
+            param[5] = gseAgentTask.getEndTime();
+            param[6] = gseAgentTask.getTotalTime();
+            param[7] = gseAgentTask.getErrorCode();
+            param[8] = gseAgentTask.getExitCode();
+            param[9] = StringUtils.truncate(gseAgentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[10] = gseAgentTask.getScriptLogOffset();
+            param[11] = gseAgentTask.getDisplayIp();
+            param[12] = gseAgentTask.isTargetServer() ? 1 : 0;
+            param[13] = gseAgentTask.isSourceServer() ? 1 : 0;
             params[batchCount++] = param;
         }
         create.batch(sql, params).execute();

@@ -421,7 +421,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 ipLog.setEndTime(System.currentTimeMillis());
             });
         }
-        gseTaskService.batchSaveGseIpTasks(notFinishedIpLogs);
+        gseTaskService.batchSaveGseAgentTasks(notFinishedIpLogs);
     }
 
     /*
@@ -589,7 +589,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected void batchSaveChangedGseAgentTasks() {
         List<GseAgentTaskDTO> changedIpLogs =
             this.gseAgentTaskMap.values().stream().filter(GseAgentTaskDTO::isChanged).collect(Collectors.toList());
-        gseTaskService.batchSaveGseIpTasks(changedIpLogs);
+        gseTaskService.batchSaveGseAgentTasks(changedIpLogs);
         changedIpLogs.forEach(ipLog -> ipLog.setChanged(false));
     }
 
@@ -618,7 +618,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             ipLog.setStatus(status);
             ipLogList.add(ipLog);
         }
-        gseTaskService.batchSaveGseIpTasks(ipLogList);
+        gseTaskService.batchSaveGseAgentTasks(ipLogList);
     }
 
     @Override

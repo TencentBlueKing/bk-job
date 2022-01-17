@@ -520,7 +520,7 @@ public class GseTaskManager implements SmartLifecycle {
             ipLogList.add(ipLog);
         }
         if (ipLogList.size() > 0) {
-            gseTaskService.batchSaveGseIpTasks(ipLogList);
+            gseTaskService.batchSaveGseAgentTasks(ipLogList);
         }
     }
 
