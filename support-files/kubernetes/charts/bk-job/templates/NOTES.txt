@@ -69,9 +69,5 @@ kill ${pid}
 
 4.卸载方式
 helm --namespace {{ .Release.Namespace }} uninstall {{ .Release.Name }}
-删除持久化数据：
-chart中所声明pv的reclaim policy均为Delete，卸载chart后将自动删除，但在节点机器上会存有日志等文件，可通过以下方式清理：
-在所有节点执行以下命令：
-rm -r {{ .Values.job.pv.path }}
 
 5.该chart未使用hooks，无需额外卸载。

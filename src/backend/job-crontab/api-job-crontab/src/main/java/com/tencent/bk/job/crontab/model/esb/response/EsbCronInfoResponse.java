@@ -46,12 +46,6 @@ public class EsbCronInfoResponse {
     private Long planId;
 
     /**
-     * 作业名称
-     */
-    @JsonProperty("job_name")
-    private String planName;
-
-    /**
      * 定时作业ID
      */
     @JsonProperty("cron_id")

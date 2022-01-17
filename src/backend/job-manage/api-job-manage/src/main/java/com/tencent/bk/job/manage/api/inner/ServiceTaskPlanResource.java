@@ -68,9 +68,23 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
+    @ApiOperation(value = "根据执行方案全局变量name获取实例", produces = "application/json")
+    @GetMapping("/plan/{planId}/globalVar/name/{globalVarName}")
+    InternalResponse<ServiceTaskVariableDTO> getGlobalVarByName(
+        @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
+        @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
+    );
+
     @ApiOperation(value = "根据执行方案全局变量id获取name", produces = "application/json")
     @GetMapping("/plan/{planId}/globalVar/getNameById/{globalVarId}")
     InternalResponse<String> getGlobalVarNameById(
+        @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
+        @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
+    );
+
+    @ApiOperation(value = "根据执行方案全局变量id获取实例", produces = "application/json")
+    @GetMapping("/plan/{planId}/globalVar/id/{globalVarId}")
+    InternalResponse<ServiceTaskVariableDTO> getGlobalVarById(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );

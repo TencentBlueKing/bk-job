@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -47,7 +48,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -155,14 +155,38 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
+    @Override
+    @SuppressWarnings("all")
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                                  HttpHeaders headers,
+                                                                  HttpStatus status,
+                                                                  WebRequest request) {
+        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
+        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
+        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
+        return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request,
                                                          ConstraintViolationException ex) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
+        EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ExceptionHandler({ResourceExhaustedException.class})
+    @ResponseBody
+    ResponseEntity<?> handleResourceExhaustedException(HttpServletRequest request, ResourceExhaustedException ex) {
+        String errorMsg = "Handle ResourceExhaustedException, uri: " + request.getRequestURI();
+        if (log.isDebugEnabled()) {
+            log.debug(errorMsg, ex);
+        } else {
+            log.info(errorMsg);
+        }
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @Override
@@ -265,18 +289,6 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
 
     @Override
     @SuppressWarnings("all")
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
-                                                                  WebRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
-        ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
-        EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
-        return new ResponseEntity<>(resp, HttpStatus.OK);
-    }
-
-    @Override
-    @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
@@ -293,7 +305,6 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
-
 
 
     @Override
