@@ -30,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 服务器滚动分批上下文
+ * 服务器滚动分批
  */
-public class RollingBatchServersResolveContext {
+public class RollingBatchServersResolver {
     /**
      * 需要分批的服务器
      */
@@ -56,9 +56,9 @@ public class RollingBatchServersResolveContext {
     /**
      * 分批结果
      */
-    private final List<RollingBatchServers> serverBatches;
+    private final List<RollingServerBatch> serverBatches;
 
-    public RollingBatchServersResolveContext(List<IpDTO> servers, String rollingExpr) {
+    public RollingBatchServersResolver(List<IpDTO> servers, String rollingExpr) {
         this.servers = servers;
         this.remainedServers = new ArrayList<>(this.servers);
         this.rollingExpr = rollingExpr;
@@ -66,18 +66,18 @@ public class RollingBatchServersResolveContext {
         this.serverBatches = new ArrayList<>();
     }
 
-    public List<RollingBatchServers> resolve() {
+    public List<RollingServerBatch> resolve() {
         RollingExpr rollingExpr = new RollingExpr(this.rollingExpr);
         while (hasRemainedServer()) {
             this.batchCount++;
             RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(this.batchCount);
             List<IpDTO> serversOnBatch = rollingExprPart.compute(this.total, this.remainedServers);
             this.remainedServers.removeAll(serversOnBatch);
-            RollingBatchServers rollingBatchServers = new RollingBatchServers();
-            rollingBatchServers.setBatch(this.batchCount);
-            rollingBatchServers.setServers(serversOnBatch);
-            rollingBatchServers.setRollingExprPart(rollingExprPart);
-            this.serverBatches.add(rollingBatchServers);
+            RollingServerBatch rollingServerBatch = new RollingServerBatch();
+            rollingServerBatch.setBatch(this.batchCount);
+            rollingServerBatch.setServers(serversOnBatch);
+            rollingServerBatch.setRollingExprPart(rollingExprPart);
+            this.serverBatches.add(rollingServerBatch);
         }
         return this.serverBatches;
     }

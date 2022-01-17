@@ -102,7 +102,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         T_STEP_INSTANCE.IGNORE_ERROR,
         T_STEP_INSTANCE.STEP_NUM,
         T_STEP_INSTANCE.STEP_ORDER,
-        T_STEP_INSTANCE.BATCH
+        T_STEP_INSTANCE.BATCH,
+        T_STEP_INSTANCE.ROLLING_CONFIG_ID
     };
 
     private final DSLContext CTX;
@@ -378,6 +379,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStepNum(record.get(t.STEP_NUM));
         stepInstance.setStepOrder(record.get(t.STEP_ORDER));
         stepInstance.setBatch(record.get(t.BATCH));
+        stepInstance.setRollingConfigId(record.get(t.ROLLING_CONFIG_ID));
         return stepInstance;
     }
 
@@ -886,5 +888,19 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     private List<FileSourceDTO> convertStringToFileSourceDTO(String str) {
         return JsonUtils.fromJson(str, new TypeReference<ArrayList<FileSourceDTO>>() {
         });
+    }
+
+    @Override
+    public void updateStepCurrentBatch(long stepInstanceId, int batch) {
+        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .execute();
+    }
+
+    @Override
+    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
+        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .execute();
     }
 }

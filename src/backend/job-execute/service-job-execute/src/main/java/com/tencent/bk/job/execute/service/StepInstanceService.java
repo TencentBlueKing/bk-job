@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
-
-import java.util.List;
-
 /**
  * 作业步骤执行实例 Service
  */
@@ -48,12 +44,5 @@ public interface StepInstanceService {
      */
     void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
 
-    /**
-     * 获取步骤当前批次对应的主机
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次
-     * @return 主机列表
-     */
-    List<IpDTO> getRollingServers(long stepInstanceId, int batch);
+
 }

@@ -564,5 +564,21 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(preStepInstance.getId()).isEqualTo(1L);
     }
 
+    @Test
+    void updateStepCurrentBatch() {
+        stepInstanceDAO.updateStepCurrentBatch(1L, 1);
+
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        assertThat(stepInstance.getBatch()).isEqualTo(1);
+    }
+
+    @Test
+    void updateStepRollingConfigId() {
+        stepInstanceDAO.updateStepRollingConfigId(1L, 1000L);
+
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        assertThat(stepInstance.getRollingConfigId()).isEqualTo(1000L);
+    }
+
 
 }

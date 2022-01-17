@@ -24,28 +24,31 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
 public class StepInstanceServiceImpl implements StepInstanceService {
+
+    private final StepInstanceDAO stepInstanceDAO;
+
+    @Autowired
+    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO) {
+        this.stepInstanceDAO = stepInstanceDAO;
+    }
+
     @Override
     public void updateStepCurrentBatch(long stepInstanceId, int batch) {
-
+        stepInstanceDAO.updateStepCurrentBatch(stepInstanceId, batch);
     }
 
     @Override
     public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
-
+        stepInstanceDAO.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
     }
 
-    @Override
-    public List<IpDTO> getRollingServers(long stepInstanceId, int batch) {
-        return null;
-    }
 }

@@ -109,7 +109,7 @@ public class WebFastExecuteScriptRequest {
     @ApiModelProperty(value = "任务实例ID,重做的时候需要传入")
     private Long taskInstanceId;
 
-    @ApiModelProperty(value = "滚动配置")
+    @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
     private RollingConfigVO rollingConfig;
 
 }

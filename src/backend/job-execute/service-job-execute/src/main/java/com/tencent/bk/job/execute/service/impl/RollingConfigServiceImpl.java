@@ -24,18 +24,26 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
+import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
+import com.tencent.bk.job.execute.engine.rolling.RollingServerBatch;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.model.db.RollingServerBatchDO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -65,16 +73,40 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
+    public List<IpDTO> getRollingServers(long stepInstanceId, int batch) {
+        return null;
+    }
+
+    @Override
     public long saveRollingConfigForFastJob(FastTaskDTO fastTask) {
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
+
         TaskInstanceRollingConfigDTO taskInstanceRollingConfig = new TaskInstanceRollingConfigDTO();
         taskInstanceRollingConfig.setTaskInstanceId(fastTask.getTaskInstance().getId());
-        taskInstanceRollingConfig.setConfigName("default");
 
-        RollingConfigDO rollingConfig = new RollingConfigDO();
-        rollingConfig.setName("default");
-        rollingConfig.setMode(fastTask.getRollingMode());
-        rollingConfig.setExpr(fastTask.getRollingExpr());
-        taskInstanceRollingConfig.setConfig(rollingConfig);
+        RollingConfigDTO rollingConfig = fastTask.getRollingConfig();
+
+        String rollingConfigName = StringUtils.isBlank(rollingConfig.getName()) ? "default" : rollingConfig.getName();
+        taskInstanceRollingConfig.setConfigName(rollingConfigName);
+
+        RollingConfigDO rollingConfigDO = new RollingConfigDO();
+        rollingConfigDO.setName(rollingConfigName);
+        rollingConfigDO.setMode(rollingConfig.getMode());
+        rollingConfigDO.setExpr(rollingConfig.getExpr());
+
+        RollingBatchServersResolver resolver =
+            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetServers().getIpList(),
+                rollingConfig.getExpr());
+        List<RollingServerBatch> serversBatchList = resolver.resolve();
+        rollingConfigDO.setServerBatchList(
+            serversBatchList.stream()
+                .map(rollingServerBatch ->
+                    new RollingServerBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
+                .collect(Collectors.toList()));
+        taskInstanceRollingConfig.setConfig(rollingConfigDO);
+
+        rollingConfigDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        rollingConfigDO.setRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         return taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
     }
 }

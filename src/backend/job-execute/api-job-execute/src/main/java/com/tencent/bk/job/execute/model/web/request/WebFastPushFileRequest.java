@@ -82,8 +82,8 @@ public class WebFastPushFileRequest {
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
-    @ApiModelProperty(value = "滚动配置")
-    private RollingConfigVO rollingExecutionConfig;
+    @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
+    private RollingConfigVO rollingConfig;
 
     /**
      * 传输模式

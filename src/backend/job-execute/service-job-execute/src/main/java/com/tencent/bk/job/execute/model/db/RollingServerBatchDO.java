@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 滚动执行-服务器分批
+ * 滚动执行-服务器分批 DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)

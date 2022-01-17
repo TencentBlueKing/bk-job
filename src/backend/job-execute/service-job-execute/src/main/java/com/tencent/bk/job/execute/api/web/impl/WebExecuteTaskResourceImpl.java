@@ -48,6 +48,7 @@ import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
@@ -64,6 +65,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
@@ -211,8 +213,20 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, appId, request);
         String decodeScriptContent = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
         stepInstance.setScriptContent(decodeScriptContent);
+        RollingConfigDTO rollingConfig = buildRollingConfigIfEnabled(request.getRollingConfig());
 
-        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance);
+        return createAndStartFastTask(request.isRedoTask(), taskInstance, stepInstance, rollingConfig);
+    }
+
+    private RollingConfigDTO buildRollingConfigIfEnabled(RollingConfigVO rollingConfigVO) {
+        if (rollingConfigVO == null) {
+            return null;
+        }
+        RollingConfigDTO rollingConfigDTO = new RollingConfigDTO();
+        rollingConfigDTO.setName(rollingConfigVO.getName());
+        rollingConfigDTO.setMode(rollingConfigVO.getMode());
+        rollingConfigDTO.setExpr(rollingConfigVO.getBatchExpr());
+        return rollingConfigDTO;
     }
 
     private boolean checkFastExecuteScriptRequest(WebFastExecuteScriptRequest request) {
@@ -334,17 +348,20 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appId, request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, appId, request);
+        RollingConfigDTO rollingConfig = buildRollingConfigIfEnabled(request.getRollingConfig());
 
-        return createAndStartFastTask(false, taskInstance, stepInstance);
+        return createAndStartFastTask(false, taskInstance, stepInstance, rollingConfig);
     }
 
-    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask, TaskInstanceDTO taskInstance,
-                                                           StepInstanceDTO stepInstance) {
+    private Response<StepExecuteVO> createAndStartFastTask(boolean isRedoTask,
+                                                           TaskInstanceDTO taskInstance,
+                                                           StepInstanceDTO stepInstance,
+                                                           RollingConfigDTO rollingConfig) {
         long taskInstanceId;
         if (!isRedoTask) {
             taskInstanceId = taskExecuteService.executeFastTask(
-                FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
-            );
+                FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
+                    .rollingConfig(rollingConfig).build());
         } else {
             taskInstanceId = taskExecuteService.redoFastTask(taskInstance, stepInstance);
         }

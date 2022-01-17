@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
-import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -65,17 +64,16 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final ApplicationService applicationService;
     private final StepInstanceDAO stepInstanceDAO;
-    private final JobExecuteConfig jobExecuteConfig;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
 
     @Autowired
-    public TaskInstanceServiceImpl(ApplicationService applicationService, StepInstanceDAO stepInstanceDAO,
-                                   JobExecuteConfig jobExecuteConfig, TaskInstanceDAO taskInstanceDAO,
+    public TaskInstanceServiceImpl(ApplicationService applicationService,
+                                   StepInstanceDAO stepInstanceDAO,
+                                   TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService) {
         this.applicationService = applicationService;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.jobExecuteConfig = jobExecuteConfig;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
     }

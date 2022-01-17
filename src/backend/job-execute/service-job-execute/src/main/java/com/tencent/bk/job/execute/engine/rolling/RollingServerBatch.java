@@ -22,40 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import lombok.Data;
 
 import java.util.List;
 
 /**
- * 滚动配置服务
+ * 滚动执行服务器分批
  */
-public interface RollingConfigService {
-    /**
-     * 获取步骤当前批次对应的主机
-     *
-     * @param stepInstance 步骤实例
-     * @return 主机列表
-     */
-    List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance);
-
-    /**
-     * 获取步骤当前批次对应的主机
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次
-     * @return 主机列表
-     */
-    List<IpDTO> getRollingServers(long stepInstanceId, int batch);
-
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 滚动配置ID
-     */
-    long saveRollingConfigForFastJob(FastTaskDTO fastTask);
+@Data
+public class RollingServerBatch {
+    private RollingExprPart rollingExprPart;
+    private int batch;
+    private List<IpDTO> servers;
 }

@@ -22,16 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.rolling;
+package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import lombok.Data;
 
-import java.util.List;
-
+/**
+ * 滚动配置
+ */
 @Data
-class RollingBatchServers {
-    private RollingExprPart rollingExprPart;
-    private int batch;
-    private List<IpDTO> servers;
+public class RollingConfigDTO {
+    private String name;
+    /**
+     * 滚动策略
+     */
+    private Integer mode;
+    /**
+     * 滚动表达式
+     */
+    private String expr;
 }

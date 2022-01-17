@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RollingBatchServersResolveContextTest {
+class RollingServerBatchResolverTest {
 
     @Test
     @DisplayName("计算滚动批次 - 一个子表达式，按百分比分批")
@@ -55,8 +55,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "25%");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "25%");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(4);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
@@ -116,8 +116,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "10% 30%");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "10% 30%");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(5);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
@@ -182,8 +182,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "10");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "10");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(2);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
@@ -233,8 +233,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "1 5");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 5");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(4);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
@@ -294,8 +294,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "1 30%");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 30%");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(5);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
@@ -362,8 +362,8 @@ class RollingBatchServersResolveContextTest {
         servers.add(new IpDTO(0L, "10.0.0.14"));
         servers.add(new IpDTO(0L, "10.0.0.15"));
         servers.add(new IpDTO(0L, "10.0.0.16"));
-        RollingBatchServersResolveContext context = new RollingBatchServersResolveContext(servers, "1 30% 100%");
-        List<RollingBatchServers> serverBatchList = context.resolve();
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 30% 100%");
+        List<RollingServerBatch> serverBatchList = context.resolve();
         assertThat(serverBatchList).hasSize(3);
 
         assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);

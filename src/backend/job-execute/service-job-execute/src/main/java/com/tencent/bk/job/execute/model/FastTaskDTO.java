@@ -42,15 +42,16 @@ public class FastTaskDTO {
      */
     private StepInstanceDTO stepInstance;
     /**
+     * 滚动配置
+     */
+    private RollingConfigDTO rollingConfig;
+
+    /**
      * 是否滚动执行
+     *
+     * @return 是否滚动执行
      */
-    private boolean rollingEnabled;
-    /**
-     * 滚动策略
-     */
-    private Integer rollingMode;
-    /**
-     * 滚动表达式
-     */
-    private String rollingExpr;
+    public boolean isRollingEnabled() {
+        return this.rollingConfig != null;
+    }
 }
