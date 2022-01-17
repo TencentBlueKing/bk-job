@@ -67,3 +67,32 @@ Magic Variable is a special variable that built-in specific to the JOB platform,
     ### echo ${JOB_NAMESPACE_ns_var1}:
     {"0:10.10.10.1":"xxxx","0:10.10.10.2":"yyyy","0:10.10.10.3":"zzzz"}
     ```
+
+  - Two ways to processing JSON string with Shell (For reference only, it's recommended to be on-line after debug)：
+
+    1. Using sed & awk :
+    ```bash
+      #!/bin/bash
+      
+      str='{"ns1":{"ip1":"value1","ip2":"value2"},"ns2":{"ip3":"value3","ip4":"value4"}}'
+      
+      function json_parse {
+          local _json=$1
+          local _key=$2
+          temp=`echo $_json | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $_key`
+          echo ${temp##*|}
+      }
+      
+      json_parse $str ip1			## Value of ip1 in $str variable, it will be "value1"
+      json_parse $str ns1			## Value of ns1, it will be {"ip1":"value1","ip2":"value2"}
+    ```
+
+    2. Using Python's json module :
+    ```bash
+      #!/bin/bash
+      
+      str='{"ns1":{"ip1":"value1","ip2":"value2"},"ns2":{"ip3":"value3","ip4":"value4"}}'
+      
+      ### To get value of ip2 in $str variable, it will be "value2"
+      echo ${str} | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["ns1"]["ip2"]'
+    ```

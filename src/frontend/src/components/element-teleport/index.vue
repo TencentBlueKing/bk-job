@@ -37,8 +37,8 @@
         name: 'ElementTeleport',
         props: {
             target: {
-                type: Function,
-                default: () => document.querySelector('#siteHeaderStatusBar'),
+                type: String,
+                default: '#siteHeaderStatusBar',
             },
         },
         created () {
@@ -57,25 +57,43 @@
             this.childNodeSet.clear();
         },
         methods: {
+            /**
+             * @desc 组件销毁时同步删除 slot
+             */
             remove () {
-                const $targetParent = this.target();
+                const $targetParent = document.querySelector(this.target);
+                if (!$targetParent) {
+                    return;
+                }
+                
                 this.childNodeSet.forEach((item) => {
                     if ($targetParent.contains(item)) {
-                        $targetParent.removeChild(item);
+                        if (this.$refs.source) {
+                            this.$refs.source.appendChild(item);
+                        } else {
+                            $targetParent.removeChild(item);
+                        }
+                        
                         this.childNodeSet.delete(item);
                     }
                 });
             },
+            /**
+             * @desc 移动 slot 到指定的 target
+             */
             _move () {
                 this.remove();
                 if (!this.$refs.source) {
                     return;
                 }
-                const $targetParent = this.target();
+                const $targetParent = document.querySelector(this.target);
+                if (!$targetParent) {
+                    console.error(`element-teleport: target 指定的 DOM 元素 ${this.target} 不存则`);
+                    return;
+                }
                 this.$refs.source.childNodes.forEach((childNode) => {
-                    const realNode = childNode.cloneNode(true);
-                    this.childNodeSet.add(realNode);
-                    $targetParent.appendChild(realNode);
+                    this.childNodeSet.add(childNode);
+                    $targetParent.appendChild(childNode);
                 });
             },
         },

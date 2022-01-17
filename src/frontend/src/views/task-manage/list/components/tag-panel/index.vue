@@ -33,6 +33,7 @@
             :value="classesId"
             icon="business-manage"
             :count="totalCount"
+            :tooltips-disabled="true"
             @on-select="handleClassesSelect" />
         <tab-item
             :name="$t('template.未分类')"
@@ -40,6 +41,7 @@
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
+            :tooltips-disabled="true"
             @on-select="handleClassesSelect" />
         <tab-item
             :name="$t('template.待更新')"
@@ -47,6 +49,7 @@
             :value="classesId"
             icon="update"
             :count="needUpdateCount"
+            :tooltips-disabled="true"
             @on-select="handleClassesSelect" />
         <div class="line" />
         <template v-for="item in list">
@@ -56,6 +59,7 @@
                 :id="item.id"
                 :count="item.relatedTaskTemplateNum"
                 :name="item.name"
+                :description="item.description"
                 :value="tagId"
                 :can-edit="true"
                 :tag-list="list"
