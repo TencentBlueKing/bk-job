@@ -79,7 +79,11 @@ public enum StepActionEnum {
     /**
      * 恢复步骤执行
      */
-    RESUME(13);
+    RESUME(13),
+    /**
+     * 刷新步骤状态
+     */
+    REFRESH(13);
 
     private final int value;
 

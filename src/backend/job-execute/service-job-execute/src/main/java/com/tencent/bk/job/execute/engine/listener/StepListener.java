@@ -58,6 +58,7 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONFIRM_TE
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.CONTINUE_FILE_PUSH;
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.IGNORE_ERROR;
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.NEXT_STEP;
+import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.REFRESH;
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.RETRY_ALL;
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.RETRY_FAIL;
 import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.SKIP;
@@ -137,13 +138,16 @@ public class StepListener {
                 log.info("Confirm step continue, stepInstanceId={}", stepInstanceId);
                 confirmStepContinue(stepInstance);
             } else if (CONTINUE_FILE_PUSH.getValue() == action) {
-                log.info("continue file push step, stepInstanceId={}", stepInstanceId);
+                log.info("Continue file push step, stepInstanceId={}", stepInstanceId);
                 continueGseFileStep(stepInstance);
             } else if (CLEAR.getValue() == action) {
-                log.info("clear step, stepInstanceId={}", stepInstanceId);
+                log.info("Clear step, stepInstanceId={}", stepInstanceId);
                 clearStep(stepInstance);
+            } else if (REFRESH.getValue() == action) {
+                log.info("Refresh step, stepInstanceId: {}, action:{}", stepInstanceId, action);
+                refreshStep(stepInstance);
             } else {
-                log.warn("Error step control action:{}", action);
+                log.error("Error step action:{}", action);
             }
         } catch (Exception e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;
@@ -417,5 +421,46 @@ public class StepListener {
 
     private String getOperator(String taskOperator, String stepOperator) {
         return StringUtils.isNotEmpty(stepOperator) ? stepOperator : taskOperator;
+    }
+
+    private void refreshStep(StepInstanceBaseDTO stepInstance) {
+        int stepStatus = stepInstance.getStatus();
+        long stepInstanceId = stepInstance.getId();
+        long taskInstanceId = stepInstance.getTaskInstanceId();
+
+        // 只有当步骤状态为“等待用户”、“未执行”、“滚动等待”时可以启动步骤
+        if (RunStatusEnum.BLANK.getValue() == stepStatus
+            || RunStatusEnum.WAITING.getValue() == stepStatus
+            || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus) {
+
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
+                DateUtils.currentTimeMillis(), null, null);
+
+            // 如果是滚动步骤，需要更新滚动进度
+            if (stepInstance.isRollingStep()) {
+                int currentRollingBatch = stepInstance.getBatch() + 1;
+                stepInstance.setBatch(currentRollingBatch);
+                stepInstanceService.updateStepCurrentBatch(stepInstanceId, currentRollingBatch);
+            }
+
+            int stepType = stepInstance.getExecuteType();
+            if (EXECUTE_SCRIPT.getValue() == stepType || StepExecuteTypeEnum.EXECUTE_SQL.getValue() == stepType) {
+                TaskExecuteMQEventDispatcher.startGseStep(stepInstanceId);
+            } else if (TaskStepTypeEnum.FILE.getValue() == stepType) {
+                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
+                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
+                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                }
+            } else if (TaskStepTypeEnum.APPROVAL.getValue() == stepType) {
+                executeConfirmStep(stepInstance);
+            } else {
+                log.warn("Unsupported step type, skip it! stepInstanceId={}, stepType={}", stepInstanceId, stepType);
+                taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.SKIPPED.getValue());
+                TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
+            }
+        } else {
+            log.warn("Unsupported step instance run status for starting step, stepInstanceId={}, status={}",
+                stepInstanceId, stepStatus);
+        }
     }
 }
