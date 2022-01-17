@@ -179,6 +179,10 @@ class DownloadFileTask extends Thread {
                     log.info("stop {} quitely, wait to be reDispatch", filePath);
                 }
             } else {
+                if (t instanceof ServiceException) {
+                    taskReporter.reportFileDownloadProgressWithContent(taskId, filePath, downloadPath, fileSize.get(),
+                        speed.get(), process.get(), ((ServiceException) t).getI18nMessage());
+                }
                 log.error("Fail to download file:filePath={},downloadPath={}", filePath, downloadPath, t);
                 taskReporter.reportFileDownloadFailure(taskId, filePath, downloadPath);
             }

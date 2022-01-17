@@ -26,9 +26,14 @@
 -->
 
 <template>
-    <div class="jb-edit-input" :class="mode" :key="value">
+    <div
+        class="jb-edit-input"
+        :class="mode"
+        :key="value">
         <template v-if="!isEditing">
-            <div class="render-value-box" @click.stop="handleBlockShowEdit">
+            <div
+                class="render-value-box"
+                @click.stop="handleBlockShowEdit">
                 <div class="value-text" v-bk-overflow-tips>
                     <slot v-bind:value="newVal">
                         <span>{{ newVal || '--' }}</span>

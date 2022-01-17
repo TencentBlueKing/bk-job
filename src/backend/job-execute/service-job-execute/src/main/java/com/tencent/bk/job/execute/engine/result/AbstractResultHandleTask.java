@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
@@ -94,6 +95,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskExecuteMQEventDispatcher taskManager;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
+    protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -247,7 +249,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
                                      TaskExecuteMQEventDispatcher taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                     ExceptionStatusManager exceptionStatusManager
+                                     ExceptionStatusManager exceptionStatusManager,
+                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor
     ) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskLogService = gseTaskLogService;
@@ -257,6 +260,69 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskManager = taskManager;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+    }
+
+    /**
+     * 检查是否应当驱逐当前任务，若应当驱逐则驱逐并更新任务状态
+     *
+     * @param watch 外部传入的耗时统计watch对象
+     * @return 是否应当驱逐当前任务
+     */
+    private boolean checkAndEvictTaskIfNeed(StopWatch watch) {
+        watch.start("check-evict-task");
+        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+            log.info("taskInstance {} evicted", taskInstance.getId());
+            // 更新任务与步骤状态
+            taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+            // 停止日志拉取调度
+            this.executeResult = GseTaskExecuteResult.DISCARDED;
+            watch.stop();
+            return true;
+        }
+        watch.stop();
+        return false;
+    }
+
+    /**
+     * 拉取GSE日志
+     *
+     * @param watch 外部传入的耗时统计watch对象
+     * @return 是否应当继续后续流程
+     */
+    private boolean pullGSELogsAndCheckPullResult(StopWatch watch) {
+        log.info("[{}]: Start pull log, times: {}", stepInstanceId, pullLogTimes.addAndGet(1));
+        GseLogBatchPullResult<T> gseLogBatchPullResult;
+        int batch = 0;
+        do {
+            batch++;
+            if (checkAndEvictTaskIfNeed(watch)) return false;
+
+            watch.start("pull-task-result-batch-" + batch);
+            // 分批拉取GSE任务执行结果
+            gseLogBatchPullResult = pullGseTaskLogInBatches();
+
+            // 拉取结果校验
+            if (!checkPullResult(gseLogBatchPullResult)) {
+                return false;
+            }
+
+            // 检查任务异常并处理
+            GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
+            if (determineTaskAbnormal(gseLog)) return false;
+
+            watch.stop();
+
+            try {
+                watch.start("analyse-task-result-batch-" + batch);
+                this.executeResult = analyseGseTaskLog(gseLog);
+                watch.stop();
+            } catch (Throwable e) {
+                log.error("[" + stepInstanceId + "]: analyse gse task log result error.", e);
+                throw e;
+            }
+        } while (!gseLogBatchPullResult.isLastBatch());
+        return true;
     }
 
     public void execute() {
@@ -265,6 +331,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (!checkTaskActiveAndSetRunningStatus()) {
                 return;
             }
+            if (checkAndEvictTaskIfNeed(watch)) {
+                return;
+            }
+
             watch.start("get-lock");
             if (!LockUtils.tryGetReentrantLock("job:result:handle:" + stepInstanceId, requestId, 30000L)) {
                 log.info("Fail to get result handle lock, stepInstanceId: {}", stepInstanceId);
@@ -284,36 +354,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.stop();
 
             // 拉取执行结果日志
-            log.info("[{}]: Start pull log, times: {}", stepInstanceId, pullLogTimes.addAndGet(1));
-            GseLogBatchPullResult<T> gseLogBatchPullResult;
-            int batch = 0;
-            do {
-                batch++;
-                watch.start("pull-task-result-batch-" + batch);
-                // 分批拉取GSE任务执行结果
-                gseLogBatchPullResult = pullGseTaskLogInBatches();
-
-                // 拉取结果校验
-                if (!checkPullResult(gseLogBatchPullResult)) {
-                    return;
-                }
-
-                // 检查任务异常并处理
-                GseLog<T> gseLog = gseLogBatchPullResult.getGseLog();
-                if (determineTaskAbnormal(gseLog)) {
-                    return;
-                }
-                watch.stop();
-
-                try {
-                    watch.start("analyse-task-result-batch-" + batch);
-                    this.executeResult = analyseGseTaskLog(gseLog);
-                    watch.stop();
-                } catch (Throwable e) {
-                    log.error("[" + stepInstanceId + "]: analyse gse task log result error.", e);
-                    throw e;
-                }
-            } while (!gseLogBatchPullResult.isLastBatch());
+            if (!pullGSELogsAndCheckPullResult(watch)) {
+                return;
+            }
 
             watch.start("handle-execute-result");
             handleExecuteResult(this.executeResult);

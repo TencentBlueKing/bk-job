@@ -68,6 +68,7 @@
                         <jb-edit-input
                             field="expression"
                             mode="block"
+                            :rules="formRules.expression"
                             :value="rule.expression"
                             :remote-hander="val => handleUpdate(rule, val)" />
                     </td>
@@ -75,24 +76,20 @@
                         <jb-edit-input
                             field="description"
                             mode="block"
+                            :rules="formRules.description"
                             :value="rule.description"
                             :remote-hander="val => handleUpdate(rule, val)" />
                     </td>
                     <td>
-                        <bk-select
-                            class="script-type-edit"
-                            :value="rule.scriptTypeList"
+                        <jb-edit-select
+                            field="scriptTypeList"
+                            mode="block"
+                            :rules="formRules.scriptTypeList"
                             multiple
                             show-select-all
-                            @toggle="handleSubmitScriptTypeChange"
-                            @change="val => handleScriptTypeUpdate(rule, val)"
-                            :clearable="false">
-                            <bk-option
-                                v-for="item in scriptTypeList"
-                                :key="item.id"
-                                :name="item.name"
-                                :id="item.id" />
-                        </bk-select>
+                            :value="rule.scriptTypeList"
+                            :list="scriptTypeList"
+                            :remote-hander="val => handleUpdate(rule, val)" />
                     </td>
                     <td>
                         <edit-action
@@ -150,6 +147,7 @@
     import DangerousRuleService from '@service/dangerous-rule';
     import PublicScriptManageService from '@service/public-script-manage';
     import JbEditInput from '@components/jb-edit/input';
+    import JbEditSelect from '@components/jb-edit/select';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
     import TableActionRow from './components/table-action-row';
     import EditAction from './components/edit-action';
@@ -158,6 +156,7 @@
         name: '',
         components: {
             JbEditInput,
+            JbEditSelect,
             JbPopoverConfirm,
             TableActionRow,
             EditAction,
@@ -178,6 +177,27 @@
             this.editRule = {};
             this.fetchData();
             this.fetchScriptType();
+
+            this.formRules = {
+                expression: [
+                    {
+                        required: true,
+                        message: I18n.t('dangerousRule.语法检测表达式不能为空'),
+                    },
+                ],
+                description: [
+                    {
+                        required: true,
+                        message: I18n.t('dangerousRule.规则说明不能为空'),
+                    },
+                ],
+                scriptTypeList: [
+                    {
+                        validator: value => value.length > 0,
+                        message: I18n.t('dangerousRule.脚本类型不能为空'),
+                    },
+                ],
+            };
         },
         methods: {
             /**
@@ -210,6 +230,7 @@
              * @param {Array} scriptTypeList 脚本语言列表哦
              */
             handleScriptTypeUpdate (rule, scriptTypeList) {
+                console.log('from handleScriptTypeUpdate = ', rule, scriptTypeList);
                 this.editRule = {
                     ...rule,
                     scriptTypeList,
@@ -236,6 +257,7 @@
              * @param {Object} payload 脚本语言列表哦
              */
             handleUpdate (rule, payload) {
+                console.log('from handleUpdate = ', rule, payload);
                 return DangerousRuleService.update({
                     ...rule,
                     ...payload,

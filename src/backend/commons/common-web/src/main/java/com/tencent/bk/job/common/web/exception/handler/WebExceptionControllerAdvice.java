@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -44,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -155,7 +155,6 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
-        BindingResult bindingResult = ex.getBindingResult();
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
         Response<?> resp = Response.buildValidateFailResp(errorDetail);
@@ -171,4 +170,17 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         Response<?> resp = Response.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler({ResourceExhaustedException.class})
+    @ResponseBody
+    ResponseEntity<?> handleResourceExhaustedException(HttpServletRequest request, ResourceExhaustedException ex) {
+        String errorMsg = "Handle ResourceExhaustedException, uri: " + request.getRequestURI();
+        if (log.isDebugEnabled()) {
+            log.debug(errorMsg, ex);
+        } else {
+            log.info(errorMsg);
+        }
+        return new ResponseEntity<>(Response.buildCommonFailResp(ex), HttpStatus.TOO_MANY_REQUESTS);
+    }
+
 }

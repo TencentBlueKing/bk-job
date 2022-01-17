@@ -56,18 +56,30 @@ public class EnvironmentService implements ApplicationContextAware {
     }
 
     public String getAccessHost() {
+        String accessHost;
         if (isInK8s()) {
-            return getAccessHostInK8s();
+            accessHost = getAccessHostInK8s();
         } else {
-            return workerConfig.getAccessHost();
+            accessHost = workerConfig.getAccessHost();
         }
+        if (StringUtils.isBlank(accessHost)) {
+            accessHost = IpUtils.getFirstMachineIP();
+            log.debug("accessHost is blank, use first machine ip");
+        }
+        return accessHost;
     }
 
     public String getInnerIp() {
+        String innerIp;
         if (isInK8s()) {
-            return getInnerIpInK8s();
+            innerIp = getInnerIpInK8s();
         } else {
-            return workerConfig.getInnerIp();
+            innerIp = workerConfig.getInnerIp();
         }
+        if (StringUtils.isBlank(innerIp)) {
+            innerIp = IpUtils.getFirstMachineIP();
+            log.debug("innerIp is blank, use first machine ip");
+        }
+        return innerIp;
     }
 }

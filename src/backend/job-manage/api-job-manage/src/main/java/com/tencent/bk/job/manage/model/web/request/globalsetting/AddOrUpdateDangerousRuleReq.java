@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @AllArgsConstructor
@@ -40,6 +41,7 @@ public class AddOrUpdateDangerousRuleReq {
     @ApiModelProperty("高危语句规则Id，新增传-1")
     private Long id;
     @ApiModelProperty("表达式")
+    @NotNull(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
     private String expression;
     @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     private List<Byte> scriptTypeList;

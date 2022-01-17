@@ -25,7 +25,9 @@
 package com.tencent.bk.job.crontab.model.esb.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -69,42 +71,77 @@ public class EsbSaveCronRequest extends EsbReq {
     @JsonProperty("cron_expression")
     private String cronExpression;
 
-    public boolean validate() {
+    private boolean hasChange() {
+        boolean hasChange = false;
+        if (planId != null && planId > 0) {
+            hasChange = true;
+        }
+        if (StringUtils.isNotBlank(name)) {
+            hasChange = true;
+        } else {
+            name = null;
+        }
+        if (StringUtils.isNotBlank(cronExpression)) {
+            hasChange = true;
+        } else {
+            cronExpression = null;
+        }
+        return hasChange;
+    }
+
+    public void validate() {
         if (appId == null || appId <= 0) {
-            return false;
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{
+                    "bk_biz_id",
+                    "bk_biz_id must be a positive number"
+                });
         }
-        if (id != null && id < 0) {
-            return false;
+        // 更新定时任务需要校验id值的有效性
+        if (id != null && id <= 0) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{
+                    "id",
+                    "id must be a positive number"
+                });
         }
-        if (id == null || id == 0) {
+        boolean isCreate = id == null;
+        // 创建定时任务需要校验依赖参数的有效性
+        if (isCreate) {
             if (planId == null || planId <= 0) {
-                return false;
+                throw new InvalidParamException(
+                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new Object[]{
+                        "bk_job_id",
+                        "bk_job_id must be a positive number"
+                    });
             }
             if (StringUtils.isBlank(name)) {
-                return false;
+                throw new InvalidParamException(
+                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new Object[]{
+                        "cron_name",
+                        "cron_name cannot be blank"
+                    });
             }
             if (StringUtils.isBlank(cronExpression)) {
-                return false;
+                throw new InvalidParamException(
+                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new Object[]{
+                        "cron_expression",
+                        "cron_expression cannot be blank"
+                    });
             }
         } else {
-            boolean hasChange = false;
-            if (planId != null && planId > 0) {
-                hasChange = true;
-            }
-            if (StringUtils.isNotBlank(name)) {
-                hasChange = true;
-            } else {
-                name = null;
-            }
-            if (StringUtils.isNotBlank(cronExpression)) {
-                hasChange = true;
-            } else {
-                cronExpression = null;
-            }
-            if (!hasChange) {
-                return false;
+
+            if (!hasChange()) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new String[]{"bk_job_id/cron_name/cron_expression",
+                        "At least one of bk_job_id/cron_name/cron_expression must be given to update cron " + id
+                    });
             }
         }
-        return true;
     }
 }

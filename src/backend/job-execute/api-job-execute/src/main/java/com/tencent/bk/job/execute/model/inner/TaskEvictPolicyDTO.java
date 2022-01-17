@@ -22,80 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.model.esb.v3.response;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import lombok.Data;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * @since 26/2/2020 20:58
+ * 执行引擎任务驱逐策略POJO类
  */
-@Data
-public class EsbCronInfoV3Response {
-
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
-
-    /**
-     * 作业模板 ID
-     */
-    @JsonProperty("job_plan_id")
-    private Long planId;
-
-    /**
-     * 定时作业ID
-     */
-    private Long id;
-
-    /**
-     * 定时作业名称
-     */
-    private String name;
-
-    /**
-     * 定时作业状态：1.已启动、2.已暂停
-     */
-    private Integer status;
-
-    /**
-     * 定时任务的 cron 表达式
-     */
-    @JsonProperty("expression")
-    private String cronExpression;
-
-    /**
-     * 定时任务的变量信息
-     */
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVarList;
-
-    /**
-     * 作业创建人帐号
-     */
-    private String creator;
-
-    /**
-     * 创建时间，毫秒时间戳
-     */
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    /**
-     * 作业修改人帐号
-     */
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    /**
-     * 最后修改时间，毫秒时间戳
-     */
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = AppCodeTaskEvictPolicyDTO.class, name = AppCodeTaskEvictPolicyDTO.classType),
+    @JsonSubTypes.Type(value = AppIdTaskEvictPolicyDTO.class, name = AppIdTaskEvictPolicyDTO.classType),
+    @JsonSubTypes.Type(value = ComposedTaskEvictPolicyDTO.class, name = ComposedTaskEvictPolicyDTO.classType)})
+public class TaskEvictPolicyDTO {
 }

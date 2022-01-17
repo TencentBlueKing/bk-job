@@ -80,9 +80,13 @@ public enum RunStatusEnum {
      */
     CONFIRM_TERMINATED(13),
     /**
+     * 异常终止
+     */
+    EVICTED(14),
+    /**
      * 滚动等待
      */
-    ROLLING_WAITING(14);
+    ROLLING_WAITING(15);
 
     private final Integer value;
 
@@ -112,6 +116,7 @@ public enum RunStatusEnum {
         finishedStatusValueList.add(ABNORMAL_STATE.value);
         finishedStatusValueList.add(STOP_SUCCESS.value);
         finishedStatusValueList.add(CONFIRM_TERMINATED.value);
+        finishedStatusValueList.add(EVICTED.value);
         return finishedStatusValueList;
     }
 

@@ -57,6 +57,7 @@ import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -79,6 +80,7 @@ import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -163,8 +165,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ExecuteAuthService executeAuthService;
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
-    private final RollingConfigServiceImpl rollingConfigService;
+    private final RollingConfigService rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
+    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -185,8 +188,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   ExecuteAuthService executeAuthService,
                                   Tracing tracing,
                                   DangerousScriptCheckService dangerousScriptCheckService,
-                                  RollingConfigServiceImpl rollingConfigService,
-                                  JobExecuteConfig jobExecuteConfig) {
+                                  JobExecuteConfig jobExecuteConfig,
+                                  TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                  RollingConfigService rollingConfigService) {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
@@ -206,6 +210,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
     private static List<IpDTO> getHostsContainsNotAllowedAction(Map<IpDTO, Set<String>> hostBindActions,
@@ -227,6 +232,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
         StopWatch watch = new StopWatch("createTaskInstanceFast");
+        // 检查任务是否应当被驱逐
+        checkTaskEvict(taskInstance);
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
         adjustStepTimeout(stepInstance);
         try {
@@ -298,6 +305,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (watch.getTotalTimeMillis() > 1000) {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
+        }
+    }
+
+    private void checkTaskEvict(TaskInstanceDTO taskInstance) {
+        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+            throw new ResourceExhaustedException(ErrorCode.TASK_EVICTED);
         }
     }
 

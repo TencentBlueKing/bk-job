@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -88,6 +89,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExecuteMonitor executeMonitor;
     protected ExceptionStatusManager exceptionStatusManager;
+    protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected JobExecuteConfig jobExecuteConfig;
     protected String requestId;
     protected Tracing tracing;
@@ -208,6 +210,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
 
     public void setExceptionStatusManager(ExceptionStatusManager exceptionStatusManager) {
         this.exceptionStatusManager = exceptionStatusManager;
+    }
+
+    public void setTaskEvictPolicyExecutor(TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
     private void analyseAndSetTaskVariables() {
