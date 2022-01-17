@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -174,6 +175,18 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         log.warn("handleConstraintViolationException - errorDetail: {}", errorDetail);
         EsbResp<?> resp = EsbResp.buildValidateFailResp(errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.OK);
+    }
+
+    @ExceptionHandler({ResourceExhaustedException.class})
+    @ResponseBody
+    ResponseEntity<?> handleResourceExhaustedException(HttpServletRequest request, ResourceExhaustedException ex) {
+        String errorMsg = "Handle ResourceExhaustedException, uri: " + request.getRequestURI();
+        if (log.isDebugEnabled()) {
+            log.debug(errorMsg, ex);
+        } else {
+            log.info(errorMsg);
+        }
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @Override
