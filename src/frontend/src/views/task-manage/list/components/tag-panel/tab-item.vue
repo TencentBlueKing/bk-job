@@ -37,8 +37,25 @@
         @click.stop="">
         <Icon :type="icon" class="tag-flag" />
         <template v-if="!isEditable">
-            <div class="tag-name" @click="handleSelect">
-                <div class="name-text" v-bk-overflow-tips>{{ displayName }}</div>
+            <div
+                class="tag-name"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    width: 240,
+                    distance: 15,
+                    trigger: 'mouseenter',
+                    theme: 'light',
+                    content: `#${sefId}`,
+                    placement: 'right-start',
+                    boundary: 'window',
+                    disabled: tooltipsDisabled,
+                }"
+                @click="handleSelect">
+                <div
+                    class="name-text"
+                    v-bk-overflow-tips>
+                    {{ displayName }}
+                </div>
             </div>
             <div class="tag-num-box">
                 <span class="tag-num">{{ count }}</span>
@@ -67,6 +84,20 @@
                 <Icon type="info" />
             </div>
         </template>
+        <div style="display: none;">
+            <table
+                :id="sefId"
+                style="font-size: 12px; line-height: 24px; color: #63656e;">
+                <tr>
+                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">标签名称：</td>
+                    <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
+                </tr>
+                <tr>
+                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">标签描述：</td>
+                    <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
 </template>
 <script>
@@ -93,8 +124,13 @@
                 type: String,
                 default: '',
             },
+            description: String,
             value: {
                 type: Number,
+            },
+            tooltipsDisabled: {
+                type: Boolean,
+                default: false,
             },
             id: {
                 type: Number,
@@ -139,6 +175,9 @@
                     width: this.error === 3 ? 200 : '',
                 };
             },
+        },
+        created () {
+            this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
         },
         mounted () {
             document.body.addEventListener('click', this.hideEdit);

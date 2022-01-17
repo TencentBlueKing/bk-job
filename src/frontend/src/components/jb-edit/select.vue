@@ -26,7 +26,10 @@
 -->
 
 <template>
-    <div class="jb-edit-select" :class="mode" :key="value">
+    <div
+        class="jb-edit-select"
+        :class="mode"
+        :key="refreshKey">
         <template v-if="!isEditing">
             <div class="render-value-box" @click.stop="handleBlockShowEdit">
                 <div class="value-text" v-bk-overflow-tips>
@@ -55,7 +58,9 @@
                 @click.stop="">
                 <bk-select
                     ref="select"
+                    v-bind="$attrs"
                     :value="value"
+                    :clearable="false"
                     @change="handleSelectChange"
                     @toggle="handleSelectToggle">
                     <bk-option
@@ -64,7 +69,10 @@
                         :name="item.name"
                         :key="item.id" />
                 </bk-select>
-                <div v-if="error" class="input-edit-info" v-bk-tooltips.top="error">
+                <div
+                    v-if="error"
+                    class="input-edit-info"
+                    v-bk-tooltips.top="error">
                     <Icon type="info" />
                 </div>
             </div>
@@ -74,6 +82,32 @@
 <script>
     import _ from 'lodash';
     import I18n from '@/i18n';
+
+    const compare = (pre, last) => {
+        if (pre === last) {
+            return true;
+        }
+        if (Object.prototype.toString.call(pre) !== Object.prototype.toString.call(last)) {
+            return false;
+        }
+        if (Array.isArray(pre)) {
+            if (pre.length !== last.length) {
+                return false;
+            }
+            const preMap = pre.reduce((result, item) => {
+                result[item] = true;
+                return result;
+            }, []);
+            // eslint-disable-next-line no-plusplus
+            for (let i = 0; i < last.length; i++) {
+                if (!preMap[last[i]]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    };
 
     export default {
         name: 'JbEditSelect',
@@ -97,7 +131,7 @@
              * @desc 默认值
              */
             value: {
-                type: [String, Number],
+                type: [String, Number, Array],
                 default: '',
             },
             /**
@@ -140,11 +174,19 @@
              * @returns { Boolean }
              */
             renderText () {
-                const item = _.find(this.list, ({ id }) => this.localValue === id);
-                if (!item) {
+                const valueMap = {};
+                if (Array.isArray(this.localValue)) {
+                    this.localValue.forEach((value) => {
+                        valueMap[value] = true;
+                    });
+                } else {
+                    valueMap[this.localValue] = true;
+                }
+                const result = _.filter(this.list, ({ id }) => valueMap[id]);
+                if (result.length < 1) {
                     return '--';
                 }
-                return item.name;
+                return result.map(({ name }) => name).join(',');
             },
             styles () {
                 return {
@@ -153,6 +195,9 @@
             },
             isBlock () {
                 return this.mode === 'block';
+            },
+            refreshKey () {
+                return `editSelect_${Array.isArray(this.value) ? this.value.join('_') : this.value}`;
             },
         },
         watch: {
@@ -211,7 +256,7 @@
                 this.doValidator()
                     .then(() => {
                         this.isEditing = false;
-                        if (this.localValue === this.value) {
+                        if (compare(this.localValue, this.value)) {
                             return;
                         }
                         this.isSubmiting = true;
@@ -262,7 +307,8 @@
                     // eslint-disable-next-line no-plusplus
                     for (let i = 0; i < event.path.length; i++) {
                         const target = event.path[i];
-                        if (target.className === 'jb-edit-select') {
+                        if (target.className === 'jb-edit-select'
+                            || target.className === 'tippy-content') {
                             return;
                         }
                     }
@@ -275,14 +321,14 @@
              */
             handleSelectChange (value) {
                 this.localValue = value;
-                this.triggerChange();
             },
             /**
              * @desc 下拉面板收起，取消编辑状态
              */
             handleSelectToggle (toggle) {
                 if (!toggle) {
-                    this.isEditing = false;
+                    // this.isEditing = false;
+                    this.triggerChange();
                 }
             },
             
@@ -386,7 +432,7 @@
             font-size: 0;
 
             &.edit-error {
-                .bk-form-input {
+                .bk-select {
                     border-color: #ea3636 !important;
                 }
             }

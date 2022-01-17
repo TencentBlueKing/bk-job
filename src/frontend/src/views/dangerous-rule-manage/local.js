@@ -51,5 +51,8 @@ export default {
         '命中规则的脚本执行任务仅会做记录，不会拦截': 'The script execution task that hits the rule will only be recorded and not be blocked',
         '【拦截】': 'BLOCK',
         '命中规则的脚本执行任务会被记录，并中止运行': 'The script execution task that hits the rule will be recorded and blocked',
+        语法检测表达式不能为空: 'Grammar regex is required',
+        规则说明不能为空: 'Explanaction is required',
+        脚本类型不能为空: 'Script type is required',
     },
 };
