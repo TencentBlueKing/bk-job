@@ -297,7 +297,7 @@
             .tag-normal-box,
             .tag-shortcurt-box {
                 display: flex;
-                opacity: 100%;
+                opacity: 1;
                 transform: scale(1);
             }
         }
@@ -322,7 +322,7 @@
             height: 30px;
             min-width: 24px;
             color: #979ba5;
-            opacity: 0%;
+            opacity: 0;
             align-items: center;
         }
 
