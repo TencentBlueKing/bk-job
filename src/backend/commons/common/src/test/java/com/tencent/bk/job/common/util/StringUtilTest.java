@@ -64,4 +64,13 @@ public class StringUtilTest {
         assertEquals("sssAAA", StringUtil.removeSuffix("sssAAA", "s"));
         assertEquals("", StringUtil.removeSuffix("sss", "s"));
     }
+
+    @Test
+    public void testIsDifferent() {
+        assertEquals(StringUtil.isDifferent(null, null), false);
+        assertEquals(StringUtil.isDifferent("123", "123"), false);
+        assertEquals(StringUtil.isDifferent(null, "123"), true);
+        assertEquals(StringUtil.isDifferent("123", null), true);
+        assertEquals(StringUtil.isDifferent("123", "123 "), true);
+    }
 }

@@ -229,6 +229,8 @@ public class ErrorCode {
     public static final int LOCAL_FILE_NOT_EXIST_IN_BACKEND = 1244023;
     // 保存文件到本地失败
     public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
+    // 任务被异常中止
+    public static final int TASK_EVICTED = 1244025;
     // 作业执行 end
 
     // 定时作业 start
