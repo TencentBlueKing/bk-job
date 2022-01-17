@@ -397,7 +397,7 @@ public class GseTaskManager implements SmartLifecycle {
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         int executeCount = stepInstance.getExecuteCount();
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, stepInstance.getBatch());
         if (null == gseTask) {
             log.info("Get gseTask return null, stepInstanceId: {}, executeCount:{}", stepInstanceId, executeCount);
             return;

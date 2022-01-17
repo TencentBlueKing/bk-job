@@ -144,7 +144,7 @@ public class ResultHandleResumeListener {
         try {
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-            GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+            GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, stepInstance.getBatch());
 
             if (!checkIsTaskResumeable(stepInstance, gseTask)) {
                 log.warn("Task can not resume, stepStatus: {}, gseTaskStatus: {}",

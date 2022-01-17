@@ -50,9 +50,10 @@ public interface GseTaskService {
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
+     * @param batch          滚动执行批次
      * @return GSE 任务
      */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount);
+    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch);
 
     /**
      * 批量保存 GSE Agent 任务
@@ -116,7 +117,8 @@ public interface GseTaskService {
     List<GseAgentTaskDTO> listGseAgentTasksByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
                                                         String tag);
 
-    List<GseAgentTaskDTO> getGseAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
+    List<GseAgentTaskDTO> getGseAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
+                                                             Integer resultType,
                                                              String tag);
 
     /**

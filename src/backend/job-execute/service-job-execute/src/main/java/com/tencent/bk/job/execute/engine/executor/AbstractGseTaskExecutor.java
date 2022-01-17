@@ -341,7 +341,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         watch.stop();
 
         watch.start("get-gse-task-log-from-db");
-        gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+        gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, rollingBatch);
         watch.stop();
 
         boolean shouldSendTaskToGseServer = (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId()));

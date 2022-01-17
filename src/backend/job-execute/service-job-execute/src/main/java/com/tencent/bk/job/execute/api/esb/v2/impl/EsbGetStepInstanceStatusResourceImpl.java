@@ -92,7 +92,8 @@ public class EsbGetStepInstanceStatusResourceImpl
         }
 
         EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, stepInstance.getExecuteCount());
+        // TODO Rolling
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, stepInstance.getExecuteCount(), 0);
         if (null == gseTask) {
             resultData.setIsFinished(false);
             return EsbResp.buildSuccessResp(null);

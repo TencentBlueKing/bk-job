@@ -605,7 +605,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         List<api_agent> agentList = GseRequestUtils.buildAgentList(jobIpSet, accountInfo.getAccount(),
             accountInfo.getPassword());
         api_stop_task_request stopTaskRequest = new api_stop_task_request();
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, rollingBatch);
         if (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId())) {
             log.warn("Gse Task not send to gse server, not support stop");
             return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED, "Termination failed");

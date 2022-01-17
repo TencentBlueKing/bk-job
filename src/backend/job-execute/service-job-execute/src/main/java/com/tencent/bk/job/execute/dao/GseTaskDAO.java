@@ -26,10 +26,26 @@ package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 
+/**
+ * GseTaskDAO
+ */
 public interface GseTaskDAO {
 
+    /**
+     * 保存/更新 GSE 任务
+     *
+     * @param gseTask GSE 任务
+     */
     void saveGseTask(GseTaskDTO gseTask);
 
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount);
+    /**
+     * 获取 GSE 任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          滚动执行批次
+     * @return GSE 任务
+     */
+    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch);
 
 }

@@ -504,7 +504,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         query.setExecuteCount(finalExecuteCount);
         watch.stop();
 
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), finalExecuteCount);
+        // TODO Rolling
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), finalExecuteCount, 0);
         if (gseTask == null) {
             return buildNotStartStepExecutionResult(appId, stepInstance, finalExecuteCount,
                 query.getMaxAgentTasksForResultGroup(), query.getSearchIp());
@@ -885,8 +886,9 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
         }
 
+        // TODO Rolling
         GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
-            stepInstance.getExecuteCount());
+            stepInstance.getExecuteCount(), 0);
         if (gseTask == null) {
             if (stepInstance.getTargetServers().getIpList() != null) {
                 return stepInstance.getTargetServers().getIpList();
