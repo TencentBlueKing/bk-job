@@ -25,13 +25,13 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
@@ -72,17 +72,15 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
     private final ScriptService scriptService;
 
-    private final AuthService authService;
-
     @Autowired
-    public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService, AccountService accountService,
-                                         MessageI18nService i18nService, ScriptService scriptService,
-                                         AuthService authService) {
+    public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService,
+                                         AccountService accountService,
+                                         MessageI18nService i18nService,
+                                         ScriptService scriptService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.scriptService = scriptService;
-        this.authService = authService;
     }
 
     @Override
@@ -184,7 +182,8 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
         }
 
-        stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+        stepInstance.setTimeout(request.getTimeout() == null ?
+            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),

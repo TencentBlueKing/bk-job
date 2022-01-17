@@ -39,10 +39,14 @@
         </tr>
         <tr v-else>
             <td>
-                <bk-input v-model="formData.expression" class="input" />
+                <bk-input
+                    v-model="formData.expression"
+                    class="input" />
             </td>
             <td>
-                <bk-input v-model="formData.description" class="input" />
+                <bk-input
+                    v-model="formData.description"
+                    class="input" />
             </td>
             <td>
                 <bk-select
@@ -61,13 +65,25 @@
                 <bk-select
                     v-model="formData.action"
                     :clearable="false">
-                    <bk-option :name="$t('dangerousRule.扫描')" :id="1" />
-                    <bk-option :name="$t('dangerousRule.拦截')" :id="2" />
+                    <bk-option
+                        :name="$t('dangerousRule.扫描')"
+                        :id="1" />
+                    <bk-option
+                        :name="$t('dangerousRule.拦截')"
+                        :id="2" />
                 </bk-select>
             </td>
             <td>
-                <bk-button text @click="handleSubmit">{{ $t('dangerousRule.保存') }}</bk-button>
-                <bk-button text @click="handleCancel">{{ $t('dangerousRule.取消') }}</bk-button>
+                <bk-button
+                    text
+                    @click="handleSubmit">
+                    {{ $t('dangerousRule.保存') }}
+                </bk-button>
+                <bk-button
+                    text
+                    @click="handleCancel">
+                    {{ $t('dangerousRule.取消') }}
+                </bk-button>
             </td>
         </tr>
     </tbody>

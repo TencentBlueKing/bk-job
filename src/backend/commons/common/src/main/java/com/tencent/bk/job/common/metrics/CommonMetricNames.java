@@ -29,9 +29,41 @@ package com.tencent.bk.job.common.metrics;
  */
 public class CommonMetricNames {
     /**
-     * 调用CMDB API
+     * 仅统计调用ESB BK-LOGIN API的HTTP请求过程
      */
-    public static final String CMDB_API = "job.client.cmdb.api";
+    public static final String ESB_BK_LOGIN_API_HTTP = "job.client.bk.login.api.http";
+    /**
+     * 仅统计调用ESB USER-MANAGE API的HTTP请求过程
+     */
+    public static final String ESB_USER_MANAGE_API_HTTP = "job.client.user.manage.api.http";
+    /**
+     * 仅统计调用ESB CMSI API的HTTP请求过程
+     */
+    public static final String ESB_CMSI_API_HTTP = "job.client.cmsi.api.http";
+    /**
+     * 统计调用ESB CMSI API的整个过程，含反序列化
+     */
+    public static final String ESB_CMSI_API = "job.client.cmsi.api";
+    /**
+     * 仅统计调用ESB IAM API的HTTP请求过程
+     */
+    public static final String ESB_IAM_API_HTTP = "job.client.iam.api.http";
+    /**
+     * 仅统计调用制品库 API的HTTP请求过程
+     */
+    public static final String BKREPO_API_HTTP = "job.client.bkrepo.api.http";
+    /**
+     * 统计调用制品库 API整个过程，含反序列化
+     */
+    public static final String BKREPO_API = "job.client.bkrepo.api";
+    /**
+     * 仅统计调用ESB CMDB API的HTTP请求过程
+     */
+    public static final String ESB_CMDB_API_HTTP = "job.client.cmdb.api.http";
+    /**
+     * 统计调用CMDB API整个过程，含反序列化
+     */
+    public static final String ESB_CMDB_API = "job.client.cmdb.api";
 
     /**
      * 被调用ESB API

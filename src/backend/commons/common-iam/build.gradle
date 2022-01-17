@@ -30,4 +30,5 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.aspectj:aspectjweaver'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }

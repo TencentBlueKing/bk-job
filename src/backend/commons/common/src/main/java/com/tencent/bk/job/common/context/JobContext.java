@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.common.context;
 
+import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.ZoneId;
+import java.util.AbstractList;
 import java.util.List;
 
 /**
@@ -56,4 +58,8 @@ public class JobContext {
     private HttpServletRequest request;
 
     private HttpServletResponse response;
+
+    private String httpMetricName;
+
+    private AbstractList<Tag> httpMetricTags;
 }

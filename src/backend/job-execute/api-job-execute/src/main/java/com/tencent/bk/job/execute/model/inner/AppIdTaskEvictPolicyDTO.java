@@ -22,14 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.utils;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-public class HttpHelperFactory {
-    private static DefaultHttpHelper defaultHttpHelper = new DefaultHttpHelper();
+import java.util.List;
 
-    public static DefaultHttpHelper getDefaultHttpHelper() {
-        return defaultHttpHelper;
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AppIdTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
+
+    public static final String classType = "AppIdTaskEvictPolicy";
+
+    protected List<Long> appIdsToEvict;
+
+    public AppIdTaskEvictPolicyDTO(List<Long> appIdsToEvict) {
+        this.appIdsToEvict = appIdsToEvict;
     }
+
 }

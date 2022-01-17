@@ -64,7 +64,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
             String username = userAppIdPair.getLeft();
             Long appId = userAppIdPair.getRight();
             if (appId != JobConstants.PUBLIC_APP_ID && appId > 0) {
-                log.info("auth {} access_business {}", username, appId);
+                log.debug("auth {} access_business {}", username, appId);
                 AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
                     ResourceTypeEnum.BUSINESS, appId.toString(), null);
                 if (!authResult.isPass()) {
@@ -74,7 +74,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                 log.info("ignore auth {} access_business public app {}", username, appId);
             }
         } else {
-            log.info("can not find username/appId for url:{}", url);
+            log.debug("can not find username/appId for url:{}", url);
         }
         return true;
     }

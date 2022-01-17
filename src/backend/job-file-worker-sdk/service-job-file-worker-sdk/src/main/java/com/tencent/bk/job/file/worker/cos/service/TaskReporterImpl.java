@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file.worker.cos.service;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
@@ -41,7 +41,7 @@ import java.util.List;
 @Service
 public class TaskReporterImpl implements TaskReporter {
 
-    private final AbstractHttpHelper httpHelper = new DefaultHttpHelper();
+    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final GatewayInfoService gatewayInfoService;
 
     @Autowired
@@ -71,6 +71,20 @@ public class TaskReporterImpl implements TaskReporter {
         req.setFileSize(fileSize);
         req.setSpeed(speed + " KB/s");
         req.setContent("Pulling OSS file...");
+        req.setProgress(progress);
+        reportTaskStatus(req);
+    }
+
+    public void reportFileDownloadProgressWithContent(String taskId, String filePath, String downloadPath, Long fileSize,
+                                                      Integer speed, Integer progress, String content) {
+        UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
+        req.setFileSourceTaskId(taskId);
+        req.setFilePath(filePath);
+        req.setDownloadPath(downloadPath);
+        req.setStatus(TaskStatusEnum.RUNNING);
+        req.setFileSize(fileSize);
+        req.setSpeed(speed + " KB/s");
+        req.setContent(content);
         req.setProgress(progress);
         reportTaskStatus(req);
     }

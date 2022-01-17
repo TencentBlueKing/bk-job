@@ -16,9 +16,8 @@ global:
   imagePullSecrets: []
   storageClass: ""
 
-
-## @section job image parameters
-image:
+# 作业平台各模块镜像源公共配置
+jobImage:
   imageRegistry: ""
   imagePullSecrets: []
 
@@ -50,6 +49,7 @@ rbac:
   create: true
 
 ingress:
+  # enabled是指是否开启ingress
   enabled: false
   ingressClassName: ""
 
@@ -341,177 +341,287 @@ externalMongoDB:
   ##
   uri: ""
 
+## ServiceMonitor configuration
+##
+serviceMonitor:
+  ## @param serviceMonitor.enabled Creates a ServiceMonitor to monitor kube-state-metrics
+  ##
+  enabled: false
+  ## @param serviceMonitor.namespace Namespace in which Prometheus is running
+  ## e.g:
+  ## namespace: monitoring
+  ##
+  namespace: ""
+  ## @param serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
+  ##
+  jobLabel: ""
+  ## @param serviceMonitor.interval Scrape interval (use by default, falling back to Prometheus' default)
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## interval: 10s
+  ##
+  interval: 30s
+  ## @param serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## scrapeTimeout: 10s
+  ##
+  scrapeTimeout: ""
+  ## @param serviceMonitor.selector ServiceMonitor selector labels
+  ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+  ## e.g:
+  ## selector:
+  ##   prometheus: my-prometheus
+  ##
+  selector: {}
+  ## @param serviceMonitor.honorLabels Honor metrics labels
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+  ## e.g:
+  ## honorLabels: false
+  ##
+  honorLabels: false
+  ## @param serviceMonitor.relabelings ServiceMonitor relabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  relabelings: []
+  ## @param serviceMonitor.metricRelabelings ServiceMonitor metricRelabelings
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
+  ##
+  metricRelabelings: []
+
 nginx-ingress-controller:
   enabled: false
 
-## @section job application common parameters
-##
-app:
-  ## job app_code. Fixed Value
-  code: bk_job
-  ## job app_secret
-  secret: ""
+## 作业平台调用ESB/ApiGateway使用的APP_CODE与密钥信息
+## appCode
+appCode: bk_job
+## appSecret
+appSecret: ""
 
-## BlueKing ESB Config
-esb:
-  service:
-    ## ESB Service URL
-    url: "http://paas.example.com"
+## 蓝鲸 ESB url
+bkComponentApiUrl: "http://bkapi.paas.example.com"
+## 蓝鲸 Login url
+bkLoginUrl: "http://paas.example.com/login/"
+## 蓝鲸 cmdb url
+bkCmdbUrl: "http://cmdb.example.com"
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: "http://bkiam-api.example.com"
+# 蓝鲸制品库 url
+bkRepoUrl: "http://bkrepo.example.com"
+# 节点管理 url
+bkNodemanUrl: "http://nodeman.example.com"
 
-## BlueKing GSE Config
+## 蓝鲸GSE参数配置
 gse:
-  ## @param gse.existingTlsSecret: Existing secret name with GSE certificate
-  ##
+  # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
+  # Agent状态查询接口相关配置
   cacheApiServer:
+    # 接口地址host
     host: "gse-api.example.com"
+    # 端口
     port: 59313
+  # ssl证书相关配置
   ssl:
     keystore:
-      ## @param gse.ssl.keystore.password: Password for gse keystore. Task effect when gse.existingTlsSecret is not set.
-      ##
+      ## 证书keystore文件单行base64编码值
+      base64Content: "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"
+      ## keystore的密码
       password: "2y#8VI2B4Sm9Dk^J"
     truststore:
-      ## @param gse.ssl.truststore.password: Password for gse truststore. Task effect when gse.existingTlsSecret is not set.
-      ##
+      ## 证书truststore文件单行base64编码值
+      base64Content: "/u3+7QAAAAIAAAABAAAAAgACY2EAAAF8F68PKQAFWC41MDkAAAM4MIIDNDCCAhwCCQC4iHdzcyDjoTANBgkqhkiG9w0BAQUFADBbMQswCQYDVQQGEwJDTjELMAkGA1UECAwCR0QxCzAJBgNVBAcMAlNaMQwwCgYDVQQKDANpZWcxEDAOBgNVBAsMB2JsdWtpbmcxEjAQBgNVBAMMCUdTRVJPT1RDQTAgFw0xOTAyMjUxMDMyMDRaGA8yMTE5MDIwMTEwMzIwNFowWzELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkdEMQswCQYDVQQHDAJTWjEMMAoGA1UECgwDaWVnMRAwDgYDVQQLDAdibHVraW5nMRIwEAYDVQQDDAlHU0VST09UQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDWRsDA1FRFoVPJkLA0XBk3ZHFg5CGjVDeZJGw2L+Y5SJEt/KTB4sLfwIELO1mldos6VEDuGQGAk3g4oA8qqY5jrZXRRRd/bUanyb1GaXi4oXMnZaTy+uGZcYHTpI0RPuzIMD5e/P5+ecsBlnFnAxCjBY2Ivfg04QuwxYMST2IvCy4qpfeuc+TGvucZVdsVrIvKVqHyCGAmeRvHcGCbh/i0SUi30BXljOy+LVE5PqdWmoyFAelCbMyKclAmv+Yhm38NE8bgahV9Zb8zc4sxiU3gGqyrXUzTFII6/hdHPyhNYKniUWxaI7BWkfFyJ75aJPcawqhBoLCA4XVFKpUNBGQHAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBAMnrbZFPGtfHBio/bl7V1as8NNeJWAPRj5dPr2cPBFyPHyAccixlLlh0wXr1EvyBpmENQ3P3IuPq+j37AcJS4YnS/1ncZhDZfOVIOxGvjaMIOTADQj4SIB2FMv2541Z0Y51WYwDO8x36YKBVJZKQ+xVhFI4ZknkZS7gTGyuYDy8FT020Yi4ufAhga8Zw3qun3RzE9b0Ua8XGfPIVuqB7pk5Bn++ou/2t6eb2qkEKBo/lRqHxWQk1og2L+7tibhK3D48WATZNKd81Sm3RYOMpmjrgVwIG/2FGInWoa+VdbVvxdKFSzRBLHMMETockEQTwmKFT9neXwxNM5oeT+W+Q2QrbpmZGDsc6xjUy7MDM2PvfOjI3OA=="
+      ## truststore的密码
       password: "2y#8VI2B4Sm9Dk^J"
+  # 任务下发接口相关配置
   taskserver:
+    # 接口地址host
     host: "gse-task.example.com"
+    # 端口
     port: 48673
+  # 服务发现配置
   server:
     discovery:
+      # 服务发现模式：取值为zookeeper，不使用zookeeper则无需配置
       type: zookeeper
     zookeeper:
       connect:
-        string: "gse-zk.example.com"
+        # zookeeper连接字符串，由host:port构成
+        string: "gse-zk.example.com:2181"
   script:
-    ## @param gse.script.rootPath The root directory of the script file distributed by the JOB to the GSE agent
-    ##
+    # 执行脚本时临时脚本在目标机器的存放与执行路径
     rootPath: "/tmp/bkjob"
   query:
     threads:
+      # 向GSE查询Agent状态的并发数
       num: 5
+    # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
-## BlueKing IAM Config
-iam:
-  baseUrl: "http://bkiam.example.com"
-  ## The system ID of Job in the IAM. Fixed Value
-  systemId: bk_job
-
-## BlueKing PaaS Config
-paas:
-  login:
-    url: "http://paas.example.com/login"
-
-## BlueKing CMDB Config
+## 对接蓝鲸CMDB参数配置
 cmdb:
   app:
     index:
+      # CMDB首页URI
       path: /#/business/{appId}/index
   interface:
     briefCacheTopo:
+      # 是否启用CMDB拓扑缓存接口，默认开启
       enabled: true
     findHostRelation:
       longTerm:
+        # 主机数量超过1w的大业务从CMDB查询主机的最大并发数量，默认为10
         concurrency: 10
     flowControl:
       default:
+        # CMDB接口资源默认流控频率，默认为50次/s
         limit: 50
+      # 是否开启CMDB接口资源流控，默认不开启
       enabled: false
     retry:
+      # CMDB接口资源调用时是否开启重试，默认开启
       enabled: true
   query:
     threads:
+      # 普通业务从CMDB查询主机的线程数量
       num: 20
-  server:
-    url: http://cmdb.example.com
 
-## BlueKing NodeMan Config
-nodeman:
-  server:
-    url: http://nodeman.example.com
-## BlueKing Artifactory Config
+## 蓝鲸制品库配置
 artifactory:
-  baseUrl: http://bkrepo.example.com
   admin:
+    # 制品库admin账号
     username: admin
+    # 制品库admin账号的密码
     password: blueking
   job:
+    # 作业平台在制品库的官方账号，初始化时由作业平台通过Admin账号自动创建
     username: bkjob
+    # 作业平台在制品库的官方账号对应的密码，初始化时由作业平台通过Admin账号自动创建
     password: bkjob
+    # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
-## Job LocalFile Config
+## 本地文件上传配置
 localFile:
+  # 本地文件存储后端，取值可为：制品库（artifactory）、本地NFS（local）
   storageBackend: artifactory
   artifactory:
     download:
+      # 从制品库下载本地文件的并发数，默认为10
       concurrency: 10
+    # 制品库中作业平台使用的本地文件仓库代码，初始化时由作业平台通过Admin账号自动创建
     repo: localupload
 
-## Swagger Doc
+## Swagger配置
 swagger:
+  # 开启开发模式时的Swagger文档地址域名
   url: "swagger.job.com"
 
 ## Job Common Config
 job:
+  # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
   profile: prod,kubernetes
+  # 作业平台版本(ce,ee)，默认社区版(ce)
   edition: ce
   security:
+    # base64编码的服务间调用私钥
     privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
+    # base64编码的服务间调用公钥
     publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFnZ3hWT0F4dmd2QkNuTG40eXBaVzIySEU3OS9NZ0V6amhZZ09LM2hVbEpJc1N1amlkZVZ2OTdZMVhMRjArSkdEdEM0UllGNStUWGQ3dFNCWG1hOWQwanpJMkpPREtBSDJtbW91MVd1Y0pHclVMT09yODlpL25zWkVnTGxiczVqdmlwZFRCSHF5cXVzWkM2RWQ3dEl5cW80SlF3dGo5QVVFSjB2WEJHVGQ3aXk1Q3BLSkdKa0ZRK0h0ejQ1bDcrMGY4V0tNcXpiU3JyU0ZHd01DTWJSUWNJdHlSV2VuTFdSaWUzcE12eUc3clRNZDBQWVoyc1VXemdTVUd1cUgzdWFpR1B2eE1aT2hKczlFK3ZJWlZiVUlYdi85d1NlNXg5d2hnVjg1TUZVTzFrL0Vrd1lPMWpiYWFDVVdHUkd0bGZpWnJYVDZkaC9ZK29lcElXQmN6MFdCVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
     actuator:
       user:
+        # 获取actuator监控数据的账号，部署时生成填入
         name: actuator_name
+        # 获取actuator监控数据的密码，部署时生成填入
         password: actuator_password
   encrypt:
+    # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
   feature:
     toggle:
       fileManage:
+        # 是否开启文件管理特性，容器化环境默认开启
         enabled: true
   storage:
+    # 存储文件（用户上传的本地文件、导入导出生成的临时文件等）到本地的根路径
     rootPath: /data/job/local
-  # 蓝鲸日志平台数据采集
-  log:
-    file:
-      collectEnabled: false
-      dataId: 1
-    std:
-      collectEnabled: false
-      dataId: 1
-  # 蓝鲸监控数据采集
-  monitor:
-    collectEnabled: false
   migration:
     iamModel:
+      # 是否开启权限模型migration
       enabled: true
     mysqlSchema:
+      # 是否开启Mysql数据库结构migration
       enabled: true
   # 各微服务Actuator监控端口
   managePort: 19876
-  # 存储分配
-  pv:
-    path: "/data/bkjob"
-    storage: 100Gi
+  web:
+    # 作业平台主站域名
+    domain: "job.example.com"
+    # 作业平台API域名
+    apiDomain: "jobapi.example.com"
+    https:
+      # 是否开启HTTPS
+      enabled: false
+      # 开启HTTPS时使用的证书base64编码
+      certBase64: ""
+      # 开启HTTPS时使用的证书私钥base64编码
+      keyBase64: ""
 
-## @section job-gateway parameters
+## 持久化存储配置
+persistence:
+  ## 是否开启数据持久化，false则使用emptyDir类型volume, pod结束后数据将被清空，无法持久化
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 200Gi
+
+  ## 如果不定义或设置为null, 将使用默认的storageClass(minikube上是hostPath, AWS上的gp2, GKE上是standard, TKE上是cbs)
+  ## 如果设置为"-", 则禁用动态卷供应
+  ## 如果设置为其它值，则storageClassName: <storageClass>
+  # storageClass: "-"
+
+  ## 如果开启持久化，并且没有任何上述配置，将使用动态卷供应方式提供存储，使用storageClass定义的存储类。
+  ## 在删除该声明后，这个卷也会被销毁(用于单节点环境，生产环境不推荐)。
+  # ref: https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/
+
+## 蓝鲸日志采集配置
+bkLogConfig:
+  # 是否开启蓝鲸日志采集
+  enabled: false
+  file:
+    serviceLog:
+      # 微服务日志采集到的dataId
+      # e.g: dataId: 1
+      dataId: ""
+    accessLog:
+      # job-gateway网关access日志采集到的dataId
+      # e.g: dataId: 2
+      dataId: ""
+  std:
+    # 容器标准输出日志采集到的dataId
+    # e.g: dataId: 3
+    dataId: ""
+
+## job-gateway网关配置
 gatewayConfig:
   loginExemption:
+    # 是否开启登录豁免，默认不开启
     enabled: false
+    # 开启登录豁免时使用的默认用户名
     defaultUser: admin
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-gateway
-    tag: 3.4.2-beta.7
+    repository: blueking/job-gateway
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -537,22 +647,30 @@ gatewayConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  # 容器内的端口号
   containerPort:
+    # https端口号
     https: 19802
+    # http端口号
     http: 9802
+    # 管理端口号
     management: 19876
   service:
     type: ClusterIP
+    # 暴露出的Service端口号
     port:
+      # https端口号
       https: 443
+      # http端口号
       http: 80
   ingress:
+    # 是否开启ingress
     enabled: true
-    hostname: "jobapi.example.com"
     path: "/"
     pathType: ImplementationSpecific
     annotations:
       kubernetes.io/ingress.class: nginx
+      # 开启ingress后的最大请求体大小
       nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
     extraHosts: []
     tls: []
@@ -560,25 +678,36 @@ gatewayConfig:
     secrets: []
   server:
     ssl:
+      p12:
+        # job-gateway开启https时使用的p12文件单行base64编码内容
+        base64Content: "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"
       keystore:
+        # job-gateway开启https时使用的p12文件中所包含的keystore的密码
         password: "mLnuob1**4D74c@F"
       truststore:
+        # job-gateway开启https时使用的p12证书truststore单行base64编码内容
+        base64Content: "/u3+7QAAAAIAAAABAAAAAgACY2EAAAF8F7OVigAFWC41MDkAAAM4MIIDNDCCAhwCCQDmVB06DaaHWTANBgkqhkiG9w0BAQUFADBbMQswCQYDVQQGEwJDTjELMAkGA1UECAwCR0QxCzAJBgNVBAcMAlNaMQwwCgYDVQQKDANpZWcxEDAOBgNVBAsMB2JsdWtpbmcxEjAQBgNVBAMMCUpPQlJPT1RDQTAgFw0xOTAyMjUxMjQyMzFaGA8yMTE5MDIwMTEyNDIzMVowWzELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkdEMQswCQYDVQQHDAJTWjEMMAoGA1UECgwDaWVnMRAwDgYDVQQLDAdibHVraW5nMRIwEAYDVQQDDAlKT0JST09UQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDin/jt0xzA8ga1PqaV6GFYMv67SXXfKsgtvIa3hgsQR6EDm62qy+oThT3nICaOgutPzGXRgsIbaw1qLcZNpUGc+J+PNb3X7ynYFkOM2vJX4hrV/2HMI8Aa5IQp4xG6K80ovKiB3tDV3/IHKKAIYVC9EvZUJn/TwmurWeVfJva/YRwStHZfTBXiBchLB2xcIn0t7uQXtEQiJiOT/Dw4Hh+Ea+bAKAcALiux67qXCIx3Cuau/wDJfX0OXSf9a3WiBT5VrMOltBfhDiFxjuGbeMDaxp3NaaUTVb/vE0QabBa58tlU4yLEqdI2OAxDmUXUF3lZPIC+IvcayXMQ4j5jF5UVAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBALgEiIoezP7a2WXMcsHk4rq2uUDn70kYdUk9a1w3dFgTxUz2Ej2fPgPtNYKXAo3EYtxIR6qIbMPGYNBCgLkf6mbWEMlBhStKY3io9Sp9s4QvUOEmiOBAXEbXKpTmxs0G5zTY2zacCrKgjAa9v7J/jWpEWb6zZ0MT5xgHudcMSZRMxegSCQz+XRvOKLkmYYPy7tQKqY1qMhmm2L5dEbfTJEpGUJp00fbSHH4nYzLh8lfTKe4w7evj4gJlir7KSmVwcHL+RSVxehouMx1mPhWWjc8nykq675bC13wXd1LgRRRp6jPiZFiyruDkDQd9C+3C43Z9NPZidpKRU16Hi3PwHql9f8JrygPcRTB6T2O0Yyr7DglTfQ=="
+        # job-gateway开启https时使用的truststore的密码
         password: "mLnuob1**4D74c@F"
+  # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
 
-## @section job-manage parameters
+## job-manage作业管理配置
 manageConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-manage
-    tag: 3.4.2-beta.7
+    repository: blueking/job-manage
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -608,26 +737,33 @@ manageConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-execute parameters
+## job-execute执行引擎配置
 executeConfig:
+  # 执行日志导出配置
   logExport:
+    # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
     storageBackend: artifactory
     artifactory:
+      # 存储后端使用制品库时使用的仓库代码
       repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-execute
-    tag: 3.4.2-beta.7
+    repository: blueking/job-execute
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -657,23 +793,28 @@ executeConfig:
   service:
     type: ClusterIP
     port: 80
+  # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
 
-## @section job-crontab parameters
+## job-crontab定时任务配置
 crontabConfig:
+  # 是否部署定时任务微服务，默认部署
   enabled: true
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-crontab
-    tag: 3.4.2-beta.7
+    repository: blueking/job-crontab
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -713,21 +854,25 @@ crontabConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-logsvr parameters
+## job-logsvr日志服务配置
 logsvrConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-logsvr
-    tag: 3.4.2-beta.7
+    repository: blueking/job-logsvr
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -757,24 +902,30 @@ logsvrConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-backup parameters
+## job-backup备份服务配置
 backupConfig:
+  # 存储后端（artifactory,local），制品库（artifactory）或本地NFS（local），默认制品库
   storageBackend: artifactory
   artifactory:
+    # 存储后端使用制品库时使用的备份服务仓库代码
     repo: backup
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-backup
-    tag: 3.4.2-beta.7
+    repository: blueking/job-backup
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -804,21 +955,25 @@ backupConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-analysis统计分析服务配置
 analysisConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-analysis
-    tag: 3.4.2-beta.7
+    repository: blueking/job-analysis
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -848,21 +1003,25 @@ analysisConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-file-gateway parameters
+## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-gateway
-    tag: 3.4.2-beta.7
+    repository: blueking/job-file-gateway
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -892,21 +1051,25 @@ fileGatewayConfig:
   service:
     port: 80
     type: ClusterIP
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-analysis parameters
+## job-file-worker文件源接入点配置
 fileWorkerConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-file-worker
-    tag: 3.4.2-beta.7
+    repository: blueking/job-file-worker
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -937,32 +1100,49 @@ fileWorkerConfig:
     port: 80
     type: ClusterIP
   swaggerUrl: ""
+  # 实例名称
   instanceName: job-file-worker-public-1
+  # 版本号
   version: 0.0.1
+  # 安全凭据
   token: "testToken"
+  # 所属业务Id
   appId: -1
+  # 能力标签
   abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
+  # 外部如何访问file-worker相关配置
   access:
+    # 端口号
     port: 19810
+  # file-worker所在节点机器的云区域ID
   cloudAreaId: 0
+  # 文件下载相关配置
   downloadFile:
+    # 文件下载路径
     dir: /tmp/job
+    # 最大占用空间（GB），超过则进行清理
+    maxSizeGB: 100
+    # 下载的文件过期时间
     expireDays: 7
+  # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
 
-## @section job-frontend parameters
+## job-frontend前端配置
 frontendConfig:
   image:
     registry: mirrors.tencent.com
-    repository: bkce/job-frontend
-    tag: 3.4.2-beta.7
+    repository: blueking/job-frontend
+    tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
     pullSecrets: []
   replicaCount: 1
   hostAliases: []
   resources:
-    limits: {}
-    requests: {}
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
   containerSecurityContext:
     enabled: false
     runAsUser: 1001
@@ -991,16 +1171,8 @@ frontendConfig:
   service:
     type: ClusterIP
     port: 80
-  web:
-    scheme: "http"
-    domain: "job.example.com"
-  backend:
-    apiGateway:
-      scheme: "http"
-      domain: "jobapi.example.com"
   ingress:
     enabled: true
-    hostname: "job.example.com"
     pathType: ImplementationSpecific
     path: "/"
     annotations:
@@ -1011,9 +1183,14 @@ frontendConfig:
     extraTls: []
     secrets: []
 
+## migration迁移任务配置
 migration:
   image:
+    # 镜像拉取仓库根地址
     registry: "mirrors.tencent.com"
-    repository: "bkce/job-migration"
-    tag: 3.4.2-beta.7
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-migration"
+    # 镜像标签
+    tag: 3.4.5-beta.1
+    # 镜像拉取策略
     pullPolicy: IfNotPresent

@@ -27,6 +27,7 @@
 package com.tencent.bk.job.common.web.validation;
 
 import com.google.common.base.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.HibernateValidatorConfiguration;
 import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
@@ -55,6 +56,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Configuration
+@Slf4j
 public class ValidationConfiguration {
 
     @Bean
@@ -67,7 +69,7 @@ public class ValidationConfiguration {
     }
 
     public class JobLocalValidatorFactoryBean extends LocalValidatorFactoryBean {
-        private MessageSource messageSource;
+        private final MessageSource messageSource;
 
         JobLocalValidatorFactoryBean(MessageSource messageSource) {
             this.messageSource = messageSource;
@@ -88,7 +90,7 @@ public class ValidationConfiguration {
                 hibernateValidatorConfiguration.failFast(true);
                 hibernateValidatorConfiguration.messageInterpolator(new ResourceBundleMessageInterpolator(
                     new MessageSourceResourceBundleLocator(messageSource), getLocales(), Locale.ENGLISH,
-                    LocaleResolver(), true));
+                    localeResolver(), true));
             }
         }
 
@@ -102,7 +104,7 @@ public class ValidationConfiguration {
         }
     }
 
-    public class CustomParameterNameDiscoverer extends PrioritizedParameterNameDiscoverer {
+    public static class CustomParameterNameDiscoverer extends PrioritizedParameterNameDiscoverer {
 
         public CustomParameterNameDiscoverer() {
             this.addDiscoverer(new ReqParamNamesDiscoverer());
@@ -111,7 +113,7 @@ public class ValidationConfiguration {
         }
     }
 
-    public class ReqParamNamesDiscoverer implements ParameterNameDiscoverer {
+    public static class ReqParamNamesDiscoverer implements ParameterNameDiscoverer {
 
         public ReqParamNamesDiscoverer() {
         }
@@ -148,9 +150,7 @@ public class ValidationConfiguration {
     }
 
     @Bean("localeResolverForValidation")
-    public LocaleResolver LocaleResolver() {
+    public LocaleResolver localeResolver() {
         return context -> LocaleContextHolder.getLocale();
     }
-
-
 }

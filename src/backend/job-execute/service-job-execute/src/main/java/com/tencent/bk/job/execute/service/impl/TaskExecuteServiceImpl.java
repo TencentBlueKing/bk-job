@@ -58,6 +58,7 @@ import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -161,6 +162,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ExecutorService GET_HOSTS_BY_TOPO_EXECUTOR;
     private final DangerousScriptCheckService dangerousScriptCheckService;
     private final JobExecuteConfig jobExecuteConfig;
+    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -180,7 +182,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   ExecuteAuthService executeAuthService,
                                   Tracing tracing,
                                   DangerousScriptCheckService dangerousScriptCheckService,
-                                  JobExecuteConfig jobExecuteConfig) {
+                                  JobExecuteConfig jobExecuteConfig,
+                                  TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
@@ -198,6 +201,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>()), tracing);
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
     }
 
     private static List<IpDTO> getHostsContainsNotAllowedAction(Map<IpDTO, Set<String>> hostBindActions,
@@ -220,6 +224,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 "stepInstance: {}",
             taskInstance, stepInstance);
         StopWatch watch = new StopWatch("createTaskInstanceFast");
+        // 检查任务是否应当被驱逐
+        checkTaskEvict(taskInstance);
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
         adjustStepTimeout(stepInstance);
         try {
@@ -272,6 +278,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (watch.getTotalTimeMillis() > 1000) {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
+        }
+    }
+
+    private void checkTaskEvict(TaskInstanceDTO taskInstance) {
+        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+            throw new ResourceExhaustedException(ErrorCode.TASK_EVICTED);
         }
     }
 
@@ -563,7 +575,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServersDTO servers = stepInstance.getTargetServers().clone();
         stepInstance.getFileSourceList().stream()
-            .filter(fileSource -> !fileSource.isLocalUpload() && fileSource.getServers() != null)
+            .filter(fileSource -> !fileSource.isLocalUpload()
+                && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
+                && fileSource.getServers() != null)
             .forEach(fileSource -> {
                 servers.merge(fileSource.getServers());
             });
@@ -875,7 +889,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                             ":{}|totalFileTaskSize:{}|maxAllowedSize:{}",
                         taskName, appCode, appId, operator, totalFileTaskSize, jobExecuteConfig.getFileTasksMax());
                     throw new AbortedException(ErrorCode.FILE_TASKS_EXCEEDS_LIMIT,
-                        new Integer[]{ jobExecuteConfig.getFileTasksMax()});
+                        new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
                 int targetServerSize = stepInstance.getTargetServerTotalCount();
@@ -1459,7 +1473,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else {
             stepInstance.setTimeout(1000);
         }
-        stepInstance.setSecureParam(scriptStepInfo.getSecureParam() == null ? false : scriptStepInfo.getSecureParam());
+        stepInstance.setSecureParam(scriptStepInfo.getSecureParam() != null && scriptStepInfo.getSecureParam());
         stepInstance.setScriptType(scriptStepInfo.getType());
         stepInstance.setScriptSource(scriptStepInfo.getScriptSource());
 

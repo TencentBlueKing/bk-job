@@ -43,42 +43,50 @@ bitnami/rabbitmq
 ### Charts 全局配置
 |参数|描述|默认值 |
 |---|---|---|
-| `global.imageRegistry`    | Global Docker image registry                    | `nil`                                                   |
-| `global.imagePullSecrets` | Global Docker registry secret names as an array | `[]` (does not add image pull secrets to deployed pods) |
-| `global.storageClass`     | Global storage class for dynamic provisioning   | `nil`                                                   |
-| `nameOverride`     | Global storage class for dynamic provisioning   | `nil`                                                   |
-### 镜像拉取策略
+| `global.imageRegistry`    | 全局镜像源                | `nil`   |
+| `global.imagePullSecrets` | 全局镜像拉取密钥           | `[]`    |
+| `global.storageClass`     | 全局动态卷分配使用的存储类   | `nil`   |
 
-### 依赖的其他周边系统配置
+### 依赖的其他蓝鲸系统配置
 |参数|描述|默认值 |
 |---|---|---|
 | `app.code`    | 调用ESB接口使用的app_code    | `bk_job`       |
 | `app.secret` | 调用ESB接口使用的app_secret | ``  |
-| `esb.service.url`  | ESB接口根地址   | `http://paas.example.com`        |
+| `bkComponentApiUrl`  | ESB接口根地址   | `http://bkapi.paas.example.com`        |
+| `bkLoginUrl`    | 统一登录根地址   | `http://paas.example.com/login/`        |
+| `bkCmdbUrl`       | CMDB首页地址  | `http://cmdb.example.com`      |
+| `bkIamApiUrl`   | 权限中心后台API根地址  | `http://bkiam-api.example.com`      |
+| `bkRepoUrl`     | 制品库根地址  | `http://bkrepo.example.com`      |
+| `bkNodemanUrl`  | 节点管理首页地址  | `http://nodeman.example.com`      |
+
+### 依赖的GSE配置
+|参数|描述|默认值 |
+|---|---|---|
 | `gse.cacheApiServer.host`     | GSE API接口根地址  | `gse-api.example.com`      |
 | `gse.cacheApiServer.port`     | GSE API接口端口  | `59313`      |
-| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | ``      |
-| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | ``      |
+| `gse.ssl.keystore.base64Content`   | GSE 接口SSL证书keystore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.keystore.password`   | GSE 接口SSL证书keystore密码  | `2y#8VI2B4Sm9Dk^J`      |
+| `gse.ssl.truststore.base64Content`   | GSE 接口SSL证书truststore文件单行base64编码值  | `见values文件`      |
+| `gse.ssl.truststore.password`   | GSE 接口SSL证书truststore密码  | `2y#8VI2B4Sm9Dk^J`      |
 | `gse.taskserver.host`   | GSE TASK接口根地址  | `gse-task.example.com`      |
 | `gse.taskserver.port`   | GSE TASK接口端口  | `48673`      |
 | `gse.server.zookeeper.connect.string`   | GSE Zookeeper根地址  | `gse-zk.example.com`      |
-| `iam.baseUrl`   | 权限中心后台根地址  | `http://bkiam.example.com`      |
-| `paas.login.url`   | PaaS登录地址  | `http://paas.example.com/login`      |
-| `cmdb.server.url`   | CMDB首页地址  | `http://cmdb.example.com`      |
-| `nodeman.server.url`   | 节点管理首页地址  | `http://nodeman.example.com`      |
+
+### 蓝鲸制品库相关配置
+|参数|描述|默认值 |
+|---|---|---|
+| `artifactory.admin.username`  | 制品库管理员账号   | `admin`       |
+| `artifactory.admin.password`  | 制品库管理员密码   | `blueking`       |
+| `artifactory.job.username`  | 作业平台账号   | `bkjob`       |
+| `artifactory.job.password`  | 作业平台密码   | `bkjob`       |
+| `artifactory.job.project`  | 作业平台使用的项目   | `bkjob`       |
 
 ### 本地文件上传配置
 |参数|描述|默认值 |
 |---|---|---|
-| `localFile.storageBackend`    | 本地文件存储后端（local:本地，artifactory:蓝鲸制品库）    | `artifactory`       |
-| `localFile.artifactory.baseUrl`    | 制品库根地址    | `http://bkrepo.example.com`       |
+| `localFile.storageBackend` | 本地文件存储后端（local:本地，artifactory:蓝鲸制品库）| `artifactory`  |
 | `localFile.artifactory.download.concurrency`  | 制品库单机下载并发数   | `10`       |
-| `localFile.artifactory.admin.username`  | 制品库管理员账号   | `admin`       |
-| `localFile.artifactory.admin.password`  | 制品库管理员密码   | `blueking`       |
-| `localFile.artifactory.job.username`  | 作业平台账号   | `bkjob`       |
-| `localFile.artifactory.job.password`  | 作业平台密码   | `bkjob`       |
-| `localFile.artifactory.job.project`  | 作业平台使用的项目   | `bkjob`       |
-| `localFile.artifactory.repo.localUpload`  | 作业平台存储本地上传文件使用的仓库   | `localupload`       |
+| `localFile.artifactory.repo`  | 作业平台存储本地上传文件使用的仓库   | `localupload`       |
 
 ### 作业平台公共配置
 |参数|描述|默认值 |
@@ -89,11 +97,33 @@ bitnami/rabbitmq
 | `job.security.actuator.user.password`    | actuator管理密码    | `actuator_password`       |
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
 | `job.storage.rootPath`    | 本地文件下载暂存路径    | `/data/job/local`       |
+| `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
+| `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
+| `job.web.domain` | 前端主站域名    | `job.example.com`       |
+| `job.web.apiDomain` | 暴露给前端的API地址    | `api.job.example.com`       |
+| `job.web.https.enabled` | 是否启用HTTPS    | `false`       |
+| `job.web.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
+| `job.web.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
+
+### 持久化存储配置
+|参数|描述|默认值 |
+|---|---|---|
+| `persistence.enabled`       | 是否开启持久化存储              | `true`           |
+| `persistence.accessMode`    | 持久化存储模式                 | `ReadWriteOnce`  |
+| `persistence.size`          | 持久化存储空间大小，默认200Gi    | `200Gi`          |
+
+### 蓝鲸日志采集配置
+|参数|描述|默认值 |
+|---|---|---|
+| `bkLogConfig.enabled`                   | 是否开启蓝鲸日志采集                     | `false`  |
+| `bkLogConfig.file.serviceLog.dataId`    | 微服务日志采集到的dataId                 | ``       |
+| `bkLogConfig.file.accessLog.dataId`     | job-gateway网关access日志采集到的dataId  | ``       |
+| `bkLogConfig.std.dataId`                | 容器标准输出日志采集到的dataId             | ``       |
 
 ### 微服务网关Job-Gateway配置
 |参数|描述|默认值 |
 |---|---|---|
-| `gatewayConfig.loginExemption.enable`    | 是否开启登录豁免    | `false`       |
+| `gatewayConfig.loginExemption.enabled`    | 是否开启登录豁免    | `false`       |
 | `gatewayConfig.loginExemption.defaultUser` | 登录豁免下的默认用户    | `admin`       |
 | `gatewayConfig.replicaCount` | 服务实例数量    | `1`       |
 | `gatewayConfig.autoscaling.enabled` | 是否开启自动扩缩容    | `false`       |
@@ -101,8 +131,12 @@ bitnami/rabbitmq
 | `gatewayConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `gatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `gatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
-| `gatewayConfig.ingress.hostname` | 暴露给前端的API地址    | `api.job.example.com`       |
 | `gatewayConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 最大请求体限制    | `10240m`       |
+| `gatewayConfig.server.ssl.keystore.base64Content` | job-gateway开启https时使用的p12证书keystore单行base64编码内容    | `见values文件`       |
+| `gatewayConfig.server.ssl.keystore.password` | job-gateway开启https时使用的keystore的密码    | `mLnuob1**4D74c@F`       |
+| `gatewayConfig.server.ssl.truststore.base64Content` | job-gateway开启https时使用的p12证书truststore单行base64编码内容    | `见values文件`       |
+| `gatewayConfig.server.ssl.truststore.password` | job-gateway开启https时使用的truststore的密码    | `mLnuob1**4D74c@F`       |
+| `gatewayConfig.jvmOptions` | 运行时JVM参数    | `-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC`       |
 
 ### Job-Manage配置
 |参数|描述|默认值 |
@@ -113,6 +147,7 @@ bitnami/rabbitmq
 | `manageConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `manageConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `manageConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `manageConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Execute配置
 |参数|描述|默认值 |
@@ -123,16 +158,19 @@ bitnami/rabbitmq
 | `executeConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `executeConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `executeConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `executeConfig.jvmOptions` | 运行时JVM参数    | `-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Crontab配置
 |参数|描述|默认值 |
 |---|---|---|
+| `crontabConfig.enabled` | 是否部署定时任务微服务    | `true`       |
 | `crontabConfig.replicaCount` | 服务实例数量    | `1`       |
 | `crontabConfig.autoscaling.enabled` | 是否开启自动扩缩容    | `false`       |
 | `crontabConfig.autoscaling.minReplicas` | 自动扩缩容最小副本数    | `1`       |
 | `crontabConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `crontabConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `crontabConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `crontabConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Logsvr配置
 |参数|描述|默认值 |
@@ -143,6 +181,7 @@ bitnami/rabbitmq
 | `logsvrConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `logsvrConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `logsvrConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `logsvrConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Backup配置
 |参数|描述|默认值 |
@@ -153,6 +192,7 @@ bitnami/rabbitmq
 | `backupConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `backupConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `backupConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `backupConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Analysis配置
 |参数|描述|默认值 |
@@ -163,6 +203,7 @@ bitnami/rabbitmq
 | `analysisConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `analysisConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `analysisConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `analysisConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-File-Gateway配置
 |参数|描述|默认值 |
@@ -173,6 +214,7 @@ bitnami/rabbitmq
 | `fileGatewayConfig.autoscaling.maxReplicas` | 自动扩缩容最大副本数    | `5`       |
 | `fileGatewayConfig.autoscaling.targetCPU` | 自动扩缩容目标CPU百分比    | `50`       |
 | `fileGatewayConfig.autoscaling.targetMemory` | 自动扩缩容目标内存百分比    | `50`       |
+| `fileGatewayConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-File-Worker配置
 |参数|描述|默认值 |
@@ -180,13 +222,13 @@ bitnami/rabbitmq
 | `fileWorkerConfig.instanceName` | 实例名称    | `job-file-worker-public-1`       |
 | `fileWorkerConfig.token` | 实例凭据    | `testToken`       |
 | `fileWorkerConfig.downloadFile.dir` | 文件下载根路径    | `/tmp/job`       |
+| `fileWorkerConfig.downloadFile.maxSizeGB` | 最大占用空间（GB），超过则进行清理    | `100`       |
 | `fileWorkerConfig.downloadFile.expireDays` | 临时文件过期清理时间（天）    | `7`       |
+| `fileWorkerConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
 
 ### Job-Frontend配置
 |参数|描述|默认值 |
 |---|---|---|
-| `frontendConfig.web.domain` | 前端主站域名    | `job.example.com`       |
-| `frontendConfig.backend.apiGateway.domain` | 对接的后台网关域名 | `api.job.example.com`       |
 | `frontendConfig.ingress.annotations.nginx.ingress.kubernetes.io/proxy-body-size` | 前端资源最大请求体大小    | `2048m`       |
 
 ### Job-Migration配置

@@ -42,6 +42,7 @@ class FileProgressWatchingTask extends Thread {
     TaskReporter taskReporter;
     FileProgressWatchingTaskEventListener watchingTaskEventListener;
     volatile boolean runFlag = true;
+
     public FileProgressWatchingTask(String taskId, String filePath, String downloadFileDir, AtomicLong fileSize,
                                     AtomicInteger speed, AtomicInteger process, TaskReporter taskReporter,
                                     FileProgressWatchingTaskEventListener watchingTaskEventListener) {
@@ -62,8 +63,8 @@ class FileProgressWatchingTask extends Thread {
     @Override
     public void run() {
         String fileTaskKey = taskId + "_" + filePath;
-        String downloadPath = PathUtil.joinFilePath(downloadFileDir, taskId + "/" + filePath);
         try {
+            String downloadPath = PathUtil.joinFilePath(downloadFileDir, taskId + "/" + filePath);
             while (runFlag) {
                 try {
                     taskReporter.reportFileDownloadProgress(taskId, filePath, downloadPath, fileSize.get(),
@@ -71,7 +72,9 @@ class FileProgressWatchingTask extends Thread {
                 } catch (Throwable t) {
                     log.error("Fail to reportFileDownloadProgress of file:{}", filePath, t);
                 }
-                sleep(1000);
+                if (runFlag) {
+                    sleep(1000);
+                }
             }
         } catch (InterruptedException e) {
             log.info("watching interrupted", e);

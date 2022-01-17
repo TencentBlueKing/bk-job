@@ -161,10 +161,12 @@ class DownloadFileTask extends Thread {
             taskReporter.reportFileDownloadStart(taskId, filePath, downloadPath);
             downloadFileToLocal(remoteClient, filePath, downloadPath, fileSize, speed, process);
             watchingTask.stopWatching();
+            watchingTask.interrupt();
             taskReporter.reportFileDownloadSuccess(taskId, filePath, downloadPath, fileSize.get(), speed.get(),
                 process.get());
         } catch (Throwable t) {
             watchingTask.stopWatching();
+            watchingTask.interrupt();
             if (t.getCause() instanceof InterruptedException) {
                 ThreadCommandBus.Command command = ThreadCommandBus.getCommandQueue(fileTaskKey).poll();
                 if (command == null) {
@@ -177,6 +179,10 @@ class DownloadFileTask extends Thread {
                     log.info("stop {} quitely, wait to be reDispatch", filePath);
                 }
             } else {
+                if (t instanceof ServiceException) {
+                    taskReporter.reportFileDownloadProgressWithContent(taskId, filePath, downloadPath, fileSize.get(),
+                        speed.get(), process.get(), ((ServiceException) t).getI18nMessage());
+                }
                 log.error("Fail to download file:filePath={},downloadPath={}", filePath, downloadPath, t);
                 taskReporter.reportFileDownloadFailure(taskId, filePath, downloadPath);
             }

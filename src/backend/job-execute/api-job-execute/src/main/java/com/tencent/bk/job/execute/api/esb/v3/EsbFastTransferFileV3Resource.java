@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,7 @@ public interface EsbFastTransferFileV3Resource {
 
     @PostMapping("/fast_transfer_file")
     EsbResp<EsbJobExecuteV3DTO> fastTransferFile(
-        @RequestBody EsbFastTransferFileV3Request request);
+        @RequestBody @Validated EsbFastTransferFileV3Request request);
 
 
 }

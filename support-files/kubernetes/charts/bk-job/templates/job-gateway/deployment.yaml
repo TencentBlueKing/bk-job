@@ -11,8 +11,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  annotations:
+  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-gateway" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if not .Values.gatewayConfig.autoscaling.enabled }}
@@ -130,7 +132,7 @@ spec:
           secret:
             secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}
             items:
-              - key: job_server.keystore
+              - key: job_server.p12
                 path: job_server.p12
               - key: job_server.truststore
                 path: job_server.truststore

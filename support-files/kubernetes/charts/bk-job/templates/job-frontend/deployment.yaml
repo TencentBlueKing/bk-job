@@ -10,8 +10,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  annotations:
+  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-frontend" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if not .Values.frontendConfig.autoscaling.enabled }}
@@ -66,7 +68,7 @@ spec:
               nginx -g 'daemon off;'
           env:
             - name: JOB_API_GATEWAY_URL
-              value: {{ printf "%s://%s" .Values.frontendConfig.backend.apiGateway.scheme .Values.frontendConfig.backend.apiGateway.domain }}
+              value: {{ include "job.web.api.url" . }}
           volumeMounts:
             - name: web-nginx-config
               mountPath: /etc/nginx/

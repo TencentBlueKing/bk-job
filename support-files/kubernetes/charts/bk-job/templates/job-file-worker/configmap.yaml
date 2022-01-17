@@ -12,9 +12,6 @@ metadata:
     {{- end }}
 data:
   application.yaml: |-
-    spring:
-      application:
-        name: {{ include "common.names.fullname" . }}-file-worker
     job:
       file-worker:
         version: {{ .Values.fileWorkerConfig.version }}
@@ -26,6 +23,7 @@ data:
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
           dir: {{ .Values.fileWorkerConfig.downloadFile.dir }}
+          max-size-gb: {{ .Values.fileWorkerConfig.downloadFile.maxSizeGB }}
           expire-days: {{ .Values.fileWorkerConfig.downloadFile.expireDays }}
         instance-name: {{ .Values.fileWorkerConfig.instanceName }}
         swagger:

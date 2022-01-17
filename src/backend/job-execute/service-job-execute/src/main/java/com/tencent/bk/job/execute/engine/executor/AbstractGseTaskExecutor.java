@@ -25,12 +25,14 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.TaskExecuteControlMsgSender;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
@@ -87,6 +89,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExecuteMonitor executeMonitor;
     protected ExceptionStatusManager exceptionStatusManager;
+    protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected JobExecuteConfig jobExecuteConfig;
     protected String requestId;
     protected Tracing tracing;
@@ -209,6 +212,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         this.exceptionStatusManager = exceptionStatusManager;
     }
 
+    public void setTaskEvictPolicyExecutor(TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+    }
+
     private void analyseAndSetTaskVariables() {
         List<TaskVariableDTO> taskVariables =
             taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
@@ -304,6 +311,13 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     public void execute() {
         StopWatch watch = new StopWatch("GseTaskExecutor-execute-" + stepInstanceId);
 
+        // 检查步骤超时设置是否合法；理论上View/Service层已经完全处理了不合法的参数，此处日志输入用于发现问题。后续版本观察正常之后需要删除
+        if (this.stepInstance.getTimeout() == null
+            || this.stepInstance.getTimeout() < JobConstants.MIN_JOB_TIMEOUT_SECONDS
+            || this.stepInstance.getTimeout() > JobConstants.MAX_JOB_TIMEOUT_SECONDS) {
+            log.warn("Invalid step timeout, timeout: {}", stepInstance.getTimeout());
+        }
+
         watch.start("init-execution-context");
         initExecutionContext();
         watch.stop();
@@ -322,9 +336,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         watch.stop();
 
         boolean shouldSendTaskToGseServer = (gseTaskLog == null || StringUtils.isEmpty(gseTaskLog.getGseTaskId()));
-        /**
-         * gse任务ID
-         */
+
         String gseTaskId;
         if (shouldSendTaskToGseServer) {
             watch.start("send-task-to-gse-server");

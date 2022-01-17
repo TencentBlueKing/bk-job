@@ -55,7 +55,7 @@ public class JobConstants {
     /**
      * 作业最小超时时间，单位秒
      */
-    public static final int MIN_JOB_TIMEOUT_SECONDS = 60;
+    public static final int MIN_JOB_TIMEOUT_SECONDS = 1;
     /**
      * 作业最大超时时间，单位秒
      */

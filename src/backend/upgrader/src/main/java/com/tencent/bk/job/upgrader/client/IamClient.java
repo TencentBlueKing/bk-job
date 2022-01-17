@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
@@ -70,7 +70,7 @@ public class IamClient extends AbstractIamClient {
 
     @SuppressWarnings("all")
     private <T, R> R getIamRespByReq(String method, String uri, IamReq reqBody, TypeReference<R> typeReference,
-                                     AbstractHttpHelper httpHelper) throws RuntimeException {
+                                     ExtHttpHelper httpHelper) throws RuntimeException {
         // URL模板变量替换
         uri = StringUtil.replacePathVariables(uri, reqBody);
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);

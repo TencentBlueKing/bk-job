@@ -18,11 +18,11 @@ data:
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
     app:
-      code: {{ .Values.app.code }}
-      secret: {{ .Values.app.secret }}
+      code: {{ .Values.appCode }}
+      secret: {{ .Values.appSecret }}
     esb:
       service:
-        url: {{ .Values.esb.service.url }}
+        url: {{ .Values.bkComponentApiUrl }}
     gse:
       cache:
         apiserver:
@@ -53,11 +53,11 @@ data:
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:
-      base-url: {{ .Values.iam.baseUrl }}
-      system-id: {{ .Values.iam.systemId }}
+      base-url: {{ .Values.bkIamApiUrl }}
+      system-id: {{ .Values.appCode }}
     paas:
       login:
-        url: {{ .Values.paas.login.url }}
+        url: {{ .Values.bkLoginUrl }}
     job:
       security:
         service:
@@ -67,7 +67,7 @@ data:
       encrypt:
         password: {{ .Values.job.encrypt.password }}
       web:
-        url: {{ printf "%s://%s" .Values.frontendConfig.web.scheme .Values.frontendConfig.web.domain }}
+        url: {{ include "job.web.url" . }}
       feature:
         file-manage:
           enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
@@ -93,12 +93,12 @@ data:
        threads:
          num: {{ .Values.cmdb.query.threads.num }}
      server:
-       url: {{ .Values.cmdb.server.url }}
+       url: {{ .Values.bkCmdbUrl }}
     nodeman:
       server:
-        url: {{ .Values.nodeman.server.url }}
+        url: {{ .Values.bkNodemanUrl }}
     artifactory:
-      base-url: {{ .Values.artifactory.baseUrl }}
+      base-url: {{ .Values.bkRepoUrl }}
       admin:
         username: {{ .Values.artifactory.admin.username }}
         password: {{ .Values.artifactory.admin.password }}

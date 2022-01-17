@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -35,7 +36,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -46,7 +46,6 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -78,8 +77,6 @@ public class EsbFastTransferFileV3ResourceImpl
 
     private final MessageI18nService i18nService;
 
-    private final AuthService authService;
-
     private final ArtifactoryLocalFileService artifactoryLocalFileService;
 
 
@@ -87,12 +84,10 @@ public class EsbFastTransferFileV3ResourceImpl
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              FileSourceResourceClient fileSourceService,
                                              MessageI18nService i18nService,
-                                             AuthService authService,
                                              ArtifactoryLocalFileService artifactoryLocalFileService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceService = fileSourceService;
         this.i18nService = i18nService;
-        this.authService = authService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
     }
 
@@ -197,11 +192,6 @@ public class EsbFastTransferFileV3ResourceImpl
             if (result != null) return result;
         }
 
-        if (request.getTimeout() != null && (request.getTimeout() < 0 || request.getTimeout() > 86400)) {
-            log.warn("Fast transfer file, timeout is invalid!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "timeout");
-        }
-
         return ValidateResult.pass();
     }
 
@@ -270,11 +260,8 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setOperator(request.getUserName());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
-        if (request.getTimeout() == null) {
-            stepInstance.setTimeout(7200);
-        } else {
-            stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
-        }
+        stepInstance.setTimeout(request.getTimeout() == null ?
+            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
         }

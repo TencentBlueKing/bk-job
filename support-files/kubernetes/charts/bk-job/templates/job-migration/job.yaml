@@ -42,13 +42,13 @@ spec:
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
               value: {{ include "job.mariadb.rootPassword" . | quote }}
             - name: BK_IAM_URL
-              value: {{ .Values.iam.baseUrl | quote }}
+              value: {{ .Values.bkIamApiUrl | quote }}
             - name: BK_JOB_APP_CODE
-              value: {{ .Values.app.code | quote }}
+              value: {{ .Values.appCode | quote }}
             - name: BK_JOB_APP_SECRET
-              value: {{ .Values.app.secret | quote }}
+              value: {{ .Values.appSecret | quote }}
             - name: BK_JOB_API_URL
-              value: http://{{ .Values.gatewayConfig.ingress.hostname }}
+              value: {{ include "job.web.api.url" . }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED
               value: {{ .Values.job.migration.mysqlSchema.enabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED

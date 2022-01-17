@@ -34,8 +34,8 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.http.AbstractHttpHelper;
-import com.tencent.bk.job.common.util.http.DefaultHttpHelper;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -85,7 +85,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
     private final RedisTemplate redisTemplate;
-    private final AbstractHttpHelper httpHelper = new DefaultHttpHelper();
+    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
@@ -131,7 +131,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
         if (fileWorkerDTO == null) {
             throw new RuntimeException(String.format("Cannot match fileWorker for FileSourceTask,appId=%d," +
-                "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,
+                    "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,
                 filePathList.toString()));
         }
         FileSourceTaskDTO fileSourceTaskDTO = new FileSourceTaskDTO();
@@ -257,19 +257,27 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 fileTaskDTO.setFileSize(fileSize);
                 fileTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
                 fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+                logUpdatedTaskStatus(taskId, filePath, progress, status);
+            } else {
+                log.info("fileTask {} already done, do not update to running", taskId);
             }
         } else if (status == TaskStatusEnum.SUCCESS) {
             fileTaskDTO.setProgress(100);
             fileTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
             fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.FAILED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
             fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.STOPPED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
             fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            logUpdatedTaskStatus(taskId, filePath, progress, status);
+        } else {
+            log.warn("fileTask {} unknown status:{}", taskId, status);
         }
         // 通知关注者
         if (status != previousStatus) {
@@ -279,6 +287,10 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         // 进度上报
         writeLog(fileSourceTaskDTO, fileWorkerDTO, filePath, downloadPath, fileSize, speed, progress, content);
         return taskId;
+    }
+
+    private void logUpdatedTaskStatus(String taskId, String filePath, Integer progress, TaskStatusEnum status) {
+        log.info("updated fileTask:{},{},{},{}", taskId, filePath, progress, status.name());
     }
 
     @Override

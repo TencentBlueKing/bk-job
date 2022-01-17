@@ -22,31 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.common.config;
 
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Slf4j
-public class FileUtils {
-    public static boolean saveFileWithByte(String filename, byte[] contentBytes) {
-        boolean isSuccess = false;
-        if (contentBytes == null || contentBytes.length == 0) {
-            return false;
-        }
-        try (FileOutputStream out = new FileOutputStream(filename)){
-            out.write(contentBytes);
-            out.flush();
-            File file = new File(filename);
-            isSuccess = file.setExecutable(true, false);
-        } catch (IOException e) {
-            log.warn("Save fail", e);
-        }
+@Configuration
+public class HttpConfig {
 
-        return isSuccess;
+    @Bean
+    public HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
+        HttpHelperFactory.setMeterRegistry(meterRegistry);
+        log.info("meterRegistry for HttpHelperFactory init");
+        return new HttpConfigSetter();
     }
 
+    static class HttpConfigSetter {
+        HttpConfigSetter() {
+        }
+    }
 }

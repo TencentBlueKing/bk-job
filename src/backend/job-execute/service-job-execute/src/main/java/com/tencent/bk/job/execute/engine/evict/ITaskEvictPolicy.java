@@ -22,33 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.util;
+package com.tencent.bk.job.execute.engine.evict;
 
-import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MIN_JOB_TIMEOUT_SECONDS;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 /**
- * 作业工具类
+ * 执行引擎任务驱逐策略接口类
  */
-public class TaskUtil {
-    /**
-     * 计算作业超时时间
-     *
-     * @param timeout 超时时间
-     * @return 超时时间，单位秒
-     */
-    public static int calculateTimeout(Integer timeout) {
-        int finalTimeout = DEFAULT_JOB_TIMEOUT_SECONDS;
-        if (timeout != null && timeout > 0) {
-            if (timeout > MAX_JOB_TIMEOUT_SECONDS) {
-                finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
-            } else if (timeout < MIN_JOB_TIMEOUT_SECONDS) {
-                finalTimeout = MIN_JOB_TIMEOUT_SECONDS;
-            } else {
-                finalTimeout = timeout;
-            }
-        }
-        return finalTimeout;
-    }
+public interface ITaskEvictPolicy {
+    boolean needToEvict(TaskInstanceDTO taskInstance);
 }
