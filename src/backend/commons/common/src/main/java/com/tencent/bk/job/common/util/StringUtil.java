@@ -249,4 +249,20 @@ public class StringUtil {
             return replaceByRegex(resultStr, pattern, variablesMap, depth - 1);
         }
     }
+
+    /**
+     * 判断两个字符串对象是否不同
+     *
+     * @param str1 字符串1
+     * @param str2 字符串2
+     * @return 是否不同
+     */
+    public static boolean isDifferent(String str1, String str2) {
+        if (str1 == null && str2 == null) return false;
+        if (str1 != null) {
+            return !str1.equals(str2);
+        }
+        return true;
+    }
+
 }

@@ -634,7 +634,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
                 jobIpSet, requestId);
         scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
             taskInstanceVariableService, stepInstanceVariableValueService,
-            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager);
+            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 

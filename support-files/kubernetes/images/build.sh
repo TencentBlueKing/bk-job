@@ -168,7 +168,7 @@ build_frontend_module () {
     cd $FRONTEND_DIR || exit 1
     export JOB_VERSION=$VERSION
     echo "JOB_VERSION=${JOB_VERSION}"
-    npm i
+    npm i --legacy-peer-deps
     npm run build
     cd $WORKING_DIR || exit 1
 
