@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
@@ -51,11 +52,13 @@ public class AddOrUpdateDangerousRuleReq {
     private Long id;
     @ApiModelProperty("表达式")
     @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
+    @Size(max = 250, message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_outOfRange.message}")
     private String expression;
     @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     @NotEmpty(message = "{validation.constraints.ScriptTypeList_empty.message}")
     private List<Byte> scriptTypeList;
     @ApiModelProperty("描述")
+    @Size(max = 1000, message = "{validation.constraints.InvalidRegularDescription_outOfRange.message}")
     private String description;
     @ApiModelProperty("处理动作,1:扫描,2:拦截")
     @NotNull(message = "{validation.constraints.InvalidHandleAction_empty.message}")
