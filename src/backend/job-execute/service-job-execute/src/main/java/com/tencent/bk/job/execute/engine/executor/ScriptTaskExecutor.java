@@ -45,7 +45,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -605,12 +605,12 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         List<api_agent> agentList = GseRequestUtils.buildAgentList(jobIpSet, accountInfo.getAccount(),
             accountInfo.getPassword());
         api_stop_task_request stopTaskRequest = new api_stop_task_request();
-        GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstanceId, executeCount);
-        if (gseTaskLog == null || StringUtils.isEmpty(gseTaskLog.getGseTaskId())) {
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+        if (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId())) {
             log.warn("Gse Task not send to gse server, not support stop");
             return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED, "Termination failed");
         }
-        stopTaskRequest.setStop_task_id(gseTaskLog.getGseTaskId());
+        stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());
         stopTaskRequest.setAgents(agentList);
         stopTaskRequest.setType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         stopTaskRequest.setM_caller(buildTraceInfoMap());
@@ -630,9 +630,9 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     @Override
     void addExecutionResultHandleTask() {
         ScriptResultHandleTask scriptResultHandleTask =
-            new ScriptResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog,
+            new ScriptResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask,
                 jobIpSet, requestId);
-        scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
+        scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
             taskInstanceVariableService, stepInstanceVariableValueService,
             taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);

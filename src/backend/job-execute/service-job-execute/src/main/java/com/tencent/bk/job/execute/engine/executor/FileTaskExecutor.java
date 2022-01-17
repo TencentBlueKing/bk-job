@@ -48,8 +48,8 @@ import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
@@ -121,33 +121,33 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         parseSendFileList();
         resolvedTargetPathWithVariable();
         initSourceServerIp();
-        initAndSaveGseIpLogsToBeStarted();
+        initAndSaveGseAgentTasksToBeStarted();
     }
 
     @Override
-    protected void initAndSaveGseIpLogsToBeStarted() {
-        super.initAndSaveGseIpLogsToBeStarted();
-        initFileSourceIpLog();
+    protected void initAndSaveGseAgentTasksToBeStarted() {
+        super.initAndSaveGseAgentTasksToBeStarted();
+        initFileSourceGseAgentTasks();
     }
 
     /*
      * 初始化源文件服务器任务状态
      */
-    private void initFileSourceIpLog() {
-        List<GseTaskIpLogDTO> fileSourceIpLogs = new ArrayList<>();
+    private void initFileSourceGseAgentTasks() {
+        List<GseAgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
         for (String cloudAreaIdAndIp : fileSourceIPSet) {
-            if (jobIpSet.contains(cloudAreaIdAndIp) && ipLogMap.get(cloudAreaIdAndIp) != null) {
-                GseTaskIpLogDTO ipLog = ipLogMap.get(cloudAreaIdAndIp);
+            if (jobIpSet.contains(cloudAreaIdAndIp) && gseAgentTaskMap.get(cloudAreaIdAndIp) != null) {
+                GseAgentTaskDTO ipLog = gseAgentTaskMap.get(cloudAreaIdAndIp);
                 ipLog.setSourceServer(true);
-                fileSourceIpLogs.add(ipLog);
+                fileSourceGseAgentTasks.add(ipLog);
             } else {
-                GseTaskIpLogDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, false, true);
-                ipLogMap.put(cloudAreaIdAndIp, ipLog);
-                fileSourceIpLogs.add(ipLog);
+                GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, false, true);
+                gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);
+                fileSourceGseAgentTasks.add(ipLog);
             }
         }
-        if (!fileSourceIpLogs.isEmpty()) {
-            gseTaskLogService.batchSaveIpLog(fileSourceIpLogs);
+        if (!fileSourceGseAgentTasks.isEmpty()) {
+            gseTaskService.batchSaveGseIpTasks(fileSourceGseAgentTasks);
         }
     }
 
@@ -366,14 +366,14 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             agentList.add(src);
         }
 
-        GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstanceId, executeCount);
-        if (gseTaskLog == null || StringUtils.isEmpty(gseTaskLog.getGseTaskId())) {
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
+        if (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId())) {
             log.warn("Gse Task not send to gse server, not support stop");
             return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED, "Termination failed");
         }
 
         api_stop_task_request stopTaskRequest = new api_stop_task_request();
-        stopTaskRequest.setStop_task_id(gseTaskLog.getGseTaskId());
+        stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());
         stopTaskRequest.setAgents(agentList);
         stopTaskRequest.setType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stopTaskRequest.setM_caller(buildTraceInfoMap());
@@ -393,10 +393,10 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     @Override
     void addExecutionResultHandleTask() {
         FileResultHandleTask fileResultHandleTask =
-            new FileResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap,
-                gseTaskLog, jobIpSet, sendFiles, fileStorageRootPath, sourceDestPathMap, sourceFileDisplayMap,
+            new FileResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap,
+                gseTask, jobIpSet, sendFiles, fileStorageRootPath, sourceDestPathMap, sourceFileDisplayMap,
                 requestId);
-        fileResultHandleTask.initDependentService(taskInstanceService, gseTaskLogService, logService,
+        fileResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
             taskInstanceVariableService, stepInstanceVariableValueService,
             taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);

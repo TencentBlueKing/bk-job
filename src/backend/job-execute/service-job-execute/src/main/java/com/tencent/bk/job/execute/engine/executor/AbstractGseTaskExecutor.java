@@ -41,8 +41,8 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -50,7 +50,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -79,7 +79,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
     protected ResultHandleManager resultHandleManager;
     protected TaskInstanceService taskInstanceService;
-    protected GseTaskLogService gseTaskLogService;
+    protected GseTaskService gseTaskService;
     protected AccountService accountService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
@@ -104,7 +104,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     /**
      * GSE任务信息
      */
-    protected GseTaskLogDTO gseTaskLog;
+    protected GseTaskDTO gseTask;
     /**
      * 步骤实例ID
      */
@@ -113,6 +113,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      * 执行次数
      */
     protected int executeCount;
+    /**
+     * 滚动执行批次
+     */
+    protected int rollingBatch;
     /**
      * 目标主机
      */
@@ -128,7 +132,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     /**
      * gse 原子任务信息
      */
-    protected Map<String, GseTaskIpLogDTO> ipLogMap = new HashMap<>();
+    protected Map<String, GseAgentTaskDTO> gseAgentTaskMap = new HashMap<>();
     /**
      * 全局参数分析结果
      */
@@ -159,14 +163,18 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      * @param stepInstance             步骤实例
      * @param executeIps               目标IP
      */
-    AbstractGseTaskExecutor(String requestId, GseTasksExceptionCounter gseTasksExceptionCounter,
-                            TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, Set<String> executeIps) {
+    AbstractGseTaskExecutor(String requestId,
+                            GseTasksExceptionCounter gseTasksExceptionCounter,
+                            TaskInstanceDTO taskInstance,
+                            StepInstanceDTO stepInstance,
+                            Set<String> executeIps) {
         this.requestId = requestId;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
         this.stepInstanceId = stepInstance.getId();
         this.executeCount = stepInstance.getExecuteCount();
+        this.rollingBatch = stepInstance.getBatch();
         this.invalidIpSet = stepInstance.getInvalidIps();
         if (!this.invalidIpSet.isEmpty()) {
             stepInstance.setInvalidIps(this.invalidIpSet);
@@ -184,7 +192,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      */
     public void initDependentService(ResultHandleManager resultHandleManager,
                                      TaskInstanceService taskInstanceService,
-                                     GseTaskLogService gseTaskLogService,
+                                     GseTaskService gseTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -196,7 +204,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                                      JobExecuteConfig jobExecuteConfig) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         this.accountService = accountService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
@@ -234,12 +242,12 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     /**
      * 保存将要执行的gse原子任务初始状态
      */
-    protected void initAndSaveGseIpLogsToBeStarted() {
+    protected void initAndSaveGseAgentTasksToBeStarted() {
         for (String cloudAreaIdAndIp : notStartedJobIPSet) {
-            GseTaskIpLogDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, true, false);
-            ipLogMap.put(cloudAreaIdAndIp, ipLog);
+            GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, true, false);
+            gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);
         }
-        gseTaskLogService.batchSaveIpLog(new ArrayList<>(ipLogMap.values()));
+        gseTaskService.batchSaveGseIpTasks(new ArrayList<>(gseAgentTaskMap.values()));
     }
 
     /**
@@ -247,14 +255,14 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      */
     private void saveInvalidGseIpLogs() {
         if (!invalidIpSet.isEmpty()) {
-            List<GseTaskIpLogDTO> ipLogList = new ArrayList<>();
+            List<GseAgentTaskDTO> ipLogList = new ArrayList<>();
             invalidIpSet.forEach(cloudAreaIdAndIp -> {
                 boolean isTargetServer = this.allJobIpSet.contains(cloudAreaIdAndIp);
-                GseTaskIpLogDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.HOST_NOT_EXIST, isTargetServer,
+                GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.HOST_NOT_EXIST, isTargetServer,
                     !isTargetServer);
                 ipLogList.add(ipLog);
             });
-            gseTaskLogService.batchSaveIpLog(ipLogList);
+            gseTaskService.batchSaveGseIpTasks(ipLogList);
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(),
                 buildIpAndLogOffsetMap(invalidIpSet), "The host(s) is not belongs to the Business, or doesn't exists" +
@@ -265,7 +273,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {
         Map<String, Integer> ipAndLogOffsetMap = new HashMap<>();
         ips.forEach(ip -> {
-            GseTaskIpLogDTO ipLog = ipLogMap.get(ip);
+            GseAgentTaskDTO ipLog = gseAgentTaskMap.get(ip);
             if (ipLog != null) {
                 ipAndLogOffsetMap.put(ip, ipLog.getScriptLogOffset());
             } else {
@@ -275,12 +283,13 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         return ipAndLogOffsetMap;
     }
 
-    protected GseTaskIpLogDTO buildGseTaskIpLog(String cloudAreaIdAndIp, IpStatus status, boolean isTargetServer,
+    protected GseAgentTaskDTO buildGseTaskIpLog(String cloudAreaIdAndIp, IpStatus status, boolean isTargetServer,
                                                 boolean isSourceServer) {
         String[] cloudAreaIdAndIpArray = cloudAreaIdAndIp.split(":");
-        GseTaskIpLogDTO ipLog = new GseTaskIpLogDTO();
+        GseAgentTaskDTO ipLog = new GseAgentTaskDTO();
         ipLog.setStepInstanceId(stepInstanceId);
         ipLog.setExecuteCount(executeCount);
+        ipLog.setBatch(rollingBatch);
         ipLog.setStatus(status.getValue());
         ipLog.setTargetServer(isTargetServer);
         ipLog.setIp(cloudAreaIdAndIpArray[1]);
@@ -332,10 +341,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         watch.stop();
 
         watch.start("get-gse-task-log-from-db");
-        gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstanceId, executeCount);
+        gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount);
         watch.stop();
 
-        boolean shouldSendTaskToGseServer = (gseTaskLog == null || StringUtils.isEmpty(gseTaskLog.getGseTaskId()));
+        boolean shouldSendTaskToGseServer = (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId()));
 
         String gseTaskId;
         if (shouldSendTaskToGseServer) {
@@ -351,20 +360,20 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                 gseTasksExceptionCounter.increment();
                 return;
             } else {
-                // 如果gseTaskLog不存在，需要填充一些基本信息；如果gseTaskLog存在，则只需要更新本次执行的一些状态信息
-                if (gseTaskLog == null) {
-                    gseTaskLog = new GseTaskLogDTO();
-                    gseTaskLog.setStepInstanceId(stepInstanceId);
-                    gseTaskLog.setExecuteCount(executeCount);
+                // 如果gseTask不存在，需要填充一些基本信息；如果gseTask存在，则只需要更新本次执行的一些状态信息
+                if (gseTask == null) {
+                    gseTask = new GseTaskDTO();
+                    gseTask.setStepInstanceId(stepInstanceId);
+                    gseTask.setExecuteCount(executeCount);
                 }
-                gseTaskLog.setStartTime(startTime);
-                gseTaskLog.setGseTaskId(gseTaskResponse.getGseTaskId());
-                gseTaskLog.setStatus(RunStatusEnum.RUNNING.getValue());
-                gseTaskLogService.saveGseTaskLog(gseTaskLog);
+                gseTask.setStartTime(startTime);
+                gseTask.setGseTaskId(gseTaskResponse.getGseTaskId());
+                gseTask.setStatus(RunStatusEnum.RUNNING.getValue());
+                gseTaskService.saveGseTask(gseTask);
             }
             watch.stop();
         } else {
-            gseTaskId = gseTaskLog.getGseTaskId();
+            gseTaskId = gseTask.getGseTaskId();
             log.debug("Init FileTaskExecutor,get from db,gseTaskId={},executeCount={}", gseTaskId, executeCount);
         }
 
@@ -392,15 +401,15 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      * @param msg       错误信息
      */
     private void handleStartGseTaskError(long startTime, IpStatus status, String msg) {
-        gseTaskLog = new GseTaskLogDTO();
-        gseTaskLog.setStepInstanceId(stepInstanceId);
-        gseTaskLog.setExecuteCount(executeCount);
+        gseTask = new GseTaskDTO();
+        gseTask.setStepInstanceId(stepInstanceId);
+        gseTask.setExecuteCount(executeCount);
         long endTime = DateUtils.currentTimeMillis();
 
-        gseTaskLog.setStatus(RunStatusEnum.FAIL.getValue());
-        gseTaskLog.setEndTime(endTime);
-        gseTaskLog.setTotalTime(endTime - startTime);
-        gseTaskLogService.saveGseTaskLog(gseTaskLog);
+        gseTask.setStatus(RunStatusEnum.FAIL.getValue());
+        gseTask.setEndTime(endTime);
+        gseTask.setTotalTime(endTime - startTime);
+        gseTaskService.saveGseTask(gseTask);
 
         // 处理未完成的任务
         handleNotStartedIPResult(startTime, endTime, status, msg);
@@ -429,7 +438,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                 buildIpAndLogOffsetMap(unfinishedIPSet), errorMsg, endTime);
         }
 
-        gseTaskLogService.batchUpdateIpLog(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
+        gseTaskService.batchUpdateGseAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
     }
 
     /**
@@ -460,7 +469,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      * 初始化执行上下文，在GSE任务下发前调用
      */
     protected void initExecutionContext() {
-        this.initAndSaveGseIpLogsToBeStarted();
+        this.initAndSaveGseAgentTasksToBeStarted();
         this.saveInvalidGseIpLogs();
         this.analyseAndSetTaskVariables();
     }

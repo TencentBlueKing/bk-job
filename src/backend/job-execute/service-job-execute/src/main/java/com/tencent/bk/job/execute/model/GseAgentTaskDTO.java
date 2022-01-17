@@ -31,13 +31,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * gse 任务IPLog
+ * GSE Agent 任务
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class GseTaskIpLogDTO {
+public class GseAgentTaskDTO {
     /**
      * 步骤实例ID
      */
@@ -45,11 +45,11 @@ public class GseTaskIpLogDTO {
     /**
      * 步骤执行次数
      */
-    private int executeCount = 0;
+    private int executeCount;
     /**
      * 滚动执行批次
      */
-    private Integer batch;
+    private int batch;
     /**
      * 服务器IP,包含云区域
      */

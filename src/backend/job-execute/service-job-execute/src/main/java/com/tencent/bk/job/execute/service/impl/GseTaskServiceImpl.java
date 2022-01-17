@@ -26,29 +26,25 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
-import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
-import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
+import com.tencent.bk.job.execute.dao.GseAgentTaskDAO;
+import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,95 +53,71 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class GseTaskLogServiceImpl implements GseTaskLogService {
+public class GseTaskServiceImpl implements GseTaskService {
     private final TaskInstanceDAO taskInstanceDao;
     private final StepInstanceDAO stepInstanceDao;
-    private final GseTaskLogDAO gseTaskLogDao;
-    private final GseTaskIpLogDAO gseTaskIpLogDao;
+    private final GseTaskDAO gseTaskDao;
+    private final GseAgentTaskDAO gseAgentTaskDao;
 
     private final LogService logService;
 
     @Autowired
-    public GseTaskLogServiceImpl(TaskInstanceDAO taskInstanceDao, StepInstanceDAO stepInstanceDao,
-                                 GseTaskLogDAO gseTaskLogDao, GseTaskIpLogDAO gseTaskIpLogDao, LogService logService) {
+    public GseTaskServiceImpl(TaskInstanceDAO taskInstanceDao, StepInstanceDAO stepInstanceDao,
+                              GseTaskDAO gseTaskDao, GseAgentTaskDAO gseAgentTaskDao, LogService logService) {
         this.taskInstanceDao = taskInstanceDao;
         this.stepInstanceDao = stepInstanceDao;
-        this.gseTaskLogDao = gseTaskLogDao;
-        this.gseTaskIpLogDao = gseTaskIpLogDao;
+        this.gseTaskDao = gseTaskDao;
+        this.gseAgentTaskDao = gseAgentTaskDao;
         this.logService = logService;
     }
 
     @Override
-    public GseTaskLogDTO getTaskLastRetryLog(long taskInstanceId) {
-        long currentStepId = taskInstanceDao.getTaskInstance(taskInstanceId).getCurrentStepId();
-        return gseTaskLogDao.getStepLastExecuteLog(currentStepId);
+    public void saveGseTask(GseTaskDTO gseTask) {
+        gseTaskDao.saveGseTask(gseTask);
     }
 
     @Override
-    public void saveGseTaskLog(GseTaskLogDTO gseTaskLog) {
-        gseTaskLogDao.saveGseTaskLog(gseTaskLog);
+    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount) {
+        return gseTaskDao.getGseTask(stepInstanceId, executeCount);
     }
 
     @Override
-    public GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount) {
-        return gseTaskLogDao.getGseTaskLog(stepInstanceId, executeCount);
-    }
-
-    @Override
-    public void clearAllIpLog(long stepInstanceId, int executeCount) {
-        gseTaskIpLogDao.deleteAllIpLog(stepInstanceId, executeCount);
-
-        // 删除日志文件
-        StepInstanceBaseDTO stepInstance = stepInstanceDao.getStepInstanceBase(stepInstanceId);
-        if (null == stepInstance) {
+    public void batchSaveGseIpTasks(List<GseAgentTaskDTO> gseAgentTasks) {
+        if (gseAgentTasks.size() == 0) {
             return;
         }
-
-        TaskInstanceDTO taskInstance = taskInstanceDao.getTaskInstance(stepInstance.getTaskInstanceId());
-        if (null == taskInstance) {
-            return;
-        }
-        logService.deleteStepLog(DateUtils.formatUnixTimestamp(taskInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC")), stepInstanceId, executeCount);
-    }
-
-    @Override
-    public void batchSaveIpLog(List<GseTaskIpLogDTO> ipLogList) {
-        if (ipLogList.size() == 0) {
-            return;
-        }
-        if (ipLogList.size() <= 1000) {
-            gseTaskIpLogDao.batchSaveIpLog(ipLogList);
+        if (gseAgentTasks.size() <= 1000) {
+            gseAgentTaskDao.batchSaveGseAgentTasks(gseAgentTasks);
         } else {
-            List<List<GseTaskIpLogDTO>> batches = BatchUtil.buildBatchList(ipLogList, 1000);
-            batches.parallelStream().forEach(gseTaskIpLogDao::batchSaveIpLog);
+            List<List<GseAgentTaskDTO>> batches = BatchUtil.buildBatchList(gseAgentTasks, 1000);
+            batches.parallelStream().forEach(gseAgentTaskDao::batchSaveGseAgentTasks);
         }
     }
 
     @Override
-    public void batchUpdateIpLog(long stepInstanceId, int executeCount, Collection<String> cloudAreaIdAndIps,
-                                 Long startTime, Long endTime, IpStatus status) {
+    public void batchUpdateGseAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaIdAndIps,
+                                         Long startTime, Long endTime, IpStatus status) {
         if (cloudAreaIdAndIps == null || cloudAreaIdAndIps.size() == 0) {
             return;
         }
-        gseTaskIpLogDao.batchUpdateIpLog(stepInstanceId, executeCount, cloudAreaIdAndIps, startTime, endTime, status);
+        gseAgentTaskDao.batchUpdateGseAgentTasks(stepInstanceId, executeCount, cloudAreaIdAndIps, startTime, endTime, status);
     }
 
     @Override
-    public int getSuccessIpCount(long stepInstanceId, int executeCount) {
-        return gseTaskIpLogDao.getSuccessIpCount(stepInstanceId, executeCount);
+    public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
+        return gseAgentTaskDao.getSuccessIpCount(stepInstanceId, executeCount);
     }
 
     @Override
-    public List<GseTaskIpLogDTO> getSuccessGseTaskIp(long stepInstanceId, int executeCount) {
-        return gseTaskIpLogDao.getSuccessGseTaskIp(stepInstanceId, executeCount);
+    public List<GseAgentTaskDTO> listSuccessAgentGseTask(long stepInstanceId, int executeCount) {
+        return gseAgentTaskDao.getSuccessGseTaskIp(stepInstanceId, executeCount);
     }
 
     @Override
-    public List<AgentTaskResultGroupDTO> getIpLogStatInfo(long stepInstanceId, int executeCount) {
+    public List<AgentTaskResultGroupDTO> getGseAgentTaskStatInfo(long stepInstanceId, int executeCount) {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
 
-        List<ResultGroupBaseDTO> baseResultGroups = gseTaskIpLogDao.getResultGroups(stepInstanceId, executeCount);
+        List<ResultGroupBaseDTO> baseResultGroups = gseAgentTaskDao.listResultGroups(stepInstanceId, executeCount);
         for (ResultGroupBaseDTO baseResultGroup : baseResultGroups) {
             AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
             resultGroup.setResultType(IpStatus.valueOf(baseResultGroup.getResultType()));
@@ -160,16 +132,16 @@ public class GseTaskLogServiceImpl implements GseTaskLogService {
     public List<AgentTaskResultGroupDTO> getLogStatInfoWithIp(long stepInstanceId, int executeCount) {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
 
-        List<ResultGroupBaseDTO> baseResultGroups = gseTaskIpLogDao.getResultGroups(stepInstanceId, executeCount);
+        List<ResultGroupBaseDTO> baseResultGroups = gseAgentTaskDao.listResultGroups(stepInstanceId, executeCount);
         for (ResultGroupBaseDTO baseResultGroup : baseResultGroups) {
             AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
             resultGroup.setResultType(IpStatus.valueOf(baseResultGroup.getResultType()));
             resultGroup.setTag(baseResultGroup.getTag());
             resultGroup.setCount(baseResultGroup.getAgentTaskCount());
-            List<GseTaskIpLogDTO> gseTaskIpLogList = getIpLogByResultType(stepInstanceId, executeCount,
+            List<GseAgentTaskDTO> gseTaskIpLogList = listGseAgentTasksByResultType(stepInstanceId, executeCount,
                 baseResultGroup.getResultType(), baseResultGroup.getTag());
             List<IpDTO> ipList = new ArrayList<>();
-            for (GseTaskIpLogDTO gseTaskIpLog : gseTaskIpLogList) {
+            for (GseAgentTaskDTO gseTaskIpLog : gseTaskIpLogList) {
                 ipList.add(IpDTO.fromCloudAreaIdAndIpStr(gseTaskIpLog.getCloudAreaAndIp()));
             }
             resultGroup.setIpList(ipList);
@@ -180,20 +152,20 @@ public class GseTaskLogServiceImpl implements GseTaskLogService {
 
 
     @Override
-    public List<GseTaskIpLogDTO> getIpLogByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                      String tag) {
-        return gseTaskIpLogDao.getIpLogByResultType(stepInstanceId, executeCount, resultType, tag);
+    public List<GseAgentTaskDTO> listGseAgentTasksByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
+                                                               String tag) {
+        return gseAgentTaskDao.listAgentTaskByResultType(stepInstanceId, executeCount, resultType, tag);
     }
 
     @Override
-    public List<GseTaskIpLogDTO> getIpLogContentByResultType(Long stepInstanceId, Integer executeCount,
-                                                             Integer resultType, String tag) {
-        List<GseTaskIpLogDTO> ipLogByResultType = getIpLogByResultType(stepInstanceId, executeCount, resultType, tag);
+    public List<GseAgentTaskDTO> getGseAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
+                                                                    Integer resultType, String tag) {
+        List<GseAgentTaskDTO> ipLogByResultType = listGseAgentTasksByResultType(stepInstanceId, executeCount, resultType, tag);
         StepInstanceBaseDTO stepInstance = stepInstanceDao.getStepInstanceBase(stepInstanceId);
         if (stepInstance == null) {
             return Collections.emptyList();
         }
-        for (GseTaskIpLogDTO gseTaskIpLog : ipLogByResultType) {
+        for (GseAgentTaskDTO gseTaskIpLog : ipLogByResultType) {
             long startTime = System.currentTimeMillis();
             if (stepInstance.isScriptStep()) {
                 ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount
@@ -214,23 +186,18 @@ public class GseTaskLogServiceImpl implements GseTaskLogService {
     }
 
     @Override
-    public List<GseTaskIpLogDTO> getIpLog(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp) {
-        return gseTaskIpLogDao.getIpLog(stepInstanceId, executeCount, onlyTargetIp);
+    public List<GseAgentTaskDTO> getGseAgentTask(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp) {
+        return gseAgentTaskDao.listGseAgentTasks(stepInstanceId, executeCount, onlyTargetIp);
     }
 
     @Override
-    public GseTaskIpLogDTO getIpLog(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp) {
-        return gseTaskIpLogDao.getIpLogByIp(stepInstanceId, executeCount, cloudAreaIdAndIp);
+    public GseAgentTaskDTO getGseAgentTask(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp) {
+        return gseAgentTaskDao.getGseAgentTaskByIp(stepInstanceId, executeCount, cloudAreaIdAndIp);
     }
 
     @Override
     public List<IpDTO> getTaskFileSourceIps(Long stepInstanceId, Integer executeCount) {
-        return gseTaskIpLogDao.getTaskFileSourceIps(stepInstanceId, executeCount)
+        return gseAgentTaskDao.getTaskFileSourceIps(stepInstanceId, executeCount)
             .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
-    }
-
-    @Override
-    public int getSuccessExecuteCount(long stepInstanceId, String cloudAreaAndIp) {
-        return gseTaskIpLogDao.getSuccessRetryCount(stepInstanceId, cloudAreaAndIp);
     }
 }

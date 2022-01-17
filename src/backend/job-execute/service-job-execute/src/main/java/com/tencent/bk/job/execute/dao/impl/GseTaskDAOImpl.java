@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.GseTaskLogDAO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.dao.GseTaskDAO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.TableField;
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class GseTaskLogDAOImpl implements GseTaskLogDAO {
+public class GseTaskDAOImpl implements GseTaskDAO {
     private final DSLContext dslContext;
 
     private static final GseTaskLog TABLE = GseTaskLog.GSE_TASK_LOG;
@@ -44,41 +44,29 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
         TABLE.BATCH, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.STATUS, TABLE.GSE_TASK_ID};
 
     @Autowired
-    public GseTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
+    public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
-    @Override
-    public GseTaskLogDTO getStepLastExecuteLog(long stepInstanceId) {
-        GseTaskLog t = GseTaskLog.GSE_TASK_LOG;
-        Record record = dslContext.select(ALL_FIELDS)
-            .from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .orderBy(t.EXECUTE_COUNT.desc())
-            .limit(1)
-            .fetchOne();
-        return extractInfo(record);
-    }
-
-    private GseTaskLogDTO extractInfo(Record record) {
+    private GseTaskDTO extractInfo(Record record) {
         if (record == null) {
             return null;
         }
-        GseTaskLogDTO gseTaskLogDTO = new GseTaskLogDTO();
+        GseTaskDTO gseTaskDTO = new GseTaskDTO();
 
-        gseTaskLogDTO.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
-        gseTaskLogDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));
-        gseTaskLogDTO.setBatch(record.get(TABLE.BATCH));
-        gseTaskLogDTO.setStartTime(record.get(TABLE.START_TIME));
-        gseTaskLogDTO.setEndTime(record.get(TABLE.END_TIME));
-        gseTaskLogDTO.setTotalTime(record.get(TABLE.TOTAL_TIME));
-        gseTaskLogDTO.setStatus(record.get(TABLE.STATUS).intValue());
-        gseTaskLogDTO.setGseTaskId(record.get(TABLE.GSE_TASK_ID));
-        return gseTaskLogDTO;
+        gseTaskDTO.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
+        gseTaskDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));
+        gseTaskDTO.setBatch(record.get(TABLE.BATCH));
+        gseTaskDTO.setStartTime(record.get(TABLE.START_TIME));
+        gseTaskDTO.setEndTime(record.get(TABLE.END_TIME));
+        gseTaskDTO.setTotalTime(record.get(TABLE.TOTAL_TIME));
+        gseTaskDTO.setStatus(record.get(TABLE.STATUS).intValue());
+        gseTaskDTO.setGseTaskId(record.get(TABLE.GSE_TASK_ID));
+        return gseTaskDTO;
     }
 
     @Override
-    public void saveGseTaskLog(GseTaskLogDTO gseTaskLog) {
+    public void saveGseTask(GseTaskDTO gseTask) {
         dslContext.insertInto(
             TABLE,
             TABLE.STEP_INSTANCE_ID,
@@ -90,25 +78,25 @@ public class GseTaskLogDAOImpl implements GseTaskLogDAO {
             TABLE.STATUS,
             TABLE.GSE_TASK_ID)
             .values(
-                gseTaskLog.getStepInstanceId(),
-                gseTaskLog.getExecuteCount(),
-                (short) gseTaskLog.getBatch(),
-                gseTaskLog.getStartTime(),
-                gseTaskLog.getEndTime(),
-                gseTaskLog.getTotalTime(),
-                JooqDataTypeUtil.toByte(gseTaskLog.getStatus()),
-                gseTaskLog.getGseTaskId())
+                gseTask.getStepInstanceId(),
+                gseTask.getExecuteCount(),
+                (short) gseTask.getBatch(),
+                gseTask.getStartTime(),
+                gseTask.getEndTime(),
+                gseTask.getTotalTime(),
+                JooqDataTypeUtil.toByte(gseTask.getStatus()),
+                gseTask.getGseTaskId())
             .onDuplicateKeyUpdate()
-            .set(TABLE.START_TIME, gseTaskLog.getStartTime())
-            .set(TABLE.END_TIME, gseTaskLog.getEndTime())
-            .set(TABLE.TOTAL_TIME, gseTaskLog.getTotalTime())
-            .set(TABLE.STATUS, JooqDataTypeUtil.toByte(gseTaskLog.getStatus()))
-            .set(TABLE.GSE_TASK_ID, gseTaskLog.getGseTaskId())
+            .set(TABLE.START_TIME, gseTask.getStartTime())
+            .set(TABLE.END_TIME, gseTask.getEndTime())
+            .set(TABLE.TOTAL_TIME, gseTask.getTotalTime())
+            .set(TABLE.STATUS, JooqDataTypeUtil.toByte(gseTask.getStatus()))
+            .set(TABLE.GSE_TASK_ID, gseTask.getGseTaskId())
             .execute();
     }
 
     @Override
-    public GseTaskLogDTO getGseTaskLog(long stepInstanceId, int executeCount) {
+    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount) {
         Record record = dslContext.select(ALL_FIELDS).from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(TABLE.EXECUTE_COUNT.eq(executeCount))

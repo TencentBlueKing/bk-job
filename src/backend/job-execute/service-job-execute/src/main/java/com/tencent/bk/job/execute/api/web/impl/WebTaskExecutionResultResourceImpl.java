@@ -87,7 +87,7 @@ import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.service.ExecuteAuthService;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -134,7 +134,7 @@ public class WebTaskExecutionResultResourceImpl
     private final ServiceNotificationResourceClient notifyResource;
     private final ExecuteAuthService executeAuthService;
     private final WebAuthService webAuthService;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
 
     private LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -187,7 +187,7 @@ public class WebTaskExecutionResultResourceImpl
                                               ServiceNotificationResourceClient notifyResource,
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService,
-                                              GseTaskLogService gseTaskLogService) {
+                                              GseTaskService gseTaskService) {
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -197,7 +197,7 @@ public class WebTaskExecutionResultResourceImpl
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
         this.webAuthService = webAuthService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
     }
 
     @Override

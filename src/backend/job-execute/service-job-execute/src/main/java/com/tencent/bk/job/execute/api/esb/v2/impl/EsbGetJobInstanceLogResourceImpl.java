@@ -36,13 +36,13 @@ import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,13 +54,13 @@ import java.util.List;
 public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
     private final MessageI18nService i18nService;
 
-    public EsbGetJobInstanceLogResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
+    public EsbGetJobInstanceLogResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
                                             TaskInstanceService taskInstanceService) {
         this.i18nService = i18nService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
     }
 
@@ -81,9 +81,9 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstance.getId(),
+            GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
                 stepInstance.getExecuteCount());
-            if (null == gseTaskLog) {
+            if (null == gseTask) {
                 EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();
                 stepInstResultAndLog.setFinished(false);
                 stepInstResultAndLog.setStepInstanceId(stepInstance.getId());
@@ -95,9 +95,9 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             }
 
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();
-            stepInstResultAndLog.setFinished(!gseTaskLog.getStatus().equals(RunStatusEnum.BLANK.getValue())
-                && !gseTaskLog.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> resultGroups = gseTaskLogService.getIpLogStatInfo(stepInstance.getId(),
+            stepInstResultAndLog.setFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
+                && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
+            List<AgentTaskResultGroupDTO> resultGroups = gseTaskService.getGseAgentTaskStatInfo(stepInstance.getId(),
                 stepInstance.getExecuteCount());
             List<EsbStepInstanceResultAndLog.StepInstResultDTO> stepInstResultList =
                 Lists.newArrayListWithCapacity(resultGroups.size());
@@ -106,24 +106,24 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                     new EsbStepInstanceResultAndLog.StepInstResultDTO();
                 stepInstResult.setIpStatus(resultGroup.getResultType().getValue());
                 stepInstResult.setTag(resultGroup.getTag());
-                List<GseTaskIpLogDTO> ipLogList = gseTaskLogService.getIpLogContentByResultType(stepInstance.getId(),
+                List<GseAgentTaskDTO> gseAgentTaskList = gseTaskService.getGseAgentTaskContentByResultType(stepInstance.getId(),
                     stepInstance.getExecuteCount(), resultGroup.getResultType().getValue(), resultGroup.getTag());
-                List<EsbStepInstanceResultAndLog.IpLogDTO> resultIpLogList =
-                    Lists.newArrayListWithCapacity(ipLogList.size());
-                for (GseTaskIpLogDTO taskIpLog : ipLogList) {
-                    EsbStepInstanceResultAndLog.IpLogDTO ipLogDTO = new EsbStepInstanceResultAndLog.IpLogDTO();
-                    ipLogDTO.setLogContent(Utils.htmlEncode(taskIpLog.getScriptLogContent()));
-                    ipLogDTO.setExecuteCount(taskIpLog.getExecuteCount());
-                    ipLogDTO.setEndTime(taskIpLog.getEndTime());
-                    ipLogDTO.setStartTime(taskIpLog.getStartTime());
-                    ipLogDTO.setErrCode(taskIpLog.getErrorCode());
-                    ipLogDTO.setExitCode(taskIpLog.getExitCode());
-                    ipLogDTO.setTotalTime(taskIpLog.getTotalTime());
-                    ipLogDTO.setCloudAreaId(taskIpLog.getCloudAreaId());
-                    ipLogDTO.setIp(taskIpLog.getIp());
-                    resultIpLogList.add(ipLogDTO);
+                List<EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO> esbGseAgentTaskList =
+                    Lists.newArrayListWithCapacity(gseAgentTaskList.size());
+                for (GseAgentTaskDTO gseAgentTask : gseAgentTaskList) {
+                    EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO = new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
+                    esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(gseAgentTask.getScriptLogContent()));
+                    esbGseAgentTaskDTO.setExecuteCount(gseAgentTask.getExecuteCount());
+                    esbGseAgentTaskDTO.setEndTime(gseAgentTask.getEndTime());
+                    esbGseAgentTaskDTO.setStartTime(gseAgentTask.getStartTime());
+                    esbGseAgentTaskDTO.setErrCode(gseAgentTask.getErrorCode());
+                    esbGseAgentTaskDTO.setExitCode(gseAgentTask.getExitCode());
+                    esbGseAgentTaskDTO.setTotalTime(gseAgentTask.getTotalTime());
+                    esbGseAgentTaskDTO.setCloudAreaId(gseAgentTask.getCloudAreaId());
+                    esbGseAgentTaskDTO.setIp(gseAgentTask.getIp());
+                    esbGseAgentTaskList.add(esbGseAgentTaskDTO);
                 }
-                stepInstResult.setIpLogs(resultIpLogList);
+                stepInstResult.setIpLogs(esbGseAgentTaskList);
                 stepInstResultList.add(stepInstResult);
             }
 

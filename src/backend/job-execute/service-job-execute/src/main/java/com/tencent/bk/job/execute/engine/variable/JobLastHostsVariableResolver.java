@@ -27,9 +27,9 @@ package com.tencent.bk.job.execute.engine.variable;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,14 +48,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
     public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
-                                        GseTaskLogService gseTaskLogService) {
+                                        GseTaskService gseTaskService) {
         this.taskInstanceService = taskInstanceService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         init();
     }
 
@@ -84,7 +84,7 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         if (JobBuildInVariables.JOB_LAST_ALL.equals(variableName)) {
             hosts = extractAllHosts(preStepInstance);
         } else if (JobBuildInVariables.JOB_LAST_SUCCESS.equals(variableName)) {
-            List<GseTaskIpLogDTO> ipLogs = gseTaskLogService.getIpLog(preStepInstance.getId(),
+            List<GseAgentTaskDTO> ipLogs = gseTaskService.getGseAgentTask(preStepInstance.getId(),
                 preStepInstance.getExecuteCount(), true);
             if (CollectionUtils.isNotEmpty(ipLogs)) {
                 hosts =
@@ -93,7 +93,7 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                         .map(ipLog -> new IpDTO(ipLog.getCloudAreaId(), ipLog.getIp())).collect(Collectors.toSet());
             }
         } else if (JobBuildInVariables.JOB_LAST_FAIL.equals(variableName)) {
-            List<GseTaskIpLogDTO> ipLogs = gseTaskLogService.getIpLog(preStepInstance.getId(),
+            List<GseAgentTaskDTO> ipLogs = gseTaskService.getGseAgentTask(preStepInstance.getId(),
                 preStepInstance.getExecuteCount(), true);
             if (CollectionUtils.isNotEmpty(ipLogs)) {
                 hosts =

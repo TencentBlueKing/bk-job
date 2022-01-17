@@ -49,8 +49,8 @@ import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.engine.util.Utils;
 import com.tencent.bk.job.execute.engine.util.WindowsHelper;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
@@ -156,15 +156,15 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     public FileResultHandleTask(TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                Map<String, GseTaskIpLogDTO> ipLogMap,
-                                GseTaskLogDTO gseTaskLog,
+                                Map<String, GseAgentTaskDTO> ipLogMap,
+                                GseTaskDTO gseTask,
                                 Set<String> targetIps,
                                 Set<JobFile> sendFiles,
                                 String storageRootPath,
                                 Map<String, String> sourceDestPathMap,
                                 Map<String, String> sourceFileDisplayMap,
                                 String requestId) {
-        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, targetIps, requestId);
+        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTask, targetIps, requestId);
         this.sendFiles = sendFiles;
         this.localUploadDir = NFSUtils.getFileDir(storageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
         if (sourceDestPathMap != null) {
@@ -224,7 +224,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     @Override
-    GseLogBatchPullResult<api_map_rsp> pullGseTaskLogInBatches() {
+    GseLogBatchPullResult<api_map_rsp> pullGseTaskResultInBatches() {
         api_map_rsp gseLog;
         if (FeatureToggleConfigHolder.get().enablePullFileResultByIp(taskInstance.getAppId())
             && (CollectionUtils.isNotEmpty(this.analyseFinishedSourceIpSet)
@@ -234,10 +234,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             notFinishedIps.addAll(runningFileSourceIpSet);
             notFinishedIps.addAll(notStartedIpSet);
             notFinishedIps.addAll(runningIpSet);
-            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTaskLog.getGseTaskId(),
+            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTask.getGseTaskId(),
                 notFinishedIps);
         } else {
-            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTaskLog.getGseTaskId());
+            gseLog = GseRequestUtils.pullCopyFileTaskLog(this.stepInstanceId, this.gseTask.getGseTaskId());
         }
         GseLogBatchPullResult<api_map_rsp> pullResult;
         if (gseLog != null) {
@@ -250,7 +250,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskLog(GseLog<api_map_rsp> taskDetail) {
+    GseTaskExecuteResult analyseGseTaskResult(GseLog<api_map_rsp> taskDetail) {
         Set<Map.Entry<String, String>> ipResults = taskDetail.getGseLog().getResult().entrySet();
         // 执行日志, Map<ip, 日志>
         Map<String, ServiceIpLogDTO> executionLogs = new HashMap<>();
@@ -289,7 +289,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
         // 保存任务执行结果
         watch.start("saveIpLogs");
-        batchSaveChangedIpLogs();
+        batchSaveChangedGseAgentTasks();
         watch.stop();
 
         log.info("Analyse gse task log [{}] -> runningTargetIpSet={}, " +
@@ -317,7 +317,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
 
     private void analyseFileResult(String cloudIp, CopyFileRsp copyFileRsp, Map<String, ServiceIpLogDTO> executionLogs,
                                    boolean isDownloadLog) {
-        GseTaskIpLogDTO ipLog = this.ipLogMap.get(cloudIp);
+        GseAgentTaskDTO ipLog = this.gseAgentTaskMap.get(cloudIp);
         if (ipLog.getStartTime() == null) {
             ipLog.setStartTime(System.currentTimeMillis());
         }
@@ -797,7 +797,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         int fileNum,
         int successNum,
         boolean isDownload,
-        GseTaskIpLogDTO ipLog
+        GseAgentTaskDTO ipLog
     ) {
         boolean isTargetIp = targetIpSet.contains(cloudIp);
         if (successNum >= fileNum) {
@@ -849,7 +849,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
             return;
         }
 
-        GseTaskIpLogDTO ipLog = ipLogMap.get(cloudIp);
+        GseAgentTaskDTO ipLog = gseAgentTaskMap.get(cloudIp);
         if (finishedNum >= fileNum) {
             log.info("[{}] Ip analyse finished! ip: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 stepInstanceId, cloudIp, finishedNum, fileNum);

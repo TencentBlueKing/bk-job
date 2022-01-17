@@ -43,8 +43,8 @@ import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.util.Utils;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
@@ -127,8 +127,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param taskInstance               任务实例
      * @param stepInstance               步骤实例
      * @param taskVariablesAnalyzeResult 任务变量以及分析结果
-     * @param ipLogMap                   主机任务执行结果
-     * @param gseTaskLog                 gse任务执行结果
+     * @param gseAgentTaskMap                   主机任务执行结果
+     * @param gseTask                    gse任务执行结果
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
      */
@@ -136,27 +136,27 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         TaskInstanceDTO taskInstance,
         StepInstanceDTO stepInstance,
         TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-        Map<String, GseTaskIpLogDTO> ipLogMap,
-        GseTaskLogDTO gseTaskLog,
+        Map<String, GseAgentTaskDTO> gseAgentTaskMap,
+        GseTaskDTO gseTask,
         Set<String> targetIps,
         String requestId
     ) {
-        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, ipLogMap, gseTaskLog, targetIps, requestId);
-        initLogPullProcess(ipLogMap.values());
+        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask, targetIps, requestId);
+        initLogPullProcess(gseAgentTaskMap.values());
     }
 
-    private void initLogPullProcess(Collection<GseTaskIpLogDTO> ipLogs) {
-        ipLogs.forEach(ipLog -> {
+    private void initLogPullProcess(Collection<GseAgentTaskDTO> gseAgentTasks) {
+        gseAgentTasks.forEach(gseAgentTask -> {
             LogPullProgress process = new LogPullProgress();
-            process.setIp(ipLog.getCloudAreaAndIp());
-            process.setByteOffset(ipLog.getScriptLogOffset());
+            process.setIp(gseAgentTask.getCloudAreaAndIp());
+            process.setByteOffset(gseAgentTask.getScriptLogOffset());
             process.setMid(0);
-            logPullProgressMap.put(ipLog.getCloudAreaAndIp(), process);
+            logPullProgressMap.put(gseAgentTask.getCloudAreaAndIp(), process);
         });
     }
 
     @Override
-    GseLogBatchPullResult<api_task_detail_result> pullGseTaskLogInBatches() {
+    GseLogBatchPullResult<api_task_detail_result> pullGseTaskResultInBatches() {
         if (pullIpBatches.isEmpty()) {
             Set<String> queryIpSet = new HashSet<>();
             queryIpSet.addAll(notStartedIpSet);
@@ -164,13 +164,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             List<String> queryIpList = new ArrayList<>(queryIpSet);
             pullIpBatches = BatchUtil.buildBatchList(queryIpList, currentBatchSize);
         }
-        return tryPullGseLogWithRetry();
+        return tryPullGseResultWithRetry();
     }
 
-    private GseLogBatchPullResult<api_task_detail_result> tryPullGseLogWithRetry() {
+    private GseLogBatchPullResult<api_task_detail_result> tryPullGseResultWithRetry() {
         List<String> pullLogIps = pullIpBatches.get(pullIpBatchesIndex.get() - 1);
         try {
-            api_task_detail_result detailRst = pullGseLog(pullLogIps);
+            api_task_detail_result detailRst = pullGseTaskResult(pullLogIps);
             boolean isLastBatch = pullIpBatchesIndex.get() == pullIpBatches.size();
             GseLogBatchPullResult<api_task_detail_result> batchPullResult = new GseLogBatchPullResult<>(true,
                 isLastBatch, new ScriptTaskLog(detailRst), null);
@@ -186,7 +186,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                 log.info("Reduce batch size and rebuild batch list successfully, currentBatchSize: {}, batches: {}. " +
                         "Retry pull!",
                     this.currentBatchSize, this.pullIpBatches);
-                return tryPullGseLogWithRetry();
+                return tryPullGseResultWithRetry();
             } else {
                 log.warn("Try pull gse log with min batch size, but fail!");
                 return new GseLogBatchPullResult<>(false, true, null, "Pull gse task log timeout");
@@ -199,8 +199,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         pullIpBatches.clear();
     }
 
-    private api_task_detail_result pullGseLog(List<String> ips) {
-        api_query_task_info_v2 requestV2 = GseRequestUtils.buildScriptLogRequestV2(gseTaskLog.getGseTaskId(), ips,
+    private api_task_detail_result pullGseTaskResult(List<String> ips) {
+        api_query_task_info_v2 requestV2 = GseRequestUtils.buildScriptLogRequestV2(gseTask.getGseTaskId(), ips,
             logPullProgressMap);
         return GseRequestUtils.getScriptTaskDetailRst(stepInstanceId, requestV2);
     }
@@ -234,7 +234,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     @Override
-    GseTaskExecuteResult analyseGseTaskLog(GseLog<api_task_detail_result> taskDetail) {
+    GseTaskExecuteResult analyseGseTaskResult(GseLog<api_task_detail_result> taskDetail) {
 
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
         Set<String> analysedIpSet = new HashSet<>();
@@ -254,17 +254,17 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             if (this.analyseFinishedIpSet.contains(cloudIp)) {
                 continue;
             }
-            GseTaskIpLogDTO ipLog = ipLogMap.get(cloudIp);
-            if (ipLog == null) {
+            GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(cloudIp);
+            if (gseAgentTask == null) {
                 continue;
             }
             analysedIpSet.add(cloudIp);
 
             if (isUserScriptResult) {
-                addScriptLogsAndRefreshPullProgress(scriptLogs, ipResult, cloudIp, ipLog, currentTime);
+                addScriptLogsAndRefreshPullProgress(scriptLogs, ipResult, cloudIp, gseAgentTask, currentTime);
             }
 
-            analyseIpResult(ipResult, ipLog, cloudIp, isUserScriptResult, currentTime);
+            analyseIpResult(ipResult, gseAgentTask, cloudIp, isUserScriptResult, currentTime);
         }
         watch.stop();
 
@@ -272,8 +272,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         saveScriptLogContent(scriptLogs);
         watch.stop();
 
-        watch.start("saveIpLogs");
-        batchSaveChangedIpLogs();
+        watch.start("saveGseAgentTasks");
+        batchSaveChangedGseAgentTasks();
         watch.stop();
 
         GseTaskExecuteResult rst = analyseExecuteResult();
@@ -290,20 +290,20 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst ipResult,
-                                                     String cloudIp, GseTaskIpLogDTO ipLog, long currentTime) {
+                                                     String cloudIp, GseAgentTaskDTO gseAgentTask, long currentTime) {
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), ipLog.getScriptLogOffset(),
+            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), gseAgentTask.getScriptLogOffset(),
                 currentTime));
         } else {
             String content = ipResult.getScreen();
             if (StringUtils.isEmpty(content)) {
                 return;
             }
-            int offset = ipLog.getScriptLogOffset();
+            int offset = gseAgentTask.getScriptLogOffset();
             if (StringUtils.isNotEmpty(content)) {
                 int bytes = content.getBytes(StandardCharsets.UTF_8).length;
                 offset += bytes;
-                ipLog.setScriptLogOffset(offset);
+                gseAgentTask.setScriptLogOffset(offset);
             }
             logs.add(new ServiceScriptLogDTO(cloudIp, offset, ipResult.getScreen()));
         }
@@ -317,25 +317,25 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             logs);
     }
 
-    private void analyseIpResult(api_agent_task_rst ipResult, GseTaskIpLogDTO ipLog, String cloudIp,
+    private void analyseIpResult(api_agent_task_rst ipResult, GseAgentTaskDTO gseAgentTask, String cloudIp,
                                  boolean isUserScriptResult, long currentTime) {
         boolean isShellScript = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()));
-        if (ipLog.getStartTime() == null) {
-            ipLog.setStartTime(currentTime);
+        if (gseAgentTask.getStartTime() == null) {
+            gseAgentTask.setStartTime(currentTime);
         }
-        ipLog.setErrorCode(ipResult.getBk_error_code());
+        gseAgentTask.setErrorCode(ipResult.getBk_error_code());
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
             // 脚本执行失败
-            dealIPFinish(cloudIp, ipResult, ipLog);
+            dealIPFinish(cloudIp, ipResult, gseAgentTask);
             int ipStatus = Utils.getStatusByGseErrorCode(ipResult.getBk_error_code());
             if (ipStatus < 0) {
                 ipStatus = IpStatus.FAILED.getValue();
             }
-            ipLog.setStatus(ipStatus);
+            gseAgentTask.setStatus(ipStatus);
         } else if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code())
             == GSECode.AtomicErrorCode.TERMINATE) {
-            dealIPFinish(cloudIp, ipResult, ipLog);
-            ipLog.setStatus(IpStatus.GSE_TASK_TERMINATE_SUCCESS.getValue());
+            dealIPFinish(cloudIp, ipResult, gseAgentTask);
+            gseAgentTask.setStatus(IpStatus.GSE_TASK_TERMINATE_SUCCESS.getValue());
             this.isTerminatedSuccess = true;
         } else {
             // 分析GSE的返回状态
@@ -347,7 +347,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     // 1：原子任务执行中；
                     notStartedIpSet.remove(cloudIp);
                     runningIpSet.add(cloudIp);
-                    ipLog.setStatus(IpStatus.RUNNING.getValue());
+                    gseAgentTask.setStatus(IpStatus.RUNNING.getValue());
                     break;
                 case SUCCESS:
                     if (isShellScript && isUserScriptResult) {
@@ -355,50 +355,50 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                             && (taskVariablesAnalyzeResult.isExistChangeableGlobalVar()
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
-                            ipLog.setStatus(IpStatus.RUNNING.getValue());
+                            gseAgentTask.setStatus(IpStatus.RUNNING.getValue());
                             notStartedIpSet.remove(cloudIp);
                             runningIpSet.add(cloudIp);
                             refreshPullLogProgress("", cloudIp, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
-                            dealIPFinish(cloudIp, ipResult, ipLog);
-                            ipLog.setStatus(IpStatus.SUCCESS.getValue());
+                            dealIPFinish(cloudIp, ipResult, gseAgentTask);
+                            gseAgentTask.setStatus(IpStatus.SUCCESS.getValue());
                             if (this.targetIpSet.contains(cloudIp)) {
                                 successIpSet.add(cloudIp);
                             }
                         }
                     } else {
                         //获取输出参数的任务执行完成，需要分析日志
-                        dealIPFinish(cloudIp, ipResult, ipLog);
-                        ipLog.setStatus(IpStatus.SUCCESS.getValue());
+                        dealIPFinish(cloudIp, ipResult, gseAgentTask);
+                        gseAgentTask.setStatus(IpStatus.SUCCESS.getValue());
                         if (this.targetIpSet.contains(cloudIp)) {
                             successIpSet.add(cloudIp);
                         }
                         parseVariableValueFromResult(ipResult, cloudIp);
                     }
                     if (isUserScriptResult) {
-                        ipLog.setTag(ipResult.getTag());
+                        gseAgentTask.setTag(ipResult.getTag());
                     }
                     break;
                 case TIMEOUT:
-                    dealIPFinish(cloudIp, ipResult, ipLog);
-                    ipLog.setStatus(IpStatus.SCRIPT_TIMEOUT.getValue());
+                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
+                    gseAgentTask.setStatus(IpStatus.SCRIPT_TIMEOUT.getValue());
                     break;
                 case DISCARD:
-                    dealIPFinish(cloudIp, ipResult, ipLog);
-                    ipLog.setStatus(IpStatus.SCRIPT_TERMINATE.getValue());
+                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
+                    gseAgentTask.setStatus(IpStatus.SCRIPT_TERMINATE.getValue());
                     break;
                 default:
-                    dealIPFinish(cloudIp, ipResult, ipLog);
+                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
                     int errCode = ipResult.getBk_error_code();
                     int exitCode = getExitCode(ipResult.getExitcode());
                     if (errCode == 0) {
                         if (exitCode != 0) {
-                            ipLog.setStatus(IpStatus.SCRIPT_NOT_ZERO_EXIT_CODE.getValue());
+                            gseAgentTask.setStatus(IpStatus.SCRIPT_NOT_ZERO_EXIT_CODE.getValue());
                         } else {
-                            ipLog.setStatus(IpStatus.SCRIPT_FAILED.getValue());
+                            gseAgentTask.setStatus(IpStatus.SCRIPT_FAILED.getValue());
                         }
-                        ipLog.setTag(ipResult.getTag());
+                        gseAgentTask.setTag(ipResult.getTag());
                     }
                     break;
             }
@@ -518,9 +518,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         return variableValues;
     }
 
-    private void dealIPFinish(String ip, api_agent_task_rst ipResult, GseTaskIpLogDTO ipLog) {
-        dealIPFinish(ip, ipResult.getStart_time(), ipResult.getEnd_time(), ipLog);
-        ipLog.setExitCode(getExitCode(ipResult.getExitcode()));
+    private void dealIPFinish(String ip, api_agent_task_rst ipResult, GseAgentTaskDTO gseAgentTask) {
+        dealIPFinish(ip, ipResult.getStart_time(), ipResult.getEnd_time(), gseAgentTask);
+        gseAgentTask.setExitCode(getExitCode(ipResult.getExitcode()));
     }
 
     private int getExitCode(int exitCode) {
@@ -601,9 +601,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {
         Map<String, Integer> ipAndLogOffsetMap = new HashMap<>();
         ips.forEach(ip -> {
-            GseTaskIpLogDTO ipLog = ipLogMap.get(ip);
-            if (ipLog != null) {
-                ipAndLogOffsetMap.put(ip, ipLog.getScriptLogOffset());
+            GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(ip);
+            if (gseAgentTask != null) {
+                ipAndLogOffsetMap.put(ip, gseAgentTask.getScriptLogOffset());
             } else {
                 ipAndLogOffsetMap.put(ip, 0);
             }

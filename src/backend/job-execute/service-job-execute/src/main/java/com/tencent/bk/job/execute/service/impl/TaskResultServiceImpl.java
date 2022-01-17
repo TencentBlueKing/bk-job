@@ -39,7 +39,7 @@ import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
+import com.tencent.bk.job.execute.dao.GseAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
@@ -47,8 +47,8 @@ import com.tencent.bk.job.execute.model.AgentTaskExecutionDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ExecutionResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
@@ -63,7 +63,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.ExecuteAuthService;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
@@ -95,9 +95,9 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 public class TaskResultServiceImpl implements TaskResultService {
     private final TaskInstanceDAO taskInstanceDAO;
     private final StepInstanceDAO stepInstanceDAO;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
-    private final GseTaskIpLogDAO gseTaskIpLogDAO;
+    private final GseAgentTaskDAO gseAgentTaskDAO;
     private final ServerService serverService;
     private final LogService logService;
     private final ExecuteAuthService executeAuthService;
@@ -105,16 +105,16 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     @Autowired
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO, StepInstanceDAO stepInstanceDAO,
-                                 GseTaskLogService gseTaskLogService, FileSourceTaskLogDAO fileSourceTaskLogDAO,
-                                 GseTaskIpLogDAO gseTaskIpLogDAO,
+                                 GseTaskService gseTaskService, FileSourceTaskLogDAO fileSourceTaskLogDAO,
+                                 GseAgentTaskDAO gseAgentTaskDAO,
                                  ServerService serverService, LogService logService,
                                  ExecuteAuthService executeAuthService,
                                  TaskOperationLogService operationLogService) {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
-        this.gseTaskIpLogDAO = gseTaskIpLogDAO;
+        this.gseAgentTaskDAO = gseAgentTaskDAO;
         this.serverService = serverService;
         this.logService = logService;
         this.executeAuthService = executeAuthService;
@@ -301,7 +301,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private StepExecutionDetailDTO buildStepExecutionDetailDTO(StepInstanceBaseDTO stepInstance,
-                                                               GseTaskLogDTO gseTaskLog, Integer executeCount) {
+                                                               GseTaskDTO gseTask, Integer executeCount) {
         StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO();
         executeDetail.setStepInstanceId(stepInstance.getId());
         executeDetail.setExecuteCount(executeCount);
@@ -312,13 +312,13 @@ public class TaskResultServiceImpl implements TaskResultService {
             && !stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())
             && !stepInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue()));
         executeDetail.setStatus(stepInstance.getStatus());
-        executeDetail.setStartTime(gseTaskLog.getStartTime());
-        executeDetail.setEndTime(gseTaskLog.getEndTime());
-        executeDetail.setTotalTime(TaskCostCalculator.calculate(gseTaskLog.getStartTime(), gseTaskLog.getEndTime(),
-            gseTaskLog.getTotalTime()));
+        executeDetail.setStartTime(gseTask.getStartTime());
+        executeDetail.setEndTime(gseTask.getEndTime());
+        executeDetail.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), gseTask.getEndTime(),
+            gseTask.getTotalTime()));
         executeDetail.setLastStep(stepInstance.isLastStep());
         executeDetail.setStepType(stepInstance.getStepType());
-        executeDetail.setGseTaskId(gseTaskLog.getGseTaskId());
+        executeDetail.setGseTaskId(gseTask.getGseTaskId());
         return executeDetail;
     }
 
@@ -342,7 +342,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private void setAgentTasksForSpecifiedResultType(List<ExecutionResultGroupDTO> resultGroups,
                                                      long appId, Integer resultType, String tag,
-                                                     List<GseTaskIpLogDTO> ipLogsForResultType) {
+                                                     List<GseAgentTaskDTO> ipLogsForResultType) {
         for (ExecutionResultGroupDTO resultGroup : resultGroups) {
             if (resultType.equals(resultGroup.getResultType()) && (
                 (StringUtils.isEmpty(tag) ? StringUtils.isEmpty(resultGroup.getTag()) :
@@ -353,7 +353,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private List<ExecutionResultGroupDTO> getExecutionResultGroupsFromDB(long stepInstanceId, int executeCount) {
-        List<ResultGroupBaseDTO> baseResultGroups = gseTaskIpLogDAO.getResultGroups(stepInstanceId, executeCount);
+        List<ResultGroupBaseDTO> baseResultGroups = gseAgentTaskDAO.listResultGroups(stepInstanceId, executeCount);
         return baseResultGroups.stream().map(this::buildExecutionResultGroup)
             .collect(Collectors.toList());
     }
@@ -383,13 +383,13 @@ public class TaskResultServiceImpl implements TaskResultService {
     private boolean fillAgentTasksForResultGroup(ExecutionResultGroupDTO resultGroup, long appId, long stepInstanceId,
                                                  int executeCount,
                                                  Integer resultType, String tag, Integer maxAgentTasksForResultGroup) {
-        List<GseTaskIpLogDTO> ipLogGroupByResultType = gseTaskIpLogDAO.getIpLogByResultType(stepInstanceId,
+        List<GseAgentTaskDTO> ipLogGroupByResultType = gseAgentTaskDAO.listAgentTaskByResultType(stepInstanceId,
             executeCount, resultType, tag, maxAgentTasksForResultGroup, null, null);
         return fillAgentTasksForResultGroup(resultGroup, appId, ipLogGroupByResultType);
     }
 
     private boolean fillAgentTasksForResultGroup(ExecutionResultGroupDTO resultGroup, long appId,
-                                                 List<GseTaskIpLogDTO> ipLogGroupByResultType) {
+                                                 List<GseAgentTaskDTO> ipLogGroupByResultType) {
         if (CollectionUtils.isEmpty(ipLogGroupByResultType)) {
             return false;
         }
@@ -399,7 +399,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         return true;
     }
 
-    private AgentTaskExecutionDTO buildAgentTaskExecutionDTO(long appId, GseTaskIpLogDTO gseTaskIpLog) {
+    private AgentTaskExecutionDTO buildAgentTaskExecutionDTO(long appId, GseAgentTaskDTO gseTaskIpLog) {
         AgentTaskExecutionDTO agentTaskExecution = new AgentTaskExecutionDTO();
         agentTaskExecution.setCloudIp(gseTaskIpLog.getCloudAreaAndIp());
         long cloudAreaId = Long.parseLong(gseTaskIpLog.getCloudAreaAndIp().split(":")[0]);
@@ -418,7 +418,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private List<AgentTaskExecutionDTO> buildAgentTaskExecutionDTOList(long appId,
-                                                                       List<GseTaskIpLogDTO> gseTaskIpLogs) {
+                                                                       List<GseAgentTaskDTO> gseTaskIpLogs) {
         return gseTaskIpLogs.stream().map(gseTaskIpLog -> buildAgentTaskExecutionDTO(appId, gseTaskIpLog))
             .collect(Collectors.toList());
     }
@@ -504,8 +504,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         query.setExecuteCount(finalExecuteCount);
         watch.stop();
 
-        GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstance.getId(), finalExecuteCount);
-        if (gseTaskLog == null) {
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), finalExecuteCount);
+        if (gseTask == null) {
             return buildNotStartStepExecutionResult(appId, stepInstance, finalExecuteCount,
                 query.getMaxAgentTasksForResultGroup(), query.getSearchIp());
         }
@@ -513,10 +513,10 @@ public class TaskResultServiceImpl implements TaskResultService {
         StepExecutionDetailDTO stepExecutionDetail;
         // 如果步骤的目标服务器数量<100,或者通过IP匹配的方式过滤agent任务，为了提升性能，直接全量从DB查询数据，在内存进行处理
         if ((stepInstance.getTargetServerTotalCount() <= 100) || query.hasIpCondition()) {
-            stepExecutionDetail = loadAllTasksFromDBAndBuildExecutionResultInMemory(watch, stepInstance, gseTaskLog,
+            stepExecutionDetail = loadAllTasksFromDBAndBuildExecutionResultInMemory(watch, stepInstance, gseTask,
                 query);
         } else {
-            stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, gseTaskLog, query);
+            stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, gseTask, query);
         }
 
         stepExecutionDetail.setStartTime(stepInstance.getStartTime());
@@ -542,7 +542,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private StepExecutionDetailDTO loadAllTasksFromDBAndBuildExecutionResultInMemory(StopWatch watch,
                                                                                      StepInstanceBaseDTO stepInstance,
-                                                                                     GseTaskLogDTO gseTaskLog,
+                                                                                     GseTaskDTO gseTask,
                                                                                      StepExecutionResultQuery query) {
         try {
             long stepInstanceId = query.getStepInstanceId();
@@ -554,7 +554,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 Set<String> matchIps = getMatchIps(query);
                 if (CollectionUtils.isEmpty(matchIps)) {
                     watch.stop();
-                    return buildExecutionDetailWhenTaskAreEmpty(stepInstance, gseTaskLog);
+                    return buildExecutionDetailWhenTaskAreEmpty(stepInstance, gseTask);
                 } else {
                     query.setMatchIps(matchIps);
                 }
@@ -562,7 +562,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
 
             watch.start("loadAllTasksFromDb");
-            List<GseTaskIpLogDTO> tasks = gseTaskLogService.getIpLog(stepInstanceId, executeCount, true);
+            List<GseAgentTaskDTO> tasks = gseTaskService.getGseAgentTask(stepInstanceId, executeCount, true);
             log.debug("tasks.size={}", tasks.size());
             watch.stop();
             watch.start("buildResultGroupsFromTasks");
@@ -583,7 +583,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 .filter(resultGroup -> CollectionUtils.isNotEmpty(resultGroup.getAgentTaskExecutionDetail()))
                 .findFirst().orElse(null);
             if (resultGroupWithTasks == null) {
-                StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTaskLog,
+                StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTask,
                     executeCount);
                 executeDetail.setResultGroups(resultGroups);
                 return executeDetail;
@@ -598,7 +598,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                         query.getMaxAgentTasksForResultGroup()));
             }
 
-            StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTaskLog, executeCount);
+            StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTask, executeCount);
             executeDetail.setResultGroups(resultGroups);
 
             watch.stop();
@@ -682,11 +682,11 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private StepExecutionDetailDTO buildExecutionDetailWhenTaskAreEmpty(StepInstanceBaseDTO stepInstance,
-                                                                        GseTaskLogDTO gseTaskLog) {
-        List<ResultGroupBaseDTO> baseResultGroups = gseTaskIpLogDAO
-            .getResultGroups(stepInstance.getId(), stepInstance.getExecuteCount());
+                                                                        GseTaskDTO gseTask) {
+        List<ResultGroupBaseDTO> baseResultGroups = gseAgentTaskDAO
+            .listResultGroups(stepInstance.getId(), stepInstance.getExecuteCount());
         StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance,
-            gseTaskLog, stepInstance.getExecuteCount());
+            gseTask, stepInstance.getExecuteCount());
         List<ExecutionResultGroupDTO> resultGroups = new ArrayList<>();
         for (ResultGroupBaseDTO baseResultGroup : baseResultGroups) {
             ExecutionResultGroupDTO resultGroup = buildExecutionResultGroup(baseResultGroup);
@@ -729,8 +729,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
     }
 
-    private List<ExecutionResultGroupDTO> buildResultGroupsFromTasks(long appId, List<GseTaskIpLogDTO> tasks) {
-        Map<ExecutionResultGroupDTO, List<GseTaskIpLogDTO>> resultGroups = new HashMap<>();
+    private List<ExecutionResultGroupDTO> buildResultGroupsFromTasks(long appId, List<GseAgentTaskDTO> tasks) {
+        Map<ExecutionResultGroupDTO, List<GseAgentTaskDTO>> resultGroups = new HashMap<>();
         // 对执行结果按状态status与标签tag进行分组
         tasks.forEach(task -> resultGroups.computeIfAbsent(task.getExecutionResultGroup(),
             resultGroup -> new ArrayList<>()).add(task));
@@ -744,7 +744,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private StepExecutionDetailDTO filterAndSortExecutionResultInDB(StopWatch watch,
                                                                     StepInstanceBaseDTO stepInstance,
-                                                                    GseTaskLogDTO gseTaskLog,
+                                                                    GseTaskDTO gseTask,
                                                                     StepExecutionResultQuery query) {
         query.transformOrderFieldToDbField();
         long stepInstanceId = query.getStepInstanceId();
@@ -753,14 +753,14 @@ public class TaskResultServiceImpl implements TaskResultService {
         String tag = query.getTag();
         long appId = stepInstance.getAppId();
 
-        StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTaskLog, executeCount);
+        StepExecutionDetailDTO executeDetail = buildStepExecutionDetailDTO(stepInstance, gseTask, executeCount);
 
         watch.start("getBaseResultGroups");
         List<ExecutionResultGroupDTO> resultGroups = getExecutionResultGroupsFromDB(stepInstanceId, executeCount);
         watch.stop();
         if (resultType != null) {
             watch.start("loadTasksFromDbForResultType");
-            List<GseTaskIpLogDTO> tasks = gseTaskIpLogDAO.getIpLogByResultType(stepInstanceId, executeCount,
+            List<GseAgentTaskDTO> tasks = gseAgentTaskDAO.listAgentTaskByResultType(stepInstanceId, executeCount,
                 resultType, tag, query.getMaxAgentTasksForResultGroup(), query.getOrderField(), query.getOrder());
             watch.stop();
             if (CollectionUtils.isNotEmpty(tasks)) {
@@ -794,7 +794,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private List<IpDTO> fuzzySearchHostsByIp(long stepInstanceId, int executeCount, String searchIp) {
-        return gseTaskIpLogDAO.fuzzySearchTargetIpsByIp(stepInstanceId, executeCount, searchIp)
+        return gseAgentTaskDAO.fuzzySearchTargetIpsByIp(stepInstanceId, executeCount, searchIp)
             .stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
     }
 
@@ -885,9 +885,9 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
         }
 
-        GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstance.getId(),
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(),
             stepInstance.getExecuteCount());
-        if (gseTaskLog == null) {
+        if (gseTask == null) {
             if (stepInstance.getTargetServers().getIpList() != null) {
                 return stepInstance.getTargetServers().getIpList();
             } else {
@@ -895,7 +895,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
         }
 
-        List<GseTaskIpLogDTO> ipLogGroupByResultType = gseTaskIpLogDAO.getIpLogByResultType(stepInstanceId,
+        List<GseAgentTaskDTO> ipLogGroupByResultType = gseAgentTaskDAO.listAgentTaskByResultType(stepInstanceId,
             executeCount, resultType, tag);
         if (CollectionUtils.isEmpty(ipLogGroupByResultType)) {
             return Collections.emptyList();

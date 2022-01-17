@@ -37,12 +37,12 @@ import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.GseTaskLogDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
@@ -59,13 +59,13 @@ public class EsbGetStepInstanceStatusResourceImpl
     extends JobQueryCommonProcessor
     implements EsbGetStepInstanceStatusResource {
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
     private final MessageI18nService i18nService;
 
-    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
+    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
                                                 TaskInstanceService taskInstanceService) {
         this.i18nService = i18nService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
     }
 
@@ -92,14 +92,14 @@ public class EsbGetStepInstanceStatusResourceImpl
         }
 
         EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
-        GseTaskLogDTO gseTaskLog = gseTaskLogService.getGseTaskLog(stepInstanceId, stepInstance.getExecuteCount());
-        if (null == gseTaskLog) {
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, stepInstance.getExecuteCount());
+        if (null == gseTask) {
             resultData.setIsFinished(false);
             return EsbResp.buildSuccessResp(null);
         } else {
-            resultData.setIsFinished(!gseTaskLog.getStatus().equals(RunStatusEnum.BLANK.getValue())
-                && !gseTaskLog.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> analyseResult = gseTaskLogService.getLogStatInfoWithIp(stepInstance.getId()
+            resultData.setIsFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
+                && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
+            List<AgentTaskResultGroupDTO> analyseResult = gseTaskService.getLogStatInfoWithIp(stepInstance.getId()
                 , stepInstance.getExecuteCount());
             resultData.setAyalyseResult(convertToStandardAnalyseResult(analyseResult));
 

@@ -34,12 +34,12 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.GseTaskLogService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,13 +55,13 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskLogService gseTaskLogService;
+    private final GseTaskService gseTaskService;
     private final MessageI18nService i18nService;
 
-    public EsbGetJobInstanceStatusV3ResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
+    public EsbGetJobInstanceStatusV3ResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
                                                  TaskInstanceService taskInstanceService) {
         this.i18nService = i18nService;
-        this.gseTaskLogService = gseTaskLogService;
+        this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
     }
 
@@ -139,10 +139,10 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<GseTaskIpLogDTO> ipLogList = gseTaskLogService.getIpLog(stepInstance.getId(),
+                List<GseAgentTaskDTO> ipLogList = gseTaskService.getGseAgentTask(stepInstance.getId(),
                     stepInstance.getExecuteCount(), true);
                 if (CollectionUtils.isNotEmpty(ipLogList)) {
-                    for (GseTaskIpLogDTO ipLog : ipLogList) {
+                    for (GseAgentTaskDTO ipLog : ipLogList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
                         stepIpResult.setCloudAreaId(ipLog.getCloudAreaId());
                         stepIpResult.setIp(ipLog.getIp());
