@@ -587,10 +587,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     protected void batchSaveChangedGseAgentTasks() {
-        List<GseAgentTaskDTO> changedIpLogs =
+        List<GseAgentTaskDTO> changedGseAgentTasks =
             this.gseAgentTaskMap.values().stream().filter(GseAgentTaskDTO::isChanged).collect(Collectors.toList());
-        gseTaskService.batchSaveGseAgentTasks(changedIpLogs);
-        changedIpLogs.forEach(ipLog -> ipLog.setChanged(false));
+        gseTaskService.batchSaveGseAgentTasks(changedGseAgentTasks);
+        changedGseAgentTasks.forEach(ipLog -> ipLog.setChanged(false));
     }
 
     protected void saveFailInfoForUnfinishedIpTask(int errorType, String errorMsg) {

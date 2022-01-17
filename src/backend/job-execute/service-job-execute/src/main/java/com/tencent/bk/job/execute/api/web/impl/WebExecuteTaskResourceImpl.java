@@ -225,7 +225,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         RollingConfigDTO rollingConfigDTO = new RollingConfigDTO();
         rollingConfigDTO.setName("default");
         rollingConfigDTO.setMode(rollingConfigVO.getMode());
-        rollingConfigDTO.setExpr(rollingConfigVO.getBatchExpr());
+        rollingConfigDTO.setExpr(rollingConfigVO.getExpr());
         return rollingConfigDTO;
     }
 
