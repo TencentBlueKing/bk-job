@@ -33,6 +33,7 @@
             :value="classesId"
             icon="business-manage"
             :count="totalCount"
+            :tooltips-disabled="true"
             @on-select="handleClassesSelect" />
         <tab-item
             :name="$t('script.未分类')"
@@ -40,6 +41,7 @@
             :value="classesId"
             icon="unclassified"
             :count="unclassifiedCount"
+            :tooltips-disabled="true"
             @on-select="handleClassesSelect" />
         <div class="line" />
         <template v-for="item in list">
@@ -52,6 +54,7 @@
                 :value="tagId"
                 :can-edit="true"
                 :tag-list="list"
+                :description="item.description"
                 @on-select="handleSelect"
                 @on-edit="handleEdit" />
         </template>
