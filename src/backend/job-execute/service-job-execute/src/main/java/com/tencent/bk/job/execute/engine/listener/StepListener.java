@@ -32,11 +32,16 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
+import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.NotifyDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
+import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
@@ -48,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
@@ -74,18 +81,27 @@ import static com.tencent.bk.job.execute.engine.consts.StepActionEnum.STOP;
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
-    private final TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final FilePrepareService filePrepareService;
+    private final GseTaskService gseTaskService;
+    private final RollingConfigService rollingConfigService;
+    private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
                         StepInstanceService stepInstanceService,
                         TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
-                        FilePrepareService filePrepareService) {
+                        FilePrepareService filePrepareService,
+                        GseTaskService gseTaskService,
+                        RollingConfigService rollingConfigService,
+                        StepInstanceRollingTaskService stepInstanceRollingTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
-        this.TaskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
+        this.taskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
         this.filePrepareService = filePrepareService;
+        this.gseTaskService = gseTaskService;
+        this.rollingConfigService = rollingConfigService;
+        this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
     }
 
     /**
@@ -198,7 +214,7 @@ public class StepListener {
             // 终止成功，进入下一步，该步骤设置为“跳过”
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SKIPPED, null, endTime,
                 totalTime);
-            TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
+            taskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
         } else {
             log.warn("Unsupported step instance status for next step action, stepInstanceId:{}, status:{}",
                 stepInstanceId, stepInstance.getStatus());
@@ -218,7 +234,7 @@ public class StepListener {
             // 人工确认通过，该步骤状态标识为成功；终止成功的步骤保持状态不变
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
                 totalTime);
-            TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
+            taskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
         } else {
             log.warn("Unsupported step instance status for confirm-step-continue step action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());
@@ -234,7 +250,7 @@ public class StepListener {
 
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.IGNORE_ERROR.getValue());
         taskInstanceService.resetTaskExecuteInfoForResume(stepInstance.getTaskInstanceId());
-        TaskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
+        taskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
     }
 
     private void startStep(StepInstanceBaseDTO stepInstance) {
@@ -259,7 +275,7 @@ public class StepListener {
 
             int stepType = stepInstance.getExecuteType();
             if (EXECUTE_SCRIPT.getValue() == stepType || StepExecuteTypeEnum.EXECUTE_SQL.getValue() == stepType) {
-                TaskExecuteMQEventDispatcher.startGseStep(stepInstanceId);
+                taskExecuteMQEventDispatcher.startGseStep(stepInstanceId);
             } else if (TaskStepTypeEnum.FILE.getValue() == stepType) {
                 // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
                 if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
@@ -270,7 +286,7 @@ public class StepListener {
             } else {
                 log.warn("Unsupported step type, skip it! stepInstanceId={}, stepType={}", stepInstanceId, stepType);
                 taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.SKIPPED.getValue());
-                TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
+                taskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
             }
         } else {
             log.warn("Unsupported step instance run status for starting step, stepInstanceId={}, status={}",
@@ -291,7 +307,7 @@ public class StepListener {
             taskInstanceService.updateStepEndTime(stepInstanceId, now);
 
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
-            TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
+            taskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
         } else {
             log.warn("Unsupported step instance run status for skipping step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
@@ -317,7 +333,7 @@ public class StepListener {
      * @param stepInstance 步骤实例
      */
     private void continueGseFileStep(StepInstanceBaseDTO stepInstance) {
-        TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
     }
 
     /**
@@ -326,7 +342,7 @@ public class StepListener {
     private void retryStepFail(StepInstanceBaseDTO stepInstance) {
         resetStatusForRetry(stepInstance);
         filePrepareService.retryPrepareFile(stepInstance.getId());
-        TaskExecuteMQEventDispatcher.retryGseStepFail(stepInstance.getId());
+        taskExecuteMQEventDispatcher.retryGseStepFail(stepInstance.getId());
     }
 
     /**
@@ -335,7 +351,7 @@ public class StepListener {
     private void retryStepAll(StepInstanceBaseDTO stepInstance) {
         resetStatusForRetry(stepInstance);
         filePrepareService.retryPrepareFile(stepInstance.getId());
-        TaskExecuteMQEventDispatcher.retryGseStepAll(stepInstance.getId());
+        taskExecuteMQEventDispatcher.retryGseStepAll(stepInstance.getId());
     }
 
     /**
@@ -404,7 +420,7 @@ public class StepListener {
         taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getTaskId()));
         taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
         taskNotifyDTO.setOperator(stepInstance.getOperator());
-        TaskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
     }
 
     private TaskNotifyDTO buildCommonTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
@@ -424,43 +440,67 @@ public class StepListener {
     }
 
     private void refreshStep(StepInstanceBaseDTO stepInstance) {
-        int stepStatus = stepInstance.getStatus();
         long stepInstanceId = stepInstance.getId();
-        long taskInstanceId = stepInstance.getTaskInstanceId();
+        int stepStatus = stepInstance.getStatus();
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
+            stepInstance.getBatch());
+        List<GseAgentTaskDTO> gseAgentTaskList =
+            gseTaskService.listSuccessAgentGseTask(stepInstanceId, stepInstance.getExecuteCount());
+        RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
+        long currentTime = System.currentTimeMillis();
+        long startTime = stepInstance.getStartTime();
+        long totalTime = currentTime - startTime;
+        switch (gseTaskStatus) {
+            case SUCCESS:
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
+//                    startTime, System.currentTimeMillis(), totalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                if (stepInstance.isRollingStep()) {
 
-        // 只有当步骤状态为“等待用户”、“未执行”、“滚动等待”时可以启动步骤
-        if (RunStatusEnum.BLANK.getValue() == stepStatus
-            || RunStatusEnum.WAITING.getValue() == stepStatus
-            || RunStatusEnum.ROLLING_WAITING.getValue() == stepStatus) {
-
-            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
-                DateUtils.currentTimeMillis(), null, null);
-
-            // 如果是滚动步骤，需要更新滚动进度
-            if (stepInstance.isRollingStep()) {
-                int currentRollingBatch = stepInstance.getBatch() + 1;
-                stepInstance.setBatch(currentRollingBatch);
-                stepInstanceService.updateStepCurrentBatch(stepInstanceId, currentRollingBatch);
-            }
-
-            int stepType = stepInstance.getExecuteType();
-            if (EXECUTE_SCRIPT.getValue() == stepType || StepExecuteTypeEnum.EXECUTE_SQL.getValue() == stepType) {
-                TaskExecuteMQEventDispatcher.startGseStep(stepInstanceId);
-            } else if (TaskStepTypeEnum.FILE.getValue() == stepType) {
-                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
-                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
-                    filePrepareService.prepareFileForGseTask(stepInstanceId);
                 }
-            } else if (TaskStepTypeEnum.APPROVAL.getValue() == stepType) {
-                executeConfirmStep(stepInstance);
-            } else {
-                log.warn("Unsupported step type, skip it! stepInstanceId={}, stepType={}", stepInstanceId, stepType);
-                taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.SKIPPED.getValue());
-                TaskExecuteMQEventDispatcher.refreshTask(taskInstanceId);
-            }
-        } else {
-            log.warn("Unsupported step instance run status for starting step, stepInstanceId={}, status={}",
-                stepInstanceId, stepStatus);
+                break;
+            case FAIL:
+                break;
+            case STOP_SUCCESS:
+                break;
+            case ABNORMAL_STATE:
+                break;
+            default:
+                log.error("");
         }
+        taskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
+
+//        if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS) {
+//            if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
+//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+//            }
+//        } else {
+//            int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
+//            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
+//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+//                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
+//            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+//            } else if (stepStatus == RunStatusEnum.STOPPING.getValue()) {
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
+//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+//            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_SUCCESS) {
+//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
+//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
+//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+//            }
+//            taskManager.refreshTask(stepInstance.getTaskInstanceId());
+//        }
+    }
+
+    private void test(List<GseAgentTaskDTO> gseAgentTasks) {
+
     }
 }
