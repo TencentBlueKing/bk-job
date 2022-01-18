@@ -63,6 +63,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ServerService;
@@ -102,14 +103,19 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final LogService logService;
     private final ExecuteAuthService executeAuthService;
     private final TaskOperationLogService operationLogService;
+    private final GseAgentTaskService gseAgentTaskService;
 
     @Autowired
-    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO, StepInstanceDAO stepInstanceDAO,
-                                 GseTaskService gseTaskService, FileSourceTaskLogDAO fileSourceTaskLogDAO,
+    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
+                                 StepInstanceDAO stepInstanceDAO,
+                                 GseTaskService gseTaskService,
+                                 FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                  GseAgentTaskDAO gseAgentTaskDAO,
-                                 ServerService serverService, LogService logService,
+                                 ServerService serverService,
+                                 LogService logService,
                                  ExecuteAuthService executeAuthService,
-                                 TaskOperationLogService operationLogService) {
+                                 TaskOperationLogService operationLogService,
+                                 GseAgentTaskService gseAgentTaskService) {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.gseTaskService = gseTaskService;
@@ -119,6 +125,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.logService = logService;
         this.executeAuthService = executeAuthService;
         this.operationLogService = operationLogService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     @Override
@@ -563,7 +570,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
 
             watch.start("loadAllTasksFromDb");
-            List<GseAgentTaskDTO> tasks = gseTaskService.getGseAgentTask(stepInstanceId, executeCount, true);
+            List<GseAgentTaskDTO> tasks = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount, true);
             log.debug("tasks.size={}", tasks.size());
             watch.stop();
             watch.start("buildResultGroupsFromTasks");

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
@@ -41,7 +40,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,14 +57,12 @@ public class EsbGetJobInstanceStatusResourceImpl
     implements EsbGetJobInstanceStatusResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskService gseTaskService;
-    private final MessageI18nService i18nService;
+    private final GseAgentTaskService gseAgentTaskService;
 
-    public EsbGetJobInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
-                                               TaskInstanceService taskInstanceService) {
-        this.i18nService = i18nService;
-        this.gseTaskService = gseTaskService;
+    public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
+                                               GseAgentTaskService gseAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     @Override
@@ -109,7 +106,7 @@ public class EsbGetJobInstanceStatusResourceImpl
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<GseAgentTaskDTO> gseAgentTasks = gseTaskService.getGseAgentTask(stepInstance.getId(),
+            List<GseAgentTaskDTO> gseAgentTasks = gseAgentTaskService.getGseAgentTask(stepInstance.getId(),
                 stepInstance.getExecuteCount(), true);
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
             for (GseAgentTaskDTO gseAgentTask : gseAgentTasks) {

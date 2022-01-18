@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
@@ -39,7 +38,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,14 +54,12 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskService gseTaskService;
-    private final MessageI18nService i18nService;
+    private final GseAgentTaskService gseAgentTaskService;
 
-    public EsbGetJobInstanceStatusV3ResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
-                                                 TaskInstanceService taskInstanceService) {
-        this.i18nService = i18nService;
-        this.gseTaskService = gseTaskService;
+    public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
+                                                 GseAgentTaskService gseAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     @Override
@@ -139,7 +136,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<GseAgentTaskDTO> ipLogList = gseTaskService.getGseAgentTask(stepInstance.getId(),
+                List<GseAgentTaskDTO> ipLogList = gseAgentTaskService.getGseAgentTask(stepInstance.getId(),
                     stepInstance.getExecuteCount(), true);
                 if (CollectionUtils.isNotEmpty(ipLogList)) {
                     for (GseAgentTaskDTO ipLog : ipLogList) {

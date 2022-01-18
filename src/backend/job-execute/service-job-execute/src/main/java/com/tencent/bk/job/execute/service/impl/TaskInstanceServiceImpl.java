@@ -227,11 +227,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum) {
-        stepInstanceDAO.updateStepStatInfo(stepInstanceId, runIPNum, successIPNum, failIPNum);
-    }
-
-    @Override
     public void updateTaskExecutionInfo(long taskInstanceId, RunStatusEnum status, Long currentStepId, Long startTime
         , Long endTime, Long totalTime) {
         taskInstanceDAO.updateTaskExecutionInfo(taskInstanceId, status, currentStepId, startTime, endTime, totalTime);
@@ -241,13 +236,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
                                         Long totalTime) {
         stepInstanceDAO.updateStepExecutionInfo(stepInstanceId, status, startTime, endTime, totalTime);
-    }
-
-    @Override
-    public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                        Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum) {
-        stepInstanceDAO.updateStepExecutionInfo(stepInstanceId, status, startTime, endTime,
-            totalTime, runIPNum, successIPNum, failIPNum);
     }
 
     @Override

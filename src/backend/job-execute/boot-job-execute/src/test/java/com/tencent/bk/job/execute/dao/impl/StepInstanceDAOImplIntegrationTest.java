@@ -165,9 +165,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getStartTime()).isNull();
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getTotalTime()).isNull();
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(0);
     }
 
     @Test
@@ -252,24 +249,6 @@ public class StepInstanceDAOImplIntegrationTest {
     }
 
     @Test
-    public void testUpdateStepStatInfo() {
-        long stepInstanceId = 1L;
-        int successIPNum = 1;
-        int failIPNum = 2;
-        int runIPNum = 3;
-
-        stepInstanceDAO.updateStepStatInfo(stepInstanceId, runIPNum, successIPNum, failIPNum);
-
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
-
-        assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(successIPNum);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(failIPNum);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(runIPNum);
-
-    }
-
-    @Test
     public void testGetFirstStepStartTime() {
         long taskInstanceId = 1L;
 
@@ -307,9 +286,6 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING.getValue());
         assertThat(returnStepInstance.getTotalTime()).isNull();
-        assertThat(returnStepInstance.getSuccessIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getFailIPNum()).isEqualTo(0);
-        assertThat(returnStepInstance.getRunIPNum()).isEqualTo(0);
     }
 
     @Test

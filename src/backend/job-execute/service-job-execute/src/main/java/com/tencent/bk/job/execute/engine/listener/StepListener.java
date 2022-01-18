@@ -39,6 +39,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
@@ -84,6 +85,7 @@ public class StepListener {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final FilePrepareService filePrepareService;
     private final GseTaskService gseTaskService;
+    private final GseAgentTaskService gseAgentTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
@@ -93,6 +95,7 @@ public class StepListener {
                         TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
                         FilePrepareService filePrepareService,
                         GseTaskService gseTaskService,
+                        GseAgentTaskService gseAgentTaskService,
                         RollingConfigService rollingConfigService,
                         StepInstanceRollingTaskService stepInstanceRollingTaskService) {
         this.taskInstanceService = taskInstanceService;
@@ -100,6 +103,7 @@ public class StepListener {
         this.taskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
+        this.gseAgentTaskService = gseAgentTaskService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
     }
@@ -445,7 +449,7 @@ public class StepListener {
         GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
             stepInstance.getBatch());
         List<GseAgentTaskDTO> gseAgentTaskList =
-            gseTaskService.listSuccessAgentGseTask(stepInstanceId, stepInstance.getExecuteCount());
+            gseAgentTaskService.listSuccessAgentGseTask(stepInstanceId, stepInstance.getExecuteCount());
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         long currentTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();

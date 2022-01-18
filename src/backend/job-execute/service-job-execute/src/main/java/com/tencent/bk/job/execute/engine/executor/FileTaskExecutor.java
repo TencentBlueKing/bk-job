@@ -147,7 +147,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             }
         }
         if (!fileSourceGseAgentTasks.isEmpty()) {
-            gseTaskService.batchSaveGseAgentTasks(fileSourceGseAgentTasks);
+            gseAgentTaskService.batchSaveGseAgentTasks(fileSourceGseAgentTasks);
         }
     }
 
@@ -396,9 +396,18 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             new FileResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap,
                 gseTask, jobIpSet, sendFiles, fileStorageRootPath, sourceDestPathMap, sourceFileDisplayMap,
                 requestId);
-        fileResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
-            taskInstanceVariableService, stepInstanceVariableValueService,
-            taskManager, resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
+        fileResultHandleTask.initDependentService(
+            taskInstanceService,
+            gseTaskService,
+            logService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            taskManager,
+            resultHandleTaskKeepaliveManager,
+            exceptionStatusManager,
+            taskEvictPolicyExecutor,
+            gseAgentTaskService
+        );
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

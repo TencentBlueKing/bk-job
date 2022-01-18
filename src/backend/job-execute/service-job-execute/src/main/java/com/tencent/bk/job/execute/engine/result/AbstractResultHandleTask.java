@@ -46,6 +46,7 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -96,6 +97,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
+    protected GseAgentTaskService gseAgentTaskService;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -250,8 +252,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      TaskExecuteMQEventDispatcher taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExceptionStatusManager exceptionStatusManager,
-                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor
-    ) {
+                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                     GseAgentTaskService gseAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -261,6 +263,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     /**
@@ -421,7 +424,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 ipLog.setEndTime(System.currentTimeMillis());
             });
         }
-        gseTaskService.batchSaveGseAgentTasks(notFinishedIpLogs);
+        gseAgentTaskService.batchSaveGseAgentTasks(notFinishedIpLogs);
     }
 
     /*
@@ -545,29 +548,24 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
             if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                    startTime, endTime, stepTotalTime);
                 taskManager.refreshTask(stepInstance.getTaskInstanceId());
             }
         } else {
             int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
             if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
-                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                    startTime, endTime, stepTotalTime);
                 exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
             } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                    startTime, endTime, stepTotalTime);
             } else if (stepStatus == RunStatusEnum.STOPPING.getValue()) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                    startTime, endTime, stepTotalTime);
             } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_SUCCESS) {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-                    successTargetIpNum, failTargetIpNum + invalidIpNum);
+                    startTime, endTime, stepTotalTime);
             }
             taskManager.refreshTask(stepInstance.getTaskInstanceId());
         }
@@ -589,7 +587,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected void batchSaveChangedGseAgentTasks() {
         List<GseAgentTaskDTO> changedGseAgentTasks =
             this.gseAgentTaskMap.values().stream().filter(GseAgentTaskDTO::isChanged).collect(Collectors.toList());
-        gseTaskService.batchSaveGseAgentTasks(changedGseAgentTasks);
+        gseAgentTaskService.batchSaveGseAgentTasks(changedGseAgentTasks);
         changedGseAgentTasks.forEach(ipLog -> ipLog.setChanged(false));
     }
 
@@ -618,7 +616,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             ipLog.setStatus(status);
             ipLogList.add(ipLog);
         }
-        gseTaskService.batchSaveGseAgentTasks(ipLogList);
+        gseAgentTaskService.batchSaveGseAgentTasks(ipLogList);
     }
 
     @Override

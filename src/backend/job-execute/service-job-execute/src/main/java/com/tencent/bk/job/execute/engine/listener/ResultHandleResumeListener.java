@@ -49,6 +49,7 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -100,6 +101,8 @@ public class ResultHandleResumeListener {
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
+    private final GseAgentTaskService gseAgentTaskService;
+
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
                                       ResultHandleManager resultHandleManager,
@@ -112,7 +115,8 @@ public class ResultHandleResumeListener {
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                       ExceptionStatusManager exceptionStatusManager,
-                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
+                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                      GseAgentTaskService gseAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -125,6 +129,7 @@ public class ResultHandleResumeListener {
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
 
@@ -133,7 +138,8 @@ public class ResultHandleResumeListener {
      */
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
     public void handleEvent(StepEvent stepEvent) {
-        log.info("Receive result handle task resume control message, action: {}, stepInstanceId: {}, executeCount: {}, requestId: {}, msgSendTime={}",
+        log.info("Receive result handle task resume control message, action: {}, stepInstanceId: {}, executeCount: " +
+                "{}, requestId: {}, msgSendTime={}",
             stepEvent.getAction(), stepEvent.getStepInstanceId(),
             stepEvent.getExecuteCount(),
             stepEvent.getRequestId(), stepEvent.getTime());
@@ -153,7 +159,8 @@ public class ResultHandleResumeListener {
             }
 
             Map<String, GseAgentTaskDTO> ipLogMap = new HashMap<>();
-            List<GseAgentTaskDTO> gseTaskIpLogs = gseTaskService.getGseAgentTask(stepInstanceId, executeCount, false);
+            List<GseAgentTaskDTO> gseTaskIpLogs = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount,
+                false);
             if (CollectionUtils.isNotEmpty(gseTaskIpLogs)) {
                 gseTaskIpLogs.stream().filter(gseTaskIpLog ->
                     IpStatus.LAST_SUCCESS.getValue() != gseTaskIpLog.getStatus())
@@ -171,7 +178,8 @@ public class ResultHandleResumeListener {
                     requestId);
                 scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteMQEventDispatcher,
-                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor,
+                    gseAgentTaskService);
                 resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
             } else if (stepInstance.isFileStep()) {
                 Set<JobFile> sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance,
@@ -193,7 +201,8 @@ public class ResultHandleResumeListener {
                     requestId);
                 fileResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteMQEventDispatcher,
-                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor);
+                    resultHandleTaskKeepaliveManager, exceptionStatusManager, taskEvictPolicyExecutor,
+                    gseAgentTaskService);
                 resultHandleManager.handleDeliveredTask(fileResultHandleTask);
             } else {
                 log.warn("Not support resume step type! stepType: {}", stepInstance.getExecuteType());

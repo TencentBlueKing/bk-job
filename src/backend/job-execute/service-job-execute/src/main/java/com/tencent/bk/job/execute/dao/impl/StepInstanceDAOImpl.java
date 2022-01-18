@@ -89,15 +89,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         T_STEP_INSTANCE.STATUS,
         T_STEP_INSTANCE.EXECUTE_COUNT,
         T_STEP_INSTANCE.TARGET_SERVERS,
-        T_STEP_INSTANCE.ABNORMAL_AGENT_IP_LIST,
         T_STEP_INSTANCE.START_TIME,
         T_STEP_INSTANCE.END_TIME,
         T_STEP_INSTANCE.TOTAL_TIME,
-        T_STEP_INSTANCE.TOTAL_IP_NUM,
-        T_STEP_INSTANCE.ABNORMAL_AGENT_NUM,
-        T_STEP_INSTANCE.RUN_IP_NUM,
-        T_STEP_INSTANCE.FAIL_IP_NUM,
-        T_STEP_INSTANCE.SUCCESS_IP_NUM,
         T_STEP_INSTANCE.CREATE_TIME,
         T_STEP_INSTANCE.IGNORE_ERROR,
         T_STEP_INSTANCE.STEP_NUM,
@@ -118,8 +112,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         Record record = CTX.insertInto(t, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE,
             t.OPERATOR, t.STATUS, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
-            t.TARGET_SERVERS, t.ABNORMAL_AGENT_IP_LIST, t.TOTAL_IP_NUM, t.ABNORMAL_AGENT_NUM,
-            t.RUN_IP_NUM, t.FAIL_IP_NUM, t.SUCCESS_IP_NUM, t.CREATE_TIME, t.IGNORE_ERROR, t.STEP_NUM,
+            t.TARGET_SERVERS, t.CREATE_TIME, t.IGNORE_ERROR, t.STEP_NUM,
             t.STEP_ORDER, t.BATCH)
             .values(stepInstance.getStepId(),
                 stepInstance.getTaskInstanceId(),
@@ -133,17 +126,11 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.getEndTime(),
                 stepInstance.getTotalTime(),
                 stepInstance.getTargetServers() == null ? null : JsonUtils.toJson(stepInstance.getTargetServers()),
-                stepInstance.getBadIpList(),
-                stepInstance.getTotalIPNum(),
-                stepInstance.getBadIPNum(),
-                stepInstance.getRunIPNum(),
-                stepInstance.getFailIPNum(),
-                stepInstance.getSuccessIPNum(),
                 stepInstance.getCreateTime(),
                 stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
                 stepInstance.getStepNum(),
                 stepInstance.getStepOrder(),
-                stepInstance.getBatch())
+                (short) stepInstance.getBatch())
             .returning(t.ID).fetchOne();
         return record.getValue(t.ID);
     }
@@ -362,17 +349,11 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStartTime(record.get(t.START_TIME));
         stepInstance.setEndTime(record.get(t.END_TIME));
         stepInstance.setTotalTime(record.get(t.TOTAL_TIME));
-        stepInstance.setTotalIPNum(record.get(t.TOTAL_IP_NUM));
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
             ServersDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ServersDTO.class);
             stepInstance.setTargetServers(targetServers);
             stepInstance.setIpList(targetServers.buildIpListStr());
         }
-        stepInstance.setBadIpList(record.get(t.ABNORMAL_AGENT_IP_LIST));
-        stepInstance.setBadIPNum(record.get(t.ABNORMAL_AGENT_NUM));
-        stepInstance.setRunIPNum(record.get(t.RUN_IP_NUM));
-        stepInstance.setFailIPNum(record.get(t.FAIL_IP_NUM));
-        stepInstance.setSuccessIPNum(record.get(t.SUCCESS_IP_NUM));
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
         stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null
             && JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)).equals(1));
@@ -399,8 +380,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void resetStepStatus(long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).setNull(t.START_TIME).setNull(t.END_TIME).setNull(t.TOTAL_TIME).set(t.SUCCESS_IP_NUM, 0)
-            .set(t.FAIL_IP_NUM, 0).set(t.RUN_IP_NUM, 0)
+        CTX.update(t).setNull(t.START_TIME).setNull(t.END_TIME).setNull(t.TOTAL_TIME)
             .where(t.ID.eq(stepInstanceId)).execute();
     }
 
@@ -412,9 +392,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
-            .set(t.SUCCESS_IP_NUM, 0)
-            .set(t.FAIL_IP_NUM, 0)
-            .set(t.RUN_IP_NUM, 0)
             .where(t.ID.eq(stepInstanceId)).execute();
     }
 
@@ -469,16 +446,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t).set(t.TOTAL_TIME, totalTime)
             .where(t.ID.eq(stepInstanceId)).execute();
-    }
-
-    @Override
-    public void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum) {
-        StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.RUN_IP_NUM, runIPNum)
-            .set(t.SUCCESS_IP_NUM, successIPNum)
-            .set(t.FAIL_IP_NUM, failIPNum)
-            .where(t.ID.eq(stepInstanceId))
-            .execute();
     }
 
     @Override
@@ -552,39 +519,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             }
         }
         return updateSetMoreStep;
-    }
-
-    @Override
-    public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                        Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum) {
-        StepInstance t = StepInstance.STEP_INSTANCE;
-        UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = buildBasicUpdateSetMoreStep(status,
-            startTime, endTime, totalTime);
-        if (runIPNum != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(t).set(t.RUN_IP_NUM, runIPNum);
-            } else {
-                updateSetMoreStep.set(t.RUN_IP_NUM, runIPNum);
-            }
-        }
-        if (successIPNum != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(t).set(t.SUCCESS_IP_NUM, successIPNum);
-            } else {
-                updateSetMoreStep.set(t.SUCCESS_IP_NUM, successIPNum);
-            }
-        }
-        if (failIPNum != null) {
-            if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(t).set(t.FAIL_IP_NUM, failIPNum);
-            } else {
-                updateSetMoreStep.set(t.FAIL_IP_NUM, failIPNum);
-            }
-        }
-        if (updateSetMoreStep == null) {
-            return;
-        }
-        updateSetMoreStep.where(t.ID.eq(stepInstanceId)).execute();
     }
 
     @Override

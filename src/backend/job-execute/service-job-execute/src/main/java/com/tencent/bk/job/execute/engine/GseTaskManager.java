@@ -56,6 +56,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -92,6 +93,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
+    private final GseAgentTaskService gseAgentTaskService;
     private final TaskExecuteMQEventDispatcher taskManager;
     private final AccountService accountService;
     private final LogService logService;
@@ -149,6 +151,7 @@ public class GseTaskManager implements SmartLifecycle {
     public GseTaskManager(ResultHandleManager resultHandleManager,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
+                          GseAgentTaskService gseAgentTaskService,
                           TaskExecuteMQEventDispatcher taskManager,
                           AccountService accountService,
                           LogService logService,
@@ -168,6 +171,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
+        this.gseAgentTaskService = gseAgentTaskService;
         this.taskManager = taskManager;
         this.accountService = accountService;
         this.logService = logService;
@@ -372,9 +376,21 @@ public class GseTaskManager implements SmartLifecycle {
             return null;
         }
 
-        gseTaskExecutor.initDependentService(resultHandleManager, taskInstanceService, gseTaskService,
-            accountService, taskInstanceVariableService, stepInstanceVariableValueService, agentService, logService,
-            taskManager, resultHandleTaskKeepaliveManager, executeMonitor, jobExecuteConfig);
+        gseTaskExecutor.initDependentService(
+            resultHandleManager,
+            taskInstanceService,
+            gseTaskService,
+            gseAgentTaskService,
+            accountService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            agentService,
+            logService,
+            taskManager,
+            resultHandleTaskKeepaliveManager,
+            executeMonitor,
+            jobExecuteConfig
+        );
         gseTaskExecutor.setExceptionStatusManager(exceptionStatusManager);
         gseTaskExecutor.setTaskEvictPolicyExecutor(taskEvictPolicyExecutor);
         gseTaskExecutor.setTracing(tracing);
@@ -460,7 +476,7 @@ public class GseTaskManager implements SmartLifecycle {
             }
 
             int executeCount = stepInstance.getExecuteCount();
-            List<GseAgentTaskDTO> successGseTaskIpLogs = gseTaskService.listSuccessAgentGseTask(stepInstanceId,
+            List<GseAgentTaskDTO> successGseTaskIpLogs = gseAgentTaskService.listSuccessAgentGseTask(stepInstanceId,
                 executeCount - 1);
             Set<String> lastSuccessIpSet = new HashSet<>();
             if (successGseTaskIpLogs != null) {
@@ -520,7 +536,7 @@ public class GseTaskManager implements SmartLifecycle {
             ipLogList.add(ipLog);
         }
         if (ipLogList.size() > 0) {
-            gseTaskService.batchSaveGseAgentTasks(ipLogList);
+            gseAgentTaskService.batchSaveGseAgentTasks(ipLogList);
         }
     }
 

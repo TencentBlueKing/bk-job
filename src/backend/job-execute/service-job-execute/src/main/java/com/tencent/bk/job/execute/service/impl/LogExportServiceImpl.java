@@ -42,7 +42,7 @@ import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -78,7 +78,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class LogExportServiceImpl implements LogExportService {
     private static final String EXPORT_KEY_PREFIX = "execute:log:export:";
-    private final GseTaskService gseTaskService;
     private final LogService logService;
     private final TraceableExecutorService logExportExecutor;
     private final StringRedisTemplate redisTemplate;
@@ -86,21 +85,24 @@ public class LogExportServiceImpl implements LogExportService {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
+    private final GseAgentTaskService gseAgentTaskService;
 
     @Autowired
-    public LogExportServiceImpl(GseTaskService gseTaskService, LogService logService, Tracing tracing,
+    public LogExportServiceImpl(LogService logService,
+                                Tracing tracing,
                                 StringRedisTemplate redisTemplate,
                                 TaskInstanceService taskInstanceService,
                                 ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
-                                LogExportConfig logExportConfig) {
-        this.gseTaskService = gseTaskService;
+                                LogExportConfig logExportConfig,
+                                GseAgentTaskService gseAgentTaskService) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
         this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
+        this.gseAgentTaskService = gseAgentTaskService;
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
         this.logExportExecutor = new TraceableExecutorService(new ThreadPoolExecutor(10,
             100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFactory), tracing);
@@ -188,12 +190,12 @@ public class LogExportServiceImpl implements LogExportService {
         watch.start("listJobIps");
         List<GseAgentTaskDTO> gseTaskIpLogs = new ArrayList<>();
         if (isGetByIp) {
-            GseAgentTaskDTO gseTaskIpLog = gseTaskService.getGseAgentTask(stepInstanceId, executeCount, ip);
+            GseAgentTaskDTO gseTaskIpLog = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount, ip);
             if (gseTaskIpLog != null) {
                 gseTaskIpLogs.add(gseTaskIpLog);
             }
         } else {
-            gseTaskIpLogs = gseTaskService.getGseAgentTask(stepInstanceId, executeCount, true);
+            gseTaskIpLogs = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount, true);
         }
         watch.stop();
 

@@ -24,21 +24,28 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.execute.dao.GseAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
+import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Slf4j
 @Service
 public class StepInstanceServiceImpl implements StepInstanceService {
 
     private final StepInstanceDAO stepInstanceDAO;
+    private final GseAgentTaskDAO gseAgentTaskDAO;
 
     @Autowired
-    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO) {
+    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO,
+                                   GseAgentTaskDAO gseAgentTaskDAO) {
         this.stepInstanceDAO = stepInstanceDAO;
+        this.gseAgentTaskDAO = gseAgentTaskDAO;
     }
 
     @Override
@@ -51,4 +58,9 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         stepInstanceDAO.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
     }
 
+    @Override
+    public Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(
+        long stepInstanceId, int executeCount) {
+        return gseAgentTaskDAO.countStepGseAgentTaskGroupByStatus(stepInstanceId, executeCount);
+    }
 }

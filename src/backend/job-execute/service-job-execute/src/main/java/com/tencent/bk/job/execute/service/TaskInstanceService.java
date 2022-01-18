@@ -121,8 +121,6 @@ public interface TaskInstanceService {
 
     void updateStepTotalTime(long stepInstanceId, long totalTime);
 
-    void updateStepStatInfo(long stepInstanceId, int runIPNum, int successIPNum, int failIPNum);
-
     /**
      * 更新作业的执行信息
      *
@@ -148,20 +146,6 @@ public interface TaskInstanceService {
     void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status,
                                  Long startTime, Long endTime, Long totalTime);
 
-    /**
-     * 更新步骤的执行信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param status         步骤执行状态
-     * @param startTime      开始时间
-     * @param endTime        结束时间
-     * @param totalTime      总耗时
-     * @param runIPNum       运行中的ip
-     * @param successIPNum   执行成功的ip
-     * @param failIPNum      失败的ip
-     */
-    void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
-                                 Long totalTime, Integer runIPNum, Integer successIPNum, Integer failIPNum);
 
     /**
      * 更新解析之后的脚本参数

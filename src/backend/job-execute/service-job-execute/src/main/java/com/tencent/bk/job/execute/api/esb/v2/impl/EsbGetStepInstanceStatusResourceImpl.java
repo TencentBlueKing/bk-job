@@ -42,10 +42,10 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.tools.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -60,13 +60,16 @@ public class EsbGetStepInstanceStatusResourceImpl
     implements EsbGetStepInstanceStatusResource {
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
+    private final GseAgentTaskService gseAgentTaskService;
     private final MessageI18nService i18nService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
-                                                TaskInstanceService taskInstanceService) {
+                                                TaskInstanceService taskInstanceService,
+                                                GseAgentTaskService gseAgentTaskService) {
         this.i18nService = i18nService;
         this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     @Override
@@ -100,7 +103,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         } else {
             resultData.setIsFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
                 && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> analyseResult = gseTaskService.getLogStatInfoWithIp(stepInstance.getId()
+            List<AgentTaskResultGroupDTO> analyseResult = gseAgentTaskService.getLogStatInfoWithIp(stepInstance.getId()
                 , stepInstance.getExecuteCount());
             resultData.setAyalyseResult(convertToStandardAnalyseResult(analyseResult));
 
@@ -114,22 +117,15 @@ public class EsbGetStepInstanceStatusResourceImpl
         EsbStepInstanceStatusDTO.StepInstance stepInst = new EsbStepInstanceStatusDTO.StepInstance();
         stepInst.setAppId(stepInstance.getAppId());
         stepInst.setId(stepInstance.getId());
-        stepInst.setBadIpList(stepInstance.getBadIpList());
-        stepInst.setBadIPNum(StringUtils.isEmpty(stepInstance.getBadIpList()) ? 0 :
-            stepInstance.getBadIpList().split(",").length);
         stepInst.setEndTime(stepInstance.getEndTime());
         stepInst.setStartTime(stepInstance.getStartTime());
-        stepInst.setFailIPNum(stepInstance.getFailIPNum());
         stepInst.setIpList(stepInstance.getIpList());
         stepInst.setName(stepInstance.getName());
         stepInst.setOperator(stepInstance.getOperator());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());
-        stepInst.setRunIPNum(stepInstance.getRunIPNum());
         stepInst.setStatus(stepInstance.getStatus());
         stepInst.setStepId(stepInstance.getStepId());
-        stepInst.setSuccessIPNum(stepInstance.getSuccessIPNum());
         stepInst.setTaskInstanceId(stepInstance.getTaskInstanceId());
-        stepInst.setTotalIPNum(stepInstance.getTotalIPNum());
         stepInst.setTotalTime(stepInstance.getTotalTime());
         stepInst.setType(stepInstance.getExecuteType());
 

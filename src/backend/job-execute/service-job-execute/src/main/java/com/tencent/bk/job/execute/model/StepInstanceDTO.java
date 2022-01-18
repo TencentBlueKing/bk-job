@@ -177,15 +177,9 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.startTime = stepInstanceBase.startTime;
         this.endTime = stepInstanceBase.endTime;
         this.totalTime = stepInstanceBase.totalTime;
-        this.totalIPNum = stepInstanceBase.totalIPNum;
-        this.badIPNum = stepInstanceBase.badIPNum;
-        this.runIPNum = stepInstanceBase.runIPNum;
-        this.failIPNum = stepInstanceBase.failIPNum;
-        this.successIPNum = stepInstanceBase.successIPNum;
         this.createTime = stepInstanceBase.createTime;
         this.ignoreError = stepInstanceBase.ignoreError;
         this.targetServers = stepInstanceBase.targetServers;
-        this.badIpList = stepInstanceBase.badIpList;
         this.ipList = stepInstanceBase.ipList;
     }
 

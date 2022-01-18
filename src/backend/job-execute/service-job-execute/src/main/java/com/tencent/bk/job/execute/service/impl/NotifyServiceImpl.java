@@ -39,6 +39,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
@@ -46,7 +47,6 @@ import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
@@ -63,7 +63,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -88,18 +87,23 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
+    private final GseAgentTaskService gseAgentTaskService;
 
     @Autowired
     public NotifyServiceImpl(JobExecuteConfig jobExecuteConfig,
                              ServiceNotificationResourceClient notificationResourceClient,
-                             ServiceUserResourceClient userResourceClient, ApplicationService applicationService,
-                             TaskInstanceService taskInstanceService, MessageI18nService i18nService) {
+                             ServiceUserResourceClient userResourceClient,
+                             ApplicationService applicationService,
+                             TaskInstanceService taskInstanceService,
+                             MessageI18nService i18nService,
+                             GseAgentTaskService gseAgentTaskService) {
         this.jobExecuteConfig = jobExecuteConfig;
         this.notificationResourceClient = notificationResourceClient;
         this.userResourceClient = userResourceClient;
         this.applicationService = applicationService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     private static void loadNotifyTemplate() {
@@ -305,8 +309,16 @@ public class NotifyServiceImpl implements NotifyService {
             if (taskInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.total_duration", "" + taskInstanceDTO.getTotalTime() / 1000.0);
             }
-            variablesMap.put("task.step.failed_cnt", "" + stepInstanceDTO.getFailIPNum());
-            variablesMap.put("task.step.success_cnt", "" + stepInstanceDTO.getSuccessIPNum());
+            int totalTargetIpCount = stepInstanceDTO.getTargetServers().getIpList().size();
+            if (executeStatus == ExecuteStatusEnum.SUCCESS) {
+                variablesMap.put("task.step.success_cnt", "" + totalTargetIpCount);
+                variablesMap.put("task.step.failed_cnt", "" + 0);
+            } else {
+                int successIpCount = gseAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                    stepInstanceDTO.getExecuteCount());
+                variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
+                variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));
+            }
         }
         // 国际化处理
         Long appId = taskNotifyDTO.getAppId();
@@ -364,32 +376,6 @@ public class NotifyServiceImpl implements NotifyService {
             variablesMap.put("task.step.confirmer", String.join(",", receiverSet));
         }
         return variablesMap;
-    }
-
-    private Map<String, ServiceNotificationMessage> buildNotificationMessage(ExecuteStatusEnum executeStatus,
-                                                                             Collection<String> notifyChannels,
-                                                                             Map<String, String> placeholders) {
-        Map<String, ServiceNotificationMessage> messageMap = new HashMap<>();
-        for (String notifyChannel : notifyChannels) {
-            String executeStatusKey = getExecuteStatusKey(executeStatus);
-            String channelKey = getChannelKey(notifyChannel);
-            String contentTemplateKey = buildContentTemplateKey(executeStatusKey, channelKey);
-            String titleTemplateKey = buildTitleTemplateKey(executeStatusKey, channelKey);
-            String title = getTemplate(titleTemplateKey);
-            String contentTemplate = getTemplate(contentTemplateKey);
-
-            if (StringUtils.isBlank(contentTemplate)) {
-                title = getTemplate(buildTitleTemplateKey(executeStatusKey, "common"));
-                contentTemplate = getTemplate(buildContentTemplateKey(executeStatusKey, "common"));
-            }
-
-            String content = replaceTemplatePlaceHolder(contentTemplate, placeholders);
-
-            ServiceNotificationMessage notificationMessage = new ServiceNotificationMessage(title, content);
-            messageMap.put(notifyChannel, notificationMessage);
-        }
-
-        return messageMap;
     }
 
     @Override

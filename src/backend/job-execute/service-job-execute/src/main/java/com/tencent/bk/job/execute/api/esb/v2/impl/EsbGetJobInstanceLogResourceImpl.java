@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Utils;
@@ -42,6 +41,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -55,13 +55,14 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
 
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
-    private final MessageI18nService i18nService;
+    private final GseAgentTaskService gseAgentTaskService;
 
-    public EsbGetJobInstanceLogResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
-                                            TaskInstanceService taskInstanceService) {
-        this.i18nService = i18nService;
+    public EsbGetJobInstanceLogResourceImpl(GseTaskService gseTaskService,
+                                            TaskInstanceService taskInstanceService,
+                                            GseAgentTaskService gseAgentTaskService) {
         this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
+        this.gseAgentTaskService = gseAgentTaskService;
     }
 
     @Override
@@ -98,7 +99,8 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();
             stepInstResultAndLog.setFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
                 && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> resultGroups = gseTaskService.getGseAgentTaskStatInfo(stepInstance.getId(),
+            List<AgentTaskResultGroupDTO> resultGroups =
+                gseAgentTaskService.getGseAgentTaskStatInfo(stepInstance.getId(),
                 stepInstance.getExecuteCount());
             List<EsbStepInstanceResultAndLog.StepInstResultDTO> stepInstResultList =
                 Lists.newArrayListWithCapacity(resultGroups.size());
@@ -107,12 +109,14 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                     new EsbStepInstanceResultAndLog.StepInstResultDTO();
                 stepInstResult.setIpStatus(resultGroup.getResultType().getValue());
                 stepInstResult.setTag(resultGroup.getTag());
-                List<GseAgentTaskDTO> gseAgentTaskList = gseTaskService.getGseAgentTaskContentByResultType(stepInstance.getId(),
+                List<GseAgentTaskDTO> gseAgentTaskList =
+                    gseAgentTaskService.getGseAgentTaskContentByResultType(stepInstance.getId(),
                     stepInstance.getExecuteCount(), resultGroup.getResultType().getValue(), resultGroup.getTag());
                 List<EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO> esbGseAgentTaskList =
                     Lists.newArrayListWithCapacity(gseAgentTaskList.size());
                 for (GseAgentTaskDTO gseAgentTask : gseAgentTaskList) {
-                    EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO = new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
+                    EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO =
+                        new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
                     esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(gseAgentTask.getScriptLogContent()));
                     esbGseAgentTaskDTO.setExecuteCount(gseAgentTask.getExecuteCount());
                     esbGseAgentTaskDTO.setEndTime(gseAgentTask.getEndTime());

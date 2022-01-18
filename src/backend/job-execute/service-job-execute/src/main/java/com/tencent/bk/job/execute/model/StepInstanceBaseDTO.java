@@ -94,26 +94,6 @@ public class StepInstanceBaseDTO {
      */
     protected Long totalTime;
     /**
-     * 总ip数量
-     */
-    protected int totalIPNum;
-    /**
-     * 没有agent
-     */
-    protected int badIPNum;
-    /**
-     * 有agent
-     */
-    protected int runIPNum;
-    /**
-     * 失败ip数量
-     */
-    protected int failIPNum;
-    /**
-     * 成功ip数量
-     */
-    protected int successIPNum;
-    /**
      * 创建时间
      */
     protected Long createTime;
@@ -125,10 +105,6 @@ public class StepInstanceBaseDTO {
      * 目标服务器
      */
     protected ServersDTO targetServers;
-    /**
-     * agent异常的服务器
-     */
-    protected String badIpList;
     /**
      * 目标服务器
      */

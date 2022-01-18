@@ -50,6 +50,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -80,6 +81,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected ResultHandleManager resultHandleManager;
     protected TaskInstanceService taskInstanceService;
     protected GseTaskService gseTaskService;
+    protected GseAgentTaskService gseAgentTaskService;
     protected AccountService accountService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
@@ -193,6 +195,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     public void initDependentService(ResultHandleManager resultHandleManager,
                                      TaskInstanceService taskInstanceService,
                                      GseTaskService gseTaskService,
+                                     GseAgentTaskService gseAgentTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -205,6 +208,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
+        this.gseAgentTaskService = gseAgentTaskService;
         this.accountService = accountService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
@@ -247,7 +251,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
             GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, true, false);
             gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);
         }
-        gseTaskService.batchSaveGseAgentTasks(new ArrayList<>(gseAgentTaskMap.values()));
+        gseAgentTaskService.batchSaveGseAgentTasks(new ArrayList<>(gseAgentTaskMap.values()));
     }
 
     /**
@@ -262,7 +266,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                     !isTargetServer);
                 gseAgentTasks.add(ipLog);
             });
-            gseTaskService.batchSaveGseAgentTasks(gseAgentTasks);
+            gseAgentTaskService.batchSaveGseAgentTasks(gseAgentTasks);
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(),
                 buildIpAndLogOffsetMap(invalidIpSet), "The host(s) is not belongs to the Business, or doesn't exists" +
@@ -417,9 +421,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         handleNotStartedIPResult(startTime, endTime, status, msg);
 
         taskInstanceService.updateStepEndTime(stepInstanceId, endTime);
-        int invalidIpNum = this.invalidIpSet == null ? 0 : this.invalidIpSet.size();
-        taskInstanceService.updateStepStatInfo(stepInstanceId, invalidIpNum + jobIpSet.size(), 0,
-            invalidIpNum + jobIpSet.size());
+
         taskInstanceService.updateStepTotalTime(stepInstanceId, endTime - stepInstance.getStartTime());
         exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
     }
@@ -440,7 +442,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                 buildIpAndLogOffsetMap(unfinishedIPSet), errorMsg, endTime);
         }
 
-        gseTaskService.batchUpdateGseAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
+        gseAgentTaskService.batchUpdateGseAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
     }
 
     /**

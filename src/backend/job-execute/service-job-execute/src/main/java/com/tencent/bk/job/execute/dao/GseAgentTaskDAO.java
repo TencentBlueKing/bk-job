@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GseAgentTaskDAO
@@ -38,10 +39,18 @@ import java.util.List;
 public interface GseAgentTaskDAO {
     void batchSaveGseAgentTasks(List<GseAgentTaskDTO> gseAgentTasks);
 
-    void batchUpdateGseAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps, Long startTime,
+    void batchUpdateGseAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps,
+                                  Long startTime,
                                   Long endTime, IpStatus ipStatus);
 
     int getSuccessIpCount(long stepInstanceId, int executeCount);
+
+    /**
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @return 根据GSE Agent 任务状态分组计数结果
+     */
+    Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
 
     List<GseAgentTaskDTO> getSuccessGseTaskIp(long stepInstanceId, int executeCount);
 
