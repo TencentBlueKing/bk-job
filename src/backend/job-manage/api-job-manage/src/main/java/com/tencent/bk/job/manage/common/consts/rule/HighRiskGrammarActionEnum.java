@@ -30,30 +30,30 @@ import lombok.Getter;
  * 处理动作枚举,1:扫描,2:拦截
  */
 @Getter
-public enum HandleActionEnum {
+public enum HighRiskGrammarActionEnum {
     SCAN(1, "scan"), INTERCEPT(2, "intercept");
 
     private final Integer code;
     private final String name;
 
-    HandleActionEnum(Integer code, String name) {
+    HighRiskGrammarActionEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
 
     public static String getName(Integer type) {
-        for (HandleActionEnum scriptTypeEnum : values()) {
-            if (scriptTypeEnum.code.equals(type)) {
-                return scriptTypeEnum.getName();
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum.getName();
             }
         }
         return "";
     }
 
-    public static HandleActionEnum valueOf(Integer type) {
-        for (HandleActionEnum scriptTypeEnum : values()) {
-            if (scriptTypeEnum.code.equals(type)) {
-                return scriptTypeEnum;
+    public static HighRiskGrammarActionEnum valueOf(Integer type) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum;
             }
         }
         return null;
@@ -63,8 +63,8 @@ public enum HandleActionEnum {
      * 判断参数合法性
      */
     public static boolean isValid(Integer code) {
-        for (HandleActionEnum userStatusEnum : HandleActionEnum.values()) {
-            if (userStatusEnum.getCode() == code) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : HighRiskGrammarActionEnum.values()) {
+            if (highRiskGrammarActionEnum.getCode() == code) {
                 return true;
             }
         }

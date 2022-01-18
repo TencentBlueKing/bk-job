@@ -34,8 +34,8 @@ import org.hibernate.validator.group.GroupSequenceProvider;
 
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Update;
-import com.tencent.bk.job.manage.common.consts.rule.HandleActionEnum;
-import com.tencent.bk.job.manage.common.consts.rule.RuleUseStatusEnum;
+import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarActionEnum;
+import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
 
 import io.swagger.annotations.ApiModel;
@@ -64,10 +64,10 @@ public class AddOrUpdateDangerousRuleReq {
     private String description;
     @ApiModelProperty("处理动作,1:扫描,2:拦截")
     @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
-    @CheckEnum(enumClass = HandleActionEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
+    @CheckEnum(enumClass = HighRiskGrammarActionEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
     private Integer action;
     @ApiModelProperty("规则启停状态，1:启用,0:停止")
     @NotNull(message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}", groups = {Update.class})
-    @CheckEnum(enumClass = RuleUseStatusEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}")
+    @CheckEnum(enumClass = HighRiskGrammarRuleStatusEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}")
     private Integer status;
 }

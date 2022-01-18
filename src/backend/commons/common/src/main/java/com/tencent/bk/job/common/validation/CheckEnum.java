@@ -43,6 +43,7 @@ import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 
@@ -79,21 +80,21 @@ public @interface CheckEnum {
         @Override
         public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
             if (value == null) {
-                return Boolean.TRUE;
+                return true;
             }
             if (enumClass == null || enumMethod == null) {
-                return Boolean.TRUE;
+                return true;
             }
             Class<?> valueClass = value.getClass();
             try {
                 Method method = enumClass.getMethod(enumMethod, valueClass);
                 if (!Boolean.TYPE.equals(method.getReturnType()) && !Boolean.class.equals(method.getReturnType())) {
                     //校验方法需要返回布尔值
-                    throw new NotImplementedException("Not support method", ErrorCode.NOT_SUPPORT_FEATURE);
+                    return false;
                 }
                 if(!Modifier.isStatic(method.getModifiers())) {
                     //校验方法需定义为静态
-                    throw new NotImplementedException("Not support method", ErrorCode.NOT_SUPPORT_FEATURE);
+                    return false;
                 }
                 Boolean result = (Boolean)method.invoke(null, value);
                 return result == null ? false : result;

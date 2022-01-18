@@ -30,30 +30,30 @@ import lombok.Getter;
  * 规则启停状态，1:启用,0:停止
  */
 @Getter
-public enum RuleUseStatusEnum {
+public enum HighRiskGrammarRuleStatusEnum {
     SCAN(1, "start"), INTERCEPT(0, "stop");
 
     private final Integer code;
     private final String name;
 
-    RuleUseStatusEnum(Integer code, String name) {
+    HighRiskGrammarRuleStatusEnum(Integer code, String name) {
         this.code = code;
         this.name = name;
     }
 
     public static String getName(Integer type) {
-        for (RuleUseStatusEnum scriptTypeEnum : values()) {
-            if (scriptTypeEnum.code.equals(type)) {
-                return scriptTypeEnum.getName();
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : values()) {
+            if (highRiskGrammarRuleStatusEnum.code.equals(type)) {
+                return highRiskGrammarRuleStatusEnum.getName();
             }
         }
         return "";
     }
 
-    public static RuleUseStatusEnum valueOf(Integer type) {
-        for (RuleUseStatusEnum scriptTypeEnum : values()) {
-            if (scriptTypeEnum.code.equals(type)) {
-                return scriptTypeEnum;
+    public static HighRiskGrammarRuleStatusEnum valueOf(Integer type) {
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : values()) {
+            if (highRiskGrammarRuleStatusEnum.code.equals(type)) {
+                return highRiskGrammarRuleStatusEnum;
             }
         }
         return null;
@@ -63,8 +63,8 @@ public enum RuleUseStatusEnum {
      * 判断参数合法性
      */
     public static boolean isValid(Integer code) {
-        for (RuleUseStatusEnum userStatusEnum : RuleUseStatusEnum.values()) {
-            if (userStatusEnum.getCode() == code) {
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : HighRiskGrammarRuleStatusEnum.values()) {
+            if (highRiskGrammarRuleStatusEnum.getCode() == code) {
                 return true;
             }
         }
