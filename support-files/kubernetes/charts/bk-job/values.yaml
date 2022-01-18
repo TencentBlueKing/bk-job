@@ -573,6 +573,8 @@ persistence:
   enabled: true
   accessMode: ReadWriteMany
   size: 200Gi
+  # 存储模式：默认将日志存储于pod所在节点HostPath下，若使用其他共享存储可配置为对应的storageClass
+  storageClass: job-local
   localStorage:
     # 是否使用hostpath作为本地存储，用于存储日志
     enabled: true
