@@ -46,6 +46,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 
+/**
+ * spring validation枚举校验注解
+ */
 @Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE })
 @Constraint(validatedBy = NotBlankFieldValidator.class)
 @Documented
