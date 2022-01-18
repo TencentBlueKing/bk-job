@@ -30,10 +30,11 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
-import com.tencent.bk.job.manage.validation.common.Update;
+import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
 
 import io.swagger.annotations.ApiModel;
@@ -52,22 +53,22 @@ public class AddOrUpdateDangerousRuleReq {
     private Long id;
     @ApiModelProperty("表达式")
     @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
-    @Size(max = 250, message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_outOfRange.message}")
+    @Length(max = 250, message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_outOfLength.message}")
     private String expression;
     @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     @NotEmpty(message = "{validation.constraints.ScriptTypeList_empty.message}")
     private List<Byte> scriptTypeList;
     @ApiModelProperty("描述")
-    @Size(max = 1000, message = "{validation.constraints.InvalidRegularDescription_outOfRange.message}")
+    @Length(max = 1000, message = "{validation.constraints.InvalidHighRiskRegularDescription_outOfLength.message}")
     private String description;
     @ApiModelProperty("处理动作,1:扫描,2:拦截")
-    @NotNull(message = "{validation.constraints.InvalidHandleAction_empty.message}")
-    @Range(min = 1L, max= 2L,
-        message = "{validation.constraints.InvalidHandleAction_outOfRange.message}")
+    @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction_empty.message}")
+    @Size(min = 1, max= 2,
+        message = "{validation.constraints.InvalidHighRiskGrammarHandleAction_outOfSize.message}")
     private Integer action;
     @ApiModelProperty("规则启停状态，1:启用,2:停止")
-    @NotNull(message = "{validation.constraints.InvalidRuleUseStatus_empty.message}", groups = {Update.class})
-    @Range(min = 0L, max= 1L,
-        message = "{validation.constraints.InvalidRuleUseStatus_outOfRange.message}", groups = {Update.class})
+    @NotNull(message = "{validation.constraints.InvalidHighRiskRuleUseStatus_empty.message}", groups = {Update.class})
+    @Size(min = 0, max= 1,
+        message = "{validation.constraints.InvalidHighRiskRuleUseStatus_outOfSize.message}", groups = {Update.class})
     private Integer status;
 }

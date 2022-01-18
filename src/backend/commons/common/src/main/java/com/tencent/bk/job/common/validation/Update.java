@@ -22,8 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.validation.common;
+package com.tencent.bk.job.common.validation;
 
-public interface Create {
+/**
+ * 更新使用(配合spring的@Validated功能分组使用)
+ */
+public interface Update {
 
 }
