@@ -51,7 +51,7 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
  * spring validation枚举校验注解
  */
 @Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE })
-@Constraint(validatedBy = NotBlankFieldValidator.class)
+@Constraint(validatedBy = CheckEnum.Validator.class)
 @Documented
 @Retention(RUNTIME)
 public @interface CheckEnum {
