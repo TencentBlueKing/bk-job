@@ -22,35 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.validation.provider;
+package com.tencent.bk.job.manage.common.consts.rule;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
-
-import com.tencent.bk.job.common.validation.Create;
-import com.tencent.bk.job.common.validation.Update;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
+import lombok.Getter;
 
 /**
- * id属性值如果不为空并且不为-1，执行更新组的校验逻辑，否则执行新增组的校验逻辑
+ * 处理动作枚举,1:扫描,2:拦截
  */
-public class DangerousRuleGroupSequenceProvider implements DefaultGroupSequenceProvider<AddOrUpdateDangerousRuleReq> {
+@Getter
+public enum HandleActionEnum {
+    SCAN(1, "scan"), INTERCEPT(2, "intercept");
 
-    @Override
-    public List<Class<?>> getValidationGroups(AddOrUpdateDangerousRuleReq bean){
-        List<Class<?>> defaultGroupSequence = new ArrayList<>();
-        defaultGroupSequence.add(AddOrUpdateDangerousRuleReq.class); 
+    private final Integer code;
+    private final String name;
 
-        if (bean != null) { // 这块判空请务必要做
-            Long id = bean.getId();
-            if (id == null || id == -1) {
-                defaultGroupSequence.add(Create.class);
-            } else{
-                defaultGroupSequence.add(Update.class);
+    HandleActionEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    public static String getName(Integer type) {
+        for (HandleActionEnum scriptTypeEnum : values()) {
+            if (scriptTypeEnum.code.equals(type)) {
+                return scriptTypeEnum.getName();
             }
         }
-        return defaultGroupSequence;
+        return "";
     }
+
+    public static HandleActionEnum valueOf(Integer type) {
+        for (HandleActionEnum scriptTypeEnum : values()) {
+            if (scriptTypeEnum.code.equals(type)) {
+                return scriptTypeEnum;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer code) {
+        for (HandleActionEnum userStatusEnum : HandleActionEnum.values()) {
+            if (userStatusEnum.getCode() == code) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

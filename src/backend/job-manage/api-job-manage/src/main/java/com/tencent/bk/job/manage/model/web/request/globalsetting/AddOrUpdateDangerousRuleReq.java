@@ -28,13 +28,14 @@ import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.common.consts.rule.HandleActionEnum;
+import com.tencent.bk.job.manage.common.consts.rule.RuleUseStatusEnum;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
 
 import io.swagger.annotations.ApiModel;
@@ -62,13 +63,11 @@ public class AddOrUpdateDangerousRuleReq {
     @Length(max = 1000, message = "{validation.constraints.InvalidHighRiskRegularDescription_outOfLength.message}")
     private String description;
     @ApiModelProperty("处理动作,1:扫描,2:拦截")
-    @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction_empty.message}")
-    @Size(min = 1, max= 2,
-        message = "{validation.constraints.InvalidHighRiskGrammarHandleAction_outOfSize.message}")
+    @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
+    @CheckEnum(enumClass = HandleActionEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
     private Integer action;
-    @ApiModelProperty("规则启停状态，1:启用,2:停止")
-    @NotNull(message = "{validation.constraints.InvalidHighRiskRuleUseStatus_empty.message}", groups = {Update.class})
-    @Size(min = 0, max= 1,
-        message = "{validation.constraints.InvalidHighRiskRuleUseStatus_outOfSize.message}", groups = {Update.class})
+    @ApiModelProperty("规则启停状态，1:启用,0:停止")
+    @NotNull(message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}", groups = {Update.class})
+    @CheckEnum(enumClass = RuleUseStatusEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}")
     private Integer status;
 }
