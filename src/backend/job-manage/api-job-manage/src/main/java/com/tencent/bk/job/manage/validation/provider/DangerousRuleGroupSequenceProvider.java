@@ -22,28 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts;
+package com.tencent.bk.job.manage.validation.provider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 
 /**
- * 启用状态
+ * id属性值如果不为空并且不为-1，执行更新组的校验逻辑，否则执行新增组的校验逻辑
  */
-public enum EnableStatusEnum {
-    /**
-     * 启用
-     */
-    ENABLED(1),
-    /**
-     * 停用
-     */
-    DISABLED(0);
+public class DangerousRuleGroupSequenceProvider implements DefaultGroupSequenceProvider<AddOrUpdateDangerousRuleReq> {
 
-    private final int value;
+    @Override
+    public List<Class<?>> getValidationGroups(AddOrUpdateDangerousRuleReq bean){
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(AddOrUpdateDangerousRuleReq.class); 
 
-    EnableStatusEnum(int val) {
-        this.value = val;
-    }
-
-    public int getValue() {
-        return value;
+        if (bean != null) { // 这块判空请务必要做
+            Long id = bean.getId();
+            if (id == null || id == -1) {
+                defaultGroupSequence.add(Create.class);
+            } else{
+                defaultGroupSequence.add(Update.class);
+            }
+        }
+        return defaultGroupSequence;
     }
 }
