@@ -456,11 +456,11 @@ public class StepListener {
         long totalTime = currentTime - startTime;
         switch (gseTaskStatus) {
             case SUCCESS:
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-//                    startTime, System.currentTimeMillis(), totalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
                 if (stepInstance.isRollingStep()) {
 
+                } else {
+                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
+                        startTime, System.currentTimeMillis(), totalTime);
                 }
                 break;
             case FAIL:
