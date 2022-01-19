@@ -67,7 +67,7 @@ public class AddOrUpdateDangerousRuleReq {
     @CheckEnum(enumClass = HighRiskGrammarActionEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
     private Integer action;
     @ApiModelProperty("规则启停状态，1:启用,0:停止")
-    @NotNull(message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}", groups = {Update.class})
-    @CheckEnum(enumClass = HighRiskGrammarRuleStatusEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskRuleUseStatus.message}")
+    @NotNull(message = "{validation.constraints.InvalidHighRiskRegularStatus.message}", groups = {Update.class})
+    @CheckEnum(enumClass = HighRiskGrammarRuleStatusEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidHighRiskRegularStatus.message}", groups = {Update.class})
     private Integer status;
 }
