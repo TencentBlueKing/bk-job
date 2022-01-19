@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
@@ -52,5 +53,17 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
         return stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
+    }
+
+    @Override
+    public void updateRollingTask(long stepInstanceId,
+                                  int executeCount,
+                                  int batch,
+                                  RunStatusEnum status,
+                                  Long startTime,
+                                  Long endTime,
+                                  Long totalTime) {
+        stepInstanceRollingTaskDAO.updateRollingTask(stepInstanceId, executeCount, batch, status, startTime,
+            endTime, totalTime);
     }
 }

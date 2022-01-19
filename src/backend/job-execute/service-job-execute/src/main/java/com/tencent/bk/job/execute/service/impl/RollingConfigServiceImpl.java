@@ -109,4 +109,9 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfigDO.setRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         return taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
     }
+
+    @Override
+    public TaskInstanceRollingConfigDTO getRollingConfig(long rollingConfigId) {
+        return taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
+    }
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.dao;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 
 /**
@@ -50,6 +51,24 @@ public interface StepInstanceRollingTaskDAO {
      * @return 步骤滚动任务ID
      */
     long saveRollingTask(StepInstanceRollingTaskDTO rollingTask);
+
+    /**
+     * 更新滚动任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param batch          滚动执行批次
+     * @param status         任务状态；如果不更新传入null
+     * @param startTime      任务开始时间；如果不更新传入null
+     * @param endTime        任务结束时间；如果不更新传入null
+     * @param totalTime      任务执行总时间；如果不更新传入null
+     */
+    void updateRollingTask(long stepInstanceId,
+                           int executeCount,
+                           int batch,
+                           RunStatusEnum status,
+                           Long startTime,
+                           Long endTime, Long totalTime);
 
 
 }

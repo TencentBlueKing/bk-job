@@ -86,4 +86,24 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
         assertThat(savedRollingTask.getEndTime()).isNull();
         assertThat(savedRollingTask.getTotalTime()).isNull();
     }
+
+    @Test
+    void updateRollingTask() {
+        long startTime = System.currentTimeMillis();
+        Long endTime = startTime + 1000L;
+        Long totalTime = 1000L;
+        stepInstanceRollingTaskDAO.updateRollingTask(1L, 0, 1, RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
+
+        StepInstanceRollingTaskDTO savedRollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1L, 0, 1);
+
+        assertThat(savedRollingTask).isNotNull();
+        assertThat(savedRollingTask.getStepInstanceId()).isEqualTo(1L);
+        assertThat(savedRollingTask.getExecuteCount()).isEqualTo(0);
+        assertThat(savedRollingTask.getBatch()).isEqualTo(1);
+        assertThat(savedRollingTask.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
+        assertThat(savedRollingTask.getStartTime()).isEqualTo(startTime);
+        assertThat(savedRollingTask.getEndTime()).isEqualTo(endTime);
+        assertThat(savedRollingTask.getTotalTime()).isEqualTo(totalTime);
+
+    }
 }

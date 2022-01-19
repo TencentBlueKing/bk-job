@@ -24,17 +24,22 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.StepInstanceRollingTask;
+import org.jooq.generated.tables.records.StepInstanceRollingTaskRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Slf4j
 public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
 
     private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
@@ -103,5 +108,49 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
             .fetchOne();
         assert record != null;
         return record.get(TABLE.ID);
+    }
+
+    @Override
+    public void updateRollingTask(long stepInstanceId,
+                                  int executeCount,
+                                  int batch,
+                                  RunStatusEnum status,
+                                  Long startTime,
+                                  Long endTime,
+                                  Long totalTime) {
+        UpdateSetMoreStep<StepInstanceRollingTaskRecord> updateSetMoreStep = null;
+        if (status != null) {
+            updateSetMoreStep = CTX.update(TABLE).set(TABLE.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
+        }
+        if (startTime != null) {
+            if (updateSetMoreStep == null) {
+                updateSetMoreStep = CTX.update(TABLE).set(TABLE.START_TIME, startTime);
+            } else {
+                updateSetMoreStep.set(TABLE.START_TIME, startTime);
+            }
+        }
+        if (endTime != null) {
+            if (updateSetMoreStep == null) {
+                updateSetMoreStep = CTX.update(TABLE).set(TABLE.END_TIME, endTime);
+            } else {
+                updateSetMoreStep.set(TABLE.END_TIME, endTime);
+            }
+        }
+        if (totalTime != null) {
+            if (updateSetMoreStep == null) {
+                updateSetMoreStep = CTX.update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
+            } else {
+                updateSetMoreStep.set(TABLE.TOTAL_TIME, totalTime);
+            }
+        }
+        if (updateSetMoreStep == null) {
+            log.error("Invalid update rolling task param, do nothing!");
+            return;
+        }
+        updateSetMoreStep.where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount)))
+            .and(TABLE.BATCH.eq(JooqDataTypeUtil.toShort(batch)))
+            .execute();
+
     }
 }
