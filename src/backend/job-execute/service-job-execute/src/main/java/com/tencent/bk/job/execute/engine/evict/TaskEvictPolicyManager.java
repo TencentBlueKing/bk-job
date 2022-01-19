@@ -97,7 +97,7 @@ public class TaskEvictPolicyManager {
                 try {
                     updatePolicy();
                 } catch (Exception e) {
-                    log.warn("Fail to update taskEvictPolicy", e);
+                    log.error("Fail to update taskEvictPolicy", e);
                 } finally {
                     ThreadUtils.sleep(POLICY_UPDATE_INTERVAL_MILLS);
                 }
