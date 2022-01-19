@@ -22,28 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts;
+package com.tencent.bk.job.manage.common.consts.rule;
+
+import lombok.Getter;
 
 /**
- * 启用状态
+ * 规则启停状态，1:启用,0:停止
  */
-public enum EnableStatusEnum {
-    /**
-     * 启用
-     */
-    ENABLED(1),
-    /**
-     * 停用
-     */
-    DISABLED(0);
+@Getter
+public enum HighRiskGrammarRuleStatusEnum {
+    SCAN(1, "start"), INTERCEPT(0, "stop");
 
-    private final int value;
+    private final Integer code;
+    private final String name;
 
-    EnableStatusEnum(int val) {
-        this.value = val;
+    HighRiskGrammarRuleStatusEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
     }
 
-    public int getValue() {
-        return value;
+    public static String getName(Integer type) {
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : values()) {
+            if (highRiskGrammarRuleStatusEnum.code.equals(type)) {
+                return highRiskGrammarRuleStatusEnum.getName();
+            }
+        }
+        return "";
     }
+
+    public static HighRiskGrammarRuleStatusEnum valueOf(Integer type) {
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : values()) {
+            if (highRiskGrammarRuleStatusEnum.code.equals(type)) {
+                return highRiskGrammarRuleStatusEnum;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer code) {
+        for (HighRiskGrammarRuleStatusEnum highRiskGrammarRuleStatusEnum : HighRiskGrammarRuleStatusEnum.values()) {
+            if (highRiskGrammarRuleStatusEnum.getCode() == code) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

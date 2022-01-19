@@ -202,7 +202,7 @@ public class GseTaskManager implements SmartLifecycle {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
-        // 如果任务应当被驱逐，直接置为异常中止状态
+        // 如果任务应当被驱逐，直接置为被丢弃状态
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
             taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
             return Triple.of(false, taskInstance, stepInstance);

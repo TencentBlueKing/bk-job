@@ -42,7 +42,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class StepVariableParserTest {
+class StepRefVariableParserTest {
     @Test
     @DisplayName("ParseScriptStepRefVars")
     void parseScriptStepRefVars() {
@@ -79,7 +79,7 @@ class StepVariableParserTest {
         host1.setName("host1");
         variables.add(host1);
 
-        StepVariableParser.parseStepRefVars(steps, variables);
+        StepRefVariableParser.parseStepRefVars(steps, variables);
         assertThat(step1.getRefVariables()).extracting("name")
             .containsOnly("var1", "var2", "var4", "host1");
     }
@@ -132,7 +132,7 @@ class StepVariableParserTest {
         host2.setName("host2");
         variables.add(host2);
 
-        StepVariableParser.parseStepRefVars(steps, variables);
+        StepRefVariableParser.parseStepRefVars(steps, variables);
         assertThat(step1.getRefVariables()).extracting("name")
             .containsOnly("var1", "var2", "var3", "host1", "host2");
     }

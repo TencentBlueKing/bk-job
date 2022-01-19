@@ -22,28 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts;
+package com.tencent.bk.job.common.validation;
 
 /**
- * 启用状态
+ * 更新使用(配合spring的@Validated功能分组使用)
  */
-public enum EnableStatusEnum {
-    /**
-     * 启用
-     */
-    ENABLED(1),
-    /**
-     * 停用
-     */
-    DISABLED(0);
+public interface Update {
 
-    private final int value;
-
-    EnableStatusEnum(int val) {
-        this.value = val;
-    }
-
-    public int getValue() {
-        return value;
-    }
 }
