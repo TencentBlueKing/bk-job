@@ -344,6 +344,10 @@
                             name: I18n.t('history.确认终止'),
                             id: 13,
                         },
+                        {
+                            name: I18n.t('history.被丢弃'),
+                            id: 14,
+                        },
                     ],
                 },
                 {
