@@ -6,3 +6,5 @@ build
 release
 
 **/bin
+build.yml
+.codecc/

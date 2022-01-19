@@ -80,7 +80,7 @@ ext {
     set('jacksonVersion', "2.11.0")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    set('logbackVersion', "1.2.3")
+    set('logbackVersion', "1.2.10")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "1.7.30")
     set('servletVersion', "3.0.1")
