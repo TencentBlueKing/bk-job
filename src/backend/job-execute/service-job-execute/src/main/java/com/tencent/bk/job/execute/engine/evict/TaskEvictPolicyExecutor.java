@@ -65,7 +65,7 @@ public class TaskEvictPolicyExecutor {
     }
 
     /**
-     * 更新被驱逐的任务的状态为异常中止状态
+     * 更新被驱逐的任务的状态为被丢弃状态
      *
      * @param taskInstance 任务实例
      * @return 是否更新成功
@@ -78,7 +78,7 @@ public class TaskEvictPolicyExecutor {
                 stepInstance.getTotalTime());
             taskInstanceService.updateStepExecutionInfo(
                 stepInstance.getId(),
-                RunStatusEnum.EVICTED,
+                RunStatusEnum.ABANDONED,
                 null,
                 endTime,
                 totalTime
@@ -95,7 +95,7 @@ public class TaskEvictPolicyExecutor {
                 taskInstance.getTotalTime());
             taskInstanceService.updateTaskExecutionInfo(
                 taskInstanceId,
-                RunStatusEnum.EVICTED,
+                RunStatusEnum.ABANDONED,
                 null,
                 null,
                 endTime,
