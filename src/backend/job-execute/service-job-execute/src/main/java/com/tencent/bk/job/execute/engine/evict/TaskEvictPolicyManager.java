@@ -46,8 +46,8 @@ import javax.annotation.PostConstruct;
 @Component
 public class TaskEvictPolicyManager {
 
-    // 策略更新时间间隔：30s
-    private final int POLICY_UPDATE_INTERVAL_MILLS = 30000;
+    // 策略更新时间间隔：10s
+    private final int POLICY_UPDATE_INTERVAL_MILLS = 10000;
     private String policyJsonStr = null;
     private volatile ComposedTaskEvictPolicy policy = null;
 
