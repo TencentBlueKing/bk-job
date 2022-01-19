@@ -35,7 +35,7 @@ public enum EnableStatusEnum {
     /**
      * 停用
      */
-    DISABLED(2);
+    DISABLED(0);
 
     private final int value;
 
