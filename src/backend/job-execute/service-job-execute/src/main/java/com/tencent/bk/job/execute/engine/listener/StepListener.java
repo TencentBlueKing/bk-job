@@ -121,7 +121,7 @@ public class StepListener {
                 startStep(stepInstance);
             } else if (SKIP.getValue() == action) {
                 TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-                if (taskInstance.getCurrentStepId() == stepInstanceId) {
+                if (taskInstance.getCurrentStepInstanceId() == stepInstanceId) {
                     log.info("Skip step, stepInstanceId={}", stepInstanceId);
                     skipStep(stepInstance);
                 } else {
@@ -445,7 +445,8 @@ public class StepListener {
             stepInstance.getBatch());
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         if (gseTaskStatus == null) {
-            log.error("Invalid gse task status, stepInstanceId: {}, status: {}", stepInstance, stepStatus);
+            log.error("Refresh step fail, invalid gse task status, stepInstanceId: {}, status: {}",
+                stepInstance, stepStatus);
             return;
         }
 
@@ -461,30 +462,36 @@ public class StepListener {
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                         stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
                     int totalBatch = rollingConfig.getConfig().getServerBatchList().size();
-                    if (stepInstance.getBatch() == totalBatch) {
+                    boolean isLastBatch = totalBatch == stepInstance.getBatch();
+                    if (isLastBatch) {
                         taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                             startTime, endTime, totalTime);
+                        // 步骤执行成功后清理产生的临时文件
+                        clearStep(stepInstance);
                     } else {
                         taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
                             startTime, endTime, totalTime);
+                        return;
                     }
                 } else {
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                         startTime, endTime, totalTime);
+                    // 步骤执行成功后清理产生的临时文件
+                    clearStep(stepInstance);
                 }
                 break;
             case FAIL:
+                if (stepInstance.isIgnoreError()) {
+                    taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.IGNORE_ERROR.getValue());
+                }
                 if (stepInstance.isRollingStep()) {
                     TaskInstanceRollingConfigDTO rollingConfig =
                         rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                         stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
-                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                        startTime, endTime, totalTime);
-                } else {
-                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                        startTime, endTime, totalTime);
                 }
+                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+                    startTime, endTime, totalTime);
                 break;
             case STOP_SUCCESS:
                 if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
@@ -495,8 +502,8 @@ public class StepListener {
                             stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, endTime, totalTime);
                     }
                 } else {
-                    log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, event: {}", stepInstanceId,
-                        stepStatus, "STOP_SUCCESS");
+                    log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}",
+                        stepInstanceId, stepStatus, RunStatusEnum.STOP_SUCCESS.getValue());
                     return;
                 }
                 break;
@@ -508,7 +515,9 @@ public class StepListener {
                 }
                 break;
             default:
-                log.error("");
+                log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}", stepInstanceId,
+                    stepStatus, gseTaskStatus.getValue());
+                return;
         }
         taskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
     }

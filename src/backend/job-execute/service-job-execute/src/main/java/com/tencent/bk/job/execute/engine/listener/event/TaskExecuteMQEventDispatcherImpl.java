@@ -342,4 +342,15 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
         log.info("Async invoke callback url, callback:{}", JsonUtils.toJson(jobCallback));
         callbackOutput.send(MessageBuilder.withPayload(JsonUtils.toJson(jobCallback)).build());
     }
+
+    @Override
+    public void refreshStep(long stepInstanceId) {
+        log.info("Begin to send refresh step event, stepInstanceId={}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.REFRESH.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send refresh step event successfully, stepInstanceId={}", stepInstanceId);
+    }
 }

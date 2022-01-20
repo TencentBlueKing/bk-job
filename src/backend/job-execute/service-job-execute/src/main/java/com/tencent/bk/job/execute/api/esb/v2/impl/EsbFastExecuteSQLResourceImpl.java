@@ -157,7 +157,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setDebugTask(false);
         taskInstance.setStatus(RunStatusEnum.BLANK.getValue());
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setAppCode(request.getAppCode());

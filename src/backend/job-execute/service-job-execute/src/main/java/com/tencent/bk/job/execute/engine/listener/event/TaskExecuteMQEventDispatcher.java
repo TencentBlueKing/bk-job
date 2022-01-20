@@ -194,4 +194,11 @@ public interface TaskExecuteMQEventDispatcher {
      * @param jobCallbackDto 回调内容
      */
     void sendCallback(JobCallbackDTO jobCallbackDto);
+
+    /**
+     * 触发步骤结果刷新事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    void refreshStep(long stepInstanceId);
 }

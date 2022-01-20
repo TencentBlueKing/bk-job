@@ -84,9 +84,9 @@ public class TaskInstanceDTO {
     private Integer startupMode;
 
     /**
-     * 当前执行步骤id
+     * 当前执行的步骤实例ID
      */
-    private long currentStepId;
+    private long currentStepInstanceId;
 
     /**
      * 状态

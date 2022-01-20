@@ -113,7 +113,7 @@ public class EsbPushConfigFileResourceV3Impl
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setOperator(request.getUserName());
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         taskInstance.setAppCode(request.getAppCode());
         taskInstance.setCallbackUrl(request.getCallbackUrl());

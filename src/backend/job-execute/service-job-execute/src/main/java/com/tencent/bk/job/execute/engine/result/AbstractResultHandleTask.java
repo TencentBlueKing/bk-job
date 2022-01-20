@@ -93,7 +93,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected GseTaskService gseTaskService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
-    protected TaskExecuteMQEventDispatcher taskManager;
+    protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
@@ -249,7 +249,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      LogService logService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
-                                     TaskExecuteMQEventDispatcher taskManager,
+                                     TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExceptionStatusManager exceptionStatusManager,
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -259,7 +259,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.logService = logService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskManager = taskManager;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
@@ -403,7 +403,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());
-                taskManager.stopGseStep(stepInstanceId);
+                taskExecuteMQEventDispatcher.stopGseStep(stepInstanceId);
                 this.isGseTaskTerminating = true;
                 log.info("Send stop gse step control action successfully!");
             }
@@ -526,49 +526,19 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             return;
         }
 
-        // 处理GSE任务执行结果,并更新任务步骤状态
+        // 处理GSE任务执行结果
         log.info("Handle execute result, stepInstanceId:{}, executeResult:{}", stepInstanceId, gseTaskExecuteResult);
 
         long startTime = this.gseTask.getStartTime();
         long endTime = DateUtils.currentTimeMillis();
         long gseTotalTime = endTime - startTime;
-        long stepTotalTime = endTime - stepInstance.getStartTime();
 
         int targetIpNum = this.targetIpSet.size();
         int allSuccessIPNum = this.successIpSet.size();
-        int invalidIpNum = this.invalidIpSet == null ? 0 : this.invalidIpSet.size();
-        int successTargetIpNum = successIpSet.size();
-        int failTargetIpNum = targetIpNum - successTargetIpNum;
-
         boolean isSuccess = CollectionUtils.isEmpty(this.invalidIpSet) && allSuccessIPNum == targetIpNum;
 
         saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
-
-        if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS) {
-            int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
-            if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                    startTime, endTime, stepTotalTime);
-                taskManager.refreshTask(stepInstance.getTaskInstanceId());
-            }
-        } else {
-            int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
-            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
-                    startTime, endTime, stepTotalTime);
-                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
-            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                    startTime, endTime, stepTotalTime);
-            } else if (stepStatus == RunStatusEnum.STOPPING.getValue()) {
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                    startTime, endTime, stepTotalTime);
-            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_SUCCESS) {
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                    startTime, endTime, stepTotalTime);
-            }
-            taskManager.refreshTask(stepInstance.getTaskInstanceId());
-        }
+        taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
     }
 
     private void saveGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
@@ -635,7 +605,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, stepInstanceId: {}", stepInstanceId);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            taskManager.resumeGseStep(stepInstanceId, stepInstance.getExecuteCount(), requestId);
+            taskExecuteMQEventDispatcher.resumeGseStep(stepInstanceId, stepInstance.getExecuteCount(), requestId);
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
             log.info("ResultHandleTask-onStop end, stepInstanceId: {}", stepInstanceId);

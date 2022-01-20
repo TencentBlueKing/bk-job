@@ -1263,7 +1263,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setName(taskName);
         taskInstance.setTaskId(taskPlan.getId());
         taskInstance.setTaskTemplateId(taskPlan.getTaskTemplateId());
-        taskInstance.setCurrentStepId(-1L);
+        taskInstance.setCurrentStepInstanceId(-1L);
         taskInstance.setDebugTask(taskPlan.getDebugTask());
         taskInstance.setCallbackUrl(executeParam.getCallbackUrl());
         taskInstance.setAppCode(executeParam.getAppCode());
@@ -1361,7 +1361,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setName(originTaskInstance.getName());
         taskInstance.setTaskId(originTaskInstance.getTaskId());
         taskInstance.setTaskTemplateId(originTaskInstance.getTaskTemplateId());
-        taskInstance.setCurrentStepId(-1L);
+        taskInstance.setCurrentStepInstanceId(-1L);
         taskInstance.setDebugTask(false);
         return taskInstance;
     }

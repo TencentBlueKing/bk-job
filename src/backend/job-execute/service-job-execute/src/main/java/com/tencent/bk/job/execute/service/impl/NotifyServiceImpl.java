@@ -299,7 +299,7 @@ public class NotifyServiceImpl implements NotifyService {
             ChronoUnit.MILLIS));
         List<Long> stepIdList = taskInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
-        long currentStepId = taskInstanceDTO.getCurrentStepId();
+        long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
         StepInstanceDTO stepInstanceDTO = taskInstanceService.getStepInstanceDetail(currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {

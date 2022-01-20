@@ -86,7 +86,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getName(),
                 taskInstance.getOperator(),
                 JooqDataTypeUtil.toByte(taskInstance.getStartupMode()),
-                taskInstance.getCurrentStepId(),
+                taskInstance.getCurrentStepInstanceId(),
                 JooqDataTypeUtil.toByte(taskInstance.getStatus()),
                 taskInstance.getStartTime(),
                 taskInstance.getEndTime(),
@@ -125,7 +125,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         taskInstance.setType(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.TYPE)));
         taskInstance.setOperator(record.get(TaskInstance.TASK_INSTANCE.OPERATOR));
         taskInstance.setStartupMode(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
-        taskInstance.setCurrentStepId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
+        taskInstance.setCurrentStepInstanceId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
         taskInstance.setStatus(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
         taskInstance.setStartTime(record.get(TaskInstance.TASK_INSTANCE.START_TIME));
         taskInstance.setEndTime(record.get(TaskInstance.TASK_INSTANCE.END_TIME));

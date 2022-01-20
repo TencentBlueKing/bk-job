@@ -130,7 +130,7 @@ public class EsbGetJobInstanceStatusResourceImpl
 
         EsbJobInstanceStatusDTO.JobInstance jobInstance = new EsbJobInstanceStatusDTO.JobInstance();
         jobInstance.setAppId(taskInstance.getAppId());
-        jobInstance.setCurrentStepId(taskInstance.getCurrentStepId());
+        jobInstance.setCurrentStepId(taskInstance.getCurrentStepInstanceId());
         jobInstance.setId(taskInstance.getId());
         jobInstance.setName(taskInstance.getName());
         jobInstance.setOperator(taskInstance.getOperator());

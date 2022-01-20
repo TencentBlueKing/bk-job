@@ -301,7 +301,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         if (request.isRedoTask()) {
             taskInstance.setId(request.getTaskInstanceId());
@@ -449,7 +449,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         return taskInstance;
     }

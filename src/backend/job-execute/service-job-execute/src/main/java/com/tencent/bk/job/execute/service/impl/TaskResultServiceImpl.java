@@ -195,7 +195,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         taskExecution.setTaskId(taskInstance.getTaskId());
         taskExecution.setTaskTemplateId(taskInstance.getTaskTemplateId());
         taskExecution.setDebugTask(taskInstance.isDebugTask());
-        taskExecution.setCurrentStepInstanceId(taskInstance.getCurrentStepId());
+        taskExecution.setCurrentStepInstanceId(taskInstance.getCurrentStepInstanceId());
         return taskExecution;
     }
 

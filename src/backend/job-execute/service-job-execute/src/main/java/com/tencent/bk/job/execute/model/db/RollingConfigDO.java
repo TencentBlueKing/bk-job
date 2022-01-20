@@ -64,6 +64,10 @@ public class RollingConfigDO {
      * 目标服务器滚动分批
      */
     private List<RollingServerBatchDO> serverBatchList;
+    /**
+     * 滚动总批次
+     */
+    private int totalBatch;
 
     /**
      * 判断是否滚动步骤

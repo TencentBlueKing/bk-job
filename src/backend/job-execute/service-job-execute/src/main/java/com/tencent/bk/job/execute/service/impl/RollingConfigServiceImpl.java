@@ -103,6 +103,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                 .map(rollingServerBatch ->
                     new RollingServerBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
                 .collect(Collectors.toList()));
+        rollingConfigDO.setTotalBatch(rollingConfigDO.getServerBatchList().size());
         taskInstanceRollingConfig.setConfig(rollingConfigDO);
 
         rollingConfigDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));

@@ -213,7 +213,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setOperator(request.getUserName());
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
         taskInstance.setAppCode(request.getAppCode());

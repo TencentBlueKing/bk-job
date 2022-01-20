@@ -159,7 +159,7 @@ public class EsbFastExecuteScriptV3ResourceImpl
         taskInstance.setOperator(request.getUserName());
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setCurrentStepId(0L);
+        taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
         taskInstance.setAppCode(request.getAppCode());
         return taskInstance;
