@@ -45,6 +45,7 @@ const STATUS_FORCEDING = 10;
 const STATUS_FORCED_SUCCESS = 11;
 const STATUS_FORCED_FAIL = 12;
 const STATUS_CONFIRM_FORCED = 13;
+const STATUS_EVICTED = 14;
 
 const checkStatus = (status) => {
     if ([
@@ -61,6 +62,11 @@ const checkStatus = (status) => {
         STATUS_FORCED_FAIL,
     ].includes(status)) {
         return 'fail';
+    }
+    if ([
+        STATUS_EVICTED,
+    ].includes(status)) {
+        return 'evicted';
     }
     if ([
         STATUS_FORCED_SUCCESS,
@@ -176,6 +182,18 @@ export default class TaskExecutionResultStep {
      * @returns { String }
      */
     get displayStyle () {
-        return checkStatus(this.status);
+        const styleMap = {
+            success: 'success',
+            ingore: 'ingore',
+            fail: 'fail',
+            forced: 'forced',
+            forceding: 'loading',
+            loading: 'loading',
+            confirm: 'confirm',
+            confirmForced: 'confirm-forced',
+            disabled: 'disabled',
+            evicted: 'fail',
+        };
+        return styleMap[checkStatus(this.status)];
     }
 }

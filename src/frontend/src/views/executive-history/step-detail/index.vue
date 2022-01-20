@@ -311,7 +311,7 @@
                         return;
                     }
                     this.data = Object.freeze(data);
-                    
+
                     this.isFile = data.isFile;
                     //  已选中的分组不存在了——默认选中第一个分组
                     const { resultGroups } = data;

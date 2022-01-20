@@ -22,28 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts;
+package com.tencent.bk.job.manage.common.consts.rule;
+
+import lombok.Getter;
 
 /**
- * 启用状态
+ * 处理动作枚举,1:扫描,2:拦截
  */
-public enum EnableStatusEnum {
-    /**
-     * 启用
-     */
-    ENABLED(1),
-    /**
-     * 停用
-     */
-    DISABLED(0);
+@Getter
+public enum HighRiskGrammarActionEnum {
+    SCAN(1, "scan"), INTERCEPT(2, "intercept");
 
-    private final int value;
+    private final Integer code;
+    private final String name;
 
-    EnableStatusEnum(int val) {
-        this.value = val;
+    HighRiskGrammarActionEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
     }
 
-    public int getValue() {
-        return value;
+    public static String getName(Integer type) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum.getName();
+            }
+        }
+        return "";
     }
+
+    public static HighRiskGrammarActionEnum valueOf(Integer type) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer code) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : HighRiskGrammarActionEnum.values()) {
+            if (highRiskGrammarActionEnum.getCode() == code) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
