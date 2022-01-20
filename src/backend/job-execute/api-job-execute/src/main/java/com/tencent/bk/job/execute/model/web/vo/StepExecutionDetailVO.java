@@ -67,10 +67,11 @@ public class StepExecutionDetailVO {
     private Integer type;
     /**
      * 步骤执行模式
+     *
      * @see com.tencent.bk.job.execute.common.constants.StepRunModeEnum
      */
     @ApiModelProperty("是否滚动执行步骤。1-单次全量执行；2-滚动全量执行；3-滚动分批执行")
-    private Integer stepRunMode;
+    private Integer runMode;
     @ApiModelProperty("步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
     private List<StepRollingTaskVO> rollingTasks;
 }

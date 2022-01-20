@@ -32,7 +32,6 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.NotifyDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -40,7 +39,6 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
@@ -55,8 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
@@ -86,7 +82,6 @@ public class StepListener {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final FilePrepareService filePrepareService;
     private final GseTaskService gseTaskService;
-    private final GseAgentTaskService gseAgentTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
@@ -96,7 +91,6 @@ public class StepListener {
                         TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
                         FilePrepareService filePrepareService,
                         GseTaskService gseTaskService,
-                        GseAgentTaskService gseAgentTaskService,
                         RollingConfigService rollingConfigService,
                         StepInstanceRollingTaskService stepInstanceRollingTaskService) {
         this.taskInstanceService = taskInstanceService;
@@ -104,7 +98,6 @@ public class StepListener {
         this.taskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
-        this.gseAgentTaskService = gseAgentTaskService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
     }
@@ -447,14 +440,18 @@ public class StepListener {
     private void refreshStep(StepInstanceBaseDTO stepInstance) {
         long stepInstanceId = stepInstance.getId();
         int stepStatus = stepInstance.getStatus();
+
         GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
             stepInstance.getBatch());
-        List<GseAgentTaskDTO> gseAgentTaskList =
-            gseAgentTaskService.listSuccessAgentGseTask(stepInstanceId, stepInstance.getExecuteCount());
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
-        long currentTime = System.currentTimeMillis();
+        if (gseTaskStatus == null) {
+            log.error("Invalid gse task status, stepInstanceId: {}, status: {}", stepInstance, stepStatus);
+            return;
+        }
+
+        long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
-        long totalTime = currentTime - startTime;
+        long totalTime = endTime - startTime;
 
         switch (gseTaskStatus) {
             case SUCCESS:
@@ -462,18 +459,18 @@ public class StepListener {
                     TaskInstanceRollingConfigDTO rollingConfig =
                         rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, currentTime, totalTime);
+                        stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
                     int totalBatch = rollingConfig.getConfig().getServerBatchList().size();
                     if (stepInstance.getBatch() == totalBatch) {
                         taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                            startTime, System.currentTimeMillis(), totalTime);
+                            startTime, endTime, totalTime);
                     } else {
                         taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
-                            startTime, System.currentTimeMillis(), totalTime);
+                            startTime, endTime, totalTime);
                     }
                 } else {
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                        startTime, System.currentTimeMillis(), totalTime);
+                        startTime, endTime, totalTime);
                 }
                 break;
             case FAIL:
@@ -481,71 +478,42 @@ public class StepListener {
                     TaskInstanceRollingConfigDTO rollingConfig =
                         rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, currentTime, totalTime);
+                        stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                        startTime, System.currentTimeMillis(), totalTime);
+                        startTime, endTime, totalTime);
                 } else {
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-                        startTime, System.currentTimeMillis(), totalTime);
+                        startTime, endTime, totalTime);
                 }
                 break;
             case STOP_SUCCESS:
                 if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
                     taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                        startTime, System.currentTimeMillis(), totalTime);
+                        startTime, endTime, totalTime);
                     if (stepInstance.isRollingStep()) {
                         stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                            stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, currentTime, totalTime);
+                            stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, endTime, totalTime);
                     }
                 } else {
-
+                    log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, event: {}", stepInstanceId,
+                        stepStatus, "STOP_SUCCESS");
+                    return;
                 }
                 break;
             case ABNORMAL_STATE:
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
-                    startTime, currentTime, totalTime);
+                setAbnormalStatusForStep(stepInstance);
                 if (stepInstance.isRollingStep()) {
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, currentTime, totalTime);
+                        stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, endTime, totalTime);
                 }
-                setAbnormalStatusForStep(stepInstance);
                 break;
             default:
                 log.error("");
         }
         taskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
-
-//        if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS) {
-//            if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
-//            }
-//        } else {
-//            int stepStatus = taskInstanceService.getBaseStepInstance(stepInstanceId).getStatus();
-//            if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_EXCEPTION) {
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ABNORMAL_STATE,
-//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
-//                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
-//            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_FAILED) {
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
-//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
-//            } else if (stepStatus == RunStatusEnum.STOPPING.getValue()) {
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
-//            } else if (gseTaskExecuteResult == GseTaskExecuteResult.RESULT_CODE_SUCCESS) {
-//                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-//                    startTime, endTime, stepTotalTime, targetIpNum + invalidIpNum,
-//                    successTargetIpNum, failTargetIpNum + invalidIpNum);
-//            }
-//            taskManager.refreshTask(stepInstance.getTaskInstanceId());
-//        }
     }
 
-    public void setAbnormalStatusForStep(StepInstanceBaseDTO stepInstance) {
+    private void setAbnormalStatusForStep(StepInstanceBaseDTO stepInstance) {
         long endTime = System.currentTimeMillis();
         if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
@@ -559,7 +527,7 @@ public class StepListener {
             );
         } else {
             log.info(
-                "stepInstance {} already enter a final state:{}",
+                "StepInstance {} already enter a final state:{}",
                 stepInstance.getId(),
                 stepInstance.getStatus()
             );
