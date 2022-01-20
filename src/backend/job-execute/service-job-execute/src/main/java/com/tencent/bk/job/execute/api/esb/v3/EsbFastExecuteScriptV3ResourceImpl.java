@@ -85,7 +85,7 @@ public class EsbFastExecuteScriptV3ResourceImpl
 
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(request);
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_EVICTED);
+            return EsbResp.buildCommonFailResp(ErrorCode.TASK_ABANDONED);
         }
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(request);
         long taskInstanceId = taskExecuteService.executeFastTask(

@@ -310,7 +310,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            throw new ResourceExhaustedException(ErrorCode.TASK_EVICTED);
+            throw new ResourceExhaustedException(ErrorCode.TASK_ABANDONED);
         }
     }
 

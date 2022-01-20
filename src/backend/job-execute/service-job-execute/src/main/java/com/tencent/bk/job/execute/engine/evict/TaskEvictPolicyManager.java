@@ -46,8 +46,8 @@ import javax.annotation.PostConstruct;
 @Component
 public class TaskEvictPolicyManager {
 
-    // 策略更新时间间隔：30s
-    private final int POLICY_UPDATE_INTERVAL_MILLS = 30000;
+    // 策略更新时间间隔：10s
+    private final int POLICY_UPDATE_INTERVAL_MILLS = 10000;
     private String policyJsonStr = null;
     private volatile ComposedTaskEvictPolicy policy = null;
 
@@ -92,13 +92,15 @@ public class TaskEvictPolicyManager {
     @PostConstruct
     private void init() {
         Thread taskEvictPolicyLoader = new Thread(() -> {
-            // 每隔一定时间更新驱逐策略
-            try {
-                updatePolicy();
-            } catch (Exception e) {
-                log.warn("Fail to update taskEvictPolicy", e);
-            } finally {
-                ThreadUtils.sleep(POLICY_UPDATE_INTERVAL_MILLS);
+            while (true) {
+                // 每隔一定时间更新驱逐策略
+                try {
+                    updatePolicy();
+                } catch (Exception e) {
+                    log.error("Fail to update taskEvictPolicy", e);
+                } finally {
+                    ThreadUtils.sleep(POLICY_UPDATE_INTERVAL_MILLS);
+                }
             }
         });
         taskEvictPolicyLoader.setName("taskEvictPolicyLoader");

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.manager.variable;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -35,26 +36,17 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class StepVariableParser {
+/**
+ * 步骤引用的全局变量解析
+ */
+public class StepRefVariableParser {
 
-    public static List<String> parseShellScriptVar(String shellScriptContent) {
-        Matcher m = Pattern.compile("\\$\\{[#!]?([_a-zA-Z][0-9_a-zA-Z]*)\\S*}").matcher(shellScriptContent);
-        List<String> varNames = new ArrayList<>();
-        while (m.find()) {
-            String varName = m.group(1);
-            if (!varNames.contains(varName)) {
-                varNames.add(varName);
-            }
-        }
-        return varNames;
-    }
     /**
-     * 解析步骤和引用的全局变量
+     * 解析步骤引用的全局变量
      *
      * @param steps     步骤列表
      * @param variables 全局变量列表
@@ -86,12 +78,17 @@ public class StepVariableParser {
         TaskScriptStepDTO scriptStep = step.getScriptStepInfo();
         List<String> refVarNames = new ArrayList<>();
 
+        // 解析脚本参数
         List<String> jobStandardVarNames = VariableResolver.resolveJobStandardVar(scriptStep.getScriptParam());
         if (CollectionUtils.isNotEmpty(jobStandardVarNames)) {
             refVarNames.addAll(jobStandardVarNames);
         }
+
+        // 解析 shell 脚本引用的一些特殊变量
         if (scriptStep.getLanguage() == ScriptTypeEnum.SHELL) {
+            // 从shell脚本中匹配所有符合shell变量命名的变量
             List<String> shellVarNames = VariableResolver.resolveShellScriptVar(scriptStep.getContent());
+            // 使用 job_import 方式引用的变量
             List<String> jobImportedVarNames = VariableResolver.resolveJobImportVariables(scriptStep.getContent());
             if (CollectionUtils.isNotEmpty(shellVarNames)) {
                 refVarNames.addAll(shellVarNames);
@@ -99,8 +96,11 @@ public class StepVariableParser {
             if (CollectionUtils.isNotEmpty(jobImportedVarNames)) {
                 refVarNames.addAll(jobImportedVarNames);
             }
+            // 魔法变量
+            refVarNames.addAll(resolveJobMagicNamespaceVar(jobImportedVarNames, variables));
         }
 
+        // 主机变量
         if (scriptStep.getExecuteTarget() != null
             && StringUtils.isNoneBlank(scriptStep.getExecuteTarget().getVariable())) {
             refVarNames.add(scriptStep.getExecuteTarget().getVariable());
@@ -108,6 +108,39 @@ public class StepVariableParser {
 
         step.setRefVariables(variables.stream().filter(variable -> refVarNames.contains(variable.getName()))
             .distinct().collect(Collectors.toList()));
+    }
+
+    /**
+     * 获取魔法变量解析之后的变量列表
+     *
+     * @param jobImportedVarNames 通过 job_import 方式引用的变量
+     * @param variables           全局变量
+     * @return 魔法变量解析之后的变量列表
+     */
+    private static List<String> resolveJobMagicNamespaceVar(List<String> jobImportedVarNames,
+                                                            List<TaskVariableDTO> variables) {
+        List<String> namespaceVarNames = variables.stream()
+            .filter(var -> var.getType() == TaskVariableTypeEnum.NAMESPACE)
+            .map(TaskVariableDTO::getName)
+            .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(namespaceVarNames)) {
+            return Collections.emptyList();
+        }
+
+        List<String> resolvedNamespaceVars = new ArrayList<>();
+        jobImportedVarNames.stream()
+            .filter(jobImportedVarName -> jobImportedVarName.startsWith("JOB_NAMESPACE_"))
+            .forEach(jobImportedVarName -> {
+                if ("JOB_NAMESPACE_ALL".equals(jobImportedVarName)) {
+                    resolvedNamespaceVars.addAll(namespaceVarNames);
+                } else {
+                    String jobImportNamespaceVar = jobImportedVarName.substring("JOB_NAMESPACE_".length());
+                    if (namespaceVarNames.contains(jobImportNamespaceVar)) {
+                        resolvedNamespaceVars.add(jobImportNamespaceVar);
+                    }
+                }
+            });
+        return resolvedNamespaceVars.stream().distinct().collect(Collectors.toList());
     }
 
 

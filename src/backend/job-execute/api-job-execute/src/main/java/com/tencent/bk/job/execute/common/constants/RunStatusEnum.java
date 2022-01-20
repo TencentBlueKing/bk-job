@@ -80,9 +80,9 @@ public enum RunStatusEnum {
      */
     CONFIRM_TERMINATED(13),
     /**
-     * 异常终止
+     * 被丢弃
      */
-    EVICTED(14),
+    ABANDONED(14),
     /**
      * 滚动等待
      */
@@ -116,7 +116,7 @@ public enum RunStatusEnum {
         finishedStatusValueList.add(ABNORMAL_STATE.value);
         finishedStatusValueList.add(STOP_SUCCESS.value);
         finishedStatusValueList.add(CONFIRM_TERMINATED.value);
-        finishedStatusValueList.add(EVICTED.value);
+        finishedStatusValueList.add(ABANDONED.value);
         return finishedStatusValueList;
     }
 
