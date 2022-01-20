@@ -46,8 +46,10 @@ export default class TaskInstanceDetailStepScript {
         this.scriptLanguage = payload.scriptLanguage || 1;
         this.account = payload.account;
         this.status = payload.status;
+        this.rollingEnabled = Boolean(payload.rollingEnabled);
+        
         this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
-        this.rollingExecutionConfig = this.initRollingExecutionConfig(payload.rollingExecutionConfig);
+        this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
     }
 
     /**
@@ -108,23 +110,20 @@ export default class TaskInstanceDetailStepScript {
 
     /**
      * @desc 处理滚动执行配置
-     * @param { Object } rollingExecutionConfig 滚动执行配置
+     * @param { Object } rollingConfig 滚动执行配置
      * @returns { Object }
      */
-    initRollingExecutionConfig (rollingExecutionConfig) {
+    initRollingConfig (rollingConfig) {
         const config = {
-            enabled: false,
             expr: '',
             mode: 1,
         };
-        if (rollingExecutionConfig) {
+        if (rollingConfig) {
             const {
-                enabled = false,
                 expr = '',
-                mode = 1,
-            } = rollingExecutionConfig;
+                mode = 0,
+            } = rollingConfig;
             Object.assign(config, {
-                enabled,
                 expr,
                 mode,
             });

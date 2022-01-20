@@ -172,14 +172,14 @@
         path: '',
         // 目标服务器
         server: new TaskHostNodeModel({}),
+        // 开启滚动
+        rollingEnabled: false,
         // 滚动执行配置，编辑时拍平
         // 提交时合并
-        // rollingExecutionConfig: {
-        //     enabled: false
+        // rollingConfig: {
         //     expr: '10%',
         //     mode: 1,
         // }
-        rollingEnabled: false,
         rollingExpr: '',
         rollingMode: 1,
     });
@@ -244,8 +244,8 @@
                         timeout,
                         transferMode,
                         uploadSpeedLimit,
-                        rollingExecutionConfig: {
-                            enabled: rollingEnabled,
+                        rollingEnabled,
+                        rollingConfig: {
                             expr: rollingExpr,
                             mode: rollingMode,
                         },
@@ -479,8 +479,8 @@
                                 path,
                                 server,
                             },
-                            rollingExecutionConfig: {
-                                enable: rollingEnabled,
+                            rollingEnabled,
+                            rollingConfig: {
                                 expr: rollingExpr,
                                 mode: rollingMode,
                             },

@@ -42,10 +42,11 @@ export default class TaskInstanceDetailStepFile {
         this.duplicateHandler = payload.duplicateHandler;
         this.transferMode = payload.transferMode || 1;
         this.ignoreError = payload.ignoreError || 0;
+        this.rollingEnabled = Boolean(payload.rollingEnabled);
         
         this.fileDestination = this.initFileDestination(payload.fileDestination);
         this.fileSourceList = this.initFileSourceList(payload.fileSourceList);
-        this.rollingExecutionConfig = this.initRollingExecutionConfig(payload.rollingExecutionConfig);
+        this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
     }
 
     /**
@@ -127,23 +128,20 @@ export default class TaskInstanceDetailStepFile {
 
     /**
      * @desc 处理滚动执行配置
-     * @param { Object } rollingExecutionConfig 滚动执行配置
+     * @param { Object } rollingConfig 滚动执行配置
      * @returns { Object }
      */
-    initRollingExecutionConfig (rollingExecutionConfig) {
+    initRollingConfig (rollingConfig) {
         const config = {
-            enabled: false,
             expr: '',
             mode: 1,
         };
-        if (rollingExecutionConfig) {
+        if (rollingConfig) {
             const {
-                enabled = false,
                 expr = '',
                 mode = 0,
-            } = rollingExecutionConfig;
+            } = rollingConfig;
             Object.assign(config, {
-                enabled,
                 expr,
                 mode,
             });
