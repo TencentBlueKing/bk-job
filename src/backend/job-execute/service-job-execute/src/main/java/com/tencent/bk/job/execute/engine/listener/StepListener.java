@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
@@ -90,7 +89,6 @@ public class StepListener {
     private final GseAgentTaskService gseAgentTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
-    private final ExceptionStatusManager exceptionStatusManager;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
@@ -100,8 +98,7 @@ public class StepListener {
                         GseTaskService gseTaskService,
                         GseAgentTaskService gseAgentTaskService,
                         RollingConfigService rollingConfigService,
-                        StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                        ExceptionStatusManager exceptionStatusManager) {
+                        StepInstanceRollingTaskService stepInstanceRollingTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.taskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
@@ -110,7 +107,6 @@ public class StepListener {
         this.gseAgentTaskService = gseAgentTaskService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
-        this.exceptionStatusManager = exceptionStatusManager;
     }
 
     /**
@@ -512,7 +508,7 @@ public class StepListener {
                     stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                         stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, currentTime, totalTime);
                 }
-                exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
+                setAbnormalStatusForStep(stepInstance);
                 break;
             default:
                 log.error("");
@@ -549,7 +545,24 @@ public class StepListener {
 //        }
     }
 
-    private void test(List<GseAgentTaskDTO> gseAgentTasks) {
-
+    public void setAbnormalStatusForStep(StepInstanceBaseDTO stepInstance) {
+        long endTime = System.currentTimeMillis();
+        if (!RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus())) {
+            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
+                stepInstance.getTotalTime());
+            taskInstanceService.updateStepExecutionInfo(
+                stepInstance.getId(),
+                RunStatusEnum.ABNORMAL_STATE,
+                null,
+                endTime,
+                totalTime
+            );
+        } else {
+            log.info(
+                "stepInstance {} already enter a final state:{}",
+                stepInstance.getId(),
+                stepInstance.getStatus()
+            );
+        }
     }
 }

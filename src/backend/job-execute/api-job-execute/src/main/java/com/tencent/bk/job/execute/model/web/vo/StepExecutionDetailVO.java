@@ -65,8 +65,12 @@ public class StepExecutionDetailVO {
     private Boolean isLastStep;
     @ApiModelProperty("步骤类型，1-脚本，2-文件，3-人工确认")
     private Integer type;
-    @ApiModelProperty("滚动执行批次总数;如果非滚动执行，那么该值为空")
-    private Integer totalBatch;
-    @ApiModelProperty("滚动执行当前执行批次;如果非滚动执行，那么该值为空")
-    private Integer currentBatch;
+    /**
+     * 步骤执行模式
+     * @see com.tencent.bk.job.execute.common.constants.StepRunModeEnum
+     */
+    @ApiModelProperty("是否滚动执行步骤。1-单次全量执行；2-滚动全量执行；3-滚动分批执行")
+    private Integer stepRunMode;
+    @ApiModelProperty("步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
+    private List<StepRollingTaskVO> rollingTasks;
 }
