@@ -53,28 +53,28 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 @Documented
 @Retention(RUNTIME)
 public @interface CheckEnum {
- 
+
     String message() default "";
- 
+
     Class<?>[] groups() default {};
- 
+
     Class<? extends Payload>[] payload() default {};
- 
+
     Class<? extends Enum<?>> enumClass();
- 
+
     String enumMethod();
- 
+
     class Validator implements ConstraintValidator<CheckEnum, Object> {
- 
+
         private Class<? extends Enum<?>> enumClass;
         private String enumMethod;
- 
+
         @Override
         public void initialize(CheckEnum enumValue) {
             enumMethod = enumValue.enumMethod();
             enumClass = enumValue.enumClass();
         }
- 
+
         @Override
         public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
             if (value == null) {
@@ -87,19 +87,19 @@ public @interface CheckEnum {
             try {
                 Method method = enumClass.getMethod(enumMethod, valueClass);
                 if (!Boolean.TYPE.equals(method.getReturnType()) && !Boolean.class.equals(method.getReturnType())) {
-                    //校验方法需要返回布尔值
+                    // 校验方法需要返回布尔值
                     return false;
                 }
-                if(!Modifier.isStatic(method.getModifiers())) {
-                    //校验方法需定义为静态
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    // 校验方法需定义为静态
                     return false;
                 }
-                Boolean result = (Boolean)method.invoke(null, value);
+                Boolean result = (Boolean) method.invoke(null, value);
                 return result == null ? false : result;
             } catch (Exception e) {
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            } 
+            }
         }
-  
+
     }
 }
