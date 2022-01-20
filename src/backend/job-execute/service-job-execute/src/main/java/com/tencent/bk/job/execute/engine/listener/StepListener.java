@@ -33,19 +33,15 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.NotifyDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -84,6 +80,7 @@ public class StepListener {
     private final GseTaskService gseTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
+    private final NotifyService notifyService;
 
     @Autowired
     public StepListener(TaskInstanceService taskInstanceService,
@@ -92,7 +89,8 @@ public class StepListener {
                         FilePrepareService filePrepareService,
                         GseTaskService gseTaskService,
                         RollingConfigService rollingConfigService,
-                        StepInstanceRollingTaskService stepInstanceRollingTaskService) {
+                        StepInstanceRollingTaskService stepInstanceRollingTaskService,
+                        NotifyService notifyService) {
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.taskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
@@ -100,6 +98,7 @@ public class StepListener {
         this.gseTaskService = gseTaskService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
+        this.notifyService = notifyService;
     }
 
     /**
@@ -392,50 +391,13 @@ public class StepListener {
             }
             taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.WAITING.getValue());
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING.getValue());
-            asyncNotifyConfirm(taskInstance, stepInstance);
+            notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
         } else {
             log.warn("Unsupported step instance run status for executing confirm step, stepInstanceId={}, status={}",
                 stepInstanceId, stepInstance.getStatus());
         }
     }
 
-    private void asyncNotifyConfirm(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
-        if (stepInstanceDetail == null) {
-            log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
-            return;
-        }
-        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
-        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.READY.getStatus());
-        taskNotifyDTO.setStepName(stepInstance.getName());
-        taskNotifyDTO.setConfirmMessage(stepInstanceDetail.getConfirmMessage());
-        NotifyDTO notifyDTO = new NotifyDTO();
-        notifyDTO.setReceiverUsers(stepInstanceDetail.getConfirmUsers());
-        notifyDTO.setReceiverRoles(stepInstanceDetail.getConfirmRoles());
-        notifyDTO.setChannels(stepInstanceDetail.getNotifyChannels());
-        notifyDTO.setTriggerUser(stepInstance.getOperator());
-        taskNotifyDTO.setNotifyDTO(notifyDTO);
-        taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getTaskId()));
-        taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
-        taskNotifyDTO.setOperator(stepInstance.getOperator());
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
-    }
-
-    private TaskNotifyDTO buildCommonTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        TaskNotifyDTO taskNotifyDTO = new TaskNotifyDTO();
-        taskNotifyDTO.setAppId(taskInstance.getAppId());
-        String operator = getOperator(taskInstance.getOperator(), stepInstance.getOperator());
-        taskNotifyDTO.setStartupMode(taskInstance.getStartupMode());
-        taskNotifyDTO.setOperator(operator);
-        taskNotifyDTO.setTaskInstanceId(taskInstance.getId());
-        taskNotifyDTO.setTaskInstanceName(taskInstance.getName());
-        taskNotifyDTO.setTaskId(taskInstance.getTaskId());
-        return taskNotifyDTO;
-    }
-
-    private String getOperator(String taskOperator, String stepOperator) {
-        return StringUtils.isNotEmpty(stepOperator) ? stepOperator : taskOperator;
-    }
 
     private void refreshStep(StepInstanceBaseDTO stepInstance) {
         long stepInstanceId = stepInstance.getId();

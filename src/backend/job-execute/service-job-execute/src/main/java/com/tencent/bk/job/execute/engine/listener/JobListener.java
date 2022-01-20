@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
@@ -37,15 +36,12 @@ import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
-import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDO;
+import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
@@ -66,16 +62,19 @@ public class JobListener {
     private final StatisticsService statisticsService;
     private final TaskInstanceService taskInstanceService;
     private final RollingConfigService rollingConfigService;
+    private final NotifyService notifyService;
 
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                        StatisticsService statisticsService,
                        TaskInstanceService taskInstanceService,
-                       RollingConfigService rollingConfigService) {
+                       RollingConfigService rollingConfigService,
+                       NotifyService notifyService) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.rollingConfigService = rollingConfigService;
+        this.notifyService = notifyService;
     }
 
 
@@ -238,9 +237,9 @@ public class JobListener {
 
         // 作业执行结果消息通知
         if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
-            asyncNotifySuccess(taskInstance, stepInstance);
+            notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
         } else {
-            asyncNotifyFail(taskInstance, stepInstance);
+            notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
         }
 
         // 触发作业结束统计分析
@@ -306,53 +305,4 @@ public class JobListener {
         }
     }
 
-    private void setResourceInfo(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance,
-                                 TaskNotifyDTO taskNotifyDTO) {
-        Long taskPlanId = taskInstance.getTaskId();
-        taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
-        if (taskPlanId == -1L) {
-            if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())) {
-                taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());
-            } else if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
-                taskNotifyDTO.setResourceType(ResourceTypeEnum.FILE.getType());
-            } else {
-                log.warn("notify resourceType not supported yet:{}, use Job", stepInstance.getExecuteType());
-                taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
-            }
-        } else {
-            taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
-        }
-    }
-
-    private void asyncNotifyFail(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
-        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.FAIL.getStatus());
-        taskNotifyDTO.setStepName(stepInstance.getName());
-        setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
-    }
-
-    private void asyncNotifySuccess(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
-        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.SUCCESS.getStatus());
-        taskNotifyDTO.setCost(taskInstance.getTotalTime());
-        setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
-    }
-
-    private TaskNotifyDTO buildCommonTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        TaskNotifyDTO taskNotifyDTO = new TaskNotifyDTO();
-        taskNotifyDTO.setAppId(taskInstance.getAppId());
-        String operator = getOperator(taskInstance.getOperator(), stepInstance.getOperator());
-        taskNotifyDTO.setOperator(operator);
-        taskNotifyDTO.setTaskInstanceId(taskInstance.getId());
-        taskNotifyDTO.setStartupMode(taskInstance.getStartupMode());
-        taskNotifyDTO.setTaskId(taskInstance.getTaskId());
-        taskNotifyDTO.setTaskInstanceName(taskInstance.getName());
-        return taskNotifyDTO;
-    }
-
-    private String getOperator(String taskOperator, String stepOperator) {
-        return StringUtils.isNotEmpty(stepOperator) ? stepOperator : taskOperator;
-    }
 }

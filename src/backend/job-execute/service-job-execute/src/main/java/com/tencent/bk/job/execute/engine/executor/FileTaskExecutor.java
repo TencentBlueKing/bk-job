@@ -137,9 +137,9 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
         List<GseAgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
         for (String cloudAreaIdAndIp : fileSourceIPSet) {
             if (jobIpSet.contains(cloudAreaIdAndIp) && gseAgentTaskMap.get(cloudAreaIdAndIp) != null) {
-                GseAgentTaskDTO ipLog = gseAgentTaskMap.get(cloudAreaIdAndIp);
-                ipLog.setSourceServer(true);
-                fileSourceGseAgentTasks.add(ipLog);
+                GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(cloudAreaIdAndIp);
+                gseAgentTask.setSourceServer(true);
+                fileSourceGseAgentTasks.add(gseAgentTask);
             } else {
                 GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, false, true);
                 gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);

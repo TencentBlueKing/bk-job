@@ -416,15 +416,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private void saveStatusWhenSkip() {
-        List<GseAgentTaskDTO> notFinishedIpLogs =
+        List<GseAgentTaskDTO> notFinishedGseAgentTasks =
             gseAgentTaskMap.values().stream().filter(not(GseAgentTaskDTO::isFinished)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notFinishedIpLogs)) {
-            notFinishedIpLogs.forEach(ipLog -> {
-                ipLog.setStatus(IpStatus.UNKNOWN.getValue());
-                ipLog.setEndTime(System.currentTimeMillis());
+        if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
+            notFinishedGseAgentTasks.forEach(gseAgentTask -> {
+                gseAgentTask.setStatus(IpStatus.UNKNOWN.getValue());
+                gseAgentTask.setEndTime(System.currentTimeMillis());
             });
         }
-        gseAgentTaskService.batchSaveGseAgentTasks(notFinishedIpLogs);
+        gseAgentTaskService.batchSaveGseAgentTasks(notFinishedGseAgentTasks);
     }
 
     /*
@@ -569,24 +569,24 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         unfinishedIPSet.addAll(this.runningIpSet);
         long startTime = (this.gseTask != null && this.gseTask.getStartTime() != null) ?
             this.gseTask.getStartTime() : System.currentTimeMillis();
-        batchSaveFailIpLog(unfinishedIPSet, startTime, System.currentTimeMillis(), errorType);
+        batchSaveFailGseAgentTasks(unfinishedIPSet, startTime, System.currentTimeMillis(), errorType);
     }
 
-    private void batchSaveFailIpLog(Collection<String> ipSet, long startTime, long endTime, int status) {
-        List<GseAgentTaskDTO> ipLogList = new ArrayList<>();
+    private void batchSaveFailGseAgentTasks(Collection<String> ipSet, long startTime, long endTime, int status) {
+        List<GseAgentTaskDTO> gseAgentTaskList = new ArrayList<>();
         for (String ip : ipSet) {
-            GseAgentTaskDTO ipLog = new GseAgentTaskDTO();
-            ipLog.setStepInstanceId(stepInstanceId);
-            ipLog.setExecuteCount(stepInstance.getExecuteCount());
+            GseAgentTaskDTO gseAgentTask = new GseAgentTaskDTO();
+            gseAgentTask.setStepInstanceId(stepInstanceId);
+            gseAgentTask.setExecuteCount(stepInstance.getExecuteCount());
             IpDTO ipDto = IpHelper.transform(ip);
-            ipLog.setCloudAreaAndIp(IpHelper.compose(ipDto));
-            ipLog.setDisplayIp(ipDto.getIp());
-            ipLog.setStartTime(startTime);
-            ipLog.setEndTime(endTime);
-            ipLog.setStatus(status);
-            ipLogList.add(ipLog);
+            gseAgentTask.setCloudAreaAndIp(IpHelper.compose(ipDto));
+            gseAgentTask.setDisplayIp(ipDto.getIp());
+            gseAgentTask.setStartTime(startTime);
+            gseAgentTask.setEndTime(endTime);
+            gseAgentTask.setStatus(status);
+            gseAgentTaskList.add(gseAgentTask);
         }
-        gseAgentTaskService.batchSaveGseAgentTasks(ipLogList);
+        gseAgentTaskService.batchSaveGseAgentTasks(gseAgentTaskList);
     }
 
     @Override

@@ -32,9 +32,12 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
 import com.tencent.bk.job.execute.client.ServiceUserResourceClient;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.NotifyDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
@@ -88,6 +91,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
     private final GseAgentTaskService gseAgentTaskService;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
     public NotifyServiceImpl(JobExecuteConfig jobExecuteConfig,
@@ -96,7 +100,8 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             GseAgentTaskService gseAgentTaskService) {
+                             GseAgentTaskService gseAgentTaskService,
+                             TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.jobExecuteConfig = jobExecuteConfig;
         this.notificationResourceClient = notificationResourceClient;
         this.userResourceClient = userResourceClient;
@@ -104,6 +109,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
         this.gseAgentTaskService = gseAgentTaskService;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
     private static void loadNotifyTemplate() {
@@ -130,14 +136,14 @@ public class NotifyServiceImpl implements NotifyService {
             return "";
         }
         if (costInMills < 60_000) {
-            String cost = "";
+            String cost;
+            DecimalFormat df;
             if (costInMills < 1_000) {
-                DecimalFormat df = new DecimalFormat("0.000");
-                cost = df.format(costInMills / 1000.0d);
+                df = new DecimalFormat("0.000");
             } else {
-                DecimalFormat df = new DecimalFormat("#.000");
-                cost = df.format(costInMills / 1000.0d);
+                df = new DecimalFormat("#.000");
             }
+            cost = df.format(costInMills / 1000.0d);
             if (isChineseLocale()) {
                 return cost + " 秒";
             } else {
@@ -167,9 +173,6 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     private static boolean isChineseLocale() {
-//        Locale locale = LocaleContextHolder.getLocale();
-//        log.info("locale={}", locale);
-//        return (locale == null || locale.equals(Locale.SIMPLIFIED_CHINESE) || locale.equals(Locale.CHINA));
         return true;
     }
 
@@ -196,61 +199,6 @@ public class NotifyServiceImpl implements NotifyService {
         trigger.setResourceType(taskNotifyDTO.getResourceType());
         trigger.setResourceId(taskNotifyDTO.getResourceId());
         return trigger;
-    }
-
-    private String buildContentTemplateKey(String executeStatusKey, String channelKey) {
-        return "task." + executeStatusKey + ".msg.content.template." + channelKey;
-    }
-
-    private String buildTitleTemplateKey(String executeStatusKey, String channelKey) {
-        return "task." + executeStatusKey + ".msg.title.template." + channelKey;
-    }
-
-    private String getExecuteStatusKey(ExecuteStatusEnum executeStatus) {
-        String executeStatusKey = "";
-        if (executeStatus == ExecuteStatusEnum.FAIL) {
-            executeStatusKey = "fail";
-        } else if (executeStatus == ExecuteStatusEnum.SUCCESS) {
-            executeStatusKey = "success";
-        } else if (executeStatus == ExecuteStatusEnum.READY) {
-            executeStatusKey = "waiting";
-        }
-        return executeStatusKey;
-    }
-
-    private String getChannelKey(String channel) {
-        String channelKey = "";
-        if (StringUtils.isEmpty(channel)) {
-            return "common";
-        }
-        if (channel.equalsIgnoreCase("weixin")) {
-            channelKey = "weixin";
-        } else if (channel.equalsIgnoreCase("work-weixin")) {
-            channelKey = "weixin";
-        } else if (channel.equalsIgnoreCase("sms")) {
-            channelKey = "sms";
-        } else if (channel.equalsIgnoreCase("mail")) {
-            channelKey = "mail";
-        } else {
-            channelKey = "common";
-        }
-        return channelKey;
-    }
-
-    private String replaceTemplatePlaceHolder(String template, Map<String, String> replacements) {
-        String result = template;
-        for (Map.Entry<String, String> replacement : replacements.entrySet()) {
-            result = result.replaceAll("\\{" + replacement.getKey() + "}", replacement.getValue());
-        }
-        return result;
-    }
-
-    private String getTemplate(String key) {
-        if (isChineseLocale()) {
-            return templatePropsZH.getProperty(key);
-        } else {
-            return templatePropsEN.getProperty(key);
-        }
     }
 
     private String buildJobExecuteDetailUrl(Long taskInstanceId) {
@@ -397,5 +345,84 @@ public class NotifyServiceImpl implements NotifyService {
             serviceTemplateNotificationDTO.setVariablesMap(variablesMap);
             notificationResourceClient.sendTemplateNotification(serviceTemplateNotificationDTO);
         }
+    }
+
+    @Override
+    public void asyncSendMQFailTaskNotification(TaskInstanceDTO taskInstance,
+                                                StepInstanceBaseDTO stepInstance) {
+        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
+        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.FAIL.getStatus());
+        taskNotifyDTO.setStepName(stepInstance.getName());
+        setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+    }
+
+    @Override
+    public void asyncSendMQSuccessTaskNotification(TaskInstanceDTO taskInstance,
+                                                   StepInstanceBaseDTO stepInstance) {
+        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
+        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.SUCCESS.getStatus());
+        taskNotifyDTO.setCost(taskInstance.getTotalTime());
+        setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+    }
+
+    @Override
+    public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
+                                               StepInstanceBaseDTO stepInstance) {
+        StepInstanceDTO stepInstanceDetail = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
+        if (stepInstanceDetail == null) {
+            log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
+            return;
+        }
+        TaskNotifyDTO taskNotifyDTO = buildCommonTaskNotification(taskInstance, stepInstance);
+        taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.READY.getStatus());
+        taskNotifyDTO.setStepName(stepInstance.getName());
+        taskNotifyDTO.setConfirmMessage(stepInstanceDetail.getConfirmMessage());
+        NotifyDTO notifyDTO = new NotifyDTO();
+        notifyDTO.setReceiverUsers(stepInstanceDetail.getConfirmUsers());
+        notifyDTO.setReceiverRoles(stepInstanceDetail.getConfirmRoles());
+        notifyDTO.setChannels(stepInstanceDetail.getNotifyChannels());
+        notifyDTO.setTriggerUser(stepInstance.getOperator());
+        taskNotifyDTO.setNotifyDTO(notifyDTO);
+        taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getTaskId()));
+        taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
+        taskNotifyDTO.setOperator(stepInstance.getOperator());
+        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+    }
+
+
+    private void setResourceInfo(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance,
+                                 TaskNotifyDTO taskNotifyDTO) {
+        Long taskPlanId = taskInstance.getTaskId();
+        taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
+        if (taskPlanId == -1L) {
+            if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())) {
+                taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());
+            } else if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+                taskNotifyDTO.setResourceType(ResourceTypeEnum.FILE.getType());
+            } else {
+                log.warn("notify resourceType not supported yet:{}, use Job", stepInstance.getExecuteType());
+                taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
+            }
+        } else {
+            taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
+        }
+    }
+
+    private TaskNotifyDTO buildCommonTaskNotification(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
+        TaskNotifyDTO taskNotifyDTO = new TaskNotifyDTO();
+        taskNotifyDTO.setAppId(taskInstance.getAppId());
+        String operator = getOperator(taskInstance.getOperator(), stepInstance.getOperator());
+        taskNotifyDTO.setOperator(operator);
+        taskNotifyDTO.setTaskInstanceId(taskInstance.getId());
+        taskNotifyDTO.setStartupMode(taskInstance.getStartupMode());
+        taskNotifyDTO.setTaskId(taskInstance.getTaskId());
+        taskNotifyDTO.setTaskInstanceName(taskInstance.getName());
+        return taskNotifyDTO;
+    }
+
+    private String getOperator(String taskOperator, String stepOperator) {
+        return StringUtils.isNotEmpty(stepOperator) ? stepOperator : taskOperator;
     }
 }
