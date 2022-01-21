@@ -28,17 +28,7 @@
 <template>
     <div class="executive-history-step">
         <task-status ref="taskStatus" @on-init="handleTaskInit">
-            <div class="batch-box">
-                <div class="batch-list">
-                    <div class="batch-item active" key="all">全部批次</div>
-                    <div
-                        v-for="i in 8"
-                        class="batch-item"
-                        :key="i">
-                        第 {{ i }} 批
-                    </div>
-                </div>
-            </div>
+            <rolling-batch :data="data" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
                     <div class="step-type-text">{{ stepTypeText }}</div>
@@ -156,6 +146,7 @@
     import ComposeFormItem from '@components/compose-form-item';
     import ExecutionStatusBar from '../common/execution-status-bar';
     import StepAction from '../common/step-action';
+    import RollingBatch from './components/rolling-batch';
     import TaskStatus from './components/task-status';
     import ExecutionHistorySelect from './components/execution-history-select';
     import GroupTab from './components/group-tab';
@@ -173,6 +164,7 @@
             ComposeFormItem,
             ExecutionStatusBar,
             StepAction,
+            RollingBatch,
             TaskStatus,
             ExecutionHistorySelect,
             GroupTab,
@@ -311,6 +303,8 @@
                         return;
                     }
                     this.data = Object.freeze(data);
+
+                    console.log('from ste  = =', data);
 
                     this.isFile = data.isFile;
                     //  已选中的分组不存在了——默认选中第一个分组
@@ -632,43 +626,6 @@
     }
 
     .executive-history-step {
-        .batch-box {
-            padding: 20px 24px 12px;
-            background: #f5f6fa;
-
-            .batch-list {
-                display: inline-flex;
-                padding: 2px;
-                overflow: hidden;
-                font-size: 12px;
-                color: #63656e;
-                background: #e4e6ed;
-                border-radius: 18px;
-                user-select: none;
-
-                .batch-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 24px;
-                    padding: 0 16px;
-                    cursor: pointer;
-                    transition: all 0.15s;
-
-                    &:hover {
-                        background: #f0f1f5;
-                        border-radius: 12px;
-                    }
-
-                    &.active {
-                        background: #fff;
-                        border-radius: 12px;
-                        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
-                    }
-                }
-            }
-        }
-
         .step-info-header {
             display: flex;
             padding: 45px 24px 12px;
