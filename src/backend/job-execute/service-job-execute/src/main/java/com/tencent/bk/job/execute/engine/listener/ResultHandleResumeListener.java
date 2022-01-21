@@ -71,7 +71,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * 执行引擎流程处理-任务结果处理-恢复
+ * 执行引擎事件处理-任务恢复
  */
 @Component
 @EnableBinding({TaskResultHandleResumeProcessor.class})
@@ -138,11 +138,7 @@ public class ResultHandleResumeListener {
      */
     @StreamListener(TaskResultHandleResumeProcessor.INPUT)
     public void handleEvent(StepEvent stepEvent) {
-        log.info("Receive result handle task resume control message, action: {}, stepInstanceId: {}, executeCount: " +
-                "{}, requestId: {}, msgSendTime={}",
-            stepEvent.getAction(), stepEvent.getStepInstanceId(),
-            stepEvent.getExecuteCount(),
-            stepEvent.getRequestId(), stepEvent.getTime());
+        log.info("Receive result handle task resume event: {}", stepEvent);
         long stepInstanceId = stepEvent.getStepInstanceId();
         int executeCount = stepEvent.getExecuteCount();
         String requestId = StringUtils.isNotEmpty(stepEvent.getRequestId()) ? stepEvent.getRequestId()
@@ -158,13 +154,13 @@ public class ResultHandleResumeListener {
                 return;
             }
 
-            Map<String, GseAgentTaskDTO> ipLogMap = new HashMap<>();
-            List<GseAgentTaskDTO> gseTaskIpLogs = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount,
+            Map<String, GseAgentTaskDTO> gseAgentTaskMap = new HashMap<>();
+            List<GseAgentTaskDTO> gseAgentTasks = gseAgentTaskService.getGseAgentTask(stepInstanceId, executeCount,
                 false);
-            if (CollectionUtils.isNotEmpty(gseTaskIpLogs)) {
-                gseTaskIpLogs.stream().filter(gseTaskIpLog ->
-                    IpStatus.LAST_SUCCESS.getValue() != gseTaskIpLog.getStatus())
-                    .forEach(gseTaskIpLog -> ipLogMap.put(gseTaskIpLog.getCloudAreaAndIp(), gseTaskIpLog));
+            if (CollectionUtils.isNotEmpty(gseAgentTasks)) {
+                gseAgentTasks.stream().filter(gseAgentTask ->
+                    IpStatus.LAST_SUCCESS.getValue() != gseAgentTask.getStatus())
+                    .forEach(gseAgentTask -> gseAgentTaskMap.put(gseAgentTask.getCloudAreaAndIp(), gseAgentTask));
             }
 
 
@@ -174,7 +170,7 @@ public class ResultHandleResumeListener {
 
             if (stepInstance.isScriptStep()) {
                 ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(taskInstance, stepInstance,
-                    taskVariablesAnalyzeResult, ipLogMap, gseTask, ipLogMap.keySet(),
+                    taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask, gseAgentTaskMap.keySet(),
                     requestId);
                 scriptResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,
                     taskInstanceVariableService, stepInstanceVariableValueService, taskExecuteMQEventDispatcher,
@@ -193,10 +189,10 @@ public class ResultHandleResumeListener {
                 Map<String, String> sourceFileDisplayMap = JobSrcFileUtils.buildSourceFileDisplayMapping(sendFiles,
                     NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
 
-                Set<String> targetIps = gseTaskIpLogs.stream().filter(GseAgentTaskDTO::isTargetServer)
+                Set<String> targetIps = gseAgentTasks.stream().filter(GseAgentTaskDTO::isTargetServer)
                     .map(GseAgentTaskDTO::getCloudAreaAndIp).collect(Collectors.toSet());
                 FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(taskInstance, stepInstance,
-                    taskVariablesAnalyzeResult, ipLogMap, gseTask, targetIps, sendFiles,
+                    taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask, targetIps, sendFiles,
                     storageSystemConfig.getJobStorageRootPath(), sourceDestPathMap, sourceFileDisplayMap,
                     requestId);
                 fileResultHandleTask.initDependentService(taskInstanceService, gseTaskService, logService,

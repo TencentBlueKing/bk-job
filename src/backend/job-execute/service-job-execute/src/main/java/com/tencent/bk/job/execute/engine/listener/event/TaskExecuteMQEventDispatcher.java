@@ -37,28 +37,28 @@ public interface TaskExecuteMQEventDispatcher {
      *
      * @param taskInstanceId 作业实例ID
      */
-    void startTask(long taskInstanceId);
+    void startJob(long taskInstanceId);
 
     /**
      * 发送停止作业事件
      *
      * @param taskInstanceId 作业实例ID
      */
-    void stopTask(long taskInstanceId);
+    void stopJob(long taskInstanceId);
 
     /**
      * 发送重头执行作业事件
      *
      * @param taskInstanceId 作业实例ID
      */
-    void restartTask(long taskInstanceId);
+    void restartJob(long taskInstanceId);
 
     /**
      * 触发作业继续后续步骤事件
      *
      * @param taskInstanceId 作业实例ID
      */
-    void refreshTask(long taskInstanceId);
+    void refreshJob(long taskInstanceId);
 
     /**
      * 触发忽略错误事件
@@ -138,18 +138,12 @@ public interface TaskExecuteMQEventDispatcher {
     void continueGseFileStep(long stepInstanceId);
 
     /**
-     * 发送清理步骤事件：清理步骤中产生的临时文件等
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void clearStep(long stepInstanceId);
-
-    /**
      * 发送执行gse步骤事件
      *
      * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动批次；如果非滚动步骤，传入null
      */
-    void startGseStep(long stepInstanceId);
+    void startGseStep(long stepInstanceId, Integer batch);
 
     /**
      * 恢复GSE任务执行事件

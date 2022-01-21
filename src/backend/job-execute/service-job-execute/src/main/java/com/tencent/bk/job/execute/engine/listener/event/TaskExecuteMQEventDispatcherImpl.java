@@ -92,248 +92,236 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
     }
 
     @Override
-    public void startTask(long taskInstanceId) {
-        log.info("Begin to send start task control message, taskInstanceId={}", taskInstanceId);
-        JobEvent msg = new JobEvent();
-        msg.setTaskInstanceId(taskInstanceId);
-        msg.setAction(JobActionEnum.START.getValue());
-        msg.setTime(LocalDateTime.now());
-        taskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send start task control message successfully, taskInstanceId={}", taskInstanceId);
+    public void startJob(long taskInstanceId) {
+        log.info("Begin to send start job event, taskInstanceId: {}", taskInstanceId);
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.START.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
+        log.info("Send start task event successfully, event: {}", jobEvent);
     }
 
     @Override
-    public void stopTask(long taskInstanceId) {
-        log.info("Begin to send stop task control message, taskInstanceId={}", taskInstanceId);
-        JobEvent msg = new JobEvent();
-        msg.setTaskInstanceId(taskInstanceId);
-        msg.setAction(JobActionEnum.STOP.getValue());
-        msg.setTime(LocalDateTime.now());
-        taskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send stop task control message successfully, taskInstanceId={}", taskInstanceId);
+    public void stopJob(long taskInstanceId) {
+        log.info("Begin to send stop job event, taskInstanceId: {}", taskInstanceId);
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.STOP.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
+        log.info("Send stop job event successfully, event: {}", jobEvent);
     }
 
     @Override
-    public void restartTask(long taskInstanceId) {
-        log.info("Begin to send restart task control message, taskInstanceId={}", taskInstanceId);
-        JobEvent msg = new JobEvent();
-        msg.setTaskInstanceId(taskInstanceId);
-        msg.setAction(JobActionEnum.RESTART.getValue());
-        msg.setTime(LocalDateTime.now());
-        taskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send restart task control message successfully, taskInstanceId={}", taskInstanceId);
+    public void restartJob(long taskInstanceId) {
+        log.info("Begin to send restart job event, taskInstanceId: {}", taskInstanceId);
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.RESTART.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
+        log.info("Send restart job event successfully, event: {}", jobEvent);
     }
 
     @Override
-    public void refreshTask(long taskInstanceId) {
-        log.info("Begin to send refresh task control message, taskInstanceId={}", taskInstanceId);
-        JobEvent msg = new JobEvent();
-        msg.setTaskInstanceId(taskInstanceId);
-        msg.setAction(JobActionEnum.REFRESH.getValue());
-        msg.setTime(LocalDateTime.now());
-        taskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send refresh task control message successfully, taskInstanceId={}", taskInstanceId);
+    public void refreshJob(long taskInstanceId) {
+        log.info("Begin to send refresh job event, taskInstanceId: {}", taskInstanceId);
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.REFRESH.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
+        log.info("Send refresh job event successfully, event: {}", jobEvent);
     }
 
     @Override
     public void ignoreStepError(long stepInstanceId) {
-        log.info("Begin to send ignore-error step control message, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.IGNORE_ERROR.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send ignore-error step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send ignore-error step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.IGNORE_ERROR.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send ignore-error step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void nextStep(long stepInstanceId) {
-        log.info("Begin to send next-step step control message, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.NEXT_STEP.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send next-step step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send next-step step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.NEXT_STEP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send next-step step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void confirmStepContinue(long stepInstanceId) {
-        log.info("Begin to send confirm-continue step control message, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.CONFIRM_CONTINUE.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send confirm-continue step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send confirm-continue step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_CONTINUE.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send confirm-continue step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void confirmStepTerminate(long stepInstanceId) {
-        log.info("Begin to send confirm-terminate step control message, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.CONFIRM_TERMINATE.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send confirm-terminate step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send confirm-terminate step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_TERMINATE.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send confirm-terminate step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void confirmStepRestart(long stepInstanceId) {
-        log.info("Begin to send confirm-restart step control message, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.CONFIRM_RESTART.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send confirm-restart step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send confirm-restart step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_RESTART.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send confirm-restart step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void startStep(long stepInstanceId) {
-        StepEvent event = new StepEvent();
-        event.setStepInstanceId(stepInstanceId);
-        event.setAction(StepActionEnum.START.getValue());
-        event.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(event).build());
-        log.info("Send start step event successfully, event={}", event);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.START.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send start step stepEvent successfully, event: {}", stepEvent);
     }
 
     @Override
     public void skipStep(long stepInstanceId) {
-        log.info("Begin to send skip step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.SKIP.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send skip step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send skip step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.SKIP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send skip step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void stopStep(long stepInstanceId) {
-        log.info("Begin to send stop step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.STOP.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send stop step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send stop step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.STOP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send stop step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void retryStepFail(long stepInstanceId) {
-        log.info("Begin to send retry-step-fail step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.RETRY_FAIL.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send retry-step-fail step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send retry-step-fail step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.RETRY_FAIL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send retry-step-fail step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void retryStepAll(long stepInstanceId) {
-        log.info("Begin to send retry-step-all step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.RETRY_ALL.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send retry-step-all step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send retry-step-all step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.RETRY_ALL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send retry-step-all step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void continueGseFileStep(long stepInstanceId) {
-        log.info("Begin to send continue-gse-file-step step control message successfully, stepInstanceId={}",
+        log.info("Begin to send continue-gse-file-step step event successfully, stepInstanceId: {}",
             stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send continue-gse-file-step step control message successfully, stepInstanceId={}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send continue-gse-file-step step event successfully, event: {}", stepEvent);
     }
 
     @Override
-    public void clearStep(long stepInstanceId) {
-        log.info("Begin to send clear-step step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(StepActionEnum.CLEAR.getValue());
-        msg.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send clear-step step control message successfully, stepInstanceId={}", stepInstanceId);
-    }
-
-    @Override
-    public void startGseStep(long stepInstanceId) {
-        log.info("Begin to send start gse step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(GseStepActionEnum.START.getValue());
-        msg.setTime(LocalDateTime.now());
-        msg.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send start gse step control message successfully, stepInstanceId={}", stepInstanceId);
+    public void startGseStep(long stepInstanceId, Integer batch) {
+        log.info("Begin to send start gse step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setBatch(batch);
+        stepEvent.setAction(GseStepActionEnum.START.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepEvent.setRequestId(UUID.randomUUID().toString());
+        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send start gse step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void resumeGseStep(long stepInstanceId, int executeCount, String requestId) {
-        log.info("Begin to send resume gse step control message successfully, stepInstanceId={}, executeCount={}, " +
-                "requestId={}",
-            stepInstanceId, executeCount, requestId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setExecuteCount(executeCount);
-        msg.setAction(StepActionEnum.RESUME.getValue());
-        msg.setTime(LocalDateTime.now());
-        msg.setRequestId(requestId);
-        resultHandleTaskResumeOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send resume gse step control message successfully, stepInstanceId={}, executeCount={}, requestId={}",
-            stepInstanceId, executeCount, requestId);
+        log.info("Begin to send resume gse step event successfully, stepInstanceId: {}, executeCount: {}, " +
+            "requestId: {}", stepInstanceId, executeCount, requestId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setExecuteCount(executeCount);
+        stepEvent.setAction(StepActionEnum.RESUME.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepEvent.setRequestId(requestId);
+        resultHandleTaskResumeOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send resume gse step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void retryGseStepFail(long stepInstanceId) {
-        log.info("Begin to send retry gse step fail control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(GseStepActionEnum.RETRY_FAIL.getValue());
-        msg.setTime(LocalDateTime.now());
-        msg.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send start gse step fail control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send retry gse step fail event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(GseStepActionEnum.RETRY_FAIL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepEvent.setRequestId(UUID.randomUUID().toString());
+        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send start gse step fail event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void retryGseStepAll(long stepInstanceId) {
-        log.info("Begin to send retry gse step all control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(GseStepActionEnum.RETRY_ALL.getValue());
-        msg.setTime(LocalDateTime.now());
-        msg.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send start gse step all control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send retry gse step all event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(GseStepActionEnum.RETRY_ALL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepEvent.setRequestId(UUID.randomUUID().toString());
+        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send start gse step all event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void stopGseStep(long stepInstanceId) {
-        log.info("Begin to send stop gse step control message successfully, stepInstanceId={}", stepInstanceId);
-        StepEvent msg = new StepEvent();
-        msg.setStepInstanceId(stepInstanceId);
-        msg.setAction(GseStepActionEnum.STOP.getValue());
-        msg.setTime(LocalDateTime.now());
-        msg.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(msg).build());
-        log.info("Send stop gse step control message successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send stop gse step event successfully, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(GseStepActionEnum.STOP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepEvent.setRequestId(UUID.randomUUID().toString());
+        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send stop gse step event successfully, event: {}", stepEvent);
     }
 
     @Override
     public void asyncSendNotifyMsg(TaskNotifyDTO notification) {
-        log.info("Async send notification msg:{}", JsonUtils.toJson(notification));
+        log.info("Async send notification event:{}", JsonUtils.toJson(notification));
         notifyMsgOutput.send(MessageBuilder.withPayload(JsonUtils.toJson(notification)).build());
     }
 
@@ -345,12 +333,12 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
 
     @Override
     public void refreshStep(long stepInstanceId) {
-        log.info("Begin to send refresh step event, stepInstanceId={}", stepInstanceId);
+        log.info("Begin to send refresh step event, stepInstanceId: {}", stepInstanceId);
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.REFRESH.getValue());
         stepEvent.setTime(LocalDateTime.now());
         stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send refresh step event successfully, stepInstanceId={}", stepInstanceId);
+        log.info("Send refresh step event successfully, event: {}", stepEvent);
     }
 }

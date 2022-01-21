@@ -209,7 +209,7 @@ public class ThirdFilePrepareService {
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
         if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
-            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId(), null);
             return null;
         }
         log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);

@@ -40,7 +40,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 /**
- * 执行引擎流程处理-GSE任务
+ * 执行引擎事件处理-GSE任务
  */
 @Component
 @EnableBinding({GseTaskProcessor.class})
@@ -69,9 +69,7 @@ public class GseStepListener {
      */
     @StreamListener(GseTaskProcessor.INPUT)
     public void handleEvent(@Payload StepEvent gseStepEvent) {
-        log.info("Handel gse step event, stepInstanceId={}, action={}, requestId={}, msgSendTime={}",
-            gseStepEvent.getStepInstanceId(),
-            gseStepEvent.getAction(), gseStepEvent.getRequestId(), gseStepEvent.getTime());
+        log.info("Handel gse step event: {}", gseStepEvent);
         long stepInstanceId = gseStepEvent.getStepInstanceId();
         String requestId = gseStepEvent.getRequestId();
         try {

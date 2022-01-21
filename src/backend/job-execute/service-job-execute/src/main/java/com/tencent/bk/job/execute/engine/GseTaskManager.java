@@ -108,41 +108,38 @@ public class GseTaskManager implements SmartLifecycle {
     private final StorageSystemConfig storageSystemConfig;
     private final JobExecuteConfig jobExecuteConfig;
     private final RollingConfigService rollingConfigService;
+    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
+    private final GseTasksExceptionCounter gseTasksExceptionCounter;
+
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
-    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     /**
      * 正在执行中的任务
      */
-    private Map<String, AbstractGseTaskExecutor> executorMap = new ConcurrentHashMap<>();
-    /**
-     * 本地服务器IP
-     */
-    private String serverIp = null;
+    private final Map<String, AbstractGseTaskExecutor> executorMap = new ConcurrentHashMap<>();
     private volatile boolean running = false;
     private volatile boolean active = false;
 
-    private GseTasksExceptionCounter gseTasksExceptionCounter;
     /**
      * 正在处理的gse任务数
      */
-    private AtomicInteger runningTasks = new AtomicInteger(0);
+    private final AtomicInteger runningTasks = new AtomicInteger(0);
     /**
      * 正在处理的gse文件任务数
      */
-    private AtomicInteger runningFileTasks = new AtomicInteger(0);
+    private final AtomicInteger runningFileTasks = new AtomicInteger(0);
     /**
      * 正在处理的gse脚本任务数
      */
-    private AtomicInteger runningScriptTasks = new AtomicInteger(0);
+    private final AtomicInteger runningScriptTasks = new AtomicInteger(0);
     /**
      * 正在处理的gse文件任务数
      */
-    private AtomicInteger fileTaskCounter = new AtomicInteger(0);
+    private final AtomicInteger fileTaskCounter = new AtomicInteger(0);
     /**
      * 正在处理的gse脚本任务数
      */
-    private AtomicInteger scriptTaskCounter = new AtomicInteger(0);
+    private final AtomicInteger scriptTaskCounter = new AtomicInteger(0);
 
     /**
      * GseTaskManager Constructor
@@ -223,20 +220,10 @@ public class GseTaskManager implements SmartLifecycle {
             log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}",
                 taskInstance.getId(), stepInstance.getId());
-            taskManager.refreshTask(stepInstance.getTaskInstanceId());
+            taskManager.refreshJob(stepInstance.getTaskInstanceId());
             return Triple.of(false, taskInstance, stepInstance);
         }
         return Triple.of(true, taskInstance, stepInstance);
-    }
-
-    private Set<String> getTargetIpListWithCloudId(StepInstanceDTO stepInstance, StopWatch watch) {
-        watch.start("init-task-executor");
-        Set<String> executeIps = new HashSet<>();
-        stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
-            executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp());
-        });
-        watch.stop();
-        return executeIps;
     }
 
     /**
@@ -419,9 +406,8 @@ public class GseTaskManager implements SmartLifecycle {
             return;
         }
         Set<String> stopIps = new HashSet<>();
-        stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
-            stopIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp());
-        });
+        stepInstance.getTargetServers().getIpList().forEach(
+            ipDTO -> stopIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
 
         AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
             stepInstance, taskInstance, stopIps);
@@ -447,7 +433,7 @@ public class GseTaskManager implements SmartLifecycle {
 
     @PostConstruct
     public void init() {
-        this.serverIp = agentService.getLocalAgentBindIp();
+        String serverIp = agentService.getLocalAgentBindIp();
         log.info("Server ip: {}", serverIp);
     }
 

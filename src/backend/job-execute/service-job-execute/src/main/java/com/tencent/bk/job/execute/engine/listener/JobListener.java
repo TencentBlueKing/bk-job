@@ -51,7 +51,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 执行引擎流程处理-作业
+ * 执行引擎事件处理-作业
  */
 @Component
 @EnableBinding({TaskProcessor.class})
@@ -85,8 +85,7 @@ public class JobListener {
      */
     @StreamListener(TaskProcessor.INPUT)
     public void handleEvent(JobEvent jobEvent) {
-        log.info("Handle job event, taskInstanceId={}, action={}, eventTime={}",
-            jobEvent.getTaskInstanceId(), jobEvent.getAction(), jobEvent.getTime());
+        log.info("Handle job event, event: {}", jobEvent);
         long taskInstanceId = jobEvent.getTaskInstanceId();
         int action = jobEvent.getAction();
         try {
@@ -166,7 +165,7 @@ public class JobListener {
                 taskInstanceService.resetStepStatus(stepInstanceId);
             }
 
-            taskExecuteMQEventDispatcher.startTask(taskInstanceId);
+            taskExecuteMQEventDispatcher.startJob(taskInstanceId);
         } else {
             log.warn("Unsupported task instance run status for restart task, taskInstanceId={}, status={}",
                 taskInstanceId, taskInstance.getStatus());

@@ -955,7 +955,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     @Override
     public void startTask(long taskInstanceId) {
         log.info("Start task, taskInstanceId={}", taskInstanceId);
-        controlMsgSender.startTask(taskInstanceId);
+        controlMsgSender.startJob(taskInstanceId);
     }
 
     @Override
@@ -2146,7 +2146,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
         }
-        controlMsgSender.stopTask(taskInstanceId);
+        controlMsgSender.stopJob(taskInstanceId);
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
     }

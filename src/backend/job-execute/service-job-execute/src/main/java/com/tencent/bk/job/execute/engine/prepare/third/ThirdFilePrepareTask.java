@@ -270,7 +270,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                             //业务无root账号，报错提示
                             log.warn("No root account in appId={}, plz config one", stepInstance.getAppId());
                             taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-                            TaskExecuteMQEventDispatcher.refreshTask(stepInstance.getTaskInstanceId());
+                            TaskExecuteMQEventDispatcher.refreshJob(stepInstance.getTaskInstanceId());
                             return;
                         }
                         fileSourceDTO.setAccountId(accountDTO.getId());
