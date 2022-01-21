@@ -24,20 +24,30 @@
 
 package com.tencent.bk.job.crontab.model.esb.v3.request;
 
+import java.util.List;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.validation.CheckCron;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 /**
  * @since 26/2/2020 16:33
  */
+@GroupSequenceProvider(EsbSaveCronV3RequestSequenceProvider.class)
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class EsbSaveCronV3Request extends EsbReq {
@@ -46,22 +56,29 @@ public class EsbSaveCronV3Request extends EsbReq {
      * 业务 ID
      */
     @JsonProperty("bk_biz_id")
+    @NotNull(message = "{validation.constraints.InvalidBkBizId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}")
     private Long appId;
 
     /**
      * 定时任务ID，更新定时任务时，必须传这个值
      */
+    @Min(value = 1L, message = "{validation.constraints.InvalidCronId.message}")
     private Long id;
 
     /**
      * 要定时执行的作业的作业ID
      */
     @JsonProperty("job_plan_id")
+    @NotNull(message = "{validation.constraints.InvalidCronJobPlanId.message}", groups = Create.class)
+    @Min(value = 1L, message = "{validation.constraints.InvalidCronJobPlanId.message}")
     private Long planId;
 
     /**
      * 定时作业名称，新建时必填，修改时选填
      */
+    @NotEmpty(message = "{validation.constraints.InvalidCronJobName_empty.message}", groups = Create.class)
+    @Length(max = 60, message = "{validation.constraints.InvalidCronJobName_outOfLength.message}")
     private String name;
 
     /**
@@ -70,6 +87,7 @@ public class EsbSaveCronV3Request extends EsbReq {
      * 新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次
      */
     @JsonProperty("expression")
+    @CheckCron(message = "{validation.constraints.InvalidCronExpression.message}")
     private String cronExpression;
 
     /**
@@ -78,63 +96,15 @@ public class EsbSaveCronV3Request extends EsbReq {
      * 不可与 cronExpression 同时为空
      */
     @JsonProperty("execute_time")
+    @Min(value = 1L, message = "{validation.constraints.InvalidCronExecuteTime.message}")
     private Long executeTime;
 
     /**
      * 定时任务的变量信息
      */
     @JsonProperty("global_var_list")
+    @Valid
     private List<EsbGlobalVarV3DTO> globalVarList;
 
-    public boolean validate() {
-        if (appId == null || appId <= 0) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"bk_biz_id", "bk_biz_id must be a positive long number"});
-        }
-        if (id != null && id < 0) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"id", "id must be a positive long number when updating"});
-        }
-        if (id == null || id == 0) {
-            if (planId == null || planId <= 0) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new String[]{"job_plan_id", "job_plan_id must be a positive long number"});
-            }
-            if (StringUtils.isBlank(name)) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new String[]{"name", "name cannot be null or blank when create"});
-            }
-            if (StringUtils.isBlank(cronExpression) && (executeTime == null || executeTime <= 0)) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new String[]{"expression/execute_time", "expression/execute_time cannot both be null or invalid"});
-            }
-        } else {
-            boolean hasChange = false;
-            if (planId != null && planId > 0) {
-                hasChange = true;
-            }
-            if (StringUtils.isNotBlank(name)) {
-                hasChange = true;
-            } else {
-                name = null;
-            }
-            if (StringUtils.isNotBlank(cronExpression)) {
-                hasChange = true;
-            } else {
-                cronExpression = null;
-            }
-            if (executeTime != null && executeTime > 0) {
-                hasChange = true;
-            } else {
-                executeTime = null;
-            }
-            if (!hasChange) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                    new String[]{"job_plan_id/name/expression/execute_time",
-                        "At least one of job_plan_id/name/expression/execute_time must be given to update cron " + id
-                    });
-            }
-        }
-        return true;
-    }
+
 }
