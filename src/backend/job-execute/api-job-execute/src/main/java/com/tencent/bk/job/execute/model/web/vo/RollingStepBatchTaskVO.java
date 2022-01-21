@@ -28,24 +28,18 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.List;
-
-/**
- * 作业执行结果
- */
-@ApiModel("作业执行结果")
+@ApiModel("步骤滚动任务")
 @Data
-public class TaskExecuteResultVO {
-    @ApiModelProperty("作业执行是否结束")
-    private boolean finished;
+public class RollingStepBatchTaskVO {
+    @ApiModelProperty("滚动批次")
+    private Integer batch;
 
-
-    @ApiModelProperty("作业执行情况")
-    private TaskExecutionVO taskExecution;
-
-    @ApiModelProperty("步骤执行情况")
-    private List<StepExecutionVO> stepExecution;
-
-    @ApiModelProperty("滚动区间列表")
-    private List<RollingVO> rollingList;
+    /**
+     * 任务状态
+     *
+     * @see com.tencent.bk.job.execute.common.constants.RunStatusEnum
+     */
+    @ApiModelProperty("任务状态,值同步骤状态一致。1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户" +
+        "，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败")
+    private Integer status;
 }

@@ -28,16 +28,23 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-@ApiModel("步骤滚动任务")
+import java.util.List;
+
+/**
+ * 滚动任务
+ */
+@ApiModel("滚动任务")
 @Data
-public class StepRollingTaskVO {
-    @ApiModelProperty("滚动执行批次")
-    private Integer batch;
-
-    @ApiModelProperty("任务状态,值同步骤状态一致。1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败")
-    private Integer status;
-
-    @ApiModelProperty("是否当前执行批次")
-    private boolean currentBatchRunning;
+public class RollingVO {
+    @ApiModelProperty("滚动配置(任务)名称")
+    private String name;
+    @ApiModelProperty("总批次")
+    private Integer totalBatch;
+    @ApiModelProperty("滚动区间包含的步骤实例ID, 按步骤先后排序")
+    private List<Long> includeStepInstanceIdList;
+    @ApiModelProperty("当前执行批次")
+    private Integer currentBatch;
+    @ApiModelProperty("分批滚动任务")
+    private List<RollingBatchTaskVO> rollingBatchTaskList;
 
 }
