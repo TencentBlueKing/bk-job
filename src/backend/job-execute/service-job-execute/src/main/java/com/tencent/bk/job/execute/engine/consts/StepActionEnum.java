@@ -94,4 +94,13 @@ public enum StepActionEnum {
     public int getValue() {
         return value;
     }
+
+    public static StepActionEnum valueOf(int value) {
+        for (StepActionEnum stepAction : values()) {
+            if (stepAction.getValue() == value) {
+                return stepAction;
+            }
+        }
+        return null;
+    }
 }

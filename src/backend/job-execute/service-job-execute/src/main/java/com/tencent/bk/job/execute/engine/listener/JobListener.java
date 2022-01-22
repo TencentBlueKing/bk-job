@@ -250,7 +250,7 @@ public class JobListener {
 
     private Long getNextStepInstanceId(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
         Long nextStepInstanceId;
-        if (stepInstance.isRollingStep()) {
+        if (stepInstance.hasRollingConfig()) {
             int currentBatch = stepInstance.getBatch();
             TaskInstanceRollingConfigDTO taskInstanceRollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());

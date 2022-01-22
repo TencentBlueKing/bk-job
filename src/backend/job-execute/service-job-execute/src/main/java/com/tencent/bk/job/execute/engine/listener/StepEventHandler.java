@@ -22,57 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.execute.engine.listener;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.List;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 
 /**
- * 执行作业实例滚动区间配置DO
+ * 步骤事件处理
  */
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class RollingConfigDO {
-    /**
-     * 滚动区间名称
-     */
-    private String name;
-    /**
-     * 滚动区间包含的步骤实例ID
-     */
-    private List<Long> includeStepInstanceIdList;
-    /**
-     * 参与滚动的步骤实例ID
-     */
-    private List<Long> rollingStepInstanceIdList;
-    /**
-     * 滚动策略
-     */
-    private Integer mode;
-    /**
-     * 滚动表达式
-     */
-    private String expr;
-    /**
-     * 目标服务器滚动分批
-     */
-    private List<RollingServerBatchDO> serverBatchList;
-    /**
-     * 滚动总批次
-     */
-    private int totalBatch;
+public interface StepEventHandler {
 
-    /**
-     * 判断是否滚动步骤
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    public boolean isRollingStep(long stepInstanceId) {
-        return CollectionUtils.isNotEmpty(this.rollingStepInstanceIdList)
-            && this.rollingStepInstanceIdList.contains(stepInstanceId);
-    }
-
+    void handleEvent(StepEvent stepEvent, StepInstanceDTO stepInstance);
 }

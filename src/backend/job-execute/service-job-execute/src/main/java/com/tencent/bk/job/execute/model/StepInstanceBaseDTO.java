@@ -180,9 +180,9 @@ public class StepInstanceBaseDTO {
     }
 
     /**
-     * 是否滚动步骤
+     * 步骤是否包含滚动配置
      */
-    public boolean isRollingStep() {
+    public boolean hasRollingConfig() {
         return this.rollingConfigId != null && this.rollingConfigId > 0;
     }
 

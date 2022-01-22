@@ -28,7 +28,7 @@ import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import lombok.Data;
 
 /**
- * 作业实例滚动区间配置
+ * 作业实例滚动配置
  */
 @Data
 public class TaskInstanceRollingConfigDTO {

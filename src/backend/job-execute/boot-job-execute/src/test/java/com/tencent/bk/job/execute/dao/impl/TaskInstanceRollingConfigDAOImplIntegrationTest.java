@@ -74,7 +74,6 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
             101L, 102L, 103L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getRollingStepInstanceIdList()).containsSequence(100L,
             102L, 103L);
-        assertThat(savedTaskInstanceRollingConfig.getConfig().getExcludeStepInstanceIdList()).containsSequence(101L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList()).hasSize(3);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getBatch()).isEqualTo(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getServers()).hasSize(1);
@@ -113,9 +112,6 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
         rollingStepInstanceIdList.add(1002L);
         rollingStepInstanceIdList.add(1003L);
         rollingConfig.setRollingStepInstanceIdList(rollingStepInstanceIdList);
-        List<Long> excludeStepInstanceIdList = new ArrayList<>();
-        excludeStepInstanceIdList.add(1001L);
-        rollingConfig.setExcludeStepInstanceIdList(excludeStepInstanceIdList);
         List<RollingServerBatchDO> serverBatchList = new ArrayList<>();
         List<IpDTO> servers = new ArrayList<>();
         servers.add(new IpDTO(0L, "10.0.0.1"));
@@ -141,7 +137,6 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
             1001L, 1002L, 1003L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getRollingStepInstanceIdList()).containsSequence(1000L,
             1002L, 1003L);
-        assertThat(savedTaskInstanceRollingConfig.getConfig().getExcludeStepInstanceIdList()).containsSequence(1001L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList()).hasSize(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getBatch()).isEqualTo(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
