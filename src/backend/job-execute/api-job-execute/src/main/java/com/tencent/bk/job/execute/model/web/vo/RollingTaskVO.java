@@ -35,7 +35,7 @@ import java.util.List;
  */
 @ApiModel("滚动任务")
 @Data
-public class RollingVO {
+public class RollingTaskVO {
     @ApiModelProperty("滚动配置(任务)名称")
     private String name;
     @ApiModelProperty("总批次")

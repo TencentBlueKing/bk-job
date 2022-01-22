@@ -47,7 +47,7 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.RunningTaskCounter;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -56,7 +56,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -93,7 +93,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
-    private final GseAgentTaskService gseAgentTaskService;
+    private final AgentTaskService agentTaskService;
     private final TaskExecuteMQEventDispatcher taskManager;
     private final AccountService accountService;
     private final LogService logService;
@@ -148,7 +148,7 @@ public class GseTaskManager implements SmartLifecycle {
     public GseTaskManager(ResultHandleManager resultHandleManager,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
-                          GseAgentTaskService gseAgentTaskService,
+                          AgentTaskService agentTaskService,
                           TaskExecuteMQEventDispatcher taskManager,
                           AccountService accountService,
                           LogService logService,
@@ -168,7 +168,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
         this.taskManager = taskManager;
         this.accountService = accountService;
         this.logService = logService;
@@ -367,7 +367,7 @@ public class GseTaskManager implements SmartLifecycle {
             resultHandleManager,
             taskInstanceService,
             gseTaskService,
-            gseAgentTaskService,
+            agentTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
@@ -462,11 +462,11 @@ public class GseTaskManager implements SmartLifecycle {
             }
 
             int executeCount = stepInstance.getExecuteCount();
-            List<GseAgentTaskDTO> successGseTaskIpLogs = gseAgentTaskService.listSuccessAgentGseTask(stepInstanceId,
+            List<AgentTaskDTO> successGseAgentTasks = agentTaskService.listSuccessAgentTasks(stepInstanceId,
                 executeCount - 1);
             Set<String> lastSuccessIpSet = new HashSet<>();
-            if (successGseTaskIpLogs != null) {
-                lastSuccessIpSet.addAll(successGseTaskIpLogs.parallelStream().map(GseAgentTaskDTO::getCloudAreaAndIp)
+            if (successGseAgentTasks != null) {
+                lastSuccessIpSet.addAll(successGseAgentTasks.parallelStream().map(AgentTaskDTO::getCloudAreaAndIp)
                     .collect(Collectors.toSet()));
             }
             Set<String> executeIps = new HashSet<>();
@@ -487,8 +487,8 @@ public class GseTaskManager implements SmartLifecycle {
             // GseTaskResult初始状态
             dealGseTaskResult(stepInstance);
             // 已成功执行过的IP无需执行，仅保存记录
-            if (successGseTaskIpLogs != null && !successGseTaskIpLogs.isEmpty()) {
-                dealLastSuccessIp(executeCount, successGseTaskIpLogs);
+            if (successGseAgentTasks != null && !successGseAgentTasks.isEmpty()) {
+                dealLastSuccessIp(executeCount, successGseAgentTasks);
             }
 
             counter.add(taskName);
@@ -513,23 +513,18 @@ public class GseTaskManager implements SmartLifecycle {
      * 处理已执行成功的IP
      *
      * @param executeCount             执行次数
-     * @param lastSuccessGseTaskIpLogs 已执行成功IP
+     * @param lastSuccessGseAgentTasks 已执行成功IP
      */
-    private void dealLastSuccessIp(int executeCount, List<GseAgentTaskDTO> lastSuccessGseTaskIpLogs) {
-        List<GseAgentTaskDTO> ipLogList = new ArrayList<>();
-        for (GseAgentTaskDTO gseTaskIpLog : lastSuccessGseTaskIpLogs) {
-            GseAgentTaskDTO ipLog = setGseTaskIpLogForRetry(gseTaskIpLog, executeCount, IpStatus.LAST_SUCCESS);
-            ipLogList.add(ipLog);
+    private void dealLastSuccessIp(int executeCount, List<AgentTaskDTO> lastSuccessGseAgentTasks) {
+        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+        for (AgentTaskDTO agentTask : lastSuccessGseAgentTasks) {
+            agentTask.setExecuteCount(executeCount);
+            agentTask.setStatus(IpStatus.LAST_SUCCESS.getValue());
+            agentTasks.add(agentTask);
         }
-        if (ipLogList.size() > 0) {
-            gseAgentTaskService.batchSaveGseAgentTasks(ipLogList);
+        if (agentTasks.size() > 0) {
+            agentTaskService.batchSaveAgentTasks(agentTasks);
         }
-    }
-
-    private GseAgentTaskDTO setGseTaskIpLogForRetry(GseAgentTaskDTO gseTaskIpLog, int executeCount, IpStatus ipStatus) {
-        gseTaskIpLog.setExecuteCount(executeCount);
-        gseTaskIpLog.setStatus(ipStatus.getValue());
-        return gseTaskIpLog;
     }
 
     /**

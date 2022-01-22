@@ -42,7 +42,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -60,16 +60,16 @@ public class EsbGetStepInstanceStatusResourceImpl
     implements EsbGetStepInstanceStatusResource {
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
-    private final GseAgentTaskService gseAgentTaskService;
+    private final AgentTaskService agentTaskService;
     private final MessageI18nService i18nService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
                                                 TaskInstanceService taskInstanceService,
-                                                GseAgentTaskService gseAgentTaskService) {
+                                                AgentTaskService agentTaskService) {
         this.i18nService = i18nService;
         this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         } else {
             resultData.setIsFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
                 && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> analyseResult = gseAgentTaskService.getLogStatInfoWithIp(stepInstance.getId()
+            List<AgentTaskResultGroupDTO> analyseResult = agentTaskService.getLogStatInfoWithIp(stepInstance.getId()
                 , stepInstance.getExecuteCount());
             resultData.setAyalyseResult(convertToStandardAnalyseResult(analyseResult));
 

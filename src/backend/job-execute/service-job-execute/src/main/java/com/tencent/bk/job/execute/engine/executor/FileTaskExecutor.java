@@ -46,9 +46,9 @@ import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -134,20 +134,20 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
      * 初始化源文件服务器任务状态
      */
     private void initFileSourceGseAgentTasks() {
-        List<GseAgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
+        List<AgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
         for (String cloudAreaIdAndIp : fileSourceIPSet) {
-            if (jobIpSet.contains(cloudAreaIdAndIp) && gseAgentTaskMap.get(cloudAreaIdAndIp) != null) {
-                GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(cloudAreaIdAndIp);
-                gseAgentTask.setSourceServer(true);
-                fileSourceGseAgentTasks.add(gseAgentTask);
+            if (jobIpSet.contains(cloudAreaIdAndIp) && agentTaskMap.get(cloudAreaIdAndIp) != null) {
+                AgentTaskDTO agentTask = agentTaskMap.get(cloudAreaIdAndIp);
+                agentTask.setSourceServer(true);
+                fileSourceGseAgentTasks.add(agentTask);
             } else {
-                GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, false, true);
-                gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);
-                fileSourceGseAgentTasks.add(ipLog);
+                AgentTaskDTO agentTask = buildGseAgentTasks(cloudAreaIdAndIp, IpStatus.WAITING, false, true);
+                agentTaskMap.put(cloudAreaIdAndIp, agentTask);
+                fileSourceGseAgentTasks.add(agentTask);
             }
         }
         if (!fileSourceGseAgentTasks.isEmpty()) {
-            gseAgentTaskService.batchSaveGseAgentTasks(fileSourceGseAgentTasks);
+            agentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
         }
     }
 
@@ -393,7 +393,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
     @Override
     void addExecutionResultHandleTask() {
         FileResultHandleTask fileResultHandleTask =
-            new FileResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap,
+            new FileResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap,
                 gseTask, jobIpSet, sendFiles, fileStorageRootPath, sourceDestPathMap, sourceFileDisplayMap,
                 requestId);
         fileResultHandleTask.initDependentService(
@@ -406,7 +406,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
             resultHandleTaskKeepaliveManager,
             exceptionStatusManager,
             taskEvictPolicyExecutor,
-            gseAgentTaskService
+            agentTaskService
         );
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }

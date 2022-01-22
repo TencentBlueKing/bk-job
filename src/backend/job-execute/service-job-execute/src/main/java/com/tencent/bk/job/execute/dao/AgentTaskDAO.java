@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 
 import java.util.Collection;
@@ -36,12 +36,12 @@ import java.util.Map;
 /**
  * GseAgentTaskDAO
  */
-public interface GseAgentTaskDAO {
-    void batchSaveGseAgentTasks(List<GseAgentTaskDTO> gseAgentTasks);
+public interface AgentTaskDAO {
+    void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
 
-    void batchUpdateGseAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps,
-                                  Long startTime,
-                                  Long endTime, IpStatus ipStatus);
+    void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps,
+                               Long startTime,
+                               Long endTime, IpStatus ipStatus);
 
     int getSuccessIpCount(long stepInstanceId, int executeCount);
 
@@ -50,9 +50,9 @@ public interface GseAgentTaskDAO {
      * @param executeCount   步骤执行次数
      * @return 根据GSE Agent 任务状态分组计数结果
      */
-    Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
+    Map<IpStatus, Integer> countStepAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
 
-    List<GseAgentTaskDTO> getSuccessGseTaskIp(long stepInstanceId, int executeCount);
+    List<AgentTaskDTO> getSuccessAgentTasks(long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
@@ -63,11 +63,11 @@ public interface GseAgentTaskDAO {
      */
     List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount);
 
-    List<GseAgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                    String tag);
+    List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
+                                                 String tag);
 
-    List<GseAgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                    String tag, Integer limit, String orderField, Order order);
+    List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
+                                                 String tag, Integer limit, String orderField, Order order);
 
     /**
      * 获取agent任务信息
@@ -77,13 +77,13 @@ public interface GseAgentTaskDAO {
      * @param onlyTargetIp   是否仅返回目标服务器IP
      * @return agent任务信息
      */
-    List<GseAgentTaskDTO> listGseAgentTasks(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
+    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
 
-    GseAgentTaskDTO getGseAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
+    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
 
-    List<GseAgentTaskDTO> listAgentTasksByIps(Long stepInstanceId, Integer executeCount, String[] ipArray);
+    List<AgentTaskDTO> listAgentTasksByIps(Long stepInstanceId, Integer executeCount, String[] ipArray);
 
-    void deleteAllGseAgentTasks(long stepInstanceId, int executeCount);
+    void deleteAllAgentTasks(long stepInstanceId, int executeCount);
 
     int getSuccessRetryCount(long stepInstanceId, String cloudAreaAndIp);
 

@@ -34,13 +34,13 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,12 +57,12 @@ public class EsbGetJobInstanceStatusResourceImpl
     implements EsbGetJobInstanceStatusResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final GseAgentTaskService gseAgentTaskService;
+    private final AgentTaskService agentTaskService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
-                                               GseAgentTaskService gseAgentTaskService) {
+                                               AgentTaskService agentTaskService) {
         this.taskInstanceService = taskInstanceService;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
     }
 
     @Override
@@ -106,14 +106,14 @@ public class EsbGetJobInstanceStatusResourceImpl
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<GseAgentTaskDTO> gseAgentTasks = gseAgentTaskService.getGseAgentTask(stepInstance.getId(),
+            List<AgentTaskDTO> agentTasks = agentTaskService.getAgentTask(stepInstance.getId(),
                 stepInstance.getExecuteCount(), true);
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
-            for (GseAgentTaskDTO gseAgentTask : gseAgentTasks) {
+            for (AgentTaskDTO agentTask : agentTasks) {
                 EsbIpStatusDTO ipStatus = new EsbIpStatusDTO();
-                ipStatus.setIp(gseAgentTask.getIp());
-                ipStatus.setCloudAreaId(gseAgentTask.getCloudAreaId());
-                ipStatus.setStatus(gseAgentTask.getStatus());
+                ipStatus.setIp(agentTask.getIp());
+                ipStatus.setCloudAreaId(agentTask.getCloudAreaId());
+                ipStatus.setStatus(agentTask.getStatus());
                 ipResultList.add(ipStatus);
             }
             stepIpResult.put(stepInstance.getId(), ipResultList);

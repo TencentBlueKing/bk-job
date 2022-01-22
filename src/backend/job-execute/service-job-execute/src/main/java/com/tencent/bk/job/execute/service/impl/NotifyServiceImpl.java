@@ -41,8 +41,8 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
@@ -90,7 +90,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
-    private final GseAgentTaskService gseAgentTaskService;
+    private final AgentTaskService agentTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
@@ -100,7 +100,7 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             GseAgentTaskService gseAgentTaskService,
+                             AgentTaskService agentTaskService,
                              TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.jobExecuteConfig = jobExecuteConfig;
         this.notificationResourceClient = notificationResourceClient;
@@ -108,7 +108,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.applicationService = applicationService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
@@ -262,7 +262,7 @@ public class NotifyServiceImpl implements NotifyService {
                 variablesMap.put("task.step.success_cnt", "" + totalTargetIpCount);
                 variablesMap.put("task.step.failed_cnt", "" + 0);
             } else {
-                int successIpCount = gseAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                int successIpCount = agentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
                     stepInstanceDTO.getExecuteCount());
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
                 variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));

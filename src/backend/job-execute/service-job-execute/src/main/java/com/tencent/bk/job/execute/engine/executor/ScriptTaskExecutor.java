@@ -630,7 +630,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     @Override
     void addExecutionResultHandleTask() {
         ScriptResultHandleTask scriptResultHandleTask =
-            new ScriptResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask,
+            new ScriptResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap, gseTask,
                 jobIpSet, requestId);
         scriptResultHandleTask.initDependentService(
             taskInstanceService,
@@ -642,7 +642,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             resultHandleTaskKeepaliveManager,
             exceptionStatusManager,
             taskEvictPolicyExecutor,
-            gseAgentTaskService
+            agentTaskService
         );
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }

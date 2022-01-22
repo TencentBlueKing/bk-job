@@ -56,6 +56,10 @@ public class StepExecutionResultQuery {
      */
     private Integer executeCount;
     /**
+     * 滚动执行批次
+     */
+    private Integer batch;
+    /**
      * 执行日志关键词(脚本任务)
      */
     private String logKeyword;

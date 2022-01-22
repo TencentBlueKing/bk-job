@@ -474,6 +474,7 @@ public class WebTaskExecutionResultResourceImpl
         StepExecutionResultQuery query = new StepExecutionResultQuery();
         query.setStepInstanceId(stepInstanceId);
         query.setExecuteCount(executeCount);
+        query.setBatch(batch);
         query.setResultType(resultType);
         query.setTag(tag);
         query.setLogKeyword(keyword);

@@ -43,7 +43,7 @@ import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.util.Utils;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -127,7 +127,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param taskInstance               任务实例
      * @param stepInstance               步骤实例
      * @param taskVariablesAnalyzeResult 任务变量以及分析结果
-     * @param gseAgentTaskMap                   主机任务执行结果
+     * @param agentTaskMap                   主机任务执行结果
      * @param gseTask                    gse任务执行结果
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
@@ -136,22 +136,22 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         TaskInstanceDTO taskInstance,
         StepInstanceDTO stepInstance,
         TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-        Map<String, GseAgentTaskDTO> gseAgentTaskMap,
+        Map<String, AgentTaskDTO> agentTaskMap,
         GseTaskDTO gseTask,
         Set<String> targetIps,
         String requestId
     ) {
-        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, gseAgentTaskMap, gseTask, targetIps, requestId);
-        initLogPullProcess(gseAgentTaskMap.values());
+        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap, gseTask, targetIps, requestId);
+        initLogPullProcess(agentTaskMap.values());
     }
 
-    private void initLogPullProcess(Collection<GseAgentTaskDTO> gseAgentTasks) {
-        gseAgentTasks.forEach(gseAgentTask -> {
+    private void initLogPullProcess(Collection<AgentTaskDTO> agentTasks) {
+        agentTasks.forEach(agentTask -> {
             LogPullProgress process = new LogPullProgress();
-            process.setIp(gseAgentTask.getCloudAreaAndIp());
-            process.setByteOffset(gseAgentTask.getScriptLogOffset());
+            process.setIp(agentTask.getCloudAreaAndIp());
+            process.setByteOffset(agentTask.getScriptLogOffset());
             process.setMid(0);
-            logPullProgressMap.put(gseAgentTask.getCloudAreaAndIp(), process);
+            logPullProgressMap.put(agentTask.getCloudAreaAndIp(), process);
         });
     }
 
@@ -254,17 +254,17 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             if (this.analyseFinishedIpSet.contains(cloudIp)) {
                 continue;
             }
-            GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(cloudIp);
-            if (gseAgentTask == null) {
+            AgentTaskDTO agentTask = agentTaskMap.get(cloudIp);
+            if (agentTask == null) {
                 continue;
             }
             analysedIpSet.add(cloudIp);
 
             if (isUserScriptResult) {
-                addScriptLogsAndRefreshPullProgress(scriptLogs, ipResult, cloudIp, gseAgentTask, currentTime);
+                addScriptLogsAndRefreshPullProgress(scriptLogs, ipResult, cloudIp, agentTask, currentTime);
             }
 
-            analyseIpResult(ipResult, gseAgentTask, cloudIp, isUserScriptResult, currentTime);
+            analyseIpResult(ipResult, agentTask, cloudIp, isUserScriptResult, currentTime);
         }
         watch.stop();
 
@@ -290,20 +290,20 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     }
 
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst ipResult,
-                                                     String cloudIp, GseAgentTaskDTO gseAgentTask, long currentTime) {
+                                                     String cloudIp, AgentTaskDTO agentTask, long currentTime) {
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), gseAgentTask.getScriptLogOffset(),
+            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), agentTask.getScriptLogOffset(),
                 currentTime));
         } else {
             String content = ipResult.getScreen();
             if (StringUtils.isEmpty(content)) {
                 return;
             }
-            int offset = gseAgentTask.getScriptLogOffset();
+            int offset = agentTask.getScriptLogOffset();
             if (StringUtils.isNotEmpty(content)) {
                 int bytes = content.getBytes(StandardCharsets.UTF_8).length;
                 offset += bytes;
-                gseAgentTask.setScriptLogOffset(offset);
+                agentTask.setScriptLogOffset(offset);
             }
             logs.add(new ServiceScriptLogDTO(cloudIp, offset, ipResult.getScreen()));
         }
@@ -317,25 +317,25 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
             logs);
     }
 
-    private void analyseIpResult(api_agent_task_rst ipResult, GseAgentTaskDTO gseAgentTask, String cloudIp,
+    private void analyseIpResult(api_agent_task_rst ipResult, AgentTaskDTO agentTask, String cloudIp,
                                  boolean isUserScriptResult, long currentTime) {
         boolean isShellScript = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()));
-        if (gseAgentTask.getStartTime() == null) {
-            gseAgentTask.setStartTime(currentTime);
+        if (agentTask.getStartTime() == null) {
+            agentTask.setStartTime(currentTime);
         }
-        gseAgentTask.setErrorCode(ipResult.getBk_error_code());
+        agentTask.setErrorCode(ipResult.getBk_error_code());
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
             // 脚本执行失败
-            dealIPFinish(cloudIp, ipResult, gseAgentTask);
+            dealIPFinish(cloudIp, ipResult, agentTask);
             int ipStatus = Utils.getStatusByGseErrorCode(ipResult.getBk_error_code());
             if (ipStatus < 0) {
                 ipStatus = IpStatus.FAILED.getValue();
             }
-            gseAgentTask.setStatus(ipStatus);
+            agentTask.setStatus(ipStatus);
         } else if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code())
             == GSECode.AtomicErrorCode.TERMINATE) {
-            dealIPFinish(cloudIp, ipResult, gseAgentTask);
-            gseAgentTask.setStatus(IpStatus.GSE_TASK_TERMINATE_SUCCESS.getValue());
+            dealIPFinish(cloudIp, ipResult, agentTask);
+            agentTask.setStatus(IpStatus.GSE_TASK_TERMINATE_SUCCESS.getValue());
             this.isTerminatedSuccess = true;
         } else {
             // 分析GSE的返回状态
@@ -347,7 +347,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                     // 1：原子任务执行中；
                     notStartedIpSet.remove(cloudIp);
                     runningIpSet.add(cloudIp);
-                    gseAgentTask.setStatus(IpStatus.RUNNING.getValue());
+                    agentTask.setStatus(IpStatus.RUNNING.getValue());
                     break;
                 case SUCCESS:
                     if (isShellScript && isUserScriptResult) {
@@ -355,50 +355,50 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
                             && (taskVariablesAnalyzeResult.isExistChangeableGlobalVar()
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
-                            gseAgentTask.setStatus(IpStatus.RUNNING.getValue());
+                            agentTask.setStatus(IpStatus.RUNNING.getValue());
                             notStartedIpSet.remove(cloudIp);
                             runningIpSet.add(cloudIp);
                             refreshPullLogProgress("", cloudIp, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
-                            dealIPFinish(cloudIp, ipResult, gseAgentTask);
-                            gseAgentTask.setStatus(IpStatus.SUCCESS.getValue());
+                            dealIPFinish(cloudIp, ipResult, agentTask);
+                            agentTask.setStatus(IpStatus.SUCCESS.getValue());
                             if (this.targetIpSet.contains(cloudIp)) {
                                 successIpSet.add(cloudIp);
                             }
                         }
                     } else {
                         //获取输出参数的任务执行完成，需要分析日志
-                        dealIPFinish(cloudIp, ipResult, gseAgentTask);
-                        gseAgentTask.setStatus(IpStatus.SUCCESS.getValue());
+                        dealIPFinish(cloudIp, ipResult, agentTask);
+                        agentTask.setStatus(IpStatus.SUCCESS.getValue());
                         if (this.targetIpSet.contains(cloudIp)) {
                             successIpSet.add(cloudIp);
                         }
                         parseVariableValueFromResult(ipResult, cloudIp);
                     }
                     if (isUserScriptResult) {
-                        gseAgentTask.setTag(ipResult.getTag());
+                        agentTask.setTag(ipResult.getTag());
                     }
                     break;
                 case TIMEOUT:
-                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
-                    gseAgentTask.setStatus(IpStatus.SCRIPT_TIMEOUT.getValue());
+                    dealIPFinish(cloudIp, ipResult, agentTask);
+                    agentTask.setStatus(IpStatus.SCRIPT_TIMEOUT.getValue());
                     break;
                 case DISCARD:
-                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
-                    gseAgentTask.setStatus(IpStatus.SCRIPT_TERMINATE.getValue());
+                    dealIPFinish(cloudIp, ipResult, agentTask);
+                    agentTask.setStatus(IpStatus.SCRIPT_TERMINATE.getValue());
                     break;
                 default:
-                    dealIPFinish(cloudIp, ipResult, gseAgentTask);
+                    dealIPFinish(cloudIp, ipResult, agentTask);
                     int errCode = ipResult.getBk_error_code();
                     int exitCode = getExitCode(ipResult.getExitcode());
                     if (errCode == 0) {
                         if (exitCode != 0) {
-                            gseAgentTask.setStatus(IpStatus.SCRIPT_NOT_ZERO_EXIT_CODE.getValue());
+                            agentTask.setStatus(IpStatus.SCRIPT_NOT_ZERO_EXIT_CODE.getValue());
                         } else {
-                            gseAgentTask.setStatus(IpStatus.SCRIPT_FAILED.getValue());
+                            agentTask.setStatus(IpStatus.SCRIPT_FAILED.getValue());
                         }
-                        gseAgentTask.setTag(ipResult.getTag());
+                        agentTask.setTag(ipResult.getTag());
                     }
                     break;
             }
@@ -518,9 +518,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
         return variableValues;
     }
 
-    private void dealIPFinish(String ip, api_agent_task_rst ipResult, GseAgentTaskDTO gseAgentTask) {
-        dealIPFinish(ip, ipResult.getStart_time(), ipResult.getEnd_time(), gseAgentTask);
-        gseAgentTask.setExitCode(getExitCode(ipResult.getExitcode()));
+    private void dealIPFinish(String ip, api_agent_task_rst ipResult, AgentTaskDTO agentTask) {
+        dealIPFinish(ip, ipResult.getStart_time(), ipResult.getEnd_time(), agentTask);
+        agentTask.setExitCode(getExitCode(ipResult.getExitcode()));
     }
 
     private int getExitCode(int exitCode) {
@@ -601,9 +601,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {
         Map<String, Integer> ipAndLogOffsetMap = new HashMap<>();
         ips.forEach(ip -> {
-            GseAgentTaskDTO gseAgentTask = gseAgentTaskMap.get(ip);
-            if (gseAgentTask != null) {
-                ipAndLogOffsetMap.put(ip, gseAgentTask.getScriptLogOffset());
+            AgentTaskDTO agentTask = agentTaskMap.get(ip);
+            if (agentTask != null) {
+                ipAndLogOffsetMap.put(ip, agentTask.getScriptLogOffset());
             } else {
                 ipAndLogOffsetMap.put(ip, 0);
             }

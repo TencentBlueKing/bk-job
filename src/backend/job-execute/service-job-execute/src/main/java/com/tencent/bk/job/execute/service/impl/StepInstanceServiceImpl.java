@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.dao.GseAgentTaskDAO;
+import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -39,13 +39,13 @@ import java.util.Map;
 public class StepInstanceServiceImpl implements StepInstanceService {
 
     private final StepInstanceDAO stepInstanceDAO;
-    private final GseAgentTaskDAO gseAgentTaskDAO;
+    private final AgentTaskDAO agentTaskDAO;
 
     @Autowired
     public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO,
-                                   GseAgentTaskDAO gseAgentTaskDAO) {
+                                   AgentTaskDAO agentTaskDAO) {
         this.stepInstanceDAO = stepInstanceDAO;
-        this.gseAgentTaskDAO = gseAgentTaskDAO;
+        this.agentTaskDAO = agentTaskDAO;
     }
 
     @Override
@@ -61,6 +61,6 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     @Override
     public Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(
         long stepInstanceId, int executeCount) {
-        return gseAgentTaskDAO.countStepGseAgentTaskGroupByStatus(stepInstanceId, executeCount);
+        return agentTaskDAO.countStepAgentTaskGroupByStatus(stepInstanceId, executeCount);
     }
 }

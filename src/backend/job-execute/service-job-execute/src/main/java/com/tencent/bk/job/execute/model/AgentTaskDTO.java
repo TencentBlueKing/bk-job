@@ -37,7 +37,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
-public class GseAgentTaskDTO {
+public class AgentTaskDTO {
     /**
      * 步骤实例ID
      */

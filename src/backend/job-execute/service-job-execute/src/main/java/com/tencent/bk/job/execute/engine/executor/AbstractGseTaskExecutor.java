@@ -41,7 +41,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
@@ -50,7 +50,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -81,7 +81,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     protected ResultHandleManager resultHandleManager;
     protected TaskInstanceService taskInstanceService;
     protected GseTaskService gseTaskService;
-    protected GseAgentTaskService gseAgentTaskService;
+    protected AgentTaskService agentTaskService;
     protected AccountService accountService;
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
@@ -134,7 +134,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     /**
      * gse 原子任务信息
      */
-    protected Map<String, GseAgentTaskDTO> gseAgentTaskMap = new HashMap<>();
+    protected Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
     /**
      * 全局参数分析结果
      */
@@ -195,7 +195,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     public void initDependentService(ResultHandleManager resultHandleManager,
                                      TaskInstanceService taskInstanceService,
                                      GseTaskService gseTaskService,
-                                     GseAgentTaskService gseAgentTaskService,
+                                     AgentTaskService agentTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -208,7 +208,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
         this.accountService = accountService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
@@ -248,10 +248,10 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      */
     protected void initAndSaveGseAgentTasksToBeStarted() {
         for (String cloudAreaIdAndIp : notStartedJobIPSet) {
-            GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.WAITING, true, false);
-            gseAgentTaskMap.put(cloudAreaIdAndIp, ipLog);
+            AgentTaskDTO agentTask = buildGseAgentTasks(cloudAreaIdAndIp, IpStatus.WAITING, true, false);
+            agentTaskMap.put(cloudAreaIdAndIp, agentTask);
         }
-        gseAgentTaskService.batchSaveGseAgentTasks(new ArrayList<>(gseAgentTaskMap.values()));
+        agentTaskService.batchSaveAgentTasks(new ArrayList<>(agentTaskMap.values()));
     }
 
     /**
@@ -259,14 +259,14 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      */
     private void saveInvalidGseAgentTaskResult() {
         if (!invalidIpSet.isEmpty()) {
-            List<GseAgentTaskDTO> gseAgentTasks = new ArrayList<>();
+            List<AgentTaskDTO> agentTasks = new ArrayList<>();
             invalidIpSet.forEach(cloudAreaIdAndIp -> {
                 boolean isTargetServer = this.allJobIpSet.contains(cloudAreaIdAndIp);
-                GseAgentTaskDTO ipLog = buildGseTaskIpLog(cloudAreaIdAndIp, IpStatus.HOST_NOT_EXIST, isTargetServer,
+                AgentTaskDTO agentTask = buildGseAgentTasks(cloudAreaIdAndIp, IpStatus.HOST_NOT_EXIST, isTargetServer,
                     !isTargetServer);
-                gseAgentTasks.add(ipLog);
+                agentTasks.add(agentTask);
             });
-            gseAgentTaskService.batchSaveGseAgentTasks(gseAgentTasks);
+            agentTaskService.batchSaveAgentTasks(agentTasks);
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
                 stepInstance.getExecuteCount(),
                 buildIpAndLogOffsetMap(invalidIpSet), "The host(s) is not belongs to the Business, or doesn't exists" +
@@ -277,9 +277,9 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
     private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {
         Map<String, Integer> ipAndLogOffsetMap = new HashMap<>();
         ips.forEach(ip -> {
-            GseAgentTaskDTO ipLog = gseAgentTaskMap.get(ip);
-            if (ipLog != null) {
-                ipAndLogOffsetMap.put(ip, ipLog.getScriptLogOffset());
+            AgentTaskDTO agentTask = agentTaskMap.get(ip);
+            if (agentTask != null) {
+                ipAndLogOffsetMap.put(ip, agentTask.getScriptLogOffset());
             } else {
                 ipAndLogOffsetMap.put(ip, 0);
             }
@@ -287,21 +287,21 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         return ipAndLogOffsetMap;
     }
 
-    protected GseAgentTaskDTO buildGseTaskIpLog(String cloudAreaIdAndIp, IpStatus status, boolean isTargetServer,
-                                                boolean isSourceServer) {
+    protected AgentTaskDTO buildGseAgentTasks(String cloudAreaIdAndIp, IpStatus status, boolean isTargetServer,
+                                              boolean isSourceServer) {
         String[] cloudAreaIdAndIpArray = cloudAreaIdAndIp.split(":");
-        GseAgentTaskDTO gseAgentTask = new GseAgentTaskDTO();
-        gseAgentTask.setStepInstanceId(stepInstanceId);
-        gseAgentTask.setExecuteCount(executeCount);
-        gseAgentTask.setBatch(rollingBatch);
-        gseAgentTask.setStatus(status.getValue());
-        gseAgentTask.setTargetServer(isTargetServer);
-        gseAgentTask.setIp(cloudAreaIdAndIpArray[1]);
-        gseAgentTask.setCloudAreaAndIp(cloudAreaIdAndIp);
-        gseAgentTask.setCloudAreaId(Long.valueOf(cloudAreaIdAndIpArray[0]));
-        gseAgentTask.setDisplayIp(cloudAreaIdAndIpArray[1]);
-        gseAgentTask.setSourceServer(isSourceServer);
-        return gseAgentTask;
+        AgentTaskDTO agentTask = new AgentTaskDTO();
+        agentTask.setStepInstanceId(stepInstanceId);
+        agentTask.setExecuteCount(executeCount);
+        agentTask.setBatch(rollingBatch);
+        agentTask.setStatus(status.getValue());
+        agentTask.setTargetServer(isTargetServer);
+        agentTask.setIp(cloudAreaIdAndIpArray[1]);
+        agentTask.setCloudAreaAndIp(cloudAreaIdAndIp);
+        agentTask.setCloudAreaId(Long.valueOf(cloudAreaIdAndIpArray[0]));
+        agentTask.setDisplayIp(cloudAreaIdAndIpArray[1]);
+        agentTask.setSourceServer(isSourceServer);
+        return agentTask;
     }
 
     protected Map<String, String> buildReferenceGlobalVarValueMap(StepInstanceVariableValuesDTO stepInputVariables) {
@@ -442,7 +442,7 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                 buildIpAndLogOffsetMap(unfinishedIPSet), errorMsg, endTime);
         }
 
-        gseAgentTaskService.batchUpdateGseAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
+        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
     }
 
     /**

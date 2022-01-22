@@ -32,11 +32,11 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.dao.GseAgentTaskDAO;
+import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogService;
@@ -69,14 +69,14 @@ import java.util.stream.Collectors;
 public class LogServiceImpl implements LogService {
     private final LogServiceResourceClient logServiceResourceClient;
     private final StepInstanceDAO stepInstanceDAO;
-    private final GseAgentTaskDAO gseAgentTaskDAO;
+    private final AgentTaskDAO agentTaskDAO;
 
     @Autowired
     public LogServiceImpl(LogServiceResourceClient logServiceResourceClient, StepInstanceDAO stepInstanceDAO,
-                          GseAgentTaskDAO gseAgentTaskDAO) {
+                          AgentTaskDAO agentTaskDAO) {
         this.logServiceResourceClient = logServiceResourceClient;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.gseAgentTaskDAO = gseAgentTaskDAO;
+        this.agentTaskDAO = agentTaskDAO;
     }
 
     @Override
@@ -189,12 +189,12 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        GseAgentTaskDTO gseTaskIpLog = gseAgentTaskDAO.getGseAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
+        AgentTaskDTO gseTaskIpLog = agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
         if (gseTaskIpLog == null) {
             return null;
         }
         if (gseTaskIpLog.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = gseAgentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
+            actualExecuteCount = agentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
         }
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
@@ -209,7 +209,7 @@ public class LogServiceImpl implements LogService {
         return convertToScriptIpLogContent(resp.getData(), gseTaskIpLog);
     }
 
-    private ScriptIpLogContent convertToScriptIpLogContent(ServiceIpLogDTO logDTO, GseAgentTaskDTO gseTaskIpLog) {
+    private ScriptIpLogContent convertToScriptIpLogContent(ServiceIpLogDTO logDTO, AgentTaskDTO gseTaskIpLog) {
         if (logDTO == null) {
             return null;
         }
@@ -253,12 +253,12 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        GseAgentTaskDTO gseTaskIpLog = gseAgentTaskDAO.getGseAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
+        AgentTaskDTO gseTaskIpLog = agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip.convertToStrIp());
         if (gseTaskIpLog == null) {
             return null;
         }
         if (gseTaskIpLog.getStatus() == IpStatus.LAST_SUCCESS.getValue()) {
-            actualExecuteCount = gseAgentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
+            actualExecuteCount = agentTaskDAO.getSuccessRetryCount(stepInstanceId, ip.convertToStrIp());
         }
 
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,

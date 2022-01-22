@@ -41,12 +41,12 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.IpHelper;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.GseAgentTaskService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -97,7 +97,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-    protected GseAgentTaskService gseAgentTaskService;
+    protected AgentTaskService agentTaskService;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -129,7 +129,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * GSE 主机任务执行结果
      */
-    protected Map<String, GseAgentTaskDTO> gseAgentTaskMap;
+    protected Map<String, AgentTaskDTO> agentTaskMap;
     /**
      * 全局参数分析结果
      */
@@ -208,7 +208,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @param taskInstance               作业实例
      * @param stepInstance               步骤实例
      * @param taskVariablesAnalyzeResult 变量信息
-     * @param gseAgentTaskMap                   GSE任务-主机-信息
+     * @param agentTaskMap                   GSE任务-主机-信息
      * @param gseTask                 GSE任务整体信息
      * @param targetIps                  目标服务器IP
      * @param requestId                  请求ID,防止重复执行
@@ -216,7 +216,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected AbstractResultHandleTask(TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<String, GseAgentTaskDTO> gseAgentTaskMap,
+                                       Map<String, AgentTaskDTO> agentTaskMap,
                                        GseTaskDTO gseTask,
                                        Set<String> targetIps,
                                        String requestId) {
@@ -227,7 +227,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
-        this.gseAgentTaskMap = gseAgentTaskMap;
+        this.agentTaskMap = agentTaskMap;
         this.gseTask = gseTask;
         this.targetIpSet.addAll(targetIps);
         this.notStartedIpSet.addAll(targetIps);
@@ -253,7 +253,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExceptionStatusManager exceptionStatusManager,
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     GseAgentTaskService gseAgentTaskService) {
+                                     AgentTaskService agentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -263,7 +263,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.exceptionStatusManager = exceptionStatusManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.gseAgentTaskService = gseAgentTaskService;
+        this.agentTaskService = agentTaskService;
     }
 
     /**
@@ -416,15 +416,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private void saveStatusWhenSkip() {
-        List<GseAgentTaskDTO> notFinishedGseAgentTasks =
-            gseAgentTaskMap.values().stream().filter(not(GseAgentTaskDTO::isFinished)).collect(Collectors.toList());
+        List<AgentTaskDTO> notFinishedGseAgentTasks =
+            agentTaskMap.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
-            notFinishedGseAgentTasks.forEach(gseAgentTask -> {
-                gseAgentTask.setStatus(IpStatus.UNKNOWN.getValue());
-                gseAgentTask.setEndTime(System.currentTimeMillis());
+            notFinishedGseAgentTasks.forEach(agentTask -> {
+                agentTask.setStatus(IpStatus.UNKNOWN.getValue());
+                agentTask.setEndTime(System.currentTimeMillis());
             });
         }
-        gseAgentTaskService.batchSaveGseAgentTasks(notFinishedGseAgentTasks);
+        agentTaskService.batchSaveAgentTasks(notFinishedGseAgentTasks);
     }
 
     /*
@@ -495,23 +495,23 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @param cloudIp   IP
      * @param startTime 起始时间
      * @param endTime   终止时间
-     * @param ipLog     日志
+     * @param agentTask     日志
      */
-    protected void dealIPFinish(String cloudIp, Long startTime, Long endTime, GseAgentTaskDTO ipLog) {
-        log.info("[{}]: Deal ip finished| ip={}| startTime:{}, endTime:{}, ipLog:{}",
-            stepInstanceId, cloudIp, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(ipLog));
+    protected void dealIPFinish(String cloudIp, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+        log.info("[{}]: Deal ip finished| ip={}| startTime:{}, endTime:{}, agentTask:{}",
+            stepInstanceId, cloudIp, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         notStartedIpSet.remove(cloudIp);
         runningIpSet.remove(cloudIp);
         analyseFinishedIpSet.add(cloudIp);
 
         if (endTime - startTime <= 0) {
-            ipLog.setTotalTime(100L);
+            agentTask.setTotalTime(100L);
         } else {
-            ipLog.setTotalTime(endTime - startTime);
+            agentTask.setTotalTime(endTime - startTime);
         }
-        ipLog.setStartTime(startTime);
-        ipLog.setEndTime(endTime);
+        agentTask.setStartTime(startTime);
+        agentTask.setEndTime(endTime);
     }
 
     /**
@@ -555,10 +555,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     protected void batchSaveChangedGseAgentTasks() {
-        List<GseAgentTaskDTO> changedGseAgentTasks =
-            this.gseAgentTaskMap.values().stream().filter(GseAgentTaskDTO::isChanged).collect(Collectors.toList());
-        gseAgentTaskService.batchSaveGseAgentTasks(changedGseAgentTasks);
-        changedGseAgentTasks.forEach(ipLog -> ipLog.setChanged(false));
+        List<AgentTaskDTO> changedGseAgentTasks =
+            this.agentTaskMap.values().stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
+        agentTaskService.batchSaveAgentTasks(changedGseAgentTasks);
+        changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
     }
 
     protected void saveFailInfoForUnfinishedIpTask(int errorType, String errorMsg) {
@@ -573,20 +573,20 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private void batchSaveFailGseAgentTasks(Collection<String> ipSet, long startTime, long endTime, int status) {
-        List<GseAgentTaskDTO> gseAgentTaskList = new ArrayList<>();
+        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         for (String ip : ipSet) {
-            GseAgentTaskDTO gseAgentTask = new GseAgentTaskDTO();
-            gseAgentTask.setStepInstanceId(stepInstanceId);
-            gseAgentTask.setExecuteCount(stepInstance.getExecuteCount());
+            AgentTaskDTO agentTask = new AgentTaskDTO();
+            agentTask.setStepInstanceId(stepInstanceId);
+            agentTask.setExecuteCount(stepInstance.getExecuteCount());
             IpDTO ipDto = IpHelper.transform(ip);
-            gseAgentTask.setCloudAreaAndIp(IpHelper.compose(ipDto));
-            gseAgentTask.setDisplayIp(ipDto.getIp());
-            gseAgentTask.setStartTime(startTime);
-            gseAgentTask.setEndTime(endTime);
-            gseAgentTask.setStatus(status);
-            gseAgentTaskList.add(gseAgentTask);
+            agentTask.setCloudAreaAndIp(IpHelper.compose(ipDto));
+            agentTask.setDisplayIp(ipDto.getIp());
+            agentTask.setStartTime(startTime);
+            agentTask.setEndTime(endTime);
+            agentTask.setStatus(status);
+            agentTaskList.add(agentTask);
         }
-        gseAgentTaskService.batchSaveGseAgentTasks(gseAgentTaskList);
+        agentTaskService.batchSaveAgentTasks(agentTaskList);
     }
 
     @Override

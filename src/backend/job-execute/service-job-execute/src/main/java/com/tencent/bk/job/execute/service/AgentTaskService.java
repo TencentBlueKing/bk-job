@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.GseAgentTaskDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,14 +35,14 @@ import java.util.List;
 /**
  * GSE Agent任务 Service
  */
-public interface GseAgentTaskService {
+public interface AgentTaskService {
 
     /**
      * 批量保存 GSE Agent 任务
      *
-     * @param gseAgentTasks GSE Agent 任务列表
+     * @param agentTasks GSE Agent 任务列表
      */
-    void batchSaveGseAgentTasks(List<GseAgentTaskDTO> gseAgentTasks);
+    void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
 
     /**
      * 批量更新 GSE Agent 任务
@@ -54,12 +54,12 @@ public interface GseAgentTaskService {
      * @param endTime           任务结束时间
      * @param status            任务状态
      */
-    void batchUpdateGseAgentTasks(long stepInstanceId,
-                                  int executeCount,
-                                  Collection<String> cloudAreaIdAndIps,
-                                  Long startTime,
-                                  Long endTime,
-                                  IpStatus status);
+    void batchUpdateAgentTasks(long stepInstanceId,
+                               int executeCount,
+                               Collection<String> cloudAreaIdAndIps,
+                               Long startTime,
+                               Long endTime,
+                               IpStatus status);
 
     /**
      * 获取执行成功的Agent数量
@@ -77,7 +77,7 @@ public interface GseAgentTaskService {
      * @param executeCount   步骤执行次数
      * @return 执行成功的Agent任务
      */
-    List<GseAgentTaskDTO> listSuccessAgentGseTask(long stepInstanceId, int executeCount);
+    List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount);
 
     /**
      * 获取步骤执行结果分组信息-不包含ip详细信息
@@ -85,7 +85,7 @@ public interface GseAgentTaskService {
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      */
-    List<AgentTaskResultGroupDTO> getGseAgentTaskStatInfo(long stepInstanceId, int executeCount);
+    List<AgentTaskResultGroupDTO> getAgentTaskStatInfo(long stepInstanceId, int executeCount);
 
     /**
      * 获取步骤执行结果分组信息
@@ -96,12 +96,12 @@ public interface GseAgentTaskService {
      */
     List<AgentTaskResultGroupDTO> getLogStatInfoWithIp(long stepInstanceId, int executeCount);
 
-    List<GseAgentTaskDTO> listGseAgentTasksByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                        String tag);
+    List<AgentTaskDTO> listAgentTasksByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
+                                                  String tag);
 
-    List<GseAgentTaskDTO> getGseAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
-                                                             Integer resultType,
-                                                             String tag);
+    List<AgentTaskDTO> getAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
+                                                       Integer resultType,
+                                                       String tag);
 
     /**
      * 获取agent任务信息
@@ -111,9 +111,9 @@ public interface GseAgentTaskService {
      * @param onlyTargetIp   是否仅返回目标服务器IP
      * @return agent任务信息
      */
-    List<GseAgentTaskDTO> getGseAgentTask(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
+    List<AgentTaskDTO> getAgentTask(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
 
-    GseAgentTaskDTO getGseAgentTask(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp);
+    AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp);
 
     /**
      * 获取文件任务源ip
