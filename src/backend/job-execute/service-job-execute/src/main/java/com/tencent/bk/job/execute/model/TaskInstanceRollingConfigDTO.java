@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.execute.model.db.RollingConfigDO;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * 作业实例滚动配置
@@ -43,7 +44,7 @@ public class TaskInstanceRollingConfigDTO {
     private Long taskInstanceId;
 
     /**
-     * 滚动区间名称
+     * 滚动配置名称
      */
     private String configName;
 
@@ -51,5 +52,15 @@ public class TaskInstanceRollingConfigDTO {
      * 滚动配置
      */
     private RollingConfigDO config;
+
+    /**
+     * 判断是否滚动步骤
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    public boolean isRollingStep(long stepInstanceId) {
+        return config != null && CollectionUtils.isNotEmpty(config.getRollingStepInstanceIdList())
+            && config.getRollingStepInstanceIdList().contains(stepInstanceId);
+    }
 }
 

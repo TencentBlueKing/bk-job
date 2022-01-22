@@ -31,17 +31,17 @@ import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
  */
 public interface TaskInstanceRollingConfigDAO {
     /**
-     * 保存滚动区间配置
+     * 保存滚动配置
      *
-     * @param rollingConfig 滚动区间配置
+     * @param rollingConfig 滚动配置
      */
     long saveRollingConfig(TaskInstanceRollingConfigDTO rollingConfig);
 
     /**
-     * 通过滚动区间配置ID获取滚动区间配置
+     * 通过滚动配置ID获取滚动配置
      *
-     * @param rollingConfigId 滚动区间配置ID
-     * @return 滚动区间配置
+     * @param rollingConfigId 滚动配置ID
+     * @return 滚动配置
      */
     TaskInstanceRollingConfigDTO queryRollingConfigById(Long rollingConfigId);
 }

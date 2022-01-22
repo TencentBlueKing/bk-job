@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 滚动机制
+ * 滚动模式
  */
 public enum RollingModeEnum {
     /**

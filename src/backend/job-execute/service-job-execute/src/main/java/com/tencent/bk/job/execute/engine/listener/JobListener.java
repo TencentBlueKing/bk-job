@@ -260,7 +260,7 @@ public class JobListener {
                 includeStepInstanceIdList.get(includeStepInstanceIdList.size() - 1).equals(stepInstance.getId());
             boolean isLastBatch = rollingConfig.getTotalBatch() == currentBatch;
 
-            // 滚动区间任务执行结束
+            // 滚动任务执行结束
             if (isLastRollingStep && isLastBatch) {
                 List<Long> taskStepInstanceIdList = taskInstanceService.getTaskStepIdList(taskInstance.getId());
                 nextStepInstanceId = getNextStepInstanceId(taskStepInstanceIdList, stepInstance.getId());

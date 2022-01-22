@@ -26,26 +26,25 @@ package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
 /**
- * 执行作业实例滚动区间配置DO
+ * 执行作业实例滚动配置DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RollingConfigDO {
     /**
-     * 滚动区间名称
+     * 滚动配置名称
      */
     private String name;
     /**
-     * 滚动区间包含的步骤实例ID
+     * 滚动配置包含的步骤实例ID
      */
     private List<Long> includeStepInstanceIdList;
     /**
-     * 参与滚动的步骤实例ID
+     * 滚动步骤实例ID
      */
     private List<Long> rollingStepInstanceIdList;
     /**
@@ -64,15 +63,5 @@ public class RollingConfigDO {
      * 滚动总批次
      */
     private int totalBatch;
-
-    /**
-     * 判断是否滚动步骤
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    public boolean isRollingStep(long stepInstanceId) {
-        return CollectionUtils.isNotEmpty(this.rollingStepInstanceIdList)
-            && this.rollingStepInstanceIdList.contains(stepInstanceId);
-    }
 
 }
