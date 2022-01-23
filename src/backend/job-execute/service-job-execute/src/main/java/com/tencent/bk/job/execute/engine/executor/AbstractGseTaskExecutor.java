@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -163,13 +162,11 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      * @param gseTasksExceptionCounter GSE任务异常Counter
      * @param taskInstance             作业实例
      * @param stepInstance             步骤实例
-     * @param executeIps               目标IP
      */
     AbstractGseTaskExecutor(String requestId,
                             GseTasksExceptionCounter gseTasksExceptionCounter,
                             TaskInstanceDTO taskInstance,
-                            StepInstanceDTO stepInstance,
-                            Set<String> executeIps) {
+                            StepInstanceDTO stepInstance) {
         this.requestId = requestId;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.taskInstance = taskInstance;
@@ -204,7 +201,9 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                                      TaskExecuteMQEventDispatcher taskManager,
                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                      ExecuteMonitor executeMonitor,
-                                     JobExecuteConfig jobExecuteConfig) {
+                                     JobExecuteConfig jobExecuteConfig,
+                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                     ExceptionStatusManager exceptionStatusManager) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -218,14 +217,8 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
-    }
-
-    public void setExceptionStatusManager(ExceptionStatusManager exceptionStatusManager) {
-        this.exceptionStatusManager = exceptionStatusManager;
-    }
-
-    public void setTaskEvictPolicyExecutor(TaskEvictPolicyExecutor taskEvictPolicyExecutor) {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.exceptionStatusManager = exceptionStatusManager;
     }
 
     private void analyseAndSetTaskVariables() {
@@ -323,13 +316,6 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
      */
     public void execute() {
         StopWatch watch = new StopWatch("GseTaskExecutor-execute-" + stepInstanceId);
-
-        // 检查步骤超时设置是否合法；理论上View/Service层已经完全处理了不合法的参数，此处日志输入用于发现问题。后续版本观察正常之后需要删除
-        if (this.stepInstance.getTimeout() == null
-            || this.stepInstance.getTimeout() < JobConstants.MIN_JOB_TIMEOUT_SECONDS
-            || this.stepInstance.getTimeout() > JobConstants.MAX_JOB_TIMEOUT_SECONDS) {
-            log.warn("Invalid step timeout, timeout: {}", stepInstance.getTimeout());
-        }
 
         watch.start("init-execution-context");
         initExecutionContext();

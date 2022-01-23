@@ -89,15 +89,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     /**
      * 脚本任务执行日志进度
      */
-    private Map<String, LogPullProgress> logPullProgressMap = new HashMap<>();
+    private final Map<String, LogPullProgress> logPullProgressMap = new HashMap<>();
     /**
      * 保存命名空间参数，Map<ip,Map<paramName,paramValue>>
      */
-    private Map<String, Map<String, String>> namespaceParamValues = new HashMap<>();
+    private final Map<String, Map<String, String>> namespaceParamValues = new HashMap<>();
     /**
      * 保存可变全局参数，Map<ip,Map<paramName,paramValue>>
      */
-    private Map<String, Map<String, String>> changeableGlobalParamValues = new HashMap<>();
+    private final Map<String, Map<String, String>> changeableGlobalParamValues = new HashMap<>();
     /**
      * 脚本任务结果处理调度策略
      */

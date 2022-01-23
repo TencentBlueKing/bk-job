@@ -22,36 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.consts;
+package com.tencent.bk.job.execute.engine.listener.event;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 /**
- * GSE步骤执行Action
+ * 执行引擎-GSE任务事件
  */
-public enum GseStepActionEnum {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class GseTaskEvent {
     /**
-     * 启动任务
+     * GSE任务操作
+     *
+     * @see com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum
      */
-    START(1),
+    private int action;
     /**
-     * 终止任务
+     * 步骤实例ID
      */
-    STOP(2),
+    private long stepInstanceId;
     /**
-     * 重试失败IP
+     * 步骤执行次数
      */
-    RETRY_FAIL(3),
+    private Integer executeCount;
     /**
-     * 重试所有IP
+     * 执行批次
      */
-    RETRY_ALL(4);
-
-    private final int value;
-
-    GseStepActionEnum(int val) {
-        this.value = val;
-    }
-
-    public int getValue() {
-        return value;
-    }
+    private Integer batch;
+    /**
+     * 操作时间
+     */
+    private LocalDateTime time;
+    /**
+     * 请求ID,防止重复下发任务
+     */
+    private String requestId;
 }

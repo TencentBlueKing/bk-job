@@ -140,6 +140,13 @@ public class TaskInstanceDTO {
      */
     private List<TaskVariableDTO> variables;
 
+    /**
+     * 判断是否为执行方案实例
+     */
+    public boolean isPlanInstance() {
+        return this.taskId > 0;
+    }
+
 
 }
 

@@ -25,11 +25,13 @@
 package com.tencent.bk.job.execute.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * GSE 任务
  */
 @Data
+@NoArgsConstructor
 public class GseTaskDTO {
     /**
      * 步骤实例ID
@@ -63,4 +65,10 @@ public class GseTaskDTO {
      * GSE 任务ID
      */
     private String gseTaskId;
+
+    public GseTaskDTO(Long stepInstanceId, Integer executeCount, int batch) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+    }
 }

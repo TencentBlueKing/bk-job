@@ -27,14 +27,12 @@ package com.tencent.bk.job.execute.engine;
 import brave.Tracing;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.executor.AbstractGseTaskExecutor;
@@ -47,7 +45,6 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.RunningTaskCounter;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -73,7 +70,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +78,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * GSE任务执行管理
@@ -220,7 +215,7 @@ public class GseTaskManager implements SmartLifecycle {
             log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}",
                 taskInstance.getId(), stepInstance.getId());
-            taskManager.refreshJob(stepInstance.getTaskInstanceId());
+            taskManager.refreshStep(stepInstance.getId());
             return Triple.of(false, taskInstance, stepInstance);
         }
         return Triple.of(true, taskInstance, stepInstance);
@@ -231,12 +226,12 @@ public class GseTaskManager implements SmartLifecycle {
      *
      * @param stepInstanceId 步骤实例ID
      */
-    public void startStep(long stepInstanceId, String requestId) {
+    public void startTask(long stepInstanceId, String requestId) {
         checkActiveStatus(stepInstanceId);
 
         boolean success = false;
         String taskName = "start-gse-task:" + stepInstanceId;
-        StopWatch watch = new StopWatch("GseTaskManager-start-step-" + stepInstanceId);
+        StopWatch watch = new StopWatch("GseTaskManager-start-task-" + stepInstanceId);
         String startTaskRequestId = requestId;
         if (StringUtils.isEmpty(startTaskRequestId)) {
             startTaskRequestId = UUID.randomUUID().toString();
@@ -335,18 +330,17 @@ public class GseTaskManager implements SmartLifecycle {
      *
      * @param stepInstance 步骤
      * @param taskInstance 作业
-     * @param executeIps   目标ip
      * @return executor
      */
-    private AbstractGseTaskExecutor initGseTaskExecutor(String requestId, StepInstanceDTO stepInstance,
-                                                        TaskInstanceDTO taskInstance,
-                                                        Set<String> executeIps) {
+    private AbstractGseTaskExecutor initGseTaskExecutor(String requestId,
+                                                        StepInstanceDTO stepInstance,
+                                                        TaskInstanceDTO taskInstance) {
         AbstractGseTaskExecutor gseTaskExecutor = null;
         int executeType = stepInstance.getExecuteType();
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue()) {
             scriptTaskCounter.incrementAndGet();
             gseTaskExecutor = new ScriptTaskExecutor(requestId, gseTasksExceptionCounter, taskInstance, stepInstance,
-                executeIps, jobBuildInVariableResolver);
+                jobBuildInVariableResolver);
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL.getValue()) {
             gseTaskExecutor = new SQLScriptTaskExecutor(requestId, gseTasksExceptionCounter, taskInstance,
                 stepInstance, executeIps);
@@ -376,10 +370,10 @@ public class GseTaskManager implements SmartLifecycle {
             taskManager,
             resultHandleTaskKeepaliveManager,
             executeMonitor,
-            jobExecuteConfig
+            jobExecuteConfig,
+            taskEvictPolicyExecutor,
+            exceptionStatusManager
         );
-        gseTaskExecutor.setExceptionStatusManager(exceptionStatusManager);
-        gseTaskExecutor.setTaskEvictPolicyExecutor(taskEvictPolicyExecutor);
         gseTaskExecutor.setTracing(tracing);
         return gseTaskExecutor;
     }
@@ -389,7 +383,7 @@ public class GseTaskManager implements SmartLifecycle {
      *
      * @param stepInstanceId 步骤实例ID
      */
-    public void stopStep(long stepInstanceId, String requestId) {
+    public void stopTask(long stepInstanceId, String requestId) {
         log.info("Stop gse task, stepInstanceId:" + stepInstanceId);
 
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
@@ -437,139 +431,141 @@ public class GseTaskManager implements SmartLifecycle {
         log.info("Server ip: {}", serverIp);
     }
 
-    /**
-     * 重试执行失败的IP
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    public void retryFail(long stepInstanceId, String requestId) {
-        if (!isActive()) {
-            log.warn("GseTaskManager is not active, reject!");
-            throw new MessageHandlerUnavailableException();
-        }
+//    /**
+//     * 重试执行失败的IP
+//     *
+//     * @param stepInstanceId 步骤实例ID
+//     */
+//    public void retryFail(long stepInstanceId, String requestId) {
+//        if (!isActive()) {
+//            log.warn("GseTaskManager is not active, reject!");
+//            throw new MessageHandlerUnavailableException();
+//        }
+//
+//        String taskName = "retry-fail:" + stepInstanceId;
+//        try {
+//            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+//            if (stepInstance == null) {
+//                log.warn("StepInstance is not exist, stop retry! stepInstanceId:{}", stepInstanceId);
+//                return;
+//            }
+//            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+//            if (taskInstance == null) {
+//                log.warn("TaskInstance is not exist, stop retry! taskInstanceId:{}", stepInstance.getTaskInstanceId
+//                ());
+//                return;
+//            }
+//
+//            int executeCount = stepInstance.getExecuteCount();
+//            List<AgentTaskDTO> successGseAgentTasks = agentTaskService.listSuccessAgentTasks(stepInstanceId,
+//                executeCount - 1);
+//            Set<String> lastSuccessIpSet = new HashSet<>();
+//            if (successGseAgentTasks != null) {
+//                lastSuccessIpSet.addAll(successGseAgentTasks.parallelStream().map(AgentTaskDTO::getCloudAreaAndIp)
+//                    .collect(Collectors.toSet()));
+//            }
+//            Set<String> executeIps = new HashSet<>();
+//            stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
+//                String fullIp = ipDTO.getCloudAreaId() + ":" + ipDTO.getIp();
+//                if (!lastSuccessIpSet.contains(fullIp)) {
+//                    executeIps.add(fullIp);
+//                }
+//            });
+//            log.info("Get execute ips, stepInstanceId:{}, executeIps:{}", stepInstanceId, executeIps);
+//            AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
+//                stepInstance, taskInstance, executeIps);
+//            if (gseTaskExecutor == null) {
+//                log.warn("No match GseTaskExecutor for task, stepInstanceId:{}", stepInstanceId);
+//                return;
+//            }
+//
+//            // GseTaskResult初始状态
+//            dealGseTaskResult(stepInstance);
+//            // 已成功执行过的IP无需执行，仅保存记录
+//            if (successGseAgentTasks != null && !successGseAgentTasks.isEmpty()) {
+//                dealLastSuccessIp(executeCount, successGseAgentTasks);
+//            }
+//
+//            counter.add(taskName);
+//            executeTask(gseTaskExecutor, stepInstance);
+//        } finally {
+//            counter.release(taskName);
+//        }
+//
+//    }
 
-        String taskName = "retry-fail:" + stepInstanceId;
-        try {
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-            if (stepInstance == null) {
-                log.warn("StepInstance is not exist, stop retry! stepInstanceId:{}", stepInstanceId);
-                return;
-            }
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-            if (taskInstance == null) {
-                log.warn("TaskInstance is not exist, stop retry! taskInstanceId:{}", stepInstance.getTaskInstanceId());
-                return;
-            }
+//    private void dealGseTaskResult(StepInstanceDTO stepInstance) {
+//        // 初始化GseTaskResult
+//        GseTaskDTO gseTask = new GseTaskDTO();
+//        gseTask.setStepInstanceId(stepInstance.getId());
+//        gseTask.setExecuteCount(stepInstance.getExecuteCount());
+//        gseTask.setStatus(RunStatusEnum.RUNNING.getValue());
+//        gseTask.setStartTime(DateUtils.currentTimeMillis());
+//        gseTaskService.saveGseTask(gseTask);
+//    }
 
-            int executeCount = stepInstance.getExecuteCount();
-            List<AgentTaskDTO> successGseAgentTasks = agentTaskService.listSuccessAgentTasks(stepInstanceId,
-                executeCount - 1);
-            Set<String> lastSuccessIpSet = new HashSet<>();
-            if (successGseAgentTasks != null) {
-                lastSuccessIpSet.addAll(successGseAgentTasks.parallelStream().map(AgentTaskDTO::getCloudAreaAndIp)
-                    .collect(Collectors.toSet()));
-            }
-            Set<String> executeIps = new HashSet<>();
-            stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
-                String fullIp = ipDTO.getCloudAreaId() + ":" + ipDTO.getIp();
-                if (!lastSuccessIpSet.contains(fullIp)) {
-                    executeIps.add(fullIp);
-                }
-            });
-            log.info("Get execute ips, stepInstanceId:{}, executeIps:{}", stepInstanceId, executeIps);
-            AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
-                stepInstance, taskInstance, executeIps);
-            if (gseTaskExecutor == null) {
-                log.warn("No match GseTaskExecutor for task, stepInstanceId:{}", stepInstanceId);
-                return;
-            }
+//    /**
+//     * 处理已执行成功的IP
+//     *
+//     * @param executeCount             执行次数
+//     * @param lastSuccessGseAgentTasks 已执行成功IP
+//     */
+//    private void dealLastSuccessIp(int executeCount, List<AgentTaskDTO> lastSuccessGseAgentTasks) {
+//        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+//        for (AgentTaskDTO agentTask : lastSuccessGseAgentTasks) {
+//            agentTask.setExecuteCount(executeCount);
+//            agentTask.setStatus(IpStatus.LAST_SUCCESS.getValue());
+//            agentTasks.add(agentTask);
+//        }
+//        if (agentTasks.size() > 0) {
+//            agentTaskService.batchSaveAgentTasks(agentTasks);
+//        }
+//    }
 
-            // GseTaskResult初始状态
-            dealGseTaskResult(stepInstance);
-            // 已成功执行过的IP无需执行，仅保存记录
-            if (successGseAgentTasks != null && !successGseAgentTasks.isEmpty()) {
-                dealLastSuccessIp(executeCount, successGseAgentTasks);
-            }
-
-            counter.add(taskName);
-            executeTask(gseTaskExecutor, stepInstance);
-        } finally {
-            counter.release(taskName);
-        }
-
-    }
-
-    private void dealGseTaskResult(StepInstanceDTO stepInstance) {
-        // 初始化GseTaskResult
-        GseTaskDTO gseTask = new GseTaskDTO();
-        gseTask.setStepInstanceId(stepInstance.getId());
-        gseTask.setExecuteCount(stepInstance.getExecuteCount());
-        gseTask.setStatus(RunStatusEnum.RUNNING.getValue());
-        gseTask.setStartTime(DateUtils.currentTimeMillis());
-        gseTaskService.saveGseTask(gseTask);
-    }
-
-    /**
-     * 处理已执行成功的IP
-     *
-     * @param executeCount             执行次数
-     * @param lastSuccessGseAgentTasks 已执行成功IP
-     */
-    private void dealLastSuccessIp(int executeCount, List<AgentTaskDTO> lastSuccessGseAgentTasks) {
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
-        for (AgentTaskDTO agentTask : lastSuccessGseAgentTasks) {
-            agentTask.setExecuteCount(executeCount);
-            agentTask.setStatus(IpStatus.LAST_SUCCESS.getValue());
-            agentTasks.add(agentTask);
-        }
-        if (agentTasks.size() > 0) {
-            agentTaskService.batchSaveAgentTasks(agentTasks);
-        }
-    }
-
-    /**
-     * 重试执行所有的IP,包括已执行成功的
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    public void retryAll(long stepInstanceId, String requestId) {
-        if (!isActive()) {
-            log.warn("GseTaskManager is not active, reject!");
-            throw new MessageHandlerUnavailableException();
-        }
-        String taskName = "retry-all:" + stepInstanceId;
-        try {
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-            if (stepInstance == null) {
-                log.warn("StepInstance is not exist, stop retry! stepInstanceId:{}", stepInstanceId);
-                return;
-            }
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-            if (taskInstance == null) {
-                log.warn("TaskInstance is not exist, stop retry! taskInstanceId:{}", stepInstance.getTaskInstanceId());
-                return;
-            }
-
-            Set<String> executeIps = new HashSet<>();
-            stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
-                String fullIp = ipDTO.getCloudAreaId() + ":" + ipDTO.getIp();
-                executeIps.add(fullIp);
-            });
-            log.info("Get execute ips, stepInstanceId:{}, executeIps:{}", stepInstanceId, executeIps);
-            AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
-                stepInstance, taskInstance, executeIps);
-            if (gseTaskExecutor == null) {
-                log.warn("No match GseTaskExecutor for task, stepInstanceId:{}", stepInstanceId);
-                return;
-            }
-
-            counter.add(taskName);
-            executeTask(gseTaskExecutor, stepInstance);
-        } finally {
-            counter.release(taskName);
-        }
-
-    }
+//    /**
+//     * 重试执行所有的IP,包括已执行成功的
+//     *
+//     * @param stepInstanceId 步骤实例ID
+//     */
+//    public void retryAll(long stepInstanceId, String requestId) {
+//        if (!isActive()) {
+//            log.warn("GseTaskManager is not active, reject!");
+//            throw new MessageHandlerUnavailableException();
+//        }
+//        String taskName = "retry-all:" + stepInstanceId;
+//        try {
+//            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+//            if (stepInstance == null) {
+//                log.warn("StepInstance is not exist, stop retry! stepInstanceId:{}", stepInstanceId);
+//                return;
+//            }
+//            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+//            if (taskInstance == null) {
+//                log.warn("TaskInstance is not exist, stop retry! taskInstanceId:{}", stepInstance.getTaskInstanceId
+//                ());
+//                return;
+//            }
+//
+//            Set<String> executeIps = new HashSet<>();
+//            stepInstance.getTargetServers().getIpList().forEach(ipDTO -> {
+//                String fullIp = ipDTO.getCloudAreaId() + ":" + ipDTO.getIp();
+//                executeIps.add(fullIp);
+//            });
+//            log.info("Get execute ips, stepInstanceId:{}, executeIps:{}", stepInstanceId, executeIps);
+//            AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
+//                stepInstance, taskInstance, executeIps);
+//            if (gseTaskExecutor == null) {
+//                log.warn("No match GseTaskExecutor for task, stepInstanceId:{}", stepInstanceId);
+//                return;
+//            }
+//
+//            counter.add(taskName);
+//            executeTask(gseTaskExecutor, stepInstance);
+//        } finally {
+//            counter.release(taskName);
+//        }
+//
+//    }
 
     private void executeTask(AbstractGseTaskExecutor gseTaskExecutor, StepInstanceDTO stepInstance) {
         long stepInstanceId = stepInstance.getId();

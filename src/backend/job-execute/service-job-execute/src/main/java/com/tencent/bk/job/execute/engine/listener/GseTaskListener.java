@@ -27,9 +27,9 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.engine.GseTaskManager;
-import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
+import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableBinding({GseTaskProcessor.class})
 @Slf4j
-public class GseStepListener {
+public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
     private final ExceptionStatusManager exceptionStatusManager;
     /**
@@ -54,7 +54,7 @@ public class GseStepListener {
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
 
     @Autowired
-    public GseStepListener(GseTaskManager gseTaskManager,
+    public GseTaskListener(GseTaskManager gseTaskManager,
                            ExceptionStatusManager exceptionStatusManager,
                            GseTasksExceptionCounter gseTasksExceptionCounter) {
         this.gseTaskManager = gseTaskManager;
@@ -65,28 +65,24 @@ public class GseStepListener {
     /**
      * 处理GSE任务相关的事件
      *
-     * @param gseStepEvent GSE任务事件
+     * @param gseTaskEvent GSE任务事件
      */
     @StreamListener(GseTaskProcessor.INPUT)
-    public void handleEvent(@Payload StepEvent gseStepEvent) {
-        log.info("Handel gse step event: {}", gseStepEvent);
-        long stepInstanceId = gseStepEvent.getStepInstanceId();
-        String requestId = gseStepEvent.getRequestId();
+    public void handleEvent(@Payload GseTaskEvent gseTaskEvent) {
+        log.info("Handel gse task event: {}", gseTaskEvent);
+        long stepInstanceId = gseTaskEvent.getStepInstanceId();
+        String requestId = gseTaskEvent.getRequestId();
         try {
-            int action = gseStepEvent.getAction();
-            if (GseStepActionEnum.START.getValue() == action) {
-                gseTaskManager.startStep(stepInstanceId, gseStepEvent.getRequestId());
-            } else if (GseStepActionEnum.STOP.getValue() == action) {
-                gseTaskManager.stopStep(stepInstanceId, requestId);
-            } else if (GseStepActionEnum.RETRY_FAIL.getValue() == action) {
-                gseTaskManager.retryFail(stepInstanceId, requestId);
-            } else if (GseStepActionEnum.RETRY_ALL.getValue() == action) {
-                gseTaskManager.retryAll(stepInstanceId, requestId);
+            int action = gseTaskEvent.getAction();
+            if (GseTaskActionEnum.START.getValue() == action) {
+                gseTaskManager.startTask(stepInstanceId, gseTaskEvent.getRequestId());
+            } else if (GseTaskActionEnum.STOP.getValue() == action) {
+                gseTaskManager.stopTask(stepInstanceId, requestId);
             } else {
-                log.error("Error gse step action:{}", action);
+                log.error("Error gse task action:{}", action);
             }
         } catch (Throwable e) {
-            String errorMsg = "Handling gse step event error,stepInstanceId:" + stepInstanceId;
+            String errorMsg = "Handling gse task event error,stepInstanceId:" + stepInstanceId;
             log.error(errorMsg, e);
             handleException(stepInstanceId, e);
         }

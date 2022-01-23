@@ -26,14 +26,14 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.gse.taskapi.api_agent;
 import com.tencent.bk.gse.taskapi.api_script_request;
-import com.tencent.bk.gse.taskapi.api_stop_task_request;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.service.VariableResolver;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
+import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.ScriptRequestBuilder;
-import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
@@ -45,7 +45,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -57,15 +57,16 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-/**
- * GSE-脚本任务执行
- */
 @Slf4j
-public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
+public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
+
     /**
      * 下发到gse的脚本文件根目录
      */
@@ -80,6 +81,23 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
     /**
+     * 未开始执行任务的主机
+     */
+    private final Set<String> notStartedAgents = new HashSet<>();
+    /**
+     * 目标主机
+     */
+    protected Set<String> jobIpSet = new HashSet<>();
+    /**
+     * 不合法的主机
+     */
+    protected Set<String> invalidIpSet;
+    /**
+     * 文件源主机
+     */
+    protected Set<String> fileSourceIPSet = new HashSet<>();
+
+    /**
      * ScriptTaskExecutor Constructor
      *
      * @param requestId                  请求ID
@@ -88,9 +106,10 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
      * @param stepInstance               步骤实例
      * @param jobBuildInVariableResolver 内置变量解析
      */
-    public ScriptTaskExecutor(String requestId, GseTasksExceptionCounter gseTasksExceptionCounter,
+    public ScriptTaskExecutor(String requestId,
                               TaskInstanceDTO taskInstance,
                               StepInstanceDTO stepInstance,
+                              GseTasksExceptionCounter gseTasksExceptionCounter,
                               JobBuildInVariableResolver jobBuildInVariableResolver) {
         super(requestId, gseTasksExceptionCounter, taskInstance, stepInstance);
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
@@ -113,15 +132,17 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     }
 
     @Override
-    protected void initExecutionContext() {
+    protected void preExecute() {
+        this.initAndSaveGseAgentTasksToBeStarted();
+        this.saveInvalidGseAgentTaskResult();
+        this.analyseAndSetTaskVariables();
         scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
             stepInstance.getAccount());
-        super.initExecutionContext();
     }
 
 
     @Override
-    protected GseTaskResponse startGseTask(StepInstanceDTO stepInstance) {
+    protected GseTaskResponse startGseTask() {
         return GseRequestUtils.sendScriptTaskRequest(stepInstanceId, getScriptRequest(stepInstance));
     }
 
@@ -129,7 +150,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         // shell 脚本需要支持全局变量传参，需要特殊的处理逻辑
         if (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
             api_script_request request = buildShellScriptRequest(stepInstance);
-            request.setM_caller(buildTraceInfoMap());
+            request.setM_caller(buildGseTraceInfo(taskInstance, stepInstance));
             return request;
         }
         String scriptContent = stepInstance.getScriptContent();
@@ -145,7 +166,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             accountInfo.getPassword());
         api_script_request request = GseRequestUtils.buildScriptRequest(agentList, scriptContent, scriptFileName,
             scriptFilePath, resolvedScriptParam, timeout);
-        request.setM_caller(buildTraceInfoMap());
+        request.setM_caller(buildGseTraceInfo());
         return request;
     }
 
@@ -596,36 +617,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
     }
 
     @Override
-    public GseTaskExecuteResult stopGseTask() {
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(jobIpSet, accountInfo.getAccount(),
-            accountInfo.getPassword());
-        api_stop_task_request stopTaskRequest = new api_stop_task_request();
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, rollingBatch);
-        if (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId())) {
-            log.warn("Gse Task not send to gse server, not support stop");
-            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED, "Termination failed");
-        }
-        stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());
-        stopTaskRequest.setAgents(agentList);
-        stopTaskRequest.setType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        stopTaskRequest.setM_caller(buildTraceInfoMap());
-
-        GseTaskResponse gseTaskResponse = GseRequestUtils.sendForceStopTaskRequest(stepInstance.getId(),
-            stopTaskRequest);
-        if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
-            log.info("sendForceStopTaskRequest response failed!");
-            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED,
-                "Termination failed， msg:" + gseTaskResponse.getErrorMessage());
-        } else {
-            log.info("sendForceStopTaskRequest response success!");
-            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS, "Termination successfully");
-        }
-    }
-
-    @Override
-    void addExecutionResultHandleTask() {
+    protected final void addResultHandleTask() {
         ScriptResultHandleTask scriptResultHandleTask =
             new ScriptResultHandleTask(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap, gseTask,
                 jobIpSet, requestId);
@@ -635,7 +627,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
             logService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
-            taskManager,
+            taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             exceptionStatusManager,
             taskEvictPolicyExecutor,
@@ -644,18 +636,40 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
-    @Override
-    public void resume() {
-        log.info("Resume script task from snapshot, stepInstanceId: {}", stepInstanceId);
-    }
 
     @Override
-    public void saveSnapshot() {
-        log.info("Save script task snapshot, stepInstanceId: {}", stepInstanceId);
+    protected final void handleStartGseTaskError(GseTaskResponse gseTaskResponse) {
+        long endTime = DateUtils.currentTimeMillis();
+        gseTask.setStatus(RunStatusEnum.FAIL.getValue());
+        gseTask.setEndTime(endTime);
+        gseTask.setTotalTime(endTime - gseTask.getStartTime());
+        gseTaskService.saveGseTask(gseTask);
+
+        // 处理未完成的任务
+        saveNotStartedAgentTasks(gseTask.getStartTime(), endTime,
+            "GSE Job failed:" + gseTaskResponse.getErrorMessage());
     }
 
-    @Override
-    protected boolean checkHostExecutable() {
-        return !jobIpSet.isEmpty();
+    private void saveNotStartedAgentTasks(Long startTime, Long endTime, String errorMsg) {
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
+                stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(notStartedAgents), errorMsg, endTime);
+        }
+
+        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, notStartedAgents, startTime, endTime,
+            IpStatus.SUBMIT_FAILED);
+    }
+
+    private Map<String, Integer> buildIpAndLogOffsetMap(Collection<String> ips) {
+        Map<String, Integer> ipAndLogOffsetMap = new HashMap<>();
+        ips.forEach(ip -> {
+            AgentTaskDTO agentTask = agentTaskMap.get(ip);
+            if (agentTask != null) {
+                ipAndLogOffsetMap.put(ip, agentTask.getScriptLogOffset());
+            } else {
+                ipAndLogOffsetMap.put(ip, 0);
+            }
+        });
+        return ipAndLogOffsetMap;
     }
 }

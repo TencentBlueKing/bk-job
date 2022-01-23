@@ -280,7 +280,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         // 步骤状态变更
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
-        TaskExecuteMQEventDispatcher.refreshJob(stepInstance.getTaskInstanceId());
+        TaskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
         // 强制终止成功后就不再下发GSE Task了
         // TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
     }
@@ -288,6 +288,6 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-        TaskExecuteMQEventDispatcher.refreshJob(stepInstance.getTaskInstanceId());
+        TaskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
     }
 }
