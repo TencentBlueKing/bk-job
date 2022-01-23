@@ -24,26 +24,27 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task;
 
+import java.util.Map;
 
-import lombok.Getter;
-import lombok.Setter;
+public class DefaultTaskStatusListener implements TaskStatusListener<Boolean> {
 
-import java.util.concurrent.Future;
+    private Map<String, TaskInfo> taskFutureMap;
+    private String taskName;
 
-@Setter
-@Getter
-public class TaskInfo {
+    public DefaultTaskStatusListener(Map<String, TaskInfo> taskFutureMap, String taskName) {
+        this.taskFutureMap = taskFutureMap;
+        this.taskName = taskName;
+    }
 
-    // 等待被执行
-    public static final int STATUS_WAITING = 0;
-    // 执行中
-    public static final int STATUS_RUNNING = 1;
+    @Override
+    public boolean onStart() {
+        taskFutureMap.get(taskName).setStatus(TaskInfo.STATUS_RUNNING);
+        return false;
+    }
 
-    Future<?> future;
-    int status;
-
-    public TaskInfo(Future<?> future, int status) {
-        this.future = future;
-        this.status = status;
+    @Override
+    public boolean onFinish(Boolean result) {
+        taskFutureMap.remove(taskName);
+        return result;
     }
 }
