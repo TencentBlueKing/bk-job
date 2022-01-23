@@ -277,7 +277,7 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setAppId(2L);
         taskQuery.setOperator("admin");
-        taskQuery.setIp("10.0.0.2");
+        taskQuery.setIp("127.0.0.2");
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(0);

@@ -78,7 +78,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getStepOrder()).isEqualTo(1);
         assertThat(stepInstance.getName()).isEqualTo("task1-step1");
         assertThat(stepInstance.getExecuteType()).isEqualTo(1);
-        assertThat(stepInstance.getIpList()).isEqualTo("0:10.0.0.1");
+        assertThat(stepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(stepInstance.getOperator()).isEqualTo("admin");
         assertThat(stepInstance.getStatus()).isEqualTo(3);
         assertThat(stepInstance.getExecuteCount()).isEqualTo(0);
@@ -88,7 +88,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getCreateTime()).isEqualTo(1572868800000L);
         assertThat(stepInstance.getTargetServers()).isNotNull();
         List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "10.0.0.1"));
+        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
         assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
     }
 
@@ -102,7 +102,7 @@ public class StepInstanceDAOImplIntegrationTest {
         stepInstanceDTO.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         ServersDTO servers = new ServersDTO();
         List<IpDTO> ipList = new ArrayList<>();
-        ipList.add(new IpDTO(0L, "10.0.0.1"));
+        ipList.add(new IpDTO(0L, "127.0.0.1"));
         servers.setIpList(ipList);
         stepInstanceDTO.setTargetServers(servers);
         stepInstanceDTO.setOperator("admin");
@@ -125,10 +125,10 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getStepId()).isEqualTo(1L);
         assertThat(returnStepInstance.getName()).isEqualTo("task1-step1");
         assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        assertThat(returnStepInstance.getIpList()).isEqualTo("0:10.0.0.1");
+        assertThat(returnStepInstance.getIpList()).isEqualTo("0:127.0.0.1");
         assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
         List<IpDTO> expectedServer = new ArrayList<>();
-        expectedServer.add(new IpDTO(0L, "10.0.0.1"));
+        expectedServer.add(new IpDTO(0L, "127.0.0.1"));
         assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS.getValue());
