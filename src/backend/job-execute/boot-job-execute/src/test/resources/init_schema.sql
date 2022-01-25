@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS `gse_task_ip_log`
     `step_instance_id` bigint(20)  NOT NULL,
     `execute_count`    int(11)     NOT NULL DEFAULT '0',
     `batch`            smallint(6) NOT NULL DEFAULT '0',
+    `gse_task_id`      bigint(20)  NOT NULL DEFAULT '0',
     `ip`               varchar(30) NOT NULL,
     `status`           int(11)              DEFAULT '1',
     `start_time`       bigint(20)           DEFAULT NULL,

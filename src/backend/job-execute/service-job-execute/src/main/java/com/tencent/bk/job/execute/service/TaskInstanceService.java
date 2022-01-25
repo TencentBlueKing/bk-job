@@ -79,6 +79,14 @@ public interface TaskInstanceService {
      */
     StepInstanceDTO getStepInstanceDetail(long stepInstanceId);
 
+    /**
+     * 获取作业的第一个步骤实例
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 作业第一个步骤实例
+     */
+    StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId);
+
     void updateTaskStatus(long taskInstanceId, int status);
 
     List<Long> getTaskStepIdList(long taskInstanceId);

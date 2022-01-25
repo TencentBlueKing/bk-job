@@ -49,6 +49,14 @@ public interface StepInstanceDAO {
 
     StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId);
 
+    /**
+     * 获取作业的第一个步骤实例
+     *
+     * @param taskInstanceId 作业实例ID
+     * @return 作业第一个步骤实例
+     */
+    StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId);
+
     ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId);
 
     FileStepInstanceDTO getFileStepInstance(long stepInstanceId);
@@ -184,6 +192,14 @@ public interface StepInstanceDAO {
      * @param batch          滚动执行批次
      */
     void updateStepCurrentBatch(long stepInstanceId, int batch);
+
+    /**
+     * 更新步骤实例的当前滚动执行批次
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     */
+    void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount);
 
     /**
      * 更新步骤实例的滚动配置ID

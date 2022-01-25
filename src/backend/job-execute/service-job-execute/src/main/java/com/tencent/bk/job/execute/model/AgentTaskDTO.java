@@ -51,6 +51,10 @@ public class AgentTaskDTO {
      */
     private int batch;
     /**
+     * GSE 任务ID
+     */
+    private long gseTaskId;
+    /**
      * 服务器IP,包含云区域
      */
     private String cloudAreaAndIp;

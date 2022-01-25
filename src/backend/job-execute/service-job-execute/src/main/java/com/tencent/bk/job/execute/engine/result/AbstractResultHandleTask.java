@@ -202,24 +202,33 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     // ---------------- task lifecycle properties --------------------
 
 
-    /**
-     * Constructor
-     *
-     * @param taskInstance               作业实例
-     * @param stepInstance               步骤实例
-     * @param taskVariablesAnalyzeResult 变量信息
-     * @param agentTaskMap                   GSE任务-主机-信息
-     * @param gseTask                 GSE任务整体信息
-     * @param targetIps                  目标服务器IP
-     * @param requestId                  请求ID,防止重复执行
-     */
-    protected AbstractResultHandleTask(TaskInstanceDTO taskInstance,
+    protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
+                                       GseTaskService gseTaskService,
+                                       LogService logService,
+                                       TaskInstanceVariableService taskInstanceVariableService,
+                                       StepInstanceVariableValueService stepInstanceVariableValueService,
+                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                       ExceptionStatusManager exceptionStatusManager,
+                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                       AgentTaskService agentTaskService,
+                                       TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                        Map<String, AgentTaskDTO> agentTaskMap,
                                        GseTaskDTO gseTask,
                                        Set<String> targetIps,
                                        String requestId) {
+        this.taskInstanceService = taskInstanceService;
+        this.gseTaskService = gseTaskService;
+        this.logService = logService;
+        this.taskInstanceVariableService = taskInstanceVariableService;
+        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.exceptionStatusManager = exceptionStatusManager;
+        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.agentTaskService = agentTaskService;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -239,31 +248,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (taskVariables != null && !taskVariables.isEmpty()) {
             taskVariables.forEach(var -> initialVariables.put(var.getName(), var));
         }
-    }
-
-    /**
-     * 初始化依赖的服务
-     */
-    public void initDependentService(TaskInstanceService taskInstanceService,
-                                     GseTaskService gseTaskService,
-                                     LogService logService,
-                                     TaskInstanceVariableService taskInstanceVariableService,
-                                     StepInstanceVariableValueService stepInstanceVariableValueService,
-                                     TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                     ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                     ExceptionStatusManager exceptionStatusManager,
-                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     AgentTaskService agentTaskService) {
-        this.taskInstanceService = taskInstanceService;
-        this.gseTaskService = gseTaskService;
-        this.logService = logService;
-        this.taskInstanceVariableService = taskInstanceVariableService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.exceptionStatusManager = exceptionStatusManager;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.agentTaskService = agentTaskService;
     }
 
     /**

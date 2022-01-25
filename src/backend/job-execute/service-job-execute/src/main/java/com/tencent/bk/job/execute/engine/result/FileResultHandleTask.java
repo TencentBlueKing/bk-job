@@ -36,15 +36,19 @@ import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.consts.GseConstants;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
 import com.tencent.bk.job.execute.engine.gse.model.CopyFileRsp;
 import com.tencent.bk.job.execute.engine.gse.model.GSEFileTaskResult;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileTaskLog;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.engine.util.Utils;
@@ -53,6 +57,12 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceIpLogDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -153,7 +163,17 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      */
     private String taskInfo;
 
-    public FileResultHandleTask(TaskInstanceDTO taskInstance,
+    public FileResultHandleTask(TaskInstanceService taskInstanceService,
+                                GseTaskService gseTaskService,
+                                LogService logService,
+                                TaskInstanceVariableService taskInstanceVariableService,
+                                StepInstanceVariableValueService stepInstanceVariableValueService,
+                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                ExceptionStatusManager exceptionStatusManager,
+                                TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                AgentTaskService agentTaskService,
+                                TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                 Map<String, AgentTaskDTO> agentTaskMap,
@@ -164,7 +184,23 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
                                 Map<String, String> sourceDestPathMap,
                                 Map<String, String> sourceFileDisplayMap,
                                 String requestId) {
-        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap, gseTask, targetIps, requestId);
+        super(taskInstanceService,
+            gseTaskService,
+            logService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            taskExecuteMQEventDispatcher,
+            resultHandleTaskKeepaliveManager,
+            exceptionStatusManager,
+            taskEvictPolicyExecutor,
+            agentTaskService,
+            taskInstance,
+            stepInstance,
+            taskVariablesAnalyzeResult,
+            agentTaskMap,
+            gseTask,
+            targetIps,
+            requestId);
         this.sendFiles = sendFiles;
         this.localUploadDir = NFSUtils.getFileDir(storageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
         if (sourceDestPathMap != null) {
@@ -789,7 +825,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      * @param fileNum    文件总数
      * @param successNum 成功分发的文件总数
      * @param isDownload 是否为下载过程
-     * @param agentTask      ip对应日志
+     * @param agentTask  ip对应日志
      */
     private void updateFinishedIpStatusAndLog(
         int errorCode,

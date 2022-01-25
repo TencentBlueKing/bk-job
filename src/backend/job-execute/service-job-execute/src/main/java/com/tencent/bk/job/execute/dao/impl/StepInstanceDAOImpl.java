@@ -365,6 +365,18 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
+    public StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId) {
+        Record record = CTX
+            .select(T_STEP_INSTANCE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .orderBy(T_STEP_INSTANCE.ID.asc())
+            .limit(1)
+            .fetchOne();
+        return extractBaseInfo(record);
+    }
+
+    @Override
     public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId) {
         Result result = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
@@ -827,6 +839,13 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void updateStepCurrentBatch(long stepInstanceId, int batch) {
         CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .execute();
+    }
+
+    @Override
+    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
+        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
             .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }

@@ -54,6 +54,11 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
+    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
+        stepInstanceDAO.updateStepCurrentExecuteCount(stepInstanceId, executeCount);
+    }
+
+    @Override
     public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
         stepInstanceDAO.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
     }

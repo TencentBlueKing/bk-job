@@ -168,7 +168,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
      */
     private void parseSendFileList() {
         resolveVariableForSourceFilePath(stepInstance.getFileSourceList(),
-            buildReferenceGlobalVarValueMap(stepInputVariables));
+            buildStringGlobalVarKV(stepInputVariables));
         sendFiles = JobSrcFileUtils.parseSendFileList(stepInstance, localAgentIp, fileStorageRootPath);
         setAccountInfoForSourceFiles(sendFiles);
         // 初始化显示名称映射Map
@@ -274,7 +274,7 @@ public class FileTaskExecutor extends AbstractGseTaskExecutor {
      */
     private void resolvedTargetPathWithVariable() {
         String resolvedTargetPath = VariableValueResolver.resolve(stepInstance.getFileTargetPath(),
-            buildReferenceGlobalVarValueMap(stepInputVariables));
+            buildStringGlobalVarKV(stepInputVariables));
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);
         if (!resolvedTargetPath.equals(stepInstance.getFileTargetPath())) {

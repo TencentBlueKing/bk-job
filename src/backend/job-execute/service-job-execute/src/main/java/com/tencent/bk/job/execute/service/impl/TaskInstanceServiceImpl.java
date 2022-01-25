@@ -161,6 +161,11 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
+    public StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId) {
+        return stepInstanceDAO.getFirstStepInstanceBase(taskInstanceId);
+    }
+
+    @Override
     public void updateTaskStatus(long taskInstanceId, int status) {
         taskInstanceDAO.updateTaskStatus(taskInstanceId, status);
     }

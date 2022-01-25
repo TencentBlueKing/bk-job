@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine;
+package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -35,10 +35,6 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
-import com.tencent.bk.job.execute.engine.executor.AbstractGseTaskExecutor;
-import com.tencent.bk.job.execute.engine.executor.FileTaskExecutor;
-import com.tencent.bk.job.execute.engine.executor.SQLScriptTaskExecutor;
-import com.tencent.bk.job.execute.engine.executor.ScriptTaskExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
@@ -258,7 +254,7 @@ public class GseTaskManager implements SmartLifecycle {
 
             watch.start("init-task-executor");
             Set<String> executeIps = new HashSet<>();
-            if (stepInstance.hasRollingConfig()) {
+            if (stepInstance.isRollingStep()) {
                 List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance);
                 rollingServers.forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
             } else {

@@ -66,6 +66,15 @@ BEGIN
                 AND COLUMN_NAME = 'batch') THEN
         ALTER TABLE gse_task_ip_log ADD COLUMN `batch` smallint(6) NOT NULL DEFAULT '0' AFTER execute_count;
     END IF;
+
+    IF NOT EXISTS(SELECT 1
+              FROM information_schema.COLUMNS
+              WHERE TABLE_SCHEMA = db
+                AND TABLE_NAME = 'gse_task_ip_log'
+                AND COLUMN_NAME = 'gse_task_id') THEN
+        ALTER TABLE gse_task_ip_log ADD COLUMN `gse_task_id` bigint(20) NOT NULL DEFAULT '0' AFTER batch;
+    END IF;	
+	
 	
     IF NOT EXISTS(SELECT 1
               FROM information_schema.COLUMNS

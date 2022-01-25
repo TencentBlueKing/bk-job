@@ -297,7 +297,13 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         return agentTask;
     }
 
-    protected Map<String, String> buildReferenceGlobalVarValueMap(StepInstanceVariableValuesDTO stepInputVariables) {
+    /**
+     * 获取字符类型全局变量的变量名和值
+     *
+     * @param stepInputVariables 步骤入参
+     * @return 字符类型全局变量的变量名和值
+     */
+    protected Map<String, String> buildStringGlobalVarKV(StepInstanceVariableValuesDTO stepInputVariables) {
         Map<String, String> globalVarValueMap = new HashMap<>();
         if (stepInputVariables == null || CollectionUtils.isEmpty(stepInputVariables.getGlobalParams())) {
             return globalVarValueMap;
@@ -428,7 +434,8 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
                 buildIpAndLogOffsetMap(unfinishedIPSet), errorMsg, endTime);
         }
 
-        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime, status);
+        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, unfinishedIPSet, startTime, endTime,
+            status);
     }
 
     /**

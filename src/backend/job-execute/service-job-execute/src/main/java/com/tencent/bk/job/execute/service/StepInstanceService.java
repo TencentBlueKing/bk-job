@@ -41,6 +41,14 @@ public interface StepInstanceService {
     void updateStepCurrentBatch(long stepInstanceId, int batch);
 
     /**
+     * 更新步骤实例的当前滚动执行批次
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     */
+    void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount);
+
+    /**
      * 更新步骤实例的滚动配置ID
      *
      * @param stepInstanceId  步骤实例ID

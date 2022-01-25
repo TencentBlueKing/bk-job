@@ -33,8 +33,11 @@ import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.GSECode;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.gse.GseRequestPrinter;
 import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
@@ -42,6 +45,7 @@ import com.tencent.bk.job.execute.engine.model.LogPullProgress;
 import com.tencent.bk.job.execute.engine.model.ScriptTaskLog;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.Utils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -50,6 +54,12 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.VariableValueDTO;
+import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.GseTaskService;
+import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -127,21 +137,45 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
      * @param taskInstance               任务实例
      * @param stepInstance               步骤实例
      * @param taskVariablesAnalyzeResult 任务变量以及分析结果
-     * @param agentTaskMap                   主机任务执行结果
+     * @param agentTaskMap               主机任务执行结果
      * @param gseTask                    gse任务执行结果
      * @param targetIps                  目标主机ip
      * @param requestId                  请求ID
      */
-    public ScriptResultHandleTask(
-        TaskInstanceDTO taskInstance,
-        StepInstanceDTO stepInstance,
-        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-        Map<String, AgentTaskDTO> agentTaskMap,
-        GseTaskDTO gseTask,
-        Set<String> targetIps,
-        String requestId
-    ) {
-        super(taskInstance, stepInstance, taskVariablesAnalyzeResult, agentTaskMap, gseTask, targetIps, requestId);
+    public ScriptResultHandleTask(TaskInstanceService taskInstanceService,
+                                  GseTaskService gseTaskService,
+                                  LogService logService,
+                                  TaskInstanceVariableService taskInstanceVariableService,
+                                  StepInstanceVariableValueService stepInstanceVariableValueService,
+                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                  ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                  ExceptionStatusManager exceptionStatusManager,
+                                  TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                  AgentTaskService agentTaskService,
+                                  TaskInstanceDTO taskInstance,
+                                  StepInstanceDTO stepInstance,
+                                  TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+                                  Map<String, AgentTaskDTO> agentTaskMap,
+                                  GseTaskDTO gseTask,
+                                  Set<String> targetIps,
+                                  String requestId) {
+        super(taskInstanceService,
+            gseTaskService,
+            logService,
+            taskInstanceVariableService,
+            stepInstanceVariableValueService,
+            taskExecuteMQEventDispatcher,
+            resultHandleTaskKeepaliveManager,
+            exceptionStatusManager,
+            taskEvictPolicyExecutor,
+            agentTaskService,
+            taskInstance,
+            stepInstance,
+            taskVariablesAnalyzeResult,
+            agentTaskMap,
+            gseTask,
+            targetIps,
+            requestId);
         initLogPullProcess(agentTaskMap.values());
     }
 
@@ -292,7 +326,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs, api_agent_task_rst ipResult,
                                                      String cloudIp, AgentTaskDTO agentTask, long currentTime) {
         if (GSECode.AtomicErrorCode.getErrorCode(ipResult.getBk_error_code()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(), agentTask.getScriptLogOffset(),
+            logs.add(logService.buildSystemScriptLog(cloudIp, ipResult.getBk_error_msg(),
+                agentTask.getScriptLogOffset(),
                 currentTime));
         } else {
             String content = ipResult.getScreen();

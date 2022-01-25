@@ -43,8 +43,8 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public void saveGseTask(GseTaskDTO gseTask) {
-        gseTaskDAO.saveGseTask(gseTask);
+    public long saveGseTask(GseTaskDTO gseTask) {
+        return gseTaskDAO.saveGseTask(gseTask);
     }
 
     @Override

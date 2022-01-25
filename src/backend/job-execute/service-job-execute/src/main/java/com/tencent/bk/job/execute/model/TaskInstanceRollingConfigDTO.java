@@ -54,13 +54,23 @@ public class TaskInstanceRollingConfigDTO {
     private RollingConfigDO config;
 
     /**
-     * 判断是否滚动步骤
+     * 判断是否分批滚动步骤
      *
      * @param stepInstanceId 步骤实例ID
      */
-    public boolean isRollingStep(long stepInstanceId) {
-        return config != null && CollectionUtils.isNotEmpty(config.getRollingStepInstanceIdList())
-            && config.getRollingStepInstanceIdList().contains(stepInstanceId);
+    public boolean isBatchRollingStep(long stepInstanceId) {
+        return config != null && CollectionUtils.isNotEmpty(config.getBatchRollingStepInstanceIdList())
+            && config.getBatchRollingStepInstanceIdList().contains(stepInstanceId);
+    }
+
+    /**
+     * 判断是否全量滚动步骤
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    public boolean isAllRollingStep(long stepInstanceId) {
+        return config != null && CollectionUtils.isNotEmpty(config.getAllRollingStepInstanceIdList())
+            && config.getAllRollingStepInstanceIdList().contains(stepInstanceId);
     }
 }
 

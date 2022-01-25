@@ -44,15 +44,19 @@ public class RollingConfigDO {
      */
     private List<Long> includeStepInstanceIdList;
     /**
-     * 滚动步骤实例ID
+     * 分批滚动步骤实例ID
      */
-    private List<Long> rollingStepInstanceIdList;
+    private List<Long> batchRollingStepInstanceIdList;
+    /**
+     * 全量滚动步骤实例ID
+     */
+    private List<Long> allRollingStepInstanceIdList;
     /**
      * 滚动策略
      */
     private Integer mode;
     /**
-     * 滚动表达式
+     * 目标服务器滚动分批表达式
      */
     private String expr;
     /**

@@ -72,8 +72,9 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfig().getName()).isEqualTo("config1");
         assertThat(savedTaskInstanceRollingConfig.getConfig().getIncludeStepInstanceIdList()).containsSequence(100L,
             101L, 102L, 103L);
-        assertThat(savedTaskInstanceRollingConfig.getConfig().getRollingStepInstanceIdList()).containsSequence(100L,
+        assertThat(savedTaskInstanceRollingConfig.getConfig().getBatchRollingStepInstanceIdList()).containsSequence(100L,
             102L, 103L);
+        assertThat(savedTaskInstanceRollingConfig.getConfig().getAllRollingStepInstanceIdList()).containsSequence(101L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList()).hasSize(3);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getBatch()).isEqualTo(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getServers()).hasSize(1);
@@ -107,11 +108,14 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
         includeStepInstanceIdList.add(1002L);
         includeStepInstanceIdList.add(1003L);
         rollingConfig.setIncludeStepInstanceIdList(includeStepInstanceIdList);
-        List<Long> rollingStepInstanceIdList = new ArrayList<>();
-        rollingStepInstanceIdList.add(1000L);
-        rollingStepInstanceIdList.add(1002L);
-        rollingStepInstanceIdList.add(1003L);
-        rollingConfig.setRollingStepInstanceIdList(rollingStepInstanceIdList);
+        List<Long> rollingBatchStepInstanceIdList = new ArrayList<>();
+        rollingBatchStepInstanceIdList.add(1000L);
+        rollingBatchStepInstanceIdList.add(1002L);
+        rollingBatchStepInstanceIdList.add(1003L);
+        rollingConfig.setBatchRollingStepInstanceIdList(rollingBatchStepInstanceIdList);
+        List<Long> rollingAllStepInstanceIdList = new ArrayList<>();
+        rollingAllStepInstanceIdList.add(1001L);
+        rollingConfig.setAllRollingStepInstanceIdList(rollingAllStepInstanceIdList);
         List<RollingServerBatchDO> serverBatchList = new ArrayList<>();
         List<IpDTO> servers = new ArrayList<>();
         servers.add(new IpDTO(0L, "10.0.0.1"));
@@ -135,11 +139,13 @@ public class TaskInstanceRollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfig().getName()).isEqualTo("default");
         assertThat(savedTaskInstanceRollingConfig.getConfig().getIncludeStepInstanceIdList()).containsSequence(1000L,
             1001L, 1002L, 1003L);
-        assertThat(savedTaskInstanceRollingConfig.getConfig().getRollingStepInstanceIdList()).containsSequence(1000L,
+        assertThat(savedTaskInstanceRollingConfig.getConfig().getBatchRollingStepInstanceIdList()).containsSequence(1000L,
             1002L, 1003L);
+        assertThat(savedTaskInstanceRollingConfig.getConfig().getAllRollingStepInstanceIdList()).containsSequence(1001L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList()).hasSize(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getBatch()).isEqualTo(1);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getServers().get(0).getCloudAreaId()).isEqualTo(0L);
         assertThat(savedTaskInstanceRollingConfig.getConfig().getServerBatchList().get(0).getServers().get(0).getIp()).isEqualTo("10.0.0.1");
     }
 }
+

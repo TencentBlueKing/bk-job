@@ -64,7 +64,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
         TaskInstanceRollingConfigDTO rollingConfig =
             taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
-        if (rollingConfig.isRollingStep(stepInstanceId)) {
+        if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
             return rollingConfig.getConfig().getServerBatchList().get(batch - 1).getServers();
         } else {
             return stepInstance.getTargetServers().getIpList();
@@ -106,7 +106,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         taskInstanceRollingConfig.setConfig(rollingConfigDO);
 
         rollingConfigDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
-        rollingConfigDO.setRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        rollingConfigDO.setBatchRollingStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         return taskInstanceRollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
     }
 

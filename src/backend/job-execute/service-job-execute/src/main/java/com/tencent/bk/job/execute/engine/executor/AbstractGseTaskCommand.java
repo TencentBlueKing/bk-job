@@ -42,22 +42,56 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractGseTaskCommand implements GseTaskCommand {
 
-    private final Tracing tracing;
-    private final AgentService agentService;
-    private final AccountService accountService;
+    protected final AgentService agentService;
+    protected final AccountService accountService;
+    protected final Tracing tracing;
 
-    public AbstractGseTaskCommand(Tracing tracing, AgentService agentService,
-                                  AccountService accountService) {
-        this.tracing = tracing;
+    /**
+     * 步骤实例
+     */
+    protected StepInstanceDTO stepInstance;
+    /**
+     * 作业实例
+     */
+    protected TaskInstanceDTO taskInstance;
+    /**
+     * 作业实例ID
+     */
+    protected long taskInstanceId;
+    /**
+     * 步骤实例ID
+     */
+    protected long stepInstanceId;
+    /**
+     * 执行次数
+     */
+    protected int executeCount;
+    /**
+     * 滚动执行批次
+     */
+    protected int batch;
+
+
+    public AbstractGseTaskCommand(AgentService agentService,
+                                  AccountService accountService,
+                                  Tracing tracing,
+                                  TaskInstanceDTO taskInstance,
+                                  StepInstanceDTO stepInstance) {
         this.agentService = agentService;
         this.accountService = accountService;
+        this.tracing = tracing;
+        this.taskInstance = taskInstance;
+        this.stepInstance = stepInstance;
+        this.taskInstanceId = taskInstance.getId();
+        this.stepInstanceId = stepInstance.getId();
+        this.executeCount = stepInstance.getExecuteCount();
+        this.batch = stepInstance.getBatch();
     }
 
     /**
      * 生成GSE trace 信息
      */
-    protected Map<String, String> buildGseTraceInfo(TaskInstanceDTO taskInstance,
-                                                    StepInstanceDTO stepInstance) {
+    protected Map<String, String> buildGseTraceInfo() {
         // 捕获所有异常，避免影响任务下发主流程
         Map<String, String> traceInfoMap = new HashMap<>();
         try {

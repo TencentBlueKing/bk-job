@@ -99,8 +99,9 @@ public interface TaskExecuteMQEventDispatcher {
      * 发送启动步骤事件
      *
      * @param stepInstanceId 步骤实例ID
+     * @param batch          滚动执行批次；如果非滚动执行步骤，传入null
      */
-    void startStep(long stepInstanceId);
+    void startStep(long stepInstanceId, Integer batch);
 
     /**
      * 发送跳过步骤事件
@@ -138,12 +139,11 @@ public interface TaskExecuteMQEventDispatcher {
     void continueGseFileStep(long stepInstanceId);
 
     /**
-     * 发送执行gse步骤事件
+     * 执行gse任务事件
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动批次；如果非滚动步骤，传入null
+     * @param gseTaskId GSE任务ID
      */
-    void startGseStep(long stepInstanceId, Integer batch);
+    void startGseTask(long gseTaskId);
 
     /**
      * 恢复GSE任务执行事件

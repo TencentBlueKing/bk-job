@@ -24,5 +24,67 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-public class ScriptGseTaskStopCommand extends AbstractGseTaskStartCommand {
+import brave.Tracing;
+import com.tencent.bk.gse.taskapi.api_agent;
+import com.tencent.bk.gse.taskapi.api_stop_task_request;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.engine.gse.GseRequestUtils;
+import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
+import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
+import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.AgentService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
+@Slf4j
+public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
+
+    private
+    public ScriptGseTaskStopCommand(AgentService agentService,
+                                    AccountService accountService,
+                                    Tracing tracing,
+                                    TaskInstanceDTO taskInstance,
+                                    StepInstanceDTO stepInstance) {
+        super(agentService, accountService, tracing);
+    }
+
+    @Override
+    public void execute() {
+
+    }
+
+    @Override
+    public GseTaskExecuteResult stopGseTask() {
+        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
+            stepInstance.getAppId());
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(jobIpSet, accountInfo.getAccount(),
+            accountInfo.getPassword());
+        api_stop_task_request stopTaskRequest = new api_stop_task_request();
+        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, rollingBatch);
+        if (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId())) {
+            log.warn("Gse Task not send to gse server, not support stop");
+            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED, "Termination failed");
+        }
+        stopTaskRequest.setStop_task_id(gseTask.getGseTaskId());
+        stopTaskRequest.setAgents(agentList);
+        stopTaskRequest.setType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stopTaskRequest.setM_caller(buildGseTraceInfo());
+
+        GseTaskResponse gseTaskResponse = GseRequestUtils.sendForceStopTaskRequest(stepInstance.getId(),
+            stopTaskRequest);
+        if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
+            log.info("sendForceStopTaskRequest response failed!");
+            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_FAILED,
+                "Termination failed， msg:" + gseTaskResponse.getErrorMessage());
+        } else {
+            log.info("sendForceStopTaskRequest response success!");
+            return new GseTaskExecuteResult(GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS, "Termination successfully");
+        }
+    }
 }

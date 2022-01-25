@@ -36,7 +36,7 @@ public interface GseTaskService {
      *
      * @param gseTask GSE 任务
      */
-    void saveGseTask(GseTaskDTO gseTask);
+    long saveGseTask(GseTaskDTO gseTask);
 
     /**
      * 获取 GSE 任务

@@ -66,8 +66,8 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    public void saveGseTask(GseTaskDTO gseTask) {
-        dslContext.insertInto(
+    public long saveGseTask(GseTaskDTO gseTask) {
+        Record record = dslContext.insertInto(
             TABLE,
             TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
@@ -92,7 +92,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             .set(TABLE.TOTAL_TIME, gseTask.getTotalTime())
             .set(TABLE.STATUS, JooqDataTypeUtil.toByte(gseTask.getStatus()))
             .set(TABLE.GSE_TASK_ID, gseTask.getGseTaskId())
-            .execute();
+            .returning(TABLE.ID)
+            .fetchOne();
+        assert record != null;
+        return record.getValue(TABLE.ID);
     }
 
     @Override

@@ -172,7 +172,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (fileSourceList == null) {
             log.warn("stepInstanceId={},fileSourceList is null", stepInstanceId);
-            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId(), null);
+            TaskExecuteMQEventDispatcher.startGseTask(stepInstance.getId(), null);
             return;
         }
         int taskCount = 0;
@@ -182,7 +182,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
-            TaskExecuteMQEventDispatcher.startGseStep(stepInstance.getId(), null);
+            TaskExecuteMQEventDispatcher.startGseTask(stepInstance.getId(), null);
             return;
         }
         log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);

@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
+import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
@@ -191,13 +192,14 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
     }
 
     @Override
-    public void startStep(long stepInstanceId) {
+    public void startStep(long stepInstanceId, Integer batch) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setBatch(batch);
         stepEvent.setAction(StepActionEnum.START.getValue());
         stepEvent.setTime(LocalDateTime.now());
         stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send start step stepEvent successfully, event: {}", stepEvent);
+        log.info("Send start step event successfully, event: {}", stepEvent);
     }
 
     @Override
@@ -257,16 +259,15 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
     }
 
     @Override
-    public void startGseStep(long stepInstanceId, Integer batch) {
-        log.info("Begin to send start gse step event successfully, stepInstanceId: {}", stepInstanceId);
-        StepEvent stepEvent = new StepEvent();
-        stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setBatch(batch);
-        stepEvent.setAction(GseStepActionEnum.START.getValue());
-        stepEvent.setTime(LocalDateTime.now());
-        stepEvent.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send start gse step event successfully, event: {}", stepEvent);
+    public void startGseTask(long gseTaskId) {
+        log.info("Begin to send start gse task event, gseTaskId: {}", gseTaskId);
+        GseTaskEvent gseTaskEvent = new GseTaskEvent();
+        gseTaskEvent.setGseTaskId(gseTaskId);
+        gseTaskEvent.setAction(GseTaskActionEnum.START.getValue());
+        gseTaskEvent.setTime(LocalDateTime.now());
+        gseTaskEvent.setRequestId(UUID.randomUUID().toString());
+        gseTaskOutput.send(MessageBuilder.withPayload(gseTaskEvent).build());
+        log.info("Send start gse task event successfully, event: {}", gseTaskEvent);
     }
 
     @Override

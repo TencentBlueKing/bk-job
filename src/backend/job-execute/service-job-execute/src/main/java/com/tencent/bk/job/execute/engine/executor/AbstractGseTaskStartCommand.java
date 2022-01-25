@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -57,13 +58,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
 
-    private GseTasksExceptionCounter gseTasksExceptionCounter;
+    protected GseTasksExceptionCounter gseTasksExceptionCounter;
     protected ResultHandleManager resultHandleManager;
     protected TaskInstanceService taskInstanceService;
     protected GseTaskService gseTaskService;
@@ -79,37 +83,19 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected ExceptionStatusManager exceptionStatusManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected JobExecuteConfig jobExecuteConfig;
+
+    /**
+     * 任务下发请求ID,防止重复下发任务
+     */
     protected String requestId;
-    protected Tracing tracing;
-    /**
-     * 步骤实例
-     */
-    protected StepInstanceDTO stepInstance;
-    /**
-     * 作业实例
-     */
-    protected TaskInstanceDTO taskInstance;
     /**
      * GSE任务信息
      */
     protected GseTaskDTO gseTask;
     /**
-     * 步骤实例ID
-     */
-    protected long stepInstanceId;
-    /**
-     * 执行次数
-     */
-    protected int executeCount;
-    /**
-     * 滚动执行批次
-     */
-    protected int rollingBatch;
-    /**
      * GSE 任务唯一名称
      */
     protected String gseTaskUniqueName;
-
     /**
      * gse 原子任务信息
      */
@@ -126,6 +112,11 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      * 全局变量参数定义与初始值
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
+    /**
+     * 目标主机
+     */
+    protected Set<String> targetHosts = new HashSet<>();
+
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                 TaskInstanceService taskInstanceService,
@@ -143,9 +134,11 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 ExceptionStatusManager exceptionStatusManager,
                                 GseTasksExceptionCounter gseTasksExceptionCounter,
+                                Tracing tracing,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance) {
+        super(agentService, accountService, tracing, taskInstance, stepInstance);
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -163,13 +156,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.exceptionStatusManager = exceptionStatusManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
-        this.taskInstance = taskInstance;
-        this.stepInstance = stepInstance;
-        this.stepInstanceId = stepInstance.getId();
-        this.executeCount = stepInstance.getExecuteCount();
-        this.rollingBatch = stepInstance.getBatch();
-        this.gseTaskUniqueName = buildGseTaskUniqueName(this.stepInstanceId, this.executeCount, this.rollingBatch);
+        this.gseTaskUniqueName = buildGseTaskUniqueName(this.stepInstanceId, this.executeCount, this.batch);
     }
+
 
     private String buildGseTaskUniqueName(long stepInstanceId, int executeCount, int batch) {
         return "gseTask:" + stepInstanceId + ":" + executeCount + ":" + batch;
@@ -187,13 +176,28 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         watch.stop();
 
         watch.start("getGseTaskFromDB");
-        gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, rollingBatch);
+        gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, batch);
         watch.stop();
 
+        startGseTaskIfNotAvailable(watch);
+
+        // 添加执行结果处理后台任务
+        watch.start("addResultHandleTask");
+        if (stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
+            addResultHandleTask();
+        }
+        watch.stop();
+
+        if (watch.getTotalTimeMillis() > 1000L) {
+            log.warn("Start gse task slow , statistics:{}", watch.prettyPrint());
+        }
+    }
+
+    private void startGseTaskIfNotAvailable(StopWatch watch) {
         boolean isGseTaskStarted = (gseTask == null || StringUtils.isEmpty(gseTask.getGseTaskId()));
         if (!isGseTaskStarted) {
             watch.start("sendGseTask");
-            gseTask = new GseTaskDTO(stepInstanceId, executeCount, rollingBatch);
+            gseTask = new GseTaskDTO(stepInstanceId, executeCount, batch);
             gseTask.setStartTime(System.currentTimeMillis());
             log.info("[{}] Sending task to gse server", this.gseTaskUniqueName);
             GseTaskResponse gseTaskResponse = startGseTask();
@@ -214,25 +218,20 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             // GSE 任务已经下发过，不做处理
             log.info("[{}] Gse Task had already started!", this.gseTaskUniqueName);
         }
-
-        // 添加执行结果处理后台任务
-        watch.start("addResultHandleTask");
-        if (stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
-            addResultHandleTask();
-        }
-        watch.stop();
-
-        if (watch.getTotalTimeMillis() > 1000L) {
-            log.warn("Start gse task slow , statistics:{}", watch.prettyPrint());
-        }
     }
 
     /**
      * 初始化执行上下文，在GSE任务下发前调用
      */
     private void initExecutionContext() {
+        initTargetHosts();
         initVariables();
         preExecute();
+    }
+
+    private void initTargetHosts() {
+        this.targetHosts.addAll(stepInstance.getTargetServers().getIpList().stream()
+            .map(IpDTO::convertToStrIp).collect(Collectors.toSet()));
     }
 
     private void initVariables() {
@@ -258,7 +257,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             gseTask = new GseTaskDTO();
             gseTask.setStepInstanceId(stepInstanceId);
             gseTask.setExecuteCount(executeCount);
-            gseTask.setBatch(rollingBatch);
+            gseTask.setBatch(batch);
         }
         gseTask.setStartTime(System.currentTimeMillis());
         gseTask.setGseTaskId(gseTaskId);
@@ -266,7 +265,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         gseTaskService.saveGseTask(gseTask);
     }
 
-    protected final Map<String, String> buildReferenceGlobalVarValueMap(StepInstanceVariableValuesDTO stepInputVariables) {
+    /**
+     * 获取字符类型全局变量的变量名和值
+     *
+     * @param stepInputVariables 步骤入参
+     * @return 字符类型全局变量的变量名和值
+     */
+    protected Map<String, String> buildStringGlobalVarKV(StepInstanceVariableValuesDTO stepInputVariables) {
         Map<String, String> globalVarValueMap = new HashMap<>();
         if (stepInputVariables == null || CollectionUtils.isEmpty(stepInputVariables.getGlobalParams())) {
             return globalVarValueMap;

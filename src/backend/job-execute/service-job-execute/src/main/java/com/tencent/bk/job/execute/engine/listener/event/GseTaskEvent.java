@@ -46,17 +46,9 @@ public class GseTaskEvent {
      */
     private int action;
     /**
-     * 步骤实例ID
+     * GSE任务ID
      */
-    private long stepInstanceId;
-    /**
-     * 步骤执行次数
-     */
-    private Integer executeCount;
-    /**
-     * 执行批次
-     */
-    private Integer batch;
+    private long gseTaskId;
     /**
      * 操作时间
      */

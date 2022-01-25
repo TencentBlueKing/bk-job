@@ -88,7 +88,8 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
      * @param stepInstance               步骤实例
      * @param jobBuildInVariableResolver 内置变量解析
      */
-    public ScriptTaskExecutor(String requestId, GseTasksExceptionCounter gseTasksExceptionCounter,
+    public ScriptTaskExecutor(String requestId,
+                              GseTasksExceptionCounter gseTasksExceptionCounter,
                               TaskInstanceDTO taskInstance,
                               StepInstanceDTO stepInstance,
                               JobBuildInVariableResolver jobBuildInVariableResolver) {
@@ -196,7 +197,7 @@ public class ScriptTaskExecutor extends AbstractGseTaskExecutor {
         }
 
         String resolvedScriptParam = VariableValueResolver.resolve(scriptParam,
-            buildReferenceGlobalVarValueMap(stepInputVariables));
+            buildStringGlobalVarKV(stepInputVariables));
         resolvedScriptParam = resolvedScriptParam.replace("\n", " ");
         log.info("Origin script param:{}, resolved script param:{}", scriptParam, resolvedScriptParam);
         updateResolvedScriptParamIfNecessary(scriptParam, resolvedScriptParam);

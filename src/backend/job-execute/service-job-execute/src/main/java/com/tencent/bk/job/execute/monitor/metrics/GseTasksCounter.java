@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.monitor.metrics;
 
-import com.tencent.bk.job.execute.engine.GseTaskManager;
+import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
