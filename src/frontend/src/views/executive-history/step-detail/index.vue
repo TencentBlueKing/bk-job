@@ -91,7 +91,10 @@
             <group-tab
                 :data="data.resultGroups"
                 @on-change="handelGroupChange" />
-            <div class="detail-container">
+            <div
+                ref="detailContainer"
+                class="detail-container"
+                :style="defailContainerStyles">
                 <div class="container-left" v-bkloading="{ isLoading: isHostLoading }">
                     <!-- 主机列表 -->
                     <!-- eslint-disable max-len -->
@@ -184,6 +187,7 @@
                 isLoading: true,
                 isLogSearching: false,
                 isIPSearching: false,
+                defailContainerStyles: {},
                 // 搜索模式
                 searchModel: 'log',
                 // 步骤所属作业的所有步骤列表
@@ -277,6 +281,19 @@
             this.taskInstanceId = 0;
             this.isForceing = false;
             this.$Progress.start();
+        },
+        mounted () {
+            const calcDetailContainerStyle = _.throttle(() => {
+                const { top } = this.$refs.detailContainer.getBoundingClientRect();
+                this.defailContainerStyles = {
+                    height: `calc(100vh - ${top}px)`,
+                };
+            }, 20);
+            calcDetailContainerStyle();
+            window.addEventListener('rezie', calcDetailContainerStyle);
+            this.$once('hook:beforeDestroy', () => {
+                window.removeEventListener('rezie', calcDetailContainerStyle);
+            });
         },
         beforeDestroy () {
             this.$Progress.finish();

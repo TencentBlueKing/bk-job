@@ -1,30 +1,126 @@
 <template>
-    <div class="batch-box">
-        <div class="batch-pre">
+    <div
+        ref="box"
+        class="batch-box">
+        <div
+            v-if="hasPagination"
+            class="pre-btn"
+            @click="handlePreScroll">
             <Icon type="arrow-full-down" />
         </div>
         <div
-            ref="list"
-            class="batch-list">
-            <div class="batch-item" key="all">全部批次</div>
+            class="batch-content"
+            :style="contentStyles">
             <div
-                v-for="i in 32"
-                class="batch-item"
-                :class="{ active: selectBatchIndex === i }"
-                :key="i"
-                @click="handleSelectBatch(i)">
-                第 {{ i }} 批
+                ref="allBtn"
+                class="all-btn"
+                :class="{ active: isTotalBtnFixed }"
+                key="all"
+                @click="handleSelectAll">
+                全部批次
+            </div>
+            <div
+                ref="list"
+                class="content-list">
+                <div
+                    class="wrapper"
+                    :style="scrollStyles">
+                    <div
+                        v-for="batchItem in list"
+                        class="batch-item"
+                        :class="{
+                            active: batchItem.batch === selectBatch,
+                            confirm: batchItem.batch === currentRunningBatch,
+                            disabled: batchItem.batch > currentRunningBatch,
+                        }"
+                        :key="batchItem.batch"
+                        @click="handleSelectBatch(batchItem.batch, $event)">
+                        第 {{ batchItem.batch }} 批
+                        <div
+                            v-if="batchItem.batch === currentRunningBatch"
+                            class="batch-item-status">
+                            <Icon type="stop-2" />
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="batch-next">
-            <Icon type="arrow-full-down" />
-        </div>
-        <div class="batch-more">
-            <Icon type="more" />
+        <template v-if="hasPagination">
+            <div
+                class="next-btn"
+                @click="handleNextBatch">
+                <Icon type="arrow-full-down" />
+            </div>
+            <div
+                class="more-btn"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    width: 280,
+                    distance: 10,
+                    trigger: 'click',
+                    theme: 'light',
+                    content: `#stepExecuteDetailBatchPagination`,
+                    placement: 'bottom',
+                    boundary: 'window',
+                }">
+                <Icon type="more" />
+            </div>
+        </template>
+        <div style="display: none;">
+            <div
+                id="stepExecuteDetailBatchPagination"
+                style="padding: 17px 10px;">
+                <div style="margin-bottom: 10px; font-size: 14px; line-height: 20px; color: #63656e;">跳转至</div>
+                <div>
+                    <bk-input
+                        v-model="batchLocation"
+                        type="number"
+                        :min="1"
+                        placeholder="请输入批次"
+                        @keyup="handleEnterSubmit">
+                        <template slot="prepend">
+                            <div class="group-text">第</div>
+                        </template>
+                        <template slot="append">
+                            <div class="group-text">批</div>
+                        </template>
+                    </bk-input>
+                </div>
+                <div style="margin-top: 6px;font-size: 12px; line-height: 16px; color: #979ba5;">
+                    共 <span style="font-weight: bold;">500</span> 批，已执行 <span style="font-weight: bold;">234</span> 批
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                    <bk-button
+                        theme="primary"
+                        size="small"
+                        style="margin-right: 8px;"
+                        @click="handleGoBatch">
+                        确定
+                    </bk-button>
+                    <bk-button
+                        size="small"
+                        @click="handleCancelGoBatch">
+                        取消
+                    </bk-button>
+                </div>
+            </div>
+            <div
+                id="rollingConfirmAction"
+                style="padding: 3px 5px; color: #63656e; user-select: none;">
+                <span
+                    style="color: #3a84ff; cursor: pointer;"
+                    @click="handleConfirmNextBatch">
+                    确认继续执行
+                </span>
+                <span>下一批滚动机器</span>
+            </div>
         </div>
     </div>
 </template>
 <script>
+    import _ from 'lodash';
+    import Tippy from 'bk-magic-vue/lib/utils/tippy';
+
     export default {
         name: '',
         props: {
@@ -32,34 +128,299 @@
         },
         data () {
             return {
-                selectBatchIndex: 1,
+                batchLocation: '',
+                contentWidth: '100%',
+                startIndex: 0,
+                scrollNum: 0,
+                itemTotalWidth: 0,
+                scrollPosition: 0,
+                selectBatch: 1,
+                hasPagination: false,
+                
             };
+        },
+        computed: {
+            /**
+             * @desc 当前正在执行的批次，全部执行完成返回 0
+             * @returns { Number }
+             */
+            currentRunningBatch () {
+                const running = _.find(this.list, ({ currentBatchRunning }) => currentBatchRunning);
+                if (running) {
+                    return running.batch;
+                }
+                return 0;
+            },
+            /**
+             * @desc 全部批次是否固定
+             * @returns { Boolean }
+             */
+            isTotalBtnFixed () {
+                return this.scrollPosition !== 0;
+            },
+            /**
+             * @desc 批次列表可查看范围宽度
+             * @returns { Object }
+             */
+            contentStyles () {
+                return {
+                    width: this.contentWidth,
+                };
+            },
+            /**
+             * @desc 批次列表滚动
+             * @returns { Object }
+             */
+            scrollStyles () {
+                return {
+                    width: `${this.itemTotalWidth}px`,
+                    transform: `translate(${this.scrollPosition}px, 0)`,
+                };
+            },
+        },
+        created () {
+            this.list = (new Array(230)).fill(true)
+                .map((_, index) => ({
+                    batch: index + 1,
+                    currentBatchRunning: index === 5,
+                    status: (index + 1) % 12,
+                }));
         },
         mounted () {
             this.init();
+            const resizeHandler = _.throttle(() => {
+                this.init();
+            }, 20);
+            window.addEventListener('resize', resizeHandler);
+            this.$emit('hook:beforeDestroy', () => {
+                window.removeEventListener('resize', resizeHandler);
+            });
         },
         methods: {
             init () {
-                const $list = this.$refs.list;
-                const $itemList = $list.querySelectorAll('.batch-item');
-                const maxWidth = $list.getBoundingClientRect().width;
+                const $listEL = this.$refs.box;
+                const $itemList = $listEL.querySelectorAll('.batch-item');
+                const allBtnWidth = this.$refs.allBtn.getBoundingClientRect().width;
+                const maxRenderWidth = $listEL.clientWidth - allBtnWidth;
 
-                let itemMaxWidth = 0;
-                let renderItemNums = 0;
+                let itemTotalWidth = 0;
+                let scrollNum = 0;
+                let hasPagination = false;
                 $itemList.forEach((item) => {
                     const {
                         width,
                     } = item.getBoundingClientRect();
-                    itemMaxWidth += width;
-                    if (itemMaxWidth <= maxWidth) {
-                        renderItemNums += 1;
+                    itemTotalWidth += width;
+                    if (itemTotalWidth <= maxRenderWidth) {
+                        scrollNum += 1;
+                        return;
+                    }
+                    hasPagination = true;
+                });
+                if (hasPagination) {
+                    // 需要分页
+                    // 同时显示上一页、下一页、更多分页按钮，单页可显示批次需减去相应的位置
+                    this.scrollNum = scrollNum - 2;
+                    this.hasPagination = true;
+                }
+                
+                this.itemTotalWidth = itemTotalWidth;
+                this.contentWidth = this.hasPagination ? '100%' : `${itemTotalWidth + allBtnWidth}px`;
+                setTimeout(() => {
+                    this.showActionPanel();
+                }, 1500);
+            },
+            showActionPanel () {
+                const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
+                if (this.popperInstance && this.popperInstance.reference !== $targetItemEl) {
+                    this.popperInstance.hide();
+                }
+                if (!this.popperInstance) {
+                    this.popperInstance = Tippy($targetItemEl, {
+                        arrow: true,
+                        placement: 'bottom',
+                        trigger: 'manual',
+                        theme: 'light',
+                        interactive: true,
+                        hideOnClick: false,
+                        animateFill: false,
+                        animation: 'slide-toggle',
+                        lazy: false,
+                        ignoreAttributes: true,
+                        boundary: 'window',
+                        distance: 20,
+                        content: this.$refs.box.querySelector('#rollingConfirmAction'),
+                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+                    });
+                    this.popperInstance.show();
+                    console.log('prnt popr = ', this.popperInstance);
+                }
+            },
+            triggerChange () {
+                this.$emit('change');
+                this.$emit('input');
+            },
+            handleConfirmNextBatch () {
+
+            },
+            /**
+             * @desc 查看全部批次
+             */
+            handleSelectAll () {
+
+            },
+            /**
+             * @desc 选中批次
+             * @param { Number } selectBatch
+             * @param { Object } event
+             *
+             * 批次按钮显示不完整需要左移、右移显示完整
+             */
+            handleSelectBatch (selectBatch, event) {
+                if (selectBatch > this.currentRunningBatch) {
+                    return;
+                }
+                this.selectBatch = selectBatch;
+                this.triggerChange();
+                if (!this.hasPagination) {
+                    return;
+                }
+                // 处理大量批次的分页问题
+                const { target } = event;
+                const {
+                    width: containerWidth,
+                    left: containerStart,
+                    right: containerEnd,
+                } = this.$refs.list.getBoundingClientRect();
+                const {
+                    width: selectTargetWidth,
+                    left: selectTargetStart,
+                    right: selectTargetEnd,
+                } = target.getBoundingClientRect();
+
+                if (selectTargetEnd > containerEnd) {
+                    // 下一批
+                    const maxSrollOffset = containerWidth - this.itemTotalWidth;
+                    this.scrollPosition = Math.max(maxSrollOffset, this.scrollPosition - selectTargetWidth);
+                    this.startIndex += 1;
+                } else if (selectTargetStart < containerStart) {
+                    // 上一批
+                    this.scrollPosition = Math.min(0, this.scrollPosition + selectTargetWidth);
+                    this.startIndex -= 1;
+                }
+            },
+            /**
+             * @desc 上一页
+             */
+            handlePreScroll () {
+                setTimeout(() => {
+                    this.popperInstance.show();
+                }, 200);
+                const startIndex = this.startIndex - this.scrollNum;
+                if (startIndex <= 0) {
+                    this.startIndex = 0;
+                    this.scrollPosition = 0;
+                    return;
+                }
+                const $itemList = this.$refs.list.querySelectorAll('.batch-item');
+                let scrollPosition = 0;
+                $itemList.forEach(($item, index) => {
+                    if (index > startIndex) {
+                        return;
+                    }
+                    scrollPosition += $item.getBoundingClientRect().width;
+                });
+                this.scrollPosition = -scrollPosition;
+                this.startIndex = startIndex;
+            },
+            /**
+             * @desc 下一页
+             */
+            handleNextBatch () {
+                setTimeout(() => {
+                    this.popperInstance.show();
+                }, 200);
+                const nextStartIndex = this.startIndex + this.scrollNum;
+
+                const $listEl = this.$refs.list;
+                const $itemListEl = $listEl.querySelectorAll('.batch-item');
+                if (nextStartIndex + this.scrollNum >= $itemListEl.length - 1) {
+                    const maxRenderWidth = $listEl.getBoundingClientRect().width;
+                    this.startIndex = $itemListEl.length - this.scrollNum;
+                    this.scrollPosition = maxRenderWidth - this.itemTotalWidth;
+                    return;
+                }
+                let { scrollPosition } = this;
+                $itemListEl.forEach(($item, index) => {
+                    if (index > this.startIndex && index < nextStartIndex) {
+                        scrollPosition -= $item.getBoundingClientRect().width;
                     }
                 });
-
-                console.log('asdadad == ', renderItemNums);
+                this.startIndex = nextStartIndex;
+                this.scrollPosition = scrollPosition;
             },
-            handleSelectBatch (selectBatchIndex) {
-                this.selectBatchIndex = selectBatchIndex;
+            handleEnterSubmit (value, event) {
+                if (event.isComposing) {
+                    // 跳过输入法复合事件
+                    return;
+                }
+                if (event.keyCode === 13
+                    || event.type === 'click') {
+                    this.handleGoBatch();
+                }
+            },
+            /**
+             * @desc 定位到指定批次，居中显示
+             */
+            handleGoBatch () {
+                const $listEl = this.$refs.list;
+                const {
+                    width: containerWidth,
+                    left: containerStart,
+                    right: containerEnd,
+                } = $listEl.getBoundingClientRect();
+                const $itemListEl = $listEl.querySelectorAll('.batch-item');
+                const batchLocation = Math.min(Math.max(this.batchLocation, 1), $itemListEl.length);
+                this.selectBatch = batchLocation;
+                this.triggerChange();
+                
+                const $locationBatchItemEl = $itemListEl[batchLocation - 1];
+                const {
+                    width: locationItemWidth,
+                    left: locationItemStart,
+                    right: locationItemEnd,
+                } = $locationBatchItemEl.getBoundingClientRect();
+
+                // 将要定位的批次在可见范围之内，不进行滚动位移
+                if (locationItemStart + 10 > containerStart && locationItemEnd + 10 < containerEnd) {
+                    return;
+                }
+                
+                if (batchLocation > $itemListEl.length) {
+                    this.startIndex = $itemListEl.length - this.scrollNum;
+                    this.scrollPosition = containerWidth - this.itemTotalWidth;
+                    return;
+                }
+
+                const locationItemLeftPosition = Array.from($itemListEl).reduce((result, $item, index) => {
+                    if (index < batchLocation) {
+                        return result + $item.getBoundingClientRect().width;
+                    }
+                    return result;
+                }, 0);
+
+                // 定位批次居中
+                const achorPosition = containerWidth / 2 - locationItemWidth / 2;
+                const indexOffset = Math.floor((containerWidth / 2) / locationItemWidth);
+                
+                this.scrollPosition = Math.max(
+                    Math.min(achorPosition - locationItemLeftPosition, 0),
+                    containerWidth - this.itemTotalWidth,
+                );
+                this.startIndex = batchLocation - indexOffset;
+            },
+            handleCancelGoBatch () {
+                document.body.click();
             },
         },
     };
@@ -70,11 +431,11 @@
         padding: 20px 24px 12px;
         background: #f5f6fa;
 
-        .batch-pre,
-        .batch-next,
-        .batch-more {
+        .pre-btn,
+        .next-btn,
+        .more-btn {
             display: flex;
-            flex: 1 0 auto;
+            flex: 0 0 auto;
             width: 28px;
             height: 28px;
             color: #c4c6cc;
@@ -89,7 +450,7 @@
             }
         }
 
-        .batch-pre {
+        .pre-btn {
             margin-right: 8px;
 
             i {
@@ -97,7 +458,7 @@
             }
         }
 
-        .batch-next {
+        .next-btn {
             margin-left: 8px;
 
             i {
@@ -105,33 +466,58 @@
             }
         }
 
-        .batch-more {
+        .more-btn {
             margin-left: 6px;
         }
 
-        .batch-list {
-            display: inline-flex;
+        .batch-content {
+            display: flex;
             padding: 2px;
-            overflow: hidden;
             font-size: 12px;
             color: #63656e;
             background: #e4e6ed;
             border-radius: 18px;
+            box-sizing: content-box;
             user-select: none;
 
-            .batch-item {
+            .content-list {
+                position: relative;
+                height: 24px;
+                overflow: hidden;
+                flex: 1;
+            }
+
+            .wrapper {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
                 display: flex;
-                flex: 1 0 auto;
                 align-items: center;
-                justify-content: center;
+                transition: all 0.15s;
+            }
+
+            .batch-item {
+                position: relative;
+                display: flex;
                 height: 24px;
                 padding: 0 16px;
                 cursor: pointer;
+                border-radius: 12px;
                 transition: all 0.15s;
+                flex: 1 0 auto;
+                align-items: center;
+                justify-content: center;
+
+                &:hover,
+                &.active {
+                    &::after {
+                        opacity: 0;
+                    }
+                }
 
                 &:hover {
                     background: #f0f1f5;
-                    border-radius: 12px;
                 }
 
                 &.active {
@@ -139,6 +525,70 @@
                     background: #fff;
                     border-radius: 12px;
                     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+                }
+
+                &.confirm {
+                    &::after {
+                        position: absolute;
+                        right: 6px;
+                        bottom: 0;
+                        left: 15px;
+                        border-bottom: 1px dashed #ff9c01;
+                        content: "";
+                    }
+
+                    .batch-item-status {
+                        color: #ff9c01;
+                    }
+                }
+
+                &.disabled {
+                    color: #b1b6c2;
+                    cursor: default;
+
+                    &:hover {
+                        background: transparent;
+                    }
+                }
+
+                .batch-item-status {
+                    position: absolute;
+                    right: 3px;
+                    font-size: 13px;
+                }
+            }
+
+            .all-btn {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                height: 100%;
+                padding: 0 18px;
+                cursor: pointer;
+                align-items: center;
+                flex: 0 0 auto;
+                border-radius: 0;
+
+                &:hover,
+                &.active {
+                    &::after {
+                        opacity: 1;
+                        transform: scaleX(1);
+                    }
+                }
+
+                &::after {
+                    position: absolute;
+                    top: -2px;
+                    right: -4px;
+                    width: 6px;
+                    height: calc(100% + 4px);
+                    background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));
+                    content: "";
+                    opacity: 0;
+                    transform: scaleX(0);
+                    transition: all 0.15s;
+                    transform-origin: left center;
                 }
             }
         }

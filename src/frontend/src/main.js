@@ -24,8 +24,6 @@
 */
 
 import Vue from 'vue';
-import '@icon-cool/bk-icon-job';
-import '@icon-cool/bk-icon-job/src/index.js';
 import createRouter from '@/router';
 import store from '@/store';
 import AppService from '@service/app-manage';
@@ -40,6 +38,9 @@ import '@/css/app.css';
 import App from '@/App';
 import IframeApp from '@/iframe-app';
 import i18n from '@/i18n';
+
+import '@bk-icon/style.css';
+import '@bk-icon/iconcool.js';
 
 /**
  * @desc 启动打印当前系统信息
