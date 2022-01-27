@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,5 +68,11 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     public Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(
         long stepInstanceId, int executeCount) {
         return agentTaskDAO.countStepAgentTaskGroupByStatus(stepInstanceId, executeCount);
+    }
+
+    @Override
+    public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId,
+                                                   int currentStepOrder) {
+        return stepInstanceDAO.getNextStepInstance(taskInstanceId, currentStepOrder);
     }
 }

@@ -108,4 +108,11 @@ public class GseTaskDAOImpl implements GseTaskDAO {
         return extractInfo(record);
     }
 
+    @Override
+    public GseTaskDTO getGseTask(long gseTaskId) {
+        Record record = dslContext.select(ALL_FIELDS).from(TABLE)
+            .where(TABLE.ID.eq(gseTaskId))
+            .fetchOne();
+        return extractInfo(record);
+    }
 }

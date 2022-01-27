@@ -290,8 +290,8 @@ public abstract class AbstractGseTaskExecutor implements ResumableTask {
         agentTask.setStatus(status.getValue());
         agentTask.setTargetServer(isTargetServer);
         agentTask.setIp(cloudAreaIdAndIpArray[1]);
-        agentTask.setCloudAreaAndIp(cloudAreaIdAndIp);
-        agentTask.setCloudAreaId(Long.valueOf(cloudAreaIdAndIpArray[0]));
+        agentTask.setCloudIp(cloudAreaIdAndIp);
+        agentTask.setCloudId(Long.valueOf(cloudAreaIdAndIpArray[0]));
         agentTask.setDisplayIp(cloudAreaIdAndIpArray[1]);
         agentTask.setSourceServer(isSourceServer);
         return agentTask;

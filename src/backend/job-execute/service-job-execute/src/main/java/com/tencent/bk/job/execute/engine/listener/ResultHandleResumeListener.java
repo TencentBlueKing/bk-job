@@ -155,12 +155,12 @@ public class ResultHandleResumeListener {
             }
 
             Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-            List<AgentTaskDTO> agentTasks = agentTaskService.getAgentTask(stepInstanceId, executeCount,
-                false);
+            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount,
+                stepInstance.getBatch(), false);
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 agentTasks.stream().filter(agentTask ->
                     IpStatus.LAST_SUCCESS.getValue() != agentTask.getStatus())
-                    .forEach(agentTask -> agentTaskMap.put(agentTask.getCloudAreaAndIp(), agentTask));
+                    .forEach(agentTask -> agentTaskMap.put(agentTask.getCloudIp(), agentTask));
             }
 
 
@@ -190,7 +190,7 @@ public class ResultHandleResumeListener {
                     NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(), FileDirTypeConf.UPLOAD_FILE_DIR));
 
                 Set<String> targetIps = agentTasks.stream().filter(AgentTaskDTO::isTargetServer)
-                    .map(AgentTaskDTO::getCloudAreaAndIp).collect(Collectors.toSet());
+                    .map(AgentTaskDTO::getCloudIp).collect(Collectors.toSet());
                 FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(taskInstance, stepInstance,
                     taskVariablesAnalyzeResult, agentTaskMap, gseTask, targetIps, sendFiles,
                     storageSystemConfig.getJobStorageRootPath(), sourceDestPathMap, sourceFileDisplayMap,

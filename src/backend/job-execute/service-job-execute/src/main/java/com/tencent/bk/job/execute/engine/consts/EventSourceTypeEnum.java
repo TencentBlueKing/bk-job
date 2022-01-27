@@ -22,35 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.listener.event;
+package com.tencent.bk.job.execute.engine.consts;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
-import java.time.LocalDateTime;
+public enum EventSourceTypeEnum {
+    /**
+     * 作业
+     */
+    JOB(1),
+    /**
+     * 步骤
+     */
+    STEP(2),
+    /**
+     * GSE 任务
+     */
+    GSE_TASK(3);
 
-/**
- * 执行引擎-Job事件
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobEvent extends Event {
-    /**
-     * 作业操作
-     *
-     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
-     */
-    private int action;
-    /**
-     * 作业实例ID
-     */
-    private long taskInstanceId;
-    /**
-     * 操作时间
-     */
-    private LocalDateTime time;
+    private final int value;
+
+    @JsonCreator
+    EventSourceTypeEnum(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
 }

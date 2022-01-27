@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
@@ -55,6 +56,10 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      */
     protected TaskInstanceDTO taskInstance;
     /**
+     * GSE任务
+     */
+    protected GseTaskDTO gseTask;
+    /**
      * 作业实例ID
      */
     protected long taskInstanceId;
@@ -70,22 +75,29 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      * 滚动执行批次
      */
     protected int batch;
+    /**
+     * GSE 任务唯一名称
+     */
+    protected String gseTaskUniqueName;
 
 
     public AbstractGseTaskCommand(AgentService agentService,
                                   AccountService accountService,
                                   Tracing tracing,
                                   TaskInstanceDTO taskInstance,
-                                  StepInstanceDTO stepInstance) {
+                                  StepInstanceDTO stepInstance,
+                                  GseTaskDTO gseTask) {
         this.agentService = agentService;
         this.accountService = accountService;
         this.tracing = tracing;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
+        this.gseTask = gseTask;
         this.taskInstanceId = taskInstance.getId();
-        this.stepInstanceId = stepInstance.getId();
-        this.executeCount = stepInstance.getExecuteCount();
-        this.batch = stepInstance.getBatch();
+        this.stepInstanceId = gseTask.getStepInstanceId();
+        this.executeCount = gseTask.getExecuteCount();
+        this.batch = gseTask.getBatch();
+        this.gseTaskUniqueName = gseTask.getShortTaskName();
     }
 
     /**
@@ -103,7 +115,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
             if (tracing != null) {
                 traceInfoMap.put("REQUEST_ID", tracing.currentTraceContext().get().traceIdString());
             }
-            if (org.apache.commons.lang3.StringUtils.isNotEmpty(taskInstance.getAppCode())) {
+            if (StringUtils.isNotEmpty(taskInstance.getAppCode())) {
                 traceInfoMap.put("APP_CODE", taskInstance.getAppCode());
             }
             traceInfoMap.put("CALLER_IP", agentService.getLocalAgentBindIp());

@@ -80,12 +80,12 @@ public class AgentTaskServiceImpl implements AgentTaskService {
     }
 
     @Override
-    public void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaIdAndIps,
+    public void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudIps,
                                       Long startTime, Long endTime, IpStatus status) {
-        if (cloudAreaIdAndIps == null || cloudAreaIdAndIps.size() == 0) {
+        if (cloudIps == null || cloudIps.size() == 0) {
             return;
         }
-        agentTaskDAO.batchUpdateAgentTasks(stepInstanceId, executeCount, cloudAreaIdAndIps, startTime, endTime,
+        agentTaskDAO.batchUpdateAgentTasks(stepInstanceId, executeCount, cloudIps, startTime, endTime,
             status);
     }
 
@@ -128,7 +128,7 @@ public class AgentTaskServiceImpl implements AgentTaskService {
                 baseResultGroup.getResultType(), baseResultGroup.getTag());
             List<IpDTO> ipList = new ArrayList<>();
             for (AgentTaskDTO agentTask : agentTaskList) {
-                ipList.add(IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudAreaAndIp()));
+                ipList.add(IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
             }
             resultGroup.setIpList(ipList);
             resultGroups.add(resultGroup);
@@ -157,15 +157,15 @@ public class AgentTaskServiceImpl implements AgentTaskService {
             long startTime = System.currentTimeMillis();
             if (stepInstance.isScriptStep()) {
                 ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount
-                    , IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudAreaAndIp()));
+                    , IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
                 agentTask.setScriptLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
-                    IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudAreaAndIp()),
+                    IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()),
                     FileDistModeEnum.DOWNLOAD.getValue());
                 agentTask.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
             }
-            log.debug("stepInstanceId={}|ip={}|time={} ms", stepInstanceId, agentTask.getCloudAreaAndIp(),
+            log.debug("stepInstanceId={}|ip={}|time={} ms", stepInstanceId, agentTask.getCloudIp(),
                 (System.currentTimeMillis() - startTime));
 
         }
@@ -174,13 +174,16 @@ public class AgentTaskServiceImpl implements AgentTaskService {
     }
 
     @Override
-    public List<AgentTaskDTO> getAgentTask(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp) {
-        return agentTaskDAO.listAgentTasks(stepInstanceId, executeCount, onlyTargetIp);
+    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+                                             Integer executeCount,
+                                             Integer batch,
+                                             boolean onlyTargetIp) {
+        return agentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, onlyTargetIp);
     }
 
     @Override
-    public AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp) {
-        return agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, cloudAreaIdAndIp);
+    public AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, String cloudIp) {
+        return agentTaskDAO.getAgentTaskByIp(stepInstanceId, executeCount, cloudIp);
     }
 
     @Override

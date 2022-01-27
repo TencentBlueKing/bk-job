@@ -106,13 +106,13 @@ public class EsbGetJobInstanceStatusResourceImpl
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.getAgentTask(stepInstance.getId(),
-                stepInstance.getExecuteCount(), true);
+            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstance.getId(),
+                stepInstance.getExecuteCount(), null, true);
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
             for (AgentTaskDTO agentTask : agentTasks) {
                 EsbIpStatusDTO ipStatus = new EsbIpStatusDTO();
                 ipStatus.setIp(agentTask.getIp());
-                ipStatus.setCloudAreaId(agentTask.getCloudAreaId());
+                ipStatus.setCloudAreaId(agentTask.getCloudId());
                 ipStatus.setStatus(agentTask.getStatus());
                 ipResultList.add(ipStatus);
             }

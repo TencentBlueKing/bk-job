@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GseTaskEvent {
+public class GseTaskEvent extends Event {
     /**
      * GSE任务操作
      *

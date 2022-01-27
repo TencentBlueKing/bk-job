@@ -563,7 +563,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             agentTask.setStepInstanceId(stepInstanceId);
             agentTask.setExecuteCount(stepInstance.getExecuteCount());
             IpDTO ipDto = IpHelper.transform(ip);
-            agentTask.setCloudAreaAndIp(IpHelper.compose(ipDto));
+            agentTask.setCloudIp(IpHelper.compose(ipDto));
             agentTask.setDisplayIp(ipDto.getIp());
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(endTime);

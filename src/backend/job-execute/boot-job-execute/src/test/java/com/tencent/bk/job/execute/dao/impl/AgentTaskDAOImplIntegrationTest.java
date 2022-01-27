@@ -61,7 +61,7 @@ public class AgentTaskDAOImplIntegrationTest {
 
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
-        assertThat(agentTask.getCloudAreaAndIp()).isEqualTo(ip);
+        assertThat(agentTask.getCloudIp()).isEqualTo(ip);
         assertThat(agentTask.getStatus()).isEqualTo(9);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
@@ -72,7 +72,7 @@ public class AgentTaskDAOImplIntegrationTest {
         assertThat(agentTask.getExitCode()).isEqualTo(0);
         assertThat(agentTask.getTag()).isEqualTo("succ");
         assertThat(agentTask.getScriptLogOffset()).isEqualTo(0);
-        assertThat(agentTask.getCloudAreaId()).isEqualTo(0);
+        assertThat(agentTask.getCloudId()).isEqualTo(0);
         assertThat(agentTask.getDisplayIp()).isEqualTo("10.0.0.1");
         assertThat(agentTask.isTargetServer()).isEqualTo(true);
         assertThat(agentTask.isSourceServer()).isEqualTo(false);
@@ -84,7 +84,7 @@ public class AgentTaskDAOImplIntegrationTest {
         AgentTaskDTO agentTask1 = new AgentTaskDTO();
         agentTask1.setStepInstanceId(1L);
         agentTask1.setExecuteCount(0);
-        agentTask1.setCloudAreaAndIp("0:10.0.0.1");
+        agentTask1.setCloudIp("0:10.0.0.1");
         agentTask1.setDisplayIp("10.0.0.1");
         agentTask1.setErrorCode(99);
         agentTask1.setStatus(1);
@@ -94,7 +94,7 @@ public class AgentTaskDAOImplIntegrationTest {
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
         agentTask2.setStepInstanceId(3L);
         agentTask2.setExecuteCount(0);
-        agentTask2.setCloudAreaAndIp("0:10.0.0.1");
+        agentTask2.setCloudIp("0:10.0.0.1");
         agentTask2.setErrorCode(88);
         agentTask2.setExitCode(1);
         agentTask2.setDisplayIp("10.0.0.1");
@@ -110,7 +110,7 @@ public class AgentTaskDAOImplIntegrationTest {
         AgentTaskDTO agentTask1Return = agentTaskDAO.getAgentTaskByIp(1L, 0, "0:10.0.0.1");
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
-        assertThat(agentTask1Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
+        assertThat(agentTask1Return.getCloudIp()).isEqualTo("0:10.0.0.1");
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
         assertThat(agentTask1Return.getStatus()).isEqualTo(1);
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
@@ -119,7 +119,7 @@ public class AgentTaskDAOImplIntegrationTest {
         AgentTaskDTO agentTask2Return = agentTaskDAO.getAgentTaskByIp(3L, 0, "0:10.0.0.1");
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(3L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
-        assertThat(agentTask2Return.getCloudAreaAndIp()).isEqualTo("0:10.0.0.1");
+        assertThat(agentTask2Return.getCloudIp()).isEqualTo("0:10.0.0.1");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(startTime);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(endTime);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
@@ -172,7 +172,7 @@ public class AgentTaskDAOImplIntegrationTest {
     public void testDeleteAllAgentTask() {
         agentTaskDAO.deleteAllAgentTasks(1L, 0);
 
-        List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTasks(1L, 0, false);
+        List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTasks(1L, 0, null, false);
         assertThat(agentTasks.size()).isEqualTo(0);
     }
 

@@ -85,22 +85,22 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         if (JobBuildInVariables.JOB_LAST_ALL.equals(variableName)) {
             hosts = extractAllHosts(preStepInstance);
         } else if (JobBuildInVariables.JOB_LAST_SUCCESS.equals(variableName)) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.getAgentTask(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), true);
+            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(preStepInstance.getId(),
+                preStepInstance.getExecuteCount(), null, true);
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
                     agentTasks.stream().filter(agentTask -> (agentTask.getStatus() == IpStatus.SUCCESS.getValue()
                         || agentTask.getStatus() == IpStatus.LAST_SUCCESS.getValue()))
-                        .map(agentTask -> new IpDTO(agentTask.getCloudAreaId(), agentTask.getIp())).collect(Collectors.toSet());
+                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         } else if (JobBuildInVariables.JOB_LAST_FAIL.equals(variableName)) {
-            List<AgentTaskDTO> agentTasks = agentTaskService.getAgentTask(preStepInstance.getId(),
-                preStepInstance.getExecuteCount(), true);
+            List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(preStepInstance.getId(),
+                preStepInstance.getExecuteCount(), null, true);
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 hosts =
                     agentTasks.stream().filter(agentTask -> (agentTask.getStatus() != IpStatus.SUCCESS.getValue()
                         && agentTask.getStatus() != IpStatus.LAST_SUCCESS.getValue()))
-                        .map(agentTask -> new IpDTO(agentTask.getCloudAreaId(), agentTask.getIp())).collect(Collectors.toSet());
+                        .map(agentTask -> new IpDTO(agentTask.getCloudId(), agentTask.getIp())).collect(Collectors.toSet());
             }
         }
         String value = VariableResolveUtils.formatHosts(hosts);

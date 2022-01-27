@@ -408,8 +408,8 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private AgentTaskExecutionDTO buildAgentTaskExecutionDTO(long appId, AgentTaskDTO agentTask) {
         AgentTaskExecutionDTO agentTaskExecution = new AgentTaskExecutionDTO();
-        agentTaskExecution.setCloudIp(agentTask.getCloudAreaAndIp());
-        long cloudAreaId = Long.parseLong(agentTask.getCloudAreaAndIp().split(":")[0]);
+        agentTaskExecution.setCloudIp(agentTask.getCloudIp());
+        long cloudAreaId = Long.parseLong(agentTask.getCloudIp().split(":")[0]);
         agentTaskExecution.setCloudAreaId(cloudAreaId);
         agentTaskExecution.setCloudAreaName(serverService.getCloudAreaName(appId, cloudAreaId));
         agentTaskExecution.setDisplayIp(agentTask.getDisplayIp());
@@ -570,7 +570,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
 
             watch.start("loadAllTasksFromDb");
-            List<AgentTaskDTO> tasks = agentTaskService.getAgentTask(stepInstanceId, executeCount, true);
+            List<AgentTaskDTO> tasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, null, true);
             log.debug("tasks.size={}", tasks.size());
             watch.stop();
             watch.start("buildResultGroupsFromTasks");
@@ -910,7 +910,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             return Collections.emptyList();
         }
         List<IpDTO> hosts = agentTaskGroupByResultType.stream()
-            .map(gseTaskIpLog -> new IpDTO(gseTaskIpLog.getCloudAreaId(), gseTaskIpLog.getIp()))
+            .map(gseTaskIpLog -> new IpDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()))
             .collect(Collectors.toList());
         if (filterByKeyword && CollectionUtils.isNotEmpty(matchIps)) {
             List<IpDTO> finalHosts = new ArrayList<>();

@@ -47,16 +47,16 @@ public interface AgentTaskService {
     /**
      * 批量更新 GSE Agent 任务
      *
-     * @param stepInstanceId    步骤实例ID
-     * @param executeCount      步骤执行次数
-     * @param cloudAreaIdAndIps Agent ip 列表
-     * @param startTime         任务开始时间
-     * @param endTime           任务结束时间
-     * @param status            任务状态
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   步骤执行次数
+     * @param cloudIps       Agent ip 列表
+     * @param startTime      任务开始时间
+     * @param endTime        任务结束时间
+     * @param status         任务状态
      */
     void batchUpdateAgentTasks(long stepInstanceId,
                                int executeCount,
-                               Collection<String> cloudAreaIdAndIps,
+                               Collection<String> cloudIps,
                                Long startTime,
                                Long endTime,
                                IpStatus status);
@@ -92,7 +92,6 @@ public interface AgentTaskService {
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
-     * @return
      */
     List<AgentTaskResultGroupDTO> getLogStatInfoWithIp(long stepInstanceId, int executeCount);
 
@@ -104,16 +103,28 @@ public interface AgentTaskService {
                                                        String tag);
 
     /**
-     * 获取agent任务信息
+     * 获取agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @param onlyTargetIp   是否仅返回目标服务器IP
-     * @return agent任务信息
+     * @return agent任务
      */
-    List<AgentTaskDTO> getAgentTask(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
+    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+                                      Integer executeCount,
+                                      Integer batch,
+                                      boolean onlyTargetIp);
 
-    AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, String cloudAreaIdAndIp);
+    /**
+     * 获取agent任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param cloudIp        ip
+     * @return agent任务
+     */
+    AgentTaskDTO getAgentTask(Long stepInstanceId, Integer executeCount, String cloudIp);
 
     /**
      * 获取文件任务源ip

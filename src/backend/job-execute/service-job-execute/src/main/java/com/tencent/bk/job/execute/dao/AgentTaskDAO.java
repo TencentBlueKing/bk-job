@@ -70,14 +70,18 @@ public interface AgentTaskDAO {
                                                  String tag, Integer limit, String orderField, Order order);
 
     /**
-     * 获取agent任务信息
+     * 获取agent任务
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @param onlyTargetIp   是否仅返回目标服务器IP
      * @return agent任务信息
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp);
+    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+                                      Integer executeCount,
+                                      Integer batch,
+                                      boolean onlyTargetIp);
 
     AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
 

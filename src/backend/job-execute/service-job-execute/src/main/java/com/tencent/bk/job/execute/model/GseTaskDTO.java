@@ -34,6 +34,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GseTaskDTO {
     /**
+     * GSE任务ID
+     */
+    private Long id;
+    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -70,5 +74,9 @@ public class GseTaskDTO {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+    }
+
+    public String getShortTaskName() {
+        return "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount + ":" + batch;
     }
 }

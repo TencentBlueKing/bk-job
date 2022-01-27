@@ -31,7 +31,9 @@ import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -48,17 +50,17 @@ import org.springframework.stereotype.Component;
 public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
     private final ExceptionStatusManager exceptionStatusManager;
-    /**
-     * 任务执行异常Counter
-     */
+    private final GseTaskService gseTaskService;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
 
     @Autowired
     public GseTaskListener(GseTaskManager gseTaskManager,
                            ExceptionStatusManager exceptionStatusManager,
+                           GseTaskService gseTaskService,
                            GseTasksExceptionCounter gseTasksExceptionCounter) {
         this.gseTaskManager = gseTaskManager;
         this.exceptionStatusManager = exceptionStatusManager;
+        this.gseTaskService = gseTaskService;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
     }
 
@@ -70,14 +72,14 @@ public class GseTaskListener {
     @StreamListener(GseTaskProcessor.INPUT)
     public void handleEvent(@Payload GseTaskEvent gseTaskEvent) {
         log.info("Handel gse task event: {}", gseTaskEvent);
-        long stepInstanceId = gseTaskEvent.getStepInstanceId();
+        GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
         String requestId = gseTaskEvent.getRequestId();
         try {
             int action = gseTaskEvent.getAction();
             if (GseTaskActionEnum.START.getValue() == action) {
-                gseTaskManager.startTask(stepInstanceId, gseTaskEvent.getRequestId());
+                gseTaskManager.startTask(gseTask, requestId);
             } else if (GseTaskActionEnum.STOP.getValue() == action) {
-                gseTaskManager.stopTask(stepInstanceId, requestId);
+                gseTaskManager.stopTask(gseTask, requestId);
             } else {
                 log.error("Error gse task action:{}", action);
             }

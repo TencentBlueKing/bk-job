@@ -53,6 +53,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -110,11 +111,12 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                      ExceptionStatusManager exceptionStatusManager,
                                      GseTasksExceptionCounter gseTasksExceptionCounter,
+                                     JobBuildInVariableResolver jobBuildInVariableResolver,
                                      Tracing tracing,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
-                                     JobBuildInVariableResolver jobBuildInVariableResolver) {
+                                     GseTaskDTO gseTask) {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
@@ -127,12 +129,15 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             executeMonitor,
-            jobExecuteConfig, taskEvictPolicyExecutor,
-            exceptionStatusManager, gseTasksExceptionCounter,
+            jobExecuteConfig,
+            taskEvictPolicyExecutor,
+            exceptionStatusManager,
+            gseTasksExceptionCounter,
             tracing,
             requestId,
             taskInstance,
-            stepInstance);
+            stepInstance,
+            gseTask);
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
     }
@@ -143,6 +148,12 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             "_" + stepInstance.getId();
     }
 
+    @Override
+    protected void preExecute() {
+        scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
+            stepInstance.getAccount());
+    }
+
     private String buildScriptFilePath(String gseScriptFileRootPath, String account) {
         if (gseScriptFileRootPath.endsWith("/")) {
             return gseScriptFileRootPath + account;
@@ -151,25 +162,26 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
     }
 
-    @Override
-    protected void preExecute() {
-        scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
-            stepInstance.getAccount());
-    }
-
 
     @Override
     protected GseTaskResponse startGseTask() {
-        return GseRequestUtils.sendScriptTaskRequest(stepInstanceId, getScriptRequest(stepInstance));
+        return GseRequestUtils.sendScriptTaskRequest(stepInstanceId, buildScriptRequest());
     }
 
-    protected api_script_request getScriptRequest(StepInstanceDTO stepInstance) {
+    protected api_script_request buildScriptRequest() {
+        api_script_request request;
         // shell 脚本需要支持全局变量传参，需要特殊的处理逻辑
         if (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
-            api_script_request request = buildShellScriptRequest(stepInstance);
-            request.setM_caller(buildGseTraceInfo());
-            return request;
+            request = buildShellScriptRequest();
+        } else {
+            request = buildNonShellScriptRequest();
         }
+        request.setM_caller(buildGseTraceInfo());
+
+        return request;
+    }
+
+    private api_script_request buildNonShellScriptRequest() {
         String scriptContent = stepInstance.getScriptContent();
         String scriptFileName = buildScriptFileName(stepInstance);
 
@@ -183,7 +195,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             accountInfo.getPassword());
         api_script_request request = GseRequestUtils.buildScriptRequest(agentList, scriptContent, scriptFileName,
             scriptFilePath, resolvedScriptParam, timeout);
-        request.setM_caller(buildGseTraceInfo(taskInstance, stepInstance));
+        request.setM_caller(buildGseTraceInfo());
+
         return request;
     }
 
@@ -194,7 +207,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * 构建shell脚本下发的请求
      */
-    private api_script_request buildShellScriptRequest(StepInstanceDTO stepInstance) {
+    private api_script_request buildShellScriptRequest() {
         api_script_request request;
         boolean containsAnyImportedVariable = false;
         List<String> importVariables = null;
@@ -660,10 +673,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected final void handleStartGseTaskError(GseTaskResponse gseTaskResponse) {
         long endTime = DateUtils.currentTimeMillis();
-        gseTask.setStatus(RunStatusEnum.FAIL.getValue());
-        gseTask.setEndTime(endTime);
-        gseTask.setTotalTime(endTime - gseTask.getStartTime());
-        gseTaskService.saveGseTask(gseTask);
+        updateGseTaskExecutionInfo(null, RunStatusEnum.FAIL, null, endTime, endTime - gseTask.getStartTime());
 
         // 处理未完成的任务
         saveNotStartedAgentTasks(gseTask.getStartTime(), endTime,

@@ -43,6 +43,7 @@ import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveMana
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
@@ -68,7 +69,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class SqlScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
+public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
     private static final Map<Integer, String> sqlMap = Maps.newHashMap();
 
     static {
@@ -116,7 +117,7 @@ public class SqlScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         }
     }
 
-    public SqlScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
+    public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
                                         GseTaskService gseTaskService,
                                         AgentTaskService agentTaskService,
@@ -132,11 +133,12 @@ public class SqlScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                         ExceptionStatusManager exceptionStatusManager,
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
+                                        JobBuildInVariableResolver jobBuildInVariableResolver,
                                         Tracing tracing,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
-                                        JobBuildInVariableResolver jobBuildInVariableResolver) {
+                                        GseTaskDTO gseTask) {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
@@ -151,14 +153,16 @@ public class SqlScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             executeMonitor,
             jobExecuteConfig, taskEvictPolicyExecutor,
             exceptionStatusManager, gseTasksExceptionCounter,
+            jobBuildInVariableResolver,
             tracing,
             requestId,
             taskInstance,
             stepInstance,
-            jobBuildInVariableResolver);
+            gseTask);
     }
 
-    protected api_script_request getScriptRequest(StepInstanceDTO stepInstance) {
+    @Override
+    protected api_script_request buildScriptRequest() {
         String sqlScriptContent = stepInstance.getScriptContent();
         String sqlScriptFileName = buildScriptFileName(stepInstance);
 

@@ -59,7 +59,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
@@ -85,7 +84,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
     private final AgentTaskService agentTaskService;
-    private final TaskExecuteMQEventDispatcher taskManager;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final AccountService accountService;
     private final LogService logService;
     private final TaskInstanceVariableService taskInstanceVariableService;
@@ -140,7 +139,7 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
                           AgentTaskService agentTaskService,
-                          TaskExecuteMQEventDispatcher taskManager,
+                          TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                           AccountService accountService,
                           LogService logService,
                           TaskInstanceVariableService taskInstanceVariableService,
@@ -160,7 +159,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.agentTaskService = agentTaskService;
-        this.taskManager = taskManager;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.accountService = accountService;
         this.logService = logService;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -179,55 +178,19 @@ public class GseTaskManager implements SmartLifecycle {
     }
 
     /**
-     * 判定GSE任务管理器是否活跃
-     *
-     * @param stepInstanceId 当前请求调度的步骤Id
-     */
-    private void checkActiveStatus(long stepInstanceId) {
-        if (!isActive()) {
-            log.warn("GseTaskManager is not active, reject! stepInstanceId: {}", stepInstanceId);
-            throw new MessageHandlerUnavailableException();
-        }
-    }
-
-    /**
-     * 检查并获取任务与步骤实例，并判断后续是否应当下发GSE任务
-     *
-     * @param stepInstanceId 步骤Id
-     * @return <是否应下发GSE任务，任务实例，步骤实例>
-     */
-    private Triple<Boolean, TaskInstanceDTO, StepInstanceDTO> checkTaskAndStep(long stepInstanceId) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-
-        // 如果任务应当被驱逐，直接置为被丢弃状态
-        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
-            return Triple.of(false, taskInstance, stepInstance);
-        }
-
-        // 如果任务处于“终止中”状态，直接终止
-        if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
-            log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
-                    + "stepInstanceId:{}",
-                taskInstance.getId(), stepInstance.getId());
-            taskManager.refreshStep(stepInstance.getId());
-            return Triple.of(false, taskInstance, stepInstance);
-        }
-        return Triple.of(true, taskInstance, stepInstance);
-    }
-
-    /**
      * 启动任务(首次执行/继续执行异常中断的任务)
      *
-     * @param stepInstanceId 步骤实例ID
+     * @param gseTask   GSE任务
+     * @param requestId 请求ID
      */
-    public void startTask(long stepInstanceId, String requestId) {
+    public void startTask(GseTaskDTO gseTask, String requestId) {
+        long stepInstanceId = gseTask.getStepInstanceId();
         checkActiveStatus(stepInstanceId);
 
         boolean success = false;
-        String taskName = "start-gse-task:" + stepInstanceId;
-        StopWatch watch = new StopWatch("GseTaskManager-start-task-" + stepInstanceId);
+        String taskName = gseTask.getShortTaskName();
+
+        StopWatch watch = new StopWatch("startGseTask");
         String startTaskRequestId = requestId;
         if (StringUtils.isEmpty(startTaskRequestId)) {
             startTaskRequestId = UUID.randomUUID().toString();
@@ -235,21 +198,34 @@ public class GseTaskManager implements SmartLifecycle {
 
         AbstractGseTaskExecutor gseTaskExecutor = null;
         try {
-            watch.start("get-running-lock");
+            watch.start("getRunningLock");
             // 可重入锁，如果任务正在执行，则放弃
             if (!LockUtils.tryGetReentrantLock(
-                "job:running:gse:task:" + stepInstanceId, startTaskRequestId, 30000L)) {
-                log.info("Fail to get running lock, stepInstanceId: {}", stepInstanceId);
+                "job:running:gse:task:" + gseTask.getId(), startTaskRequestId, 30000L)) {
+                log.info("Fail to get running lock, gseTaskId: {}", gseTask.getId());
                 return;
             }
             watch.stop();
 
-            watch.start("get-task-and-step-from-db-and-check-task");
-            Triple<Boolean, TaskInstanceDTO, StepInstanceDTO> triple = checkTaskAndStep(stepInstanceId);
-            Boolean shouldStartTask = triple.getLeft();
-            if (!shouldStartTask) return;
-            TaskInstanceDTO taskInstance = triple.getMiddle();
-            StepInstanceDTO stepInstance = triple.getRight();
+            watch.start("loadTaskAndCheck");
+            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+
+            // 如果任务应当被驱逐，直接置为被丢弃状态
+            if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
+                log.warn("Evict job, taskInstanceId: {}, gseTask: {}", taskInstance.getId(), taskName);
+                taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
+                taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+                return;
+            }
+
+            // 如果任务处于“终止中”状态，直接终止
+            if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
+                log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
+                    + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
+                taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+                return;
+            }
             watch.stop();
 
             watch.start("init-task-executor");
@@ -289,6 +265,19 @@ public class GseTaskManager implements SmartLifecycle {
                 .record(watch.getTotalTimeNanos(), TimeUnit.NANOSECONDS);
         }
     }
+
+    /**
+     * 判定GSE任务管理器是否活跃
+     *
+     * @param stepInstanceId 当前请求调度的步骤Id
+     */
+    private void checkActiveStatus(long stepInstanceId) {
+        if (!isActive()) {
+            log.warn("GseTaskManager is not active, reject! stepInstanceId: {}", stepInstanceId);
+            throw new MessageHandlerUnavailableException();
+        }
+    }
+
 
     private String getTaskTypeDesc(AbstractGseTaskExecutor executor) {
         if (executor == null) {
@@ -363,7 +352,7 @@ public class GseTaskManager implements SmartLifecycle {
             stepInstanceVariableValueService,
             agentService,
             logService,
-            taskManager,
+            taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             executeMonitor,
             jobExecuteConfig,

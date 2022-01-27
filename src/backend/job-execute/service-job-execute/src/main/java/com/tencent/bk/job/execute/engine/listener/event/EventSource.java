@@ -25,32 +25,41 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.execute.engine.consts.EventSourceTypeEnum;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
- * 执行引擎-Job事件
+ * 执行引擎事件源
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobEvent extends Event {
-    /**
-     * 作业操作
-     *
-     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
-     */
-    private int action;
-    /**
-     * 作业实例ID
-     */
-    private long taskInstanceId;
-    /**
-     * 操作时间
-     */
-    private LocalDateTime time;
+public class EventSource {
+    private EventSourceTypeEnum sourceType;
+    private Long taskInstanceId;
+    private Long stepInstanceId;
+    private Long gseTaskId;
+
+    public static EventSource buildStepEventSource(long stepInstanceId) {
+        EventSource eventSource = new EventSource();
+        eventSource.setStepInstanceId(stepInstanceId);
+        eventSource.setSourceType(EventSourceTypeEnum.STEP);
+        return eventSource;
+    }
+
+    public static EventSource buildGseTaskEventSource(long gseTaskId) {
+        EventSource eventSource = new EventSource();
+        eventSource.setGseTaskId(gseTaskId);
+        eventSource.setSourceType(EventSourceTypeEnum.GSE_TASK);
+        return eventSource;
+    }
+
+    public StepEventSource toStepEventSource() {
+        return new StepEventSource(this.stepInstanceId);
+    }
+
+    public GseTaskEventSource toGseTaskEventSource() {
+        return new GseTaskEventSource(this.gseTaskId);
+    }
+
+
 }

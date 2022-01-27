@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class StepEvent {
+public class StepEvent extends Event {
     /**
      * 步骤操作
      *
@@ -49,10 +49,6 @@ public class StepEvent {
      * 步骤实例ID
      */
     private long stepInstanceId;
-    /**
-     * 步骤执行次数
-     */
-    private Integer executeCount;
     /**
      * 执行批次
      */

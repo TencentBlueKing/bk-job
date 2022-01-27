@@ -124,7 +124,7 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
                     esbGseAgentTaskDTO.setErrCode(agentTask.getErrorCode());
                     esbGseAgentTaskDTO.setExitCode(agentTask.getExitCode());
                     esbGseAgentTaskDTO.setTotalTime(agentTask.getTotalTime());
-                    esbGseAgentTaskDTO.setCloudAreaId(agentTask.getCloudAreaId());
+                    esbGseAgentTaskDTO.setCloudAreaId(agentTask.getCloudId());
                     esbGseAgentTaskDTO.setIp(agentTask.getIp());
                     esbGseAgentTaskList.add(esbGseAgentTaskDTO);
                 }

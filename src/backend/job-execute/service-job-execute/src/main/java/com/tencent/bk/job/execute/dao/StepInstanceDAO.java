@@ -57,6 +57,15 @@ public interface StepInstanceDAO {
      */
     StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId);
 
+    /**
+     * 获取下一个步骤实例
+     *
+     * @param taskInstanceId   作业实例ID
+     * @param currentStepOrder 当前步骤的顺序
+     * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
+     */
+    StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
+
     ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId);
 
     FileStepInstanceDTO getFileStepInstance(long stepInstanceId);

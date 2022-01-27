@@ -57,7 +57,7 @@ public class AgentTaskDTO {
     /**
      * 服务器IP,包含云区域
      */
-    private String cloudAreaAndIp;
+    private String cloudIp;
     /**
      * 服务器IP,不包含云区域
      */
@@ -73,7 +73,7 @@ public class AgentTaskDTO {
     /**
      * 云区域ID
      */
-    private Long cloudAreaId;
+    private Long cloudId;
     /**
      * 展示给用户的IP
      */
@@ -118,6 +118,12 @@ public class AgentTaskDTO {
      * 结果是否发生变化
      */
     private volatile boolean changed;
+
+    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+    }
 
     public void setStatus(int status) {
         this.changed = this.status != status;

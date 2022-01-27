@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.engine.consts.GseStepActionEnum;
 import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
@@ -126,10 +125,11 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
     }
 
     @Override
-    public void refreshJob(long taskInstanceId) {
+    public void refreshJob(long taskInstanceId, EventSource eventSource) {
         log.info("Begin to send refresh job event, taskInstanceId: {}", taskInstanceId);
         JobEvent jobEvent = new JobEvent();
         jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setSource(eventSource);
         jobEvent.setAction(JobActionEnum.REFRESH.getValue());
         jobEvent.setTime(LocalDateTime.now());
         taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
@@ -284,36 +284,36 @@ public class TaskExecuteMQEventDispatcherImpl implements TaskExecuteMQEventDispa
         log.info("Send resume gse step event successfully, event: {}", stepEvent);
     }
 
-    @Override
-    public void retryGseStepFail(long stepInstanceId) {
-        log.info("Begin to send retry gse step fail event successfully, stepInstanceId: {}", stepInstanceId);
-        StepEvent stepEvent = new StepEvent();
-        stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setAction(GseStepActionEnum.RETRY_FAIL.getValue());
-        stepEvent.setTime(LocalDateTime.now());
-        stepEvent.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send start gse step fail event successfully, event: {}", stepEvent);
-    }
-
-    @Override
-    public void retryGseStepAll(long stepInstanceId) {
-        log.info("Begin to send retry gse step all event successfully, stepInstanceId: {}", stepInstanceId);
-        StepEvent stepEvent = new StepEvent();
-        stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setAction(GseStepActionEnum.RETRY_ALL.getValue());
-        stepEvent.setTime(LocalDateTime.now());
-        stepEvent.setRequestId(UUID.randomUUID().toString());
-        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send start gse step all event successfully, event: {}", stepEvent);
-    }
+//    @Override
+//    public void retryGseStepFail(long stepInstanceId) {
+//        log.info("Begin to send retry gse step fail event successfully, stepInstanceId: {}", stepInstanceId);
+//        StepEvent stepEvent = new StepEvent();
+//        stepEvent.setStepInstanceId(stepInstanceId);
+//        stepEvent.setAction(GseStepActionEnum.RETRY_FAIL.getValue());
+//        stepEvent.setTime(LocalDateTime.now());
+//        stepEvent.setRequestId(UUID.randomUUID().toString());
+//        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+//        log.info("Send start gse step fail event successfully, event: {}", stepEvent);
+//    }
+//
+//    @Override
+//    public void retryGseStepAll(long stepInstanceId) {
+//        log.info("Begin to send retry gse step all event successfully, stepInstanceId: {}", stepInstanceId);
+//        StepEvent stepEvent = new StepEvent();
+//        stepEvent.setStepInstanceId(stepInstanceId);
+//        stepEvent.setAction(GseStepActionEnum.RETRY_ALL.getValue());
+//        stepEvent.setTime(LocalDateTime.now());
+//        stepEvent.setRequestId(UUID.randomUUID().toString());
+//        gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());
+//        log.info("Send start gse step all event successfully, event: {}", stepEvent);
+//    }
 
     @Override
     public void stopGseStep(long stepInstanceId) {
         log.info("Begin to send stop gse step event successfully, stepInstanceId: {}", stepInstanceId);
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setAction(GseStepActionEnum.STOP.getValue());
+        stepEvent.setAction(GseTaskActionEnum.STOP.getValue());
         stepEvent.setTime(LocalDateTime.now());
         stepEvent.setRequestId(UUID.randomUUID().toString());
         gseTaskOutput.send(MessageBuilder.withPayload(stepEvent).build());

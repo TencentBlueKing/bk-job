@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
 import java.util.Map;
 
@@ -62,6 +63,15 @@ public interface StepInstanceService {
      * @return 根据GSE Agent 任务状态分组计数结果
      */
     Map<IpStatus, Integer> countStepGseAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
+
+    /**
+     * 获取下一个步骤实例
+     *
+     * @param taskInstanceId   作业实例ID
+     * @param currentStepOrder 当前步骤的顺序
+     * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
+     */
+    StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
 
 
 }

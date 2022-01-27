@@ -24,33 +24,17 @@
 
 package com.tencent.bk.job.execute.engine.listener.event;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-/**
- * 执行引擎-Job事件
- */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobEvent extends Event {
-    /**
-     * 作业操作
-     *
-     * @see com.tencent.bk.job.execute.engine.consts.JobActionEnum
-     */
-    private int action;
-    /**
-     * 作业实例ID
-     */
-    private long taskInstanceId;
-    /**
-     * 操作时间
-     */
-    private LocalDateTime time;
+public class StepEventSource {
+    private long stepInstanceId;
+
+    public StepEventSource(long stepInstanceId) {
+        this.stepInstanceId = stepInstanceId;
+    }
+
+    public static StepEventSource of(long stepInstanceId) {
+        return new StepEventSource(stepInstanceId);
+    }
 }

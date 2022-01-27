@@ -195,7 +195,7 @@ public class LogExportServiceImpl implements LogExportService {
                 gseTaskIpLogs.add(agentTask);
             }
         } else {
-            gseTaskIpLogs = agentTaskService.getAgentTask(stepInstanceId, executeCount, true);
+            gseTaskIpLogs = agentTaskService.listAgentTasks(stepInstanceId, executeCount, null, true);
         }
         watch.stop();
 
@@ -292,7 +292,7 @@ public class LogExportServiceImpl implements LogExportService {
         gseTaskIpLogs.forEach(gseTaskIpLog -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(gseTaskIpLog.getExecuteCount(),
                 (executeCount) -> new LogBatchQuery(stepInstanceId, executeCount));
-            query.addIp(new IpDTO(gseTaskIpLog.getCloudAreaId(), gseTaskIpLog.getIp()));
+            query.addIp(new IpDTO(gseTaskIpLog.getCloudId(), gseTaskIpLog.getIp()));
         });
         batchQueryGroups.values().forEach(LogBatchQuery::batchIps);
         return batchQueryGroups.values();

@@ -77,7 +77,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
             Object[] param = new Object[14];
             param[0] = agentTask.getStepInstanceId();
             param[1] = agentTask.getExecuteCount();
-            param[2] = agentTask.getCloudAreaAndIp();
+            param[2] = agentTask.getCloudIp();
             param[3] = agentTask.getStatus();
             param[4] = agentTask.getStartTime();
             param[5] = agentTask.getEndTime();
@@ -122,7 +122,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
             .where(t.STATUS.in(IpStatus.LAST_SUCCESS.getValue(), IpStatus.SUCCESS.getValue()))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
-            .and(t.IS_TARGET.eq((byte)Bool.TRUE.getValue()))
+            .and(t.IS_TARGET.eq((byte) Bool.TRUE.getValue()))
             .fetchOne(0, Integer.class);
     }
 
@@ -131,7 +131,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
         Result<?> result = CTX.select(T_GSE_AGENT_TASK.STATUS, count().as("ip_count")).from(T_GSE_AGENT_TASK)
             .where(T_GSE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_AGENT_TASK.IS_TARGET.eq((byte)Bool.TRUE.getValue()))
+            .and(T_GSE_AGENT_TASK.IS_TARGET.eq((byte) Bool.TRUE.getValue()))
             .groupBy(T_GSE_AGENT_TASK.STATUS)
             .fetch();
 
@@ -287,18 +287,24 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, boolean onlyTargetIp) {
+    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+                                             Integer executeCount,
+                                             Integer batch,
+                                             boolean onlyTargetIp) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
-        SelectConditionStep selectConditionStep = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS,
+        SelectConditionStep<?> selectConditionStep = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS,
             t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.ERROR_CODE, t.EXIT_CODE, t.TAG, t.LOG_OFFSET, t.DISPLAY_IP, t.IS_TARGET, t.IS_SOURCE)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount));
-        if (onlyTargetIp) {
-            selectConditionStep.and(t.IS_TARGET.eq(Byte.valueOf("1")));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(t.BATCH.eq(batch.shortValue()));
         }
-        Result result = selectConditionStep.fetch();
+        if (onlyTargetIp) {
+            selectConditionStep.and(t.IS_TARGET.eq(Bool.TRUE.getValue()));
+        }
+        Result<?> result = selectConditionStep.fetch();
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         if (result.size() != 0) {
             result.map(record -> {
@@ -317,7 +323,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
-        agentTask.setCloudAreaAndIp(record.get(t.IP));
+        agentTask.setCloudIp(record.get(t.IP));
         agentTask.setStatus(record.get(t.STATUS));
         agentTask.setStartTime(record.get(t.START_TIME));
         agentTask.setEndTime(record.get(t.END_TIME));
@@ -328,7 +334,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
         agentTask.setScriptLogOffset(record.get(t.LOG_OFFSET));
         agentTask.setDisplayIp(record.get(t.DISPLAY_IP));
         String[] cloudAreaIdAndIpArray = record.get(t.IP).split(":");
-        agentTask.setCloudAreaId(Long.valueOf(cloudAreaIdAndIpArray[0]));
+        agentTask.setCloudId(Long.valueOf(cloudAreaIdAndIpArray[0]));
         agentTask.setIp(cloudAreaIdAndIpArray[1]);
         agentTask.setTargetServer(record.get(t.IS_TARGET) == 1);
         agentTask.setSourceServer(record.get(t.IS_SOURCE) == 1);

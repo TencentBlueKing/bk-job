@@ -182,10 +182,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<api_task_de
     private void initLogPullProcess(Collection<AgentTaskDTO> agentTasks) {
         agentTasks.forEach(agentTask -> {
             LogPullProgress process = new LogPullProgress();
-            process.setIp(agentTask.getCloudAreaAndIp());
+            process.setIp(agentTask.getCloudIp());
             process.setByteOffset(agentTask.getScriptLogOffset());
             process.setMid(0);
-            logPullProgressMap.put(agentTask.getCloudAreaAndIp(), process);
+            logPullProgressMap.put(agentTask.getCloudIp(), process);
         });
     }
 

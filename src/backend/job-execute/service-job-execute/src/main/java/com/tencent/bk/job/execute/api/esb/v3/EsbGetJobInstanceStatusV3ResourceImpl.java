@@ -136,12 +136,12 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<AgentTaskDTO> agentTaskList = agentTaskService.getAgentTask(stepInstance.getId(),
-                    stepInstance.getExecuteCount(), true);
+                List<AgentTaskDTO> agentTaskList = agentTaskService.listAgentTasks(stepInstance.getId(),
+                    stepInstance.getExecuteCount(), null, true);
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
                     for (AgentTaskDTO ipLog : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setCloudAreaId(ipLog.getCloudAreaId());
+                        stepIpResult.setCloudAreaId(ipLog.getCloudId());
                         stepIpResult.setIp(ipLog.getIp());
                         stepIpResult.setExitCode(ipLog.getExitCode());
                         stepIpResult.setErrorCode(ipLog.getErrorCode());

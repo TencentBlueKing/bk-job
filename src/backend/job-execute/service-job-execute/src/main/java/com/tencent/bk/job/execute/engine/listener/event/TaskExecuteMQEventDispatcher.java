@@ -57,8 +57,9 @@ public interface TaskExecuteMQEventDispatcher {
      * 触发作业继续后续步骤事件
      *
      * @param taskInstanceId 作业实例ID
+     * @param eventSource    事件源
      */
-    void refreshJob(long taskInstanceId);
+    void refreshJob(long taskInstanceId, EventSource eventSource);
 
     /**
      * 触发忽略错误事件
@@ -154,19 +155,19 @@ public interface TaskExecuteMQEventDispatcher {
      */
     void resumeGseStep(long stepInstanceId, int executeCount, String requestId);
 
-    /**
-     * 重新执行步骤中失败的ip事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void retryGseStepFail(long stepInstanceId);
-
-    /**
-     * 重新执行步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void retryGseStepAll(long stepInstanceId);
+//    /**
+//     * 重新执行步骤中失败的ip事件
+//     *
+//     * @param stepInstanceId 步骤实例ID
+//     */
+//    void retryGseStepFail(long stepInstanceId);
+//
+//    /**
+//     * 重新执行步骤事件
+//     *
+//     * @param stepInstanceId 步骤实例ID
+//     */
+//    void retryGseStepAll(long stepInstanceId);
 
     /**
      * 发送强制终止GSE步骤事件

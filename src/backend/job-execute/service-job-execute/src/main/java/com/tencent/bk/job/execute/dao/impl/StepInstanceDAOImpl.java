@@ -377,6 +377,19 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
+    public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder) {
+        Record record = CTX
+            .select(T_STEP_INSTANCE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE.STEP_ORDER.gt(currentStepOrder))
+            .orderBy(T_STEP_INSTANCE.STEP_ORDER.asc())
+            .limit(1)
+            .fetchOne();
+        return extractBaseInfo(record);
+    }
+
+    @Override
     public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId) {
         Result result = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)

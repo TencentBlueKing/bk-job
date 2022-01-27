@@ -51,4 +51,9 @@ public class GseTaskServiceImpl implements GseTaskService {
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, int batch) {
         return gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
     }
+
+    @Override
+    public GseTaskDTO getGseTask(long gseTaskId) {
+        return null;
+    }
 }
