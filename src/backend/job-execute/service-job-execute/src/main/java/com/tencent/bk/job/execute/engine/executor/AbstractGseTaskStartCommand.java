@@ -65,20 +65,18 @@ import java.util.Set;
 @Slf4j
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
 
-    protected GseTasksExceptionCounter gseTasksExceptionCounter;
-    protected ResultHandleManager resultHandleManager;
-    protected TaskInstanceService taskInstanceService;
-    protected GseTaskService gseTaskService;
-    protected AgentTaskService agentTaskService;
-    protected TaskInstanceVariableService taskInstanceVariableService;
-    protected StepInstanceVariableValueService stepInstanceVariableValueService;
-    protected LogService logService;
-    protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    protected ExecuteMonitor executeMonitor;
-    protected ExceptionStatusManager exceptionStatusManager;
-    protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-    protected JobExecuteConfig jobExecuteConfig;
+    protected final GseTasksExceptionCounter gseTasksExceptionCounter;
+    protected final ResultHandleManager resultHandleManager;
+    protected final TaskInstanceService taskInstanceService;
+    protected final TaskInstanceVariableService taskInstanceVariableService;
+    protected final StepInstanceVariableValueService stepInstanceVariableValueService;
+    protected final LogService logService;
+    protected final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
+    protected final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    protected final ExecuteMonitor executeMonitor;
+    protected final ExceptionStatusManager exceptionStatusManager;
+    protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
+    protected final JobExecuteConfig jobExecuteConfig;
 
     /**
      * 任务下发请求ID,防止重复下发任务
@@ -93,7 +91,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     /**
      * 目标主机
      */
-    protected Set<String> targetHosts = new HashSet<>();
+    protected Set<String> targetIps = new HashSet<>();
 
 
     /**
@@ -131,11 +129,16 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 GseTaskDTO gseTask) {
-        super(agentService, accountService, tracing, taskInstance, stepInstance, gseTask);
+        super(agentService,
+            accountService,
+            gseTaskService,
+            agentTaskService,
+            tracing,
+            taskInstance,
+            stepInstance,
+            gseTask);
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
-        this.gseTaskService = gseTaskService;
-        this.agentTaskService = agentTaskService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.logService = logService;
@@ -214,7 +217,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     private void initTargetHosts() {
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, batch, true);
         agentTasks.forEach(agentTask -> {
-            this.targetHosts.add(agentTask.getCloudIp());
+            this.targetIps.add(agentTask.getCloudIp());
             this.agentTaskMap.put(agentTask.getCloudIp(), agentTask);
         });
     }

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
-import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
@@ -49,17 +48,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
-    private final ExceptionStatusManager exceptionStatusManager;
     private final GseTaskService gseTaskService;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
 
     @Autowired
     public GseTaskListener(GseTaskManager gseTaskManager,
-                           ExceptionStatusManager exceptionStatusManager,
                            GseTaskService gseTaskService,
                            GseTasksExceptionCounter gseTasksExceptionCounter) {
         this.gseTaskManager = gseTaskManager;
-        this.exceptionStatusManager = exceptionStatusManager;
         this.gseTaskService = gseTaskService;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
     }
@@ -79,24 +75,22 @@ public class GseTaskListener {
             if (GseTaskActionEnum.START.getValue() == action) {
                 gseTaskManager.startTask(gseTask, requestId);
             } else if (GseTaskActionEnum.STOP.getValue() == action) {
-                gseTaskManager.stopTask(gseTask, requestId);
+                gseTaskManager.stopTask(gseTask);
             } else {
                 log.error("Error gse task action:{}", action);
             }
         } catch (Throwable e) {
-            String errorMsg = "Handling gse task event error,stepInstanceId:" + stepInstanceId;
+            String errorMsg = "Handling gse task event error, event:" + gseTaskEvent;
             log.error(errorMsg, e);
-            handleException(stepInstanceId, e);
+            handleException(e);
         }
     }
 
-    private void handleException(long stepInstanceId, Throwable e) throws MessageHandleException {
+    private void handleException(Throwable e) throws MessageHandleException {
         // 服务关闭，消息被拒绝，重新入队列
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;
         }
         gseTasksExceptionCounter.increment();
-        // 任务状态应当置为异常状态
-        exceptionStatusManager.setAbnormalStatusForStep(stepInstanceId);
     }
 }

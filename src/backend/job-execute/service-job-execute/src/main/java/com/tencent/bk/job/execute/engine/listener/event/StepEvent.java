@@ -25,18 +25,20 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.StringJoiner;
 
 /**
  * 执行引擎-步骤事件
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StepEvent extends Event {
     /**
@@ -53,12 +55,114 @@ public class StepEvent extends Event {
      * 执行批次
      */
     private Integer batch;
-    /**
-     * 操作时间
-     */
-    private LocalDateTime time;
-    /**
-     * 请求ID,防止重复下发任务
-     */
-    private String requestId;
+
+    public static StepEvent ignoreError(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.IGNORE_ERROR.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent nextStep(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.NEXT_STEP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent confirmStepContinue(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_CONTINUE.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent confirmStepTerminate(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_TERMINATE.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent confirmStepRestart(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONFIRM_RESTART.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent startStep(long stepInstanceId, Integer batch) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setBatch(batch);
+        stepEvent.setAction(StepActionEnum.START.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent skipStep(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.SKIP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent stopStep(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.STOP.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent retryStepFail(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.RETRY_FAIL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent retryStepAll(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.RETRY_ALL.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent continueGseFileStep(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    public static StepEvent refreshStep(long stepInstanceId, EventSource eventSource) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.REFRESH.getValue());
+        stepEvent.setSource(eventSource);
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", StepEvent.class.getSimpleName() + "[", "]")
+            .add("action=" + action)
+            .add("actionDesc=" + StepActionEnum.valueOf(action))
+            .add("stepInstanceId=" + stepInstanceId)
+            .add("batch=" + batch)
+            .add("time=" + time)
+            .add("source=" + source)
+            .toString();
+    }
 }

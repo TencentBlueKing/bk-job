@@ -229,7 +229,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
         }
 
         for (JobFile sendFile : this.sendFiles) {
-            String ip = sendFile.getCloudAreaIdAndIp();
+            String ip = sendFile.getCloudIp();
             this.fileUploadTaskNumMap.put(ip, this.fileUploadTaskNumMap.get(ip) == null ? 1 :
                 (this.fileUploadTaskNumMap.get(ip) + 1));
         }
@@ -241,7 +241,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
     private void initSourceServerIp() {
         if (this.sendFiles != null) {
             for (JobFile sendFile : this.sendFiles) {
-                String fileSourceCloudIp = sendFile.getCloudAreaIdAndIp();
+                String fileSourceCloudIp = sendFile.getCloudIp();
                 this.fileSourceIPSet.add(fileSourceCloudIp);
                 this.notStartedFileSourceIpSet.add(fileSourceCloudIp);
             }

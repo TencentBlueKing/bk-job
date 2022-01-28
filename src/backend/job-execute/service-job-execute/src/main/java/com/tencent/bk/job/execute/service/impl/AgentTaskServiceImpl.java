@@ -96,7 +96,7 @@ public class AgentTaskServiceImpl implements AgentTaskService {
 
     @Override
     public List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount) {
-        return agentTaskDAO.getSuccessAgentTasks(stepInstanceId, executeCount);
+        return agentTaskDAO.listSuccessAgentTasks(stepInstanceId, executeCount);
     }
 
     @Override
@@ -179,6 +179,11 @@ public class AgentTaskServiceImpl implements AgentTaskService {
                                              Integer batch,
                                              boolean onlyTargetIp) {
         return agentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, onlyTargetIp);
+    }
+
+    @Override
+    public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+        return agentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
     }
 
     @Override

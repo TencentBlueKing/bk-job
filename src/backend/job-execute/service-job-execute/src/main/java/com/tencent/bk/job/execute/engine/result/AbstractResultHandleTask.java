@@ -33,6 +33,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -387,7 +389,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                         "stepInstanceId:{}",
                     taskInstance.getId(), stepInstance.getId());
-                taskExecuteMQEventDispatcher.stopGseStep(stepInstanceId);
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(gseTask.getId()));
                 this.isGseTaskTerminating = true;
                 log.info("Send stop gse step control action successfully!");
             }
@@ -479,7 +481,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @param cloudIp   IP
      * @param startTime 起始时间
      * @param endTime   终止时间
-     * @param agentTask     日志
+     * @param agentTask 日志
      */
     protected void dealIPFinish(String cloudIp, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal ip finished| ip={}| startTime:{}, endTime:{}, agentTask:{}",
@@ -589,7 +591,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, stepInstanceId: {}", stepInstanceId);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            taskExecuteMQEventDispatcher.resumeGseStep(stepInstanceId, stepInstance.getExecuteCount(), requestId);
+            taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
+                GseTaskResultHandleTaskResumeEvent.resume(gseTask.getId(), requestId));
+
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
             log.info("ResultHandleTask-onStop end, stepInstanceId: {}", stepInstanceId);

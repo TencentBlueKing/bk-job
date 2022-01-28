@@ -27,11 +27,20 @@ package com.tencent.bk.job.execute.engine.listener.event;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * 执行引擎调度事件基础类
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Event {
-    private EventSource source;
+    /**
+     * 事件源
+     */
+    protected EventSource source;
+    /**
+     * 事件发生时间
+     */
+    protected LocalDateTime time;
 }

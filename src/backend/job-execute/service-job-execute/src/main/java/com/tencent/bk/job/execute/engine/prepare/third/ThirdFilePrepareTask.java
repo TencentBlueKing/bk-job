@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
@@ -227,7 +228,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         List<FileSourceTaskStatusDTO> resultList = batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
         if (resultList.isEmpty()) {
             // 直接进行下一步
-            TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         } else {
             // 需要处理业务
             boolean allSuccess = true;

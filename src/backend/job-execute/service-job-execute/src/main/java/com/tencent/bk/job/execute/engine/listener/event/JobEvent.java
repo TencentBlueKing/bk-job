@@ -25,18 +25,20 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.StringJoiner;
 
 /**
  * 执行引擎-Job事件
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JobEvent extends Event {
     /**
@@ -49,8 +51,48 @@ public class JobEvent extends Event {
      * 作业实例ID
      */
     private long taskInstanceId;
-    /**
-     * 操作时间
-     */
-    private LocalDateTime time;
+
+    public static JobEvent startJob(long taskInstanceId) {
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.START.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        return jobEvent;
+    }
+
+    public static JobEvent stopJob(long taskInstanceId) {
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.STOP.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        return jobEvent;
+    }
+
+    public static JobEvent restartJob(long taskInstanceId) {
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setAction(JobActionEnum.RESTART.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        return jobEvent;
+    }
+
+    public static JobEvent refreshJob(long taskInstanceId, EventSource eventSource) {
+        JobEvent jobEvent = new JobEvent();
+        jobEvent.setTaskInstanceId(taskInstanceId);
+        jobEvent.setSource(eventSource);
+        jobEvent.setAction(JobActionEnum.REFRESH.getValue());
+        jobEvent.setTime(LocalDateTime.now());
+        return jobEvent;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", JobEvent.class.getSimpleName() + "[", "]")
+            .add("action=" + action)
+            .add("actionDesc=" + JobActionEnum.valueOf(action))
+            .add("taskInstanceId=" + taskInstanceId)
+            .add("eventSource=" + source)
+            .add("time=" + time)
+            .toString();
+    }
 }

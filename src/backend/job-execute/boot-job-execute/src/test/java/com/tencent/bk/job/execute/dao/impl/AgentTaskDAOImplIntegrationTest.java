@@ -135,7 +135,7 @@ public class AgentTaskDAOImplIntegrationTest {
 
     @Test
     public void testGetSuccessIpList() {
-        List<AgentTaskDTO> gseTaskAgentTaskList = agentTaskDAO.getSuccessAgentTasks(1L, 0);
+        List<AgentTaskDTO> gseTaskAgentTaskList = agentTaskDAO.listSuccessAgentTasks(1L, 0);
         assertThat(gseTaskAgentTaskList).extracting("cloudAreaAndIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
     }
 

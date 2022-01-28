@@ -22,21 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.executor;
+package com.tencent.bk.job.execute.engine.listener.event;
 
-public interface ResumableTask {
-    /**
-     * 中断任务
-     */
-    void interrupt();
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-    /**
-     * 保存任务快照
-     */
-    void saveSnapshot();
+import java.time.LocalDateTime;
 
+/**
+ * 执行引擎-GSE任务结果处理任务恢复事件
+ */
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class GseTaskResultHandleTaskResumeEvent extends Event {
     /**
-     * 恢复任务执行
+     * 作业实例ID
      */
-    void resume();
+    private long gseTaskId;
+    /**
+     * 请求ID
+     */
+    private String requestId;
+
+    public static GseTaskResultHandleTaskResumeEvent resume(long gseTaskId, String requestId) {
+        GseTaskResultHandleTaskResumeEvent event = new GseTaskResultHandleTaskResumeEvent();
+        event.setGseTaskId(gseTaskId);
+        event.setRequestId(requestId);
+        event.setTime(LocalDateTime.now());
+        return event;
+    }
 }

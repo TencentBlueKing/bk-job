@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.message.TaskProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
@@ -175,7 +176,7 @@ public class JobListener {
                 taskInstanceService.resetStepStatus(stepInstanceId);
             }
 
-            taskExecuteMQEventDispatcher.startJob(taskInstanceId);
+            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(taskInstanceId));
         } else {
             log.warn("Unsupported task instance run status for restart task, taskInstanceId={}, status={}",
                 taskInstanceId, taskInstance.getStatus());
@@ -315,8 +316,8 @@ public class JobListener {
 
     private void startStep(StepInstanceBaseDTO stepInstance) {
         taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
-        taskExecuteMQEventDispatcher.startStep(stepInstance.getId(),
-            stepInstance.isRollingStep() ? stepInstance.getBatch() + 1 : null);
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
+            stepInstance.isRollingStep() ? stepInstance.getBatch() + 1 : null));
     }
 
     private void callback(TaskInstanceDTO taskInstance, long taskInstanceId, int taskStatus, long currentStepId,

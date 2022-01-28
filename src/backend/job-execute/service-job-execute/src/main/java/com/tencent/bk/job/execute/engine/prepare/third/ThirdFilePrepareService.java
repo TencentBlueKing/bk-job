@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
@@ -209,7 +210,8 @@ public class ThirdFilePrepareService {
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
         if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
-            TaskExecuteMQEventDispatcher.startGseTask(stepInstance.getId(), null);
+            // TODO-Rolling
+            TaskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return null;
         }
         log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);
@@ -312,7 +314,8 @@ public class ThirdFilePrepareService {
         req.setStepInstanceId(stepInstanceId);
         req.setExecuteCount(executeCount);
         req.setFileSourceTaskList(fileSourceTaskList);
-        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username, req);
+        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username,
+            req);
         log.debug("resp={}", resp);
         if (resp.isSuccess()) {
             return resp.getData();

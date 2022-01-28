@@ -117,6 +117,14 @@ public interface AgentTaskService {
                                       boolean onlyTargetIp);
 
     /**
+     * 根据GSE任务ID获取agent任务
+     *
+     * @param gseTaskId GSE任务ID
+     * @return agent任务
+     */
+    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
+
+    /**
      * 获取agent任务
      *
      * @param stepInstanceId 步骤实例ID

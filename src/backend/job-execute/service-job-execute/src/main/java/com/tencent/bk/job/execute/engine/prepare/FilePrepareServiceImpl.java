@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
@@ -172,7 +174,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (fileSourceList == null) {
             log.warn("stepInstanceId={},fileSourceList is null", stepInstanceId);
-            TaskExecuteMQEventDispatcher.startGseTask(stepInstance.getId(), null);
+            // TODO-Rolling
+            TaskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return;
         }
         int taskCount = 0;
@@ -182,7 +185,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (hasThirdFile) taskCount += 1;
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
-            TaskExecuteMQEventDispatcher.startGseTask(stepInstance.getId(), null);
+            // TODO-Rolling
+            TaskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return;
         }
         log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);
@@ -272,7 +276,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
+            TaskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         }
     }
 

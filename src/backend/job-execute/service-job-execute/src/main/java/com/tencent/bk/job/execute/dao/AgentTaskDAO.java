@@ -52,7 +52,7 @@ public interface AgentTaskDAO {
      */
     Map<IpStatus, Integer> countStepAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
 
-    List<AgentTaskDTO> getSuccessAgentTasks(long stepInstanceId, int executeCount);
+    List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
@@ -82,6 +82,14 @@ public interface AgentTaskDAO {
                                       Integer executeCount,
                                       Integer batch,
                                       boolean onlyTargetIp);
+
+    /**
+     * 根据GSE任务ID获取agent任务
+     *
+     * @param gseTaskId GSE任务ID
+     * @return agent任务
+     */
+    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
 
     AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
 

@@ -31,6 +31,8 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,6 +47,8 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
 
     protected final AgentService agentService;
     protected final AccountService accountService;
+    protected final GseTaskService gseTaskService;
+    protected final AgentTaskService agentTaskService;
     protected final Tracing tracing;
 
     /**
@@ -83,12 +87,16 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
 
     public AbstractGseTaskCommand(AgentService agentService,
                                   AccountService accountService,
+                                  GseTaskService gseTaskService,
+                                  AgentTaskService agentTaskService,
                                   Tracing tracing,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
         this.agentService = agentService;
         this.accountService = accountService;
+        this.gseTaskService = gseTaskService;
+        this.agentTaskService = agentTaskService;
         this.tracing = tracing;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
@@ -103,7 +111,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     /**
      * 生成GSE trace 信息
      */
-    protected Map<String, String> buildGseTraceInfo() {
+    protected Map<String, String> buildGSETraceInfo() {
         // 捕获所有异常，避免影响任务下发主流程
         Map<String, String> traceInfoMap = new HashMap<>();
         try {

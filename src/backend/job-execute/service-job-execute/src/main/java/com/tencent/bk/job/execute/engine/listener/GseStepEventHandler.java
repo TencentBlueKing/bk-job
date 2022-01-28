@@ -31,6 +31,8 @@ import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.FilePrepareService;
@@ -187,7 +189,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
 
             if (stepInstance.isScriptStep()) {
-                taskExecuteMQEventDispatcher.startGseTask(gseTaskId);
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
             } else if (stepInstance.isFileStep()) {
                 // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
                 if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
@@ -314,7 +316,8 @@ public class GseStepEventHandler implements StepEventHandler {
             // 终止成功，进入下一步，该步骤设置为“跳过”
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SKIPPED, null, endTime,
                 totalTime);
-            taskExecuteMQEventDispatcher.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId));
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));
         } else {
             log.warn("Unsupported step instance status for next step action, stepInstanceId:{}, status:{}",
                 stepInstanceId, stepInstance.getStatus());
@@ -332,8 +335,9 @@ public class GseStepEventHandler implements StepEventHandler {
 
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.IGNORE_ERROR.getValue());
         taskInstanceService.resetTaskExecuteInfoForResume(stepInstance.getTaskInstanceId());
-        taskExecuteMQEventDispatcher.refreshJob(stepInstance.getTaskInstanceId(),
-            EventSource.buildStepEventSource(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
 
@@ -358,7 +362,8 @@ public class GseStepEventHandler implements StepEventHandler {
             taskInstanceService.updateStepEndTime(stepInstanceId, now);
 
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
-            taskExecuteMQEventDispatcher.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId));
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));
         } else {
             log.warn("Unsupported step instance run status for skipping step, stepInstanceId={}, status={}",
                 stepInstanceId, stepStatus);
@@ -515,8 +520,8 @@ public class GseStepEventHandler implements StepEventHandler {
                     stepStatus, gseTaskStatus.getValue());
                 return;
         }
-        taskExecuteMQEventDispatcher.refreshJob(stepInstance.getTaskInstanceId(),
-            EventSource.buildStepEventSource(stepInstanceId));
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(), EventSource.buildStepEventSource(stepInstanceId)));
     }
 
     private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {

@@ -58,6 +58,8 @@ import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -152,7 +154,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ApplicationService applicationService;
     private final AccountService accountService;
     private final ScriptService scriptService;
-    private final TaskExecuteMQEventDispatcher controlMsgSender;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ServerService serverService;
@@ -175,7 +177,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public TaskExecuteServiceImpl(ApplicationService applicationService,
                                   AccountService accountService,
                                   TaskInstanceService taskInstanceService,
-                                  TaskExecuteMQEventDispatcher controlMsgSender,
+                                  TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
                                   ServerService serverService,
@@ -194,7 +196,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
-        this.controlMsgSender = controlMsgSender;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.serverService = serverService;
@@ -955,7 +957,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     @Override
     public void startTask(long taskInstanceId) {
         log.info("Start task, taskInstanceId={}", taskInstanceId);
-        controlMsgSender.startJob(taskInstanceId);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(taskInstanceId));
     }
 
     @Override
@@ -1946,7 +1948,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstanceService.updateConfirmReason(stepInstance.getId(), reason);
         taskInstanceService.updateStepOperator(stepInstance.getId(), operator);
 
-        controlMsgSender.confirmStepTerminate(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepTerminate(stepInstance.getId()));
     }
 
     private void confirmRestart(StepInstanceDTO stepInstance, String operator) {
@@ -1963,7 +1965,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.CONFIRM_RESTART));
-        controlMsgSender.confirmStepRestart(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(stepInstance.getId()));
     }
 
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
@@ -2021,7 +2023,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
 
-        controlMsgSender.confirmStepContinue(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepContinue(stepInstance.getId()));
     }
 
     private void nextStep(StepInstanceDTO stepInstance, String operator) {
@@ -2037,7 +2039,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
-        controlMsgSender.nextStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.nextStep(stepInstance.getId()));
     }
 
     private void retryStepFail(StepInstanceDTO stepInstance, String operator) {
@@ -2049,8 +2051,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
-//        taskInstanceService.addStepExecuteCount(stepInstance.getId());
-        controlMsgSender.retryStepFail(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2066,7 +2067,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.RUNNING.getValue());
 //        taskInstanceService.addStepExecuteCount(stepInstance.getId());
-        controlMsgSender.retryStepAll(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepAll(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_ALL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2082,7 +2083,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        controlMsgSender.ignoreStepError(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.ignoreError(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.IGNORE_ERROR);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2094,7 +2095,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("StepInstance:{} status is not stopping, Unsupported Operation:{}", stepInstance.getId(), "skip");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        controlMsgSender.skipStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.skipStep(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator, UserOperationEnum.SKIP_STEP);
         taskOperationLogService.saveOperationLog(operationLog);
     }
@@ -2146,7 +2147,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
         }
-        controlMsgSender.stopJob(taskInstanceId);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
     }

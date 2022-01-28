@@ -33,148 +33,32 @@ import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 public interface TaskExecuteMQEventDispatcher {
 
     /**
-     * 发送启动作业事件
+     * 分发作业事件
      *
-     * @param taskInstanceId 作业实例ID
+     * @param jobEvent 作业事件
      */
-    void startJob(long taskInstanceId);
+    void dispatchJobEvent(JobEvent jobEvent);
 
     /**
-     * 发送停止作业事件
+     * 分发步骤事件
      *
-     * @param taskInstanceId 作业实例ID
+     * @param stepEvent 步骤事件
      */
-    void stopJob(long taskInstanceId);
+    void dispatchStepEvent(StepEvent stepEvent);
 
     /**
-     * 发送重头执行作业事件
+     * 分发GSE任务事件
      *
-     * @param taskInstanceId 作业实例ID
+     * @param gseTaskEvent GSE任务事件
      */
-    void restartJob(long taskInstanceId);
+    void dispatchGseTaskEvent(GseTaskEvent gseTaskEvent);
 
     /**
-     * 触发作业继续后续步骤事件
+     * 分发结果处理任务恢复事件
      *
-     * @param taskInstanceId 作业实例ID
-     * @param eventSource    事件源
+     * @param event 结果处理任务恢复事件
      */
-    void refreshJob(long taskInstanceId, EventSource eventSource);
-
-    /**
-     * 触发忽略错误事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void ignoreStepError(long stepInstanceId);
-
-    /**
-     * 发送进入下一步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void nextStep(long stepInstanceId);
-
-    /**
-     * 发送进入下一步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void confirmStepContinue(long stepInstanceId);
-
-    /**
-     * 人工确认-终止流程事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void confirmStepTerminate(long stepInstanceId);
-
-    /**
-     * 人工确认-重新发起确认事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void confirmStepRestart(long stepInstanceId);
-
-    /**
-     * 发送启动步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次；如果非滚动执行步骤，传入null
-     */
-    void startStep(long stepInstanceId, Integer batch);
-
-    /**
-     * 发送跳过步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void skipStep(long stepInstanceId);
-
-    /**
-     * 发送强制终止步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void stopStep(long stepInstanceId);
-
-    /**
-     * 重新执行步骤中失败的ip事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void retryStepFail(long stepInstanceId);
-
-    /**
-     * 重新执行步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void retryStepAll(long stepInstanceId);
-
-    /**
-     * 发送继续GSE文件分发步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void continueGseFileStep(long stepInstanceId);
-
-    /**
-     * 执行gse任务事件
-     *
-     * @param gseTaskId GSE任务ID
-     */
-    void startGseTask(long gseTaskId);
-
-    /**
-     * 恢复GSE任务执行事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param requestId      请求ID
-     */
-    void resumeGseStep(long stepInstanceId, int executeCount, String requestId);
-
-//    /**
-//     * 重新执行步骤中失败的ip事件
-//     *
-//     * @param stepInstanceId 步骤实例ID
-//     */
-//    void retryGseStepFail(long stepInstanceId);
-//
-//    /**
-//     * 重新执行步骤事件
-//     *
-//     * @param stepInstanceId 步骤实例ID
-//     */
-//    void retryGseStepAll(long stepInstanceId);
-
-    /**
-     * 发送强制终止GSE步骤事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void stopGseStep(long stepInstanceId);
+    void dispatchResultHandleTaskResumeEvent(GseTaskResultHandleTaskResumeEvent event);
 
     /**
      * 异步发送消息通知事件

@@ -25,18 +25,22 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.StringJoiner;
+import java.util.UUID;
 
 /**
  * 执行引擎-GSE任务事件
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GseTaskEvent extends Event {
     /**
@@ -50,11 +54,40 @@ public class GseTaskEvent extends Event {
      */
     private long gseTaskId;
     /**
-     * 操作时间
-     */
-    private LocalDateTime time;
-    /**
      * 请求ID,防止重复下发任务
      */
     private String requestId;
+
+    public static GseTaskEvent startGseTask(long gseTaskId, String requestId) {
+        GseTaskEvent gseTaskEvent = new GseTaskEvent();
+        gseTaskEvent.setGseTaskId(gseTaskId);
+        if (StringUtils.isNotEmpty(requestId)) {
+            gseTaskEvent.setRequestId(requestId);
+        } else {
+            gseTaskEvent.setRequestId(UUID.randomUUID().toString());
+        }
+        gseTaskEvent.setAction(GseTaskActionEnum.START.getValue());
+        gseTaskEvent.setTime(LocalDateTime.now());
+        return gseTaskEvent;
+    }
+
+    public static GseTaskEvent stopGseTask(long gseTaskId) {
+        GseTaskEvent gseTaskEvent = new GseTaskEvent();
+        gseTaskEvent.setGseTaskId(gseTaskId);
+        gseTaskEvent.setAction(GseTaskActionEnum.STOP.getValue());
+        gseTaskEvent.setTime(LocalDateTime.now());
+        return gseTaskEvent;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", GseTaskEvent.class.getSimpleName() + "[", "]")
+            .add("action=" + action)
+            .add("actionDesc=" + GseTaskActionEnum.valueOf(action))
+            .add("gseTaskId=" + gseTaskId)
+            .add("time=" + time)
+            .add("requestId='" + requestId + "'")
+            .add("source=" + source)
+            .toString();
+    }
 }

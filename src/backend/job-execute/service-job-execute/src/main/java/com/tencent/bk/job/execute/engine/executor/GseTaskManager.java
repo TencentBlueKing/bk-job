@@ -25,7 +25,8 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import brave.Tracing;
-import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -36,7 +37,6 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.RunningTaskCounter;
@@ -64,11 +64,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -106,7 +102,7 @@ public class GseTaskManager implements SmartLifecycle {
     /**
      * 正在执行中的任务
      */
-    private final Map<String, AbstractGseTaskExecutor> executorMap = new ConcurrentHashMap<>();
+    private final Map<String, AbstractGseTaskStartCommand> startingGseTasks = new ConcurrentHashMap<>();
     private volatile boolean running = false;
     private volatile boolean active = false;
 
@@ -196,7 +192,7 @@ public class GseTaskManager implements SmartLifecycle {
             startTaskRequestId = UUID.randomUUID().toString();
         }
 
-        AbstractGseTaskExecutor gseTaskExecutor = null;
+        AbstractGseTaskStartCommand startCommand = null;
         try {
             watch.start("getRunningLock");
             // 可重入锁，如果任务正在执行，则放弃
@@ -216,52 +212,44 @@ public class GseTaskManager implements SmartLifecycle {
                 log.warn("Evict job, taskInstanceId: {}, gseTask: {}", taskInstance.getId(), taskName);
                 taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
                 taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+                watch.stop();
                 return;
             }
 
-            // 如果任务处于“终止中”状态，直接终止
+            // 如果任务处于“终止中”状态，直接终止,不需要下发任务给GSE
             if (taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue())) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, "
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
+                gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
+                gseTaskService.saveGseTask(gseTask);
                 taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+                watch.stop();
                 return;
             }
             watch.stop();
 
-            watch.start("init-task-executor");
-            Set<String> executeIps = new HashSet<>();
-            if (stepInstance.isRollingStep()) {
-                List<IpDTO> rollingServers = rollingConfigService.getRollingServers(stepInstance);
-                rollingServers.forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
-            } else {
-                stepInstance.getTargetServers().getIpList()
-                    .forEach(ipDTO -> executeIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
-            }
+            watch.start("initStarCommand");
+            startCommand = initGseTaskStartCommand(startTaskRequestId, stepInstance, taskInstance, gseTask);
             watch.stop();
 
-            watch.start("init-gse-task-executor");
-            gseTaskExecutor = initGseTaskExecutor(startTaskRequestId, stepInstance, taskInstance, executeIps);
-            if (gseTaskExecutor == null) return;
-            watch.stop();
-
+            watch.start("executeTask");
             counter.add(taskName);
-            watch.start("execute-task");
-            executeTask(gseTaskExecutor, stepInstance);
+            executeTask(startCommand, gseTask);
             watch.stop();
             success = true;
         } finally {
             if (!watch.isRunning()) {
                 watch.start("release-running-lock");
             }
-            LockUtils.releaseDistributedLock("job:running:gse:task:", String.valueOf(stepInstanceId),
+            LockUtils.releaseDistributedLock("job:running:gse:task:", String.valueOf(gseTask.getId()),
                 startTaskRequestId);
             counter.release(taskName);
             watch.stop();
             if (watch.getTotalTimeMillis() > 2000L) {
-                log.warn("GseTaskManager-> start gse step is slow, run statistics:{}", watch.prettyPrint());
+                log.warn("GseTaskManager-> start gse task is slow, statistics:{}", watch.prettyPrint());
             }
             executeMonitor.getMeterRegistry().timer(ExecuteMetricNames.EXECUTE_TASK_PREFIX,
-                "task_type", getTaskTypeDesc(gseTaskExecutor), "status", success ? "ok" : "error")
+                "task_type", getTaskTypeDesc(startCommand), "status", success ? "ok" : "error")
                 .record(watch.getTotalTimeNanos(), TimeUnit.NANOSECONDS);
         }
     }
@@ -279,141 +267,218 @@ public class GseTaskManager implements SmartLifecycle {
     }
 
 
-    private String getTaskTypeDesc(AbstractGseTaskExecutor executor) {
-        if (executor == null) {
+    private String getTaskTypeDesc(AbstractGseTaskStartCommand command) {
+        if (command == null) {
             return "none";
         }
-        if (executor instanceof ScriptTaskExecutor) {
+        if (command instanceof ScriptGseTaskStartCommand) {
             return "script";
-        } else if (executor instanceof FileTaskExecutor) {
+        } else if (command instanceof FileGseTaskStartCommand) {
             return "file";
         } else {
             return "none";
         }
     }
 
-    private void incrementRunningTasksCount(AbstractGseTaskExecutor executor) {
+    private void incrementRunningTasksCount(AbstractGseTaskStartCommand gseTaskStartCommand) {
         this.runningTasks.incrementAndGet();
-        if (executor instanceof ScriptTaskExecutor) {
+        if (gseTaskStartCommand instanceof ScriptGseTaskStartCommand) {
             this.runningScriptTasks.incrementAndGet();
-        } else {
+        } else if (gseTaskStartCommand instanceof FileGseTaskStartCommand) {
             this.runningFileTasks.incrementAndGet();
         }
     }
 
-    private void decrementRunningTasksCount(AbstractGseTaskExecutor executor) {
+    private void decrementRunningTasksCount(AbstractGseTaskStartCommand gseTaskStartCommand) {
         this.runningTasks.decrementAndGet();
-        if (executor instanceof ScriptTaskExecutor) {
+        if (gseTaskStartCommand instanceof ScriptGseTaskStartCommand) {
             this.runningScriptTasks.decrementAndGet();
-        } else {
+        } else if (gseTaskStartCommand instanceof FileGseTaskStartCommand) {
             this.runningFileTasks.decrementAndGet();
         }
     }
 
-    /**
-     * 初始化步骤对应的executor
-     *
-     * @param stepInstance 步骤
-     * @param taskInstance 作业
-     * @return executor
-     */
-    private AbstractGseTaskExecutor initGseTaskExecutor(String requestId,
-                                                        StepInstanceDTO stepInstance,
-                                                        TaskInstanceDTO taskInstance) {
-        AbstractGseTaskExecutor gseTaskExecutor = null;
+    private AbstractGseTaskStartCommand initGseTaskStartCommand(String requestId,
+                                                                StepInstanceDTO stepInstance,
+                                                                TaskInstanceDTO taskInstance,
+                                                                GseTaskDTO gseTask) {
+        AbstractGseTaskStartCommand gseTaskStartCommand = null;
         int executeType = stepInstance.getExecuteType();
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue()) {
+            gseTaskStartCommand = new ScriptGseTaskStartCommand(
+                resultHandleManager,
+                taskInstanceService,
+                gseTaskService,
+                agentTaskService,
+                accountService,
+                taskInstanceVariableService,
+                stepInstanceVariableValueService,
+                agentService,
+                logService,
+                taskExecuteMQEventDispatcher,
+                resultHandleTaskKeepaliveManager,
+                executeMonitor,
+                jobExecuteConfig,
+                taskEvictPolicyExecutor,
+                exceptionStatusManager,
+                gseTasksExceptionCounter,
+                jobBuildInVariableResolver,
+                tracing,
+                requestId,
+                taskInstance,
+                stepInstance,
+                gseTask
+            );
             scriptTaskCounter.incrementAndGet();
-            gseTaskExecutor = new ScriptTaskExecutor(requestId, gseTasksExceptionCounter, taskInstance, stepInstance,
-                jobBuildInVariableResolver);
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL.getValue()) {
-            gseTaskExecutor = new SQLScriptTaskExecutor(requestId, gseTasksExceptionCounter, taskInstance,
-                stepInstance, executeIps);
+            gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
+                resultHandleManager,
+                taskInstanceService,
+                gseTaskService,
+                agentTaskService,
+                accountService,
+                taskInstanceVariableService,
+                stepInstanceVariableValueService,
+                agentService,
+                logService,
+                taskExecuteMQEventDispatcher,
+                resultHandleTaskKeepaliveManager,
+                executeMonitor,
+                jobExecuteConfig,
+                taskEvictPolicyExecutor,
+                exceptionStatusManager,
+                gseTasksExceptionCounter,
+                jobBuildInVariableResolver,
+                tracing,
+                requestId,
+                taskInstance,
+                stepInstance,
+                gseTask
+            );
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == TaskStepTypeEnum.FILE.getValue()) {
-            gseTaskExecutor = new FileTaskExecutor(requestId, gseTasksExceptionCounter,
-                storageSystemConfig.getJobStorageRootPath(),
-                agentService.getLocalAgentBindIp(), taskInstance, stepInstance, executeIps);
+            gseTaskStartCommand = new FileGseTaskStartCommand(
+                resultHandleManager,
+                taskInstanceService,
+                gseTaskService,
+                agentTaskService,
+                accountService,
+                taskInstanceVariableService,
+                stepInstanceVariableValueService,
+                agentService,
+                logService,
+                taskExecuteMQEventDispatcher,
+                resultHandleTaskKeepaliveManager,
+                executeMonitor,
+                jobExecuteConfig,
+                taskEvictPolicyExecutor,
+                exceptionStatusManager,
+                gseTasksExceptionCounter,
+                tracing,
+                requestId,
+                taskInstance,
+                stepInstance,
+                gseTask,
+                storageSystemConfig.getJobStorageRootPath()
+            );
             fileTaskCounter.incrementAndGet();
         }
 
-        if (gseTaskExecutor == null) {
-            log.warn("No match GseTaskExecutor, stepInstanceId:{}", stepInstance.getId());
-            return null;
+        if (gseTaskStartCommand == null) {
+            log.error("No match GseTaskStartCommand, gseTask: {}", gseTask.getShortTaskName());
+            throw new InternalException("No match GseTaskStartCommand", ErrorCode.INTERNAL_ERROR);
         }
 
-        gseTaskExecutor.initDependentService(
-            resultHandleManager,
-            taskInstanceService,
-            gseTaskService,
-            agentTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
-            jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            exceptionStatusManager
-        );
-        gseTaskExecutor.setTracing(tracing);
-        return gseTaskExecutor;
+        return gseTaskStartCommand;
+    }
+
+    private void executeTask(AbstractGseTaskStartCommand startCommand,
+                             GseTaskDTO gseTask) {
+        try {
+            startingGseTasks.put(gseTask.getShortTaskName(), startCommand);
+            incrementRunningTasksCount(startCommand);
+            startCommand.execute();
+        } finally {
+            startingGseTasks.remove(gseTask.getShortTaskName());
+            decrementRunningTasksCount(startCommand);
+        }
     }
 
     /**
-     * 终止步骤
+     * 停止任务
      *
-     * @param stepInstanceId 步骤实例ID
+     * @param gseTask   GSE任务
      */
-    public void stopTask(long stepInstanceId, String requestId) {
-        log.info("Stop gse task, stepInstanceId:" + stepInstanceId);
+    public void stopTask(GseTaskDTO gseTask) {
+        long stepInstanceId = gseTask.getStepInstanceId();
+        checkActiveStatus(stepInstanceId);
 
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-        if (stepInstance == null || !stepInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())) {
-            log.info("StepInstance: {} is null or is not running, should not stop!", stepInstanceId);
-            return;
-        }
+        String taskName = gseTask.getShortTaskName();
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-        int executeCount = stepInstance.getExecuteCount();
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, executeCount, stepInstance.getBatch());
-        if (null == gseTask) {
-            log.info("Get gseTask return null, stepInstanceId: {}, executeCount:{}", stepInstanceId, executeCount);
-            return;
-        }
-        Set<String> stopIps = new HashSet<>();
-        stepInstance.getTargetServers().getIpList().forEach(
-            ipDTO -> stopIps.add(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp()));
+        StopWatch watch = new StopWatch("stopGseTask");
+        GseTaskCommand stopCommand;
+        try {
+            watch.start("loadTaskAndCheck");
+            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+            watch.stop();
 
-        AbstractGseTaskExecutor gseTaskExecutor = initGseTaskExecutor(createRequestIdIfEmpty(requestId),
-            stepInstance, taskInstance, stopIps);
-        if (gseTaskExecutor == null) {
-            log.warn("TaskExecutor is not found!");
-            return;
-        }
+            watch.start("initStopCommand");
+            stopCommand = initGseTaskStopCommand(stepInstance, taskInstance, gseTask);
+            watch.stop();
 
-        GseTaskExecuteResult stopResult = gseTaskExecutor.stopGseTask();
-        // 处理GSE任务执行结果
-        if (stopResult.getResultCode().equals(GseTaskExecuteResult.RESULT_CODE_STOP_SUCCESS)) {
-            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.STOPPING.getValue());
+            watch.start("stopTask");
+            counter.add(taskName);
+            stopCommand.execute();
+            watch.stop();
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            counter.release(taskName);
+            if (watch.getTotalTimeMillis() > 2000L) {
+                log.warn("GseTaskManager-> stop gse task is slow, statistics: {}", watch.prettyPrint());
+            }
         }
     }
 
-    private String createRequestIdIfEmpty(String requestId) {
-        String reqId = requestId;
-        if (StringUtils.isEmpty(requestId)) {
-            reqId = UUID.randomUUID().toString();
+    private GseTaskCommand initGseTaskStopCommand(StepInstanceDTO stepInstance,
+                                                  TaskInstanceDTO taskInstance,
+                                                  GseTaskDTO gseTask) {
+        GseTaskCommand gseTaskStopCommand = null;
+        int executeType = stepInstance.getExecuteType();
+        if (stepInstance.isScriptStep()) {
+            gseTaskStopCommand = new ScriptGseTaskStopCommand(
+                agentService,
+                accountService,
+                gseTaskService,
+                agentTaskService,
+                tracing,
+                taskInstance,
+                stepInstance,
+                gseTask
+            );
+            scriptTaskCounter.incrementAndGet();
+        } else if (stepInstance.isFileStep()) {
+            gseTaskStopCommand = new FileGseTaskStopCommand(
+                agentService,
+                accountService,
+                gseTaskService,
+                agentTaskService,
+                tracing,
+                taskInstance,
+                stepInstance,
+                gseTask
+            );
+            scriptTaskCounter.incrementAndGet();
         }
-        return reqId;
-    }
 
-    @PostConstruct
-    public void init() {
-        String serverIp = agentService.getLocalAgentBindIp();
-        log.info("Server ip: {}", serverIp);
+        if (gseTaskStopCommand == null) {
+            log.error("No match GseTaskStopCommand, gseTask: {}", gseTask.getShortTaskName());
+            throw new InternalException("No match GseTaskStopCommand", ErrorCode.INTERNAL_ERROR);
+        }
+
+        return gseTaskStopCommand;
     }
 
 //    /**
@@ -552,20 +617,6 @@ public class GseTaskManager implements SmartLifecycle {
 //
 //    }
 
-    private void executeTask(AbstractGseTaskExecutor gseTaskExecutor, StepInstanceDTO stepInstance) {
-        long stepInstanceId = stepInstance.getId();
-        int executeCount = stepInstance.getExecuteCount();
-        String taskKey = stepInstanceId + "_" + executeCount;
-        try {
-            executorMap.put(taskKey, gseTaskExecutor);
-            incrementRunningTasksCount(gseTaskExecutor);
-            gseTaskExecutor.execute();
-        } finally {
-            executorMap.remove(taskKey);
-            decrementRunningTasksCount(gseTaskExecutor);
-        }
-    }
-
 
     private boolean isActive() {
         synchronized (this.lifecycleMonitor) {
@@ -588,7 +639,7 @@ public class GseTaskManager implements SmartLifecycle {
 
     @Override
     public void stop() {
-        log.info("GseTaskManager stopping.");
+        log.info("GseTaskManager stopping");
         synchronized (this.lifecycleMonitor) {
             this.active = false;
         }
@@ -600,9 +651,7 @@ public class GseTaskManager implements SmartLifecycle {
                 this.running = false;
             }
         }
-        log.info("Save unfinished task snapshot, tasks: {}", executorMap.keySet());
-        executorMap.values().parallelStream().forEach(AbstractGseTaskExecutor::interrupt);
-        log.info("Save unfinished task snapshot successfully.");
+        log.info("GseTaskManager is stopped");
     }
 
     @Override

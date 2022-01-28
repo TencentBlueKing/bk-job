@@ -176,7 +176,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         } else {
             request = buildNonShellScriptRequest();
         }
-        request.setM_caller(buildGseTraceInfo());
+        request.setM_caller(buildGSETraceInfo());
 
         return request;
     }
@@ -191,11 +191,11 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetHosts, accountInfo.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, accountInfo.getAccount(),
             accountInfo.getPassword());
         api_script_request request = GseRequestUtils.buildScriptRequest(agentList, scriptContent, scriptFileName,
             scriptFilePath, resolvedScriptParam, timeout);
-        request.setM_caller(buildGseTraceInfo());
+        request.setM_caller(buildGSETraceInfo());
 
         return request;
     }
@@ -277,7 +277,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetHosts, accountInfo.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, accountInfo.getAccount(),
             accountInfo.getPassword());
 
         builder.addScriptTask(agentList, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
@@ -312,7 +312,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetHosts, accountInfo.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, accountInfo.getAccount(),
             accountInfo.getPassword());
         builder.addScriptTask(agentList, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         return builder.build();
@@ -433,7 +433,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetHosts, accountInfo.getAccount(),
+        List<api_agent> agentList = GseRequestUtils.buildAgentList(targetIps, accountInfo.getAccount(),
             accountInfo.getPassword());
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
@@ -664,7 +664,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskVariablesAnalyzeResult,
                 agentTaskMap,
                 gseTask,
-                targetHosts,
+                targetIps,
                 requestId);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
@@ -683,10 +683,10 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void saveNotStartedAgentTasks(Long startTime, Long endTime, String errorMsg) {
         if (StringUtils.isNotEmpty(errorMsg)) {
             logService.batchWriteJobSystemScriptLog(taskInstance.getCreateTime(), stepInstanceId,
-                stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(targetHosts), errorMsg, endTime);
+                stepInstance.getExecuteCount(), buildIpAndLogOffsetMap(targetIps), errorMsg, endTime);
         }
 
-        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, targetHosts, startTime, endTime,
+        agentTaskService.batchUpdateAgentTasks(stepInstanceId, executeCount, targetIps, startTime, endTime,
             IpStatus.SUBMIT_FAILED);
     }
 

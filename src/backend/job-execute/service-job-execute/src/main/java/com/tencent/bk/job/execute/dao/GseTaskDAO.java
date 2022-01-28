@@ -35,6 +35,7 @@ public interface GseTaskDAO {
      * 保存/更新 GSE 任务
      *
      * @param gseTask GSE 任务
+     * @return GSE任务ID
      */
     long saveGseTask(GseTaskDTO gseTask);
 

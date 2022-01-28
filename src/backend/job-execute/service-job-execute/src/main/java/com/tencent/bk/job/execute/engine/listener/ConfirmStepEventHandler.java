@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -169,7 +170,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
             // 人工确认通过，该步骤状态标识为成功；终止成功的步骤保持状态不变
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
                 totalTime);
-            taskExecuteMQEventDispatcher.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId));
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));
         } else {
             log.warn("Unsupported step instance status for confirm-step-continue step action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());
