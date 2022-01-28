@@ -75,6 +75,14 @@ BEGIN
         ALTER TABLE gse_task_ip_log ADD COLUMN `gse_task_id` bigint(20) NOT NULL DEFAULT '0' AFTER batch;
     END IF;	
 	
+	IF EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'gse_task_ip_log'
+                    AND INDEX_NAME = 'idx_gse_task_id') THEN
+        ALTER TABLE gse_task_ip_log ADD INDEX `uk_gse_task_id` (`gse_task_id`);
+    END IF;
+	
 	
     IF NOT EXISTS(SELECT 1
               FROM information_schema.COLUMNS

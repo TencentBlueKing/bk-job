@@ -184,6 +184,7 @@ CREATE TABLE IF NOT EXISTS `gse_task_ip_log`
     `row_create_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`step_instance_id`, `execute_count`, `ip`),
+    KEY (`gse_task_id`),
     KEY (`display_ip`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

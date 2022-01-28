@@ -62,6 +62,8 @@ public class AgentTaskDAOImplIntegrationTest {
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getCloudIp()).isEqualTo(ip);
+        assertThat(agentTask.getBatch()).isEqualTo(0);
+        assertThat(agentTask.getGseTaskId()).isEqualTo(1L);
         assertThat(agentTask.getStatus()).isEqualTo(9);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
@@ -83,7 +85,7 @@ public class AgentTaskDAOImplIntegrationTest {
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         AgentTaskDTO agentTask1 = new AgentTaskDTO();
         agentTask1.setStepInstanceId(1L);
-        agentTask1.setExecuteCount(0);
+        agentTask1.setGseTaskId(100L);
         agentTask1.setCloudIp("0:127.0.0.1");
         agentTask1.setDisplayIp("127.0.0.1");
         agentTask1.setErrorCode(99);
@@ -180,7 +182,7 @@ public class AgentTaskDAOImplIntegrationTest {
     public void testGetTaskFileSourceIps() {
         List<String> fileSourceIps = agentTaskDAO.getTaskFileSourceIps(1L, 0);
         assertThat(fileSourceIps.size()).isEqualTo(1);
-        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.1");
+        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.3");
     }
 
     @Test
