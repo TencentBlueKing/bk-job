@@ -54,6 +54,6 @@ public class GseTaskServiceImpl implements GseTaskService {
 
     @Override
     public GseTaskDTO getGseTask(long gseTaskId) {
-        return null;
+        return gseTaskDAO.getGseTask(gseTaskId);
     }
 }
