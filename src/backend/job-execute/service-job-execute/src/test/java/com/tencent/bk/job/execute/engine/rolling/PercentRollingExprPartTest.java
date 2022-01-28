@@ -72,29 +72,29 @@ class PercentRollingExprPartTest {
     @Test
     void compute() {
         List<IpDTO> candidateServers = new ArrayList<>();
-        candidateServers.add(new IpDTO(0L, "10.0.0.1"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.2"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.3"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.4"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.5"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.6"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.7"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.8"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.9"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.10"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.11"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.12"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.13"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.14"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.15"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.16"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.1"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.2"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.3"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.4"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.5"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.6"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.7"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.8"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.9"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.10"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.11"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.12"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.13"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.14"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.15"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.16"));
 
         PercentRollingExprPart percentRollingExprPart =
             (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("10%");
         List<IpDTO> serversOnBatch = percentRollingExprPart.compute(10, candidateServers);
         assertThat(serversOnBatch).hasSize(1);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1")
+            new IpDTO(0L, "127.0.0.1")
         );
 
         percentRollingExprPart =
@@ -102,10 +102,10 @@ class PercentRollingExprPartTest {
         serversOnBatch = percentRollingExprPart.compute(20, candidateServers);
         assertThat(serversOnBatch).hasSize(4);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1"),
-            new IpDTO(0L, "10.0.0.2"),
-            new IpDTO(0L, "10.0.0.3"),
-            new IpDTO(0L, "10.0.0.4")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2"),
+            new IpDTO(0L, "127.0.0.3"),
+            new IpDTO(0L, "127.0.0.4")
         );
 
 
@@ -114,11 +114,11 @@ class PercentRollingExprPartTest {
         serversOnBatch = percentRollingExprPart.compute(30, candidateServers);
         assertThat(serversOnBatch).hasSize(5);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1"),
-            new IpDTO(0L, "10.0.0.2"),
-            new IpDTO(0L, "10.0.0.3"),
-            new IpDTO(0L, "10.0.0.4"),
-            new IpDTO(0L, "10.0.0.5")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2"),
+            new IpDTO(0L, "127.0.0.3"),
+            new IpDTO(0L, "127.0.0.4"),
+            new IpDTO(0L, "127.0.0.5")
         );
 
         percentRollingExprPart =
@@ -126,22 +126,22 @@ class PercentRollingExprPartTest {
         serversOnBatch = percentRollingExprPart.compute(30, candidateServers);
         assertThat(serversOnBatch).hasSize(16);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1"),
-            new IpDTO(0L, "10.0.0.2"),
-            new IpDTO(0L, "10.0.0.3"),
-            new IpDTO(0L, "10.0.0.4"),
-            new IpDTO(0L, "10.0.0.5"),
-            new IpDTO(0L, "10.0.0.6"),
-            new IpDTO(0L, "10.0.0.7"),
-            new IpDTO(0L, "10.0.0.8"),
-            new IpDTO(0L, "10.0.0.9"),
-            new IpDTO(0L, "10.0.0.10"),
-            new IpDTO(0L, "10.0.0.11"),
-            new IpDTO(0L, "10.0.0.12"),
-            new IpDTO(0L, "10.0.0.13"),
-            new IpDTO(0L, "10.0.0.14"),
-            new IpDTO(0L, "10.0.0.15"),
-            new IpDTO(0L, "10.0.0.16")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2"),
+            new IpDTO(0L, "127.0.0.3"),
+            new IpDTO(0L, "127.0.0.4"),
+            new IpDTO(0L, "127.0.0.5"),
+            new IpDTO(0L, "127.0.0.6"),
+            new IpDTO(0L, "127.0.0.7"),
+            new IpDTO(0L, "127.0.0.8"),
+            new IpDTO(0L, "127.0.0.9"),
+            new IpDTO(0L, "127.0.0.10"),
+            new IpDTO(0L, "127.0.0.11"),
+            new IpDTO(0L, "127.0.0.12"),
+            new IpDTO(0L, "127.0.0.13"),
+            new IpDTO(0L, "127.0.0.14"),
+            new IpDTO(0L, "127.0.0.15"),
+            new IpDTO(0L, "127.0.0.16")
         );
     }
 }

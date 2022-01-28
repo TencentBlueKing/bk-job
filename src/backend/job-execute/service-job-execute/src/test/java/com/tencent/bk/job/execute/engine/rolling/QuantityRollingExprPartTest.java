@@ -71,19 +71,19 @@ class QuantityRollingExprPartTest {
     @Test
     void compute() {
         List<IpDTO> candidateServers = new ArrayList<>();
-        candidateServers.add(new IpDTO(0L, "10.0.0.1"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.2"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.3"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.4"));
-        candidateServers.add(new IpDTO(0L, "10.0.0.5"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.1"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.2"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.3"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.4"));
+        candidateServers.add(new IpDTO(0L, "127.0.0.5"));
 
         QuantityRollingExprPart quantityRollingExprPart =
             (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("2");
         List<IpDTO> serversOnBatch = quantityRollingExprPart.compute(11, candidateServers);
         assertThat(serversOnBatch).hasSize(2);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1"),
-            new IpDTO(0L, "10.0.0.2")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2")
         );
 
         quantityRollingExprPart =
@@ -91,11 +91,11 @@ class QuantityRollingExprPartTest {
         serversOnBatch = quantityRollingExprPart.compute(11, candidateServers);
         assertThat(serversOnBatch).hasSize(5);
         assertThat(serversOnBatch).containsSequence(
-            new IpDTO(0L, "10.0.0.1"),
-            new IpDTO(0L, "10.0.0.2"),
-            new IpDTO(0L, "10.0.0.3"),
-            new IpDTO(0L, "10.0.0.4"),
-            new IpDTO(0L, "10.0.0.5")
+            new IpDTO(0L, "127.0.0.1"),
+            new IpDTO(0L, "127.0.0.2"),
+            new IpDTO(0L, "127.0.0.3"),
+            new IpDTO(0L, "127.0.0.4"),
+            new IpDTO(0L, "127.0.0.5")
         );
     }
 }

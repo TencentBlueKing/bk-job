@@ -35,7 +35,13 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,7 +117,7 @@ public class IpUtils {
     }
 
     /**
-     * 转换ip列表(1:10.0.0.1,1:10.0.0.2)到 IpDTO 列表
+     * 转换ip列表(1:127.0.0.1,1:127.0.0.2)到 IpDTO 列表
      *
      * @param ipListStr
      * @return
