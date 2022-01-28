@@ -128,7 +128,7 @@ public class GseStepEventHandler implements StepEventHandler {
                     ignoreError(stepInstance);
                     break;
                 case REFRESH:
-                    refreshStep(stepInstance);
+                    refreshStep(stepEvent, stepInstance);
                     break;
                 case CONTINUE_FILE_PUSH:
 //                    continueGseFileStep(stepInstance);
@@ -436,14 +436,14 @@ public class GseStepEventHandler implements StepEventHandler {
         taskInstanceService.resetTaskExecuteInfoForResume(taskInstanceId);
     }
 
-    private void refreshStep(StepInstanceDTO stepInstance) {
+    private void refreshStep(StepEvent stepEvent, StepInstanceDTO stepInstance) {
         log.info("Refresh step, stepInstanceId: {}", stepInstance.getId());
 
         long stepInstanceId = stepInstance.getId();
         int stepStatus = stepInstance.getStatus();
+        long gseTaskId = stepEvent.getSource().getGseTaskId();
 
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
-            stepInstance.getBatch());
+        GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskId);
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         if (gseTaskStatus == null) {
             log.error("Refresh step fail, invalid gse task status, stepInstanceId: {}, status: {}",

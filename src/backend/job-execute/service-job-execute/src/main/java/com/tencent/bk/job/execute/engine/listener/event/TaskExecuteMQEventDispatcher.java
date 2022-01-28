@@ -24,60 +24,149 @@
 
 package com.tencent.bk.job.execute.engine.listener.event;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
+import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
+import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
+import com.tencent.bk.job.execute.engine.message.NotifyMsgProcessor;
+import com.tencent.bk.job.execute.engine.message.StepProcessor;
+import com.tencent.bk.job.execute.engine.message.TaskProcessor;
+import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 /**
  * 作业执行MQ事件分发
  */
-public interface TaskExecuteMQEventDispatcher {
+@Component
+@Slf4j
+public class TaskExecuteMQEventDispatcher {
+    /**
+     * 消息通道-作业
+     */
+    private final MessageChannel taskOutput;
+    /**
+     * 消息通道-步骤
+     */
+    private final MessageChannel stepOutput;
+    /**
+     * 消息通道-GSE任务
+     */
+    private final MessageChannel gseTaskOutput;
+
+    /**
+     * 消息通道-消息通知
+     */
+    private final MessageChannel notifyMsgOutput;
+    /**
+     * 消息通道-作业执行完成回调
+     */
+    private final MessageChannel callbackOutput;
+
+    /**
+     * 消息通道-作业执行完成回调
+     */
+    private final MessageChannel resultHandleTaskResumeOutput;
+
+    @Autowired
+    public TaskExecuteMQEventDispatcher(@Qualifier(TaskProcessor.OUTPUT) MessageChannel taskOutput,
+                                        @Qualifier(StepProcessor.OUTPUT) MessageChannel stepOutput,
+                                        @Qualifier(GseTaskProcessor.OUTPUT) MessageChannel gseTaskOutput,
+                                        @Qualifier(NotifyMsgProcessor.OUTPUT) MessageChannel notifyMsgOutput,
+                                        @Qualifier(CallbackProcessor.OUTPUT) MessageChannel callbackOutput,
+                                        @Qualifier(TaskResultHandleResumeProcessor.OUTPUT) MessageChannel resultHandleTaskResumeOutput) {
+        this.taskOutput = taskOutput;
+        this.stepOutput = stepOutput;
+        this.gseTaskOutput = gseTaskOutput;
+        this.notifyMsgOutput = notifyMsgOutput;
+        this.callbackOutput = callbackOutput;
+        this.resultHandleTaskResumeOutput = resultHandleTaskResumeOutput;
+    }
 
     /**
      * 分发作业事件
      *
      * @param jobEvent 作业事件
      */
-    void dispatchJobEvent(JobEvent jobEvent);
+    public void dispatchJobEvent(JobEvent jobEvent) {
+        log.info("Begin to dispatch job event, event: {}", jobEvent);
+        taskOutput.send(MessageBuilder.withPayload(jobEvent).build());
+        log.info("Dispatch job event successfully, event: {}", jobEvent);
+    }
 
     /**
      * 分发步骤事件
      *
      * @param stepEvent 步骤事件
      */
-    void dispatchStepEvent(StepEvent stepEvent);
+    public void dispatchStepEvent(StepEvent stepEvent) {
+        log.info("Begin to dispatch step event, event: {}", stepEvent);
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Dispatch step event successfully, event: {}", stepEvent);
+    }
 
     /**
      * 分发GSE任务事件
      *
      * @param gseTaskEvent GSE任务事件
      */
-    void dispatchGseTaskEvent(GseTaskEvent gseTaskEvent);
+    public void dispatchGseTaskEvent(GseTaskEvent gseTaskEvent) {
+        log.info("Begin to dispatch gse task event, event: {}", gseTaskEvent);
+        gseTaskOutput.send(MessageBuilder.withPayload(gseTaskEvent).build());
+        log.info("Dispatch gse task event successfully, event: {}", gseTaskEvent);
+    }
 
     /**
      * 分发结果处理任务恢复事件
      *
      * @param event 结果处理任务恢复事件
      */
-    void dispatchResultHandleTaskResumeEvent(GseTaskResultHandleTaskResumeEvent event);
+    public void dispatchResultHandleTaskResumeEvent(GseTaskResultHandleTaskResumeEvent event) {
+        log.info("Begin to dispatch gse task result handle resume event, event: {}", event);
+        resultHandleTaskResumeOutput.send(MessageBuilder.withPayload(event).build());
+        log.info("Dispatch gse task result handle resume event successfully, event: {}", event);
+    }
 
     /**
      * 异步发送消息通知事件
      *
      * @param notification 消息内容
      */
-    void asyncSendNotifyMsg(TaskNotifyDTO notification);
+    public void asyncSendNotifyMsg(TaskNotifyDTO notification) {
+        log.info("Async send notification event:{}", JsonUtils.toJson(notification));
+        notifyMsgOutput.send(MessageBuilder.withPayload(JsonUtils.toJson(notification)).build());
+    }
 
     /**
      * 发送回调信息事件
      *
-     * @param jobCallbackDto 回调内容
+     * @param jobCallback 回调内容
      */
-    void sendCallback(JobCallbackDTO jobCallbackDto);
+    public void sendCallback(JobCallbackDTO jobCallback) {
+        log.info("Async invoke callback url, callback:{}", JsonUtils.toJson(jobCallback));
+        callbackOutput.send(MessageBuilder.withPayload(JsonUtils.toJson(jobCallback)).build());
+    }
 
     /**
      * 触发步骤结果刷新事件
      *
      * @param stepInstanceId 步骤实例ID
      */
-    void refreshStep(long stepInstanceId);
+    public void refreshStep(long stepInstanceId) {
+        log.info("Begin to send refresh step event, stepInstanceId: {}", stepInstanceId);
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.REFRESH.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
+        log.info("Send refresh step event successfully, event: {}", stepEvent);
+    }
 }

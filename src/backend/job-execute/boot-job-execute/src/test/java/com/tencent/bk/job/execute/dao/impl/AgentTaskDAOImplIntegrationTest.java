@@ -136,7 +136,7 @@ public class AgentTaskDAOImplIntegrationTest {
     @Test
     public void testGetSuccessIpList() {
         List<AgentTaskDTO> gseTaskAgentTaskList = agentTaskDAO.listSuccessAgentTasks(1L, 0);
-        assertThat(gseTaskAgentTaskList).extracting("cloudAreaAndIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
+        assertThat(gseTaskAgentTaskList).extracting("cloudIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
     }
 
     @Test
@@ -163,7 +163,7 @@ public class AgentTaskDAOImplIntegrationTest {
         List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTasksByIps(1L, 0, ipArray);
 
         assertThat(agentTasks.size()).isEqualTo(2);
-        assertThat(agentTasks).extracting("cloudAreaAndIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
+        assertThat(agentTasks).extracting("cloudIp").containsOnly("0:10.0.0.1", "0:10.0.0.2");
         assertThat(agentTasks).extracting("stepInstanceId").containsOnly(1L, 1L);
         assertThat(agentTasks).extracting("executeCount").containsOnly(0, 0);
     }
