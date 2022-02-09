@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.engine.consts.StepActionEnum;
 import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
 import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
 import com.tencent.bk.job.execute.engine.message.NotifyMsgProcessor;
@@ -40,8 +39,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 
 /**
  * 作业执行MQ事件分发
@@ -153,20 +150,5 @@ public class TaskExecuteMQEventDispatcher {
     public void sendCallback(JobCallbackDTO jobCallback) {
         log.info("Async invoke callback url, callback:{}", JsonUtils.toJson(jobCallback));
         callbackOutput.send(MessageBuilder.withPayload(JsonUtils.toJson(jobCallback)).build());
-    }
-
-    /**
-     * 触发步骤结果刷新事件
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    public void refreshStep(long stepInstanceId) {
-        log.info("Begin to send refresh step event, stepInstanceId: {}", stepInstanceId);
-        StepEvent stepEvent = new StepEvent();
-        stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setAction(StepActionEnum.REFRESH.getValue());
-        stepEvent.setTime(LocalDateTime.now());
-        stepOutput.send(MessageBuilder.withPayload(stepEvent).build());
-        log.info("Send refresh step event successfully, event: {}", stepEvent);
     }
 }

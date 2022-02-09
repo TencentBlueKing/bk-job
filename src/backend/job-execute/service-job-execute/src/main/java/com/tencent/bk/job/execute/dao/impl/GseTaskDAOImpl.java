@@ -55,6 +55,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
         }
         GseTaskDTO gseTaskDTO = new GseTaskDTO();
 
+        gseTaskDTO.setId(record.get(TABLE.ID));
         gseTaskDTO.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
         gseTaskDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));
         gseTaskDTO.setBatch(record.get(TABLE.BATCH));
