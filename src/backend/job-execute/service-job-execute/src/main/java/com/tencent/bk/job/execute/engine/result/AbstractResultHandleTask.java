@@ -246,9 +246,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             this.invalidIpSet.addAll(stepInstance.getInvalidIps());
         }
 
-        List<TaskVariableDTO> taskVariables = taskVariablesAnalyzeResult.getTaskVars();
-        if (taskVariables != null && !taskVariables.isEmpty()) {
-            taskVariables.forEach(var -> initialVariables.put(var.getName(), var));
+        if (taskInstance.isPlanInstance()) {
+            List<TaskVariableDTO> taskVariables = taskVariablesAnalyzeResult.getTaskVars();
+            if (taskVariables != null && !taskVariables.isEmpty()) {
+                taskVariables.forEach(var -> initialVariables.put(var.getName(), var));
+            }
         }
     }
 

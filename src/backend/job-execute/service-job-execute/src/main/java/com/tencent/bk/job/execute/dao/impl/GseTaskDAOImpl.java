@@ -96,6 +96,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             .returning(TABLE.ID)
             .fetch();
         long id = 0L;
+        /*
+         * With ON DUPLICATE KEY UPDATE, the affected-rows value per row is 1 if the row is inserted as a new row, 2
+         * if an existing row is updated, and 0 if an existing row is set to its current values.
+         */
         if (result.size() > 0) {
             id = result.stream().map(record -> record.get(TABLE.ID)).findFirst().get().intValue();
         }

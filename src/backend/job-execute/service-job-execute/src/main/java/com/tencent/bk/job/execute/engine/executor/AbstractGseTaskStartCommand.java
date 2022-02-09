@@ -236,6 +236,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             stepInputVariables = stepInstanceVariableValueService.computeInputStepInstanceVariableValues(
                 taskInstance.getId(), stepInstance.getId(), taskVariables);
             log.info("Compute step input variable, stepInputVariables:{}", stepInputVariables);
+        } else {
+            taskVariablesAnalyzeResult = new TaskVariablesAnalyzeResult(null);
         }
     }
 
