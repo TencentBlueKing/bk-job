@@ -76,7 +76,7 @@ public class GseTaskDTO {
         this.batch = batch;
     }
 
-    public String getShortTaskName() {
-        return "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount + ":" + batch;
+    public String getTaskUniqueName() {
+        return "GseTask:" + stepInstanceId + ":" + executeCount + ":" + batch;
     }
 }

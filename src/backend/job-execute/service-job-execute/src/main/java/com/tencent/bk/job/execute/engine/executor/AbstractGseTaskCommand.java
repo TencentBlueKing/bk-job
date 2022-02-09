@@ -105,7 +105,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.stepInstanceId = gseTask.getStepInstanceId();
         this.executeCount = gseTask.getExecuteCount();
         this.batch = gseTask.getBatch();
-        this.gseTaskUniqueName = gseTask.getShortTaskName();
+        this.gseTaskUniqueName = gseTask.getTaskUniqueName();
     }
 
     /**

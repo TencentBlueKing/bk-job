@@ -209,6 +209,19 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private api_script_request buildShellScriptRequest() {
         api_script_request request;
+        if (taskInstance.isPlanInstance()) {
+            // 执行方案脚本执行步骤，需要处理变量
+            request = buildShellScriptRequestForPlan();
+        } else {
+            // 快速执行脚本
+            request = buildRequestWithoutAnyParam(stepInstance);
+        }
+
+        return request;
+    }
+
+    private api_script_request buildShellScriptRequestForPlan() {
+        api_script_request request;
         boolean containsAnyImportedVariable = false;
         List<String> importVariables = null;
         if (shouldParseBuildInVariables(stepInstance)) {

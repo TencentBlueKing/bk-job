@@ -184,7 +184,7 @@ public class GseTaskManager implements SmartLifecycle {
         checkActiveStatus(stepInstanceId);
 
         boolean success = false;
-        String taskName = gseTask.getShortTaskName();
+        String taskName = gseTask.getTaskUniqueName();
 
         StopWatch watch = new StopWatch("startGseTask");
         String startTaskRequestId = requestId;
@@ -385,7 +385,7 @@ public class GseTaskManager implements SmartLifecycle {
         }
 
         if (gseTaskStartCommand == null) {
-            log.error("No match GseTaskStartCommand, gseTask: {}", gseTask.getShortTaskName());
+            log.error("No match GseTaskStartCommand, gseTask: {}", gseTask.getTaskUniqueName());
             throw new InternalException("No match GseTaskStartCommand", ErrorCode.INTERNAL_ERROR);
         }
 
@@ -395,11 +395,11 @@ public class GseTaskManager implements SmartLifecycle {
     private void executeTask(AbstractGseTaskStartCommand startCommand,
                              GseTaskDTO gseTask) {
         try {
-            startingGseTasks.put(gseTask.getShortTaskName(), startCommand);
+            startingGseTasks.put(gseTask.getTaskUniqueName(), startCommand);
             incrementRunningTasksCount(startCommand);
             startCommand.execute();
         } finally {
-            startingGseTasks.remove(gseTask.getShortTaskName());
+            startingGseTasks.remove(gseTask.getTaskUniqueName());
             decrementRunningTasksCount(startCommand);
         }
     }
@@ -413,7 +413,7 @@ public class GseTaskManager implements SmartLifecycle {
         long stepInstanceId = gseTask.getStepInstanceId();
         checkActiveStatus(stepInstanceId);
 
-        String taskName = gseTask.getShortTaskName();
+        String taskName = gseTask.getTaskUniqueName();
 
         StopWatch watch = new StopWatch("stopGseTask");
         GseTaskCommand stopCommand;
@@ -446,7 +446,6 @@ public class GseTaskManager implements SmartLifecycle {
                                                   TaskInstanceDTO taskInstance,
                                                   GseTaskDTO gseTask) {
         GseTaskCommand gseTaskStopCommand = null;
-        int executeType = stepInstance.getExecuteType();
         if (stepInstance.isScriptStep()) {
             gseTaskStopCommand = new ScriptGseTaskStopCommand(
                 agentService,
@@ -474,7 +473,7 @@ public class GseTaskManager implements SmartLifecycle {
         }
 
         if (gseTaskStopCommand == null) {
-            log.error("No match GseTaskStopCommand, gseTask: {}", gseTask.getShortTaskName());
+            log.error("No match GseTaskStopCommand, gseTask: {}", gseTask.getTaskUniqueName());
             throw new InternalException("No match GseTaskStopCommand", ErrorCode.INTERNAL_ERROR);
         }
 
