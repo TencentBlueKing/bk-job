@@ -179,7 +179,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void startGseTaskIfNotAvailable(StopWatch watch) {
-        boolean isGseTaskStarted = StringUtils.isEmpty(gseTask.getGseTaskId());
+        boolean isGseTaskStarted = StringUtils.isNotEmpty(gseTask.getGseTaskId());
         if (!isGseTaskStarted) {
             watch.start("sendGseTask");
             gseTask.setStartTime(System.currentTimeMillis());

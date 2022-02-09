@@ -145,7 +145,7 @@ public class JobListener {
         log.info("Stop job, taskInstanceId={}", taskInstanceId);
         int taskStatus = taskInstance.getStatus();
 
-        if (RunStatusEnum.RUNNING.getValue() == taskStatus) {
+        if (RunStatusEnum.RUNNING.geAbstractGseTaskStartCommandtValue() == taskStatus) {
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.STOPPING.getValue());
         } else {
             log.warn("Unsupported task instance run status for stop task, taskInstanceId={}, status={}",
