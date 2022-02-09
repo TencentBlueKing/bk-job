@@ -128,7 +128,7 @@ public class StepInstanceBaseDTO {
     /**
      * 滚动配置ID
      */
-    private Long rollingConfigId;
+    protected Long rollingConfigId;
 
     /**
      * 获取步骤类型

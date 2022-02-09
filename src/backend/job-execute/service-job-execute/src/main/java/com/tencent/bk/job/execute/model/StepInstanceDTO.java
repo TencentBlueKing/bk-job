@@ -181,6 +181,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.ignoreError = stepInstanceBase.ignoreError;
         this.targetServers = stepInstanceBase.targetServers;
         this.ipList = stepInstanceBase.ipList;
+        this.rollingConfigId = stepInstanceBase.rollingConfigId;
     }
 
     // -------------公共方法------------------//
