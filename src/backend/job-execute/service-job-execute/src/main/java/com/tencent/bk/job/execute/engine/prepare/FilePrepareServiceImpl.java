@@ -25,7 +25,9 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
@@ -58,7 +60,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final LocalFilePrepareService localFilePrepareService;
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ResultHandleManager resultHandleManager;
 
     @Autowired
@@ -66,12 +68,12 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         LocalFilePrepareService localFilePrepareService,
         ThirdFilePrepareService thirdFilePrepareService,
         TaskInstanceService taskInstanceService,
-        TaskExecuteMQEventDispatcher TaskExecuteMQEventDispatcher,
+        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         ResultHandleManager resultHandleManager) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
-        this.TaskExecuteMQEventDispatcher = TaskExecuteMQEventDispatcher;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleManager = resultHandleManager;
     }
 
@@ -175,7 +177,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (fileSourceList == null) {
             log.warn("stepInstanceId={},fileSourceList is null", stepInstanceId);
             // TODO-Rolling
-            TaskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
+            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return;
         }
         int taskCount = 0;
@@ -186,7 +188,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
             // TODO-Rolling
-            TaskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
+            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(stepInstance.getId(), null));
             return;
         }
         log.debug("stepInstanceId={},prepareTaskCount={}", stepInstanceId, taskCount);
@@ -276,7 +278,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            TaskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         }
     }
 
@@ -284,14 +286,16 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         // 步骤状态变更
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
-        TaskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
-        // 强制终止成功后就不再下发GSE Task了
-        // TaskExecuteMQEventDispatcher.continueGseFileStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-        TaskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 }

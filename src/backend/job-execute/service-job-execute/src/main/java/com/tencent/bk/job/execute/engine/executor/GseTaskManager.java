@@ -36,6 +36,8 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
@@ -211,7 +213,6 @@ public class GseTaskManager implements SmartLifecycle {
             if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
                 log.warn("Evict job, taskInstanceId: {}, gseTask: {}", taskInstance.getId(), taskName);
                 taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
-                taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
                 watch.stop();
                 return;
             }
@@ -222,7 +223,8 @@ public class GseTaskManager implements SmartLifecycle {
                     + "stepInstanceId:{}", taskInstance.getId(), stepInstance.getId());
                 gseTask.setStatus(RunStatusEnum.STOP_SUCCESS.getValue());
                 gseTaskService.saveGseTask(gseTask);
-                taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+                taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
+                    EventSource.buildGseTaskEventSource(gseTask.getId())));
                 watch.stop();
                 return;
             }

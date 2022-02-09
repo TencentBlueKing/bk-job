@@ -571,7 +571,6 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             watch.start("loadAllTasksFromDb");
             List<AgentTaskDTO> tasks = agentTaskService.listAgentTasks(stepInstanceId, executeCount, null, true);
-            log.debug("tasks.size={}", tasks.size());
             watch.stop();
             watch.start("buildResultGroupsFromTasks");
             List<ExecutionResultGroupDTO> resultGroups = buildResultGroupsFromTasks(appId, tasks);

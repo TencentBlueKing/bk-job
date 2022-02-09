@@ -33,8 +33,10 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.exception.ExceptionStatusManager;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskResultHandleTaskResumeEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLog;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -526,7 +528,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         boolean isSuccess = CollectionUtils.isEmpty(this.invalidIpSet) && allSuccessIPNum == targetIpNum;
 
         saveGseTaskExecutionInfo(result, isSuccess, endTime, gseTotalTime);
-        taskExecuteMQEventDispatcher.refreshStep(stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
+            EventSource.buildGseTaskEventSource(gseTask.getId())));
     }
 
     private void saveGseTaskExecutionInfo(GseTaskExecuteResult result, boolean isSuccess, long endTime,
