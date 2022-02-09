@@ -97,7 +97,7 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "ip", name = "ip", required = false)
         @RequestParam(value = "ip", required = false) String ip);
 
-    @ApiOperation(value = "获取作业执行信息", produces = "application/json")
+    @ApiOperation(value = "获取作业执行结果", produces = "application/json")
     @GetMapping("/app/{appId}/task-execution-result/{taskInstanceId}")
     Response<TaskExecuteResultVO> getTaskExecutionResult(
         @ApiParam("用户名，网关自动传入")
@@ -107,7 +107,7 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId") Long taskInstanceId);
 
-    @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
+    @ApiOperation(value = "获取作业步骤执行结果", produces = "application/json")
     @GetMapping(value = {"/app/{appId}/step-execution-result/{stepInstanceId}/{executeCount}",
         "/app/{appId}/step-execution-result/{stepInstanceId}"})
     Response<StepExecutionDetailVO> getStepExecutionResult(
