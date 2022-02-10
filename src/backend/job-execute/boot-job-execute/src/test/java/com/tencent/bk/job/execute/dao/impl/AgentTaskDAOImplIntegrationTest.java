@@ -54,6 +54,7 @@ public class AgentTaskDAOImplIntegrationTest {
     private AgentTaskDAO agentTaskDAO;
 
     @Test
+    @DisplayName("根据IP获取Agent任务")
     public void testGetAgentTaskByIp() {
         String ip = "0:127.0.0.1";
         long stepInstanceId = 1L;
@@ -91,7 +92,7 @@ public class AgentTaskDAOImplIntegrationTest {
         agentTask1.setStepInstanceId(1L);
         agentTask1.setExecuteCount(0);
         agentTask1.setBatch(1);
-        agentTask1.setGseTaskId(100L);
+        agentTask1.setGseTaskId(1L);
         agentTask1.setCloudIp("0:127.0.0.1");
         agentTask1.setDisplayIp("127.0.0.1");
         agentTask1.setErrorCode(99);
@@ -104,6 +105,7 @@ public class AgentTaskDAOImplIntegrationTest {
         agentTask2.setStepInstanceId(100L);
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(1);
+        agentTask2.setGseTaskId(1000L);
         agentTask2.setCloudIp("0:127.0.0.1");
         agentTask2.setErrorCode(88);
         agentTask2.setExitCode(1);
@@ -131,6 +133,7 @@ public class AgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(1);
+        assertThat(agentTask2Return.getGseTaskId()).isEqualTo(1000L);
         assertThat(agentTask2Return.getCloudIp()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(startTime);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(endTime);

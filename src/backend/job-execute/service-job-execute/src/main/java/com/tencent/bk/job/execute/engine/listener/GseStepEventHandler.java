@@ -151,7 +151,7 @@ public class GseStepEventHandler implements StepEventHandler {
         if (isRollingStep) {
             Integer batch = stepEvent.getBatch();
             if (batch == null) {
-                log.error("Empty rolling batch, start step fail");
+                log.error("Empty batch for rolling step. Start step fail");
                 return;
             }
             stepInstance.setBatch(batch);
@@ -441,88 +441,120 @@ public class GseStepEventHandler implements StepEventHandler {
         log.info("Refresh step, stepInstanceId: {}", stepInstance.getId());
 
         long stepInstanceId = stepInstance.getId();
-        int stepStatus = stepInstance.getStatus();
         long gseTaskId = stepEvent.getSource().getGseTaskId();
 
         GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskId);
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         if (gseTaskStatus == null) {
-            log.error("Refresh step fail, invalid gse task status, stepInstanceId: {}, status: {}",
-                stepInstance, stepStatus);
+            log.error("Refresh step fail, invalid gse task status, stepInstanceId: {}, gseTaskStatus: {}",
+                stepInstance.getId(), gseTask.getStatus());
             return;
         }
 
+        switch (gseTaskStatus) {
+            case SUCCESS:
+                onSuccess(stepInstance);
+                break;
+            case FAIL:
+                onFail(stepInstance);
+                break;
+            case STOP_SUCCESS:
+                onStopSuccess(stepInstance);
+                break;
+            case ABNORMAL_STATE:
+                onAbnormalState(stepInstance);
+                break;
+            default:
+                log.error("Refresh step fail because of unexpected gse task status. stepInstanceId: {}, " +
+                        "gseTaskStatus: {}",
+                    stepInstanceId, gseTaskStatus.getValue());
+                setAbnormalStatusForStep(stepInstance);
+                break;
+        }
+
+        // 更新作业状态
+        taskExecuteMQEventDispatcher.dispatchJobEvent(
+            JobEvent.refreshJob(stepInstance.getTaskInstanceId(), EventSource.buildStepEventSource(stepInstanceId)));
+    }
+
+    private void onSuccess(StepInstanceDTO stepInstance) {
+        long stepInstanceId = stepInstance.getId();
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
 
-        switch (gseTaskStatus) {
-            case SUCCESS:
-                if (stepInstance.isRollingStep()) {
-                    TaskInstanceRollingConfigDTO rollingConfig =
-                        rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
-                    int totalBatch = rollingConfig.getConfig().getServerBatchList().size();
-                    boolean isLastBatch = totalBatch == stepInstance.getBatch();
-                    if (isLastBatch) {
-                        taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                            startTime, endTime, totalTime);
-                        // 步骤执行成功后清理产生的临时文件
-                        clearStep(stepInstance);
-                    } else {
-                        taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
-                            startTime, endTime, totalTime);
-                        return;
-                    }
-                } else {
-                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
-                        startTime, endTime, totalTime);
-                    // 步骤执行成功后清理产生的临时文件
-                    clearStep(stepInstance);
-                }
-                break;
-            case FAIL:
-                if (stepInstance.isIgnoreError()) {
-                    taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.IGNORE_ERROR.getValue());
-                }
-                if (stepInstance.isRollingStep()) {
-                    TaskInstanceRollingConfigDTO rollingConfig =
-                        rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
-                }
-                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+        if (stepInstance.isRollingStep()) {
+            TaskInstanceRollingConfigDTO rollingConfig =
+                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
+            int totalBatch = rollingConfig.getConfig().getServerBatchList().size();
+            boolean isLastBatch = totalBatch == stepInstance.getBatch();
+            if (isLastBatch) {
+                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                     startTime, endTime, totalTime);
-                break;
-            case STOP_SUCCESS:
-                if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
-                    taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
-                        startTime, endTime, totalTime);
-                    if (stepInstance.isRollingStep()) {
-                        stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                            stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, endTime, totalTime);
-                    }
-                } else {
-                    log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}",
-                        stepInstanceId, stepStatus, RunStatusEnum.STOP_SUCCESS.getValue());
-                    return;
-                }
-                break;
-            case ABNORMAL_STATE:
-                setAbnormalStatusForStep(stepInstance);
-                if (stepInstance.isRollingStep()) {
-                    stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, endTime, totalTime);
-                }
-                break;
-            default:
-                log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}", stepInstanceId,
-                    stepStatus, gseTaskStatus.getValue());
-                return;
+                // 步骤执行成功后清理产生的临时文件
+                clearStep(stepInstance);
+            } else {
+                taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
+                    startTime, endTime, totalTime);
+            }
+        } else {
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
+                startTime, endTime, totalTime);
+            // 步骤执行成功后清理产生的临时文件
+            clearStep(stepInstance);
         }
-        taskExecuteMQEventDispatcher.dispatchJobEvent(
-            JobEvent.refreshJob(stepInstance.getTaskInstanceId(), EventSource.buildStepEventSource(stepInstanceId)));
+    }
+
+    private void onFail(StepInstanceDTO stepInstance) {
+        long stepInstanceId = stepInstance.getId();
+        long endTime = System.currentTimeMillis();
+        long startTime = stepInstance.getStartTime();
+        long totalTime = endTime - startTime;
+        if (stepInstance.isIgnoreError()) {
+            taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.IGNORE_ERROR.getValue());
+        }
+        if (stepInstance.isRollingStep()) {
+            TaskInstanceRollingConfigDTO rollingConfig =
+                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), RunStatusEnum.FAIL, startTime, endTime, totalTime);
+        }
+        taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.FAIL,
+            startTime, endTime, totalTime);
+    }
+
+    private void onStopSuccess(StepInstanceDTO stepInstance) {
+        long stepInstanceId = stepInstance.getId();
+        long endTime = System.currentTimeMillis();
+        long startTime = stepInstance.getStartTime();
+        long totalTime = endTime - startTime;
+        int stepStatus = stepInstance.getStatus();
+
+        if (stepStatus == RunStatusEnum.STOPPING.getValue() || stepStatus == RunStatusEnum.RUNNING.getValue()) {
+            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.STOP_SUCCESS,
+                startTime, endTime, totalTime);
+            if (stepInstance.isRollingStep()) {
+                stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(), RunStatusEnum.STOP_SUCCESS, startTime, endTime, totalTime);
+            }
+        } else {
+            log.error("Refresh step fail, stepInstanceId: {}, stepStatus: {}, gseTaskStatus: {}",
+                stepInstanceId, stepStatus, RunStatusEnum.STOP_SUCCESS.getValue());
+        }
+    }
+
+    private void onAbnormalState(StepInstanceDTO stepInstance) {
+        long stepInstanceId = stepInstance.getId();
+        long endTime = System.currentTimeMillis();
+        long startTime = stepInstance.getStartTime();
+        long totalTime = endTime - startTime;
+        setAbnormalStatusForStep(stepInstance);
+        if (stepInstance.isRollingStep()) {
+            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), RunStatusEnum.ABNORMAL_STATE, startTime, endTime, totalTime);
+        }
     }
 
     private void setAbnormalStatusForStep(StepInstanceDTO stepInstance) {
