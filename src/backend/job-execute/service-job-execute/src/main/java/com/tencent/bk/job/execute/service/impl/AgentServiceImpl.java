@@ -108,8 +108,8 @@ public class AgentServiceImpl implements AgentService {
                 while (allNetInterfaces.hasMoreElements()) {// 循环网卡获取网卡的IP地址
                     NetworkInterface netInterface = allNetInterfaces.nextElement();
                     String netInterfaceName = netInterface.getName();
-                    if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {// 过滤掉127
-                        // .0.0.1的IP
+                    if (StringUtils.isBlank(netInterfaceName) || "lo".equalsIgnoreCase(netInterfaceName)) {
+                        // 过滤掉127.0.0.1的IP
                         continue;
                     }
                     Enumeration<InetAddress> addresses = netInterface.getInetAddresses();

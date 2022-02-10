@@ -151,11 +151,11 @@ public class GseStepEventHandler implements StepEventHandler {
         if (isRollingStep) {
             Integer batch = stepEvent.getBatch();
             if (batch == null) {
-                log.error("Invalid rolling batch");
+                log.error("Empty rolling batch, start step fail");
                 return;
             }
             stepInstance.setBatch(batch);
-            log.info("Start step, stepInstanceId={}, batch: {}", stepInstanceId, batch);
+            log.info("Start rolling step, stepInstanceId={}, batch: {}", stepInstanceId, batch);
         } else {
             log.info("Start step, stepInstanceId={}", stepInstanceId);
         }
@@ -169,6 +169,7 @@ public class GseStepEventHandler implements StepEventHandler {
             TaskInstanceRollingConfigDTO rollingConfig = null;
             if (isRollingStep) {
                 rollingConfig = rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+                log.info("Rolling config: {}", rollingConfig);
                 // 全量滚动步骤需要更新executeCount
                 if (rollingConfig.isAllRollingStep(stepInstanceId)) {
                     int executeCount = stepInstance.getExecuteCount() + 1;

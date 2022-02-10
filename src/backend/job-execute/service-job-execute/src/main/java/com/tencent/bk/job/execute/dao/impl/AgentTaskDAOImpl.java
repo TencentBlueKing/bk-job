@@ -63,6 +63,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
     private static final TableField<?, ?>[] ALL_FIELDS = {
         T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID,
         T_GSE_TASK_IP_LOG.EXECUTE_COUNT,
+        T_GSE_TASK_IP_LOG.BATCH,
         T_GSE_TASK_IP_LOG.IP,
         T_GSE_TASK_IP_LOG.GSE_TASK_ID,
         T_GSE_TASK_IP_LOG.STATUS,
@@ -86,29 +87,30 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
 
     @Override
     public void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks) {
-        String sql = "REPLACE INTO gse_task_ip_log (step_instance_id, execute_count, ip, gse_task_id, status, " +
+        String sql = "REPLACE INTO gse_task_ip_log (step_instance_id, execute_count, batch, ip, gse_task_id, status, " +
             "start_time, end_time, total_time, error_code, exit_code, tag, log_offset, display_ip, is_target," +
             "is_source)" +
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        Object[][] params = new Object[agentTasks.size()][15];
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        Object[][] params = new Object[agentTasks.size()][16];
         int batchCount = 0;
         for (AgentTaskDTO agentTask : agentTasks) {
-            Object[] param = new Object[15];
+            Object[] param = new Object[16];
             param[0] = agentTask.getStepInstanceId();
             param[1] = agentTask.getExecuteCount();
-            param[2] = agentTask.getCloudIp();
-            param[3] = agentTask.getGseTaskId();
-            param[4] = agentTask.getStatus();
-            param[5] = agentTask.getStartTime();
-            param[6] = agentTask.getEndTime();
-            param[7] = agentTask.getTotalTime();
-            param[8] = agentTask.getErrorCode();
-            param[9] = agentTask.getExitCode();
-            param[10] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[11] = agentTask.getScriptLogOffset();
-            param[12] = agentTask.getDisplayIp();
-            param[13] = agentTask.isTargetServer() ? Bool.TRUE.getValue() : Bool.FALSE.getValue();
-            param[14] = agentTask.isSourceServer() ? Bool.TRUE.getValue() : Bool.FALSE.getValue();
+            param[2] = agentTask.getBatch();
+            param[3] = agentTask.getCloudIp();
+            param[4] = agentTask.getGseTaskId();
+            param[5] = agentTask.getStatus();
+            param[6] = agentTask.getStartTime();
+            param[7] = agentTask.getEndTime();
+            param[8] = agentTask.getTotalTime();
+            param[9] = agentTask.getErrorCode();
+            param[10] = agentTask.getExitCode();
+            param[11] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[12] = agentTask.getScriptLogOffset();
+            param[13] = agentTask.getDisplayIp();
+            param[14] = agentTask.isTargetServer() ? Bool.TRUE.getValue() : Bool.FALSE.getValue();
+            param[15] = agentTask.isSourceServer() ? Bool.TRUE.getValue() : Bool.FALSE.getValue();
             params[batchCount++] = param;
         }
         CTX.batch(sql, params).execute();
@@ -325,6 +327,7 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
         AgentTaskDTO agentTask = new AgentTaskDTO();
         agentTask.setStepInstanceId(record.get(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_TASK_IP_LOG.EXECUTE_COUNT));
+        agentTask.setBatch(record.get(T_GSE_TASK_IP_LOG.BATCH));
         agentTask.setCloudIp(record.get(T_GSE_TASK_IP_LOG.IP));
         agentTask.setGseTaskId(record.get(T_GSE_TASK_IP_LOG.GSE_TASK_ID));
         agentTask.setStatus(record.get(T_GSE_TASK_IP_LOG.STATUS));

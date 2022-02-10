@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,8 +62,9 @@ public class AgentTaskDAOImplIntegrationTest {
 
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
+        assertThat(agentTask.getBatch()).isEqualTo(1);
         assertThat(agentTask.getCloudIp()).isEqualTo(ip);
-        assertThat(agentTask.getBatch()).isEqualTo(0);
+        assertThat(agentTask.getBatch()).isEqualTo(1);
         assertThat(agentTask.getGseTaskId()).isEqualTo(1L);
         assertThat(agentTask.getStatus()).isEqualTo(9);
         Long expectStartTime = 1565767148000L;
@@ -81,10 +83,14 @@ public class AgentTaskDAOImplIntegrationTest {
     }
 
     @Test
+    @DisplayName("批量新增/更新Agent任务")
     public void testBatchSaveAgentTasks() {
+        // UPDATE
         List<AgentTaskDTO> agentTaskList = new ArrayList<>();
         AgentTaskDTO agentTask1 = new AgentTaskDTO();
         agentTask1.setStepInstanceId(1L);
+        agentTask1.setExecuteCount(0);
+        agentTask1.setBatch(1);
         agentTask1.setGseTaskId(100L);
         agentTask1.setCloudIp("0:127.0.0.1");
         agentTask1.setDisplayIp("127.0.0.1");
@@ -93,9 +99,11 @@ public class AgentTaskDAOImplIntegrationTest {
         agentTask1.setExitCode(1);
         agentTaskList.add(agentTask1);
 
+        // INSERT
         AgentTaskDTO agentTask2 = new AgentTaskDTO();
-        agentTask2.setStepInstanceId(3L);
+        agentTask2.setStepInstanceId(100L);
         agentTask2.setExecuteCount(0);
+        agentTask2.setBatch(1);
         agentTask2.setCloudIp("0:127.0.0.1");
         agentTask2.setErrorCode(88);
         agentTask2.setExitCode(1);
@@ -112,15 +120,17 @@ public class AgentTaskDAOImplIntegrationTest {
         AgentTaskDTO agentTask1Return = agentTaskDAO.getAgentTaskByIp(1L, 0, "0:127.0.0.1");
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask1Return.getBatch()).isEqualTo(1);
         assertThat(agentTask1Return.getCloudIp()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask1Return.getErrorCode()).isEqualTo(99);
         assertThat(agentTask1Return.getStatus()).isEqualTo(1);
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = agentTaskDAO.getAgentTaskByIp(3L, 0, "0:127.0.0.1");
-        assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(3L);
+        AgentTaskDTO agentTask2Return = agentTaskDAO.getAgentTaskByIp(100L, 0, "0:127.0.0.1");
+        assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
+        assertThat(agentTask2Return.getBatch()).isEqualTo(1);
         assertThat(agentTask2Return.getCloudIp()).isEqualTo("0:127.0.0.1");
         assertThat(agentTask2Return.getStartTime()).isEqualTo(startTime);
         assertThat(agentTask2Return.getEndTime()).isEqualTo(endTime);
