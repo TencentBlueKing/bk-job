@@ -57,8 +57,6 @@ public class StepExecutionDetailVO {
     private Integer status;
     @ApiModelProperty("步骤状态描述")
     private String statusDesc;
-    @ApiModelProperty("gseTaskId")
-    private String gseTaskId;
     @ApiModelProperty("Agent作业执行结果分组")
     private List<ExecutionResultGroupVO> resultGroups;
     @ApiModelProperty("是否是作业中最后一个步骤")

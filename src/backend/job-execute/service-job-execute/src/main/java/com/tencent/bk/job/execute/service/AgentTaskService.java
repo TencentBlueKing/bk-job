@@ -71,36 +71,27 @@ public interface AgentTaskService {
     int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
 
     /**
-     * 获取执行成功的Agent任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @return 执行成功的Agent任务
-     */
-    List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount);
-
-    /**
-     * 获取步骤执行结果分组信息-不包含ip详细信息
+     * 获取步骤执行结果并分组
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次；如果传入null或者0，将忽略该参数
      */
-    List<AgentTaskResultGroupDTO> getAgentTaskStatInfo(long stepInstanceId, int executeCount);
+    List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(long stepInstanceId, int executeCount, Integer batch);
 
     /**
-     * 获取步骤执行结果分组信息
-     *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
+     * @param status         任务状态
+     * @param tag            用户自定义分组标签
+     * @return Agent任务
      */
-    List<AgentTaskResultGroupDTO> getLogStatInfoWithIp(long stepInstanceId, int executeCount);
-
-    List<AgentTaskDTO> listAgentTasksByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                  String tag);
-
-    List<AgentTaskDTO> getAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
-                                                       Integer resultType,
-                                                       String tag);
+    List<AgentTaskDTO> listAgentTasksByResultGroup(Long stepInstanceId,
+                                                   Integer executeCount,
+                                                   Integer batch,
+                                                   Integer status,
+                                                   String tag);
 
     /**
      * 获取agent任务

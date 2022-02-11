@@ -24,31 +24,75 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Agent任务执行结果分组
  */
 @Data
-public class AgentTaskResultGroupDTO {
+@NoArgsConstructor
+public class AgentTaskResultGroupDTO implements Comparable<AgentTaskResultGroupDTO> {
     /**
-     * 结果类型
+     * 任务状态
+     *
+     * @see IpStatus
      */
-    private IpStatus resultType;
+    private Integer status;
     /**
-     * 用户脚本输出的tag
+     * 用户脚本输出的分组tag
      */
     private String tag;
     /**
-     * 分组下的ip数目
+     * Agent任务总数
      */
-    private Integer count;
+    private int totalAgentTasks;
     /**
-     * ip列表
+     * Agent任务
      */
-    private List<IpDTO> ipList;
+    private List<AgentTaskDTO> agentTasks;
+
+    public AgentTaskResultGroupDTO(Integer status, String tag) {
+        this.status = status;
+        this.tag = tag;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AgentTaskResultGroupDTO that = (AgentTaskResultGroupDTO) o;
+        return status.equals(that.status) &&
+            tagEquals(tag, that.tag);
+    }
+
+    private boolean tagEquals(String thisTag, String thatTag) {
+        String tag1 = thisTag == null ? "" : thisTag;
+        String tag2 = thatTag == null ? "" : thatTag;
+        return tag1.equals(tag2);
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.tag == null) {
+            return Objects.hash(status, "");
+        } else {
+            return Objects.hash(status, tag);
+        }
+    }
+
+    @Override
+    public int compareTo(AgentTaskResultGroupDTO that) {
+        int result = status.compareTo(that.status);
+        if (result != 0) {
+            return result;
+        }
+        String tag1 = this.tag == null ? "" : this.tag;
+        String tag2 = that.tag == null ? "" : that.tag;
+        return tag1.compareTo(tag2);
+    }
 }

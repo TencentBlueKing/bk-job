@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -32,11 +35,12 @@ import java.util.List;
  * 步骤执行详情
  */
 @Data
+@NoArgsConstructor
 public class StepExecutionDetailDTO {
     /**
      * 任务执行分组状态
      */
-    List<ExecutionResultGroupDTO> resultGroups;
+    List<AgentTaskResultGroupDTO> resultGroups;
     /**
      * 步骤实例ID
      */
@@ -82,9 +86,17 @@ public class StepExecutionDetailDTO {
      */
     private Integer stepType;
 
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null) {
-            this.totalTime = this.endTime - this.startTime;
-        }
+    public StepExecutionDetailDTO(StepInstanceBaseDTO stepInstance) {
+        this.stepInstanceId = stepInstance.getId();
+        this.executeCount = stepInstance.getExecuteCount();
+        this.name = stepInstance.getName();
+        this.setFinished(RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus()));
+        this.status = stepInstance.getStatus();
+        this.startTime = stepInstance.getStartTime();
+        this.endTime = stepInstance.getEndTime();
+        this.totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), stepInstance.getEndTime(),
+            stepInstance.getTotalTime());
+        this.lastStep = stepInstance.isLastStep();
+        this.stepType = stepInstance.getStepType();
     }
 }

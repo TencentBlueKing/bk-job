@@ -75,6 +75,10 @@ public class AgentTaskDTO {
      */
     private Long cloudId;
     /**
+     * 云区域名称
+     */
+    private String cloudName;
+    /**
      * 展示给用户的IP
      */
     private String displayIp;
@@ -169,7 +173,9 @@ public class AgentTaskDTO {
         return status != IpStatus.WAITING.getValue() && status != IpStatus.RUNNING.getValue();
     }
 
-    public ExecutionResultGroupDTO getExecutionResultGroup() {
-        return new ExecutionResultGroupDTO(status, tag);
+    public void calculateTotalTime() {
+        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
+            this.totalTime = this.endTime - this.startTime;
+        }
     }
 }

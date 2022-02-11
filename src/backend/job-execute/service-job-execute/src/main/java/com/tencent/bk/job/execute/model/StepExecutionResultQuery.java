@@ -25,7 +25,10 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.Order;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.generated.tables.GseTaskIpLog;
 
@@ -33,7 +36,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@ToString
+@Builder
 public class StepExecutionResultQuery {
     public static final String ORDER_FIELD_TOTAL_TIME = "totalTime";
     public static final String ORDER_FIELD_CLOUD_AREA_ID = "cloudAreaId";
@@ -70,7 +76,7 @@ public class StepExecutionResultQuery {
     /**
      * 执行结果分组
      */
-    private Integer resultType;
+    private Integer status;
     /**
      * 执行结果输出的自定义分组tag
      */
@@ -92,6 +98,10 @@ public class StepExecutionResultQuery {
 
     public boolean hasIpCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);
+    }
+
+    public boolean hasBatchCondition() {
+        return batch != null && batch > 0;
     }
 
     public void transformOrderFieldToDbField() {

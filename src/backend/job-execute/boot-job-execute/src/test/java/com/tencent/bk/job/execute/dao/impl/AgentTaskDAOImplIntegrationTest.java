@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -145,31 +145,49 @@ public class AgentTaskDAOImplIntegrationTest {
     @Test
     public void testGetSuccessIpCount() {
         Integer count = agentTaskDAO.getSuccessIpCount(1L, 0);
-        assertThat(count).isEqualTo(2);
+        assertThat(count).isEqualTo(4);
     }
 
     @Test
-    public void testGetSuccessIpList() {
-        List<AgentTaskDTO> gseTaskAgentTaskList = agentTaskDAO.listSuccessAgentTasks(1L, 0);
-        assertThat(gseTaskAgentTaskList).extracting("cloudIp").containsOnly("0:127.0.0.1", "0:127.0.0.2");
+    @DisplayName("Agent任务结果分组")
+    public void listResultGroups() {
+        List<AgentTaskResultGroupDTO> resultGroups = agentTaskDAO.listResultGroups(1L, 0, null);
+
+        assertThat(resultGroups.size()).isEqualTo(2);
+        assertThat(resultGroups).extracting("status").containsOnly(9, 11);
+        assertThat(resultGroups).extracting("tag").containsOnly("succ", "fail");
+        AgentTaskResultGroupDTO resultGroup = resultGroups.get(0);
+        if (resultGroup.getStatus().equals(9)) {
+            assertThat(resultGroup.getTotalAgentTasks()).isEqualTo(4);
+        }
+        if (resultGroup.getStatus().equals(11)) {
+            assertThat(resultGroup.getTotalAgentTasks()).isEqualTo(1);
+        }
+
+        // 根据滚动执行批次查询
+        resultGroups = agentTaskDAO.listResultGroups(1L, 0, 3);
+
+        assertThat(resultGroups.size()).isEqualTo(2);
+        assertThat(resultGroups).extracting("status").containsOnly(9, 11);
+        assertThat(resultGroups).extracting("tag").containsOnly("succ", "fail");
+        resultGroup = resultGroups.get(0);
+        if (resultGroup.getStatus().equals(9)) {
+            assertThat(resultGroup.getTotalAgentTasks()).isEqualTo(2);
+        }
+        if (resultGroup.getStatus().equals(11)) {
+            assertThat(resultGroup.getTotalAgentTasks()).isEqualTo(1);
+        }
     }
 
     @Test
-    public void testGetIpErrorStatList() {
-        List<ResultGroupBaseDTO> resultGroups = agentTaskDAO.listResultGroups(1L, 0);
-
-        assertThat(resultGroups.size()).isEqualTo(1);
-        assertThat(resultGroups.get(0).getTag()).isEqualTo("succ");
-        assertThat(resultGroups.get(0).getResultType()).isEqualTo(9);
-        assertThat(resultGroups.get(0).getAgentTaskCount()).isEqualTo(2);
-    }
-
-    @Test
-    public void testGetAgentTaskByResultType() {
-        List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTaskByResultType(1L, 0, 9, "succ");
-        assertThat(agentTasks.size()).isEqualTo(2);
-        assertThat(agentTasks).extracting("tag").containsOnly("succ", "succ");
-        assertThat(agentTasks).extracting("stepInstanceId").containsOnly(1L, 1L);
+    public void testGetAgentTaskByResultGroup() {
+        List<AgentTaskDTO> agentTasks = agentTaskDAO.listAgentTaskByResultGroup(1L, 0, 1, 9, "succ");
+        assertThat(agentTasks.size()).isEqualTo(1);
+        assertThat(agentTasks.get(0).getStepInstanceId()).isEqualTo(1L);
+        assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);
+        assertThat(agentTasks.get(0).getBatch()).isEqualTo(1);
+        assertThat(agentTasks.get(0).getStatus()).isEqualTo(9);
+        assertThat(agentTasks.get(0).getTag()).isEqualTo("succ");
     }
 
     @Test
@@ -193,9 +211,9 @@ public class AgentTaskDAOImplIntegrationTest {
 
     @Test
     public void testGetTaskFileSourceIps() {
-        List<String> fileSourceIps = agentTaskDAO.getTaskFileSourceIps(1L, 0);
+        List<String> fileSourceIps = agentTaskDAO.getTaskFileSourceIps(3L, 0);
         assertThat(fileSourceIps.size()).isEqualTo(1);
-        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.3");
+        assertThat(fileSourceIps.get(0)).isEqualTo("0:127.0.0.2");
     }
 
     @Test

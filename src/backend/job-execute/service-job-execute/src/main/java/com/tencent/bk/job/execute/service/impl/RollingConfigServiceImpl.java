@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.google.common.collect.Lists;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.dao.TaskInstanceRollingConfigDAO;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
@@ -57,23 +59,24 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance) {
+    public List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch) {
         long rollingConfigId = stepInstance.getRollingConfigId();
         long stepInstanceId = stepInstance.getId();
-        int batch = stepInstance.getBatch();
 
         TaskInstanceRollingConfigDTO rollingConfig =
             taskInstanceRollingConfigDAO.queryRollingConfigById(rollingConfigId);
         if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
-            return rollingConfig.getConfig().getServerBatchList().get(batch - 1).getServers();
+            if (batch == null || batch == 0) {
+                // 忽略滚动批次，返回当前步骤的所有目标服务器
+                return stepInstance.getTargetServers().getIpList();
+            } else {
+                return rollingConfig.getConfig().getServerBatchList()
+                    .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
+                    .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getServers();
+            }
         } else {
             return stepInstance.getTargetServers().getIpList();
         }
-    }
-
-    @Override
-    public List<IpDTO> getRollingServers(long stepInstanceId, int batch) {
-        return null;
     }
 
     @Override

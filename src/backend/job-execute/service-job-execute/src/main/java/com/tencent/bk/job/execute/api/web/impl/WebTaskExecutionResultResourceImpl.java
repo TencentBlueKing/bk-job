@@ -57,8 +57,8 @@ import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.AgentTaskExecutionDTO;
-import com.tencent.bk.job.execute.model.ExecutionResultGroupDTO;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptIpLogContent;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
@@ -87,7 +87,6 @@ import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.service.ExecuteAuthService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -134,7 +133,6 @@ public class WebTaskExecutionResultResourceImpl
     private final ServiceNotificationResourceClient notifyResource;
     private final ExecuteAuthService executeAuthService;
     private final WebAuthService webAuthService;
-    private final GseTaskService gseTaskService;
 
     private LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -186,8 +184,7 @@ public class WebTaskExecutionResultResourceImpl
                                               TaskInstanceVariableService taskInstanceVariableService,
                                               ServiceNotificationResourceClient notifyResource,
                                               ExecuteAuthService executeAuthService,
-                                              WebAuthService webAuthService,
-                                              GseTaskService gseTaskService) {
+                                              WebAuthService webAuthService) {
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -197,7 +194,6 @@ public class WebTaskExecutionResultResourceImpl
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
         this.webAuthService = webAuthService;
-        this.gseTaskService = gseTaskService;
     }
 
     @Override
@@ -471,17 +467,18 @@ public class WebTaskExecutionResultResourceImpl
                                                                   String searchIp,
                                                                   String orderField,
                                                                   Integer order) {
-        StepExecutionResultQuery query = new StepExecutionResultQuery();
-        query.setStepInstanceId(stepInstanceId);
-        query.setExecuteCount(executeCount);
-        query.setBatch(batch);
-        query.setResultType(resultType);
-        query.setTag(tag);
-        query.setLogKeyword(keyword);
-        query.setSearchIp(searchIp);
-        query.setMaxAgentTasksForResultGroup(maxIpsPerResultGroup);
-        query.setOrderField(orderField);
-        query.setOrder(Order.valueOf(order));
+        StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .stepInstanceId(stepInstanceId)
+            .executeCount(executeCount)
+            .batch(batch)
+            .status(resultType)
+            .tag(tag)
+            .logKeyword(keyword)
+            .searchIp(searchIp)
+            .maxAgentTasksForResultGroup(maxIpsPerResultGroup)
+            .orderField(orderField)
+            .order(Order.valueOf(order))
+            .build();
 
         StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username,
             appId, query);
@@ -498,12 +495,14 @@ public class WebTaskExecutionResultResourceImpl
                                                                           Integer maxIpsPerResultGroup,
                                                                           String orderField,
                                                                           Integer order) {
-        StepExecutionResultQuery query = new StepExecutionResultQuery();
-        query.setResultType(resultType);
-        query.setTag(tag);
-        query.setMaxAgentTasksForResultGroup(maxIpsPerResultGroup);
-        query.setOrderField(orderField);
-        query.setOrder(Order.valueOf(order));
+        StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .batch(batch)
+            .status(resultType)
+            .tag(tag)
+            .maxAgentTasksForResultGroup(maxIpsPerResultGroup)
+            .orderField(orderField)
+            .order(Order.valueOf(order))
+            .build();
         StepExecutionDetailDTO executionResult = taskResultService.getFastTaskStepExecutionResult(username,
             appId, taskInstanceId, query);
         return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
@@ -523,37 +522,36 @@ public class WebTaskExecutionResultResourceImpl
         stepExecutionDetailVO.setStartTime(executionDetail.getStartTime());
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
-        stepExecutionDetailVO.setGseTaskId(executionDetail.getGseTaskId());
         stepExecutionDetailVO.setIsLastStep(executionDetail.isLastStep());
         stepExecutionDetailVO.setType(executionDetail.getStepType());
 
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();
-        for (ExecutionResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
+        for (AgentTaskResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
-            executionResultGroupVO.setResultType(resultGroup.getResultType());
+            executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(IpStatus.valueOf(resultGroup.getResultType()).getI18nKey()));
+                i18nService.getI18n(IpStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
-            executionResultGroupVO.setAgentTaskSize(resultGroup.getAgentTaskSize());
+            executionResultGroupVO.setAgentTaskSize(resultGroup.getTotalAgentTasks());
 
             List<AgentTaskExecutionVO> agentTaskExecutionVOS = new ArrayList<>();
-            if (resultGroup.getAgentTaskExecutionDetail() != null) {
-                for (AgentTaskExecutionDTO agentTaskExecution : resultGroup.getAgentTaskExecutionDetail()) {
+            if (resultGroup.getAgentTasks() != null) {
+                for (AgentTaskDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
-                    agentTaskVO.setIp(agentTaskExecution.getCloudIp());
-                    agentTaskVO.setDisplayIp(agentTaskExecution.getDisplayIp());
-                    agentTaskVO.setEndTime(agentTaskExecution.getEndTime());
-                    agentTaskVO.setStartTime(agentTaskExecution.getStartTime());
-                    agentTaskVO.setStatus(agentTaskExecution.getStatus());
+                    agentTaskVO.setIp(agentTask.getCloudIp());
+                    agentTaskVO.setDisplayIp(agentTask.getDisplayIp());
+                    agentTaskVO.setEndTime(agentTask.getEndTime());
+                    agentTaskVO.setStartTime(agentTask.getStartTime());
+                    agentTaskVO.setStatus(agentTask.getStatus());
                     agentTaskVO.setStatusDesc(
-                        i18nService.getI18n(IpStatus.valueOf(agentTaskExecution.getStatus()).getI18nKey()));
-                    agentTaskVO.setErrorCode(agentTaskExecution.getErrorCode());
-                    agentTaskVO.setExitCode(agentTaskExecution.getExitCode());
-                    agentTaskVO.setTag(agentTaskExecution.getTag());
-                    agentTaskVO.setTotalTime(agentTaskExecution.getTotalTime());
-                    agentTaskVO.setCloudAreaId(agentTaskExecution.getCloudAreaId());
-                    agentTaskVO.setCloudAreaName(agentTaskExecution.getCloudAreaName());
-                    agentTaskVO.setRetryCount(agentTaskExecution.getExecuteCount());
+                        i18nService.getI18n(IpStatus.valueOf(agentTask.getStatus()).getI18nKey()));
+                    agentTaskVO.setErrorCode(agentTask.getErrorCode());
+                    agentTaskVO.setExitCode(agentTask.getExitCode());
+                    agentTaskVO.setTag(agentTask.getTag());
+                    agentTaskVO.setTotalTime(agentTask.getTotalTime());
+                    agentTaskVO.setCloudAreaId(agentTask.getCloudId());
+                    agentTaskVO.setCloudAreaName(agentTask.getCloudName());
+                    agentTaskVO.setRetryCount(agentTask.getExecuteCount());
                     agentTaskExecutionVOS.add(agentTaskVO);
                 }
             }
@@ -837,11 +835,15 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public Response<List<HostDTO>> getHostsByResultType(String username, Long appId, Long stepInstanceId,
-                                                        Integer executeCount, Integer resultType,
+    public Response<List<HostDTO>> getHostsByResultType(String username,
+                                                        Long appId,
+                                                        Long stepInstanceId,
+                                                        Integer executeCount,
+                                                        Integer batch,
+                                                        Integer resultType,
                                                         String tag, String keyword) {
         List<IpDTO> hosts = taskResultService.getHostsByResultType(username, appId, stepInstanceId, executeCount,
-            resultType, tag, keyword);
+            batch, resultType, tag, keyword);
         return Response.buildSuccessResp(hosts.stream().map(IpDTO::toHost)
             .collect(Collectors.toList()));
     }

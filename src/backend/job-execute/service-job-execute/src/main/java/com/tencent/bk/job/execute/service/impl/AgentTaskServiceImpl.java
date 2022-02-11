@@ -26,25 +26,20 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
-import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
-import com.tencent.bk.job.execute.model.ScriptIpLogContent;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -95,82 +90,30 @@ public class AgentTaskServiceImpl implements AgentTaskService {
     }
 
     @Override
-    public List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount) {
-        return agentTaskDAO.listSuccessAgentTasks(stepInstanceId, executeCount);
-    }
-
-    @Override
-    public List<AgentTaskResultGroupDTO> getAgentTaskStatInfo(long stepInstanceId, int executeCount) {
-        List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
-
-        List<ResultGroupBaseDTO> baseResultGroups = agentTaskDAO.listResultGroups(stepInstanceId, executeCount);
-        for (ResultGroupBaseDTO baseResultGroup : baseResultGroups) {
-            AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
-            resultGroup.setResultType(IpStatus.valueOf(baseResultGroup.getResultType()));
-            resultGroup.setTag(baseResultGroup.getTag());
-            resultGroup.setCount(baseResultGroup.getAgentTaskCount());
-            resultGroups.add(resultGroup);
+    public List<AgentTaskResultGroupDTO> listAndGroupAgentTasks(long stepInstanceId, int executeCount, Integer batch) {
+        final List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
+        List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstanceId, executeCount, batch, true);
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return resultGroups;
         }
-        return resultGroups;
+
+        agentTasks.stream().collect(
+            Collectors.groupingBy(agentTask -> new AgentTaskResultGroupDTO(agentTask.getStatus(), agentTask.getTag())))
+            .forEach((resultGroup, groupedAgentTasks) -> {
+                resultGroup.setAgentTasks(groupedAgentTasks);
+                resultGroups.add(resultGroup);
+            });
+
+        return resultGroups.stream().sorted().collect(Collectors.toList());
     }
 
     @Override
-    public List<AgentTaskResultGroupDTO> getLogStatInfoWithIp(long stepInstanceId, int executeCount) {
-        List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
-
-        List<ResultGroupBaseDTO> baseResultGroups = agentTaskDAO.listResultGroups(stepInstanceId, executeCount);
-        for (ResultGroupBaseDTO baseResultGroup : baseResultGroups) {
-            AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
-            resultGroup.setResultType(IpStatus.valueOf(baseResultGroup.getResultType()));
-            resultGroup.setTag(baseResultGroup.getTag());
-            resultGroup.setCount(baseResultGroup.getAgentTaskCount());
-            List<AgentTaskDTO> agentTaskList = listAgentTasksByResultType(stepInstanceId, executeCount,
-                baseResultGroup.getResultType(), baseResultGroup.getTag());
-            List<IpDTO> ipList = new ArrayList<>();
-            for (AgentTaskDTO agentTask : agentTaskList) {
-                ipList.add(IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
-            }
-            resultGroup.setIpList(ipList);
-            resultGroups.add(resultGroup);
-        }
-        return resultGroups;
-    }
-
-
-    @Override
-    public List<AgentTaskDTO> listAgentTasksByResultType(Long stepInstanceId, Integer executeCount,
-                                                         Integer resultType,
+    public List<AgentTaskDTO> listAgentTasksByResultGroup(Long stepInstanceId,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
                                                          String tag) {
-        return agentTaskDAO.listAgentTaskByResultType(stepInstanceId, executeCount, resultType, tag);
-    }
-
-    @Override
-    public List<AgentTaskDTO> getAgentTaskContentByResultType(Long stepInstanceId, Integer executeCount,
-                                                              Integer resultType, String tag) {
-        List<AgentTaskDTO> agentTaskByResultType = listAgentTasksByResultType(stepInstanceId, executeCount,
-            resultType, tag);
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
-        if (stepInstance == null) {
-            return Collections.emptyList();
-        }
-        for (AgentTaskDTO agentTask : agentTaskByResultType) {
-            long startTime = System.currentTimeMillis();
-            if (stepInstance.isScriptStep()) {
-                ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount
-                    , IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()));
-                agentTask.setScriptLogContent(scriptIpLogContent == null ? "" : scriptIpLogContent.getContent());
-            } else if (stepInstance.isFileStep()) {
-                FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
-                    IpDTO.fromCloudAreaIdAndIpStr(agentTask.getCloudIp()),
-                    FileDistModeEnum.DOWNLOAD.getValue());
-                agentTask.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
-            }
-            log.debug("stepInstanceId={}|ip={}|time={} ms", stepInstanceId, agentTask.getCloudIp(),
-                (System.currentTimeMillis() - startTime));
-
-        }
-
-        return agentTaskByResultType;
+        return agentTaskDAO.listAgentTaskByResultGroup(stepInstanceId, executeCount, batch, status, tag);
     }
 
     @Override

@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.dao;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,12 +37,37 @@ import java.util.Map;
  * GseAgentTaskDAO
  */
 public interface AgentTaskDAO {
+    /**
+     * 批量新增/更新Agent任务
+     *
+     * @param agentTasks Agent任务
+     */
     void batchSaveAgentTasks(List<AgentTaskDTO> agentTasks);
 
-    void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps,
+    /**
+     * 批量更新Agent任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param cloudIp        ip
+     * @param startTime      任务开始时间
+     * @param endTime        任务结束时间
+     * @param ipStatus       任务状态
+     */
+    void batchUpdateAgentTasks(long stepInstanceId,
+                               int executeCount,
+                               Collection<String> cloudIp,
                                Long startTime,
-                               Long endTime, IpStatus ipStatus);
+                               Long endTime,
+                               IpStatus ipStatus);
 
+    /**
+     * 获取步骤成功执行的Agent任务数量
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @return 步骤成功执行的Agent任务数量
+     */
     int getSuccessIpCount(long stepInstanceId, int executeCount);
 
     /**
@@ -52,22 +77,49 @@ public interface AgentTaskDAO {
      */
     Map<IpStatus, Integer> countStepAgentTaskGroupByStatus(long stepInstanceId, int executeCount);
 
-    List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount);
-
     /**
      * 查询执行结果分组
      *
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
+     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount);
+    List<AgentTaskResultGroupDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
 
-    List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                 String tag);
+    /**
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
+     * @param status         任务状态
+     * @param tag            用户自定义分组标签
+     * @return Agent任务
+     */
+    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  Integer status,
+                                                  String tag);
 
-    List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                 String tag, Integer limit, String orderField, Order order);
+    /**
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
+     * @param status         任务状态
+     * @param tag            用户自定义分组标签
+     * @param orderField     排序字段
+     * @param order          排序方式
+     * @return Agent任务
+     * @parma limit 最大返回数量
+     */
+    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  Integer status,
+                                                  String tag,
+                                                  Integer limit,
+                                                  String orderField,
+                                                  Order order);
 
     /**
      * 获取agent任务

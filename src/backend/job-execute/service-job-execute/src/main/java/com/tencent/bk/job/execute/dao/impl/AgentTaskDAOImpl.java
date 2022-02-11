@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.AgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.IpStatus;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -117,13 +117,13 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudAreaAndIps,
+    public void batchUpdateAgentTasks(long stepInstanceId, int executeCount, Collection<String> cloudIp,
                                       Long startTime, Long endTime, IpStatus ipStatus) {
         String sql = "update gse_task_ip_log set start_time = ?, end_time = ?, status = ? where step_instance_id = ? " +
             "and execute_count = ? and ip = ?";
-        Object[][] params = new Object[cloudAreaAndIps.size()][6];
+        Object[][] params = new Object[cloudIp.size()][6];
         int batchCount = 0;
-        for (String ip : cloudAreaAndIps) {
+        for (String ip : cloudIp) {
             Object[] param = new Object[6];
             param[0] = startTime;
             param[1] = endTime;
@@ -167,52 +167,49 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listSuccessAgentTasks(long stepInstanceId, int executeCount) {
-        Result<?> result = CTX.select(ALL_FIELDS)
-            .from(T_GSE_TASK_IP_LOG)
-            .where(T_GSE_TASK_IP_LOG.STATUS.in(IpStatus.LAST_SUCCESS.getValue(), IpStatus.SUCCESS.getValue()))
-            .and(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_TASK_IP_LOG.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()))
-            .fetch();
-        List<AgentTaskDTO> successGseIpList = new ArrayList<>();
-        result.forEach(record -> successGseIpList.add(extract(record)));
-        return successGseIpList;
-    }
+    public List<AgentTaskResultGroupDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
+        SelectConditionStep<?> selectConditionStep =
+            CTX.select(T_GSE_TASK_IP_LOG.STATUS, T_GSE_TASK_IP_LOG.TAG, count().as("ip_count"))
+                .from(T_GSE_TASK_IP_LOG)
+                .where(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T_GSE_TASK_IP_LOG.EXECUTE_COUNT.eq(executeCount))
+                .and(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(T_GSE_TASK_IP_LOG.BATCH.eq(batch.shortValue()));
+        }
 
-    @Override
-    public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount) {
-        Result<?> result = CTX.select(T_GSE_TASK_IP_LOG.STATUS, T_GSE_TASK_IP_LOG.TAG, count().as("ip_count"))
-            .from(T_GSE_TASK_IP_LOG)
-            .where(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_TASK_IP_LOG.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()))
-            .groupBy(T_GSE_TASK_IP_LOG.STATUS, T_GSE_TASK_IP_LOG.TAG)
+        Result<?> result = selectConditionStep.groupBy(T_GSE_TASK_IP_LOG.STATUS, T_GSE_TASK_IP_LOG.TAG)
             .orderBy(T_GSE_TASK_IP_LOG.STATUS.asc())
             .fetch();
 
-        List<ResultGroupBaseDTO> resultGroups = new ArrayList<>();
+        List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         result.forEach(record -> {
-            ResultGroupBaseDTO resultGroup = new ResultGroupBaseDTO();
-            resultGroup.setResultType(record.get(T_GSE_TASK_IP_LOG.STATUS));
+            AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
+            resultGroup.setStatus(record.get(T_GSE_TASK_IP_LOG.STATUS));
             resultGroup.setTag(record.get(T_GSE_TASK_IP_LOG.TAG));
-            resultGroup.setAgentTaskCount((int) record.get("ip_count"));
+            resultGroup.setTotalAgentTasks((int) record.get("ip_count"));
             resultGroups.add(resultGroup);
         });
         return resultGroups;
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                        String tag) {
-        Result<?> result = CTX.select(ALL_FIELDS)
+    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag) {
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_TASK_IP_LOG)
             .where(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_TASK_IP_LOG.EXECUTE_COUNT.eq(executeCount))
-            .and(T_GSE_TASK_IP_LOG.STATUS.eq(resultType))
+            .and(T_GSE_TASK_IP_LOG.STATUS.eq(status))
             .and(T_GSE_TASK_IP_LOG.TAG.eq(tag == null ? "" : tag))
-            .and(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()))
-            .fetch();
+            .and(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(T_GSE_TASK_IP_LOG.BATCH.eq(batch.shortValue()));
+        }
+        Result<?> result = selectConditionStep.fetch();
 
         List<AgentTaskDTO> agentTasks = new ArrayList<>();
         if (result.size() > 0) {
@@ -222,18 +219,28 @@ public class AgentTaskDAOImpl implements AgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultType(Long stepInstanceId, Integer executeCount, Integer resultType,
-                                                        String tag, Integer limit, String orderField, Order order) {
+    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag,
+                                                         Integer limit,
+                                                         String orderField,
+                                                         Order order) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_GSE_TASK_IP_LOG.STEP_INSTANCE_ID.eq(stepInstanceId));
         conditions.add(T_GSE_TASK_IP_LOG.EXECUTE_COUNT.eq(executeCount));
-        conditions.add(T_GSE_TASK_IP_LOG.STATUS.eq(resultType));
+        conditions.add(T_GSE_TASK_IP_LOG.STATUS.eq(status));
         conditions.add(T_GSE_TASK_IP_LOG.TAG.eq(tag == null ? "" : tag));
         conditions.add(T_GSE_TASK_IP_LOG.IS_TARGET.eq(Bool.TRUE.getValue()));
 
-        SelectConditionStep select = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> select = CTX.select(ALL_FIELDS)
             .from(T_GSE_TASK_IP_LOG)
             .where(conditions);
+
+        if (batch != null && batch > 0) {
+            select.and(T_GSE_TASK_IP_LOG.BATCH.eq(batch.shortValue()));
+        }
 
         SelectSeekStep1 selectSeekStep = null;
         OrderField orderFieldEntity = buildOrderField(orderField, order);

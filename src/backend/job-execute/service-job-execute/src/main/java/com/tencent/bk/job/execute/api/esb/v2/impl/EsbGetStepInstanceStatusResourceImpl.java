@@ -33,19 +33,19 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.IpStatus;
+import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
+import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.AgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -59,17 +59,15 @@ public class EsbGetStepInstanceStatusResourceImpl
     extends JobQueryCommonProcessor
     implements EsbGetStepInstanceStatusResource {
     private final TaskInstanceService taskInstanceService;
-    private final GseTaskService gseTaskService;
-    private final AgentTaskService agentTaskService;
+    private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
 
-    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskService gseTaskService,
+    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
                                                 TaskInstanceService taskInstanceService,
-                                                AgentTaskService agentTaskService) {
+                                                TaskResultService taskResultService) {
         this.i18nService = i18nService;
-        this.gseTaskService = gseTaskService;
         this.taskInstanceService = taskInstanceService;
-        this.agentTaskService = agentTaskService;
+        this.taskResultService = taskResultService;
     }
 
     @Override
@@ -81,36 +79,25 @@ public class EsbGetStepInstanceStatusResourceImpl
             throw new InvalidParamException(checkResult);
         }
 
-        long taskInstanceId = request.getTaskInstanceId();
-        long stepInstanceId = request.getStepInstanceId();
+        EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
-        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .stepInstanceId(request.getStepInstanceId()).build();
+        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(request.getUserName(),
+            request.getAppId(), query);
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        resultData.setIsFinished(stepExecutionDetail.isFinished());
+        resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail.getResultGroups()));
+
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             log.warn("Get step instance status by taskInstanceId:{}, stepInstanceId:{}, stepInstance is null!",
-                taskInstanceId, stepInstanceId);
+                request.getTaskInstanceId(), request.getStepInstanceId());
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
-
-        EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
-        // TODO Rolling
-        GseTaskDTO gseTask = gseTaskService.getGseTask(stepInstanceId, stepInstance.getExecuteCount(), 0);
-        if (null == gseTask) {
-            resultData.setIsFinished(false);
-            return EsbResp.buildSuccessResp(null);
-        } else {
-            resultData.setIsFinished(!gseTask.getStatus().equals(RunStatusEnum.BLANK.getValue())
-                && !gseTask.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
-            List<AgentTaskResultGroupDTO> analyseResult = agentTaskService.getLogStatInfoWithIp(stepInstance.getId()
-                , stepInstance.getExecuteCount());
-            resultData.setAyalyseResult(convertToStandardAnalyseResult(analyseResult));
-
-            EsbStepInstanceStatusDTO.StepInstance stepDetail = convertStepInstance(stepInstance);
-            resultData.setStepInstance(stepDetail);
-            return EsbResp.buildSuccessResp(resultData);
-        }
+        EsbStepInstanceStatusDTO.StepInstance stepDetail = convertStepInstance(stepInstance);
+        resultData.setStepInstance(stepDetail);
+        return EsbResp.buildSuccessResp(resultData);
     }
 
     private EsbStepInstanceStatusDTO.StepInstance convertStepInstance(StepInstanceBaseDTO stepInstance) {
@@ -156,18 +143,20 @@ public class EsbGetStepInstanceStatusResourceImpl
         }
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            standardStepAnalyseResult.put("count", resultGroup.getCount());
-            if (resultGroup.getIpList() != null) {
-                List<EsbIpDTO> ipDTOS = new ArrayList<>();
-                for (IpDTO ipDTO : resultGroup.getIpList()) {
-                    ipDTOS.add(new EsbIpDTO(ipDTO.getCloudAreaId(), ipDTO.getIp()));
+            List<AgentTaskDTO> agentTasks = resultGroup.getAgentTasks();
+            standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
+            if (CollectionUtils.isNotEmpty(agentTasks)) {
+                List<EsbIpDTO> ips = new ArrayList<>();
+                for (AgentTaskDTO agentTask : agentTasks) {
+                    ips.add(new EsbIpDTO(agentTask.getCloudId(), agentTask.getIp()));
                 }
-                standardStepAnalyseResult.put("ip_list", ipDTOS);
+                standardStepAnalyseResult.put("ip_list", ips);
+
             }
 
-            standardStepAnalyseResult.put("result_type", resultGroup.getResultType().getValue());
+            standardStepAnalyseResult.put("result_type", resultGroup.getStatus());
             standardStepAnalyseResult.put("result_type_text",
-                i18nService.getI18n(resultGroup.getResultType().getI18nKey()));
+                i18nService.getI18n(IpStatus.valueOf(resultGroup.getStatus()).getI18nKey()));
 
             standardStepAnalyseResultList.add(standardStepAnalyseResult);
         }

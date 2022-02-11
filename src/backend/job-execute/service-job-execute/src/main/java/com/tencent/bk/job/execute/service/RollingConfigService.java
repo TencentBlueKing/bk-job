@@ -36,21 +36,13 @@ import java.util.List;
  */
 public interface RollingConfigService {
     /**
-     * 获取步骤当前批次对应的主机
+     * 根据滚动批次获取主机
      *
      * @param stepInstance 步骤实例
+     * @param batch        滚动执行批次
      * @return 主机列表
      */
-    List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance);
-
-    /**
-     * 获取步骤当前批次对应的主机
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次
-     * @return 主机列表
-     */
-    List<IpDTO> getRollingServers(long stepInstanceId, int batch);
+    List<IpDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
 
     /**
      * 保存快速执行作业滚动配置
