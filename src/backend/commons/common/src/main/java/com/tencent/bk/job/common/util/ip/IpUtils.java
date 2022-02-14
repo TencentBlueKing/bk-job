@@ -111,7 +111,7 @@ public class IpUtils {
     }
 
     /**
-     * 转换ip列表(1:10.0.0.1,1:10.0.0.2)到 IpDTO 列表
+     * 转换ip列表(1:127.0.0.1,1:127.0.0.2)到 IpDTO 列表
      *
      * @param ipListStr
      * @return

@@ -22,10 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-truncate table gse_task_ip_log;
+package com.tencent.bk.job.manage.validation.provider;
 
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.1',0,1);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (2,0,'0:127.0.0.1',9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (2,1,'0:127.0.0.1',9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1',1,0);
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
+
+/**
+ * id属性值如果不为空并且不为-1，执行更新组的校验逻辑，否则执行新增组的校验逻辑
+ */
+public class DangerousRuleGroupSequenceProvider implements DefaultGroupSequenceProvider<AddOrUpdateDangerousRuleReq> {
+
+    @Override
+    public List<Class<?>> getValidationGroups(AddOrUpdateDangerousRuleReq bean){
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(AddOrUpdateDangerousRuleReq.class); 
+
+        if (bean != null) { // 这块判空请务必要做
+            Long id = bean.getId();
+            if (id == null || id == -1) {
+                defaultGroupSequence.add(Create.class);
+            } else{
+                defaultGroupSequence.add(Update.class);
+            }
+        }
+        return defaultGroupSequence;
+    }
+}

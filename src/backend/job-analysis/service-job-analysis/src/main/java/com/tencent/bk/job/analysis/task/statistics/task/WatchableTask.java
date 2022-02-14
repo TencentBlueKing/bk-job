@@ -28,25 +28,30 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 
+/**
+ * 可观测的任务类型，任务各生命周期点可通知对应观察者处理相应事件
+ *
+ * @param <R> 任务执行完成后返回的结果类型
+ */
 @Slf4j
-public class WrappedCallable<V> implements Callable<V>, Watchable<V> {
+public class WatchableTask<R> implements Callable<R>, Watchable<R> {
 
-    protected String name = null;
-    protected Callable<V> callable = null;
-    protected TaskStatusListener<V> taskStatusListener = null;
+    protected String name;
+    protected Callable<R> task;
+    protected TaskStatusListener<R> taskStatusListener = null;
 
-    public WrappedCallable(String name, Callable<V> callable) {
+    public WatchableTask(String name, Callable<R> task) {
         this.name = name;
-        this.callable = callable;
+        this.task = task;
     }
 
     @Override
-    public TaskStatusListener<V> getTaskStatusListener() {
+    public TaskStatusListener<R> getTaskStatusListener() {
         return this.taskStatusListener;
     }
 
     @Override
-    public void setTaskStatusListener(TaskStatusListener<V> listener) {
+    public void setTaskStatusListener(TaskStatusListener<R> listener) {
         this.taskStatusListener = listener;
     }
 
@@ -61,7 +66,7 @@ public class WrappedCallable<V> implements Callable<V>, Watchable<V> {
     }
 
     @Override
-    public V call() throws Exception {
+    public R call() throws Exception {
         try {
             if (taskStatusListener != null) {
                 taskStatusListener.onStart();
@@ -70,7 +75,7 @@ public class WrappedCallable<V> implements Callable<V>, Watchable<V> {
             long waitMills = (long) (Math.random() * 5000);
             log.info("wait {}ms to start Task", waitMills);
             Thread.sleep(waitMills);
-            V result = callable.call();
+            R result = task.call();
             if (taskStatusListener != null) {
                 taskStatusListener.onFinish(result);
             }
