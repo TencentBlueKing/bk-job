@@ -124,6 +124,11 @@
             this.calcOffsetLeft();
             this.smartPosition();
         },
+        beforeDestroy () {
+            if (this.$refs.action) {
+                this.$refs.action.parentNode.removeChild(this.$refs.action);
+            }
+        },
         methods: {
             /**
              * @desc action 内容区相对 offsetTarget 的偏移位置
