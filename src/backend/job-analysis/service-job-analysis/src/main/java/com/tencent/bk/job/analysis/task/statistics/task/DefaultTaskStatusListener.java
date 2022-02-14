@@ -22,10 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-truncate table gse_task_ip_log;
+package com.tencent.bk.job.analysis.task.statistics.task;
 
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.1',0,1);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (2,0,'0:127.0.0.1',9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1',1,0);
-insert into job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source) values (2,1,'0:127.0.0.1',9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1',1,0);
+import java.util.Map;
+
+public class DefaultTaskStatusListener implements TaskStatusListener<Boolean> {
+
+    private Map<String, TaskInfo> taskFutureMap;
+    private String taskName;
+
+    public DefaultTaskStatusListener(Map<String, TaskInfo> taskFutureMap, String taskName) {
+        this.taskFutureMap = taskFutureMap;
+        this.taskName = taskName;
+    }
+
+    @Override
+    public boolean onStart() {
+        taskFutureMap.get(taskName).setStatus(TaskInfo.STATUS_RUNNING);
+        return false;
+    }
+
+    @Override
+    public boolean onFinish(Boolean result) {
+        taskFutureMap.remove(taskName);
+        return result;
+    }
+}

@@ -43,8 +43,8 @@ import org.springframework.stereotype.Component;
 public class ScheduledTasks {
 
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
-    private AnalysisTaskScheduler analysisTaskScheduler;
-    private StatisticsTaskScheduler statisticsTaskScheduler;
+    private final AnalysisTaskScheduler analysisTaskScheduler;
+    private final StatisticsTaskScheduler statisticsTaskScheduler;
 
     @Autowired
     public ScheduledTasks(AnalysisTaskScheduler analysisTaskScheduler,

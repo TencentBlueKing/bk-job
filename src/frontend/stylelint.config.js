@@ -44,6 +44,7 @@ module.exports = {
                 'extend',
             ],
         }],
+        'alpha-value-notation': 'percentage',
         'no-descending-specificity': null,
         'selector-id-pattern': null,
         indentation: 4,
