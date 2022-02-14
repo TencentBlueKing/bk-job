@@ -8,7 +8,7 @@
     "dev": "webpack serve --hot --env development --config ./webpack.config.js",
     "build": "webpack --config ./webpack.config.js",
     "lint:js": "eslint --fix --ext .js,.vue ./src",
-    "lint:style": "stylelint -v --fix ./**/*.{css,vue}"
+    "lint:style": "stylelint --fix **/**/*.{css,vue}"
   },
   "keywords": [],
   "license": "ISC",

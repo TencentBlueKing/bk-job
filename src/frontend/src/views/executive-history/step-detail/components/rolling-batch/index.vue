@@ -512,7 +512,7 @@
                 &:hover,
                 &.active {
                     &::after {
-                        opacity: 0;
+                        opacity: 0%;
                     }
                 }
 
@@ -572,7 +572,7 @@
                 &:hover,
                 &.active {
                     &::after {
-                        opacity: 1;
+                        opacity: 100%;
                         transform: scaleX(1);
                     }
                 }
@@ -585,7 +585,7 @@
                     height: calc(100% + 4px);
                     background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));
                     content: "";
-                    opacity: 0;
+                    opacity: 0%;
                     transform: scaleX(0);
                     transition: all 0.15s;
                     transform-origin: left center;

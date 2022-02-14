@@ -429,11 +429,11 @@
                     }
 
                     .top {
-                        border-bottom-color: currentColor;
+                        border-bottom-color: currentcolor;
                     }
 
                     .bottom {
-                        border-top-color: currentColor;
+                        border-top-color: currentcolor;
                     }
                 }
             }

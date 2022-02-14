@@ -321,7 +321,7 @@
                 left: 0;
                 width: 4px;
                 height: 4px;
-                background: currentColor;
+                background: currentcolor;
                 border-radius: 50%;
                 content: "";
             }
