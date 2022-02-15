@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.common.constants;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -90,6 +91,20 @@ public enum RunStatusEnum {
 
     private final Integer value;
 
+    private static final List<Integer> FINISHED_STATUS_LIST = new ArrayList<>();
+
+    static {
+        FINISHED_STATUS_LIST.add(SUCCESS.value);
+        FINISHED_STATUS_LIST.add(FAIL.value);
+        FINISHED_STATUS_LIST.add(SKIPPED.value);
+        FINISHED_STATUS_LIST.add(IGNORE_ERROR.value);
+        FINISHED_STATUS_LIST.add(TERMINATED.value);
+        FINISHED_STATUS_LIST.add(ABNORMAL_STATE.value);
+        FINISHED_STATUS_LIST.add(STOP_SUCCESS.value);
+        FINISHED_STATUS_LIST.add(CONFIRM_TERMINATED.value);
+        FINISHED_STATUS_LIST.add(ABANDONED.value);
+    }
+
     RunStatusEnum(Integer val) {
         this.value = val;
     }
@@ -107,17 +122,19 @@ public enum RunStatusEnum {
      * 获取终止态的状态列表
      */
     public static List<Integer> getFinishedStatusValueList() {
-        List<Integer> finishedStatusValueList = new ArrayList<>();
-        finishedStatusValueList.add(SUCCESS.value);
-        finishedStatusValueList.add(FAIL.value);
-        finishedStatusValueList.add(SKIPPED.value);
-        finishedStatusValueList.add(IGNORE_ERROR.value);
-        finishedStatusValueList.add(TERMINATED.value);
-        finishedStatusValueList.add(ABNORMAL_STATE.value);
-        finishedStatusValueList.add(STOP_SUCCESS.value);
-        finishedStatusValueList.add(CONFIRM_TERMINATED.value);
-        finishedStatusValueList.add(ABANDONED.value);
-        return finishedStatusValueList;
+        return Collections.unmodifiableList(FINISHED_STATUS_LIST);
+    }
+
+    /**
+     * 是否终止态
+     *
+     * @param status 状态
+     */
+    public static boolean isFinishedStatus(RunStatusEnum status) {
+        if (status == null) {
+            return false;
+        }
+        return FINISHED_STATUS_LIST.contains(status.value);
     }
 
     public Integer getValue() {
@@ -126,7 +143,6 @@ public enum RunStatusEnum {
 
     /**
      * 获取国际化Key
-     *
      **/
     public String getI18nKey() {
         return "task.run.status." + this.name().toLowerCase();

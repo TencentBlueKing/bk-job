@@ -491,6 +491,9 @@ public class TaskResultServiceImpl implements TaskResultService {
                 stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, query);
             }
 
+            stepExecutionDetail.setFinished(
+                RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus())));
+
             if (stepInstance.isRollingStep()) {
                 watch.start("setRollingTasksForStep");
                 setRollingTasksForStep(stepInstance, stepExecutionDetail);

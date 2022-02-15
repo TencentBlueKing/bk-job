@@ -101,6 +101,7 @@ public class AgentTaskServiceImpl implements AgentTaskService {
             Collectors.groupingBy(agentTask -> new AgentTaskResultGroupDTO(agentTask.getStatus(), agentTask.getTag())))
             .forEach((resultGroup, groupedAgentTasks) -> {
                 resultGroup.setAgentTasks(groupedAgentTasks);
+                resultGroup.setTotalAgentTasks(groupedAgentTasks.size());
                 resultGroups.add(resultGroup);
             });
 
