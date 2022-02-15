@@ -440,7 +440,6 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void refreshStep(StepEvent stepEvent, StepInstanceDTO stepInstance) {
-        log.info("Refresh step, stepInstanceId: {}", stepInstance.getId());
 
         long stepInstanceId = stepInstance.getId();
         long gseTaskId = stepEvent.getSource().getGseTaskId();
@@ -448,10 +447,12 @@ public class GseStepEventHandler implements StepEventHandler {
         GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskId);
         RunStatusEnum gseTaskStatus = RunStatusEnum.valueOf(gseTask.getStatus());
         if (gseTaskStatus == null) {
-            log.error("Refresh step fail, invalid gse task status, stepInstanceId: {}, gseTaskStatus: {}",
+            log.error("Refresh step fail, undefined gse task status, stepInstanceId: {}, gseTaskStatus: {}",
                 stepInstance.getId(), gseTask.getStatus());
             return;
         }
+        log.info("Refresh step according to gse task status, stepInstanceId: {}, gseTaskStatus: {}",
+            stepInstance.getId(), gseTaskStatus.name());
 
         switch (gseTaskStatus) {
             case SUCCESS:
@@ -480,19 +481,22 @@ public class GseStepEventHandler implements StepEventHandler {
     }
 
     private void onSuccess(StepInstanceDTO stepInstance) {
+        log.info("On success");
         long stepInstanceId = stepInstance.getId();
         long endTime = System.currentTimeMillis();
         long startTime = stepInstance.getStartTime();
         long totalTime = endTime - startTime;
 
         if (stepInstance.isRollingStep()) {
+            log.info("rolling step");
             TaskInstanceRollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
             stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
-            int totalBatch = rollingConfig.getConfig().getServerBatchList().size();
+            int totalBatch = rollingConfig.getConfig().getTotalBatch();
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
+                log.info("updateStepExecutionInfo-SUCCESS");
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                     startTime, endTime, totalTime);
                 // 步骤执行成功后清理产生的临时文件
@@ -500,8 +504,10 @@ public class GseStepEventHandler implements StepEventHandler {
             } else {
                 taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.ROLLING_WAITING,
                     startTime, endTime, totalTime);
+                log.info("updateStepExecutionInfo-ROLLING_WAITING");
             }
         } else {
+            log.info("not rolling step");
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS,
                 startTime, endTime, totalTime);
             // 步骤执行成功后清理产生的临时文件

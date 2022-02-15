@@ -106,7 +106,7 @@ public class StepExecutionDetailDTO {
         this.stepInstanceId = stepInstance.getId();
         this.executeCount = stepInstance.getExecuteCount();
         this.name = stepInstance.getName();
-        this.setFinished(RunStatusEnum.getFinishedStatusValueList().contains(stepInstance.getStatus()));
+        this.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(stepInstance.getStatus())));
         this.status = stepInstance.getStatus();
         this.startTime = stepInstance.getStartTime();
         this.endTime = stepInstance.getEndTime();
