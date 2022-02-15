@@ -38,6 +38,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
@@ -52,7 +54,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
     private StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO;
 
     @Test
-    @DisplayName("查询步骤滚动任务")
+    @DisplayName("根据步骤实例ID、执行次数、滚动批次查询步骤滚动任务")
     void queryRollingTask() {
         StepInstanceRollingTaskDTO rollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1, 0, 1);
         assertThat(rollingTask).isNotNull();
@@ -63,6 +65,33 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
         assertThat(rollingTask.getStartTime()).isEqualTo(1642247802000L);
         assertThat(rollingTask.getEndTime()).isEqualTo(1642247803000L);
         assertThat(rollingTask.getTotalTime()).isEqualTo(1000L);
+    }
+
+    @Test
+    @DisplayName("根据步骤实例ID查询步骤滚动任务")
+    void listRollingTasks() {
+        List<StepInstanceRollingTaskDTO> rollingTasks = stepInstanceRollingTaskDAO.listRollingTasks(1L);
+        assertThat(rollingTasks).hasSize(2);
+
+        StepInstanceRollingTaskDTO rollingTask1 = rollingTasks.get(0);
+        assertThat(rollingTask1).isNotNull();
+        assertThat(rollingTask1.getStepInstanceId()).isEqualTo(1L);
+        assertThat(rollingTask1.getExecuteCount()).isEqualTo(0);
+        assertThat(rollingTask1.getBatch()).isEqualTo(1);
+        assertThat(rollingTask1.getStatus()).isEqualTo(1);
+        assertThat(rollingTask1.getStartTime()).isEqualTo(1642247802000L);
+        assertThat(rollingTask1.getEndTime()).isEqualTo(1642247803000L);
+        assertThat(rollingTask1.getTotalTime()).isEqualTo(1000L);
+
+        StepInstanceRollingTaskDTO rollingTask2 = rollingTasks.get(1);
+        assertThat(rollingTask2).isNotNull();
+        assertThat(rollingTask2.getStepInstanceId()).isEqualTo(1L);
+        assertThat(rollingTask2.getExecuteCount()).isEqualTo(0);
+        assertThat(rollingTask2.getBatch()).isEqualTo(2);
+        assertThat(rollingTask2.getStatus()).isEqualTo(1);
+        assertThat(rollingTask2.getStartTime()).isEqualTo(1642247804000L);
+        assertThat(rollingTask2.getEndTime()).isEqualTo(1642247805000L);
+        assertThat(rollingTask2.getTotalTime()).isEqualTo(1000L);
     }
 
     @Test

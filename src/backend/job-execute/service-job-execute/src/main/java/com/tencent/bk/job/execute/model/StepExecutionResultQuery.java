@@ -66,6 +66,10 @@ public class StepExecutionResultQuery {
      */
     private Integer batch;
     /**
+     * 是否根据步骤实例的最新滚动批次过滤；如果为true，那么batch将使用滚动任务当前执行的批次
+     */
+    private Boolean filterByLatestBatch;
+    /**
      * 执行日志关键词(脚本任务)
      */
     private String logKeyword;
@@ -108,5 +112,9 @@ public class StepExecutionResultQuery {
         if (orderField != null) {
             orderField = ORDER_FIELD_IN_DB.get(orderField);
         }
+    }
+
+    public boolean isFilterByLatestBatch() {
+        return this.filterByLatestBatch != null && this.filterByLatestBatch;
     }
 }

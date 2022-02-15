@@ -31,6 +31,8 @@ import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.generated.tables.StepInstanceRollingTask;
 import org.jooq.generated.tables.records.StepInstanceRollingTaskRecord;
@@ -38,11 +40,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Repository
 @Slf4j
 public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
 
     private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        TABLE.ID,
+        TABLE.STEP_INSTANCE_ID,
+        TABLE.EXECUTE_COUNT,
+        TABLE.BATCH,
+        TABLE.STATUS,
+        TABLE.START_TIME,
+        TABLE.END_TIME,
+        TABLE.TOTAL_TIME
+    };
     private final DSLContext CTX;
 
     @Autowired
@@ -52,15 +67,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
 
     @Override
     public StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId, int executeCount, int batch) {
-        Record record = CTX.select(
-            TABLE.ID,
-            TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT,
-            TABLE.BATCH,
-            TABLE.STATUS,
-            TABLE.START_TIME,
-            TABLE.END_TIME,
-            TABLE.TOTAL_TIME)
+        Record record = CTX.select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(TABLE.EXECUTE_COUNT.eq(JooqDataTypeUtil.toByte(executeCount)))
@@ -83,6 +90,20 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         stepInstanceRollingTask.setEndTime(record.get(TABLE.END_TIME));
         stepInstanceRollingTask.setTotalTime(record.get(TABLE.TOTAL_TIME));
         return stepInstanceRollingTask;
+    }
+
+    @Override
+    public List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId) {
+        Result<Record> result = CTX.select(ALL_FIELDS)
+            .from(TABLE)
+            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .orderBy(TABLE.BATCH.asc())
+            .fetch();
+        List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
+        if (result.size() > 0) {
+            result.into(record -> stepInstanceRollingTasks.add(extract(record)));
+        }
+        return stepInstanceRollingTasks;
     }
 
     @Override

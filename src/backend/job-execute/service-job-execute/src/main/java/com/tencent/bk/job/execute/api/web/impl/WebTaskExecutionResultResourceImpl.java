@@ -67,6 +67,7 @@ import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
 import com.tencent.bk.job.execute.model.TaskExecutionDTO;
@@ -80,6 +81,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecutionResultGroupVO;
 import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.IpFileLogContentVO;
 import com.tencent.bk.job.execute.model.web.vo.IpScriptLogContentVO;
+import com.tencent.bk.job.execute.model.web.vo.RollingStepBatchTaskVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionRecordVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionVO;
@@ -460,6 +462,7 @@ public class WebTaskExecutionResultResourceImpl
                                                                   Long stepInstanceId,
                                                                   Integer executeCount,
                                                                   Integer batch,
+                                                                  Boolean filterByLatestBatch,
                                                                   Integer resultType,
                                                                   String tag,
                                                                   Integer maxIpsPerResultGroup,
@@ -471,6 +474,7 @@ public class WebTaskExecutionResultResourceImpl
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
             .batch(batch)
+            .filterByLatestBatch(filterByLatestBatch)
             .status(resultType)
             .tag(tag)
             .logKeyword(keyword)
@@ -515,10 +519,6 @@ public class WebTaskExecutionResultResourceImpl
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
         stepExecutionDetailVO.setRetryCount(executionDetail.getExecuteCount());
         stepExecutionDetailVO.setStatus(executionDetail.getStatus());
-        RunStatusEnum runStatusEnum = RunStatusEnum.valueOf(executionDetail.getStatus());
-        if (runStatusEnum != null) {
-            stepExecutionDetailVO.setStatusDesc(i18nService.getI18n(runStatusEnum.getI18nKey()));
-        }
         stepExecutionDetailVO.setStartTime(executionDetail.getStartTime());
         stepExecutionDetailVO.setEndTime(executionDetail.getEndTime());
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
@@ -561,7 +561,21 @@ public class WebTaskExecutionResultResourceImpl
         }
         stepExecutionDetailVO.setResultGroups(resultGroupVOS);
 
+        stepExecutionDetailVO.setRollingTasks(toRollingStepBatchTaskVOs(executionDetail.getLatestBatch(),
+            executionDetail.getRollingTasks()));
+
         return stepExecutionDetailVO;
+    }
+
+    private List<RollingStepBatchTaskVO> toRollingStepBatchTaskVOs(Integer latestBatch,
+                                                                   List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks) {
+        return stepInstanceRollingTasks.stream().map(stepInstanceRollingTask -> {
+            RollingStepBatchTaskVO vo = new RollingStepBatchTaskVO();
+            vo.setBatch(stepInstanceRollingTask.getBatch());
+            vo.setStatus(stepInstanceRollingTask.getStatus());
+            vo.setLatestBatch(latestBatch.equals(stepInstanceRollingTask.getBatch()));
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     @Override

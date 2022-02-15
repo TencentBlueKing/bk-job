@@ -43,7 +43,7 @@ public class StepInstanceRollingTaskDTO {
     private Long stepInstanceId;
 
     /**
-     * 步骤执行次数
+     * 步骤重试次数
      */
     private Integer executeCount;
 

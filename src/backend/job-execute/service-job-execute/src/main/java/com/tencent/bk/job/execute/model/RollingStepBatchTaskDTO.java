@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.execute.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -30,7 +30,7 @@ import lombok.Data;
 
 @ApiModel("步骤滚动任务")
 @Data
-public class RollingStepBatchTaskVO {
+public class RollingStepBatchTaskDTO {
     @ApiModelProperty("滚动批次")
     private Integer batch;
 
@@ -43,6 +43,6 @@ public class RollingStepBatchTaskVO {
         "，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
 
-    @ApiModelProperty(name = "isLatestBatch", value = "是否最新批次的滚动任务")
-    private boolean latestBatch;
+    @ApiModelProperty("是否正在滚动中")
+    private boolean running;
 }

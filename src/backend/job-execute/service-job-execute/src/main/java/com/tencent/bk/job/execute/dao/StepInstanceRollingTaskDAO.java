@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.dao;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 
+import java.util.List;
+
 /**
  * 步骤滚动任务DAO
  */
@@ -43,6 +45,14 @@ public interface StepInstanceRollingTaskDAO {
     StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
                                                 int executeCount,
                                                 int batch);
+
+    /**
+     * 查询步骤滚动任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤滚动任务
+     */
+    List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId);
 
     /**
      * 保存步骤滚动任务

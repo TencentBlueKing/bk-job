@@ -391,7 +391,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     @Override
     public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId) {
-        Result result = CTX
+        Result<Record> result = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))

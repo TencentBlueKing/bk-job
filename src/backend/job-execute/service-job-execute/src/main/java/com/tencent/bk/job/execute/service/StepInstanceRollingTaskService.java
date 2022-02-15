@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 
+import java.util.List;
+
 /**
  * 步骤滚动任务 Service
  */
@@ -43,6 +45,15 @@ public interface StepInstanceRollingTaskService {
     StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
                                                 int executeCount,
                                                 int batch);
+
+    /**
+     * 查询最新的步骤滚动任务
+     *
+     * @param stepInstanceId   步骤实例ID
+     * @param executeCount 步骤执行次数
+     * @return 步骤滚动任务
+     */
+    List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount);
 
     /**
      * 保存步骤滚动任务
@@ -68,7 +79,8 @@ public interface StepInstanceRollingTaskService {
                            int batch,
                            RunStatusEnum status,
                            Long startTime,
-                           Long endTime, Long totalTime);
+                           Long endTime,
+                           Long totalTime);
 
 
 }

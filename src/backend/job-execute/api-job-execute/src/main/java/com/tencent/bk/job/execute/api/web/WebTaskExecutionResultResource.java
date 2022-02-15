@@ -121,6 +121,8 @@ public interface WebTaskExecutionResultResource {
         @PathVariable(value = "executeCount", required = false) Integer executeCount,
         @ApiParam(value = "滚动执行批次，该步骤为滚动步骤时并且用户指定了批次的场景下需要传入该参数", name = "batch")
         @RequestParam(value = "batch", required = false) Integer batch,
+        @ApiParam(value = "是否使用当前步骤的最新滚动执行批次过滤结果", name = "filterByLatestBatch")
+        @RequestParam(value = "filterByLatestBatch", required = false) Boolean filterByLatestBatch,
         @ApiParam(value = "任务执行结果", name = "resultType")
         @RequestParam(value = "resultType", required = false) Integer resultType,
         @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag")

@@ -187,6 +187,8 @@ public class GseStepEventHandler implements StepEventHandler {
 
             taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.RUNNING,
                 stepInstance.getStartTime() == null ? DateUtils.currentTimeMillis() : null, null, null);
+            stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), RunStatusEnum.RUNNING, System.currentTimeMillis(), null, null);
 
 
             if (stepInstance.isScriptStep()) {
@@ -294,11 +296,11 @@ public class GseStepEventHandler implements StepEventHandler {
      */
     private void saveInitialStepInstanceRollingTask(StepInstanceDTO stepInstance) {
         StepInstanceRollingTaskDTO stepInstanceRollingTask = new StepInstanceRollingTaskDTO();
-        stepInstanceRollingTask.setStatus(RunStatusEnum.RUNNING.getValue());
         stepInstanceRollingTask.setStepInstanceId(stepInstance.getId());
-        stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
         stepInstanceRollingTask.setBatch(stepInstance.getBatch());
-        stepInstanceRollingTask.setStartTime(DateUtils.currentTimeMillis());
+        stepInstanceRollingTask.setExecuteCount(stepInstance.getExecuteCount());
+        stepInstanceRollingTask.setStatus(RunStatusEnum.RUNNING.getValue());
+        stepInstanceRollingTask.setStartTime(System.currentTimeMillis());
         stepInstanceRollingTaskService.saveRollingTask(stepInstanceRollingTask);
     }
 

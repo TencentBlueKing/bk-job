@@ -29,8 +29,15 @@ import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -51,6 +58,35 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     }
 
     @Override
+    public List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount) {
+        List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks =
+            stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId);
+        if (CollectionUtils.isEmpty(stepInstanceRollingTasks) || executeCount == 0) {
+            return stepInstanceRollingTasks;
+        }
+
+        Map<String, StepInstanceRollingTaskDTO> latestRollingTasks = new HashMap<>();
+        for (StepInstanceRollingTaskDTO stepInstanceRollingTask : stepInstanceRollingTasks) {
+            if (stepInstanceRollingTask.getExecuteCount() > executeCount) {
+                continue;
+            }
+            String key = stepInstanceRollingTask.getStepInstanceId() + ":" + stepInstanceRollingTask.getBatch();
+            StepInstanceRollingTaskDTO existStepInstanceRollingTask = latestRollingTasks.get(key);
+            if (existStepInstanceRollingTask == null) {
+                latestRollingTasks.put(key, stepInstanceRollingTask);
+            } else {
+                if (stepInstanceRollingTask.getExecuteCount() > existStepInstanceRollingTask.getExecuteCount()) {
+                    // 覆盖旧的滚动任务
+                    latestRollingTasks.put(key, stepInstanceRollingTask);
+                }
+            }
+        }
+        return latestRollingTasks.values().stream()
+            .sorted(Comparator.comparing(StepInstanceRollingTaskDTO::getBatch))
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
         return stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
     }
@@ -66,4 +102,5 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
         stepInstanceRollingTaskDAO.updateRollingTask(stepInstanceId, executeCount, batch, status, startTime,
             endTime, totalTime);
     }
+
 }

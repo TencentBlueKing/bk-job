@@ -50,6 +50,10 @@ public class StepExecutionDetailDTO {
      */
     private Integer executeCount;
     /**
+     * 滚动任务-最新批次
+     */
+    private Integer latestBatch;
+    /**
      * 步骤执行是否结束
      */
     private boolean finished;
@@ -83,8 +87,20 @@ public class StepExecutionDetailDTO {
     private boolean lastStep;
     /**
      * 步骤类型
+     *
+     * @see com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum
      */
     private Integer stepType;
+    /**
+     * 步骤执行模式
+     *
+     * @see com.tencent.bk.job.execute.common.constants.StepRunModeEnum
+     */
+    private Integer runMode;
+    /**
+     * 步骤包含的滚动任务;如果非滚动步骤，那么该值为空
+     */
+    private List<StepInstanceRollingTaskDTO> rollingTasks;
 
     public StepExecutionDetailDTO(StepInstanceBaseDTO stepInstance) {
         this.stepInstanceId = stepInstance.getId();

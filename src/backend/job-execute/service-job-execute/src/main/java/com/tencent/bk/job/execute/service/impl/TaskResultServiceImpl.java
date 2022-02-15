@@ -54,10 +54,12 @@ import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteResultDTO;
 import com.tencent.bk.job.execute.model.TaskExecutionDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
+import com.tencent.bk.job.execute.model.TaskInstanceRollingConfigDTO;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.AgentTaskService;
@@ -66,6 +68,7 @@ import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ServerService;
+import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
@@ -104,6 +107,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final TaskOperationLogService operationLogService;
     private final AgentTaskService agentTaskService;
     private final RollingConfigService rollingConfigService;
+    private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
     @Autowired
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
@@ -116,7 +120,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  ExecuteAuthService executeAuthService,
                                  TaskOperationLogService operationLogService,
                                  AgentTaskService agentTaskService,
-                                 RollingConfigService rollingConfigService) {
+                                 RollingConfigService rollingConfigService,
+                                 StepInstanceRollingTaskService stepInstanceRollingTaskService) {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.gseTaskService = gseTaskService;
@@ -128,6 +133,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.operationLogService = operationLogService;
         this.agentTaskService = agentTaskService;
         this.rollingConfigService = rollingConfigService;
+        this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
     }
 
     @Override
@@ -466,6 +472,9 @@ public class TaskResultServiceImpl implements TaskResultService {
             int queryExecuteCount = query.getExecuteCount() == null ? stepInstance.getExecuteCount() :
                 query.getExecuteCount();
             query.setExecuteCount(queryExecuteCount);
+            if (stepInstance.isRollingStep() && query.isFilterByLatestBatch()) {
+                query.setBatch(stepInstance.getBatch());
+            }
             watch.stop();
 
             if (stepInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())) {
@@ -480,6 +489,12 @@ public class TaskResultServiceImpl implements TaskResultService {
                 stepExecutionDetail = loadAllTasksFromDBAndBuildExecutionResultInMemory(watch, stepInstance, query);
             } else {
                 stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, query);
+            }
+
+            if (stepInstance.isRollingStep()) {
+                watch.start("setRollingTasksForStep");
+                setRollingTasksForStep(stepInstance, stepExecutionDetail);
+                watch.stop();
             }
 
             if (stepInstance.isFileStep()) {
@@ -708,13 +723,46 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
         watch.stop();
 
+
         executeDetail.setResultGroups(resultGroups);
         return executeDetail;
     }
 
+    private void setRollingTasksForStep(StepInstanceBaseDTO stepInstance,
+                                        StepExecutionDetailDTO stepExecutionDetail) {
+        TaskInstanceRollingConfigDTO rollingConfig =
+            rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+
+        Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
+            stepInstanceRollingTaskService.listLatestRollingTasks(
+                stepExecutionDetail.getStepInstanceId(),
+                stepExecutionDetail.getExecuteCount())
+                .stream()
+                .collect(Collectors.toMap(StepInstanceRollingTaskDTO::getBatch,
+                    stepInstanceRollingTask -> stepInstanceRollingTask));
+
+        // 如果滚动任务还未调度，那么需要在结果中补充
+        int totalBatch = rollingConfig.getConfig().getTotalBatch();
+        List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
+        for (int batch = 1; batch <= totalBatch; batch++) {
+            StepInstanceRollingTaskDTO stepInstanceRollingTask = latestStepInstanceRollingTasks.get(batch);
+            if (stepInstanceRollingTask == null) {
+                stepInstanceRollingTask = new StepInstanceRollingTaskDTO();
+                stepInstanceRollingTask.setStepInstanceId(stepExecutionDetail.getStepInstanceId());
+                stepInstanceRollingTask.setExecuteCount(0);
+                stepInstanceRollingTask.setBatch(batch);
+                stepInstanceRollingTask.setStatus(RunStatusEnum.BLANK.getValue());
+            }
+            stepInstanceRollingTasks.add(stepInstanceRollingTask);
+        }
+
+        stepExecutionDetail.setRollingTasks(stepInstanceRollingTasks);
+        stepExecutionDetail.setLatestBatch(stepInstance.getBatch());
+    }
+
     private List<IpDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, String keyword) {
         String searchKey = keyword.replaceAll("'", "").replaceAll("\\$", "")
-            .replaceAll("&", "").replaceAll("$", "")
+            .replaceAll("&", "").replaceAll("\\$", "")
             .replaceAll("\\|", "").replaceAll("`", "")
             .replaceAll(";", "");
 

@@ -22,6 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-truncate table step_instance_rolling_task;
-insert into job_execute.step_instance_rolling_task (id,step_instance_id,execute_count,batch,status,start_time,end_time,total_time) values (1,1,0,1,1,1642247802000,1642247803000,1000);
+TRUNCATE TABLE step_instance_rolling_task;
+
+INSERT INTO job_execute.step_instance_rolling_task
+            (step_instance_id,
+             execute_count,
+             batch,
+             status,
+             start_time,
+             end_time,
+             total_time)
+VALUES
+    (1,0,1,1,1642247802000,1642247803000,1000),
+    (1,0,2,1,1642247804000,1642247805000,1000),
+    (2,0,1,1,1642247804000,1642247805000,1000),
+    (2,0,2,1,1642247805000,1642247806000,1000),
+    (2,0,3,1,1642247806000,1642247807000,1000);
 
