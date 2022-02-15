@@ -94,15 +94,9 @@ public interface StepInstanceDAO {
 
     void updateStepEndTime(long stepInstanceId, Long endTime);
 
-    void addTaskExecuteCount(long taskInstanceId);
+    void addStepInstanceExecuteCount(long stepInstanceId);
 
     void updateStepTotalTime(long stepInstanceId, long totalTime);
-
-    Long getFirstStepStartTime(long taskInstanceId);
-
-    Long getLastStepEndTime(long taskInstanceId);
-
-    long getAllStepTotalTime(long taskInstanceId);
 
     /**
      * 更新步骤的执行信息

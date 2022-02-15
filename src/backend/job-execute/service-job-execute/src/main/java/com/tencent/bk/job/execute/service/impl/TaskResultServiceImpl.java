@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
@@ -180,10 +181,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         TaskExecuteResultDTO taskExecuteResult = new TaskExecuteResultDTO();
-        boolean isFinish = (!taskInstance.getStatus().equals(RunStatusEnum.BLANK.getValue())
-            && !taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue())
-            && !taskInstance.getStatus().equals(RunStatusEnum.STOPPING.getValue()));
-        taskExecuteResult.setFinished(isFinish);
+        taskExecuteResult.setFinished(RunStatusEnum.isFinishedStatus(RunStatusEnum.valueOf(taskInstance.getStatus())));
         taskExecuteResult.setTaskInstanceExecutionResult(taskExecution);
         taskExecuteResult.setStepInstanceExecutionResults(stepExecutionList);
 
@@ -493,7 +491,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             if (stepInstance.isRollingStep()) {
                 watch.start("setRollingTasksForStep");
-                setRollingTasksForStep(stepInstance, stepExecutionDetail);
+                setRollingInfoForStep(stepInstance, stepExecutionDetail);
                 watch.stop();
             }
 
@@ -729,8 +727,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         return executeDetail;
     }
 
-    private void setRollingTasksForStep(StepInstanceBaseDTO stepInstance,
-                                        StepExecutionDetailDTO stepExecutionDetail) {
+    private void setRollingInfoForStep(StepInstanceBaseDTO stepInstance,
+                                       StepExecutionDetailDTO stepExecutionDetail) {
         TaskInstanceRollingConfigDTO rollingConfig =
             rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
 
@@ -759,6 +757,8 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         stepExecutionDetail.setRollingTasks(stepInstanceRollingTasks);
         stepExecutionDetail.setLatestBatch(stepInstance.getBatch());
+        stepExecutionDetail.setRunMode(rollingConfig.isBatchRollingStep(stepInstance.getId()) ?
+            StepRunModeEnum.ROLLING_IN_BATCH : StepRunModeEnum.ROLLING_ALL);
     }
 
     private List<IpDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, String keyword) {

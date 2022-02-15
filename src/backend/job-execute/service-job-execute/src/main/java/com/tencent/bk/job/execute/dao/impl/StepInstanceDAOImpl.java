@@ -67,10 +67,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.jooq.impl.DSL.max;
-import static org.jooq.impl.DSL.min;
-import static org.jooq.impl.DSL.sum;
-
 @Slf4j
 @Repository
 public class StepInstanceDAOImpl implements StepInstanceDAO {
@@ -412,8 +408,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void resetStepExecuteInfoForRetry(long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.START_TIME, System.currentTimeMillis())
-            .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
+        CTX.update(t)
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
@@ -459,11 +454,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void addTaskExecuteCount(long taskInstanceId) {
+    public void addStepInstanceExecuteCount(long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
-            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId)
-                .and(t.STATUS.eq(JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue())))).execute();
+            .where(t.ID.eq(stepInstanceId)).execute();
     }
 
     @Override
@@ -471,36 +465,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t).set(t.TOTAL_TIME, totalTime)
             .where(t.ID.eq(stepInstanceId)).execute();
-    }
-
-    @Override
-    public Long getFirstStepStartTime(long taskInstanceId) {
-        StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = CTX.select(min(t.START_TIME).as("time")).from(t)
-            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(t.START_TIME.isNotNull())
-            .fetchOne();
-        return record.get("time", Long.class);
-    }
-
-    @Override
-    public Long getLastStepEndTime(long taskInstanceId) {
-        StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = CTX.select(max(t.END_TIME).as("time")).from(t)
-            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(t.END_TIME.isNotNull())
-            .fetchOne();
-        return record.get("time", Long.class);
-    }
-
-    @Override
-    public long getAllStepTotalTime(long taskInstanceId) {
-        StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = CTX.select(sum(t.TOTAL_TIME).as("total_time"))
-            .from(t)
-            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .fetchOne();
-        return record.getValue("total_time", Long.class);
     }
 
     @Override

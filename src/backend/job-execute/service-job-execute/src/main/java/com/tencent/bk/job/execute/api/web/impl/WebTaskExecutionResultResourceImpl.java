@@ -524,6 +524,7 @@ public class WebTaskExecutionResultResourceImpl
         stepExecutionDetailVO.setTotalTime(executionDetail.getTotalTime());
         stepExecutionDetailVO.setIsLastStep(executionDetail.isLastStep());
         stepExecutionDetailVO.setType(executionDetail.getStepType());
+        stepExecutionDetailVO.setRunMode(executionDetail.getRunMode().getValue());
 
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();
         for (AgentTaskResultGroupDTO resultGroup : executionDetail.getResultGroups()) {

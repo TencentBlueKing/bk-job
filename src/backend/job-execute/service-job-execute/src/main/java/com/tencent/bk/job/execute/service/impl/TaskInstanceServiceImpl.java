@@ -196,9 +196,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void resetTaskExecuteInfoForResume(long taskInstanceId) {
-        taskInstanceDAO.resetTaskExecuteInfoForResume(taskInstanceId);
-
+    public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
+        taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
     }
 
     @Override
@@ -222,8 +221,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void addTaskExecuteCount(long taskInstanceId) {
-        stepInstanceDAO.addTaskExecuteCount(taskInstanceId);
+    public void addStepInstanceExecuteCount(long stepInstanceId) {
+        stepInstanceDAO.addStepInstanceExecuteCount(stepInstanceId);
     }
 
     @Override

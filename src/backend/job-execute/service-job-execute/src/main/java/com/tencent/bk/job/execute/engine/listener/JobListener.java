@@ -167,7 +167,7 @@ public class JobListener {
 
             // 重置作业状态
             taskInstanceService.resetTaskStatus(taskInstanceId);
-            taskInstanceService.addTaskExecuteCount(taskInstanceId);
+            taskInstanceService.addStepInstanceExecuteCount(taskInstanceId);
 
             // 重置作业下步骤的状态、开始时间和结束时间等。
             List<Long> stepInstanceIdList = taskInstanceService.getTaskStepIdList(taskInstanceId);

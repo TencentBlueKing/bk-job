@@ -435,7 +435,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
-    public void resetTaskExecuteInfoForResume(long taskInstanceId) {
+    public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
         ctx.update(TABLE)
             .setNull(TABLE.END_TIME)
             .setNull(TABLE.TOTAL_TIME)

@@ -249,33 +249,6 @@ public class StepInstanceDAOImplIntegrationTest {
     }
 
     @Test
-    public void testGetFirstStepStartTime() {
-        long taskInstanceId = 1L;
-
-        Long startTime = stepInstanceDAO.getFirstStepStartTime(taskInstanceId);
-
-        assertThat(startTime).isEqualTo(1572868800000L);
-    }
-
-    @Test
-    public void testGetLastStepEndTime() {
-        long taskInstanceId = 1L;
-
-        Long endTime = stepInstanceDAO.getLastStepEndTime(taskInstanceId);
-
-        assertThat(endTime).isEqualTo(1572868802000L);
-    }
-
-    @Test
-    public void testGetAllStepTotalTime() {
-        long taskInstanceId = 1L;
-
-        float totalTime = stepInstanceDAO.getAllStepTotalTime(taskInstanceId);
-
-        assertThat(totalTime).isEqualTo(2223L);
-    }
-
-    @Test
     public void testResetStepExecuteInfoForRetry() {
         long stepInstanceId = 1L;
         stepInstanceDAO.resetStepExecuteInfoForRetry(stepInstanceId);

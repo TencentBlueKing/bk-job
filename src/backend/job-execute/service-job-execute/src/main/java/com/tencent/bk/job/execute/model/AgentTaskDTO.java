@@ -53,7 +53,7 @@ public class AgentTaskDTO {
     /**
      * GSE 任务ID
      */
-    private long gseTaskId;
+    private Long gseTaskId;
     /**
      * 服务器IP,包含云区域
      */

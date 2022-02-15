@@ -109,7 +109,7 @@ public interface TaskInstanceService {
      *
      * @param taskInstanceId 作业实例ID
      */
-    void resetTaskExecuteInfoForResume(long taskInstanceId);
+    void resetTaskExecuteInfoForRetry(long taskInstanceId);
 
     void resetStepStatus(long stepInstanceId);
 
@@ -125,7 +125,12 @@ public interface TaskInstanceService {
 
     void updateStepEndTime(long stepInstanceId, Long endTime);
 
-    void addTaskExecuteCount(long taskInstanceId);
+    /**
+     * 步骤重试次数+1
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    void addStepInstanceExecuteCount(long stepInstanceId);
 
     void updateStepTotalTime(long stepInstanceId, long totalTime);
 

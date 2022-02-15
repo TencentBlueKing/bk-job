@@ -337,7 +337,7 @@ public class GseStepEventHandler implements StepEventHandler {
         }
 
         taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.IGNORE_ERROR.getValue());
-        taskInstanceService.resetTaskExecuteInfoForResume(stepInstance.getTaskInstanceId());
+        taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getTaskInstanceId());
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                 EventSource.buildStepEventSource(stepInstance.getId())));
@@ -402,20 +402,128 @@ public class GseStepEventHandler implements StepEventHandler {
      * 重新执行步骤失败的任务
      */
     private void retryStepFail(StepInstanceDTO stepInstance) {
-        log.info("Retry step fail, stepInstanceId={}", stepInstance.getId());
-        resetStatusForRetry(stepInstance);
-        filePrepareService.retryPrepareFile(stepInstance.getId());
-//        taskExecuteMQEventDispatcher.retryStepFail(stepInstance.getId());
+
+        long stepInstanceId = stepInstance.getId();
+        boolean isRollingStep = stepInstance.isRollingStep();
+        if (isRollingStep) {
+            log.info("Retry-fail for rolling step, stepInstanceId={}, batch: {}", stepInstanceId,
+                stepInstance.getBatch());
+        } else {
+            log.info("Retry-fail for step, stepInstanceId={}", stepInstanceId);
+        }
+
+        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        if (isStepSupportRetry(stepStatus)) {
+
+            resetExecutionInfoForRetry(stepInstance);
+
+            TaskInstanceRollingConfigDTO rollingConfig = null;
+            if (isRollingStep) {
+                rollingConfig = rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+                // 初始化步骤滚动任务
+                saveInitialStepInstanceRollingTask(stepInstance);
+            }
+
+            long gseTaskId = saveInitialGseTask(stepInstance);
+            saveAgentTasksForRetryFail(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                gseTaskId);
+
+            if (stepInstance.isScriptStep()) {
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
+            } else if (stepInstance.isFileStep()) {
+                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
+                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
+                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                }
+            }
+        } else {
+            log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
+                stepInstanceId, stepStatus);
+        }
+    }
+
+    private boolean isStepSupportRetry(RunStatusEnum stepStatus) {
+        return RunStatusEnum.FAIL == stepStatus || RunStatusEnum.ABNORMAL_STATE == stepStatus;
+    }
+
+    private void saveAgentTasksForRetryFail(long stepInstanceId, int executeCount, Integer batch,
+                                            long gseTaskId) {
+        List<AgentTaskDTO> latestAgentTasks =
+            agentTaskService.listAgentTasks(stepInstanceId, executeCount - 1, null, false);
+        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
+            latestAgentTask.setExecuteCount(executeCount);
+            if (!IpStatus.isSuccess(latestAgentTask.getStatus())) {
+                if (batch != null && latestAgentTask.getBatch() != batch) {
+                    continue;
+                }
+                latestAgentTask.setStatus(IpStatus.WAITING.getValue());
+                latestAgentTask.setStartTime(null);
+                latestAgentTask.setEndTime(null);
+                latestAgentTask.setTotalTime(null);
+                latestAgentTask.setGseTaskId(gseTaskId);
+            }
+        }
+        agentTaskService.batchSaveAgentTasks(latestAgentTasks);
+    }
+
+    private void saveAgentTasksForRetryAll(long stepInstanceId, int executeCount, Integer batch,
+                                           long gseTaskId) {
+        List<AgentTaskDTO> latestAgentTasks =
+            agentTaskService.listAgentTasks(stepInstanceId, executeCount - 1, null, false);
+        for (AgentTaskDTO latestAgentTask : latestAgentTasks) {
+            latestAgentTask.setExecuteCount(executeCount);
+            if (batch != null && latestAgentTask.getBatch() != batch) {
+                continue;
+            }
+            latestAgentTask.setStatus(IpStatus.WAITING.getValue());
+            latestAgentTask.setStartTime(null);
+            latestAgentTask.setEndTime(null);
+            latestAgentTask.setTotalTime(null);
+            latestAgentTask.setGseTaskId(gseTaskId);
+        }
+        agentTaskService.batchSaveAgentTasks(latestAgentTasks);
     }
 
     /**
      * 从头执行步骤
      */
     private void retryStepAll(StepInstanceDTO stepInstance) {
-        log.info("Retry step all, stepInstanceId={}", stepInstance.getId());
-        resetStatusForRetry(stepInstance);
-        filePrepareService.retryPrepareFile(stepInstance.getId());
-//        taskExecuteMQEventDispatcher.retryGseStepAll(stepInstance.getId());
+
+        long stepInstanceId = stepInstance.getId();
+        boolean isRollingStep = stepInstance.isRollingStep();
+        if (isRollingStep) {
+            log.info("Retry-all for rolling step, stepInstanceId={}, batch: {}", stepInstanceId,
+                stepInstance.getBatch());
+        } else {
+            log.info("Retry-all for step, stepInstanceId={}", stepInstanceId);
+        }
+
+        RunStatusEnum stepStatus = RunStatusEnum.valueOf(stepInstance.getStatus());
+        if (isStepSupportRetry(stepStatus)) {
+
+            resetExecutionInfoForRetry(stepInstance);
+
+            if (isRollingStep) {
+                // 初始化步骤滚动任务
+                saveInitialStepInstanceRollingTask(stepInstance);
+            }
+
+            long gseTaskId = saveInitialGseTask(stepInstance);
+            saveAgentTasksForRetryFail(stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
+                gseTaskId);
+
+            if (stepInstance.isScriptStep()) {
+                taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.startGseTask(gseTaskId, null));
+            } else if (stepInstance.isFileStep()) {
+                // 如果不是滚动步骤或者是第一批次滚动执行，那么需要为后续的分发阶段准备本地/第三方源文件
+                if (!stepInstance.isRollingStep() || stepInstance.isFirstRollingBatch()) {
+                    filePrepareService.prepareFileForGseTask(stepInstanceId);
+                }
+            }
+        } else {
+            log.warn("Unsupported step instance run status for retry step, stepInstanceId={}, status={}",
+                stepInstanceId, stepStatus);
+        }
     }
 
     /**
@@ -431,12 +539,17 @@ public class GseStepEventHandler implements StepEventHandler {
         }
     }
 
-    private void resetStatusForRetry(StepInstanceDTO stepInstance) {
+    /**
+     * 重置作业、步骤执行状态，包括结束时间、任务状态、任务耗时
+     *
+     * @param stepInstance 步骤实例
+     */
+    private void resetExecutionInfoForRetry(StepInstanceDTO stepInstance) {
         long stepInstanceId = stepInstance.getId();
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
         taskInstanceService.resetStepExecuteInfoForRetry(stepInstanceId);
-        taskInstanceService.resetTaskExecuteInfoForResume(taskInstanceId);
+        taskInstanceService.resetTaskExecuteInfoForRetry(taskInstanceId);
     }
 
     private void refreshStep(StepEvent stepEvent, StepInstanceDTO stepInstance) {

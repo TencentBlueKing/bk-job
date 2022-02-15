@@ -313,7 +313,7 @@ class TaskInstanceDAOImplIntegrationTest {
     void testResetTaskExecuteInfoForResume() {
         long taskInstanceId = 2L;
 
-        taskInstanceDAO.resetTaskExecuteInfoForResume(taskInstanceId);
+        taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
 
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
