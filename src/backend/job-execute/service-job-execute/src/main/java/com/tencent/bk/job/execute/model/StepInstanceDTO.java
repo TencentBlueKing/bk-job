@@ -182,6 +182,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.targetServers = stepInstanceBase.targetServers;
         this.ipList = stepInstanceBase.ipList;
         this.rollingConfigId = stepInstanceBase.rollingConfigId;
+        this.batch = stepInstanceBase.getBatch();
     }
 
     // -------------公共方法------------------//
