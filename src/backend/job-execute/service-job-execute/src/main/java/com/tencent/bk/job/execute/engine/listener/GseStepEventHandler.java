@@ -494,6 +494,7 @@ public class GseStepEventHandler implements StepEventHandler {
             stepInstanceRollingTaskService.updateRollingTask(stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
             int totalBatch = rollingConfig.getConfig().getTotalBatch();
+            log.info("rollingConfig: {}, stepInstance: {}", rollingConfig, stepInstance);
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
                 log.info("updateStepExecutionInfo-SUCCESS");
