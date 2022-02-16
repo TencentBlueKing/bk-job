@@ -30,6 +30,7 @@ export default {
             if (disabled || active) {
                 return;
             }
+            console.log('from render item handleclic = ', event);
             context.listeners['on-change'] && context.listeners['on-change'](data.batch, event);
         };
 
@@ -61,6 +62,7 @@ export default {
                 class={clasess}
                 key={data.batch}
                 onClick={handleClick}>
+
                 第 { data.batch } 批
                 {renderConfirmStatus()}
                 {renderFailedStatus()}
