@@ -163,11 +163,10 @@ export default class StepExecutionResult {
     }
 
     get isRollingTask () {
-        return true;
-        // return [
-        //     MODE_ROLLING_ALL,
-        //     MODE_ROLLING_BATCH,
-        // ].includes(this.runMode);
+        return [
+            MODE_ROLLING_ALL,
+            MODE_ROLLING_BATCH,
+        ].includes(this.runMode);
     }
 
     /**

@@ -11,37 +11,34 @@
         <div
             class="batch-content"
             :style="contentStyles">
-            <div
+            <!-- <div
                 ref="allBtn"
                 class="all-btn"
-                :class="{ active: isTotalBtnFixed }"
+                :class="{
+                    active: isTotalBtnFixed || selectBatch === 0,
+                }"
                 key="all"
                 @click="handleSelectAll">
                 全部批次
-            </div>
+            </div> -->
+            <render-all
+                :step-data="data"
+                :is-total-btn-fixed="isTotalBtnFixed"
+                :select-batch="selectBatch"
+                @on-change="handleSelectAll" />
             <div
                 ref="list"
                 class="content-list">
                 <div
                     class="wrapper"
                     :style="scrollStyles">
-                    <div
+                    <render-item
                         v-for="batchItem in list"
-                        class="batch-item"
-                        :class="{
-                            active: batchItem.batch === selectBatch,
-                            confirm: batchItem.batch === currentRunningBatch,
-                            disabled: batchItem.batch > currentRunningBatch,
-                        }"
+                        :data="batchItem"
+                        :select-batch="selectBatch"
+                        :current-running-batch="currentRunningBatch"
                         :key="batchItem.batch"
-                        @click="handleSelectBatch(batchItem.batch, $event)">
-                        第 {{ batchItem.batch }} 批
-                        <div
-                            v-if="batchItem.batch === currentRunningBatch"
-                            class="batch-item-status">
-                            <Icon type="stop-2" />
-                        </div>
-                    </div>
+                        @on-change="handleSelectBatch(batchItem.batch, $event)" />
                 </div>
             </div>
         </div>
@@ -120,23 +117,30 @@
 <script>
     import _ from 'lodash';
     import Tippy from 'bk-magic-vue/lib/utils/tippy';
+    import RenderAll from './render-all';
+    import RenderItem from './render-item';
 
     export default {
         name: '',
+        components: {
+            RenderAll,
+            RenderItem,
+        },
         props: {
             data: Object,
+            value: [Number, String],
         },
         data () {
             return {
+                list: [],
+                selectBatch: '',
                 batchLocation: '',
                 contentWidth: '100%',
                 startIndex: 0,
                 scrollNum: 0,
                 itemTotalWidth: 0,
                 scrollPosition: 0,
-                selectBatch: 1,
                 hasPagination: false,
-                
             };
         },
         computed: {
@@ -178,10 +182,16 @@
                 };
             },
         },
-        created () {
-            console.log('from rolling == ', this.data);
-            this.list = Object.freeze(this.data.rollingTasks);
+        watch: {
+            data () {
+                this.list = Object.freeze(this.data.rollingTasks);
+                // 用户没有选择批次时根据执行状态自动选中最新的批次
+                if (this.value === '') {
+                    this.selectBatch = this.data.runningBatchOrder;
+                }
+            },
         },
+        
         mounted () {
             this.init();
             const resizeHandler = _.throttle(() => {
@@ -192,10 +202,17 @@
                 window.removeEventListener('resize', resizeHandler);
             });
         },
+        created () {
+            this.list = Object.freeze(this.data.rollingTasks);
+            this.selectBatch = this.data.runningBatchOrder;
+        },
         beforeDestroy () {
             this.popperInstance && this.popperInstance.hide();
         },
         methods: {
+            /**
+             * @desc 展示效果初始化
+             */
             init () {
                 const $listEL = this.$refs.box;
                 const $itemList = $listEL.querySelectorAll('.batch-item');
@@ -225,11 +242,12 @@
                 
                 this.itemTotalWidth = itemTotalWidth;
                 this.contentWidth = this.hasPagination ? '100%' : `${itemTotalWidth + allBtnWidth}px`;
-                setTimeout(() => {
-                    this.showActionPanel();
-                }, 1500);
+                this.showConfirmActionPanel();
             },
-            showActionPanel () {
+            /**
+             * @desc 批次需要人工确认，弹出操作框
+             */
+            showConfirmActionPanel () {
                 const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
                 if (!$targetItemEl) {
                     return;
@@ -262,7 +280,6 @@
                 this.$emit('change', this.selectBatch);
                 this.$emit('input', this.selectBatch);
             },
-            
             /**
              * @desc 查看全部批次
              */
@@ -278,7 +295,9 @@
              * 批次按钮显示不完整需要左移、右移显示完整
              */
             handleSelectBatch (selectBatch, event) {
-                if (selectBatch > this.currentRunningBatch) {
+                if (
+                    selectBatch === this.selectBatch
+                    || selectBatch > this.currentRunningBatch) {
                     return;
                 }
                 this.selectBatch = selectBatch;
@@ -429,7 +448,7 @@
         },
     };
 </script>
-<style lang="postcss">
+<style lang="postcss" scoped>
     .batch-box {
         display: flex;
         padding: 20px 24px 12px;
@@ -548,7 +567,7 @@
 
                 &.disabled {
                     color: #b1b6c2;
-                    cursor: default;
+                    cursor: not-allowed;
 
                     &:hover {
                         background: transparent;
@@ -579,6 +598,10 @@
                         opacity: 100%;
                         transform: scaleX(1);
                     }
+                }
+
+                &.disabled {
+                    cursor: not-allowed;
                 }
 
                 &::after {

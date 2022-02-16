@@ -30,7 +30,7 @@
         <task-status ref="taskStatus" @on-init="handleTaskInit">
             <rolling-batch
                 v-if="data.isRollingTask"
-                v-model="params.batch"
+                :value="params.batch"
                 :data="data"
                 @change="handleBatchChange" />
             <div class="step-info-header">
@@ -56,7 +56,10 @@
                 </div>
                 <div class="log-search-box">
                     <compose-form-item>
-                        <bk-select v-model="searchModel" :clearable="false" style="width: 100px;">
+                        <bk-select
+                            v-model="searchModel"
+                            :clearable="false"
+                            style="width: 100px;">
                             <bk-option id="log" :name="$t('history.搜索日志')" />
                             <bk-option id="ip" :name="$t('history.搜索 IP')" />
                         </bk-select>
