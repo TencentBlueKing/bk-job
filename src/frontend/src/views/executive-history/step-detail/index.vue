@@ -28,7 +28,11 @@
 <template>
     <div class="executive-history-step">
         <task-status ref="taskStatus" @on-init="handleTaskInit">
-            <rolling-batch :data="data" />
+            <rolling-batch
+                v-if="data.isRollingTask"
+                v-model="params.batch"
+                :data="data"
+                @change="handleBatchChange" />
             <div class="step-info-header">
                 <div class="step-info-wraper">
                     <div class="step-type-text">{{ stepTypeText }}</div>
@@ -202,6 +206,7 @@
                 // 接口参数
                 params: {
                     id: 0,
+                    batch: '',
                     retryCount: '',
                     maxIpsPerResultGroup: 0,
                     keyword: '', // 日志的筛选值
@@ -373,6 +378,13 @@
                 this.taskInstanceId = payload.taskInstanceId;
                 this.isTask = payload.isTask;
                 this.taskStepList = Object.freeze(payload.taskStepList);
+                this.fetchStep();
+            },
+            handleBatchChange (batch) {
+                this.params = {
+                    ...this.params,
+                    batch,
+                };
                 this.fetchStep();
             },
             /**

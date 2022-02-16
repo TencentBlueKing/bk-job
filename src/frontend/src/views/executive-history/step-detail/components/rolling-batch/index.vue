@@ -145,11 +145,11 @@
              * @returns { Number }
              */
             currentRunningBatch () {
-                const running = _.find(this.list, ({ currentBatchRunning }) => currentBatchRunning);
+                const running = _.find(this.list, ({ latestBatch }) => latestBatch);
                 if (running) {
                     return running.batch;
                 }
-                return 0;
+                return Infinity;
             },
             /**
              * @desc 全部批次是否固定
@@ -179,12 +179,8 @@
             },
         },
         created () {
-            this.list = (new Array(230)).fill(true)
-                .map((_, index) => ({
-                    batch: index + 1,
-                    currentBatchRunning: index === 5,
-                    status: (index + 1) % 12,
-                }));
+            console.log('from rolling == ', this.data);
+            this.list = Object.freeze(this.data.rollingTasks);
         },
         mounted () {
             this.init();
@@ -195,6 +191,9 @@
             this.$emit('hook:beforeDestroy', () => {
                 window.removeEventListener('resize', resizeHandler);
             });
+        },
+        beforeDestroy () {
+            this.popperInstance && this.popperInstance.hide();
         },
         methods: {
             init () {
@@ -232,7 +231,11 @@
             },
             showActionPanel () {
                 const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
-                if (this.popperInstance && this.popperInstance.reference !== $targetItemEl) {
+                if (!$targetItemEl) {
+                    return;
+                }
+                if (this.popperInstance
+                    && this.popperInstance.reference !== $targetItemEl) {
                     this.popperInstance.hide();
                 }
                 if (!this.popperInstance) {
@@ -253,21 +256,19 @@
                         zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
                     });
                     this.popperInstance.show();
-                    console.log('prnt popr = ', this.popperInstance);
                 }
             },
             triggerChange () {
-                this.$emit('change');
-                this.$emit('input');
+                this.$emit('change', this.selectBatch);
+                this.$emit('input', this.selectBatch);
             },
-            handleConfirmNextBatch () {
-
-            },
+            
             /**
              * @desc 查看全部批次
              */
             handleSelectAll () {
-
+                this.selectBatch = 0;
+                this.triggerChange();
             },
             /**
              * @desc 选中批次
@@ -308,6 +309,9 @@
                     this.scrollPosition = Math.min(0, this.scrollPosition + selectTargetWidth);
                     this.startIndex -= 1;
                 }
+            },
+            handleConfirmNextBatch () {
+                
             },
             /**
              * @desc 上一页

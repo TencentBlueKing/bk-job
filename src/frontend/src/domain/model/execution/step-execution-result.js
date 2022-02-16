@@ -162,6 +162,14 @@ export default class StepExecutionResult {
         return this.type === TYPE_FILE;
     }
 
+    get isRollingTask () {
+        return true;
+        // return [
+        //     MODE_ROLLING_ALL,
+        //     MODE_ROLLING_BATCH,
+        // ].includes(this.runMode);
+    }
+
     /**
      * @desc 步骤执行状态展示css对应的class
      * @returns { String }
@@ -239,7 +247,7 @@ export default class StepExecutionResult {
      * - 滚动执行返回批次排序位置
      */
     get runningBatchOrder () {
-        const index = _.findIndex(this.rollingTasks, ({ currentBatchRunning }) => currentBatchRunning);
+        const index = _.findIndex(this.rollingTasks, ({ latestBatch }) => latestBatch);
         return index < 0 ? undefined : index + 1;
     }
 
