@@ -33,9 +33,13 @@ import java.util.concurrent.Future;
 @Setter
 @Getter
 public class TaskInfo {
+
+    // 等待被执行
+    public static final int STATUS_WAITING = 0;
+    // 执行中
+    public static final int STATUS_RUNNING = 1;
+
     Future<?> future;
-    // 0:等待被执行
-    // 1:执行中
     int status;
 
     public TaskInfo(Future<?> future, int status) {
