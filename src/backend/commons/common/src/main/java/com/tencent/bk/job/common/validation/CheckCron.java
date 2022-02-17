@@ -24,6 +24,20 @@
 
 package com.tencent.bk.job.common.validation;
 
+import com.cronutils.mapper.CronMapper;
+import com.cronutils.model.Cron;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.parser.CronParser;
+import org.quartz.CronExpression;
+
+import javax.validation.Constraint;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 import static com.cronutils.model.CronType.UNIX;
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -32,26 +46,10 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import javax.validation.Constraint;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-import javax.validation.Payload;
-
-import org.quartz.CronExpression;
-
-import com.cronutils.mapper.CronMapper;
-import com.cronutils.model.Cron;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.parser.CronParser;
-
 /**
  * spring validation cron表达式校验注解
  */
-@Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE })
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
 @Constraint(validatedBy = CheckCron.Validator.class)
 @Documented
 @Retention(RUNTIME)

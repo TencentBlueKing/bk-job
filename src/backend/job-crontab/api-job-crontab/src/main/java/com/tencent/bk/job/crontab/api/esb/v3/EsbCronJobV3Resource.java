@@ -53,24 +53,25 @@ public interface EsbCronJobV3Resource {
 
     @GetMapping("/get_cron_list")
     EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(
-            @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-            @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-            @RequestParam(value = "bk_biz_id") Long appId, @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "creator", required = false) String creator,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "status", required = false) Integer status,
-            @RequestParam(value = "create_time_start", required = false) Long createTimeStart,
-            @RequestParam(value = "create_time_end", required = false) Long createTimeEnd,
-            @RequestParam(value = "last_modify_user", required = false) String lastModifyUser,
-            @RequestParam(value = "last_modify_time_start", required = false) Long lastModifyTimeStart,
-            @RequestParam(value = "last_modify_time_end", required = false) Long lastModifyTimeEnd,
-            @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "length", required = false) Integer length);
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_biz_id") Long appId, @RequestParam(value = "id", required = false) Long id,
+        @RequestParam(value = "creator", required = false) String creator,
+        @RequestParam(value = "name", required = false) String name,
+        @RequestParam(value = "status", required = false) Integer status,
+        @RequestParam(value = "create_time_start", required = false) Long createTimeStart,
+        @RequestParam(value = "create_time_end", required = false) Long createTimeEnd,
+        @RequestParam(value = "last_modify_user", required = false) String lastModifyUser,
+        @RequestParam(value = "last_modify_time_start", required = false) Long lastModifyTimeStart,
+        @RequestParam(value = "last_modify_time_end", required = false) Long lastModifyTimeEnd,
+        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "length", required = false) Integer length);
 
     @GetMapping("/get_cron_detail")
     EsbResp<EsbCronInfoV3DTO> getCronDetail(@RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-            @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-            @RequestParam(value = "bk_biz_id") Long appId, @RequestParam(value = "id") Long id);
+                                            @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+                                            @RequestParam(value = "bk_biz_id") Long appId,
+                                            @RequestParam(value = "id") Long id);
 
     /**
      * 获取定时任务列表
