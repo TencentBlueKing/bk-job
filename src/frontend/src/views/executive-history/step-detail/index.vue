@@ -384,11 +384,17 @@
             /**
              * @desc 滚动执行批次筛选
              * @param { Number | String } batch 0: 查看全部批次；’‘：查看当前最新批次
+             *
+             * 切换批次需要执行结果分组
              */
             handleBatchChange (batch) {
                 this.params = {
                     ...this.params,
                     batch,
+                };
+                this.currentGroup = {
+                    resultType: '',
+                    tag: '',
                 };
                 this.fetchStep();
             },
