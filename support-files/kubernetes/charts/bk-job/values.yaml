@@ -609,7 +609,7 @@ gatewayConfig:
     # 开启登录豁免时使用的默认用户名
     defaultUser: admin
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-gateway
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -695,7 +695,7 @@ gatewayConfig:
 ## job-manage作业管理配置
 manageConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-manage
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -751,7 +751,7 @@ executeConfig:
       # 存储后端使用制品库时使用的仓库代码
       repo: backup
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-execute
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -802,7 +802,7 @@ crontabConfig:
   # 是否部署定时任务微服务，默认部署
   enabled: true
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-crontab
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -860,7 +860,7 @@ crontabConfig:
 ## job-logsvr日志服务配置
 logsvrConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-logsvr
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -913,7 +913,7 @@ backupConfig:
     # 存储后端使用制品库时使用的备份服务仓库代码
     repo: backup
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-backup
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -961,7 +961,7 @@ backupConfig:
 ## job-analysis统计分析服务配置
 analysisConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-analysis
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -1009,7 +1009,7 @@ analysisConfig:
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-file-gateway
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -1057,7 +1057,7 @@ fileGatewayConfig:
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-file-worker
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -1130,7 +1130,7 @@ fileWorkerConfig:
 ## job-frontend前端配置
 frontendConfig:
   image:
-    registry: mirrors.tencent.com
+    registry: hub.bktencent.com
     repository: blueking/job-frontend
     tag: 3.4.5-beta.1
     pullPolicy: IfNotPresent
@@ -1187,7 +1187,7 @@ frontendConfig:
 migration:
   image:
     # 镜像拉取仓库根地址
-    registry: "mirrors.tencent.com"
+    registry: "hub.bktencent.com"
     # 镜像拉取仓库组织与镜像名称
     repository: "blueking/job-migration"
     # 镜像标签
