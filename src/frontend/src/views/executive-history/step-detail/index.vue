@@ -291,16 +291,9 @@
             this.$Progress.start();
         },
         mounted () {
-            const calcDetailContainerStyle = _.throttle(() => {
-                const { top } = this.$refs.detailContainer.getBoundingClientRect();
-                this.defailContainerStyles = {
-                    height: `calc(100vh - ${top}px)`,
-                };
-            }, 20);
-            calcDetailContainerStyle();
-            window.addEventListener('rezie', calcDetailContainerStyle);
+            window.addEventListener('rezie', this.calcDetailContainerStyle);
             this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('rezie', calcDetailContainerStyle);
+                window.removeEventListener('rezie', this.calcDetailContainerStyle);
             });
         },
         beforeDestroy () {
@@ -329,7 +322,7 @@
                     }
                     this.data = Object.freeze(data);
 
-                    console.log('from ste  = =', data);
+                    this.calcDetailContainerStyle();
 
                     this.isFile = data.isFile;
                     //  已选中的分组不存在了——默认选中第一个分组
@@ -365,7 +358,12 @@
                         this.paginationChangeLoading = false;
                     });
             }, 30),
-            
+            calcDetailContainerStyle: _.throttle(function () {
+                const { top } = this.$refs.detailContainer.getBoundingClientRect();
+                this.defailContainerStyles = {
+                    height: `calc(100vh - ${top}px)`,
+                };
+            }, 20),
             /**
              * @desc 步骤所属作业初始化
              * @param {Object} payload 步骤信息
@@ -383,6 +381,10 @@
                 this.taskStepList = Object.freeze(payload.taskStepList);
                 this.fetchStep();
             },
+            /**
+             * @desc 滚动执行批次筛选
+             * @param { Number | String } batch 0: 查看全部批次；’‘：查看当前最新批次
+             */
             handleBatchChange (batch) {
                 this.params = {
                     ...this.params,

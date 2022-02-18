@@ -17,7 +17,8 @@ export default {
 
         const classes = {
             'all-btn': true,
-            active: isTotalBtnFixed || selectBatch === 0,
+            fixed: isTotalBtnFixed,
+            active: selectBatch === 0,
             disabled,
         };
 

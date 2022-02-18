@@ -510,7 +510,9 @@
                 .batch-item-status {
                     position: absolute;
                     right: 3px;
+                    display: flex;
                     font-size: 13px;
+                    align-items: center;
                 }
             }
 
@@ -525,8 +527,12 @@
                 flex: 0 0 auto;
                 border-radius: 0;
 
-                &:hover,
-                &.active {
+                &:hover {
+                    background: #f0f1f5;
+                    border-radius: 12px;
+                }
+
+                &.fixed {
                     &::after {
                         opacity: 100%;
                         transform: scaleX(1);
@@ -537,10 +543,17 @@
                     cursor: not-allowed;
                 }
 
+                &.active {
+                    cursor: default;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+                }
+
                 &::after {
                     position: absolute;
                     top: -2px;
-                    right: -4px;
+                    right: -8px;
                     width: 6px;
                     height: calc(100% + 4px);
                     background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));

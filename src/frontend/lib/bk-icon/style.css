@@ -614,3 +614,12 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-stop-2:before {
 	content: "\e210";
 }
+.job-icon-all:before {
+	content: "\e211";
+}
+.job-icon-roll:before {
+	content: "\e212";
+}
+.job-icon-batch-loading:before {
+	content: "\e213";
+}
