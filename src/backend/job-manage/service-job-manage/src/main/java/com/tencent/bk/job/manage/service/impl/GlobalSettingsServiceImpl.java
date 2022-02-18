@@ -528,19 +528,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
     }
 
-    private TitleFooterVO getInnerDefaultTitleFooterVO() {
-        String currentYear = TimeUtil.getCurrentTimeStr("yyyy");
-        return new TitleFooterVO(
-            i18nService.getI18n("job.manage.globalsettings.defaultTitleHead")
-            , "|"
-            , String.format(
-            "[" + i18nService.getI18n("job.manage.globalsettings.contactBKHelper") + "](%s) | ["
-                + i18nService.getI18n("job.manage.globalsettings.BKDesktop") + "](%s)"
-            , jobManageConfig.getBkHelperUrl()
-            , jobManageConfig.getPaasServerUrl())
-            , String.format("Copyright © 2012-%s Tencent BlueKing. All Rights Reserved.", currentYear));
-    }
-
     @Override
     public TitleFooterVO getTitleFooter() {
         TitleFooterVO titleFooterVO = getTitleFooterWithoutVersion();
@@ -749,8 +736,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             removeSuffixBackSlash(jobManageConfig.getCmdbServerUrl()) + jobManageConfig.getCmdbAppIndexPath());
         urlMap.put(RelatedUrlKeys.KEY_BK_NODEMAN_ROOT_URL, getNodemanRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, removeSuffixBackSlash(getDocCenterBaseUrl()) + "/markdown" +
-            "/产品白皮书/Introduction/What-is-Job.md");
+        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         return urlMap;
     }
