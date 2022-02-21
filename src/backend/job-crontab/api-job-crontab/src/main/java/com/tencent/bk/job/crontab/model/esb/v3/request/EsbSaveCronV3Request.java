@@ -24,25 +24,21 @@
 
 package com.tencent.bk.job.crontab.model.esb.v3.request;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.group.GroupSequenceProvider;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.common.validation.CheckCron;
-import com.tencent.bk.job.common.validation.Create;
-import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.util.List;
 
 /**
  * @since 26/2/2020 16:33
@@ -87,7 +83,7 @@ public class EsbSaveCronV3Request extends EsbReq {
      * 新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次
      */
     @JsonProperty("expression")
-    @CheckCron(message = "{validation.constraints.InvalidCronExpression.message}")
+    @NotEmpty(message = "{validation.constraints.InvalidCronExpression_empty.message}")
     private String cronExpression;
 
     /**

@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
 import com.tencent.bk.job.crontab.client.ServiceTaskPlanResourceClient;
 import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
@@ -221,6 +222,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
         esbCronInfoV3DTO.setId(0L);
+        checkRequest(request);
         Long appId = request.getAppId();
         AuthResult authResult;
         if (request.getId() != null && request.getId() > 0) {
@@ -303,6 +305,13 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             return EsbResp.buildSuccessResp(esbCronInfoV3DTO);
         } else {
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+        }
+    }
+
+    private void checkRequest(EsbSaveCronV3Request request) {
+        // 定时任务表达式有效性校验
+        if (StringUtils.isNotBlank(request.getCronExpression())) {
+            CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
         }
     }
 
