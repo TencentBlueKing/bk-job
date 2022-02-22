@@ -1,0 +1,1878 @@
+{
+    "system_id": "bk_job",
+    "operations": [
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "script",
+                "name": "脚本",
+                "name_en": "Scripts",
+                "description": "所属相应业务下的脚本资源",
+                "description_en": "Scripts of Business",
+                "parents": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/script"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "job_template",
+                "name": "作业模版",
+                "name_en": "Job Templates",
+                "description": "作业的模板",
+                "description_en": "Job Templates",
+                "parents": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/task/template"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "job_plan",
+                "name": "作业执行方案",
+                "name_en": "Job Plans",
+                "description": "作业执行方案",
+                "description_en": "Plans of Job Template",
+                "parents": [
+                    {
+                        "id": "job_template",
+                        "system_id": "bk_job"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/task/plan"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "cron",
+                "name": "定时任务",
+                "name_en": "Crons",
+                "description": "支持周期循环或指定时间的定期执行任务",
+                "description_en": "Scheduled Jobs, like Linux Crontab with more abilities.",
+                "parents": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/cron/job"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "account",
+                "name": "执行账号",
+                "name_en": "Accounts",
+                "description": "执行脚本或分发文件时使用的系统账号",
+                "description_en": "Accounts of system, like root on Linux, or administrator on Windows.",
+                "parents": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/account"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "tag",
+                "name": "标签",
+                "name_en": "Tags",
+                "description": "用于对作业或脚本进行分类管理",
+                "description_en": "Tags is an useful tools for Job or Script manage.",
+                "parents": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/tag"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "file_source",
+                "name": "文件源",
+                "name_en": "File Sources",
+                "description": "用于文件分发时的文件来源",
+                "description_en": "Provides the file source for file transfer",
+                "parents": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/file_source"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "ticket",
+                "name": "凭证",
+                "name_en": "Tickets",
+                "description": "用于文件源访问认证的凭据",
+                "description_en": "Tickets for file-source access authentication",
+                "parents": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/iam/api/v1/resources/ticket"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "account_list",
+                "name": "业务执行账号列表（已废弃）",
+                "name_en": "Account List of Business(Deprecated)",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "account",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "account_list_of_biz",
+                "name": "业务执行账号列表",
+                "name_en": "Account List of Business",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "account",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "account_list_of_biz_set",
+                "name": "业务集执行账号列表",
+                "name_en": "Account List of Business Set",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "id": "account",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "cron_list",
+                "name": "业务定时任务列表（已废弃）",
+                "name_en": "Cron List of Business(Deprecated)",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "cron",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "cron_list_of_biz",
+                "name": "业务定时任务列表",
+                "name_en": "Cron List of Business",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "cron",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "cron_list_of_biz_set",
+                "name": "业务集定时任务列表",
+                "name_en": "Cron List of Business Set",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "id": "cron",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "file_source_list",
+                "name": "业务文件源列表（已废弃）",
+                "name_en": "File-source List of Business(Deprecated)",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "file_source",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "file_source_list_of_biz",
+                "name": "业务文件源列表",
+                "name_en": "File-source List of Business",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "file_source",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "file_source_list_of_biz_set",
+                "name": "业务集文件源列表",
+                "name_en": "File-source List of Business Set",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "id": "file_source",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_template_list",
+                "name": "业务作业模板列表（已废弃）",
+                "name_en": "Job Template List of Business(Deprecated)",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_template_list_of_biz",
+                "name": "业务作业模板列表",
+                "name_en": "Job Template List of Business",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_template_list_of_biz_set",
+                "name": "业务集作业模板列表",
+                "name_en": "Job Template List of Business Set",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_plan_list",
+                "name": "业务执行方案列表（已废弃）",
+                "name_en": "Job Plan List of Business(Deprecated)",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_plan_list_of_biz",
+                "name": "业务执行方案列表",
+                "name_en": "Job Plan List of Business",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "job_plan_list_of_biz_set",
+                "name": "业务集执行方案列表",
+                "name_en": "Job Plan List of Business Set",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "script_list",
+                "name": "业务脚本列表（已废弃）",
+                "name_en": "Script List of Business(Deprecated)",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "script"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "script_list_of_biz",
+                "name": "业务脚本列表",
+                "name_en": "Script List of Business",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "script"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "script_list_of_biz_set",
+                "name": "业务集脚本列表",
+                "name_en": "Script List of Business Set",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "business_set"
+                    },
+                    {
+                        "system_id": "bk_job",
+                        "id": "script"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "tag_list",
+                "name": "业务标签列表（已废弃）",
+                "name_en": "Tag List of Business(Deprecated)",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "tag",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "tag_list_of_biz",
+                "name": "业务标签列表",
+                "name_en": "Tag List of Business",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "tag",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "tag_list_of_biz_set",
+                "name": "业务集标签列表",
+                "name_en": "Tag List of Business Set",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "business_set",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "tag",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "ticket_list",
+                "name": "业务凭证列表（已废弃）",
+                "name_en": "Ticket List of Business(Deprecated)",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "ticket",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "ticket_list_of_biz",
+                "name": "业务凭证列表",
+                "name_en": "Ticket List of Business",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "ticket",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "ticket_list_of_biz_set",
+                "name": "业务集凭证列表",
+                "name_en": "Ticket List of Business Set",
+                "is_dynamic": false,
+                "resource_type_chain": [
+                    {
+                        "id": "business_set",
+                        "system_id": "bk_cmdb"
+                    },
+                    {
+                        "id": "ticket",
+                        "system_id": "bk_job"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "access_business",
+                "name": "业务访问",
+                "name_en": "Access business",
+                "description": "决定你是否允许在作业平台中进入到某个业务里",
+                "description_en": "Decides you are allowed to enter a business in Job",
+                "type": "view",
+                "related_actions": [],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_script",
+                "name": "脚本新建",
+                "name_en": "Create script",
+                "description": "是否允许创建一个新的业务脚本",
+                "description_en": "Permission of create new script under the business.",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "view_script",
+                "name": "脚本查看",
+                "name_en": "View script",
+                "description": "查看某些业务/业务集脚本的内容",
+                "description_en": "Permission of view some scripts",
+                "type": "view",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "script",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "execute_script",
+                "name": "脚本执行",
+                "name_en": "Execute script",
+                "description": "执行某些业务下的脚本",
+                "description_en": "Permission of launch scripts",
+                "type": "",
+                "related_actions": [
+                    "access_business",
+                    "view_script"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "script",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_script",
+                "name": "脚本管理",
+                "name_en": "Manage script",
+                "description": "业务下的脚本的编辑、删除以及版本管理的权限",
+                "description_en": "Permission of script edit, delete or version management",
+                "type": "edit",
+                "related_actions": [
+                    "access_business",
+                    "view_script"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "script",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "script_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_job_template",
+                "name": "作业模板新建",
+                "name_en": "Create Job Template",
+                "description": "创建一个新的作业模板的权限",
+                "description_en": "Permission of creating new Job template",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "view_job_template",
+                "name": "作业模板查看",
+                "name_en": "View Job Template",
+                "description": "查看相应作业模板的权限",
+                "description_en": "Permission of view Job template",
+                "type": "view",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "edit_job_template",
+                "name": "作业模板编辑",
+                "name_en": "Edit Job Template",
+                "description": "编辑作业模板的权限",
+                "description_en": "Permission of editing Job template",
+                "type": "edit",
+                "related_actions": [
+                    "access_business",
+                    "view_job_template"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "delete_job_template",
+                "name": "作业模板删除",
+                "name_en": "Delete Job Template",
+                "description": "删除业务的作业模板的权限",
+                "description_en": "Permission of deleting Job template.",
+                "type": "delete",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "debug_job_template",
+                "name": "作业模板调试",
+                "name_en": "Debug Job Template",
+                "description": "作业模板的调试权限，因场景特殊性，所以与执行方案的权限区分开来",
+                "description_en": "Permission of debuging Job template",
+                "type": "",
+                "related_actions": [
+                    "access_business",
+                    "view_job_template"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_job_plan",
+                "name": "执行方案新建",
+                "name_en": "Create Job Plan",
+                "description": "在某些作业模板下新建执行方案的权限",
+                "description_en": "Permission of creating plans under the Job template",
+                "type": "create",
+                "related_actions": [
+                    "access_business",
+                    "view_job_template"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_template",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_template_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "view_job_plan",
+                "name": "执行方案查看",
+                "name_en": "View Job Plan",
+                "description": "查看作业模板下相应的执行方案的权限",
+                "description_en": "Permission of access plans under the Job template",
+                "type": "view",
+                "related_actions": [
+                    "access_business",
+                    "view_job_template"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "edit_job_plan",
+                "name": "执行方案编辑",
+                "name_en": "Edit Job Plan",
+                "description": "编辑作业模板下的执行方案的权限",
+                "description_en": "Permission of editing plans under the Job template",
+                "type": "edit",
+                "related_actions": [
+                    "access_business",
+                    "view_job_plan"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "delete_job_plan",
+                "name": "执行方案删除",
+                "name_en": "Delete Job Plan",
+                "description": "删除作业模板下的执行方案的权限",
+                "description_en": "Permission of deleting plans under the Job template",
+                "type": "delete",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "launch_job_plan",
+                "name": "执行方案运行",
+                "name_en": "Launch Job Plan",
+                "description": "运行作业执行方案的权限",
+                "description_en": "Permission of launch plan under the Job template",
+                "type": "",
+                "related_actions": [
+                    "access_business",
+                    "view_job_plan"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "sync_job_plan",
+                "name": "执行方案同步",
+                "name_en": "Sync Job Plan",
+                "description": "将执行方案与作业模板进行同步的权限",
+                "description_en": "Permission of sync plans with Job Template",
+                "type": "edit",
+                "related_actions": [
+                    "access_business",
+                    "edit_job_plan"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "job_plan",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "job_plan_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_cron",
+                "name": "定时任务新建",
+                "name_en": "Create Cron",
+                "description": "在指定业务下创建新的定时任务的权限",
+                "description_en": "Permission of creating new cron jobs under business",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_cron",
+                "name": "定时任务管理",
+                "name_en": "Manage Cron",
+                "description": "涉及指定业务下定时任务的启停、编辑等管理权限",
+                "description_en": "Permission of On/Off or editing cron",
+                "type": "edit",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "cron",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "cron_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "cron_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "view_history",
+                "name": "执行历史查看",
+                "name_en": "View History",
+                "description": "查看指定业务下所有的执行记录的权限",
+                "description_en": "Permission of access all executed history under business",
+                "type": "view",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "biz",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "notification_setting",
+                "name": "消息通知配置",
+                "name_en": "Notification Setting",
+                "description": "在指定业务下配置个人信息通知设置的权限",
+                "description_en": "Permission of personal notification setting under business",
+                "type": "edit",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_account",
+                "name": "执行账号新建",
+                "name_en": "Create Account",
+                "description": "在指定业务下创建新的执行账号的权限",
+                "description_en": "Permission of creating new account under business",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_account",
+                "name": "执行账号管理",
+                "name_en": "Manage Account",
+                "description": "对指定业务下的执行账号的编辑、删除权限",
+                "description_en": "Permission of editing or delete specified account under business",
+                "type": "edit",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "account",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "account_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "account_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_tag",
+                "name": "标签新建",
+                "name_en": "Create tag",
+                "description": "创建新的标签的权限",
+                "description_en": "Permission of creating new tags under business",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_tag",
+                "name": "标签管理",
+                "name_en": "Manage tag",
+                "description": "对已有的标签进行管理的权限，如编辑或删除",
+                "description_en": "Permission of tags management， such as tag editing or delete",
+                "type": "edit",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "tag",
+                        "system_id": "bk_job",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "tag_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "tag_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "execute_public_script",
+                "name": "公共脚本执行",
+                "name_en": "Execute Public Script",
+                "description": "引用公共脚本在指定业务的主机下执行的权限",
+                "description_en": "Permission of launch public script with specified host under business",
+                "type": "",
+                "related_actions": [
+                    "view_public_script"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "public_script",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "public_script_list",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "quick_execute_script",
+                "name": "快速执行脚本",
+                "name_en": "Script Execution (Quick Launch)",
+                "description": "使用快速执行功能进行脚本/命令执行的权限",
+                "description_en": "Permission of quick launch script",
+                "type": "",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "quick_transfer_file",
+                "name": "快速分发文件",
+                "name_en": "File Transfer (Quick Launch)",
+                "description": "使用快速执行功能进行文件分发的权限",
+                "description_en": "Permission of quick transfer files",
+                "type": "",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_cmdb",
+                        "id": "host",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_host_instance",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "biz_custom_query"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "use_account",
+                "name": "执行账号使用",
+                "name_en": "Use Account",
+                "description": "对指定业务下的执行账号的使用权限",
+                "description_en": "Permission of use specified account under business",
+                "type": "execute",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_job",
+                        "id": "account",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "account_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "account_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "view_file_source",
+                "name": "文件源查看",
+                "name_en": "View File-source",
+                "description": "是否允许用户进入查看某个文件源内的文件列表或详情信息",
+                "description_en": "Permission of access File-source's file list or even information details",
+                "type": "view",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "file_source",
+                        "system_id": "bk_job",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "file_source_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "file_source_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_file_source",
+                "name": "文件源新建",
+                "name_en": "Create File-source",
+                "description": "是否允许用户在业务下创建新的文件源",
+                "description_en": "Permission of create new File-source under the business",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_file_source",
+                "name": "文件源管理",
+                "name_en": "Manage File-source",
+                "description": "是否允许用户可编辑或删除指定的文件源",
+                "description_en": "Permission of manage File-source, including modify configuration or delete",
+                "type": "manage",
+                "related_actions": [
+                    "access_business",
+                    "view_file_source"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "file_source",
+                        "system_id": "bk_job",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "file_source_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "file_source_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "use_ticket",
+                "name": "凭证使用",
+                "name_en": "Use Ticket",
+                "description": "用于是否允许用户在文件源配置中使用该凭证的授权",
+                "description_en": "Permission of using specific ticket on file-source configuration",
+                "type": "view",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "ticket",
+                        "system_id": "bk_job",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "ticket_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "ticket_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "create_ticket",
+                "name": "凭证新建",
+                "name_en": "Create Ticket",
+                "description": "用于是否允许用户在作业平台创建新凭证文件的鉴权",
+                "description_en": "Permission of creating new ticket",
+                "type": "create",
+                "related_actions": [
+                    "access_business"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "biz",
+                        "system_id": "bk_cmdb",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business"
+                            },
+                            {
+                                "system_id": "bk_cmdb",
+                                "id": "business_set_list"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "manage_ticket",
+                "name": "凭证管理",
+                "name_en": "Manage Ticket",
+                "description": "用于是否允许用户管理（编辑/查看/删除）具体的凭证文件的鉴权",
+                "description_en": "Permission of manage specific ticket",
+                "type": "manage",
+                "related_actions": [
+                    "access_business",
+                    "use_ticket"
+                ],
+                "related_resource_types": [
+                    {
+                        "id": "ticket",
+                        "system_id": "bk_job",
+                        "selection_mode": "instance",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_job",
+                                "id": "ticket_list_of_biz",
+                                "ignore_iam_path": true
+                            },
+                            {
+                                "system_id": "bk_job",
+                                "id": "ticket_list_of_biz_set",
+                                "ignore_iam_path": true
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        }
+    ]
+}
