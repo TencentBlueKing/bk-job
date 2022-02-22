@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -54,8 +55,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @Slf4j
-public class EsbFastExecuteScriptV3ResourceImpl
-    extends JobExecuteCommonV3Processor
+public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Processor
     implements EsbFastExecuteScriptV3Resource {
     private final TaskExecuteService taskExecuteService;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
@@ -73,7 +73,8 @@ public class EsbFastExecuteScriptV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_execute_script"})
-    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(EsbFastExecuteScriptV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(EsbFastExecuteScriptV3Request request)
+        throws ServiceException {
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");
@@ -106,6 +107,12 @@ public class EsbFastExecuteScriptV3ResourceImpl
         boolean isSpecifiedByScriptVersionId = request.getScriptVersionId() != null;
         boolean isSpecifiedByOnlineScript = StringUtils.isNotEmpty(request.getScriptId());
         boolean isSpecifiedByScriptContent = StringUtils.isNotEmpty(request.getContent());
+        Long appId = request.getAppId();
+
+        if (appId == null || appId < 1L) {
+            log.warn("Fast execute script, bk_biz_id is invalid! bk_biz_id={}", appId);
+            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "bk_biz_id");
+        }
         if (!(isSpecifiedByScriptVersionId || isSpecifiedByOnlineScript || isSpecifiedByScriptContent)) {
             log.warn("Fast execute script, script is not specified!");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
@@ -124,13 +131,11 @@ public class EsbFastExecuteScriptV3ResourceImpl
                 return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_language");
             }
         }
-
         ValidateResult serverValidateResult = checkServer(request.getTargetServer());
         if (!serverValidateResult.isPass()) {
             log.warn("Fast execute script, target server is empty!");
             return serverValidateResult;
         }
-
         if ((request.getAccountId() == null || request.getAccountId() < 1L)
             && StringUtils.isBlank(request.getAccountAlias())) {
             log.warn("Fast execute script, account is empty!");
@@ -138,7 +143,6 @@ public class EsbFastExecuteScriptV3ResourceImpl
         }
         return ValidateResult.pass();
     }
-
 
     private TaskInstanceDTO buildFastScriptTaskInstance(EsbFastExecuteScriptV3Request request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
@@ -162,7 +166,6 @@ public class EsbFastExecuteScriptV3ResourceImpl
         taskInstance.setAppCode(request.getAppCode());
         return taskInstance;
     }
-
 
     private StepInstanceDTO buildFastScriptStepInstance(EsbFastExecuteScriptV3Request request) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
@@ -191,8 +194,8 @@ public class EsbFastExecuteScriptV3ResourceImpl
             }
         }
         stepInstance.setSecureParam(request.getIsParamSensitive() != null && request.getIsParamSensitive() == 1);
-        stepInstance.setTimeout(request.getTimeout() == null ?
-            JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
+        stepInstance.setTimeout(
+            request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
