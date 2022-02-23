@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.web.feign;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -34,12 +36,12 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+
 import feign.FeignException;
 import feign.Response;
 import feign.RetryableException;
 import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class FeignErrorDecoder extends ErrorDecoder.Default {
@@ -92,17 +94,17 @@ public class FeignErrorDecoder extends ErrorDecoder.Default {
             case UNAVAILABLE:
             case TIMEOUT:
                 // 微服务内部调用错误，应该转换为外部的错误;例如，从另一个服务接收 INVALID_PARAM 错误,应该将 INTERNAL_ERROR 传播给它自己的调用者。
-                return new InternalException(exception, errorCode);
+                return new InternalException(errorMsg, exception, errorCode);
             case PERMISSION_DENIED:
                 return new PermissionDeniedException(AuthResult.fromAuthResultDTO(response.getAuthResult()));
             case NOT_FOUND:
-                return new NotFoundException(exception, errorCode);
+                return new NotFoundException(errorMsg, exception, errorCode);
             case ALREADY_EXISTS:
-                return new AlreadyExistsException(exception, errorCode);
+                return new AlreadyExistsException(errorMsg, exception, errorCode);
             case FAILED_PRECONDITION:
-                return new FailedPreconditionException(errorCode);
+                return new FailedPreconditionException(errorMsg, errorCode);
             default:
-                return new ServiceException(type, errorCode);
+                return new ServiceException(errorMsg, type, errorCode);
         }
 
     }
