@@ -80,6 +80,14 @@ public class Response<T> {
         this.requestId = JobContextUtil.getRequestId();
     }
 
+    public Response(Integer errorCode, String message, T data) {
+        this.code = errorCode;
+        this.success = errorCode.equals(ErrorCode.RESULT_OK);
+        this.errorMsg = message;
+        this.data = data;
+        this.requestId = JobContextUtil.getRequestId();
+    }
+
     public Response(Integer errorCode, Object[] errorParams, T data) {
         this.code = errorCode;
         this.success = errorCode.equals(ErrorCode.RESULT_OK);
@@ -104,6 +112,10 @@ public class Response<T> {
 
     public static <T> Response<T> buildCommonFailResp(Integer errorCode, Object[] params) {
         return new Response<>(errorCode, params, null);
+    }
+
+    public static <T> Response<T> buildCommonFailResp(Integer errorCode, String message) {
+        return new Response<>(errorCode, message, null);
     }
 
     public static <T> Response<T> buildCommonFailResp(ServiceException e) {

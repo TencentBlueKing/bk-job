@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.exception.handler;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
@@ -63,6 +64,12 @@ public class ServiceExceptionControllerAdvice extends ExceptionControllerAdviceB
     InternalResponse<?> handleException(HttpServletRequest request, Throwable ex) {
         String exceptionInfo = "Handle Exception, uri: " + request.getRequestURI();
         log.error(exceptionInfo, ex);
+        if (ex instanceof UncheckedExecutionException) {
+            if (ex.getCause() instanceof ServiceException) {
+                ServiceException e = (ServiceException) ex.getCause();
+                return InternalResponse.buildCommonFailResp(e.getErrorType(), e.getErrorCode(), e.getMessage());
+            }
+        }
         return InternalResponse.buildCommonFailResp(ErrorType.INTERNAL, ErrorCode.INTERNAL_ERROR);
     }
 

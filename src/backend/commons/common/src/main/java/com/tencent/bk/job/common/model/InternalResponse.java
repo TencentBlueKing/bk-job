@@ -84,6 +84,15 @@ public class InternalResponse<T> {
         this.requestId = JobContextUtil.getRequestId();
     }
 
+    public InternalResponse(ErrorType errorType, Integer errorCode, String message, T data) {
+        this.code = errorCode;
+        this.success = errorCode != null && errorCode.equals(ErrorCode.RESULT_OK);
+        this.errorMsg = message;
+        this.errorType = errorType.getType();
+        this.data = data;
+        this.requestId = JobContextUtil.getRequestId();
+    }
+
     public InternalResponse(ErrorType errorType, Integer errorCode, Object[] errorParams, T data) {
         this.code = errorCode;
         this.success = errorCode != null && errorCode.equals(ErrorCode.RESULT_OK);
@@ -102,6 +111,10 @@ public class InternalResponse<T> {
             ErrorCode.PERMISSION_DENIED, null);
         resp.authResult = authResult;
         return resp;
+    }
+
+    public static <T> InternalResponse<T> buildCommonFailResp(ErrorType errorType, Integer errorCode, String message) {
+        return new InternalResponse<>(errorType, errorCode, message, null);
     }
 
     public static <T> InternalResponse<T> buildCommonFailResp(ErrorType errorType, Integer errorCode) {
