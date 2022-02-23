@@ -75,7 +75,7 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         if (ex instanceof UncheckedExecutionException) {
             if (ex.getCause() instanceof ServiceException) {
                 ServiceException e = (ServiceException) ex.getCause();
-                return Response.buildCommonFailResp(ErrorCode.INTERNAL_ERROR, e.getMessage());
+                return Response.buildCommonFailResp(e.getErrorCode(), e.getMessage());
             }
         }
         return Response.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
