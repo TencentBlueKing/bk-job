@@ -66,7 +66,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                     .onErrorIgnore()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
-                    .fieldsCorresponding()
+                    .fields(fieldList)
                     .execute();
             executeResult = loader.stored();
             log.info("Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
