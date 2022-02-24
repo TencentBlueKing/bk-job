@@ -50,6 +50,6 @@ public class ArchiveConfig {
     @Value("${job.execute.archive.delete.enabled:false}")
     private boolean deleteEnabled;
 
-    @Value("${job.execute.archive.delete.limit_row_count:5000}")
+    @Value("${job.execute.archive.delete.limit-row-count:5000}")
     private Integer deleteLimitRowCount;
 }
