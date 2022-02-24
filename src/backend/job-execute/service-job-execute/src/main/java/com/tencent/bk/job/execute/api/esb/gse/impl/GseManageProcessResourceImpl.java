@@ -27,7 +27,9 @@ package com.tencent.bk.job.execute.api.esb.gse.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.api.esb.gse.GseManageProcessResource;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
@@ -36,6 +38,7 @@ import com.tencent.bk.job.execute.gse.model.GseProcessInfoDTO;
 import com.tencent.bk.job.execute.gse.model.ProcessManageTypeEnum;
 import com.tencent.bk.job.execute.model.esb.gse.EsbGseTaskResultDTO;
 import com.tencent.bk.job.execute.model.esb.gse.req.EsbGseManageProcRequest;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +53,13 @@ import java.util.stream.Collectors;
 public class GseManageProcessResourceImpl implements GseManageProcessResource {
 
     private final MessageI18nService i18nService;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public GseManageProcessResourceImpl(MessageI18nService i18nService) {
+    public GseManageProcessResourceImpl(MessageI18nService i18nService,
+                                        ApplicationService applicationService) {
         this.i18nService = i18nService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -61,6 +67,11 @@ public class GseManageProcessResourceImpl implements GseManageProcessResource {
         log.info("Gse manage process, request={}", request);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         List<GseProcessInfoDTO> gseProcessInfos = new ArrayList<>();

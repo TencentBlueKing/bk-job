@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -46,6 +47,7 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbFileLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogsV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbScriptIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpLogV3Request;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
@@ -70,13 +72,16 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
     private final MessageI18nService i18nService;
+    private final ApplicationService applicationService;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(MessageI18nService i18nService,
                                                      LogService logService,
-                                                     TaskInstanceService taskInstanceService) {
+                                                     TaskInstanceService taskInstanceService,
+                                                     ApplicationService applicationService) {
         this.i18nService = i18nService;
         this.logService = logService;
         this.taskInstanceService = taskInstanceService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -86,6 +91,11 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         if (!checkResult.isPass()) {
             log.warn("Batch get job instance ip log request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         long taskInstanceId = request.getTaskInstanceId();
@@ -141,7 +151,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
         }
 
         return ValidateResult.pass();
-     }
+    }
 
     private ValidateResult checkIps(List<EsbIpDTO> cloudIpList) {
         if (CollectionUtils.isEmpty(cloudIpList)) {

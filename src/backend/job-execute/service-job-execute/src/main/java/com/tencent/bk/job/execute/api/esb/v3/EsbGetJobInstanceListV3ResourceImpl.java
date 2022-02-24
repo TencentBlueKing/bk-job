@@ -29,11 +29,13 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -42,6 +44,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.esb.v3.EsbTaskInstanceV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceListV3Request;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,11 +60,14 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
 
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
+    private final ApplicationService applicationService;
 
     public EsbGetJobInstanceListV3ResourceImpl(MessageI18nService i18nService,
-                                               TaskResultService taskResultService) {
+                                               TaskResultService taskResultService,
+                                               ApplicationService applicationService) {
         this.i18nService = i18nService;
         this.taskResultService = taskResultService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -74,6 +80,12 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
             log.warn("Get job instance ip log request is illegal!");
             throw new InvalidParamException(checkResult);
         }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
+        }
+
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(request.getTaskInstanceId());
         taskQuery.setAppId(request.getAppId());

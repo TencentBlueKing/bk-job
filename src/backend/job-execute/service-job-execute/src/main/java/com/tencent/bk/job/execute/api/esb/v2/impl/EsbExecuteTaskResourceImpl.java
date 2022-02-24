@@ -31,8 +31,10 @@ import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbExecuteTaskResource;
@@ -45,6 +47,7 @@ import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbExecuteJobRequest;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,9 +62,13 @@ import java.util.List;
 public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implements EsbExecuteTaskResource {
 
     private final TaskExecuteService taskExecuteService;
+    private final ApplicationService applicationService;
+
     @Autowired
-    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
+    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
+                                      ApplicationService applicationService) {
         this.taskExecuteService = taskExecuteService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -72,6 +79,12 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
         if (!checkResult.isPass()) {
             log.warn("Execute job request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         request.trimIps();

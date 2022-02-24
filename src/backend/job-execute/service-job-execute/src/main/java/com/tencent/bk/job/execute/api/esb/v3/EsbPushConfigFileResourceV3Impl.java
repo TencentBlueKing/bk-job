@@ -29,9 +29,11 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -46,6 +48,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
 import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -64,14 +67,17 @@ public class EsbPushConfigFileResourceV3Impl
     private final TaskExecuteService taskExecuteService;
     private final StorageSystemConfig storageSystemConfig;
     private final AgentService agentService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
                                            StorageSystemConfig storageSystemConfig,
-                                           AgentService agentService) {
+                                           AgentService agentService,
+                                           ApplicationService applicationService) {
         this.taskExecuteService = taskExecuteService;
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -81,6 +87,11 @@ public class EsbPushConfigFileResourceV3Impl
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         request.trimIps();

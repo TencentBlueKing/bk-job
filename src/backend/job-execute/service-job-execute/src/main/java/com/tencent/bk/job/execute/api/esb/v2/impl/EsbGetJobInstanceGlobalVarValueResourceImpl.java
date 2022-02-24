@@ -28,9 +28,11 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
 import com.tencent.bk.job.execute.api.esb.v3.EsbGetJobInstanceGlobalVarValueV3Resource;
 import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO;
@@ -39,6 +41,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO.
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceGlobalVarValueRequest;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceGlobalVarValueV3Request;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +57,16 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
 
     private final MessageI18nService i18nService;
     private final EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public EsbGetJobInstanceGlobalVarValueResourceImpl(
         MessageI18nService i18nService,
-        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService) {
+        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService,
+        ApplicationService applicationService) {
         this.i18nService = i18nService;
         this.proxyGetJobInstanceGlobalVarService = proxyGetJobInstanceGlobalVarService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -72,6 +78,11 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         EsbGetJobInstanceGlobalVarValueV3Request newRequest =

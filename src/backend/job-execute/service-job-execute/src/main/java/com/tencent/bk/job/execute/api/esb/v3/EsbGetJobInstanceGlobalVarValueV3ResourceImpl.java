@@ -29,9 +29,11 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -39,6 +41,7 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.EsbStepInstanceGlobalVarValuesV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.GlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceGlobalVarValueV3Request;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +60,16 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
+    private final ApplicationService applicationService;
 
     public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(MessageI18nService i18nService,
                                                          TaskInstanceService taskInstanceService,
-                                                         StepInstanceVariableValueService stepInstanceVariableValueService) {
+                                                         StepInstanceVariableValueService stepInstanceVariableValueService,
+                                                         ApplicationService applicationService) {
         this.i18nService = i18nService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -75,6 +81,12 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         long taskInstanceId = request.getTaskInstanceId();

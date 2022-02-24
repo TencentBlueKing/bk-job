@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -48,6 +49,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteSQLRequest;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
@@ -71,16 +73,19 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
     private final MessageI18nService i18nService;
 
     private final ScriptService scriptService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
                                          MessageI18nService i18nService,
-                                         ScriptService scriptService) {
+                                         ScriptService scriptService,
+                                         ApplicationService applicationService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.scriptService = scriptService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -90,6 +95,11 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");
             throw new InvalidParamException(validateResult);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         request.trimIps();

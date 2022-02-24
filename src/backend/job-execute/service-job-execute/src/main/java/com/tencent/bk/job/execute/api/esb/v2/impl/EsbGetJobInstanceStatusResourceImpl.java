@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.GseTaskIpLogDTO;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -60,12 +62,15 @@ public class EsbGetJobInstanceStatusResourceImpl
     private final TaskInstanceService taskInstanceService;
     private final GseTaskLogService gseTaskLogService;
     private final MessageI18nService i18nService;
+    private final ApplicationService applicationService;
 
     public EsbGetJobInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
-                                               TaskInstanceService taskInstanceService) {
+                                               TaskInstanceService taskInstanceService,
+                                               ApplicationService applicationService) {
         this.i18nService = i18nService;
         this.gseTaskLogService = gseTaskLogService;
         this.taskInstanceService = taskInstanceService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -75,6 +80,11 @@ public class EsbGetJobInstanceStatusResourceImpl
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         long taskInstanceId = request.getTaskInstanceId();

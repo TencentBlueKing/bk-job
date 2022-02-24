@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
@@ -52,6 +53,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ArtifactoryLocalFileService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -78,17 +80,20 @@ public class EsbFastTransferFileV3ResourceImpl
     private final MessageI18nService i18nService;
 
     private final ArtifactoryLocalFileService artifactoryLocalFileService;
+    private final ApplicationService applicationService;
 
 
     @Autowired
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              FileSourceResourceClient fileSourceService,
                                              MessageI18nService i18nService,
-                                             ArtifactoryLocalFileService artifactoryLocalFileService) {
+                                             ArtifactoryLocalFileService artifactoryLocalFileService,
+                                             ApplicationService applicationService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceService = fileSourceService;
         this.i18nService = i18nService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -98,6 +103,11 @@ public class EsbFastTransferFileV3ResourceImpl
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
             throw new InvalidParamException(checkResult);
+        }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
         }
 
         if (StringUtils.isEmpty(request.getName())) {

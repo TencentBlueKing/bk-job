@@ -31,11 +31,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.gse.GseGetProcResultResource;
 import com.tencent.bk.job.execute.gse.GseApiExecutor;
 import com.tencent.bk.job.execute.model.esb.gse.req.EsbGseGetProcResultRequest;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -50,10 +53,13 @@ import java.util.Map;
 @Slf4j
 public class GseGetProcResultResourceImpl implements GseGetProcResultResource {
     private final MessageI18nService i18nService;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public GseGetProcResultResourceImpl(MessageI18nService i18nService) {
+    public GseGetProcResultResourceImpl(MessageI18nService i18nService,
+                                        ApplicationService applicationService) {
         this.i18nService = i18nService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -62,6 +68,12 @@ public class GseGetProcResultResourceImpl implements GseGetProcResultResource {
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+        //appId存在性校验
+        ApplicationInfoDTO applicationInfo = applicationService.getAppById(request.getAppId());
+        if (applicationInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_ID_NOT_EXIST);
+        }
+        
         String gseTaskId = request.getGseTaskId();
 
         api_map_rsp resp = new GseApiExecutor("").getGetProcRst(gseTaskId);
