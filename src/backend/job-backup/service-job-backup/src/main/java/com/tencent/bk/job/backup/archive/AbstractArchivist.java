@@ -76,12 +76,16 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected abstract long getFirstInstanceId();
 
     public void archive(ArchiveConfig archiveConfig, Long maxNeedArchiveId, CountDownLatch countDownLatch) {
+        boolean isAcquireLock = false;
         try {
             archiveSummary = new ArchiveSummary();
             archiveSummary.setTableName(tableName);
             if (!ArchiveTaskLock.getInstance().lock(tableName)) {
                 archiveSummary.setSkip(true);
+                isAcquireLock = false;
                 return;
+            } else {
+                isAcquireLock = true;
             }
             archiveSummary.setSkip(false);
             log.info("Start archive and delete, tableName: {}, archiveConfig: {}", tableName, archiveConfig);
@@ -103,7 +107,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             archiveSummary.setArchiveEnabled(archiveConfig.isArchiveEnabled());
             archiveSummary.setDeleteEnabled(archiveConfig.isDeleteEnabled());
             storeArchiveSummary();
-            ArchiveTaskLock.getInstance().unlock(tableName);
+            if (isAcquireLock) {
+                ArchiveTaskLock.getInstance().unlock(tableName);
+            }
             countDownLatch.countDown();
         }
     }

@@ -452,7 +452,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
 
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
         int totalDeleteRows = 0;
-        int maxLimitedDeleteRows = 2000;
+        int maxLimitedDeleteRows = 5000;
         while (true) {
             int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
             totalDeleteRows += deletedRows;
