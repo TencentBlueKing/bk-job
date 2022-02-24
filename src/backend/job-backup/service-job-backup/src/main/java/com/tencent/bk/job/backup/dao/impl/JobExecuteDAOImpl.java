@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.JobExecuteDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
@@ -167,11 +168,14 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         TASK_INSTANCE_VARIABLE_TABLE.NAME, TASK_INSTANCE_VARIABLE_TABLE.TYPE,
         TASK_INSTANCE_VARIABLE_TABLE.VALUE, TASK_INSTANCE_VARIABLE_TABLE.IS_CHANGEABLE,
         TASK_INSTANCE_VARIABLE_TABLE.ROW_CREATE_TIME, TASK_INSTANCE_VARIABLE_TABLE.ROW_UPDATE_TIME);
-    private final DSLContext context;
 
-    public JobExecuteDAOImpl(DSLContext context) {
+    private final DSLContext context;
+    private final ArchiveConfig archiveConfig;
+
+    public JobExecuteDAOImpl(DSLContext context, ArchiveConfig archiveConfig) {
         log.info("Init ExecuteReadDAO.");
         this.context = context;
+        this.archiveConfig = archiveConfig;
     }
 
     @Override
@@ -452,7 +456,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
 
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
         int totalDeleteRows = 0;
-        int maxLimitedDeleteRows = 5000;
+        int maxLimitedDeleteRows = archiveConfig.getDeleteLimitRowCount();
         while (true) {
             int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
             totalDeleteRows += deletedRows;
