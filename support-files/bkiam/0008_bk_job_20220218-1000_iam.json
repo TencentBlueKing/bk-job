@@ -7,7 +7,7 @@
                 "id": "script",
                 "name": "脚本",
                 "name_en": "Scripts",
-                "description": "所属相应业务下的脚本资源",
+                "description": "如 Shell / Perl / Bat / PowerShell 等脚本资源",
                 "description_en": "Scripts of Business",
                 "parents": [
                     {
@@ -31,7 +31,7 @@
                 "id": "job_template",
                 "name": "作业模版",
                 "name_en": "Job Templates",
-                "description": "作业的模板",
+                "description": "由1个或多个脚本执行/文件分发步骤组成的流程作业模板",
                 "description_en": "Job Templates",
                 "parents": [
                     {
@@ -652,10 +652,10 @@
             "operation": "upsert_action",
             "data": {
                 "id": "access_business",
-                "name": "业务访问",
+                "name": "业务(集)访问",
                 "name_en": "Access business",
-                "description": "决定你是否允许在作业平台中进入到某个业务里",
-                "description_en": "Decides you are allowed to enter a business in Job",
+                "description": "决定你是否允许在作业平台中进入到某个业务(集)里",
+                "description_en": "Decides you are allowed to enter a business(set) in Job",
                 "type": "view",
                 "related_actions": [],
                 "related_resource_types": [
@@ -684,8 +684,8 @@
                 "id": "create_script",
                 "name": "脚本新建",
                 "name_en": "Create script",
-                "description": "是否允许创建一个新的业务脚本",
-                "description_en": "Permission of create new script under the business.",
+                "description": "是否允许创建一个新的业务(集)脚本",
+                "description_en": "Permission of create new script under the business(set).",
                 "type": "create",
                 "related_actions": [
                     "access_business"
@@ -716,7 +716,7 @@
                 "id": "view_script",
                 "name": "脚本查看",
                 "name_en": "View script",
-                "description": "查看某些业务/业务集脚本的内容",
+                "description": "查看某些业务(集)的脚本内容",
                 "description_en": "Permission of view some scripts",
                 "type": "view",
                 "related_actions": [
@@ -750,7 +750,7 @@
                 "id": "execute_script",
                 "name": "脚本执行",
                 "name_en": "Execute script",
-                "description": "执行某些业务下的脚本",
+                "description": "执行某些业务(集)下的脚本",
                 "description_en": "Permission of launch scripts",
                 "type": "",
                 "related_actions": [
@@ -805,7 +805,7 @@
                 "id": "manage_script",
                 "name": "脚本管理",
                 "name_en": "Manage script",
-                "description": "业务下的脚本的编辑、删除以及版本管理的权限",
+                "description": "业务(集)下的脚本的编辑、删除以及版本管理的权限",
                 "description_en": "Permission of script edit, delete or version management",
                 "type": "edit",
                 "related_actions": [
@@ -941,7 +941,7 @@
                 "id": "delete_job_template",
                 "name": "作业模板删除",
                 "name_en": "Delete Job Template",
-                "description": "删除业务的作业模板的权限",
+                "description": "删除业务(集)的作业模板的权限",
                 "description_en": "Permission of deleting Job template.",
                 "type": "delete",
                 "related_actions": [
@@ -1259,7 +1259,7 @@
                 "id": "create_cron",
                 "name": "定时任务新建",
                 "name_en": "Create Cron",
-                "description": "在指定业务下创建新的定时任务的权限",
+                "description": "在指定业务(集)下创建新的定时任务的权限",
                 "description_en": "Permission of creating new cron jobs under business",
                 "type": "create",
                 "related_actions": [
@@ -1291,7 +1291,7 @@
                 "id": "manage_cron",
                 "name": "定时任务管理",
                 "name_en": "Manage Cron",
-                "description": "涉及指定业务下定时任务的启停、编辑等管理权限",
+                "description": "涉及指定业务(集)下定时任务的启停、编辑等管理权限",
                 "description_en": "Permission of On/Off or editing cron",
                 "type": "edit",
                 "related_actions": [
@@ -1325,7 +1325,7 @@
                 "id": "view_history",
                 "name": "执行历史查看",
                 "name_en": "View History",
-                "description": "查看指定业务下所有的执行记录的权限",
+                "description": "查看指定业务(集)下所有的执行记录的权限",
                 "description_en": "Permission of access all executed history under business",
                 "type": "view",
                 "related_actions": [
@@ -1357,7 +1357,7 @@
                 "id": "notification_setting",
                 "name": "消息通知配置",
                 "name_en": "Notification Setting",
-                "description": "在指定业务下配置个人信息通知设置的权限",
+                "description": "在指定业务(集)下配置个人信息通知设置的权限",
                 "description_en": "Permission of personal notification setting under business",
                 "type": "edit",
                 "related_actions": [
@@ -1389,7 +1389,7 @@
                 "id": "create_account",
                 "name": "执行账号新建",
                 "name_en": "Create Account",
-                "description": "在指定业务下创建新的执行账号的权限",
+                "description": "在指定业务(集)下创建新的执行账号的权限",
                 "description_en": "Permission of creating new account under business",
                 "type": "create",
                 "related_actions": [
@@ -1421,7 +1421,7 @@
                 "id": "manage_account",
                 "name": "执行账号管理",
                 "name_en": "Manage Account",
-                "description": "对指定业务下的执行账号的编辑、删除权限",
+                "description": "对指定业务(集)下的执行账号的编辑、删除权限",
                 "description_en": "Permission of editing or delete specified account under business",
                 "type": "edit",
                 "related_actions": [
@@ -1521,7 +1521,7 @@
                 "id": "execute_public_script",
                 "name": "公共脚本执行",
                 "name_en": "Execute Public Script",
-                "description": "引用公共脚本在指定业务的主机下执行的权限",
+                "description": "引用公共脚本在指定业务(集)的主机下执行的权限",
                 "description_en": "Permission of launch public script with specified host under business",
                 "type": "",
                 "related_actions": [
@@ -1644,7 +1644,7 @@
                 "id": "use_account",
                 "name": "执行账号使用",
                 "name_en": "Use Account",
-                "description": "对指定业务下的执行账号的使用权限",
+                "description": "对指定业务(集)下的执行账号的使用权限",
                 "description_en": "Permission of use specified account under business",
                 "type": "execute",
                 "related_actions": [
@@ -1712,7 +1712,7 @@
                 "id": "create_file_source",
                 "name": "文件源新建",
                 "name_en": "Create File-source",
-                "description": "是否允许用户在业务下创建新的文件源",
+                "description": "是否允许用户在业务(集)下创建新的文件源",
                 "description_en": "Permission of create new File-source under the business",
                 "type": "create",
                 "related_actions": [
