@@ -1,6 +1,7 @@
 package com.tencent.bk.job.execute.runner;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,10 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(logExportConfig.getStorageBackend())) {
+            //不使用制品库作为后端存储时不初始化
+            return;
+        }
         String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
         String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
         String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
