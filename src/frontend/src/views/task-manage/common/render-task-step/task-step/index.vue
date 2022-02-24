@@ -65,10 +65,10 @@
     </div>
 </template>
 <script>
+    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
     import StepDistroFile from './components/distro-file';
     import StepExecScript from './components/exec-script';
     import StepArificial from './components/artificial';
-    import VariableUseGuide from './variable-use-guide';
 
     export default {
         components: {
@@ -231,7 +231,6 @@
             z-index: 0;
             width: 366px;
             height: calc(100% - 56px);
-            border-left: 1px solid #dcdee5;
         }
     }
 </style>

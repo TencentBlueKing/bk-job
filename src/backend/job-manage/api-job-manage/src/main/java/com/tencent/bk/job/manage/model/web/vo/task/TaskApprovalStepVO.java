@@ -63,6 +63,6 @@ public class TaskApprovalStepVO {
             JobContextUtil.addDebugMessage("Approval step must have user!");
             return false;
         }
-        return approvalUser.validate(isCreate);
+        return approvalUser.validate();
     }
 }

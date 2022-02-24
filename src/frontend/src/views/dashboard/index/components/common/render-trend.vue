@@ -160,7 +160,7 @@
                     }),
                     StatisticsService.fetchTrendsMetrics({
                         endDate: this.date,
-                        startDate: prettyDateFormat(new Date(this.date) - 7 * 86400000),
+                        startDate: prettyDateFormat(new Date(this.date) - 6 * 86400000),
                         metric: this.metric,
                     }).then((data) => {
                         this.initTrend(data);

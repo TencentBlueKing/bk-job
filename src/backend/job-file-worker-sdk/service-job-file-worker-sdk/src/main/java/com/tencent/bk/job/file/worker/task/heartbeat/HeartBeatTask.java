@@ -69,7 +69,6 @@ public class HeartBeatTask {
 
     private HeartBeatReq getWorkerInfo() {
         HeartBeatReq heartBeatReq = new HeartBeatReq();
-        heartBeatReq.setId(workerConfig.getId());
         heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());

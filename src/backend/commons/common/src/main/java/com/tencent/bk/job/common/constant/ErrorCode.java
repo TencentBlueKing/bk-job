@@ -229,6 +229,8 @@ public class ErrorCode {
     public static final int LOCAL_FILE_NOT_EXIST_IN_BACKEND = 1244023;
     // 保存文件到本地失败
     public static final int FAIL_TO_SAVE_FILE_TO_LOCAL = 1244024;
+    // 任务被丢弃
+    public static final int TASK_ABANDONED = 1244025;
     // 作业执行 end
 
     // 定时作业 start
@@ -383,11 +385,13 @@ public class ErrorCode {
     public static final int PAAS_MSG_CHANNEL_DATA_ERROR = 1213003;
     // Artifactory接口返回数据结构异常
     public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
+    // 制品库中找不到节点:{0}，请到制品库核实
+    public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
 
     // IAM接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
 
-    // API 请求错误
+    // 第三方API请求错误
     public static final int API_ERROR = 1216001;
 
 }

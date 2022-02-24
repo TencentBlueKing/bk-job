@@ -34,7 +34,8 @@ public enum RunStatusEnum {
     BLANK(1, "等待执行"), RUNNING(2, "正在执行"), SUCCESS(3, "执行成功"),
     FAIL(4, "执行失败"), SKIPPED(5, "跳过"), IGNORE_ERROR(6, "忽略错误"),
     WAITING(7, "等待用户"), TERMINATED(8, "手动结束"), ABNORMAL_STATE(9, "状态异常"),
-    STOPPING(10, "强制终止中"), STOP_SUCCESS(11, "强制终止成功"), CONFIRM_TERMINATED(13, "确认终止");
+    STOPPING(10, "强制终止中"), STOP_SUCCESS(11, "强制终止成功"),
+    CONFIRM_TERMINATED(13, "确认终止"), ABANDONED(14, "被丢弃");
 
     private final Integer value;
     private final String name;
@@ -68,6 +69,7 @@ public enum RunStatusEnum {
         finishedStatusValueList.add(ABNORMAL_STATE.value);
         finishedStatusValueList.add(STOP_SUCCESS.value);
         finishedStatusValueList.add(CONFIRM_TERMINATED.value);
+        finishedStatusValueList.add(ABANDONED.value);
         return finishedStatusValueList;
     }
 

@@ -14,9 +14,9 @@ jobs:
         id: variables
         run: |
           tag="$(basename $GITHUB_REF)"
-          version=${tag##v}
+          bkjobVersion=${tag##v}
           echo "::set-output name=tag::${tag}"
-          echo "::set-output name=version::${version}"
+          echo "::set-output name=bkjobVersion::${bkjobVersion}"
       - name: init mysql
         run: |
           sudo /etc/init.d/mysql start
@@ -36,13 +36,13 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build Backend
         working-directory: src/backend
-        run: ./gradlew clean build -Dversion=${{ steps.variables.outputs.version }} -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
+        run: ./gradlew clean build -DbkjobVersion=${{ steps.variables.outputs.bkjobVersion }} -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
 
       - name: Npm Build Frontend
         run: |
           echo "npm version=$(npm -v)"
-          export JOB_VERSION=${{ steps.variables.outputs.version }}
-          npm i && npm run build
+          export JOB_VERSION=${{ steps.variables.outputs.bkjobVersion }}
+          npm i --legacy-peer-deps && npm run build
           mkdir -p release/job/frontend
           cp -r dist/* release/job/frontend
         working-directory: src/frontend
@@ -54,9 +54,10 @@ jobs:
       - name: Create artifact - make package
         id: create_artifact
         run: |
-          echo ${{ steps.variables.outputs.version }} > ./VERSION
+          echo ${{ steps.variables.outputs.bkjobVersion }} > ./VERSION
           chmod 755 ./package.sh
-          ./package.sh -m all -v ${{ steps.variables.outputs.version }}
+          ./package.sh -m all -v ${{ steps.variables.outputs.bkjobVersion }}
+        working-directory: ./
 
       - name: Create Release
         id: create_release
@@ -75,6 +76,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/job_ce-${{ steps.variables.outputs.version }}.tgz
-          asset_name: job_ce-${{ steps.variables.outputs.version }}.tgz
+          asset_path: ./release/job_ce-${{ steps.variables.outputs.bkjobVersion }}.tgz
+          asset_name: job_ce-${{ steps.variables.outputs.bkjobVersion }}.tgz
           asset_content_type: application/gzip
