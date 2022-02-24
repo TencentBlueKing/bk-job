@@ -31,12 +31,16 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
 
 @Service
 public class CredentialServiceImpl implements CredentialService {
@@ -110,6 +114,11 @@ public class CredentialServiceImpl implements CredentialService {
         } else {
             return credentialDTO.toServiceCredentialDTO();
         }
+    }
+
+    @Override
+    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids) {
+        return credentialDAO.listCredentialDisplayInfoByIds(dslContext, ids);
     }
 
     private CredentialDTO buildCredentialDTO(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {

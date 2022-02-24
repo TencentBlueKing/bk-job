@@ -22,27 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.app;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
-
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    int deleteCredentialById(DSLContext dslContext, String id);
-
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
-
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Scope {
+    String type;
+    String id;
 }

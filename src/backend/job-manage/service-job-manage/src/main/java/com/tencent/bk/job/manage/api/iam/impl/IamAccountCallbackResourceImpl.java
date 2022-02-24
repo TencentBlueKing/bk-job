@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
@@ -31,6 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamAccountCallbackResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
+import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -46,16 +49,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Slf4j
 public class IamAccountCallbackResourceImpl extends BaseIamCallbackService implements IamAccountCallbackResource {
     private final AccountService accountService;
+    private final AppTransferService appTransferService;
 
     @Autowired
-    public IamAccountCallbackResourceImpl(AccountService accountService) {
+    public IamAccountCallbackResourceImpl(AccountService accountService,
+                                          AppTransferService appTransferService) {
         this.accountService = accountService;
+        this.appTransferService = appTransferService;
     }
 
     private Pair<AccountDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -65,7 +74,9 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         AccountDTO accountQuery = new AccountDTO();
-        accountQuery.setAppId(searchCondition.getAppIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(
+            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        accountQuery.setAppId(appId);
         return Pair.of(accountQuery, baseSearchCondition);
     }
 
@@ -108,18 +119,31 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<Long> accountIdList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
-                AccountDTO accountDTO = accountService.getAccountById(id);
+                accountIdList.add(id);
+            } catch (NumberFormatException e) {
+                log.error("Parse account id failed!|{}", instanceId, e);
+            }
+        }
+        Map<Long, AccountDisplayDTO> accountInfoMap = accountService.getAccountDisplayInfoMapByIds(accountIdList);
+        // Job app --> CMDB biz/businessSet转换
+        Set<Long> appIdSet = new HashSet<>();
+        accountInfoMap.values().forEach(accountDisplayDTO -> appIdSet.add(accountDisplayDTO.getAppId()));
+        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                AccountDisplayDTO accountDTO = accountInfoMap.get(id);
                 if (accountDTO == null) {
                     return getNotFoundRespById(instanceId);
                 }
+                Long appId = accountDTO.getAppId();
+                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceId.APP);
-                rootNode.setId(accountDTO.getAppId().toString());
                 PathInfoDTO accountNode = new PathInfoDTO();
                 accountNode.setType(ResourceId.ACCOUNT);
                 accountNode.setId(accountDTO.getId().toString());

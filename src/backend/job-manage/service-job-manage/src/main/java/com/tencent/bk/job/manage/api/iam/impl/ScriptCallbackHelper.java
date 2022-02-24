@@ -1,10 +1,13 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
@@ -20,19 +23,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class ScriptCallbackHelper extends BaseIamCallbackService {
-    private ScriptService scriptService;
-    private IGetBasicInfo basicInfoInterface;
+    private final ScriptService scriptService;
+    private final IGetBasicInfo basicInfoInterface;
+    private final AppTransferService appTransferService;
 
     public ScriptCallbackHelper(
         ScriptService scriptService,
-        IGetBasicInfo basicInfoInterface
-    ) {
+        IGetBasicInfo basicInfoInterface,
+        AppTransferService appTransferService) {
         this.scriptService = scriptService;
         this.basicInfoInterface = basicInfoInterface;
+        this.appTransferService = appTransferService;
     }
 
     public interface IGetBasicInfo {
@@ -56,10 +65,10 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
 
         ScriptQuery scriptQuery = basicQueryCond.getLeft();
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<ScriptDTO> accountDTOPageData = scriptService.listPageScript(scriptQuery,
+        PageData<ScriptDTO> scriptDTOPageData = scriptService.listPageScript(scriptQuery,
             baseSearchCondition);
 
-        return IamRespUtil.getListInstanceRespFromPageData(accountDTOPageData, this::convert);
+        return IamRespUtil.getListInstanceRespFromPageData(scriptDTOPageData, this::convert);
     }
 
     @Override
@@ -83,10 +92,20 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<String> scriptIdList = searchCondition.getIdList();
+        List<ScriptBasicDTO> scriptBasicDTOList = scriptService.listScriptBasicInfoByScriptIds(scriptIdList);
+        Map<String, ScriptBasicDTO> scriptBasicDTOMap = new HashMap<>(scriptBasicDTOList.size());
+        Set<Long> appIdSet = new HashSet<>();
+        for (ScriptBasicDTO scriptBasicDTO : scriptBasicDTOList) {
+            scriptBasicDTOMap.put(scriptBasicDTO.getId(), scriptBasicDTO);
+            appIdSet.add(scriptBasicDTO.getAppId());
+        }
+        // Job app --> CMDB biz/businessSet转换
+        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
-                ScriptDTO scriptDTO = scriptService.getScriptByScriptId(instanceId);
-                if (scriptDTO == null || scriptDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
+                ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(instanceId);
+                if (scriptBasicDTO == null || scriptBasicDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
                     return getNotFoundRespById(instanceId);
                 }
                 // 拓扑路径构建
@@ -95,21 +114,21 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
                 if (basicInfoInterface.isPublicScript()) {
                     // 公共脚本
                     rootNode.setType(ResourceId.PUBLIC_SCRIPT);
-                    rootNode.setId(scriptDTO.getId());
+                    rootNode.setId(scriptBasicDTO.getId());
                 } else {
                     // 业务脚本
-                    rootNode.setType(ResourceId.APP);
-                    rootNode.setId(scriptDTO.getAppId().toString());
+                    Long appId = scriptBasicDTO.getAppId();
+                    rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                     PathInfoDTO scriptNode = new PathInfoDTO();
                     scriptNode.setType(ResourceId.SCRIPT);
-                    scriptNode.setId(scriptDTO.getId());
+                    scriptNode.setId(scriptBasicDTO.getId());
                     rootNode.setChild(scriptNode);
                 }
                 path.add(rootNode);
                 // 实例组装
                 InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
                 instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(scriptDTO.getName());
+                instanceInfo.setDisplayName(scriptBasicDTO.getName());
                 instanceInfo.setPath(path);
                 instanceAttributeInfoList.add(instanceInfo);
             } catch (NumberFormatException e) {

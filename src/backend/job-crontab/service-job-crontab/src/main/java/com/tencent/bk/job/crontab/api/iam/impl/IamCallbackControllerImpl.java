@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.crontab.api.iam.impl;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
@@ -46,18 +48,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RestController
 public class IamCallbackControllerImpl extends BaseIamCallbackService implements IamCallbackController {
 
     private final CronJobService cronJobService;
+    private final AppTransferService appTransferService;
 
     @Autowired
-    public IamCallbackControllerImpl(CronJobService cronJobService) {
+    public IamCallbackControllerImpl(CronJobService cronJobService,
+                                     AppTransferService appTransferService) {
         this.cronJobService = cronJobService;
+        this.appTransferService = appTransferService;
     }
 
     private Pair<CronJobInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -67,7 +74,9 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
-        cronJobQuery.setAppId(searchCondition.getAppIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(
+            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        cronJobQuery.setAppId(appId);
         return Pair.of(cronJobQuery, baseSearchCondition);
     }
 
@@ -123,16 +132,19 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
             }
         }
         Map<Long, CronJobInfoDTO> cronJobInfoMap = cronJobService.getCronJobInfoMapByIds(cronJobIdList);
+        // Job app --> CMDB biz/businessSet转换
+        Set<Long> appIdSet = new HashSet<>();
+        cronJobInfoMap.values().forEach(cronJobInfoDTO -> appIdSet.add(cronJobInfoDTO.getAppId()));
+        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (Long id : cronJobIdList) {
             CronJobInfoDTO cronJobInfoDTO = cronJobInfoMap.get(id);
             if (cronJobInfoDTO == null) {
                 return getNotFoundRespById(id.toString());
             }
+            Long appId = cronJobInfoDTO.getAppId();
             // 拓扑路径构建
             List<PathInfoDTO> path = new ArrayList<>();
-            PathInfoDTO rootNode = new PathInfoDTO();
-            rootNode.setType(ResourceId.APP);
-            rootNode.setId(cronJobInfoDTO.getAppId().toString());
+            PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
             PathInfoDTO cronJobNode = new PathInfoDTO();
             cronJobNode.setType(ResourceId.CRON);
             cronJobNode.setId(cronJobInfoDTO.getId().toString());

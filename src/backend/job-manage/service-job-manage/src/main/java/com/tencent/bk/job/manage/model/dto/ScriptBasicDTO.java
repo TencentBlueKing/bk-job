@@ -22,27 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.Collection;
-import java.util.List;
+/**
+ * 仅用于展示的脚本基础信息
+ */
+@Getter
+@Setter
+@ToString
+public class ScriptBasicDTO {
+    /**
+     * 脚本ID
+     */
+    private String id;
+    /**
+     * 脚本名称
+     */
+    private String name;
+    /**
+     * 脚本类型
+     */
+    private Integer type;
 
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    int deleteCredentialById(DSLContext dslContext, String id);
-
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
-
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+    /**
+     * 是否公共脚本
+     */
+    private boolean publicScript;
+    /**
+     * 业务ID
+     */
+    private Long appId;
+    /**
+     * 脚本大种类: 0 系统的执行脚本(如shell,bat,python等), 1 SQL执行脚本
+     */
+    private Integer category;
 }

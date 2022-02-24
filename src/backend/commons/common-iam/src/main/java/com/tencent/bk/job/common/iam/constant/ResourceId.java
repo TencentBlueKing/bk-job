@@ -31,7 +31,11 @@ public class ResourceId {
     /**
      * 业务
      */
-    public static final String APP = "biz";
+    public static final String BIZ = "biz";
+    /**
+     * 业务集
+     */
+    public static final String BUSINESS_SET = "business_set";
     /**
      * 脚本
      */

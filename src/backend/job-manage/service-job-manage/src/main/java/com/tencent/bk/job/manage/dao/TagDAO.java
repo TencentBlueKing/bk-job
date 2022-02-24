@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,6 +43,14 @@ public interface TagDAO {
      * @return 标签信息或 {@code null}
      */
     TagDTO getTagById(long tagId);
+
+    /**
+     * 根据标签 IDs 批量获取标签信息
+     *
+     * @param tagIds 标签 IDs
+     * @return 标签信息列表
+     */
+    List<TagDTO> listTagInfoByIds(Collection<Long> tagIds);
 
     /**
      * 根据业务 ID 和标签 ID 获取标签信息

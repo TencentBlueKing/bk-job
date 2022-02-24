@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
@@ -31,6 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.iam.IamTaskPlanCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -47,7 +50,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -55,10 +62,13 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
     implements IamTaskPlanCallbackResource {
 
     private final TaskPlanService planService;
+    private final AppTransferService appTransferService;
 
     @Autowired
-    public IamTaskPlanCallbackResourceImpl(TaskPlanService planService) {
+    public IamTaskPlanCallbackResourceImpl(TaskPlanService planService,
+                                           AppTransferService appTransferService) {
         this.planService = planService;
+        this.appTransferService = appTransferService;
     }
 
     private InstanceInfoDTO convert(TaskPlanInfoDTO planInfoDTO) {
@@ -113,31 +123,48 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<Long> planIdList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
-                TaskPlanInfoDTO planInfoDTO = planService.getTaskPlanById(id);
-                if (planInfoDTO == null) {
+                planIdList.add(id);
+            } catch (NumberFormatException e) {
+                log.error("Parse plan id failed!|{}", instanceId, e);
+            }
+        }
+        List<TaskPlanBasicInfoDTO> planBasicInfoDTOList = planService.listTaskPlanByIds(planIdList);
+        Map<Long, TaskPlanBasicInfoDTO> planBasicInfoDTOMap = new HashMap<>(planBasicInfoDTOList.size());
+        Set<Long> appIdSet = new HashSet<>();
+        for (TaskPlanBasicInfoDTO taskPlanBasicInfoDTO : planBasicInfoDTOList) {
+            planBasicInfoDTOMap.put(taskPlanBasicInfoDTO.getId(), taskPlanBasicInfoDTO);
+            appIdSet.add(taskPlanBasicInfoDTO.getAppId());
+        }
+        // Job app --> CMDB biz/businessSet转换
+        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        for (String instanceId : searchCondition.getIdList()) {
+            try {
+                long id = Long.parseLong(instanceId);
+                TaskPlanBasicInfoDTO planBasicInfoDTO = planBasicInfoDTOMap.get(id);
+                if (planBasicInfoDTO == null) {
                     return getNotFoundRespById(instanceId);
                 }
+                Long appId = planBasicInfoDTO.getAppId();
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceId.APP);
-                rootNode.setId(planInfoDTO.getAppId().toString());
+                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO templateNode = new PathInfoDTO();
                 templateNode.setType(ResourceId.TEMPLATE);
-                templateNode.setId(planInfoDTO.getTemplateId().toString());
+                templateNode.setId(planBasicInfoDTO.getTemplateId().toString());
                 rootNode.setChild(templateNode);
                 PathInfoDTO planNode = new PathInfoDTO();
                 planNode.setType(ResourceId.PLAN);
-                planNode.setId(planInfoDTO.getId().toString());
+                planNode.setId(planBasicInfoDTO.getId().toString());
                 templateNode.setChild(planNode);
                 path.add(rootNode);
                 // 实例组装
                 InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
                 instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(planInfoDTO.getName());
+                instanceInfo.setDisplayName(planBasicInfoDTO.getName());
                 instanceInfo.setPath(path);
                 instanceAttributeInfoList.add(instanceInfo);
             } catch (NumberFormatException e) {

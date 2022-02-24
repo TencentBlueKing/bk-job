@@ -335,7 +335,7 @@ public class AuthServiceImpl implements AuthService {
             result.setAny(true);
         } else {
             if (StringUtils.isNotBlank(expression.getField())
-                && expression.getField().equals(ResourceId.APP + "." + "id")) {
+                && expression.getField().equals(ResourceId.BIZ + "." + "id")) {
                 if (expression.getValue() instanceof List) {
                     List<?> list = ((List<?>) expression.getValue());
                     if (list.size() > 0) {

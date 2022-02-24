@@ -22,27 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.model.dto.task;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
+/**
+ * 只包含基础信息的执行计划
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaskPlanBasicInfoDTO {
 
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
+    /**
+     * 执行方案 ID
+     */
+    private Long id;
 
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
+    /**
+     * 执行方案名称
+     */
+    private String name;
 
-    int deleteCredentialById(DSLContext dslContext, String id);
+    /**
+     * 执行方案版本
+     */
+    private String version;
 
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
+    /**
+     * 业务 ID
+     */
+    private Long appId;
 
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
+    /**
+     * 模版 ID
+     */
+    private Long templateId;
 
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+    /**
+     * 是否是调试方案
+     */
+    private Boolean debug = false;
+
 }

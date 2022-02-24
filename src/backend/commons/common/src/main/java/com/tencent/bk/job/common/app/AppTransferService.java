@@ -22,27 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
-
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+package com.tencent.bk.job.common.app;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
+/**
+ * 将Job内业务ID与CMDB业务、业务集等ID进行转换的工具
+ */
+public interface AppTransferService {
 
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
+    Long getAppIdByScope(String scopeType, String scopeId);
 
-    int deleteCredentialById(DSLContext dslContext, String id);
+    Scope getScopeByAppId(Long appId);
 
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
+    Map<Long, Scope> getScopeByAppIds(Collection<Long> appIds);
 
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 }

@@ -38,7 +38,7 @@ public enum ResourceTypeEnum {
     /**
      * 业务
      */
-    BUSINESS(SystemId.CMDB, ResourceId.APP, null),
+    BUSINESS(SystemId.CMDB, ResourceId.BIZ, null),
     /**
      * 脚本
      */

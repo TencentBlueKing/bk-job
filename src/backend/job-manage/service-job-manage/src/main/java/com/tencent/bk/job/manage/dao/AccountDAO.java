@@ -29,7 +29,9 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
+import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -59,6 +61,14 @@ public interface AccountDAO {
      * @return
      */
     AccountDTO getAccountById(Long accountId);
+
+    /**
+     * 根据ID批量获取账号信息
+     *
+     * @param accountIds
+     * @return
+     */
+    List<AccountDisplayDTO> listAccountDisplayInfoByIds(Collection<Long> accountIds);
 
     /**
      * 根据appId与account获取账号信息
