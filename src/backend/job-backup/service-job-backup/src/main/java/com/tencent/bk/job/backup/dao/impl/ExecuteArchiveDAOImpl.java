@@ -63,7 +63,8 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
         try {
             Loader<?> loader =
                 context.loadInto(recordList.get(0).getTable())
-                    .onErrorIgnore()
+                    .onDuplicateKeyIgnore()
+                    .onErrorAbort()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
                     .fields(fieldList)
