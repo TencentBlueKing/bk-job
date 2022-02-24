@@ -27,7 +27,11 @@ package com.tencent.bk.job.backup.dao.impl;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Loader;
+import org.jooq.LoaderError;
+import org.jooq.TableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +66,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                     .onErrorIgnore()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
-                    .fields(fieldList)
+                    .fieldsCorresponding()
                     .execute();
             executeResult = loader.stored();
             log.info("Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
