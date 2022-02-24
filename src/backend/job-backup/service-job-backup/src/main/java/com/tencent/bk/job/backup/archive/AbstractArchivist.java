@@ -273,7 +273,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 lastDeletedId = stop;
                 deletedRows += deleteCount;
                 start += deleteIdStepSize;
-                log.info("Batch delete {}, lastDeletedId: {}, delete rows: {}, cost: {}ms", tableName,
+                log.info("Delete {}, lastDeletedId: {}, delete rows: {}, cost: {}ms", tableName,
                     lastDeletedId, deleteCount, System.currentTimeMillis() - batchDeleteStartTime);
                 updateDeleteProgress(lastDeletedId);
             }
