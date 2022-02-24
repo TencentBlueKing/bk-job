@@ -26,9 +26,36 @@ package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.dao.JobExecuteDAO;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.*;
-import org.jooq.generated.tables.*;
-import org.jooq.generated.tables.records.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.generated.tables.FileSourceTaskLog;
+import org.jooq.generated.tables.GseTaskIpLog;
+import org.jooq.generated.tables.GseTaskLog;
+import org.jooq.generated.tables.OperationLog;
+import org.jooq.generated.tables.StepInstance;
+import org.jooq.generated.tables.StepInstanceConfirm;
+import org.jooq.generated.tables.StepInstanceFile;
+import org.jooq.generated.tables.StepInstanceScript;
+import org.jooq.generated.tables.StepInstanceVariable;
+import org.jooq.generated.tables.TaskInstance;
+import org.jooq.generated.tables.TaskInstanceVariable;
+import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
+import org.jooq.generated.tables.records.GseTaskIpLogRecord;
+import org.jooq.generated.tables.records.GseTaskLogRecord;
+import org.jooq.generated.tables.records.OperationLogRecord;
+import org.jooq.generated.tables.records.StepInstanceConfirmRecord;
+import org.jooq.generated.tables.records.StepInstanceFileRecord;
+import org.jooq.generated.tables.records.StepInstanceRecord;
+import org.jooq.generated.tables.records.StepInstanceScriptRecord;
+import org.jooq.generated.tables.records.StepInstanceVariableRecord;
+import org.jooq.generated.tables.records.TaskInstanceRecord;
+import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,39 +117,39 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
     private static final StepInstanceConfirm STEP_INSTANCE_CONFIRM_TABLE = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
     private static final List<Field<?>> STEP_INSTANCE_CONFIRM_FIELDS =
         Arrays.asList(STEP_INSTANCE_CONFIRM_TABLE.STEP_INSTANCE_ID, STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_MESSAGE,
-        STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_USERS, STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_ROLES,
-        STEP_INSTANCE_CONFIRM_TABLE.NOTIFY_CHANNELS, STEP_INSTANCE_CONFIRM_TABLE.ROW_CREATE_TIME,
-        STEP_INSTANCE_CONFIRM_TABLE.ROW_UPDATE_TIME, STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_REASON);
+            STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_USERS, STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_ROLES,
+            STEP_INSTANCE_CONFIRM_TABLE.NOTIFY_CHANNELS, STEP_INSTANCE_CONFIRM_TABLE.ROW_CREATE_TIME,
+            STEP_INSTANCE_CONFIRM_TABLE.ROW_UPDATE_TIME, STEP_INSTANCE_CONFIRM_TABLE.CONFIRM_REASON);
 
     private static final StepInstanceFile STEP_INSTANCE_FILE_TABLE = StepInstanceFile.STEP_INSTANCE_FILE;
     private static final List<Field<?>> STEP_INSTANCE_FILE_FIELDS =
         Arrays.asList(STEP_INSTANCE_FILE_TABLE.STEP_INSTANCE_ID, STEP_INSTANCE_FILE_TABLE.FILE_SOURCE,
-        STEP_INSTANCE_FILE_TABLE.RESOLVED_FILE_SOURCE, STEP_INSTANCE_FILE_TABLE.FILE_TARGET_PATH,
-        STEP_INSTANCE_FILE_TABLE.RESOLVED_FILE_TARGET_PATH, STEP_INSTANCE_FILE_TABLE.FILE_UPLOAD_SPEED_LIMIT,
-        STEP_INSTANCE_FILE_TABLE.FILE_DOWNLOAD_SPEED_LIMIT, STEP_INSTANCE_FILE_TABLE.FILE_DUPLICATE_HANDLE,
-        STEP_INSTANCE_FILE_TABLE.NOT_EXIST_PATH_HANDLER, STEP_INSTANCE_FILE_TABLE.EXECUTION_TIMEOUT,
-        STEP_INSTANCE_FILE_TABLE.SYSTEM_ACCOUNT_ID, STEP_INSTANCE_FILE_TABLE.SYSTEM_ACCOUNT,
-        STEP_INSTANCE_FILE_TABLE.ROW_CREATE_TIME, STEP_INSTANCE_FILE_TABLE.ROW_UPDATE_TIME);
+            STEP_INSTANCE_FILE_TABLE.RESOLVED_FILE_SOURCE, STEP_INSTANCE_FILE_TABLE.FILE_TARGET_PATH,
+            STEP_INSTANCE_FILE_TABLE.RESOLVED_FILE_TARGET_PATH, STEP_INSTANCE_FILE_TABLE.FILE_UPLOAD_SPEED_LIMIT,
+            STEP_INSTANCE_FILE_TABLE.FILE_DOWNLOAD_SPEED_LIMIT, STEP_INSTANCE_FILE_TABLE.FILE_DUPLICATE_HANDLE,
+            STEP_INSTANCE_FILE_TABLE.NOT_EXIST_PATH_HANDLER, STEP_INSTANCE_FILE_TABLE.EXECUTION_TIMEOUT,
+            STEP_INSTANCE_FILE_TABLE.SYSTEM_ACCOUNT_ID, STEP_INSTANCE_FILE_TABLE.SYSTEM_ACCOUNT,
+            STEP_INSTANCE_FILE_TABLE.ROW_CREATE_TIME, STEP_INSTANCE_FILE_TABLE.ROW_UPDATE_TIME);
 
     private static final StepInstanceScript STEP_INSTANCE_SCRIPT_TABLE = StepInstanceScript.STEP_INSTANCE_SCRIPT;
     private static final List<Field<?>> STEP_INSTANCE_SCRIPT_FIELDS =
         Arrays.asList(STEP_INSTANCE_SCRIPT_TABLE.STEP_INSTANCE_ID, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_CONTENT,
-        STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_TYPE, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_PARAM,
-        STEP_INSTANCE_SCRIPT_TABLE.RESOLVED_SCRIPT_PARAM, STEP_INSTANCE_SCRIPT_TABLE.EXECUTION_TIMEOUT,
-        STEP_INSTANCE_SCRIPT_TABLE.SYSTEM_ACCOUNT_ID, STEP_INSTANCE_SCRIPT_TABLE.SYSTEM_ACCOUNT,
-        STEP_INSTANCE_SCRIPT_TABLE.DB_ACCOUNT_ID, STEP_INSTANCE_SCRIPT_TABLE.DB_TYPE,
-        STEP_INSTANCE_SCRIPT_TABLE.DB_ACCOUNT, STEP_INSTANCE_SCRIPT_TABLE.DB_PASSWORD,
-        STEP_INSTANCE_SCRIPT_TABLE.DB_PORT, STEP_INSTANCE_SCRIPT_TABLE.ROW_CREATE_TIME,
-        STEP_INSTANCE_SCRIPT_TABLE.ROW_UPDATE_TIME, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_SOURCE,
-        STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_ID, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_VERSION_ID,
-        STEP_INSTANCE_SCRIPT_TABLE.IS_SECURE_PARAM);
+            STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_TYPE, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_PARAM,
+            STEP_INSTANCE_SCRIPT_TABLE.RESOLVED_SCRIPT_PARAM, STEP_INSTANCE_SCRIPT_TABLE.EXECUTION_TIMEOUT,
+            STEP_INSTANCE_SCRIPT_TABLE.SYSTEM_ACCOUNT_ID, STEP_INSTANCE_SCRIPT_TABLE.SYSTEM_ACCOUNT,
+            STEP_INSTANCE_SCRIPT_TABLE.DB_ACCOUNT_ID, STEP_INSTANCE_SCRIPT_TABLE.DB_TYPE,
+            STEP_INSTANCE_SCRIPT_TABLE.DB_ACCOUNT, STEP_INSTANCE_SCRIPT_TABLE.DB_PASSWORD,
+            STEP_INSTANCE_SCRIPT_TABLE.DB_PORT, STEP_INSTANCE_SCRIPT_TABLE.ROW_CREATE_TIME,
+            STEP_INSTANCE_SCRIPT_TABLE.ROW_UPDATE_TIME, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_SOURCE,
+            STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_ID, STEP_INSTANCE_SCRIPT_TABLE.SCRIPT_VERSION_ID,
+            STEP_INSTANCE_SCRIPT_TABLE.IS_SECURE_PARAM);
 
     private static final StepInstanceVariable STEP_INSTANCE_VARIABLE_TABLE =
         StepInstanceVariable.STEP_INSTANCE_VARIABLE;
     private static final List<Field<?>> STEP_INSTANCE_VARIABLE_FIELDS =
         Arrays.asList(STEP_INSTANCE_VARIABLE_TABLE.TASK_INSTANCE_ID, STEP_INSTANCE_VARIABLE_TABLE.STEP_INSTANCE_ID,
-        STEP_INSTANCE_VARIABLE_TABLE.TYPE, STEP_INSTANCE_VARIABLE_TABLE.PARAM_VALUES,
-        STEP_INSTANCE_VARIABLE_TABLE.ROW_CREATE_TIME, STEP_INSTANCE_VARIABLE_TABLE.ROW_UPDATE_TIME);
+            STEP_INSTANCE_VARIABLE_TABLE.TYPE, STEP_INSTANCE_VARIABLE_TABLE.PARAM_VALUES,
+            STEP_INSTANCE_VARIABLE_TABLE.ROW_CREATE_TIME, STEP_INSTANCE_VARIABLE_TABLE.ROW_UPDATE_TIME);
     private static final TaskInstance TASK_INSTANCE_TABLE = TaskInstance.TASK_INSTANCE;
     private static final List<Field<?>> TASK_INSTANCE_FIELDS = Arrays.asList(TASK_INSTANCE_TABLE.ID,
         TASK_INSTANCE_TABLE.APP_ID, TASK_INSTANCE_TABLE.TASK_ID,
@@ -412,7 +439,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(FILE_SOURCE_TASK_LOG_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(FILE_SOURCE_TASK_LOG_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(FILE_SOURCE_TASK_LOG_TABLE).where(conditions).execute();
+        return deleteWithLimit(FILE_SOURCE_TASK_LOG_TABLE, conditions);
     }
 
     @Override
@@ -420,7 +447,20 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(GSE_TASK_IP_LOG_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(GSE_TASK_IP_LOG_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(GSE_TASK_IP_LOG_TABLE).where(conditions).execute();
+        return deleteWithLimit(GSE_TASK_IP_LOG_TABLE, conditions);
+    }
+
+    private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
+        int totalDeleteRows = 0;
+        int maxLimitedDeleteRows = 2000;
+        while (true) {
+            int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
+            totalDeleteRows += deletedRows;
+            if (deletedRows < maxLimitedDeleteRows) {
+                break;
+            }
+        }
+        return totalDeleteRows;
     }
 
     @Override
@@ -428,7 +468,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(GSE_TASK_LOG_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(GSE_TASK_LOG_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(GSE_TASK_LOG_TABLE).where(conditions).execute();
+        return deleteWithLimit(GSE_TASK_LOG_TABLE, conditions);
     }
 
     @Override
@@ -436,7 +476,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(OPERATION_LOG_TABLE.TASK_INSTANCE_ID.greaterThan(start));
         conditions.add(OPERATION_LOG_TABLE.TASK_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(OPERATION_LOG_TABLE).where(conditions).execute();
+        return deleteWithLimit(OPERATION_LOG_TABLE, conditions);
     }
 
     @Override
@@ -444,7 +484,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(STEP_INSTANCE_TABLE.ID.greaterThan(start));
         conditions.add(STEP_INSTANCE_TABLE.ID.lessOrEqual(stop));
-        return context.delete(STEP_INSTANCE_TABLE).where(conditions).execute();
+        return deleteWithLimit(STEP_INSTANCE_TABLE, conditions);
     }
 
     @Override
@@ -452,7 +492,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(STEP_INSTANCE_CONFIRM_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(STEP_INSTANCE_CONFIRM_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(STEP_INSTANCE_CONFIRM_TABLE).where(conditions).execute();
+        return deleteWithLimit(STEP_INSTANCE_CONFIRM_TABLE, conditions);
     }
 
     @Override
@@ -460,7 +500,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(STEP_INSTANCE_FILE_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(STEP_INSTANCE_FILE_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(STEP_INSTANCE_FILE_TABLE).where(conditions).execute();
+        return deleteWithLimit(STEP_INSTANCE_FILE_TABLE, conditions);
     }
 
     @Override
@@ -468,7 +508,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(STEP_INSTANCE_SCRIPT_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(STEP_INSTANCE_SCRIPT_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(STEP_INSTANCE_SCRIPT_TABLE).where(conditions).execute();
+        return deleteWithLimit(STEP_INSTANCE_SCRIPT_TABLE, conditions);
     }
 
     @Override
@@ -476,7 +516,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(STEP_INSTANCE_VARIABLE_TABLE.STEP_INSTANCE_ID.greaterThan(start));
         conditions.add(STEP_INSTANCE_VARIABLE_TABLE.STEP_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(STEP_INSTANCE_VARIABLE_TABLE).where(conditions).execute();
+        return deleteWithLimit(STEP_INSTANCE_VARIABLE_TABLE, conditions);
     }
 
     @Override
@@ -484,7 +524,7 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TASK_INSTANCE_TABLE.ID.greaterThan(start));
         conditions.add(TASK_INSTANCE_TABLE.ID.lessOrEqual(stop));
-        return context.delete(TASK_INSTANCE_TABLE).where(conditions).execute();
+        return deleteWithLimit(TASK_INSTANCE_TABLE, conditions);
     }
 
     @Override
@@ -492,6 +532,6 @@ public class JobExecuteDAOImpl implements JobExecuteDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TASK_INSTANCE_VARIABLE_TABLE.TASK_INSTANCE_ID.greaterThan(start));
         conditions.add(TASK_INSTANCE_VARIABLE_TABLE.TASK_INSTANCE_ID.lessOrEqual(stop));
-        return context.delete(TASK_INSTANCE_VARIABLE_TABLE).where(conditions).execute();
+        return deleteWithLimit(TASK_INSTANCE_VARIABLE_TABLE, conditions);
     }
 }
