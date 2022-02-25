@@ -63,7 +63,7 @@ public abstract class BaseIamCallbackService {
     }
 
     /**
-     * 根据Job内部业务网Id获取映射为CMDB scope，生成对应的权限中心path节点
+     * 根据Job内部业务Id获取映射为CMDB scope，生成对应的权限中心path节点
      *
      * @param appId         Job内部业务ID
      * @param appIdScopeMap 内部业务Id与Scope映射表

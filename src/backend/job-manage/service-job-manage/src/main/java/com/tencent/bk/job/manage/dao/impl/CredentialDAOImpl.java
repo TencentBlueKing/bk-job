@@ -303,8 +303,7 @@ public class CredentialDAOImpl implements CredentialDAO {
         return credentialPageData;
     }
 
-    private CredentialDTO convertRecordToDto(
-        Record record) {
+    private CredentialDTO convertRecordToDto(Record record) {
         try {
             String credentialStr = AESUtils.decryptToPlainText(
                 Base64Util.decodeContentToByte(record.get(defaultTable.VALUE)),
@@ -331,8 +330,7 @@ public class CredentialDAOImpl implements CredentialDAO {
         }
     }
 
-    private ServiceCredentialDisplayDTO convertRecordToDisplayDto(
-        Record record) {
+    private ServiceCredentialDisplayDTO convertRecordToDisplayDto(Record record) {
         return new ServiceCredentialDisplayDTO(
             record.get(defaultTable.ID),
             record.get(defaultTable.APP_ID),

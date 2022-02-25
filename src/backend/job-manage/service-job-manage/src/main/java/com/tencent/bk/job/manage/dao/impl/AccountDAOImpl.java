@@ -132,8 +132,7 @@ public class AccountDAOImpl implements AccountDAO {
             TB_ACCOUNT.ALIAS,
             TB_ACCOUNT.CATEGORY,
             TB_ACCOUNT.TYPE,
-            TB_ACCOUNT.APP_ID
-        )
+            TB_ACCOUNT.APP_ID)
             .from(TB_ACCOUNT)
             .where(conditions)
             .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
