@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -76,16 +75,14 @@ import java.util.stream.Collectors;
 @RestController
 public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
-    private CronJobService cronJobService;
-    private MessageI18nService i18nService;
-    private AuthService authService;
-    private ServiceTaskPlanResourceClient taskPlanResource;
+    private final CronJobService cronJobService;
+    private final AuthService authService;
+    private final ServiceTaskPlanResourceClient taskPlanResource;
 
     @Autowired
-    public EsbCronJobV3ResourceImpl(CronJobService cronJobService, MessageI18nService i18nService,
+    public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     AuthService authService, ServiceTaskPlanResourceClient taskPlanResource) {
         this.cronJobService = cronJobService;
-        this.i18nService = i18nService;
         this.authService = authService;
         this.taskPlanResource = taskPlanResource;
     }
@@ -201,7 +198,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
 
-        Boolean updateResult = null;
+        Boolean updateResult;
         try {
             updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
