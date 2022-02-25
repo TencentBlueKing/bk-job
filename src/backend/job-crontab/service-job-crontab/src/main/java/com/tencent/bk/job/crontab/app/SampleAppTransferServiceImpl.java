@@ -22,27 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.crontab.app;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
+import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
+/**
+ * 仅处理业务类型的示例转换类，仅用于验证代码兼容性
+ */
+@Service
+public class SampleAppTransferServiceImpl implements AppTransferService {
+    @Override
+    public Long getAppIdByScope(String scopeType, String scopeId) {
+        return Long.parseLong(scopeId);
+    }
 
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
+    @Override
+    public Scope getScopeByAppId(Long appId) {
+        return new Scope(ResourceId.BIZ, appId.toString());
+    }
 
-    int deleteCredentialById(DSLContext dslContext, String id);
-
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
-
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+    @Override
+    public Map<Long, Scope> getScopeByAppIds(Collection<Long> appIds) {
+        Map<Long, Scope> map = new HashMap<>();
+        for (Long appId : appIds) {
+            map.put(appId, new Scope(ResourceId.BIZ, appId.toString()));
+        }
+        return map;
+    }
 }

@@ -71,6 +71,14 @@ public interface TaskTemplateDAO {
     TaskTemplateInfoDTO getTaskTemplateById(Long templateId);
 
     /**
+     * 根据模版 IDs 批量查询模版数据
+     *
+     * @param templateIds 模版 ID
+     * @return 模版信息列表
+     */
+    List<TaskTemplateInfoDTO> listTaskTemplateBasicInfoByIds(List<Long> templateIds);
+
+    /**
      * 查询已删除的模板信息
      *
      * @param templateId 模版 ID

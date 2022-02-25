@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.api.iam;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -44,7 +47,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -53,10 +61,13 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     implements IamFileSourceCallbackResource {
 
     private final FileSourceService fileSourceService;
+    private final AppTransferService appTransferService;
 
     @Autowired
-    public IamFileSourceCallbackResourceImpl(FileSourceService fileSourceService) {
+    public IamFileSourceCallbackResourceImpl(FileSourceService fileSourceService,
+                                             AppTransferService appTransferService) {
         this.fileSourceService = fileSourceService;
+        this.appTransferService = appTransferService;
     }
 
     @Data
@@ -88,7 +99,8 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     private FileSourceSearchCondition getSearchCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         // 文件源列表实现
-        List<Long> appIdList = searchCondition.getAppIdList();
+        Long appId = appTransferService.getAppIdByScope(
+            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
@@ -100,7 +112,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
 
         String keyword = callbackRequest.getFilter().getKeyword();
         return new FileSourceSearchCondition(
-            appIdList, idStrList, fileSourceIdList, start, length, keyword
+            Collections.singletonList(appId), idStrList, fileSourceIdList, start, length, keyword
         );
     }
 
@@ -163,31 +175,50 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     ) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         List<Object> instanceAttributeInfoList = new ArrayList<>();
+        List<Integer> fileSourceIdList = new ArrayList<>();
         for (String instanceId : searchCondition.getIdList()) {
             try {
+                Integer id = Integer.parseInt(instanceId);
+                fileSourceIdList.add(id);
+            } catch (NumberFormatException e) {
+                log.error("Parse fileSource id failed!|{}", instanceId, e);
+            }
+        }
+        List<FileSourceBasicInfoDTO> fileSourceBasicInfoDTOList =
+            fileSourceService.listFileSourceByIds(fileSourceIdList);
+        Map<Integer, FileSourceBasicInfoDTO> fileSourceBasicInfoDTOMap =
+            new HashMap<>(fileSourceBasicInfoDTOList.size());
+        Set<Long> appIdSet = new HashSet<>();
+        for (FileSourceBasicInfoDTO fileSourceBasicInfoDTO : fileSourceBasicInfoDTOList) {
+            fileSourceBasicInfoDTOMap.put(fileSourceBasicInfoDTO.getId(), fileSourceBasicInfoDTO);
+            appIdSet.add(fileSourceBasicInfoDTO.getAppId());
+        }
+        // Job app --> CMDB biz/businessSet转换
+        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        for (Integer id : fileSourceIdList) {
+            try {
                 // 文件源详情查询实现
-                FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(Integer.parseInt(instanceId));
-                if (fileSourceDTO == null) {
-                    return getNotFoundRespById(instanceId);
+                FileSourceBasicInfoDTO fileSourceBasicInfoDTO = fileSourceBasicInfoDTOMap.get(id);
+                if (fileSourceBasicInfoDTO == null) {
+                    return getNotFoundRespById(id.toString());
                 }
+                Long appId = fileSourceBasicInfoDTO.getAppId();
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
-                PathInfoDTO rootNode = new PathInfoDTO();
-                rootNode.setType(ResourceId.APP);
-                rootNode.setId(fileSourceDTO.getAppId().toString());
+                PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO fileSourceNode = new PathInfoDTO();
                 fileSourceNode.setType(ResourceId.FILE_SOURCE);
-                fileSourceNode.setId(fileSourceDTO.getId().toString());
+                fileSourceNode.setId(fileSourceBasicInfoDTO.getId().toString());
                 rootNode.setChild(fileSourceNode);
                 path.add(rootNode);
                 // 实例组装
                 InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-                instanceInfo.setId(instanceId);
-                instanceInfo.setDisplayName(fileSourceDTO.getAlias());
+                instanceInfo.setId(id.toString());
+                instanceInfo.setDisplayName(fileSourceBasicInfoDTO.getAlias());
                 instanceInfo.setPath(path);
                 instanceAttributeInfoList.add(instanceInfo);
             } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+                log.error("Parse object id failed!|{}", id, e);
             }
         }
 

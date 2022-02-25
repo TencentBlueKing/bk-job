@@ -43,6 +43,7 @@ import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
@@ -78,7 +79,6 @@ public class DbRecordMapper {
 
     private static final TaskTemplateStepFileList TABLE_TASK_TEMPLATE_STEP_FILE_LIST =
         TaskTemplateStepFileList.TASK_TEMPLATE_STEP_FILE_LIST;
-
 
 
     public static TaskApprovalStepDTO
@@ -362,5 +362,21 @@ public class DbRecordMapper {
         taskPlanInfo.setVersion(record.get(table.VERSION));
         taskPlanInfo.setNeedUpdate(record.get(table.IS_LATEST_VERSION).intValue() == 0);
         return taskPlanInfo;
+    }
+
+    public static TaskPlanBasicInfoDTO convertRecordToPlanBasicInfo(
+        Record6<ULong, String, String, ULong, ULong, UByte> record) {
+        if (record == null) {
+            return null;
+        }
+        TaskPlanBasicInfoDTO taskPlanBasicInfoDTO = new TaskPlanBasicInfoDTO();
+        TaskPlan table = TaskPlan.TASK_PLAN;
+        taskPlanBasicInfoDTO.setId(record.get(table.ID).longValue());
+        taskPlanBasicInfoDTO.setName(record.get(table.NAME));
+        taskPlanBasicInfoDTO.setVersion(record.get(table.VERSION));
+        taskPlanBasicInfoDTO.setAppId(record.get(table.APP_ID).longValue());
+        taskPlanBasicInfoDTO.setTemplateId(record.get(table.TEMPLATE_ID).longValue());
+        taskPlanBasicInfoDTO.setDebug(record.get(table.TYPE).intValue() == 1);
+        return taskPlanBasicInfoDTO;
     }
 }

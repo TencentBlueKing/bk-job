@@ -30,9 +30,12 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
+import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 账号管理服务
@@ -49,10 +52,18 @@ public interface AccountService {
     /**
      * 根据ID获取账号信息
      *
-     * @param accountId
+     * @param accountId 账号Id
      * @return
      */
     AccountDTO getAccountById(Long accountId) throws ServiceException;
+
+    /**
+     * 根据ID批量获取账号信息
+     *
+     * @param accountIds 账号集合
+     * @return Map<账号Id ， 账号内容>
+     */
+    Map<Long, AccountDisplayDTO> getAccountDisplayInfoMapByIds(Collection<Long> accountIds) throws ServiceException;
 
     /**
      * 根据ID获取账号信息

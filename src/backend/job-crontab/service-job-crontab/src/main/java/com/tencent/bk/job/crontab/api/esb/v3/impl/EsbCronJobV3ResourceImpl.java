@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -76,16 +75,14 @@ import java.util.stream.Collectors;
 @RestController
 public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
-    private CronJobService cronJobService;
-    private MessageI18nService i18nService;
-    private AuthService authService;
-    private ServiceTaskPlanResourceClient taskPlanResource;
+    private final CronJobService cronJobService;
+    private final AuthService authService;
+    private final ServiceTaskPlanResourceClient taskPlanResource;
 
     @Autowired
-    public EsbCronJobV3ResourceImpl(CronJobService cronJobService, MessageI18nService i18nService,
+    public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     AuthService authService, ServiceTaskPlanResourceClient taskPlanResource) {
         this.cronJobService = cronJobService;
-        this.i18nService = i18nService;
         this.authService = authService;
         this.taskPlanResource = taskPlanResource;
     }
@@ -201,7 +198,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
         }
 
-        Boolean updateResult = null;
+        Boolean updateResult;
         try {
             updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
@@ -216,6 +213,53 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
     }
 
+    private void checkAndFillGlobalVar(Long planId,
+                                       List<EsbGlobalVarV3DTO> globalVarV3DTOList,
+                                       CronJobInfoDTO cronJobInfo) {
+        // 校验id/name，解析id
+        for (EsbGlobalVarV3DTO esbGlobalVarV3DTO : globalVarV3DTOList) {
+            Long id = esbGlobalVarV3DTO.getId();
+            String name = esbGlobalVarV3DTO.getName();
+            if (id == null && StringUtils.isBlank(name)) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                    new String[]{"id/name of globalVar cannot be null/blank at the same time"});
+            }
+            ServiceTaskVariableDTO taskVariableDTO;
+            if (id == null) {
+                // 根据name解析id
+                InternalResponse<ServiceTaskVariableDTO> resp = taskPlanResource
+                    .getGlobalVarByName(planId, name);
+                if (!resp.isSuccess()) {
+                    throw new InternalException(resp.getCode());
+                }
+                taskVariableDTO = resp.getData();
+            } else {
+                // 根据id解析name，无论是否传入name都根据id解析name作为正确值
+                InternalResponse<ServiceTaskVariableDTO> resp = taskPlanResource
+                    .getGlobalVarById(planId, id);
+                if (!resp.isSuccess()) {
+                    throw new InternalException(resp.getCode());
+                }
+                taskVariableDTO = resp.getData();
+                if (!StringUtils.isBlank(name) && !name.equals(resp.getData().getName())) {
+                    log.info("Ignore given name {}, use name {} parsed by id", name, resp.getData());
+                }
+            }
+            esbGlobalVarV3DTO.setId(taskVariableDTO.getId());
+            esbGlobalVarV3DTO.setName(taskVariableDTO.getName());
+            esbGlobalVarV3DTO.setType(taskVariableDTO.getType());
+        }
+        cronJobInfo.setVariableValue(globalVarV3DTOList.parallelStream().map(globalVarV3DTO -> {
+            CronJobVariableDTO cronJobVariableDTO = new CronJobVariableDTO();
+            cronJobVariableDTO.setId(globalVarV3DTO.getId());
+            cronJobVariableDTO.setName(globalVarV3DTO.getName());
+            cronJobVariableDTO.setType(TaskVariableTypeEnum.valOf(globalVarV3DTO.getType()));
+            cronJobVariableDTO.setValue(globalVarV3DTO.getValue());
+            cronJobVariableDTO.setServer(ServerDTO.fromEsbServerV3(globalVarV3DTO.getServer()));
+            return cronJobVariableDTO;
+        }).collect(Collectors.toList()));
+    }
+
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_save_cron"})
     public EsbResp<EsbCronInfoV3DTO> saveCron(EsbSaveCronV3Request request) {
@@ -226,11 +270,13 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         Long appId = request.getAppId();
         AuthResult authResult;
         if (request.getId() != null && request.getId() > 0) {
-            authResult = authService.auth(true, request.getUserName(), ActionId.MANAGE_CRON, ResourceTypeEnum.CRON,
+            authResult = authService.auth(true, request.getUserName(),
+                ActionId.MANAGE_CRON, ResourceTypeEnum.CRON,
                 request.getId().toString(),
                 PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
         } else {
-            authResult = authService.auth(true, request.getUserName(), ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS,
+            authResult = authService.auth(true, request.getUserName(),
+                ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS,
                 request.getAppId().toString(), null);
         }
         if (!authResult.isPass()) {
@@ -244,48 +290,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         cronJobInfo.setExecuteTime(request.getExecuteTime());
         List<EsbGlobalVarV3DTO> globalVarV3DTOList = request.getGlobalVarList();
         if (globalVarV3DTOList != null) {
-            // 校验id/name，解析id
-            for (EsbGlobalVarV3DTO esbGlobalVarV3DTO : globalVarV3DTOList) {
-                Long id = esbGlobalVarV3DTO.getId();
-                String name = esbGlobalVarV3DTO.getName();
-                if (id == null && StringUtils.isBlank(name)) {
-                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
-                        new String[]{"id/name of globalVar cannot be null/blank at the same time"});
-                }
-                ServiceTaskVariableDTO taskVariableDTO;
-                if (id == null) {
-                    // 根据name解析id
-                    InternalResponse<ServiceTaskVariableDTO> resp = taskPlanResource
-                        .getGlobalVarByName(request.getPlanId(), name);
-                    if (!resp.isSuccess()) {
-                        throw new InternalException(resp.getCode());
-                    }
-                    taskVariableDTO = resp.getData();
-                } else {
-                    // 根据id解析name，无论是否传入name都根据id解析name作为正确值
-                    InternalResponse<ServiceTaskVariableDTO> resp = taskPlanResource
-                        .getGlobalVarById(request.getPlanId(), id);
-                    if (!resp.isSuccess()) {
-                        throw new InternalException(resp.getCode());
-                    }
-                    taskVariableDTO = resp.getData();
-                    if (!StringUtils.isBlank(name) && !name.equals(resp.getData().getName())) {
-                        log.info("Ignore given name {}, use name {} parsed by id", name, resp.getData());
-                    }
-                }
-                esbGlobalVarV3DTO.setId(taskVariableDTO.getId());
-                esbGlobalVarV3DTO.setName(taskVariableDTO.getName());
-                esbGlobalVarV3DTO.setType(taskVariableDTO.getType());
-            }
-            cronJobInfo.setVariableValue(globalVarV3DTOList.parallelStream().map(globalVarV3DTO -> {
-                CronJobVariableDTO cronJobVariableDTO = new CronJobVariableDTO();
-                cronJobVariableDTO.setId(globalVarV3DTO.getId());
-                cronJobVariableDTO.setName(globalVarV3DTO.getName());
-                cronJobVariableDTO.setType(TaskVariableTypeEnum.valOf(globalVarV3DTO.getType()));
-                cronJobVariableDTO.setValue(globalVarV3DTO.getValue());
-                cronJobVariableDTO.setServer(ServerDTO.fromEsbServerV3(globalVarV3DTO.getServer()));
-                return cronJobVariableDTO;
-            }).collect(Collectors.toList()));
+            checkAndFillGlobalVar(request.getPlanId(), globalVarV3DTOList, cronJobInfo);
         }
         if (cronJobInfo.getId() == null || cronJobInfo.getId() == 0) {
             cronJobInfo.setCreator(request.getUserName());

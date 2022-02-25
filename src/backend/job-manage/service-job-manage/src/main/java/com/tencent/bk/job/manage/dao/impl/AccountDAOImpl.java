@@ -32,6 +32,7 @@ import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
+import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
@@ -122,6 +123,28 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
+    public List<AccountDisplayDTO> listAccountDisplayInfoByIds(Collection<Long> accountIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TB_ACCOUNT.ID.in(accountIds));
+        val records = ctx.select(
+            TB_ACCOUNT.ID,
+            TB_ACCOUNT.ACCOUNT_,
+            TB_ACCOUNT.ALIAS,
+            TB_ACCOUNT.CATEGORY,
+            TB_ACCOUNT.TYPE,
+            TB_ACCOUNT.APP_ID)
+            .from(TB_ACCOUNT)
+            .where(conditions)
+            .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
+            .fetch();
+        if (records.size() == 0) {
+            return Collections.emptyList();
+        } else {
+            return records.map(this::extractDisplayInfo);
+        }
+    }
+
+    @Override
     public AccountDTO getAccountByAccount(Long appId, String account) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TB_ACCOUNT.APP_ID.eq(appId));
@@ -154,6 +177,20 @@ public class AccountDAOImpl implements AccountDAO {
         } else {
             return records.map(this::extract);
         }
+    }
+
+    private AccountDisplayDTO extractDisplayInfo(Record record) {
+        if (record == null) {
+            return null;
+        }
+        AccountDisplayDTO accountDisplayDTO = new AccountDisplayDTO();
+        accountDisplayDTO.setId(record.get(TB_ACCOUNT.ID));
+        accountDisplayDTO.setAccount(record.get(TB_ACCOUNT.ACCOUNT_));
+        accountDisplayDTO.setAlias(record.get(TB_ACCOUNT.ALIAS));
+        accountDisplayDTO.setCategory(AccountCategoryEnum.valOf(record.get(TB_ACCOUNT.CATEGORY).intValue()));
+        accountDisplayDTO.setType(AccountTypeEnum.valueOf(record.get(TB_ACCOUNT.TYPE).intValue()));
+        accountDisplayDTO.setAppId(record.get(TB_ACCOUNT.APP_ID));
+        return accountDisplayDTO;
     }
 
     private AccountDTO extract(Record record) {

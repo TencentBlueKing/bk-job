@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import org.jooq.DSLContext;
@@ -61,6 +62,14 @@ public interface ScriptDAO {
      * @return
      */
     ScriptDTO getScriptByScriptId(String scriptId);
+
+    /**
+     * 根据scriptIds批量获取脚本基础信息
+     *
+     * @param scriptIds 脚本ID集合
+     * @return 脚本基础信息列表
+     */
+    List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds);
 
     /**
      * 通过id查询脚本版本

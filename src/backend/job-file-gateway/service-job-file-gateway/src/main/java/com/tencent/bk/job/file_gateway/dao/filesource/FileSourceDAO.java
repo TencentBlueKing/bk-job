@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import org.jooq.DSLContext;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FileSourceDAO {
@@ -41,6 +43,8 @@ public interface FileSourceDAO {
     int enableFileSourceById(DSLContext dslContext, String username, Long appId, Integer id, Boolean enableFlag);
 
     FileSourceDTO getFileSourceById(DSLContext dslContext, Integer id);
+
+    List<FileSourceBasicInfoDTO> listFileSourceByIds(DSLContext dslContext, Collection<Integer> ids);
 
     FileSourceDTO getFileSourceByCode(DSLContext dslContext, String code);
 

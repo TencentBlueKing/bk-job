@@ -28,7 +28,11 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
+
+import java.util.Collection;
+import java.util.List;
 
 public interface CredentialService {
 
@@ -41,4 +45,6 @@ public interface CredentialService {
     ServiceCredentialDTO getServiceCredentialById(Long appId, String id);
 
     ServiceCredentialDTO getServiceCredentialById(String id);
+
+    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids);
 }

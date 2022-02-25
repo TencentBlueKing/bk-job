@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,6 +77,11 @@ public class TagServiceImpl implements TagService {
             throw new InternalException(ErrorCode.ILLEGAL_PARAM);
         }
         return tagDAO.getTagById(tagId);
+    }
+
+    @Override
+    public List<TagDTO> listTagInfoByIds(Collection<Long> tagIds) {
+        return tagDAO.listTagInfoByIds(tagIds);
     }
 
     @Override
@@ -352,7 +358,8 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<String> listAppTaggedResourceIds(Long appId, Integer resourceType) {
-        List<Long> allAppTagIds = tagDAO.listTagsByAppId(appId).stream().map(TagDTO::getId).collect(Collectors.toList());
+        List<Long> allAppTagIds =
+            tagDAO.listTagsByAppId(appId).stream().map(TagDTO::getId).collect(Collectors.toList());
         List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(allAppTagIds, resourceType);
         return resourceTags.stream().map(ResourceTagDTO::getResourceId).distinct().collect(Collectors.toList());
     }

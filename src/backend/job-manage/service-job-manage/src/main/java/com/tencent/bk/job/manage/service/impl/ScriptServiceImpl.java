@@ -53,6 +53,7 @@ import com.tencent.bk.job.manage.dao.ScriptRelateTaskPlanDAO;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
+import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
@@ -81,6 +82,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -177,6 +179,11 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
+    public List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) throws ServiceException {
+        return scriptDAO.listScriptBasicInfoByScriptIds(scriptIds);
+    }
+
+    @Override
     public ScriptDTO getScriptWithoutTagByScriptId(String scriptId) throws ServiceException {
         return scriptDAO.getScriptByScriptId(scriptId);
     }
@@ -270,7 +277,7 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Override
     public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
-        List<ScriptDTO> scripts =  scriptDAO.listScripts(scriptQuery);
+        List<ScriptDTO> scripts = scriptDAO.listScripts(scriptQuery);
         //设置标签
         setTags(scripts);
         return scripts;
@@ -910,8 +917,8 @@ public class ScriptServiceImpl implements ScriptService {
         scriptCitedTaskTemplateDTOList.forEach(scriptCitedTaskTemplateDTO ->
             scriptCitedTaskTemplateDTO.setScriptStatusDesc(i18nService.getI18n(
                 scriptCitedTaskTemplateDTO.getScriptStatus().getStatusI18nKey()
-            )
-        ));
+                )
+            ));
         return scriptCitedTaskTemplateDTOList;
     }
 

@@ -22,27 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Collection;
-import java.util.List;
-
-public interface CredentialDAO {
-    String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO);
-
-    int deleteCredentialById(DSLContext dslContext, String id);
-
-    CredentialDTO getCredentialById(DSLContext dslContext, String id);
-
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext, Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+@Getter
+@Setter
+public class AccountDisplayDTO {
+    private Long id;
+    /**
+     * 业务ID
+     */
+    private Long appId;
+    /**
+     * 账号名称
+     */
+    private String account;
+    /**
+     * 账号别名
+     */
+    private String alias;
+    /**
+     * 账号类型
+     */
+    private AccountTypeEnum type;
+    /**
+     * 账号用途
+     */
+    private AccountCategoryEnum category;
 }

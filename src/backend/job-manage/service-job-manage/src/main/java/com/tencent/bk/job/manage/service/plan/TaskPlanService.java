@@ -27,8 +27,10 @@ package com.tencent.bk.job.manage.service.plan;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +45,7 @@ public interface TaskPlanService {
      * @return 执行方案ID列表
      */
     List<Long> listTaskPlanIds(Long templateId);
+
     /**
      * 查询执行方案列表
      *
@@ -81,6 +84,14 @@ public interface TaskPlanService {
      * @return 执行方案信息
      */
     TaskPlanInfoDTO getTaskPlanById(Long planId);
+
+    /**
+     * 根据 IDs 批量查询执行方案信息
+     *
+     * @param planIds 执行方案 IDs
+     * @return 执行方案信息列表
+     */
+    List<TaskPlanBasicInfoDTO> listTaskPlanByIds(Collection<Long> planIds);
 
     /**
      * 根据 ID 查询执行方案信息
