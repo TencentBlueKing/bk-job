@@ -209,7 +209,6 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<PageData<HostInfoVO>> listAppHost(String username, Long appId, Integer start,
                                                       Integer pageSize, Long moduleType, String ipCondition) {
-        JobContextUtil.setAppId(appId);
 
         ApplicationHostInfoDTO applicationHostInfoCondition = new ApplicationHostInfoDTO();
         applicationHostInfoCondition.setAppId(appId);
@@ -242,19 +241,16 @@ public class WebAppResourceImpl implements WebAppResource {
 
     @Override
     public Response<CcTopologyNodeVO> listAppTopologyTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
         return Response.buildSuccessResp(applicationService.listAppTopologyTree(username, appId));
     }
 
     @Override
     public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
         return Response.buildSuccessResp(applicationService.listAppTopologyHostTree(username, appId));
     }
 
     @Override
     public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
         return Response.buildSuccessResp(applicationService.listAppTopologyHostCountTree(username, appId));
     }
 
@@ -273,7 +269,6 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<List<AppTopologyTreeNode>> getNodeDetail(String username, Long appId,
                                                              List<TargetNodeVO> targetNodeVOList) {
-        JobContextUtil.setAppId(appId);
         List<AppTopologyTreeNode> treeNodeList = applicationService.getAppTopologyTreeNodeDetail(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
@@ -316,7 +311,6 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<List<NodeInfoVO>> listHostByNode(String username, Long appId,
                                                      List<TargetNodeVO> targetNodeVOList) {
-        JobContextUtil.setAppId(appId);
         List<NodeInfoVO> moduleHostInfoList = applicationService.getHostsByNode(username, appId,
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
@@ -330,7 +324,6 @@ public class WebAppResourceImpl implements WebAppResource {
 
     @Override
     public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username, Long appId) {
-        JobContextUtil.setAppId(appId);
         ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
         // 业务集动态分组暂不支持
         if (applicationInfoDTO.getAppType() != AppTypeEnum.NORMAL) {
@@ -346,7 +339,6 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username, Long appId,
                                                                       List<String> dynamicGroupIds) {
-        JobContextUtil.setAppId(appId);
         List<DynamicGroupInfoDTO> dynamicGroupList =
             applicationService.getDynamicGroupHostList(username, appId, dynamicGroupIds);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
@@ -358,7 +350,6 @@ public class WebAppResourceImpl implements WebAppResource {
     @Override
     public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username, Long appId,
                                                                               List<String> dynamicGroupIds) {
-        JobContextUtil.setAppId(appId);
         List<DynamicGroupInfoDTO> dynamicGroupList = applicationService.getDynamicGroupList(username, appId);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .filter(dynamicGroupInfoDTO -> dynamicGroupIds.contains(dynamicGroupInfoDTO.getId()))

@@ -101,7 +101,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        JobContextUtil.setAppId(appId);
         accountService.checkCreateParam(accountCreateUpdateReq, true, true);
 
         AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appId, accountCreateUpdateReq);
@@ -197,7 +196,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         if (applicationInfoDTO == null) {
             return Response.buildCommonFailResp(ErrorCode.WRONG_APP_ID);
         }
-        JobContextUtil.setAppId(appId);
         PageData<AccountDTO> pageData;
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);
@@ -277,7 +275,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     @Override
     public Response deleteAccount(String username, Long appId, Long accountId) {
-        JobContextUtil.setAppId(appId);
         log.info("Delete account, operator={}, appId={}, accountId={}", username, appId, accountId);
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
@@ -303,7 +300,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     @Override
     public Response<AccountVO> getAccountById(String username, Long appId, Long accountId) {
-        JobContextUtil.setAppId(appId);
         AccountDTO accountDTO = accountService.getAccountById(accountId);
         if (accountDTO == null) {
             return Response.buildSuccessResp(null);
@@ -313,7 +309,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     @Override
     public Response<List<AccountVO>> listAccounts(String username, Long appId, Integer category) {
-        JobContextUtil.setAppId(appId);
         if (category != null && AccountCategoryEnum.valOf(category) == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

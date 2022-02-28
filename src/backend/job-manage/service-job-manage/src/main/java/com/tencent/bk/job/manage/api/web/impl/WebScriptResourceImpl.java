@@ -290,7 +290,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         String orderField,
         Integer order
     ) {
-        JobContextUtil.setAppId(appId);
         ScriptQuery scriptQuery = new ScriptQuery();
         if (publicScript != null && publicScript) {
             scriptQuery.setPublicScript(true);
@@ -450,7 +449,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
     @Override
     public Response updateScriptInfo(String username, Long appId, String scriptId,
                                      ScriptInfoUpdateReq scriptInfoUpdateReq) {
-        JobContextUtil.setAppId(appId);
         if (StringUtils.isBlank(scriptId) || scriptInfoUpdateReq == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -515,7 +513,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response<List<ScriptVO>> listScriptVersion(String username, Long appId, String scriptId) {
-        JobContextUtil.setAppId(appId);
         // 鉴权
         AuthResult viewAuthResult = checkScriptViewPermission(username, appId, scriptId);
         if (!viewAuthResult.isPass()) {
@@ -639,7 +636,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response publishScriptVersion(String username, Long appId, String scriptId, Long scriptVersionId) {
-        JobContextUtil.setAppId(appId);
         log.info("Publish script version, appId={}, scriptId={}, scriptVersionId={}, username={}", appId, scriptId,
             scriptVersionId, username);
         if (appId == null || scriptId == null || scriptVersionId == null) {
@@ -658,7 +654,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response disableScriptVersion(String username, Long appId, String scriptId, Long scriptVersionId) {
-        JobContextUtil.setAppId(appId);
         log.info("Disable script version, appId={}, scriptId={}, scriptVersionId={}, username={}", appId, scriptId,
             scriptVersionId, username);
 
@@ -673,7 +668,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response deleteScriptByScriptId(String username, Long appId, String scriptId) {
-        JobContextUtil.setAppId(appId);
         log.info("Delete script[{}], operator={}, appId={}", scriptId, username, appId);
 
         AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
@@ -687,7 +681,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response deleteScriptByScriptVersionId(String username, Long appId, Long scriptVersionId) {
-        JobContextUtil.setAppId(appId);
         log.info("Delete scriptVersion[{}], operator={}, appId={}", scriptVersionId, username, appId);
 
         ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
@@ -706,7 +699,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response listAppScriptNames(String username, Long appId, String scriptName) {
-        JobContextUtil.setAppId(appId);
         List<String> scriptNames = scriptService.listScriptNames(appId, scriptName);
         return Response.buildSuccessResp(scriptNames);
     }
