@@ -44,7 +44,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -201,7 +200,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         } else {
             // if user does not have public script management permission, only return online public script version list
             return scriptVersions.stream().filter(scriptVersion ->
-                scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
+                    scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
                 .collect(Collectors.toList());
         }
     }
@@ -446,6 +445,34 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
     }
 
+    private void updateScriptName(String username, Long appId, String scriptId,
+                                  ScriptInfoUpdateReq scriptInfoUpdateReq) {
+        try {
+            StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(),
+                new NotEmptyChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
+            scriptInfoUpdateReq
+                .setScriptName(stringCheckHelper.checkAndGetResult(scriptInfoUpdateReq.getScriptName()));
+        } catch (StringCheckException e) {
+            log.warn("scriptName is invalid:", e);
+            throw new InvalidParamException(ErrorCode.SCRIPT_NAME_INVALID);
+        }
+        scriptService.updateScriptName(appId, username, scriptId, scriptInfoUpdateReq.getScriptName());
+    }
+
+    private void updateScriptTags(String username, Long appId, String scriptId,
+                                  ScriptInfoUpdateReq scriptInfoUpdateReq) {
+        List<TagDTO> tags = new ArrayList<>();
+        if (scriptInfoUpdateReq.getScriptTags() != null && !scriptInfoUpdateReq.getScriptTags().isEmpty()) {
+            for (TagVO tagVO : scriptInfoUpdateReq.getScriptTags()) {
+                TagDTO tagDTO = new TagDTO();
+                tagDTO.setId(tagVO.getId());
+                tagDTO.setName(tagVO.getName());
+                tags.add(tagDTO);
+            }
+        }
+        scriptService.updateScriptTags(appId, username, scriptId, tags);
+    }
+
     @Override
     public Response updateScriptInfo(String username, Long appId, String scriptId,
                                      ScriptInfoUpdateReq scriptInfoUpdateReq) {
@@ -470,27 +497,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (isUpdateDesc) {
             scriptService.updateScriptDesc(appId, username, scriptId, scriptInfoUpdateReq.getScriptDesc());
         } else if (isUpdateName) {
-            try {
-                StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(),
-                    new NotEmptyChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
-                scriptInfoUpdateReq
-                    .setScriptName(stringCheckHelper.checkAndGetResult(scriptInfoUpdateReq.getScriptName()));
-            } catch (StringCheckException e) {
-                log.warn("scriptName is invalid:", e);
-                throw new InvalidParamException(ErrorCode.SCRIPT_NAME_INVALID);
-            }
-            scriptService.updateScriptName(appId, username, scriptId, scriptInfoUpdateReq.getScriptName());
+            updateScriptName(username, appId, scriptId, scriptInfoUpdateReq);
         } else {
-            List<TagDTO> tags = new ArrayList<>();
-            if (scriptInfoUpdateReq.getScriptTags() != null && !scriptInfoUpdateReq.getScriptTags().isEmpty()) {
-                for (TagVO tagVO : scriptInfoUpdateReq.getScriptTags()) {
-                    TagDTO tagDTO = new TagDTO();
-                    tagDTO.setId(tagVO.getId());
-                    tagDTO.setName(tagVO.getName());
-                    tags.add(tagDTO);
-                }
-            }
-            scriptService.updateScriptTags(appId, username, scriptId, tags);
+            updateScriptTags(username, appId, scriptId, scriptInfoUpdateReq);
         }
         return Response.buildSuccessResp(null);
     }
@@ -922,7 +931,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         // 过滤掉已经是最新的模板步骤
         steps =
             steps.stream().filter(step ->
-                !scriptVersionId.equals(step.getScriptVersionId()))
+                    !scriptVersionId.equals(step.getScriptVersionId()))
                 .collect(Collectors.toList());
         return steps;
     }
@@ -1070,7 +1079,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     private AuthResult batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                         List<String> scriptIdList) {
+                                       List<String> scriptIdList) {
         List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
             PermissionResource resource = new PermissionResource();
             resource.setResourceId(scriptId);
