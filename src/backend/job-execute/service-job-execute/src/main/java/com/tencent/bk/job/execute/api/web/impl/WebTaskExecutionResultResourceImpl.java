@@ -27,11 +27,13 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -138,44 +140,44 @@ public class WebTaskExecutionResultResourceImpl
 
     private LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
-                          log.info("Get notify roles, resp={}", resp);
-                          if (!resp.isSuccess() || resp.getData() == null) {
-                              return new HashMap<>();
-                          } else {
-                              List<ServiceAppRoleDTO> appRoles = resp.getData();
-                              Map<String, String> codeNameMap = new HashMap<>();
-                              if (appRoles != null) {
-                                  appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
-                              }
-                              return codeNameMap;
+        build(new CacheLoader<String, Map<String, String>>() {
+                  @Override
+                  public Map<String, String> load(String lang) {
+                      InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
+                      log.info("Get notify roles, resp={}", resp);
+                      if (!resp.isSuccess() || resp.getData() == null) {
+                          return new HashMap<>();
+                      } else {
+                          List<ServiceAppRoleDTO> appRoles = resp.getData();
+                          Map<String, String> codeNameMap = new HashMap<>();
+                          if (appRoles != null) {
+                              appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
                           }
+                          return codeNameMap;
                       }
                   }
-            );
+              }
+        );
     private LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
-                          log.info("Get notify channels, resp={}", resp);
-                          if (!resp.isSuccess() || resp.getData() == null) {
-                              return new HashMap<>();
-                          } else {
-                              List<ServiceNotifyChannelDTO> channels = resp.getData();
-                              Map<String, String> typeNameMap = new HashMap<>();
-                              if (channels != null) {
-                                  channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
-                              }
-                              return typeNameMap;
+        build(new CacheLoader<String, Map<String, String>>() {
+                  @Override
+                  public Map<String, String> load(String lang) {
+                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                      log.info("Get notify channels, resp={}", resp);
+                      if (!resp.isSuccess() || resp.getData() == null) {
+                          return new HashMap<>();
+                      } else {
+                          List<ServiceNotifyChannelDTO> channels = resp.getData();
+                          Map<String, String> typeNameMap = new HashMap<>();
+                          if (channels != null) {
+                              channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
                           }
+                          return typeNameMap;
                       }
                   }
-            );
+              }
+        );
 
     @Autowired
     public WebTaskExecutionResultResourceImpl(TaskResultService taskResultService,
@@ -598,7 +600,9 @@ public class WebTaskExecutionResultResourceImpl
         if (username.equals(operator)) {
             return AuthResult.pass();
         }
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId,
+        // TODO:scope改造
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, new Scope(ResourceId.BIZ, appId.toString()),
             stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));

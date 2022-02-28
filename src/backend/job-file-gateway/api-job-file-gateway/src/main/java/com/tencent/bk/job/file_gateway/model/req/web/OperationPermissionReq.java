@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.web;
 
+import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class OperationPermissionReq {
     @ApiModelProperty("资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参")
     private String resourceId;
 
+    @DeprecatedAppLogic
     @ApiModelProperty("业务ID")
     private Long appId;
 

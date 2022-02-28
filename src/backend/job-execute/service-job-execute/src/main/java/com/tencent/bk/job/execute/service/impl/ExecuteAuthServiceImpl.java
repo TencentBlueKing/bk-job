@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -547,8 +548,12 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return appResource;
     }
 
+    private PathInfoDTO buildScopePathInfo(Scope scope) {
+        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
+    }
+
     @Override
-    public AuthResult authViewTaskInstance(String username, Long appId, long taskInstanceId) {
+    public AuthResult authViewTaskInstance(String username, Scope scope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -557,7 +562,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             return AuthResult.pass();
         }
         return authService.auth(false, username, ActionId.VIEW_HISTORY,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
+            ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope));
     }
 
     @Override

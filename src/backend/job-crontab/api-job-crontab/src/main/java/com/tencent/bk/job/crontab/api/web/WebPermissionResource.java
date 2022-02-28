@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
@@ -91,7 +92,7 @@ public interface WebPermissionResource {
     Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = false)
+        @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
         @RequestParam(value = "appId", required = false) Long bizId,
         @ApiParam(value = "范畴类型", required = false)
         @RequestParam(value = "scopeType", required = false) String scopeType,

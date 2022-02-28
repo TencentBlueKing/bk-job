@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -59,7 +61,10 @@ public class JobQueryCommonProcessor {
         if (username.equals(operator)) {
             return AuthResult.pass();
         }
-        return executeAuthService.authViewTaskInstance(username, appId, stepInstance.getTaskInstanceId());
+        //TODO:scope改造
+        return executeAuthService.authViewTaskInstance(
+            username, new Scope(ResourceId.BIZ, appId.toString()),
+            stepInstance.getTaskInstanceId());
     }
 
     /**

@@ -71,7 +71,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                 pathInfo.setType(scope.getType());
                 pathInfo.setId(scope.getId());
                 AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-                    ResourceTypeEnum.BUSINESS, scope.toString(), pathInfo);
+                    ResourceTypeEnum.BUSINESS, scope.getId(), pathInfo);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }

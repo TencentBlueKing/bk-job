@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
@@ -55,6 +56,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     // TODO:待联调确认
     private static final Pattern SCOPE_TYPE_PATTERN = Pattern.compile("/scope_type/(\\w+)");
     private static final Pattern SCOPE_ID_PATTERN = Pattern.compile("/scope_id/(\\d+)");
+    @DeprecatedAppLogic
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
     private final Tracer tracer;
 
