@@ -26,8 +26,10 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -50,6 +52,9 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class JobCommonInterceptor extends HandlerInterceptorAdapter {
+    // TODO:待联调确认
+    private static final Pattern SCOPE_TYPE_PATTERN = Pattern.compile("/scope_type/(\\w+)");
+    private static final Pattern SCOPE_ID_PATTERN = Pattern.compile("/scope_id/(\\d+)");
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
     private final Tracer tracer;
 
@@ -99,14 +104,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        Long appId = parseAppIdFromPath(request.getRequestURI());
-        log.debug("appId from path:{}", appId);
-        if (appId == null) {
-            appId = parseAppIdFromQueryStringOrBody(request);
-            log.debug("appId from query/body:{}", appId);
+        Scope scope = parseScopeFromPath(request.getRequestURI());
+        log.debug("scope from path:{}", scope);
+        if (scope == null) {
+            scope = parseScopeFromQueryStringOrBody(request);
+            log.debug("scope from query/body:{}", scope);
         }
-        if (appId != null) {
-            JobContextUtil.setAppId(appId);
+        if (scope != null) {
+            JobContextUtil.setScope(scope);
         }
         return true;
     }
@@ -117,17 +122,26 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private Long parseAppIdFromPath(String requestURI) {
-        Matcher matcher = APP_ID_PATTERN.matcher(requestURI);
-        if (matcher.find()) {
-            String appIdStr = matcher.group(1);
-            Long appId = null;
-            try {
-                appId = Long.parseLong(appIdStr);
-            } catch (NumberFormatException e) {
-                log.error("Error while parse app id!|{}|{}", requestURI, appIdStr);
+    private Scope parseScopeFromPath(String requestURI) {
+        Matcher scopeTypeMatcher = SCOPE_TYPE_PATTERN.matcher(requestURI);
+        Matcher scopeIdMatcher = SCOPE_ID_PATTERN.matcher(requestURI);
+        String scopeType = null;
+        String scopeId = null;
+        if (scopeTypeMatcher.find()) {
+            scopeType = scopeTypeMatcher.group(1);
+        }
+        if (scopeIdMatcher.find()) {
+            scopeId = scopeIdMatcher.group(1);
+        }
+        if (scopeType == null || scopeId == null) {
+            // 兼容当前业务ID路径模式
+            Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
+            if (appIdMatcher.find()) {
+                String appId = appIdMatcher.group(1);
+                return new Scope(ResourceId.BIZ, appId);
             }
-            return appId;
+        } else {
+            return new Scope(scopeType, scopeId);
         }
         return null;
     }
@@ -136,14 +150,17 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return parseValueFromQueryStringOrBody(request, "bk_username");
     }
 
-    private Long parseAppIdFromQueryStringOrBody(HttpServletRequest request) {
-        String appIdStr = null;
-        try {
-            appIdStr = parseValueFromQueryStringOrBody(request, "bk_biz_id");
-            if (appIdStr == null) return null;
-            return Long.parseLong(appIdStr);
-        } catch (Exception e) {
-            log.warn("Fail to parse appId from {}", appIdStr, e);
+    private Scope parseScopeFromQueryStringOrBody(HttpServletRequest request) {
+        String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
+        String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new Scope(scopeType, scopeId);
+        } else {
+            // 兼容当前业务ID参数
+            String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
+            if (StringUtils.isNotBlank(bizId)) {
+                return new Scope(ResourceId.BIZ, bizId);
+            }
         }
         return null;
     }
@@ -181,7 +198,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
-            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), JobContextUtil.getAppId(),
+            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), JobContextUtil.getScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
@@ -197,12 +214,12 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         }
         if (ex != null) {
             log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getAppId(),
+                JobContextUtil.getScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI(), ex);
         } else {
             log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getAppId(),
+                JobContextUtil.getScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }

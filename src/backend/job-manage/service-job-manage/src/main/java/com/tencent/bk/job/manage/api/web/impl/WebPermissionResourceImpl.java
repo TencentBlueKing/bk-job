@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -56,14 +58,15 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private final TaskTemplateService taskTemplateService;
 
-    private final MessageI18nService i18nService;
+    private final AppTransferService appTransferService;
 
     public WebPermissionResourceImpl(WebAuthService authService, TaskPlanService taskPlanService,
-                                     TaskTemplateService taskTemplateService, MessageI18nService i18nService) {
+                                     TaskTemplateService taskTemplateService,
+                                     AppTransferService appTransferService) {
         this.authService = authService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateService = taskTemplateService;
-        this.i18nService = i18nService;
+        this.appTransferService = appTransferService;
     }
 
     @Override
@@ -73,7 +76,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
-        return checkOperationPermission(username, req.getAppId(), req.getOperation(), req.getResourceId(),
+        return checkOperationPermission(username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+            req.getOperation(), req.getResourceId(),
             req.isReturnPermissionDetail());
     }
 
@@ -86,36 +90,37 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
     }
 
-    private PathInfoDTO buildAppPathInfo(String appId) {
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId).build();
+    private PathInfoDTO buildScopePathInfo(Scope scope) {
+        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
     }
 
-    private PathInfoDTO buildTaskPlanPathInfo(String appId, Long templateId) {
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId)
+    private PathInfoDTO buildTaskPlanPathInfo(Scope scope, Long templateId) {
+        return PathBuilder.newBuilder(scope.getType(), scope.getId())
             .child(ResourceTypeEnum.TEMPLATE.getId(), templateId.toString())
             .build();
     }
 
     private Response<AuthResultVO> checkScriptOperationPermission(
-        String username, String appIdStr,
+        String username, Scope scope,
         String action, String resourceId,
         boolean isReturnApplyUrl) {
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_SCRIPT, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                    ActionId.CREATE_SCRIPT, ResourceTypeEnum.BUSINESS,
+                    scope.getId(), buildScopePathInfo(scope)));
             case "view":
             case "execute":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId, buildScopePathInfo(scope)));
             case "edit":
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId, buildScopePathInfo(scope)));
             case "clone":
                 List<PermissionActionResource> actionResources = new ArrayList<>(1);
                 PermissionActionResource manageScriptActionResource = new PermissionActionResource();
@@ -123,7 +128,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 manageScriptActionResource.addResource(
                     ResourceTypeEnum.SCRIPT,
                     resourceId,
-                    buildAppPathInfo(appIdStr)
+                    buildScopePathInfo(scope)
                 );
                 actionResources.add(manageScriptActionResource);
                 return Response.buildSuccessResp(
@@ -156,38 +161,39 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private Response<AuthResultVO> checkJobTemplateOperationPermission(
         String username,
-        String appIdStr,
+        Scope scope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                    ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope)));
             case "view":
             case "debug":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.VIEW_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.VIEW_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildScopePathInfo(scope)));
             case "edit":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.EDIT_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.EDIT_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildScopePathInfo(scope)));
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.DELETE_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.DELETE_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId, buildScopePathInfo(scope)));
             case "clone":
                 List<PermissionActionResource> actionResources = new ArrayList<>(2);
                 PermissionActionResource viewTemplateActionResource = new PermissionActionResource();
                 viewTemplateActionResource.setActionId(ActionId.VIEW_JOB_TEMPLATE);
                 viewTemplateActionResource.addResource(ResourceTypeEnum.TEMPLATE, resourceId,
-                    buildAppPathInfo(appIdStr));
+                    buildScopePathInfo(scope));
                 PermissionActionResource createTemplateActionResource = new PermissionActionResource();
                 createTemplateActionResource.setActionId(ActionId.CREATE_JOB_TEMPLATE);
-                createTemplateActionResource.addResource(ResourceTypeEnum.BUSINESS, appIdStr, null);
+                createTemplateActionResource.addResource(ResourceTypeEnum.BUSINESS, scope.getId(),
+                    buildScopePathInfo(scope));
                 actionResources.add(viewTemplateActionResource);
                 actionResources.add(createTemplateActionResource);
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username, actionResources));
@@ -197,21 +203,21 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private Response<AuthResultVO> checkJobPlanOperationPermission(
         String username,
-        Long appId,
+        Scope scope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        String appIdStr = appId == null ? null : appId.toString();
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         if (StringUtils.isEmpty(resourceId) || !validateNum(resourceId)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
         TaskTemplateInfoDTO jobTemplate;
         TaskPlanInfoDTO plan;
+        Long appId = appTransferService.getAppIdByScope(scope);
         switch (action) {
             case "create":
                 Long templateId = Long.valueOf(resourceId);
@@ -221,7 +227,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 }
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE, templateId.toString(),
-                    buildTaskPlanPathInfo(appIdStr, templateId)));
+                    buildTaskPlanPathInfo(scope, templateId)));
             case "view":
             case "execute":
                 plan = taskPlanService.getTaskPlanById(appId, Long.valueOf(resourceId));
@@ -229,7 +235,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(appIdStr,
+                    ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(scope,
                         plan.getTemplateId())));
             case "edit":
                 plan = taskPlanService.getTaskPlanById(appId, Long.valueOf(resourceId));
@@ -237,7 +243,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(appIdStr,
+                    ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(scope,
                         plan.getTemplateId())));
             case "delete":
                 plan = taskPlanService.getTaskPlanById(appId, Long.valueOf(resourceId));
@@ -245,7 +251,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(appIdStr,
+                    ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(scope,
                         plan.getTemplateId())));
             case "sync":
                 plan = taskPlanService.getTaskPlanById(appId, Long.valueOf(resourceId));
@@ -253,7 +259,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(appIdStr,
+                    ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(scope,
                         plan.getTemplateId())));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
@@ -261,78 +267,78 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private Response<AuthResultVO> checkAccountOperationPermission(
         String username,
-        String appIdStr,
+        Scope scope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_ACCOUNT, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                    ActionId.CREATE_ACCOUNT, ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope)));
             case "view":
             case "edit":
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId, buildScopePathInfo(scope)));
             case "use":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.USE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.USE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId, buildScopePathInfo(scope)));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
     private Response<AuthResultVO> checkTagOperationPermission(
         String username,
-        String appIdStr,
+        Scope scope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                    ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope)));
             case "edit":
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, resourceId, buildScopePathInfo(scope)));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
     private Response<AuthResultVO> checkTicketOperationPermission(
         String username,
-        String appIdStr,
+        Scope scope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        if (appIdStr == null) {
+        if (scope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId", "appId cannot be null or empty"});
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "use":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.USE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.USE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildScopePathInfo(scope)));
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                    ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope)));
             case "edit":
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildAppPathInfo(appIdStr)));
+                    ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, resourceId, buildScopePathInfo(scope)));
             default:
-                log.error("Unknown operator|{}|{}|{}|{}", username, appIdStr, action, resourceId);
+                log.error("Unknown operator|{}|{}|{}|{}", username, scope, action, resourceId);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
@@ -355,10 +361,21 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
+    private Scope getScope(Long bizId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new Scope(scopeType, scopeId);
+        } else if (bizId != null) {
+            return new Scope(ResourceId.BIZ, bizId.toString());
+        }
+        return null;
+    }
+
     @Override
     public Response<AuthResultVO> checkOperationPermission(
         String username,
-        Long appId,
+        Long bizId,
+        String scopeType,
+        String scopeId,
         String operation,
         String resourceId,
         Boolean returnPermissionDetail
@@ -372,7 +389,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        String appIdStr = appId == null ? null : appId.toString();
+        Scope scope = getScope(bizId, scopeType, scopeId);
         boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
 
         switch (resourceType) {
@@ -383,21 +400,21 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 }
                 break;
             case "script":
-                return checkScriptOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+                return checkScriptOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
             case "public_script":
                 return checkPublicScriptOperationPermission(username, action, resourceId, isReturnApplyUrl);
             case "job_template":
-                return checkJobTemplateOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+                return checkJobTemplateOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
             case "job_plan":
-                return checkJobPlanOperationPermission(username, appId, action, resourceId, isReturnApplyUrl);
+                return checkJobPlanOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
             case "account":
-                return checkAccountOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+                return checkAccountOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
             case "whitelist":
                 return checkWhiteIPOperationPermission(username, action, isReturnApplyUrl);
             case "tag":
-                return checkTagOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+                return checkTagOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
             case "ticket":
-                return checkTicketOperationPermission(username, appIdStr, action, resourceId, isReturnApplyUrl);
+                return checkTicketOperationPermission(username, scope, action, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }

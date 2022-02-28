@@ -34,6 +34,8 @@ public interface AppTransferService {
 
     Long getAppIdByScope(String scopeType, String scopeId);
 
+    Long getAppIdByScope(Scope scope);
+
     Scope getScopeByAppId(Long appId);
 
     Map<Long, Scope> getScopeByAppIds(Collection<Long> appIds);
