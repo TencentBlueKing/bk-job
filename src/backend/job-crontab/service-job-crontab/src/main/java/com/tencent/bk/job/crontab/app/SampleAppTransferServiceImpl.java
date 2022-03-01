@@ -44,6 +44,12 @@ public class SampleAppTransferServiceImpl implements AppTransferService {
     }
 
     @Override
+    public Long getAppIdByScope(Scope scope) {
+        if (scope == null) return null;
+        return getAppIdByScope(scope.getType(), scope.getId());
+    }
+
+    @Override
     public Scope getScopeByAppId(Long appId) {
         return new Scope(ResourceId.BIZ, appId.toString());
     }

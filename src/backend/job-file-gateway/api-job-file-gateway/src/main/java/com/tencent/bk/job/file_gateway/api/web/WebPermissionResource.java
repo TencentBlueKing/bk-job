@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
@@ -78,7 +79,7 @@ public interface WebPermissionResource {
      * 检查操作权限
      *
      * @param username               用户名
-     * @param appId                  业务ID
+     * @param bizId                  业务ID
      * @param operation              操作ID
      * @param resourceId             资源ID
      * @param returnPermissionDetail 是否返回详细的权限信息
@@ -89,8 +90,12 @@ public interface WebPermissionResource {
     Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = false)
-        @RequestParam(value = "appId", required = false) Long appId,
+        @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
+        @RequestParam(value = "appId", required = false) Long bizId,
+        @ApiParam(value = "范畴类型", required = false)
+        @RequestParam(value = "scopeType", required = false) String scopeType,
+        @ApiParam(value = "范畴ID", required = false)
+        @RequestParam(value = "scopeId", required = false) String scopeId,
         @ApiParam("操作ID,取值为: [file_source/view,file_source/create,file_source/edit,file_source/delete]")
         @RequestParam(value = "operation") String operation,
         @ApiParam(value = "资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参", required = false)

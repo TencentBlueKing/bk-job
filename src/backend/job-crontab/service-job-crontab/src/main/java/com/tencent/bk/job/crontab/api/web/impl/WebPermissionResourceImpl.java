@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.crontab.api.web.impl;
 
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
@@ -44,11 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService authService;
 
-    private final MessageI18nService i18nService;
-
-    public WebPermissionResourceImpl(WebAuthService authService, MessageI18nService i18nService) {
+    public WebPermissionResourceImpl(WebAuthService authService) {
         this.authService = authService;
-        this.i18nService = i18nService;
     }
 
     @Override
@@ -59,17 +57,37 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
-        return checkOperationPermission(username, req.getAppId(), req.getOperation(), req.getResourceId(),
-            req.isReturnPermissionDetail());
+        return checkOperationPermission(
+            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+            req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
-    private PathInfoDTO buildAppPathInfo(String appId) {
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId).build();
+    private PathInfoDTO buildScopePathInfo(Scope scope) {
+        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
+    }
+
+    private Scope getScope(Long bizId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new Scope(scopeType, scopeId);
+        } else if (bizId != null) {
+            return new Scope(ResourceId.BIZ, bizId.toString());
+        }
+        return null;
     }
 
     @Override
-    public Response<AuthResultVO> checkOperationPermission(String username, Long appId, String operation,
-                                                           String resourceId, Boolean returnPermissionDetail) {
+    public Response<AuthResultVO> checkOperationPermission(String username,
+                                                           Long bizId,
+                                                           String scopeType,
+                                                           String scopeId,
+                                                           String operation,
+                                                           String resourceId,
+                                                           Boolean returnPermissionDetail) {
+        Scope scope = getScope(bizId, scopeType, scopeId);
+        if (scope == null) {
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
+        }
         if (StringUtils.isEmpty(operation)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
@@ -79,32 +97,27 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        String appIdStr = appId == null ? null : appId.toString();
         boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
 
         switch (resourceType) {
             case "cron":
-                if (appIdStr == null) {
-                    return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                        new String[]{"appId", "appId cannot be null or empty"});
-                }
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, appIdStr, null));
+                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId, buildScopePathInfo(scope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId, buildAppPathInfo(appIdStr)));
+                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId, buildScopePathInfo(scope)));
                     default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, appId, operation, resourceId,
+                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
                             returnPermissionDetail);
                 }
                 break;
             default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appId, operation, resourceId,
+                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());

@@ -34,4 +34,9 @@ import lombok.NoArgsConstructor;
 public class Scope {
     String type;
     String id;
+
+    @Override
+    public String toString() {
+        return type + "_" + id;
+    }
 }

@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.job.common.app.Scope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
@@ -46,15 +47,22 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService webAuthService;
     private final ExecuteAuthService executeAuthService;
     private final TaskInstanceService taskInstanceService;
-    private final MessageI18nService i18nService;
 
     public WebPermissionResourceImpl(WebAuthService webAuthService,
-                                     ExecuteAuthService executeAuthService, TaskInstanceService taskInstanceService,
-                                     MessageI18nService i18nService) {
+                                     ExecuteAuthService executeAuthService,
+                                     TaskInstanceService taskInstanceService) {
         this.webAuthService = webAuthService;
         this.executeAuthService = executeAuthService;
         this.taskInstanceService = taskInstanceService;
-        this.i18nService = i18nService;
+    }
+
+    private Scope getScope(Long bizId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new Scope(scopeType, scopeId);
+        } else if (bizId != null) {
+            return new Scope(ResourceId.BIZ, bizId.toString());
+        }
+        return null;
     }
 
     @Override
@@ -65,13 +73,20 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
-        return checkOperationPermission(username, req.getAppId(), req.getOperation(), req.getResourceId(),
-            req.isReturnPermissionDetail());
+        return checkOperationPermission(
+            username, req.getAppId(), req.getScopeType(), req.getScopeId(),
+            req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
     @Override
-    public Response<AuthResultVO> checkOperationPermission(String username, Long appId, String operation,
-                                                           String resourceId, Boolean returnPermissionDetail) {
+    public Response<AuthResultVO> checkOperationPermission(String username,
+                                                           Long bizId,
+                                                           String scopeType,
+                                                           String scopeId,
+                                                           String operation,
+                                                           String resourceId,
+                                                           Boolean returnPermissionDetail) {
+        Scope scope = getScope(bizId, scopeType, scopeId);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -94,7 +109,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                     case "redo":
-                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId,
+                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, scope,
                             taskInstanceId);
                         if (!authResult.isPass() && isReturnApplyUrl) {
                             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
