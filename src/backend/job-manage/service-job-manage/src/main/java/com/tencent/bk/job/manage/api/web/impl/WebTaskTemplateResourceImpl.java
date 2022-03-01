@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -84,6 +85,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
     private final TaskTemplateAuthService taskTemplateAuthService;
     private final TagService tagService;
 
@@ -92,11 +94,13 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         AuthService authService,
+        AppAuthService appAuthService,
         TaskTemplateAuthService taskTemplateAuthService,
         TagService tagService) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
         this.tagService = tagService;
     }
@@ -411,7 +415,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             ).build());
             return resource;
         }).collect(Collectors.toList());
-        return authService.batchAuthResources(username, actionId, appId, resources);
+        return appAuthService.batchAuthResources(username, actionId, appId, resources);
     }
 
     private ValidateResult checkTemplateTagBatchPatchReq(TemplateTagBatchPatchReq req) {

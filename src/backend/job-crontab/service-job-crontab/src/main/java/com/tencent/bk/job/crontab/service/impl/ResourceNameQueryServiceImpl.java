@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
@@ -48,10 +49,12 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     @Autowired
     public ResourceNameQueryServiceImpl(CronJobService cronJobService,
                                         ServiceApplicationResourceClient applicationClient,
-                                        AuthService authService) {
+                                        AuthService authService,
+                                        AppAuthService appAuthService) {
         this.cronJobService = cronJobService;
         this.applicationClient = applicationClient;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(Long appId) {

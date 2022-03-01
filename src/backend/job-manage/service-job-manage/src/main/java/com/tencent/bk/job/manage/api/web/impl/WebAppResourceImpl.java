@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -71,16 +72,18 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationService applicationService;
     private final ApplicationFavorService applicationFavorService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public WebAppResourceImpl(
         ApplicationService applicationService,
         ApplicationFavorService applicationFavorService,
-        AuthService authService
-    ) {
+        AuthService authService,
+        AppAuthService appAuthService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
     }
 
     // 老接口，在listAppWithFavor上线后下掉
@@ -94,7 +97,7 @@ public class WebAppResourceImpl implements WebAppResource {
         // 业务集/全业务根据运维角色鉴权
         List<ApplicationInfoDTO> specialAppList =
             appList.parallelStream().filter(it -> it.getMaintainers().contains(username)).collect(Collectors.toList());
-        AppIdResult appIdResult = authService.getAppIdList(username,
+        AppIdResult appIdResult = appAuthService.getAppIdList(username,
             normalAppList.parallelStream().map(ApplicationInfoDTO::getId).collect(Collectors.toList()));
         List<ApplicationInfoDTO> finalAppList = new ArrayList<>();
         if (appIdResult.getAny()) {
@@ -125,7 +128,7 @@ public class WebAppResourceImpl implements WebAppResource {
         // 业务集/全业务根据运维角色鉴权
         List<ApplicationInfoDTO> specialAppList =
             appList.parallelStream().filter(it -> it.getMaintainers().contains(username)).collect(Collectors.toList());
-        AppIdResult appIdResult = authService.getAppIdList(username,
+        AppIdResult appIdResult = appAuthService.getAppIdList(username,
             normalAppList.parallelStream().map(ApplicationInfoDTO::getId).collect(Collectors.toList()));
         List<AppVO> finalAppList = new ArrayList<>();
         // 可用的普通业务Id

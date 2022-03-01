@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -51,11 +52,14 @@ import java.util.StringJoiner;
 public class WebAuthServiceImpl implements WebAuthService {
     private MessageI18nService i18nService;
     private AuthService authService;
+    private AppAuthService appAuthService;
 
     @Autowired
-    public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService) {
+    public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService,
+                              AppAuthService appAuthService) {
         this.i18nService = i18nService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
     }
 
     @Override
@@ -66,6 +70,7 @@ public class WebAuthServiceImpl implements WebAuthService {
     @Override
     public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
+        this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 
     @Override
@@ -88,12 +93,12 @@ public class WebAuthServiceImpl implements WebAuthService {
     @Override
     public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
                                   List<String> resourceIds) {
-        return authService.batchAuth(username, actionId, appId, resourceType, resourceIds);
+        return appAuthService.batchAuth(username, actionId, appId, resourceType, resourceIds);
     }
 
     @Override
     public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
-        return authService.batchAuth(username, actionId, appId, resourceList);
+        return appAuthService.batchAuth(username, actionId, appId, resourceList);
     }
 
     @Override

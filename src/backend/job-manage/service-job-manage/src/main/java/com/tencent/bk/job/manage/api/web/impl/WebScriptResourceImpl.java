@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -124,21 +125,24 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final AuthService authService;
 
+    private final AppAuthService appAuthService;
+
     private final TagService tagService;
 
     @Autowired
-    public WebScriptResourceImpl(
-        ScriptService scriptService,
-        MessageI18nService i18nService,
-        ScriptCheckService scriptCheckService,
-        ScriptDTOBuilder scriptDTOBuilder,
-        AuthService authService,
-        TagService tagService) {
+    public WebScriptResourceImpl(ScriptService scriptService,
+                                 MessageI18nService i18nService,
+                                 ScriptCheckService scriptCheckService,
+                                 ScriptDTOBuilder scriptDTOBuilder,
+                                 AuthService authService,
+                                 AppAuthService appAuthService,
+                                 TagService tagService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.tagService = tagService;
     }
 
@@ -200,7 +204,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         } else {
             // if user does not have public script management permission, only return online public script version list
             return scriptVersions.stream().filter(scriptVersion ->
-                    scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
+                scriptVersion.getStatus() == JobResourceStatusEnum.ONLINE.getValue())
                 .collect(Collectors.toList());
         }
     }
@@ -412,9 +416,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
             List<String> allowedManageScriptIdList =
-                authService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                authService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
             resultPageData.getData()
                 .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
             resultPageData.getData().forEach(script -> {
@@ -748,9 +752,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             });
         } else {
             List<String> allowedManageScriptIdList =
-                authService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                authService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
             scriptList
                 .forEach(script -> {
                     script.setCanManage(allowedManageScriptIdList.contains(script.getId()));
@@ -931,7 +935,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         // 过滤掉已经是最新的模板步骤
         steps =
             steps.stream().filter(step ->
-                    !scriptVersionId.equals(step.getScriptVersionId()))
+                !scriptVersionId.equals(step.getScriptVersionId()))
                 .collect(Collectors.toList());
         return steps;
     }
@@ -1092,7 +1096,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             }
             return resource;
         }).collect(Collectors.toList());
-        return authService.batchAuthResources(username, actionId, appId, resources);
+        return appAuthService.batchAuthResources(username, actionId, appId, resources);
     }
 
     private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {

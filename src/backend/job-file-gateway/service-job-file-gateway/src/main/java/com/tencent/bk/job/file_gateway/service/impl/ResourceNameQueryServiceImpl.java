@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
@@ -43,11 +44,14 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     private final ServiceApplicationResourceClient applicationResourceClient;
 
     @Autowired
-    public ResourceNameQueryServiceImpl(AuthService authService, FileSourceService fileSourceService,
+    public ResourceNameQueryServiceImpl(AuthService authService,
+                                        AppAuthService appAuthService,
+                                        FileSourceService fileSourceService,
                                         ServiceApplicationResourceClient applicationResourceClient) {
         this.fileSourceService = fileSourceService;
         this.applicationResourceClient = applicationResourceClient;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(long appId) {

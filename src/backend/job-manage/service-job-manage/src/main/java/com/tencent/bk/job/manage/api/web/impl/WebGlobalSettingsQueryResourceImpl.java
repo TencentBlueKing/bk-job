@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
@@ -67,6 +68,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private GlobalSettingsService globalSettingsService;
     private ApplicationService applicationService;
     private AuthService authService;
+    private AppAuthService appAuthService;
     private JobManageConfig jobManageConfig;
 
     private ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -75,11 +77,14 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Autowired
     public WebGlobalSettingsQueryResourceImpl(GlobalSettingsService globalSettingsService,
-                                              ApplicationService applicationService, AuthService authService,
+                                              ApplicationService applicationService,
+                                              AuthService authService,
+                                              AppAuthService appAuthService,
                                               JobManageConfig jobManageConfig) {
         this.globalSettingsService = globalSettingsService;
         this.applicationService = applicationService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.jobManageConfig = jobManageConfig;
     }
 
@@ -236,11 +241,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     public Response<String> getApplyBusinessUrl(String username, Long appId) {
         ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
         if (applicationInfoDTO != null && applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL) {
-            return Response.buildSuccessResp(authService.getBusinessApplyUrl(appId));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(appId));
         } else if (applicationInfoDTO != null) {
             return Response.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
         } else {
-            return Response.buildSuccessResp(authService.getBusinessApplyUrl(null));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));
         }
     }
 

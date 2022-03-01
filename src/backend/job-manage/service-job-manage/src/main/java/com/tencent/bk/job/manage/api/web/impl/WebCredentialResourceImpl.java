@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -53,11 +54,15 @@ import java.util.stream.Collectors;
 public class WebCredentialResourceImpl implements WebCredentialResource {
 
     private final AuthService authService;
+    private final AppAuthService appAuthService;
     private final CredentialService credentialService;
 
     @Autowired
-    public WebCredentialResourceImpl(AuthService authService, CredentialService credentialService) {
+    public WebCredentialResourceImpl(AuthService authService,
+                                     AppAuthService appAuthService,
+                                     CredentialService credentialService) {
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.credentialService = credentialService;
     }
 
@@ -125,13 +130,13 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
         List<String> canManageIdList =
-            authService.batchAuth(username, ActionId.MANAGE_TICKET, appId, ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, appId, ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)
                     .collect(Collectors.toList()));
         List<String> canUseIdList =
-            authService.batchAuth(username, ActionId.USE_TICKET, appId, ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.USE_TICKET, appId, ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)

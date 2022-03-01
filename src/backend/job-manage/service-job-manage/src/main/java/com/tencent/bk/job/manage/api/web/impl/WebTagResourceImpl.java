@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -64,12 +65,15 @@ import java.util.stream.Collectors;
 public class WebTagResourceImpl implements WebTagResource {
     private final TagService tagService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public WebTagResourceImpl(TagService tagService,
-                              AuthService authService) {
+                              AuthService authService,
+                              AppAuthService appAuthService) {
         this.tagService = tagService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
     }
 
     @Override
@@ -125,7 +129,7 @@ public class WebTagResourceImpl implements WebTagResource {
         List<String> tagIds =
             tags.stream().map(tag -> String.valueOf(tag.getId())).distinct().collect(Collectors.toList());
 
-        List<String> allowTagIds = authService
+        List<String> allowTagIds = appAuthService
             .batchAuth(username, ActionId.MANAGE_TAG, appId, ResourceTypeEnum.TAG, tagIds)
             .parallelStream().collect(Collectors.toList());
 

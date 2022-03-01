@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -59,14 +60,16 @@ import java.util.stream.Collectors;
 public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     private final AuthService authService;
+    private final AppAuthService appAuthService;
     private final FileSourceService fileSourceService;
 
     @Autowired
     public WebFileSourceResourceImpl(
         AuthService authService,
-        FileSourceService fileSourceService
+        AppAuthService appAuthService, FileSourceService fileSourceService
     ) {
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.fileSourceService = fileSourceService;
     }
 
@@ -235,10 +238,10 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         }
         // 添加权限数据
         List<String> currentAppCanManageIdList =
-            authService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
                 currentAppFileSourceIdList);
         List<String> currentAppCanViewIdList =
-            authService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
                 currentAppFileSourceIdList);
         fileSourceVOList.forEach(it -> {
             if (currentAppFileSourceIdList.contains(it.getId().toString())) {
@@ -258,14 +261,14 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         List<FileSourceVO> fileSourceVOList = fileSourceVOPageData.getData();
         // 添加权限数据
         List<String> canManageIdList =
-            authService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
                 fileSourceVOList.parallelStream()
                     .map(FileSourceVO::getId)
                     .map(Objects::toString)
                     .collect(Collectors.toList())
             );
         List<String> canViewIdList =
-            authService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
                 fileSourceVOList.parallelStream()
                     .map(FileSourceVO::getId)
                     .map(Objects::toString)

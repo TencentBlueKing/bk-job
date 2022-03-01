@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -78,6 +79,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final ResourceNameQueryService resourceNameQueryService;
     private final HostService hostService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
     private final TaskInstanceService taskInstanceService;
     private final TopoService topoService;
     private final ResourceAppInfoQueryService resourceAppInfoQueryService;
@@ -88,6 +90,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   ResourceNameQueryService resourceNameQueryService,
                                   HostService hostService,
                                   AuthService authService,
+                                  AppAuthService appAuthService,
                                   TaskInstanceService taskInstanceService,
                                   TopoService topoService, ResourceAppInfoQueryService resourceAppInfoQueryService,
                                   JobExecuteConfig jobExecuteConfig) {
@@ -95,12 +98,15 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.resourceNameQueryService = resourceNameQueryService;
         this.hostService = hostService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.taskInstanceService = taskInstanceService;
         this.topoService = topoService;
         this.resourceAppInfoQueryService = resourceAppInfoQueryService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.authService.setResourceNameQueryService(resourceNameQueryService);
+        this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
+        this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
     private static PathInfoDTO buildTopoNodePathInfo(InstanceTopologyDTO topoNode) {
@@ -639,6 +645,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             ).child(ResourceTypeEnum.ACCOUNT.getId(), accountId.toString()).build());
             return accountResource;
         }).collect(Collectors.toList());
-        return authService.batchAuthResources(username, ActionId.USE_ACCOUNT, appId, accountResources);
+        return appAuthService.batchAuthResources(username, ActionId.USE_ACCOUNT, appId, accountResources);
     }
 }

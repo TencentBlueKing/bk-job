@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
@@ -72,6 +73,7 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
         AccountService accountService,
         TagService tagService,
         AuthService authService,
+        AppAuthService appAuthService,
         CredentialService credentialService
     ) {
         this.applicationService = applicationService;
@@ -82,6 +84,7 @@ public class ResourceAppInfoQueryServiceImpl implements ResourceAppInfoQueryServ
         this.tagService = tagService;
         this.credentialService = credentialService;
         authService.setResourceAppInfoQueryService(this);
+        appAuthService.setResourceAppInfoQueryService(this);
     }
 
     private ResourceAppInfo convert(ApplicationInfoDTO applicationInfoDTO) {
