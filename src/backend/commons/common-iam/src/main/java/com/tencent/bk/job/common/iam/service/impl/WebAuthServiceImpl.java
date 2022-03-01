@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -98,17 +97,6 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
-    public AuthResultVO batchAuthResources(String username, String actionId, Long appId,
-                                           List<PermissionResource> resources) {
-        return toAuthResultVO(authService.batchAuthResources(username, actionId, appId, resources));
-    }
-
-    @Override
-    public AppIdResult getAppIdList(String username, List<Long> allAppIdList) {
-        return authService.getAppIdList(username, allAppIdList);
-    }
-
-    @Override
     public String getApplyUrl(String actionId) {
         return authService.getApplyUrl(actionId);
     }
@@ -121,11 +109,6 @@ public class WebAuthServiceImpl implements WebAuthService {
     @Override
     public String getApplyUrl(List<PermissionActionResource> permissionActionResources) {
         return authService.getApplyUrl(permissionActionResources);
-    }
-
-    @Override
-    public String getBusinessApplyUrl(Long appId) {
-        return authService.getBusinessApplyUrl(appId);
     }
 
     public AuthResultVO toAuthResultVO(AuthResult authResult) {
