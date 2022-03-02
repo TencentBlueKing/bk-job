@@ -26,11 +26,9 @@ package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
-import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 
@@ -73,13 +71,14 @@ public interface AuthService {
     /**
      * 业务集/全业务鉴权
      *
-     * @param username       用户名
-     * @param resourceType   资源类型
-     * @param resourceId     资源ID
+     * @param username     用户名
+     * @param resourceType 资源类型
+     * @param resourceId   资源ID
      * @return 鉴权结果
      */
     boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
                                        String resourceId);
+
     /**
      * 多个操作鉴权
      *
