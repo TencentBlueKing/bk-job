@@ -312,8 +312,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         switch (action) {
             case "create":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                                                                  ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, resourceScope
-                                                                      .getId(), buildScopePathInfo(resourceScope)));
+                    ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, resourceScope.getId(),
+                    buildScopePathInfo(resourceScope)));
             case "edit":
             case "delete":
                 return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,

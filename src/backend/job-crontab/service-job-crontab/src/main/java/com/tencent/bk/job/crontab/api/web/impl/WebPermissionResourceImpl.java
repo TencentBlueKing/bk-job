@@ -66,6 +66,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
+        // TODO 兼容业务集
         return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), resourceScope.getId()).build();
     }
 
