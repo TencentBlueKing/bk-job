@@ -31,8 +31,8 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -107,7 +107,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         authService.registerResource(
             "" + accountId,
             newAccount.getAlias(),
-            ResourceId.ACCOUNT,
+            ResourceTypeId.ACCOUNT,
             username,
             null
         );

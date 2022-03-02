@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
@@ -56,11 +56,11 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         this.taskInstanceService = taskInstanceService;
     }
 
-    private Scope getScope(Long bizId, String scopeType, String scopeId) {
+    private ResourceScope getScope(Long bizId, String scopeType, String scopeId) {
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new Scope(scopeType, scopeId);
+            return new ResourceScope(scopeType, scopeId);
         } else if (bizId != null) {
-            return new Scope(ResourceId.BIZ, bizId.toString());
+            return new ResourceScope(ResourceTypeId.BIZ, bizId.toString());
         }
         return null;
     }
@@ -86,7 +86,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        Scope scope = getScope(bizId, scopeType, scopeId);
+        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -109,8 +109,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                     case "redo":
-                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, scope,
-                            taskInstanceId);
+                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, resourceScope,
+                                                                                        taskInstanceId);
                         if (!authResult.isPass() && isReturnApplyUrl) {
                             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
                         }

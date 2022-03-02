@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -182,8 +182,8 @@ public class CronJobServiceImpl implements CronJobService {
             cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
             cronJobInfo.setEnable(false);
             Long id = cronJobDAO.insertCronJob(cronJobInfo);
-            authService.registerResource(id.toString(), cronJobInfo.getName(), ResourceId.CRON,
-                cronJobInfo.getCreator(), null);
+            authService.registerResource(id.toString(), cronJobInfo.getName(), ResourceTypeId.CRON,
+                                         cronJobInfo.getCreator(), null);
             return id;
         } else {
             checkCronJobVariableValue(cronJobInfo);

@@ -25,9 +25,9 @@
 package com.tencent.bk.job.common.iam.constant;
 
 /**
- * @since 9/6/2020 15:38
+ * IAM - 资源类型ID
  */
-public class ResourceId {
+public class ResourceTypeId {
     /**
      * 业务
      */

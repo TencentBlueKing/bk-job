@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -74,8 +74,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         TagDTO tagQuery = new TagDTO();
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         tagQuery.setAppId(appId);
         return Pair.of(tagQuery, baseSearchCondition);
     }
@@ -132,7 +131,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
             appIdSet.add(tagDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 Long tagId = Long.parseLong(instanceId);
@@ -145,7 +144,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO tagNode = new PathInfoDTO();
-                tagNode.setType(ResourceId.TAG);
+                tagNode.setType(ResourceTypeId.TAG);
                 tagNode.setId(tagDTO.getId().toString());
                 rootNode.setChild(tagNode);
                 path.add(rootNode);

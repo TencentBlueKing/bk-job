@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -81,8 +81,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         return TaskTemplateQuery.builder()
             .appId(appId)
             .baseSearchCondition(baseSearchCondition)
@@ -133,7 +132,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(templateInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
@@ -146,7 +145,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO templateNode = new PathInfoDTO();
-                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setType(ResourceTypeId.TEMPLATE);
                 templateNode.setId(templateInfoDTO.getId().toString());
                 rootNode.setChild(templateNode);
                 path.add(rootNode);

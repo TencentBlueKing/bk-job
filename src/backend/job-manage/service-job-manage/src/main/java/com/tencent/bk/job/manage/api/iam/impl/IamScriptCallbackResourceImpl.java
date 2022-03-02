@@ -68,8 +68,8 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         ScriptQuery scriptQuery = new ScriptQuery();
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId =
+            appTransferService.getAppIdByScope(scriptCallbackHelper.extractResourceScopeCondition(searchCondition));
         scriptQuery.setAppId(appId);
         return Pair.of(scriptQuery, baseSearchCondition);
     }

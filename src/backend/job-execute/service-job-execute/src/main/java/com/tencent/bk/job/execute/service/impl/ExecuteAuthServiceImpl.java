@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -548,12 +549,13 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return appResource;
     }
 
-    private PathInfoDTO buildScopePathInfo(Scope scope) {
-        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
+    private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
+        // TODO 兼容业务集
+        return PathBuilder.newBuilder(ResourceTypeId.BIZ, resourceScope.getId()).build();
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username, Scope scope, long taskInstanceId) {
+    public AuthResult authViewTaskInstance(String username, ResourceScope resourceScope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -562,7 +564,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             return AuthResult.pass();
         }
         return authService.auth(false, username, ActionId.VIEW_HISTORY,
-            ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope));
+                                ResourceTypeEnum.BUSINESS, resourceScope.getId(), buildScopePathInfo(resourceScope));
     }
 
     @Override

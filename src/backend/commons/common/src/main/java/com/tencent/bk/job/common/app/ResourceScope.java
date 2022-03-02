@@ -22,45 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.app;
 
-import com.tencent.bk.job.common.app.ResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
+import java.util.StringJoiner;
 
 /**
- * @since 6/11/2019 10:26
+ * 资源范围
  */
-@Data
-public class JobContext {
+@Getter
+@Setter
+@NoArgsConstructor
+public class ResourceScope {
+    /**
+     * 资源范围类型
+     */
+    private ResourceScopeTypeEnum type;
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String id;
+    /**
+     * 作业平台业务ID
+     */
+    private Long appId;
 
-    private Long startTime;
+    public ResourceScope(String type, String id) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
+    }
 
-    private String username;
+    public ResourceScope(ResourceScopeTypeEnum type, String id) {
+        this.type = type;
+        this.id = id;
+    }
 
-    private ResourceScope resourceScope;
+    public ResourceScope(ResourceScopeTypeEnum type, String id, Long appId) {
+        this.type = type;
+        this.id = id;
+        this.appId = appId;
+    }
 
-    private String requestId;
+    public ResourceScope(String type, String id, Long appId) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
+        this.appId = appId;
+    }
 
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
+            .add("type=" + type)
+            .add("id='" + id + "'")
+            .toString();
+    }
 }

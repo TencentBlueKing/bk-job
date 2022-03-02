@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -74,8 +74,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         AccountDTO accountQuery = new AccountDTO();
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         accountQuery.setAppId(appId);
         return Pair.of(accountQuery, baseSearchCondition);
     }
@@ -132,7 +131,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         // Job app --> CMDB biz/businessSet转换
         Set<Long> appIdSet = new HashSet<>();
         accountInfoMap.values().forEach(accountDisplayDTO -> appIdSet.add(accountDisplayDTO.getAppId()));
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
@@ -145,7 +144,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
                 // 拓扑路径构建
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO accountNode = new PathInfoDTO();
-                accountNode.setType(ResourceId.ACCOUNT);
+                accountNode.setType(ResourceTypeId.ACCOUNT);
                 accountNode.setId(accountDTO.getId().toString());
                 rootNode.setChild(accountNode);
                 path.add(rootNode);

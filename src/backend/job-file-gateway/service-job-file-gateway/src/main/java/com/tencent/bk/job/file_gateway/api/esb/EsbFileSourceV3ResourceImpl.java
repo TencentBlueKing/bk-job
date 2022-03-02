@@ -4,8 +4,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
@@ -47,7 +47,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
         boolean registerResult = authService.registerResource("" + fileSourceId, fileSourceDTO.getAlias(),
-            ResourceId.FILE_SOURCE, username, null);
+                                                              ResourceTypeId.FILE_SOURCE, username, null);
         if (!registerResult) {
             log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
         }

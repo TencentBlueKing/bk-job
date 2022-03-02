@@ -38,59 +38,59 @@ public enum ResourceTypeEnum {
     /**
      * 业务
      */
-    BUSINESS(SystemId.CMDB, ResourceId.BIZ, null),
+    BUSINESS(SystemId.CMDB, ResourceTypeId.BIZ, null),
     /**
      * 业务集
      */
-    BUSINESS_SET(SystemId.CMDB, ResourceId.BUSINESS_SET, null),
+    BUSINESS_SET(SystemId.CMDB, ResourceTypeId.BUSINESS_SET, null),
     /**
      * 脚本
      */
-    SCRIPT(SystemId.JOB, ResourceId.SCRIPT, BUSINESS),
+    SCRIPT(SystemId.JOB, ResourceTypeId.SCRIPT, BUSINESS),
     /**
      * 作业模版
      */
-    TEMPLATE(SystemId.JOB, ResourceId.TEMPLATE, BUSINESS),
+    TEMPLATE(SystemId.JOB, ResourceTypeId.TEMPLATE, BUSINESS),
     /**
      * 执行方案
      */
-    PLAN(SystemId.JOB, ResourceId.PLAN, TEMPLATE),
+    PLAN(SystemId.JOB, ResourceTypeId.PLAN, TEMPLATE),
     /**
      * 定时任务
      */
-    CRON(SystemId.JOB, ResourceId.CRON, BUSINESS),
+    CRON(SystemId.JOB, ResourceTypeId.CRON, BUSINESS),
     /**
      * 账号
      */
-    ACCOUNT(SystemId.JOB, ResourceId.ACCOUNT, BUSINESS),
+    ACCOUNT(SystemId.JOB, ResourceTypeId.ACCOUNT, BUSINESS),
     /**
      * 公共脚本
      */
-    PUBLIC_SCRIPT(SystemId.JOB, ResourceId.PUBLIC_SCRIPT, null),
+    PUBLIC_SCRIPT(SystemId.JOB, ResourceTypeId.PUBLIC_SCRIPT, null),
     /**
      * 运营视图
      */
-    DASHBOARD_VIEW(SystemId.JOB, ResourceId.DASHBOARD_VIEW, null),
+    DASHBOARD_VIEW(SystemId.JOB, ResourceTypeId.DASHBOARD_VIEW, null),
     /**
      * 标签
      */
-    TAG(SystemId.JOB, ResourceId.TAG, BUSINESS),
+    TAG(SystemId.JOB, ResourceTypeId.TAG, BUSINESS),
     /**
      * 主机
      */
-    HOST(SystemId.CMDB, ResourceId.HOST, BUSINESS),
+    HOST(SystemId.CMDB, ResourceTypeId.HOST, BUSINESS),
     /**
      * 动态分组
      */
-    DYNAMIC_GROUP(SystemId.CMDB, ResourceId.DYNAMIC_GROUP, BUSINESS),
+    DYNAMIC_GROUP(SystemId.CMDB, ResourceTypeId.DYNAMIC_GROUP, BUSINESS),
     /**
      * 文件源
      */
-    FILE_SOURCE(SystemId.JOB, ResourceId.FILE_SOURCE, BUSINESS),
+    FILE_SOURCE(SystemId.JOB, ResourceTypeId.FILE_SOURCE, BUSINESS),
     /**
      * 凭证
      */
-    TICKET(SystemId.JOB, ResourceId.TICKET, BUSINESS);
+    TICKET(SystemId.JOB, ResourceTypeId.TICKET, BUSINESS);
 
     private final String systemId;
 
