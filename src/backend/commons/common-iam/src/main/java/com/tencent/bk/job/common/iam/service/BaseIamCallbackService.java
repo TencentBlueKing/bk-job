@@ -82,7 +82,7 @@ public abstract class BaseIamCallbackService {
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
         PathInfoDTO rootNode = new PathInfoDTO();
-        rootNode.setType(IamUtil.getIamResourceIdForResourceScope(resourceScope));
+        rootNode.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
         rootNode.setId(resourceScope.getId());
         return rootNode;
     }

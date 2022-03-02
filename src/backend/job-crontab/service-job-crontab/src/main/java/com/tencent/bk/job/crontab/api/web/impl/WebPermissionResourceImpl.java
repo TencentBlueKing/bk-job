@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
@@ -66,8 +67,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        // TODO 兼容业务集
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), resourceScope.getId()).build();
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
     }
 
     @Override
@@ -99,13 +100,15 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId, buildScopePathInfo(resourceScope)));
+                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId,
+                            buildScopePathInfo(resourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId, buildScopePathInfo(resourceScope)));
+                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId,
+                            buildScopePathInfo(resourceScope)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                             returnPermissionDetail);

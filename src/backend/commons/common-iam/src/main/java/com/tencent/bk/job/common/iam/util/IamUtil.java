@@ -37,7 +37,7 @@ public class IamUtil {
      * @param resourceScope 资源范围
      * @return ResourceId
      */
-    public static String getIamResourceIdForResourceScope(ResourceScope resourceScope) {
+    public static String getIamResourceTypeIdForResourceScope(ResourceScope resourceScope) {
         ResourceScopeTypeEnum scopeType = resourceScope.getType();
         switch (scopeType) {
             case BIZ:

@@ -69,7 +69,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
             if (resourceScope != null && Long.parseLong(resourceScope.getId()) != JobConstants.PUBLIC_APP_ID) {
                 log.debug("auth {} access_business {}", username, resourceScope);
                 PathInfoDTO pathInfo = new PathInfoDTO();
-                pathInfo.setType(IamUtil.getIamResourceIdForResourceScope(resourceScope));
+                pathInfo.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
                 pathInfo.setId(resourceScope.getId());
                 AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
                                                          ResourceTypeEnum.BUSINESS, resourceScope.getId(), pathInfo);

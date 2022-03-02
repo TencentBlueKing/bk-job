@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
@@ -91,13 +92,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        // TODO 兼容业务集
-        return PathBuilder.newBuilder(ResourceTypeId.BIZ, resourceScope.getId()).build();
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
     }
 
     private PathInfoDTO buildTaskPlanPathInfo(ResourceScope resourceScope, Long templateId) {
-        // TODO 兼容业务集
-        return PathBuilder.newBuilder(ResourceTypeId.BIZ, resourceScope.getId())
+        return PathBuilder.newBuilder(
+            IamUtil.getIamResourceTypeIdForResourceScope(resourceScope), resourceScope.getId())
             .child(ResourceTypeEnum.TEMPLATE.getId(), templateId.toString())
             .build();
     }

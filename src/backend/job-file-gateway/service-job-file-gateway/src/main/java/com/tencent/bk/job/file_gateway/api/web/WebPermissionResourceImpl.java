@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
@@ -74,8 +75,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        // TODO 兼容业务集
-        return PathBuilder.newBuilder(ResourceTypeId.BIZ, resourceScope.getId()).build();
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
     }
 
     @Override
@@ -122,12 +123,12 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                             buildScopePathInfo(resourceScope)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
-                                  returnPermissionDetail);
+                            returnPermissionDetail);
                 }
                 break;
             default:
                 log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
-                          returnPermissionDetail);
+                    returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }

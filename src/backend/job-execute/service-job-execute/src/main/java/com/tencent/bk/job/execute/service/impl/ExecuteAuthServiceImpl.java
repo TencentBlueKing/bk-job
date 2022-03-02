@@ -34,12 +34,12 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -550,8 +550,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        // TODO 兼容业务集
-        return PathBuilder.newBuilder(ResourceTypeId.BIZ, resourceScope.getId()).build();
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
     }
 
     @Override
