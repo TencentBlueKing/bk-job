@@ -22,55 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
-
-    private Long id;
+/**
+ * CMDB接口请求实体类，定义分页参数
+ */
+@Setter
+@Getter
+public class Page {
 
     /**
-     * 业务名称
+     * 数据起始位置
      */
-    private String name;
+    private int start = 0;
 
     /**
-     * 业务类型
+     * 单次拉取数据量，取值范围：[0,500]
      */
-    private Integer appType;
+    private int limit = 500;
 
     /**
-     * 运维
+     * 请求是否获取数据总量
      */
-    private String maintainers;
+    @JsonProperty("enable_count")
+    private boolean enableCount = false;
 
     /**
-     * 子业务
+     * 排序字段，可在首位加-表示降序
      */
-    private List<Long> subAppIds;
+    private String sort;
 
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }

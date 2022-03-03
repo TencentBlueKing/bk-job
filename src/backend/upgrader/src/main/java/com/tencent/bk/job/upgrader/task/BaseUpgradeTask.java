@@ -30,7 +30,7 @@ import java.util.Properties;
 
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
-    private Properties properties;
+    public Properties properties;
 
     BaseUpgradeTask() {
     }

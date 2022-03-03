@@ -22,55 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
+/**
+ * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ */
+@Setter
+@Getter
+public class BizSetFilter {
 
-    private Long id;
-
-    /**
-     * 业务名称
-     */
-    private String name;
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
 
     /**
-     * 业务类型
+     * 多个规则之间的组合条件，取值为：AND/OR
      */
-    private Integer appType;
+    private String condition;
 
     /**
-     * 运维
+     * 规则列表
      */
-    private String maintainers;
+    private List<Rule> rules;
 
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }

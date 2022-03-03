@@ -22,55 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
-
-@Data
+/**
+ * CMDB接口请求实体类，定义业务集过滤业务的规则
+ */
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppInfo {
+@Setter
+@Getter
+public class Rule {
 
-    private Long id;
-
-    /**
-     * 业务名称
-     */
-    private String name;
-
-    /**
-     * 业务类型
-     */
-    private Integer appType;
-
-    /**
-     * 运维
-     */
-    private String maintainers;
+    public static final String OPERATOR_EQUAL = "equal";
+    public static final String OPERATOR_NOT_EQUAL = "not_equal";
+    public static final String OPERATOR_IN = "in";
+    public static final String OPERATOR_NOT_IN = "not_in";
+    public static final String OPERATOR_LESS = "less";
+    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
+    public static final String OPERATOR_GREATER = "greater";
+    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
+    public static final String OPERATOR_BETWEEN = "between";
+    public static final String OPERATOR_NOT_BETWEEN = "not_between";
 
     /**
-     * 子业务
+     * 业务字段名
      */
-    private List<Long> subAppIds;
-
-    private String owner;
+    private String field;
 
     /**
-     * 初始运维部门Id
+     * 操作符，可选值 equal,not_equal,in,not_in,
+     * less,less_or_equal,greater,greater_or_equal,
+     * between,not_between
      */
-    private Long operateDeptId;
+    private String operator;
 
     /**
-     * 时区
+     * 业务字段取值，根据字段不同可为不同类型
      */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
+    private Object value;
 }

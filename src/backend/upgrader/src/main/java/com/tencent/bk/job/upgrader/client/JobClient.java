@@ -30,11 +30,12 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
+import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.AppInfo;
+import com.tencent.bk.job.upgrader.model.BasicAppInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
@@ -54,6 +55,8 @@ public class JobClient extends AbstractJobClient {
     private static final int RESULT_OK = 0;
 
     private static final String URL_LIST_NORMAL_APPS = "/service/app/list/normal";
+
+    private static final String URL_LIST_BIZ_SET_APPS = "/service/app/list/bizSet";
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
 
@@ -130,10 +133,20 @@ public class JobClient extends AbstractJobClient {
         }
     }
 
-    public List<AppInfo> listNormalApps() {
-        Response<List<AppInfo>> resp = getJobRespByReq(
+    public List<BasicAppInfo> listNormalApps() {
+        Response<List<BasicAppInfo>> resp = getJobRespByReq(
             HttpGet.METHOD_NAME,
             URL_LIST_NORMAL_APPS,
+            new BasicHttpReq(),
+            new TypeReference<Response<List<BasicAppInfo>>>() {
+            });
+        return resp.getData();
+    }
+
+    public List<AppInfo> listBizSetApps() {
+        Response<List<AppInfo>> resp = getJobRespByReq(
+            HttpGet.METHOD_NAME,
+            URL_LIST_BIZ_SET_APPS,
             new BasicHttpReq(),
             new TypeReference<Response<List<AppInfo>>>() {
             });

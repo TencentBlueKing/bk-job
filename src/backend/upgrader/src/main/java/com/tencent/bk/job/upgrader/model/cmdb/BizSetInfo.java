@@ -22,55 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
-
-    private Long id;
+/**
+ * CMDB接口响应实体类，定义业务集字段
+ */
+@Setter
+@Getter
+public class BizSetInfo {
 
     /**
-     * 业务名称
+     * ID
      */
+    @JsonProperty("bk_biz_set_id")
+    private long id;
+
+    /**
+     * 名称
+     */
+    @JsonProperty("bk_biz_set_name")
     private String name;
 
     /**
-     * 业务类型
+     * 描述
      */
-    private Integer appType;
+    @JsonProperty("bk_biz_set_desc")
+    private String desc;
 
     /**
-     * 运维
+     * 运维人员
      */
-    private String maintainers;
+    @JsonProperty("biz_set_maintainer")
+    private String maintainer;
 
     /**
-     * 子业务
+     * 创建时间
      */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
+    @JsonProperty("create_time")
+    private String createTime;
 
     /**
-     * 时区
+     * 最后修改时间
      */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
+    @JsonProperty("last_time")
+    private String lastTime;
 }

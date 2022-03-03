@@ -22,55 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
-
-    private Long id;
+/**
+ * CMDB接口请求实体类，定义业务集选择业务的范围
+ */
+@Setter
+@Getter
+public class BizSetScope {
 
     /**
-     * 业务名称
+     * 是否匹配全部业务
      */
-    private String name;
+    @JsonProperty("match_all")
+    private boolean matchAll;
 
     /**
-     * 业务类型
+     * 业务过滤器
      */
-    private Integer appType;
+    private BizSetFilter filter;
 
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }
