@@ -160,6 +160,7 @@ CREATE TABLE `task_plan`
     `template_id`       CHAR(40)            NOT NULL,
     `name`              VARCHAR(512)        NOT NULL,
     `creator`           VARCHAR(128)        NOT NULL,
+    `type`              TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     `is_deleted`        TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     `create_time`       BIGINT(20) UNSIGNED NOT NULL,
     `last_modify_user`  VARCHAR(128)        NOT NULL,
