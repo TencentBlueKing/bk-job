@@ -22,45 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.app.ResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 /**
- * @since 6/11/2019 10:26
+ * 资源范围类型
  */
-@Data
-public class JobContext {
+public enum ResourceScopeTypeEnum {
+    /**
+     * CMDB业务
+     */
+    BIZ("biz"),
+    /**
+     * CMDB业务集
+     */
+    BIZ_SET("biz_set");
 
-    private Long startTime;
+    /**
+     * 资源范围类型
+     */
+    private final String value;
 
-    private String username;
+    ResourceScopeTypeEnum(String value) {
+        this.value = value;
+    }
 
-    private ResourceScope resourceScope;
+    @JsonCreator
+    public static ResourceScopeTypeEnum from(String type) {
+        for (ResourceScopeTypeEnum scopeType : values()) {
+            if (scopeType.value.equals(type)) {
+                return scopeType;
+            }
+        }
+        return null;
+    }
 
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
+    public String getValue() {
+        return value;
+    }
 }

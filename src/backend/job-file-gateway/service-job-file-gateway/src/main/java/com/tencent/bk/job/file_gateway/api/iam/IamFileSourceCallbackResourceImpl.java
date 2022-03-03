@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file_gateway.api.iam;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
@@ -99,8 +99,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     private FileSourceSearchCondition getSearchCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         // 文件源列表实现
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
@@ -194,7 +193,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(fileSourceBasicInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (Integer id : fileSourceIdList) {
             try {
                 // 文件源详情查询实现
@@ -207,7 +206,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO fileSourceNode = new PathInfoDTO();
-                fileSourceNode.setType(ResourceId.FILE_SOURCE);
+                fileSourceNode.setType(ResourceTypeId.FILE_SOURCE);
                 fileSourceNode.setId(fileSourceBasicInfoDTO.getId().toString());
                 rootNode.setChild(fileSourceNode);
                 path.add(rootNode);

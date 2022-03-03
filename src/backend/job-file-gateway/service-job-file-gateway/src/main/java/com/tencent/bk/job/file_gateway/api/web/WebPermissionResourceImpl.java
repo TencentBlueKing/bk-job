@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,11 +55,11 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return null;
     }
 
-    private Scope getScope(Long bizId, String scopeType, String scopeId) {
+    private ResourceScope getScope(Long bizId, String scopeType, String scopeId) {
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new Scope(scopeType, scopeId);
+            return new ResourceScope(scopeType, scopeId);
         } else if (bizId != null) {
-            return new Scope(ResourceId.BIZ, bizId.toString());
+            return new ResourceScope(ResourceTypeId.BIZ, bizId.toString());
         }
         return null;
     }
@@ -73,10 +72,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
-    private PathInfoDTO buildScopePathInfo(Scope scope) {
-        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
-    }
-
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
                                                            Long bizId,
@@ -85,8 +80,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        Scope scope = getScope(bizId, scopeType, scopeId);
-        if (scope == null) {
+        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
+        if (resourceScope == null) {
             return Response.buildCommonFailResp(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"}
@@ -109,23 +104,23 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     case "view":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            buildScopePathInfo(scope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS, scopeId,
-                            buildScopePathInfo(scope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "edit":
                     case "delete":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            buildScopePathInfo(scope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
+                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                             returnPermissionDetail);
                 }
                 break;
             default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
+                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());

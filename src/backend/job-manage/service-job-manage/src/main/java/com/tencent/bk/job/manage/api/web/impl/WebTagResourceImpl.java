@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
@@ -185,7 +185,7 @@ public class WebTagResourceImpl implements WebTagResource {
         tag.setName(tagCreateUpdateReq.getName());
         tag.setDescription(tagCreateUpdateReq.getDescription());
         Long tagId = tagService.insertNewTag(username, tag);
-        authService.registerResource(tagId.toString(), tagCreateUpdateReq.getName(), ResourceId.TAG, username, null);
+        authService.registerResource(tagId.toString(), tagCreateUpdateReq.getName(), ResourceTypeId.TAG, username, null);
 
         TagDTO savedTag = tagService.getTagInfoById(appId, tagId);
         return Response.buildSuccessResp(TagDTO.toVO(savedTag));

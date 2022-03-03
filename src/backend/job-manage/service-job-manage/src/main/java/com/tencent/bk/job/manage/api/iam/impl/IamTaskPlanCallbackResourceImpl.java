@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -140,7 +140,7 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(taskPlanBasicInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);
@@ -153,11 +153,11 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
                 List<PathInfoDTO> path = new ArrayList<>();
                 PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                 PathInfoDTO templateNode = new PathInfoDTO();
-                templateNode.setType(ResourceId.TEMPLATE);
+                templateNode.setType(ResourceTypeId.TEMPLATE);
                 templateNode.setId(planBasicInfoDTO.getTemplateId().toString());
                 rootNode.setChild(templateNode);
                 PathInfoDTO planNode = new PathInfoDTO();
-                planNode.setType(ResourceId.PLAN);
+                planNode.setType(ResourceTypeId.PLAN);
                 planNode.setId(planBasicInfoDTO.getId().toString());
                 templateNode.setChild(planNode);
                 path.add(rootNode);

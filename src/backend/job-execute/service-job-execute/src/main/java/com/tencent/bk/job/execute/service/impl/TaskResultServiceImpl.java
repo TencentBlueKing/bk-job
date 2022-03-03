@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -234,7 +234,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
         //TODO:scope改造
         AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new Scope(ResourceId.BIZ, appId.toString()),
+            username, new ResourceScope(ResourceTypeId.BIZ, appId.toString()),
             stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

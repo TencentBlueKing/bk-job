@@ -85,9 +85,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * @since 7/11/2019 19:12
- */
 @Slf4j
 @Service
 public class ApplicationServiceImpl implements ApplicationService {

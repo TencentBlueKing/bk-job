@@ -22,45 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.iam.util;
 
 import com.tencent.bk.job.common.app.ResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
+public class IamUtil {
+    /**
+     * 根据资源范围获取IAM资源ID
+     *
+     * @param resourceScope 资源范围
+     * @return ResourceId
+     */
+    public static String getIamResourceTypeIdForResourceScope(ResourceScope resourceScope) {
+        ResourceScopeTypeEnum scopeType = resourceScope.getType();
+        switch (scopeType) {
+            case BIZ:
+                return ResourceTypeId.BIZ;
+            case BIZ_SET:
+                return ResourceTypeId.BUSINESS_SET;
+            default:
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+    }
 
-/**
- * @since 6/11/2019 10:26
- */
-@Data
-public class JobContext {
-
-    private Long startTime;
-
-    private String username;
-
-    private ResourceScope resourceScope;
-
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
+    public static PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
+    }
 }

@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.crontab.api.web.impl;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,9 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService authService;
+    private final AppTransferService appTransferService;
 
-    public WebPermissionResourceImpl(WebAuthService authService) {
+    public WebPermissionResourceImpl(WebAuthService authService,
+                                     AppTransferService appTransferService) {
         this.authService = authService;
+        this.appTransferService = appTransferService;
     }
 
     @Override
@@ -62,29 +64,16 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
-    private PathInfoDTO buildScopePathInfo(Scope scope) {
-        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
-    }
-
-    private Scope getScope(Long bizId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new Scope(scopeType, scopeId);
-        } else if (bizId != null) {
-            return new Scope(ResourceId.BIZ, bizId.toString());
-        }
-        return null;
-    }
-
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long bizId,
+                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        Scope scope = getScope(bizId, scopeType, scopeId);
-        if (scope == null) {
+        ResourceScope resourceScope = appTransferService.getResourceScope(appId, scopeType, scopeId);
+        if (resourceScope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
@@ -104,20 +93,22 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId, buildScopePathInfo(scope)));
+                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId,
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId, buildScopePathInfo(scope)));
+                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId,
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
+                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                             returnPermissionDetail);
                 }
                 break;
             default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, scope, operation, resourceId,
+                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
