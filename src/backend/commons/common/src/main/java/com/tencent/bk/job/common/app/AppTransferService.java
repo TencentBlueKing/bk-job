@@ -32,12 +32,12 @@ import java.util.Map;
  */
 public interface AppTransferService {
 
-    Long getAppIdByScope(String scopeType, String scopeId);
+    Long getAppIdByScope(ResourceScope resourceScope);
 
-    Long getAppIdByScope(Scope scope);
+    ResourceScope getScopeByAppId(Long appId);
 
-    Scope getScopeByAppId(Long appId);
+    Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
 
-    Map<Long, Scope> getScopeByAppIds(Collection<Long> appIds);
+    ResourceScope getResourceScope(Long appId, String scopeType, String scopeId);
 
 }

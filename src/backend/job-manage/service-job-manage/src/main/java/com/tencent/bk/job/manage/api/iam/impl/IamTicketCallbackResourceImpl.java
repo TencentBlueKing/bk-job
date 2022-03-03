@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -77,8 +77,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CredentialDTO credentialQuery = new CredentialDTO();
-        Long appId = appTransferService.getAppIdByScope(
-            searchCondition.getScopeType(), searchCondition.getScopeIdList().get(0));
+        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         credentialQuery.setAppId(appId);
         return Pair.of(credentialQuery, baseSearchCondition);
     }
@@ -141,7 +140,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(credentialDisplayDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String id : searchCondition.getIdList()) {
             ServiceCredentialDisplayDTO credentialDisplayDTO = credentialDTOMap.get(id);
             if (credentialDisplayDTO == null) {
@@ -152,7 +151,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
             List<PathInfoDTO> path = new ArrayList<>();
             PathInfoDTO rootNode = getPathNodeByAppId(appId, appIdScopeMap);
             PathInfoDTO ticketNode = new PathInfoDTO();
-            ticketNode.setType(ResourceId.TICKET);
+            ticketNode.setType(ResourceTypeId.TICKET);
             ticketNode.setId(credentialDisplayDTO.getId());
             rootNode.setChild(ticketNode);
             path.add(rootNode);

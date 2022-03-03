@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
@@ -199,7 +199,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             result.setAny(true);
         } else {
             if (StringUtils.isNotBlank(expression.getField())
-                && expression.getField().equals(ResourceId.BIZ + "." + "id")) {
+                && expression.getField().equals(ResourceTypeId.BIZ + "." + "id")) {
                 if (expression.getValue() instanceof List) {
                     List<?> list = ((List<?>) expression.getValue());
                     if (list.size() > 0) {

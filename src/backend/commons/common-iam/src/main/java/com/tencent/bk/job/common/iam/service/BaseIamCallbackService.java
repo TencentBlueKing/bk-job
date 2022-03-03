@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.common.iam.service;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
+import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
@@ -37,6 +41,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponse
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -69,16 +74,16 @@ public abstract class BaseIamCallbackService {
      * @param appIdScopeMap 内部业务Id与Scope映射表
      * @return Path节点
      */
-    public PathInfoDTO getPathNodeByAppId(Long appId, Map<Long, Scope> appIdScopeMap) {
-        Scope scope = appIdScopeMap.get(appId);
-        if (scope == null) {
+    public PathInfoDTO getPathNodeByAppId(Long appId, Map<Long, ResourceScope> appIdScopeMap) {
+        ResourceScope resourceScope = appIdScopeMap.get(appId);
+        if (resourceScope == null) {
             FormattingTuple msg = MessageFormatter.format("Cannot find scope by appId {}", appId);
             log.warn(msg.getMessage());
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
         PathInfoDTO rootNode = new PathInfoDTO();
-        rootNode.setType(scope.getType());
-        rootNode.setId(scope.getId());
+        rootNode.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
+        rootNode.setId(resourceScope.getId());
         return rootNode;
     }
 
@@ -118,5 +123,32 @@ public abstract class BaseIamCallbackService {
                 response = new CallbackBaseResponseDTO();
         }
         return response;
+    }
+
+    /**
+     * 从IAM查询条件中提取ResourceScope相关的查询条件
+     *
+     * @param searchCondition 查询条件
+     */
+    public ResourceScope extractResourceScopeCondition(IamSearchCondition searchCondition) {
+        if (StringUtils.isNotBlank(searchCondition.getParentResourceTypeId())) {
+            ResourceTypeEnum iamResourceType =
+                ResourceTypeEnum.getByResourceTypeId(searchCondition.getParentResourceTypeId());
+            ResourceScopeTypeEnum resourceScopeType;
+            switch (iamResourceType) {
+                case BUSINESS:
+                    resourceScopeType = ResourceScopeTypeEnum.BIZ;
+                    break;
+                case BUSINESS_SET:
+                    resourceScopeType = ResourceScopeTypeEnum.BIZ_SET;
+                    break;
+                default:
+                    log.error("Invalid iam resource type: {}", searchCondition.getParentResourceTypeId());
+                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
+            }
+            return new ResourceScope(resourceScopeType, searchCondition.getParentResourceId());
+        } else {
+            return null;
+        }
     }
 }

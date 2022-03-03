@@ -27,10 +27,10 @@ package com.tencent.bk.job.common.web.interceptor;
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.app.DeprecatedAppLogic;
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -106,14 +106,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        Scope scope = parseScopeFromPath(request.getRequestURI());
-        log.debug("scope from path:{}", scope);
-        if (scope == null) {
-            scope = parseScopeFromQueryStringOrBody(request);
-            log.debug("scope from query/body:{}", scope);
+        ResourceScope resourceScope = parseScopeFromPath(request.getRequestURI());
+        log.debug("scope from path:{}", resourceScope);
+        if (resourceScope == null) {
+            resourceScope = parseScopeFromQueryStringOrBody(request);
+            log.debug("scope from query/body:{}", resourceScope);
         }
-        if (scope != null) {
-            JobContextUtil.setScope(scope);
+        if (resourceScope != null) {
+            JobContextUtil.setScope(resourceScope);
         }
         return true;
     }
@@ -124,7 +124,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private Scope parseScopeFromPath(String requestURI) {
+    private ResourceScope parseScopeFromPath(String requestURI) {
         Matcher scopeTypeMatcher = SCOPE_TYPE_PATTERN.matcher(requestURI);
         Matcher scopeIdMatcher = SCOPE_ID_PATTERN.matcher(requestURI);
         String scopeType = null;
@@ -140,10 +140,10 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
             if (appIdMatcher.find()) {
                 String appId = appIdMatcher.group(1);
-                return new Scope(ResourceId.BIZ, appId);
+                return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId);
             }
         } else {
-            return new Scope(scopeType, scopeId);
+            return new ResourceScope(scopeType, scopeId);
         }
         return null;
     }
@@ -152,16 +152,16 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return parseValueFromQueryStringOrBody(request, "bk_username");
     }
 
-    private Scope parseScopeFromQueryStringOrBody(HttpServletRequest request) {
+    private ResourceScope parseScopeFromQueryStringOrBody(HttpServletRequest request) {
         String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
         String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new Scope(scopeType, scopeId);
+            return new ResourceScope(scopeType, scopeId);
         } else {
             // 兼容当前业务ID参数
             String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizId)) {
-                return new Scope(ResourceId.BIZ, bizId);
+                return new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId);
             }
         }
         return null;

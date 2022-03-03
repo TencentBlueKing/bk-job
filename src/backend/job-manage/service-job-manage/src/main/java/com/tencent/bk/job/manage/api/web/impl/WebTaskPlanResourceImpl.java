@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -401,8 +401,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         Long savedPlanId = planService.saveTaskPlan(TaskPlanInfoDTO.fromReq(username, appId, taskPlanCreateUpdateReq));
         if (planId == 0) {
-            authService.registerResource(savedPlanId.toString(), taskPlanCreateUpdateReq.getName(), ResourceId.PLAN,
-                username, null);
+            authService.registerResource(savedPlanId.toString(), taskPlanCreateUpdateReq.getName(), ResourceTypeId.PLAN,
+                                         username, null);
         }
         return Response.buildSuccessResp(savedPlanId);
     }

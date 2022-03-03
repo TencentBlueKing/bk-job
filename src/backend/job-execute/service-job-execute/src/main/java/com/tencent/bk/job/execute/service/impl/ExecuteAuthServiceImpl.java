@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -554,12 +555,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return appResource;
     }
 
-    private PathInfoDTO buildScopePathInfo(Scope scope) {
-        return PathBuilder.newBuilder(scope.getType(), scope.getId()).build();
-    }
-
     @Override
-    public AuthResult authViewTaskInstance(String username, Scope scope, long taskInstanceId) {
+    public AuthResult authViewTaskInstance(String username, ResourceScope resourceScope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -567,8 +564,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();
         }
-        return authService.auth(false, username, ActionId.VIEW_HISTORY,
-            ResourceTypeEnum.BUSINESS, scope.getId(), buildScopePathInfo(scope));
+        return authService.auth(false, username, ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
+            resourceScope.getId(), IamUtil.buildScopePathInfo(resourceScope));
     }
 
     @Override

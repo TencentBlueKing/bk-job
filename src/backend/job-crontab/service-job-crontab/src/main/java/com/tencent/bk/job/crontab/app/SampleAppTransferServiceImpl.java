@@ -25,8 +25,8 @@
 package com.tencent.bk.job.crontab.app;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -39,27 +39,41 @@ import java.util.Map;
 @Service
 public class SampleAppTransferServiceImpl implements AppTransferService {
     @Override
-    public Long getAppIdByScope(String scopeType, String scopeId) {
-        return Long.parseLong(scopeId);
+    public Long getAppIdByScope(ResourceScope resourceScope) {
+        if (resourceScope == null) {
+            return null;
+        }
+
+        // TODO app-transfer
+        return Long.valueOf(resourceScope.getId());
     }
 
     @Override
-    public Long getAppIdByScope(Scope scope) {
-        if (scope == null) return null;
-        return getAppIdByScope(scope.getType(), scope.getId());
+    public ResourceScope getScopeByAppId(Long appId) {
+        // TODO app-transfer
+        return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId);
     }
 
     @Override
-    public Scope getScopeByAppId(Long appId) {
-        return new Scope(ResourceId.BIZ, appId.toString());
-    }
-
-    @Override
-    public Map<Long, Scope> getScopeByAppIds(Collection<Long> appIds) {
-        Map<Long, Scope> map = new HashMap<>();
+    public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
+        Map<Long, ResourceScope> map = new HashMap<>();
+        // TODO app-transfer
         for (Long appId : appIds) {
-            map.put(appId, new Scope(ResourceId.BIZ, appId.toString()));
+            map.put(appId, new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId));
         }
         return map;
+    }
+
+    @Override
+    public ResourceScope getResourceScope(Long appId, String scopeType, String scopeId) {
+        ResourceScope resourceScope = null;
+        if (scopeType != null) {
+            resourceScope = new ResourceScope(scopeType, scopeId,
+                getAppIdByScope(new ResourceScope(scopeType, scopeId)));
+        } else if (appId != null) {
+            ResourceScope resourceScopeForApp = getScopeByAppId(appId);
+            resourceScope = new ResourceScope(resourceScopeForApp.getType(), resourceScopeForApp.getId(), appId);
+        }
+        return resourceScope;
     }
 }

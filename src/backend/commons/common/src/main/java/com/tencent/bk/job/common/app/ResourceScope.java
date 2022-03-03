@@ -22,12 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-TRUNCATE TABLE gse_task_ip_log;
+package com.tencent.bk.job.common.app;
 
-INSERT INTO job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source)
-VALUES
-(1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0),
-(1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2',1,0),
-(1,0,'0:127.0.0.3',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.3',0,1),
-(2,0,'0:127.0.0.1',9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1',1,0),
-(2,1,'0:127.0.0.1',9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1',1,0);
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.StringJoiner;
+
+/**
+ * 资源范围
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+public class ResourceScope {
+    /**
+     * 资源范围类型
+     */
+    private ResourceScopeTypeEnum type;
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String id;
+    /**
+     * 作业平台业务ID
+     */
+    private Long appId;
+
+    public ResourceScope(String type, String id) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
+    }
+
+    public ResourceScope(ResourceScopeTypeEnum type, String id) {
+        this.type = type;
+        this.id = id;
+    }
+
+    public ResourceScope(ResourceScopeTypeEnum type, String id, Long appId) {
+        this.type = type;
+        this.id = id;
+        this.appId = appId;
+    }
+
+    public ResourceScope(String type, String id, Long appId) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
+        this.appId = appId;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
+            .add("type=" + type)
+            .add("id='" + id + "'")
+            .toString();
+    }
+}

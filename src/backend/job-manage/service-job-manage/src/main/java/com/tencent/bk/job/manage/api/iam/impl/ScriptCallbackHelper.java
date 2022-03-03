@@ -1,8 +1,8 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
 import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.Scope;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -101,7 +101,7 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
             appIdSet.add(scriptBasicDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, Scope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(instanceId);
@@ -113,14 +113,14 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
                 PathInfoDTO rootNode = new PathInfoDTO();
                 if (basicInfoInterface.isPublicScript()) {
                     // 公共脚本
-                    rootNode.setType(ResourceId.PUBLIC_SCRIPT);
+                    rootNode.setType(ResourceTypeId.PUBLIC_SCRIPT);
                     rootNode.setId(scriptBasicDTO.getId());
                 } else {
                     // 业务脚本
                     Long appId = scriptBasicDTO.getAppId();
                     rootNode = getPathNodeByAppId(appId, appIdScopeMap);
                     PathInfoDTO scriptNode = new PathInfoDTO();
-                    scriptNode.setType(ResourceId.SCRIPT);
+                    scriptNode.setType(ResourceTypeId.SCRIPT);
                     scriptNode.setId(scriptBasicDTO.getId());
                     rootNode.setChild(scriptNode);
                 }

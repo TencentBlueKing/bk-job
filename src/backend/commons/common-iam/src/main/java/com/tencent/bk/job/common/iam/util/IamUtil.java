@@ -22,12 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-TRUNCATE TABLE gse_task_ip_log;
+package com.tencent.bk.job.common.iam.util;
 
-INSERT INTO job_execute.gse_task_ip_log (step_instance_id,execute_count,ip,status,start_time,end_time,total_time,error_code,exit_code,tag,log_offset,display_ip,is_target,is_source)
-VALUES
-(1,0,'0:127.0.0.1',9,1565767148000,1565767149000,1316,0,0,'succ',0,'127.0.0.1',1,0),
-(1,0,'0:127.0.0.2',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.2',1,0),
-(1,0,'0:127.0.0.3',9,1565767148000,1565767149000,1211,0,0,'succ',0,'127.0.0.3',0,1),
-(2,0,'0:127.0.0.1',9,1565767148000,1565767209000,1211,0,0,'succ',0,'127.0.0.1',1,0),
-(2,1,'0:127.0.0.1',9,1565766610000,1565767211000,1215,0,0,'succ',0,'127.0.0.1',1,0);
+import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+
+public class IamUtil {
+    /**
+     * 根据资源范围获取IAM资源ID
+     *
+     * @param resourceScope 资源范围
+     * @return ResourceId
+     */
+    public static String getIamResourceTypeIdForResourceScope(ResourceScope resourceScope) {
+        ResourceScopeTypeEnum scopeType = resourceScope.getType();
+        switch (scopeType) {
+            case BIZ:
+                return ResourceTypeId.BIZ;
+            case BIZ_SET:
+                return ResourceTypeId.BUSINESS_SET;
+            default:
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    public static PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
+    }
+}

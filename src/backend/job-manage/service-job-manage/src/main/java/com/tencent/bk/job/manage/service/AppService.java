@@ -22,21 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.app;
+package com.tencent.bk.job.manage.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.app.ResourceScope;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Scope {
-    String type;
-    String id;
+/**
+ * Job 业务 Service
+ */
+public interface AppService {
+    /**
+     * 根据资源范围获取Job业务ID
+     *
+     * @param resourceScope 资源范围类型
+     * @return Job业务ID
+     */
+    Long getAppIdByScope(ResourceScope resourceScope);
 
-    @Override
-    public String toString() {
-        return type + "_" + id;
-    }
+    /**
+     * 根据Job业务ID获取资源范围
+     *
+     * @param appId Job业务ID
+     * @return 资源范围
+     */
+    ResourceScope getScopeByAppId(Long appId);
+
 }

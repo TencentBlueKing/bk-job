@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -272,7 +272,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             Long finalTemplateId = templateService
                 .saveTaskTemplate(TaskTemplateInfoDTO.fromReq(username, appId, taskTemplateCreateUpdateReq));
             authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
-                ResourceId.TEMPLATE, username, null);
+                                         ResourceTypeId.TEMPLATE, username, null);
             return Response.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

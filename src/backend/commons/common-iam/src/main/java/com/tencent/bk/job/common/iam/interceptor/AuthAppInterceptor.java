@@ -27,13 +27,14 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
-import com.tencent.bk.job.common.app.Scope;
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -60,23 +61,23 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        Pair<String, Scope> userScopePair = null;
+        Pair<String, ResourceScope> userScopePair = null;
         userScopePair = findUserAndScope();
         if (userScopePair != null) {
             String username = userScopePair.getLeft();
-            Scope scope = userScopePair.getRight();
-            if (scope != null && Long.parseLong(scope.getId()) != JobConstants.PUBLIC_APP_ID) {
-                log.debug("auth {} access_business {}", username, scope);
+            ResourceScope resourceScope = userScopePair.getRight();
+            if (resourceScope != null && Long.parseLong(resourceScope.getId()) != JobConstants.PUBLIC_APP_ID) {
+                log.debug("auth {} access_business {}", username, resourceScope);
                 PathInfoDTO pathInfo = new PathInfoDTO();
-                pathInfo.setType(scope.getType());
-                pathInfo.setId(scope.getId());
+                pathInfo.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
+                pathInfo.setId(resourceScope.getId());
                 AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
-                    ResourceTypeEnum.BUSINESS, scope.getId(), pathInfo);
+                                                         ResourceTypeEnum.BUSINESS, resourceScope.getId(), pathInfo);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.info("ignore auth {} access_business public scope {}", username, scope);
+                log.info("ignore auth {} access_business public scope {}", username, resourceScope);
             }
         } else {
             log.debug("can not find username/scope for url:{}", url);
@@ -84,11 +85,11 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
         return true;
     }
 
-    private Pair<String, Scope> findUserAndScope() {
+    private Pair<String, ResourceScope> findUserAndScope() {
         String username = JobContextUtil.getUsername();
-        Scope scope = JobContextUtil.getScope();
-        if (username != null && scope != null) {
-            return Pair.of(username, scope);
+        ResourceScope resourceScope = JobContextUtil.getScope();
+        if (username != null && resourceScope != null) {
+            return Pair.of(username, resourceScope);
         }
         return null;
     }

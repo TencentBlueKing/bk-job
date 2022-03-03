@@ -32,8 +32,8 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -615,7 +615,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 authService.registerResource(
                     savedScript.getId(),
                     script.getName(),
-                    ResourceId.PUBLIC_SCRIPT,
+                    ResourceTypeId.PUBLIC_SCRIPT,
                     username,
                     null
                 );
@@ -624,7 +624,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 authService.registerResource(
                     savedScript.getId(),
                     script.getName(),
-                    ResourceId.SCRIPT,
+                    ResourceTypeId.SCRIPT,
                     username,
                     null
                 );

@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -97,7 +97,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
             Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
             boolean registerResult = authService.registerResource("" + fileSourceId, fileSourceDTO.getAlias(),
-                ResourceId.FILE_SOURCE, username, null);
+                                                                  ResourceTypeId.FILE_SOURCE, username, null);
             if (!registerResult) {
                 log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
             }

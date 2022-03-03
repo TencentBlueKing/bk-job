@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -163,7 +163,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
             Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
                 lastModifyTime, lastModifyUser);
             authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
-                ResourceId.TEMPLATE, username, null);
+                                         ResourceTypeId.TEMPLATE, username, null);
             return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
