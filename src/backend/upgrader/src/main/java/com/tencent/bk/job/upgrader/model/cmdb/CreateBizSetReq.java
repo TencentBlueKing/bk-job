@@ -29,9 +29,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Setter
 @Getter
 public class CreateBizSetReq extends EsbReq {
