@@ -35,8 +35,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,11 +62,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return checkOperationPermission(
             username, req.getAppId(), req.getScopeType(), req.getScopeId(),
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
-    }
-
-    private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
-            resourceScope.getId()).build();
     }
 
     @Override
@@ -101,14 +94,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId,
-                            buildScopePathInfo(resourceScope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId,
-                            buildScopePathInfo(resourceScope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                             returnPermissionDetail);

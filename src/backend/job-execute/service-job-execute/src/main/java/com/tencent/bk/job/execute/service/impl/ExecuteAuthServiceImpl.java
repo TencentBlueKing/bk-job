@@ -549,11 +549,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return appResource;
     }
 
-    private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
-            resourceScope.getId()).build();
-    }
-
     @Override
     public AuthResult authViewTaskInstance(String username, ResourceScope resourceScope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
@@ -563,8 +558,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();
         }
-        return authService.auth(false, username, ActionId.VIEW_HISTORY,
-                                ResourceTypeEnum.BUSINESS, resourceScope.getId(), buildScopePathInfo(resourceScope));
+        return authService.auth(false, username, ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
+            resourceScope.getId(), IamUtil.buildScopePathInfo(resourceScope));
     }
 
     @Override

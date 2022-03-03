@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 
 public class IamUtil {
     /**
@@ -47,5 +49,10 @@ public class IamUtil {
             default:
                 throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    public static PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
+            resourceScope.getId()).build();
     }
 }

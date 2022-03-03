@@ -35,8 +35,6 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,11 +72,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             req.getOperation(), req.getResourceId(), req.isReturnPermissionDetail());
     }
 
-    private PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {
-        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope),
-            resourceScope.getId()).build();
-    }
-
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
                                                            Long bizId,
@@ -111,16 +104,16 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     case "view":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            buildScopePathInfo(resourceScope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "create":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS, scopeId,
-                            buildScopePathInfo(resourceScope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     case "edit":
                     case "delete":
                         return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                             ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            buildScopePathInfo(resourceScope)));
+                            IamUtil.buildScopePathInfo(resourceScope)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
                             returnPermissionDetail);
