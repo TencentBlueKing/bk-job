@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -93,6 +94,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final TaskFavoriteService taskFavoriteService;
     private final CronJobService cronJobService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public WebTaskPlanResourceImpl(
@@ -100,13 +102,14 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         TaskTemplateService templateService,
         @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         CronJobService cronJobService,
-        AuthService authService
-    ) {
+        AuthService authService,
+        AppAuthService appAuthService) {
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
     }
 
     @Override
@@ -252,13 +255,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         });
 
         List<Long> allowedViewPlan =
-            authService.batchAuth(username, ActionId.VIEW_JOB_PLAN, appId, planIdResource)
+            appAuthService.batchAuth(username, ActionId.VIEW_JOB_PLAN, appId, planIdResource)
                 .parallelStream().map(Long::valueOf).collect(Collectors.toList());
         List<Long> allowedEditPlan =
-            authService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appId, planIdResource)
+            appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appId, planIdResource)
                 .parallelStream().map(Long::valueOf).collect(Collectors.toList());
         List<Long> allowedDeletePlan =
-            authService.batchAuth(username, ActionId.DELETE_JOB_PLAN, appId, planIdResource)
+            appAuthService.batchAuth(username, ActionId.DELETE_JOB_PLAN, appId, planIdResource)
                 .parallelStream().map(Long::valueOf).collect(Collectors.toList());
 
         taskPlanList.forEach(plan -> {
@@ -551,7 +554,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             permissionResources.add(resource);
         }
 
-        List<String> canEditPlanIdList = authService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appId,
+        List<String> canEditPlanIdList = appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appId,
             permissionResources);
         if (CollectionUtils.isEmpty(canEditPlanIdList) || (canEditPlanIdList.size() != planIdSet.size())) {
             log.warn("Batch update variable failed! Auth plan perm failed!|{}|{}", planIdSet, canEditPlanIdList);

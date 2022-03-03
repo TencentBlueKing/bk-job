@@ -26,6 +26,7 @@ package com.tencent.bk.job.backup.auth;
 
 import com.tencent.bk.job.backup.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
@@ -41,9 +42,11 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     @Autowired
     public ResourceNameQueryServiceImpl(AuthService authService,
+                                        AppAuthService appAuthService,
                                         ServiceApplicationResourceClient applicationResourceClient) {
         this.applicationResourceClient = applicationResourceClient;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(long appId) {

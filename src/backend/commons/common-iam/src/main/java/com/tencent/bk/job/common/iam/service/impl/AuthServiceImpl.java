@@ -35,12 +35,9 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.config.EsbConfiguration;
-import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ActionInfo;
 import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
@@ -50,20 +47,15 @@ import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
-import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
-import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.RelatedResourceTypeDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
-import com.tencent.bk.sdk.iam.service.PolicyService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +63,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -83,8 +74,6 @@ import java.util.stream.Collectors;
 @Service
 public class AuthServiceImpl implements AuthService {
     private final AuthHelper authHelper;
-    private final BusinessAuthHelper businessAuthHelper;
-    private final PolicyService policyService;
     private final EsbIamClient iamClient;
     private final MessageI18nService i18nService;
     private ResourceNameQueryService resourceNameQueryService;
@@ -92,17 +81,12 @@ public class AuthServiceImpl implements AuthService {
 
 
     public AuthServiceImpl(@Autowired AuthHelper authHelper,
-                           @Autowired BusinessAuthHelper businessAuthHelper,
                            @Autowired IamConfiguration iamConfiguration,
-                           @Autowired PolicyService policyService,
                            @Autowired EsbConfiguration esbConfiguration, MessageI18nService i18nService) {
         this.authHelper = authHelper;
-        this.businessAuthHelper = businessAuthHelper;
-        this.policyService = policyService;
         this.i18nService = i18nService;
         this.iamClient = new EsbIamClient(esbConfiguration.getEsbUrl(), iamConfiguration.getAppCode(),
             iamConfiguration.getAppSecret(), esbConfiguration.isUseEsbTestEnv());
-//        this.resourceNameQueryService = resourceNameQueryService;
     }
 
     @Override
@@ -126,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
-                                               String resourceId) {
+                                              String resourceId) {
         // 业务集、全业务特殊鉴权
         if (resourceAppInfoQueryService != null) {
             ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
@@ -168,21 +152,6 @@ public class AuthServiceImpl implements AuthService {
                 authResult.setApplyUrl(getApplyUrl(actionId, resourceType, resourceId));
             }
             authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
-        }
-        return authResult;
-    }
-
-    private AuthResult buildFailAuthResult(String actionId, ResourceTypeEnum resourceType,
-                                           Collection<String> resourceIds) {
-        AuthResult authResult = AuthResult.fail();
-        if (resourceType == null) {
-            authResult.addRequiredPermission(actionId, null);
-        } else {
-            for (String resourceId : resourceIds) {
-                String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-                authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId,
-                    resourceName));
-            }
         }
         return authResult;
     }
@@ -249,122 +218,10 @@ public class AuthServiceImpl implements AuthService {
         return authHelper.isAllowed(username, actionId, buildInstanceList(resourceType, resourceIdList));
     }
 
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                  List<String> resourceIdList) {
-        // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return resourceIdList;
-                } else {
-                    return Collections.emptyList();
-                }
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
-        return authHelper.isAllowed(username, actionId, buildAppInstanceList(appId, resourceType, resourceIdList));
-    }
-
-    @Override
-    public AuthResult batchAuthResources(String username, String actionId, Long appId,
-                                         List<PermissionResource> resources) {
-        // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return AuthResult.pass();
-                } else {
-                    return AuthResult.fail();
-                }
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
-
-        ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
-        List<String> notAllowResourceIds =
-            resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
-                .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        AuthResult authResult = new AuthResult();
-        if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(actionId, resourceType, notAllowResourceIds);
-        } else {
-            authResult.setPass(true);
-        }
-        return authResult;
-    }
-
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
-        // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return resourceList.parallelStream()
-                        .map(PermissionResource::getResourceId).collect(Collectors.toList());
-                } else {
-                    return Collections.emptyList();
-                }
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
-        return authHelper.isAllowed(username, actionId, buildInstanceList(resourceList));
-    }
-
-
-    @Override
-    public AppIdResult getAppIdList(String username, List<Long> allAppIdList) {
-        AppIdResult result = new AppIdResult();
-        result.setAppId(new ArrayList<>());
-        result.setAny(false);
-
-        ActionDTO action = new ActionDTO();
-        action.setId(ActionId.LIST_BUSINESS);
-        ExpressionDTO expression = policyService.getPolicyByAction(username, action, null);
-        if (ExpressionOperationEnum.ANY == expression.getOperator()) {
-            result.setAny(true);
-        } else {
-            if (StringUtils.isNotBlank(expression.getField())
-                && expression.getField().equals(ResourceTypeId.BIZ + "." + "id")) {
-                if (expression.getValue() instanceof List) {
-                    List<?> list = ((List<?>) expression.getValue());
-                    if (list.size() > 0) {
-                        ((List<String>) expression.getValue()).forEach(id -> result.getAppId().add(Long.parseLong(id)));
-                    }
-                } else if (ExpressionOperationEnum.EQUAL == expression.getOperator()) {
-                    result.getAppId().add(Long.parseLong(String.valueOf(expression.getValue())));
-                } else {
-                    result.getAppId().addAll(businessAuthHelper.getAuthedAppIdList(username, expression, allAppIdList));
-                }
-            } else {
-                result.getAppId().addAll(businessAuthHelper.getAuthedAppIdList(username, expression, allAppIdList));
-            }
-        }
-        return result;
-    }
-
     private List<InstanceDTO> buildInstanceList(ResourceTypeEnum resourceType,
                                                 List<String> resourceIds) {
         List<InstanceDTO> instances = new LinkedList<>();
         resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId, null)));
-        return instances;
-    }
-
-    private List<InstanceDTO> buildAppInstanceList(Long appId, ResourceTypeEnum resourceType,
-                                                   List<String> resourceIds) {
-        List<InstanceDTO> instances = new LinkedList<>();
-        resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId,
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build())));
         return instances;
     }
 
@@ -554,30 +411,6 @@ public class AuthServiceImpl implements AuthService {
         ActionDTO action = new ActionDTO();
         action.setId(actionId);
         action.setRelatedResourceTypes(Collections.emptyList());
-        return iamClient.getApplyUrl(Collections.singletonList(action));
-    }
-
-    @Override
-    public String getBusinessApplyUrl(Long appId) {
-        ActionDTO action = new ActionDTO();
-        action.setId(ActionId.LIST_BUSINESS);
-        List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
-        RelatedResourceTypeDTO businessResourceTypeDTO = new RelatedResourceTypeDTO();
-        businessResourceTypeDTO.setType(ResourceTypeEnum.BUSINESS.getId());
-        businessResourceTypeDTO.setSystemId(SystemId.CMDB);
-        if (appId != null) {
-            List<InstanceDTO> instanceDTOList = new ArrayList<>();
-            InstanceDTO instanceDTO = new InstanceDTO();
-            instanceDTO.setSystem(SystemId.CMDB);
-            instanceDTO.setType(ResourceTypeEnum.BUSINESS.getId());
-            instanceDTO.setId(appId.toString());
-            instanceDTOList.add(instanceDTO);
-            businessResourceTypeDTO.setInstance(Collections.singletonList(instanceDTOList));
-        } else {
-            businessResourceTypeDTO.setInstance(Collections.emptyList());
-        }
-        relatedResourceTypes.add(businessResourceTypeDTO);
-        action.setRelatedResourceTypes(relatedResourceTypes);
         return iamClient.getApplyUrl(Collections.singletonList(action));
     }
 

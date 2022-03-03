@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
@@ -57,9 +58,15 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     private CredentialService credentialService;
 
     @Autowired
-    public ResourceNameQueryServiceImpl(ApplicationService applicationService, ScriptService scriptService,
-                                        TaskTemplateService templateService, TaskPlanService planService,
-                                        AccountService accountService, TagService tagService, AuthService authService, CredentialService credentialService) {
+    public ResourceNameQueryServiceImpl(ApplicationService applicationService,
+                                        ScriptService scriptService,
+                                        TaskTemplateService templateService,
+                                        TaskPlanService planService,
+                                        AccountService accountService,
+                                        TagService tagService,
+                                        AuthService authService,
+                                        AppAuthService appAuthService,
+                                        CredentialService credentialService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
@@ -68,6 +75,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
         this.tagService = tagService;
         this.credentialService = credentialService;
         authService.setResourceNameQueryService(this);
+        appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(Long appId) {

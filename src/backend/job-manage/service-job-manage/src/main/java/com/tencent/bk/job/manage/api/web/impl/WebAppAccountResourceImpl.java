@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -73,6 +74,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private final AccountService accountService;
     private final MessageI18nService i18nService;
     private final AuthService authService;
+    private final AppAuthService appAuthService;
     private final ApplicationService applicationService;
     private final JobManageConfig jobManageConfig;
 
@@ -80,11 +82,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     public WebAppAccountResourceImpl(AccountService accountService,
                                      MessageI18nService i18nService,
                                      AuthService authService,
+                                     AppAuthService appAuthService,
                                      ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.authService = authService;
+        this.appAuthService = appAuthService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
     }
@@ -234,7 +238,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         // 添加权限数据
         List<String> canManageIdList =
-            authService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
+            appAuthService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
                 accountVOS.parallelStream().map(AccountVO::getId).map(Objects::toString).collect(Collectors.toList()));
         accountVOS.forEach(it -> {
             it.setCanManage(canManageIdList.contains(it.getId().toString()));
@@ -327,7 +331,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                 accountVOS.add(accountVO);
             }
             // 批量鉴权
-            Set<String> allowedManageAccounts = new HashSet<>(authService
+            Set<String> allowedManageAccounts = new HashSet<>(appAuthService
                 .batchAuth(username, ActionId.MANAGE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
                     accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList())));
             accountVOS.forEach(accountVO ->
@@ -362,7 +366,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         if (shouldAuthAccount(appId)) {
             List<Long> accountIdList = accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList());
-            Set<String> allowedUseAccounts = new HashSet<>(authService
+            Set<String> allowedUseAccounts = new HashSet<>(appAuthService
                 .batchAuth(username, ActionId.USE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
                     accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList())));
             accountVOS.forEach(accountVO ->

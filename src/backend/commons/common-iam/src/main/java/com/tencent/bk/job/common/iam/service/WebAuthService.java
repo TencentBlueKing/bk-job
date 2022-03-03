@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -102,26 +101,11 @@ public interface WebAuthService {
      */
     List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList);
 
-    /**
-     * 批量鉴权
-     *
-     * @param username  用户名
-     * @param actionId  操作ID
-     * @param appId     业务ID
-     * @param resources 资源列表
-     * @return 鉴权结果
-     */
-    AuthResultVO batchAuthResources(String username, String actionId, Long appId, List<PermissionResource> resources);
-
-    AppIdResult getAppIdList(String username, List<Long> allAppIdList);
-
     String getApplyUrl(String actionId);
 
     String getApplyUrl(String actionId, ResourceTypeEnum resourceType, String resourceId);
 
     String getApplyUrl(List<PermissionActionResource> permissionActionResources);
-
-    String getBusinessApplyUrl(Long appId);
 
     AuthResultVO toAuthResultVO(AuthResult authResult);
 
