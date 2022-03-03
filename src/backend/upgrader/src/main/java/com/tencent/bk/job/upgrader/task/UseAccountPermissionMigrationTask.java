@@ -46,8 +46,8 @@ import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.iam.JobIamHelper;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
-import com.tencent.bk.job.upgrader.model.AppInfo;
 import com.tencent.bk.job.upgrader.model.Policy;
+import com.tencent.bk.job.upgrader.model.SimpleAppInfo;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -80,7 +80,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
 
     private IamClient iamClient;
     private EsbIamClient esbIamClient;
-    private List<AppInfo> appInfoList;
+    private List<SimpleAppInfo> simpleAppInfoList;
     private Map<Long, String> appInfoMap;
 
     private String getJobHostUrlByAddress(String address) {
@@ -119,10 +119,10 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
         );
-        this.appInfoList = getAllNormalAppInfoFromManage();
+        this.simpleAppInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();
-        appInfoList.forEach(appInfo -> {
-            appInfoMap.put(appInfo.getId(), appInfo.getName());
+        simpleAppInfoList.forEach(simpleAppInfo -> {
+            appInfoMap.put(simpleAppInfo.getId(), simpleAppInfo.getName());
         });
     }
 
@@ -156,7 +156,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         return actionPolicies.getResults();
     }
 
-    private List<AppInfo> getAllNormalAppInfoFromManage() {
+    private List<SimpleAppInfo> getAllNormalAppInfoFromManage() {
         try {
             return jobManageClient.listNormalApps();
         } catch (Exception e) {
@@ -176,7 +176,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         return businessAuthHelper.getAuthedAppIdList(
             null,
             policy.getExpression(),
-            appInfoList.parallelStream().map(AppInfo::getId).collect(Collectors.toList())
+            simpleAppInfoList.parallelStream().map(SimpleAppInfo::getId).collect(Collectors.toList())
         );
     }
 

@@ -28,49 +28,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppInfo {
-
+public class SimpleAppInfo {
     private Long id;
 
-    /**
-     * 业务名称
-     */
     private String name;
-
-    /**
-     * 业务类型
-     */
-    private Integer appType;
-
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }

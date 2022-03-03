@@ -30,8 +30,13 @@ import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class TopologyUtil {
@@ -146,6 +151,106 @@ public class TopologyUtil {
         }
         instanceTopologyDTO.setChild(childList);
         return instanceTopologyDTO;
+    }
+
+    private static String getKey(InstanceTopologyDTO node) {
+        return node.getObjectId() + "_" + node.getInstanceId();
+    }
+
+    /**
+     * 将低一级的子节点合并入拓扑树中
+     *
+     * @param tp
+     * @param child
+     * @return
+     */
+    private static InstanceTopologyDTO mergeChildIntoTopology(InstanceTopologyDTO tp, InstanceTopologyDTO child) {
+        if (child == null) {
+            return tp;
+        }
+        Set<String> tpChildSet = tp.getChild().stream().map(TopologyUtil::getKey).collect(Collectors.toSet());
+        if (tpChildSet.contains(getKey(child))) {
+            //找到tp1中这个child进行合并更新
+            for (int i = 0; i < tp.getChild().size(); i++) {
+                if (tp.getChild().get(i).getInstanceId().equals(child.getInstanceId())) {
+                    tp.getChild().set(i, mergeTopology(tp.getChild().get(i), child));
+                    break;
+                }
+            }
+        } else {
+            tp.getChild().add(child);
+        }
+        return tp;
+    }
+
+    /**
+     * 合并两颗层级相差小于2的拓扑树
+     *
+     * @param topologyDTOs
+     * @return
+     */
+    public static InstanceTopologyDTO mergeTopology(InstanceTopologyDTO... topologyDTOs) {
+        try {
+            return mergeTopologyIndeed(topologyDTOs);
+        } catch (Exception e) {
+            for (int i = 0; i < topologyDTOs.length; i++) {
+                InstanceTopologyDTO topologyDTO = topologyDTOs[i];
+                TopologyUtil.printTopo(topologyDTO);
+                log.info("==============================");
+            }
+            throw new RuntimeException("fail to mergeTopology", e);
+        }
+    }
+
+    private static InstanceTopologyDTO mergeTopologyIndeed(InstanceTopologyDTO... topologyDTOs) {
+        Map<String, Integer> weightMap = new HashMap<>();
+        weightMap.put("biz", 1);
+        weightMap.put("set", 2);
+        weightMap.put("module", 3);
+        if (topologyDTOs.length == 1) {
+            return topologyDTOs[0];
+        } else if (topologyDTOs.length == 2) {
+            InstanceTopologyDTO tp1 = topologyDTOs[0];
+            InstanceTopologyDTO tp2 = topologyDTOs[1];
+            if (tp1 == null) {
+                return tp2;
+            }
+            if (tp2 == null) {
+                return tp1;
+            }
+            //根节点层级相同
+            if (tp1.getObjectId().equals(tp2.getObjectId())) {
+                //但实例不同，无法合并
+                if (!tp1.getInstanceId().equals(tp2.getInstanceId())) {
+                    throw new RuntimeException("can not merge differnt instances of same level");
+                } else {
+                    if (tp2.getChild() == null || tp2.getChild().isEmpty()) {
+                        return tp1;
+                    } else {
+                        for (InstanceTopologyDTO child2 : tp2.getChild()) {
+                            tp1 = mergeChildIntoTopology(tp1, child2);
+                        }
+                        return tp1;
+                    }
+                }
+            } else if (Math.abs(weightMap.get(tp1.getObjectId()) - weightMap.get(tp2.getObjectId())) >= 2) {
+                //相差两级及以上无法合并
+                throw new RuntimeException("can not merge differnt instances beyond 2 levels");
+            } else {
+                //根节点相差一级
+                if (weightMap.get(tp1.getObjectId()) < weightMap.get(tp2.getObjectId())) {
+                    //tp2往tp1中合入
+                    tp1 = mergeChildIntoTopology(tp1, tp2);
+                    return tp1;
+                } else {
+                    //交换顺序再合并
+                    return mergeTopology(tp2, tp1);
+                }
+            }
+        } else {
+            return mergeTopology(mergeTopology(Arrays.copyOf(topologyDTOs, topologyDTOs.length - 1)),
+                topologyDTOs[topologyDTOs.length - 1]);
+        }
     }
 
     public static void main(String[] args) {

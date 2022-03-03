@@ -22,55 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
-
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppInfo {
+@Setter
+@Getter
+public class Rule {
 
-    private Long id;
+    public static final String OPERATOR_EQUAL = "equal";
+    public static final String OPERATOR_NOT_EQUAL = "not_equal";
+    public static final String OPERATOR_IN = "in";
+    public static final String OPERATOR_NOT_IN = "not_in";
+    public static final String OPERATOR_LESS = "less";
+    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
+    public static final String OPERATOR_GREATER = "greater";
+    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
+    public static final String OPERATOR_BETWEEN = "between";
+    public static final String OPERATOR_NOT_BETWEEN = "not_between";
 
-    /**
-     * 业务名称
-     */
-    private String name;
+    private String field;
 
-    /**
-     * 业务类型
-     */
-    private Integer appType;
+    // 可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between
+    private String operator;
 
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
+    private Object value;
 }

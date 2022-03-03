@@ -70,6 +70,20 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
+    public InternalResponse<List<ServiceApplicationDTO>> listSpecialApps() {
+        AppTypeEnum[] appTypeEnums = AppTypeEnum.values();
+        List<ApplicationInfoDTO> applicationInfoDTOList = new ArrayList<>();
+        for (AppTypeEnum appTypeEnum : appTypeEnums) {
+            if (appTypeEnum != AppTypeEnum.NORMAL) {
+                applicationInfoDTOList.addAll(applicationInfoDAO.listAppInfoByType(appTypeEnum));
+            }
+        }
+        List<ServiceApplicationDTO> resultList =
+            applicationInfoDTOList.parallelStream().map(this::convertToServiceApp).collect(Collectors.toList());
+        return InternalResponse.buildSuccessResp(resultList);
+    }
+
+    @Override
     public ServiceApplicationDTO queryAppById(Long appId) {
         ApplicationInfoDTO appInfo = applicationService.getAppInfoById(appId);
         if (appInfo == null) {
@@ -177,7 +191,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     @Override
     public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
-                                                                     ServiceGetHostStatusByIpReq req) {
+                                                                          ServiceGetHostStatusByIpReq req) {
         List<String> ipList = req.getIpList();
         List<HostInfoVO> hostInfoVOList = applicationService.getHostsByIp(username, appId, null, ipList);
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();

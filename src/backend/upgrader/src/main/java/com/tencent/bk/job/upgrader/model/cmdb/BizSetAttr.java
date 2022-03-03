@@ -22,55 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
+@Builder
+@Setter
+@Getter
+public class BizSetAttr {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
+    @JsonProperty("bk_biz_set_id")
+    private long id;
 
-    private Long id;
-
-    /**
-     * 业务名称
-     */
+    @JsonProperty("bk_biz_set_name")
     private String name;
 
-    /**
-     * 业务类型
-     */
-    private Integer appType;
+    @JsonProperty("bk_biz_set_desc")
+    private String desc;
 
-    /**
-     * 运维
-     */
-    private String maintainers;
+    @JsonProperty("biz_set_maintainer")
+    private String maintainer;
 
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
 
-    private String owner;
+    @JsonProperty("timezone")
+    private String timeZone = "Asia/Shanghai";
 
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
     private String language;
+
 }

@@ -22,55 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.List;
+@Setter
+@Getter
+public class Page {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
+    private int start = 0;
 
-    private Long id;
+    private int limit = 500;
 
-    /**
-     * 业务名称
-     */
-    private String name;
+    @JsonProperty("enable_count")
+    private boolean enableCount = false;
 
-    /**
-     * 业务类型
-     */
-    private Integer appType;
+    private String sort;
 
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }

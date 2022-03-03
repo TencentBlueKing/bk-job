@@ -53,10 +53,18 @@ public interface ServiceApplicationResource {
     /**
      * 查询CMDB中的常规业务列表
      *
-     * @return
+     * @return 常规业务列表
      */
     @RequestMapping("/list/normal")
     InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
+
+    /**
+     * 查询CMDB中的业务集、全业务等非常规业务列表
+     *
+     * @return 非常规业务列表
+     */
+    @RequestMapping("/list/special")
+    InternalResponse<List<ServiceApplicationDTO>> listSpecialApps();
 
     /**
      * 根据业务id查询业务

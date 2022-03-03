@@ -22,55 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model;
+package com.tencent.bk.job.upgrader.model.cmdb;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.Arrays;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppInfo {
+@Setter
+@Getter
+public class CreateBizSetReq extends EsbReq {
 
-    private Long id;
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
 
-    /**
-     * 业务名称
-     */
-    private String name;
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 
-    /**
-     * 业务类型
-     */
-    private Integer appType;
-
-    /**
-     * 运维
-     */
-    private String maintainers;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    private String owner;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 时区
-     */
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
 }
