@@ -29,6 +29,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * CMDB接口请求实体类，定义业务集过滤业务的规则
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
@@ -46,10 +49,20 @@ public class Rule {
     public static final String OPERATOR_BETWEEN = "between";
     public static final String OPERATOR_NOT_BETWEEN = "not_between";
 
+    /**
+     * 业务字段名
+     */
     private String field;
 
-    // 可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between
+    /**
+     * 操作符，可选值 equal,not_equal,in,not_in,
+     * less,less_or_equal,greater,greater_or_equal,
+     * between,not_between
+     */
     private String operator;
 
+    /**
+     * 业务字段取值，根据字段不同可为不同类型
+     */
     private Object value;
 }

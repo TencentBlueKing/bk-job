@@ -24,18 +24,27 @@
 
 package com.tencent.bk.job.upgrader.model.cmdb;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+
+/**
+ * CMDB接口响应实体类，用于搜索业务集
+ */
 @Setter
 @Getter
 public class SearchBizSetResp {
 
+    /**
+     * 满足条件的业务集总数，在请求参数未开启count查询时该值为0
+     */
     private int count;
 
+    /**
+     * 业务集信息列表，在请求参数开启count查询时该值为空
+     */
     @JsonProperty("info")
     private List<BizSetInfo> bizSetList;
 }

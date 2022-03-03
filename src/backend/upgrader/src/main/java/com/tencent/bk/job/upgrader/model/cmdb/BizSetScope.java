@@ -28,13 +28,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * CMDB接口请求实体类，定义业务集选择业务的范围
+ */
 @Setter
 @Getter
 public class BizSetScope {
 
+    /**
+     * 是否匹配全部业务
+     */
     @JsonProperty("match_all")
     private boolean matchAll;
 
+    /**
+     * 业务过滤器
+     */
     private BizSetFilter filter;
 
 }

@@ -61,10 +61,10 @@ public interface ServiceApplicationResource {
     /**
      * 查询CMDB中的业务集、全业务等非常规业务列表
      *
-     * @return 非常规业务列表
+     * @return 业务集、全业务列表
      */
-    @RequestMapping("/list/special")
-    InternalResponse<List<ServiceApplicationDTO>> listSpecialApps();
+    @RequestMapping("/list/bizSet")
+    InternalResponse<List<ServiceApplicationDTO>> listBizSetApps();
 
     /**
      * 根据业务id查询业务

@@ -28,25 +28,46 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * CMDB接口响应实体类，定义业务集字段
+ */
 @Setter
 @Getter
 public class BizSetInfo {
 
+    /**
+     * ID
+     */
     @JsonProperty("bk_biz_set_id")
     private long id;
 
+    /**
+     * 名称
+     */
     @JsonProperty("bk_biz_set_name")
     private String name;
 
+    /**
+     * 描述
+     */
     @JsonProperty("bk_biz_set_desc")
     private String desc;
 
+    /**
+     * 运维人员
+     */
     @JsonProperty("biz_set_maintainer")
     private String maintainer;
 
+    /**
+     * 创建时间
+     */
     @JsonProperty("create_time")
     private String createTime;
 
+    /**
+     * 最后修改时间
+     */
     @JsonProperty("last_time")
     private String lastTime;
 }

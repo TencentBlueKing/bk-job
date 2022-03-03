@@ -29,29 +29,53 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * CMDB接口请求实体类，定义业务集字段
+ */
 @Builder
 @Setter
 @Getter
 public class BizSetAttr {
 
+    /**
+     * ID
+     */
     @JsonProperty("bk_biz_set_id")
     private long id;
 
+    /**
+     * 名称
+     */
     @JsonProperty("bk_biz_set_name")
     private String name;
 
+    /**
+     * 描述
+     */
     @JsonProperty("bk_biz_set_desc")
     private String desc;
 
+    /**
+     * 运维人员
+     */
     @JsonProperty("biz_set_maintainer")
     private String maintainer;
 
+    /**
+     * 供应商
+     */
     @JsonProperty("bk_supplier_account")
     private String supplierAccount;
 
+    /**
+     * 时区
+     */
     @JsonProperty("timezone")
-    private String timeZone = "Asia/Shanghai";
+    private String timeZone;
 
+    /**
+     * 语言
+     */
     private String language;
 
 }

@@ -71,7 +71,7 @@ public class BizSetMigrationTask extends BaseUpgradeTask {
     private JobClient jobManageClient;
 
     private EsbCmdbClient esbCmdbClient;
-    private List<AppInfo> specialAppInfoList;
+    private List<AppInfo> bizSetAppInfoList;
 
     private String getJobHostUrlByAddress(String address) {
         if (!address.startsWith("http://") && !address.startsWith("https://")) {
@@ -109,12 +109,12 @@ public class BizSetMigrationTask extends BaseUpgradeTask {
         );
         esbCmdbClient = new EsbCmdbClient(esbBaseUrl, appCode, appSecret, "zh-cn");
         // 从job-manage拉取业务集/全业务信息
-        this.specialAppInfoList = getAllSpecialAppInfoFromManage();
+        this.bizSetAppInfoList = getAllBizSetAppInfoFromManage();
     }
 
-    private List<AppInfo> getAllSpecialAppInfoFromManage() {
+    private List<AppInfo> getAllBizSetAppInfoFromManage() {
         try {
-            return jobManageClient.listSpecialApps();
+            return jobManageClient.listBizSetApps();
         } catch (Exception e) {
             log.error("Fail to get special apps from job-manage, please confirm job-manage version>=3.5.0.0");
             throw e;
@@ -210,7 +210,7 @@ public class BizSetMigrationTask extends BaseUpgradeTask {
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        for (AppInfo appInfo : specialAppInfoList) {
+        for (AppInfo appInfo : bizSetAppInfoList) {
             // 1.调用CMDB接口创建业务集/全业务
             if (createCMDBResourceForApp(appInfo)) {
                 // 2.调用IAM接口授权

@@ -70,7 +70,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public InternalResponse<List<ServiceApplicationDTO>> listSpecialApps() {
+    public InternalResponse<List<ServiceApplicationDTO>> listBizSetApps() {
         AppTypeEnum[] appTypeEnums = AppTypeEnum.values();
         List<ApplicationInfoDTO> applicationInfoDTOList = new ArrayList<>();
         for (AppTypeEnum appTypeEnum : appTypeEnums) {

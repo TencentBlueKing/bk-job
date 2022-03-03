@@ -28,17 +28,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * CMDB接口请求实体类，定义分页参数
+ */
 @Setter
 @Getter
 public class Page {
 
+    /**
+     * 数据起始位置
+     */
     private int start = 0;
 
+    /**
+     * 单次拉取数据量，取值范围：[0,500]
+     */
     private int limit = 500;
 
+    /**
+     * 请求是否获取数据总量
+     */
     @JsonProperty("enable_count")
     private boolean enableCount = false;
 
+    /**
+     * 排序字段，可在首位加-表示降序
+     */
     private String sort;
 
 }

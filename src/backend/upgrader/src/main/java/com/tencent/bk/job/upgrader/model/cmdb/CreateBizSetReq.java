@@ -29,13 +29,22 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * CMDB接口请求实体类，用于创建业务集
+ */
 @Setter
 @Getter
 public class CreateBizSetReq extends EsbReq {
 
+    /**
+     * 业务集字段集合
+     */
     @JsonProperty("bk_biz_set_attr")
     private BizSetAttr attr;
 
+    /**
+     * 业务集的业务选择范围
+     */
     @JsonProperty("bk_scope")
     private BizSetScope scope;
 

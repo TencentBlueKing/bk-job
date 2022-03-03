@@ -28,10 +28,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 基础业务信息
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SimpleAppInfo {
+public class BasicAppInfo {
     private Long id;
 
     private String name;

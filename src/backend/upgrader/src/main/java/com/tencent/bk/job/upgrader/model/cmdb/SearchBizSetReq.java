@@ -32,16 +32,28 @@ import lombok.Setter;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * CMDB接口请求实体类，用于搜索业务集
+ */
 @Setter
 @Getter
 public class SearchBizSetReq extends EsbReq {
 
+    /**
+     * 业务集过滤器
+     */
     @JsonProperty("bk_biz_set_filter")
     private BizSetFilter filter;
 
+    /**
+     * 查询字段
+     */
     private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
         "biz_set_maintainer", "create_time", "last_time");
 
+    /**
+     * 分页参数
+     */
     private Page page;
 
 }

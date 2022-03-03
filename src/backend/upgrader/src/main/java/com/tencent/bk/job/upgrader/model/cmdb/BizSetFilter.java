@@ -29,6 +29,9 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ */
 @Setter
 @Getter
 public class BizSetFilter {
@@ -36,9 +39,14 @@ public class BizSetFilter {
     public static final String CONDITION_AND = "AND";
     public static final String CONDITION_OR = "OR";
 
-    // AND/OR
+    /**
+     * 多个规则之间的组合条件，取值为：AND/OR
+     */
     private String condition;
 
+    /**
+     * 规则列表
+     */
     private List<Rule> rules;
 
 }
