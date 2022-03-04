@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -58,13 +57,11 @@ import java.util.List;
 @Slf4j
 public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
     private final TaskPlanService taskPlanService;
-    private final MessageI18nService i18nService;
     private final AuthService authService;
 
-    public EsbGetJobListResourceImpl(TaskPlanService taskPlanService, MessageI18nService i18nService,
+    public EsbGetJobListResourceImpl(TaskPlanService taskPlanService,
                                      AuthService authService) {
         this.taskPlanService = taskPlanService;
-        this.i18nService = i18nService;
         this.authService = authService;
     }
 
@@ -79,7 +76,7 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         }
         long appId = request.getAppId();
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());

@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.execute.api.web.WebPermissionResource;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.OperationPermissionReq;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

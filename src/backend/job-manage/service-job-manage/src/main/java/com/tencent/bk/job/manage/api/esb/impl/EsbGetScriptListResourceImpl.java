@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbPageData;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -63,13 +62,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
     private final ScriptService scriptService;
-    private final MessageI18nService i18nService;
     private final EsbAuthService authService;
 
-    public EsbGetScriptListResourceImpl(ScriptService scriptService, MessageI18nService i18nService,
+    public EsbGetScriptListResourceImpl(ScriptService scriptService,
                                         EsbAuthService authService) {
         this.scriptService = scriptService;
-        this.i18nService = i18nService;
         this.authService = authService;
     }
 

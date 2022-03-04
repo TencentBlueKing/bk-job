@@ -71,7 +71,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                 PathInfoDTO pathInfo = new PathInfoDTO();
                 pathInfo.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
                 pathInfo.setId(resourceScope.getId());
-                AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+                AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
                                                          ResourceTypeEnum.BUSINESS, resourceScope.getId(), pathInfo);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);

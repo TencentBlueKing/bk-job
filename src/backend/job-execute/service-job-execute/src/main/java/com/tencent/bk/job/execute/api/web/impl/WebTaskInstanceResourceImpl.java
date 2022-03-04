@@ -66,7 +66,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -473,7 +473,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, taskInstance.getAppId().toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

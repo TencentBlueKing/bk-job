@@ -300,7 +300,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        String oldActionId = ActionId.LIST_BUSINESS;
+        String oldActionId = ActionId.ACCESS_BUSINESS;
         // 1.旧权限数据读取
         List<Policy> oldAuthorizedPolicies = queryAuthorizedPolicies(oldActionId);
         printSeparateLine();

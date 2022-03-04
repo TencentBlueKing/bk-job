@@ -111,7 +111,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         String orderField,
         Integer order
     ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -161,7 +161,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
     @Override
     public Response<List<CronJobVO>> listCronJobStatistic(String username, Long appId, List<Long> cronJobId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -436,7 +436,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
     @Override
     public Response<Boolean> checkCronJobName(String username, Long appId, Long cronJobId, String name) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -462,7 +462,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
     @Override
     public Response<List<CronJobVO>> getCronJobListByPlanId(String username, Long appId, Long planId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -482,7 +482,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     @Override
     public Response<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(String username, Long appId,
                                                                            List<Long> planIdList) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -508,7 +508,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     public Response<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(String username, Long appId,
                                                                               Long cronJobId, Integer start,
                                                                               Integer pageSize) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

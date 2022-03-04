@@ -28,8 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
@@ -44,15 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbOperateJobInstanceV3ResourceImpl implements EsbOperateJobInstanceV3Resource {
     private final TaskExecuteService taskExecuteService;
 
-    private final MessageI18nService i18nService;
-
-    private final AuthService authService;
-
-    public EsbOperateJobInstanceV3ResourceImpl(TaskExecuteService taskExecuteService, MessageI18nService i18nService,
-                                               AuthService authService) {
+    public EsbOperateJobInstanceV3ResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.i18nService = i18nService;
-        this.authService = authService;
     }
 
     @Override

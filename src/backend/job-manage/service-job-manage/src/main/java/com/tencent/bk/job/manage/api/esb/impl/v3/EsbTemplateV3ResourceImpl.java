@@ -106,7 +106,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         }
         long appId = request.getAppId();
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {
             return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());

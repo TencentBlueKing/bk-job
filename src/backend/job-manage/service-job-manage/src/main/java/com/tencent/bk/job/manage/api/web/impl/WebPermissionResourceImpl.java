@@ -406,7 +406,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             case "biz":
                 if ("access_business".equals(action)) {
                     return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                        ActionId.LIST_BUSINESS, ResourceTypeEnum.BUSINESS, resourceId, null));
+                        ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS, resourceId, null));
                 }
                 break;
             case "script":
