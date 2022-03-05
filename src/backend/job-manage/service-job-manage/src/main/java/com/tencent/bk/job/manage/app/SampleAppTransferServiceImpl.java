@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.app;
 
-import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.BasicAppTransferService;
 import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ import java.util.Map;
  * 仅处理业务类型的示例转换类，仅用于验证代码兼容性
  */
 @Service
-public class SampleAppTransferServiceImpl implements AppTransferService {
+public class SampleAppTransferServiceImpl extends BasicAppTransferService {
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         if (resourceScope == null) {
@@ -46,21 +46,6 @@ public class SampleAppTransferServiceImpl implements AppTransferService {
 
         // TODO app-transfer
         return Long.valueOf(resourceScope.getId());
-    }
-
-    @Override
-    public void fillResourceScope(ResourceScope resourceScope) {
-        if (resourceScope.isFull()) {
-            return;
-        }
-        if (resourceScope.hasAppId()) {
-            ResourceScope scope = getScopeByAppId(resourceScope.getAppId());
-            resourceScope.setType(scope.getType());
-            resourceScope.setId(scope.getId());
-            return;
-        }
-        Long appId = getAppIdByScope(resourceScope);
-        resourceScope.setAppId(appId);
     }
 
     @Override
