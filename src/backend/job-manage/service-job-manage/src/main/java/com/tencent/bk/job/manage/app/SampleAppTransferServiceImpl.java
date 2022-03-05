@@ -49,6 +49,21 @@ public class SampleAppTransferServiceImpl implements AppTransferService {
     }
 
     @Override
+    public void fillResourceScope(ResourceScope resourceScope) {
+        if (resourceScope.isFull()) {
+            return;
+        }
+        if (resourceScope.hasAppId()) {
+            ResourceScope scope = getScopeByAppId(resourceScope.getAppId());
+            resourceScope.setType(scope.getType());
+            resourceScope.setId(scope.getId());
+            return;
+        }
+        Long appId = getAppIdByScope(resourceScope);
+        resourceScope.setAppId(appId);
+    }
+
+    @Override
     public ResourceScope getScopeByAppId(Long appId) {
         // TODO app-transfer
         return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId);
