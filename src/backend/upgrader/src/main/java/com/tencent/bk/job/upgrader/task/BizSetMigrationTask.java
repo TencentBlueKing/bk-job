@@ -133,20 +133,37 @@ public class BizSetMigrationTask extends BaseUpgradeTask {
 
         List<Rule> rules = new ArrayList<>();
         // 指定所有子业务ID
-        Rule subAppIdsRule = new Rule();
-        subAppIdsRule.setField("bk_biz_id");
-        subAppIdsRule.setOperator(Rule.OPERATOR_IN);
-        subAppIdsRule.setValue(appInfo.getSubAppIds());
-        rules.add(subAppIdsRule);
+        List<Long> subAppIds = appInfo.getSubAppIds();
+        if (!CollectionUtils.isEmpty(subAppIds)) {
+            Rule subAppIdsRule = new Rule();
+            subAppIdsRule.setField("bk_biz_id");
+            subAppIdsRule.setOperator(Rule.OPERATOR_IN);
+            subAppIdsRule.setValue(subAppIds);
+            rules.add(subAppIdsRule);
+        }
         // 指定业务所属部门ID
-        Rule operateDeptIdRule = new Rule();
-        operateDeptIdRule.setField("bk_operate_dept_id");
-        operateDeptIdRule.setOperator(Rule.OPERATOR_EQUAL);
-        operateDeptIdRule.setValue(appInfo.getOperateDeptId());
-        rules.add(operateDeptIdRule);
+        Long operateDeptId = appInfo.getOperateDeptId();
+        if (operateDeptId != null) {
+            Rule operateDeptIdRule = new Rule();
+            operateDeptIdRule.setField("bk_operate_dept_id");
+            operateDeptIdRule.setOperator(Rule.OPERATOR_EQUAL);
+            operateDeptIdRule.setValue(operateDeptId);
+            rules.add(operateDeptIdRule);
+        }
 
         filter.setRules(rules);
         return filter;
+    }
+
+    /**
+     * 构造符合CMDB规则的运维人员字段
+     *
+     * @param rawStr Job原始运维人员字段
+     * @return 符合CMDB规则的运维人员字段
+     */
+    private String buildMaintainerStr(String rawStr) {
+        String[] maintainers = rawStr.split("[,;]");
+        return String.join(",", maintainers);
     }
 
     /**
@@ -162,7 +179,7 @@ public class BizSetMigrationTask extends BaseUpgradeTask {
             .id(appInfo.getId())
             .name(appInfo.getName())
             .desc(desc)
-            .maintainer(appInfo.getMaintainers())
+            .maintainer(buildMaintainerStr(appInfo.getMaintainers()))
             .timeZone(appInfo.getTimeZone())
             .language(appInfo.getLanguage())
             .supplierAccount(supplierAccount)

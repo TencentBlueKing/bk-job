@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.app;
 
-import com.tencent.bk.job.common.app.AppTransferService;
+import com.tencent.bk.job.common.app.BasicAppTransferService;
 import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ import java.util.Map;
  * 仅处理业务类型的示例转换类，仅用于验证代码兼容性
  */
 @Service
-public class SampleAppTransferServiceImpl implements AppTransferService {
+public class SampleAppTransferServiceImpl extends BasicAppTransferService {
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         if (resourceScope == null) {

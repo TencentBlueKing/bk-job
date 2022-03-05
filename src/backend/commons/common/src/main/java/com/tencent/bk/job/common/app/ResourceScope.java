@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
 
@@ -51,6 +52,10 @@ public class ResourceScope {
      */
     private Long appId;
 
+    public ResourceScope(Long appId) {
+        this.appId = appId;
+    }
+
     public ResourceScope(String type, String id) {
         this.type = ResourceScopeTypeEnum.from(type);
         this.id = id;
@@ -73,11 +78,25 @@ public class ResourceScope {
         this.appId = appId;
     }
 
+    public boolean hasAppId() {
+        return appId != null;
+    }
+
+    /**
+     * 判断所有字段是否完备，用于判断是否需要转换
+     *
+     * @return 布尔值
+     */
+    public boolean isFull() {
+        return appId != null && StringUtils.isNotBlank(id) && type != null;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
             .add("type=" + type)
             .add("id='" + id + "'")
+            .add("appId=" + appId)
             .toString();
     }
 }

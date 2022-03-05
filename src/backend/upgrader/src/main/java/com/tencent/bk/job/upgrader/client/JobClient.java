@@ -27,7 +27,6 @@ package com.tencent.bk.job.upgrader.client;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
@@ -95,7 +94,7 @@ public class JobClient extends AbstractJobClient {
             }
             R result =
                 JSON_MAPPER.fromJson(respStr, typeReference);
-            InternalResponse jobResp = (InternalResponse) result;
+            Response jobResp = (Response) result;
             if (jobResp == null) {
                 log.error("fail:jobResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
                     reqStr, respStr);

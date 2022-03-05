@@ -125,7 +125,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         Integer start,
         Integer pageSize
     ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -210,7 +210,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<List<TaskPlanVO>> listPlans(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -292,7 +292,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
 
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -419,7 +419,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<List<TaskPlanVO>> listPlanBasicInfoByIds(String username, Long appId, String planIds) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -486,7 +486,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<Boolean> addFavorite(String username, Long appId, Long templateId, Long planId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -496,7 +496,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<Boolean> removeFavorite(String username, Long appId, Long templateId, Long planId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -511,7 +511,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         TaskPlanInfoDTO taskPlanInfo = planService.getTaskPlanById(planId);
         if (taskPlanInfo != null) {
-            AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+            AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
                 ResourceTypeEnum.BUSINESS, taskPlanInfo.getAppId().toString(), null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);

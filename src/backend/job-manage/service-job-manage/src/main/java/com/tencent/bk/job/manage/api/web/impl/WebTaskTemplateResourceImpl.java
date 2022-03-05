@@ -122,7 +122,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         String orderField,
         Integer order
     ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -297,7 +297,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<TagCountVO> getTagTemplateCount(String username, Long appId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -326,7 +326,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<Boolean> addFavorite(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -337,7 +337,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<Boolean> removeFavorite(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -348,7 +348,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<Boolean> checkTemplateName(String username, Long appId, Long templateId, String name) {
-        AuthResult authResult = authService.auth(true, username, ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

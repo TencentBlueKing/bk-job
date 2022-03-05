@@ -73,6 +73,9 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
             req,
             new TypeReference<EsbResp<SearchBizSetResp>>() {
             });
+        if (!resp.getResult() || resp.getData() == null) {
+            return null;
+        }
         return resp.getData().getBizSetList();
     }
 

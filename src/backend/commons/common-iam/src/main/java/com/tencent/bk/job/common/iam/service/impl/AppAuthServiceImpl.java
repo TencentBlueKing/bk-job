@@ -193,7 +193,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         result.setAny(false);
 
         ActionDTO action = new ActionDTO();
-        action.setId(ActionId.LIST_BUSINESS);
+        action.setId(ActionId.ACCESS_BUSINESS);
         ExpressionDTO expression = policyService.getPolicyByAction(username, action, null);
         if (ExpressionOperationEnum.ANY == expression.getOperator()) {
             result.setAny(true);
@@ -269,7 +269,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public String getBusinessApplyUrl(Long appId) {
         ActionDTO action = new ActionDTO();
-        action.setId(ActionId.LIST_BUSINESS);
+        action.setId(ActionId.ACCESS_BUSINESS);
         List<RelatedResourceTypeDTO> relatedResourceTypes = new ArrayList<>();
         RelatedResourceTypeDTO businessResourceTypeDTO = new RelatedResourceTypeDTO();
         businessResourceTypeDTO.setType(ResourceTypeEnum.BUSINESS.getId());

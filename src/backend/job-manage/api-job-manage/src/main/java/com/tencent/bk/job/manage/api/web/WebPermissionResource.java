@@ -79,7 +79,7 @@ public interface WebPermissionResource {
      * 检查操作权限
      *
      * @param username               用户名
-     * @param bizId                  业务ID
+     * @param appId                  业务ID
      * @param operation              操作ID
      * @param resourceId             资源ID
      * @param returnPermissionDetail 是否返回详细的权限信息
@@ -91,7 +91,7 @@ public interface WebPermissionResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
-        @RequestParam(value = "appId", required = false) Long bizId,
+        @RequestParam(value = "appId", required = false) Long appId,
         @ApiParam(value = "范畴类型", required = false)
         @RequestParam(value = "scopeType", required = false) String scopeType,
         @ApiParam(value = "范畴ID", required = false)

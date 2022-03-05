@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.execute.auth.impl;
 
 import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
@@ -43,11 +43,11 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TopoService;
@@ -83,7 +83,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final AppAuthService appAuthService;
     private final TaskInstanceService taskInstanceService;
     private final TopoService topoService;
-    private final ResourceAppInfoQueryService resourceAppInfoQueryService;
     private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
@@ -93,7 +92,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   AuthService authService,
                                   AppAuthService appAuthService,
                                   TaskInstanceService taskInstanceService,
-                                  TopoService topoService, ResourceAppInfoQueryService resourceAppInfoQueryService,
+                                  TopoService topoService,
+                                  ResourceAppInfoQueryService resourceAppInfoQueryService,
                                   JobExecuteConfig jobExecuteConfig) {
         this.authHelper = authHelper;
         this.resourceNameQueryService = resourceNameQueryService;
@@ -102,7 +102,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService = appAuthService;
         this.taskInstanceService = taskInstanceService;
         this.topoService = topoService;
-        this.resourceAppInfoQueryService = resourceAppInfoQueryService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.authService.setResourceNameQueryService(resourceNameQueryService);
