@@ -26,21 +26,67 @@ package com.tencent.bk.job.execute.auth.impl;
 
 import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.execute.auth.ScriptAuthService;
+import com.tencent.bk.job.execute.auth.TaskExecuteAuthService;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import org.springframework.stereotype.Service;
 
 /**
- * 脚本相关操作鉴权接口实现
+ * 任务相关操作鉴权接口
  */
 @Service
-public class ScriptAuthServiceImpl implements ScriptAuthService {
+public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
+    @Override
+    public AuthResult authFastPushFile(String username,
+                                       ResourceScope resourceScope,
+                                       ServersDTO servers) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
+    public AuthResult authFastExecuteScript(String username,
+                                            ResourceScope resourceScope,
+                                            ServersDTO servers) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
+    public AuthResult authViewHistory(String username, ResourceScope resourceScope) {
+        // TODO
+        return AuthResult.pass();
+    }
+
     @Override
     public AuthResult authExecuteScript(String username,
                                         ResourceScope resourceScope,
                                         String scriptId,
                                         String scriptName,
                                         ServersDTO servers) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
+    public AuthResult authLaunchJobPlan(String username,
+                                        ResourceScope resourceScope,
+                                        Long jobTemplateId,
+                                        Long jobPlanId,
+                                        String jobPlanName) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
+    public AuthResult authExecutePublicScript(String username,
+                                              String scriptId,
+                                              ServersDTO serversDTO) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
+    public AuthResult authHighRiskDetectRecord(String username) {
         // TODO
         return AuthResult.pass();
     }
