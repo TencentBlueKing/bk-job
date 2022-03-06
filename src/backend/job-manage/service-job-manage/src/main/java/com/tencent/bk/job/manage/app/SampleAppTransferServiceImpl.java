@@ -26,7 +26,11 @@ package com.tencent.bk.job.manage.app;
 
 import com.tencent.bk.job.common.app.BasicAppTransferService;
 import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -38,6 +42,14 @@ import java.util.Map;
  */
 @Service
 public class SampleAppTransferServiceImpl extends BasicAppTransferService {
+
+    private final ApplicationService applicationService;
+
+    @Autowired
+    public SampleAppTransferServiceImpl(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
+
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         if (resourceScope == null) {
@@ -51,7 +63,12 @@ public class SampleAppTransferServiceImpl extends BasicAppTransferService {
     @Override
     public ResourceScope getScopeByAppId(Long appId) {
         // TODO app-transfer
-        return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId);
+        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
+        if (applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL) {
+            return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId);
+        } else {
+            return new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, appId.toString(), appId);
+        }
     }
 
     @Override
@@ -59,7 +76,7 @@ public class SampleAppTransferServiceImpl extends BasicAppTransferService {
         Map<Long, ResourceScope> map = new HashMap<>();
         // TODO app-transfer
         for (Long appId : appIds) {
-            map.put(appId, new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId));
+            map.put(appId, getScopeByAppId(appId));
         }
         return map;
     }

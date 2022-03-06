@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.service;
 
+import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -40,6 +41,8 @@ public interface AppAuthService {
     void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
 
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
+
+    AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceScope resourceScope);
 
     /**
      * 批量鉴权
