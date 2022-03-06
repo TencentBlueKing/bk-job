@@ -26,12 +26,10 @@ package com.tencent.bk.job.manage.auth.impl;
 
 import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,21 +44,19 @@ import java.util.List;
 public class AccountAuthServiceImpl implements AccountAuthService {
 
     private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
-    public AccountAuthServiceImpl(AuthService authService) {
+    public AccountAuthServiceImpl(AuthService authService,
+                                  AppAuthService appAuthService) {
         this.authService = authService;
-    }
-
-    private PathInfoDTO buildResourceScopePath(ResourceScope resourceScope) {
-        return IamUtil.buildScopePathInfo(resourceScope);
+        this.appAuthService = appAuthService;
     }
 
     @Override
     public AuthResult authCreateAccount(String username, ResourceScope resourceScope) {
         log.info("authCreateAccount scope={}", resourceScope);
-        return authService.auth(true, username, ActionId.CREATE_ACCOUNT, ResourceTypeEnum.BUSINESS,
-            resourceScope.getId(), buildResourceScopePath(resourceScope));
+        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, resourceScope);
     }
 
     @Override
