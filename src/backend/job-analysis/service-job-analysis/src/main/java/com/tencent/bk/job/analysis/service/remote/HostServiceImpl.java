@@ -48,12 +48,6 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public boolean existsHost(long appId, String ip) {
-        return hostResourceClient.existsHost(appId, ip).getData();
-    }
-
-
-    @Override
     public List<ServiceHostStatusDTO> getHostStatusByNode(String username,
                                                           Long appId,
                                                           List<AppTopologyTreeNode> treeNodeList) {

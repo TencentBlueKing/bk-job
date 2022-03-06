@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
@@ -37,7 +36,6 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.HostService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,28 +45,11 @@ import java.util.List;
 @Slf4j
 @RestController
 public class ServiceHostResourceImpl implements ServiceHostResource {
-    private final DSLContext dslContext;
-    private final ApplicationHostDAO hostDAO;
     private final HostService hostService;
 
     @Autowired
-    public ServiceHostResourceImpl(DSLContext dslContext,
-                                   ApplicationHostDAO hostDAO,
-                                   HostService hostService) {
-        this.dslContext = dslContext;
-        this.hostDAO = hostDAO;
+    public ServiceHostResourceImpl(HostService hostService) {
         this.hostService = hostService;
-    }
-
-    @Override
-    public InternalResponse<Boolean> existHost(long appId, String ip) {
-        return InternalResponse.buildSuccessResp(hostDAO.existsHost(dslContext, appId, ip));
-    }
-
-
-    @Override
-    public InternalResponse<Boolean> existsHost(Long appId, String ip) {
-        return InternalResponse.buildSuccessResp(hostService.existsHost(appId, ip));
     }
 
     @Override

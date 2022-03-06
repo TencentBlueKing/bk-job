@@ -31,8 +31,6 @@ import java.util.List;
 
 public interface HostService {
 
-    boolean existsHost(long appId, String ip);
-
     List<ServiceHostStatusDTO> getHostStatusByNode(String username,
                                                    Long appId,
                                                    List<AppTopologyTreeNode> treeNodeList);

@@ -33,7 +33,6 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,27 +40,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.QueryParam;
 import java.util.List;
 
 @CompatibleImplementation(explain = "部分host相关的API需要修改Path，后续版本需移除service/app这个路径", version = "3.5.1")
-@RequestMapping({"/service/host", "service/app"})
+@RequestMapping("/service/app")
 @Api(tags = {"job-manage:service:Host_Management"})
 @RestController
 @InternalAPI
 public interface ServiceHostResource {
-
-    @ApiOperation(value = "判断主机是否存在", produces = "application/json")
-    @GetMapping("/exist")
-    InternalResponse<Boolean> existHost(@QueryParam("appId") long appId, @QueryParam("ip") String ip);
-
-
-    @ApiOperation(value = "查询业务下主机是否存在", produces = "application/json")
-    @GetMapping("/{appId}/host/exists/{ip}")
-    InternalResponse<Boolean> existsHost(
-        @PathVariable("appId") Long appId,
-        @PathVariable("ip") String ip
-    );
 
     @ApiOperation(value = "查询节点下的主机状态", produces = "application/json")
     @PostMapping("/{appId}/host/status/nodes")
