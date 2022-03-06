@@ -26,14 +26,13 @@ package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ExecuteAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,8 +62,7 @@ public class JobQueryCommonProcessor {
         }
         //TODO:scope改造
         return executeAuthService.authViewTaskInstance(
-            username, new ResourceScope(ResourceTypeId.BIZ, appId.toString()),
-            stepInstance.getTaskInstanceId());
+            username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
     }
 
     /**

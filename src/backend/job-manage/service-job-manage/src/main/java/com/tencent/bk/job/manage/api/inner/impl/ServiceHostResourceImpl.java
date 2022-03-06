@@ -139,5 +139,4 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 
-
 }

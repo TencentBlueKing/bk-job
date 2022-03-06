@@ -77,7 +77,7 @@ public interface WebPermissionResource {
      * 检查操作权限
      *
      * @param username               用户名
-     * @param bizId                  业务ID
+     * @param appId                  业务ID
      * @param operation              操作ID
      * @param resourceId             资源ID
      * @param returnPermissionDetail 是否返回详细的权限信息
@@ -91,7 +91,7 @@ public interface WebPermissionResource {
             String username,
         @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
         @RequestParam(value = "appId", required = false)
-            Long bizId,
+            Long appId,
         @ApiParam(value = "范畴类型", required = false)
         @RequestParam(value = "scopeType", required = false) String scopeType,
         @ApiParam(value = "范畴ID", required = false)

@@ -125,7 +125,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_cron_list"})
     public EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(EsbGetCronListV3Request request) {
         if (request.validate()) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
             if (!authResult.isPass()) {
                 return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
@@ -322,7 +322,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     @Override
     public EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(EsbGetCronDetailV3Request request) {
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
             ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

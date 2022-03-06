@@ -29,11 +29,10 @@ import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.job.manage.AppScopeMapper;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -62,13 +61,13 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     implements IamFileSourceCallbackResource {
 
     private final FileSourceService fileSourceService;
-    private final AppScopeMapper appScopeMapper;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public IamFileSourceCallbackResourceImpl(FileSourceService fileSourceService,
-                                             ServiceApplicationResourceClient applicationResourceClient) {
+                                             AppScopeMappingService appScopeMappingService) {
         this.fileSourceService = fileSourceService;
-        this.appScopeMapper = new AppScopeMapper(applicationResourceClient);
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Data
@@ -100,7 +99,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     private FileSourceSearchCondition getSearchCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         // 文件源列表实现
-        Long appId = appScopeMapper.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
@@ -194,7 +193,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(fileSourceBasicInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appScopeMapper.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appScopeMappingService.getScopeByAppIds(appIdSet);
         for (Integer id : fileSourceIdList) {
             try {
                 // 文件源详情查询实现

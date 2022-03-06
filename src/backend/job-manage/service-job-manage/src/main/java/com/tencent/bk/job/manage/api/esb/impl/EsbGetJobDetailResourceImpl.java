@@ -106,7 +106,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
 
         TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlanById(appId, jobId);
         if (taskPlan == null) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
             if (!authResult.isPass()) {
                 return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());

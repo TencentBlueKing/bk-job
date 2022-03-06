@@ -84,7 +84,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_cron_list"})
     public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
         if (request.validate()) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.LIST_BUSINESS,
+            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
             if (!authResult.isPass()) {
                 return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());

@@ -27,14 +27,15 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
+import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.OperationPermissionReq;
@@ -60,15 +61,19 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     private final TaskTemplateService taskTemplateService;
 
     private final ApplicationService applicationService;
+    
+    private final AccountAuthService accountAuthService;
 
     public WebPermissionResourceImpl(WebAuthService authService,
                                      TaskPlanService taskPlanService,
                                      TaskTemplateService taskTemplateService,
-                                     ApplicationService applicationService) {
+                                     ApplicationService applicationService,
+                                     AccountAuthService accountAuthService) {
         this.authService = authService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateService = taskTemplateService;
         this.applicationService = applicationService;
+        this.accountAuthService = accountAuthService;
     }
 
     @Override
@@ -271,7 +276,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private Response<AuthResultVO> checkAccountOperationPermission(
         String username,
-        ResourceScope resourceScope,
+        AppResourceScope resourceScope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
@@ -282,9 +287,9 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                    ActionId.CREATE_ACCOUNT, ResourceTypeEnum.BUSINESS, resourceScope
-                        .getId(), IamUtil.buildScopePathInfo(resourceScope)));
+                log.info("before transfer, scope={}", resourceScope);
+                return Response.buildSuccessResp(
+                    authService.toAuthResultVO(accountAuthService.authCreateAccount(username, resourceScope)));
             case "view":
             case "edit":
             case "delete":
@@ -372,19 +377,10 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
-    private ResourceScope getScope(Long bizId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new ResourceScope(scopeType, scopeId);
-        } else if (bizId != null) {
-            return new ResourceScope(ResourceTypeId.BIZ, bizId.toString());
-        }
-        return null;
-    }
-
     @Override
     public Response<AuthResultVO> checkOperationPermission(
         String username,
-        Long bizId,
+        Long appId,
         String scopeType,
         String scopeId,
         String operation,
@@ -400,14 +396,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
-        boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
+        AppResourceScope resourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {
             case "biz":
                 if ("access_business".equals(action)) {
                     return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                        ActionId.LIST_BUSINESS, ResourceTypeEnum.BUSINESS, resourceId, null));
+                        ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS, resourceId, null));
                 }
                 break;
             case "script":

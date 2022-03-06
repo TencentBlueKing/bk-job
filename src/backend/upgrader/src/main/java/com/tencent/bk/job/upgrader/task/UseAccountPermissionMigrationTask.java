@@ -46,7 +46,7 @@ import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.iam.JobIamHelper;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
-import com.tencent.bk.job.upgrader.model.AppInfo;
+import com.tencent.bk.job.upgrader.model.BasicAppInfo;
 import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
@@ -80,7 +80,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
 
     private IamClient iamClient;
     private EsbIamClient esbIamClient;
-    private List<AppInfo> appInfoList;
+    private List<BasicAppInfo> basicAppInfoList;
     private Map<Long, String> appInfoMap;
 
     private String getJobHostUrlByAddress(String address) {
@@ -119,10 +119,10 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
         );
-        this.appInfoList = getAllNormalAppInfoFromManage();
+        this.basicAppInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();
-        appInfoList.forEach(appInfo -> {
-            appInfoMap.put(appInfo.getId(), appInfo.getName());
+        basicAppInfoList.forEach(basicAppInfo -> {
+            appInfoMap.put(basicAppInfo.getId(), basicAppInfo.getName());
         });
     }
 
@@ -156,7 +156,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         return actionPolicies.getResults();
     }
 
-    private List<AppInfo> getAllNormalAppInfoFromManage() {
+    private List<BasicAppInfo> getAllNormalAppInfoFromManage() {
         try {
             return jobManageClient.listNormalApps();
         } catch (Exception e) {
@@ -176,7 +176,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         return businessAuthHelper.getAuthedAppIdList(
             null,
             policy.getExpression(),
-            appInfoList.parallelStream().map(AppInfo::getId).collect(Collectors.toList())
+            basicAppInfoList.parallelStream().map(BasicAppInfo::getId).collect(Collectors.toList())
         );
     }
 
@@ -300,7 +300,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        String oldActionId = ActionId.LIST_BUSINESS;
+        String oldActionId = ActionId.ACCESS_BUSINESS;
         // 1.旧权限数据读取
         List<Policy> oldAuthorizedPolicies = queryAuthorizedPolicies(oldActionId);
         printSeparateLine();

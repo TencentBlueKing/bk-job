@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 
@@ -92,6 +93,15 @@ public interface ApplicationService {
      * @return 包含该业务的业务集ID列表
      */
     List<Long> getBizSetAppIdsForBiz(Long appId);
+
+    /**
+     * 根据业务类型获取业务列表
+     *
+     * @param appType 业务类型
+     * @return 业务列表
+     */
+    @DeprecatedAppLogic
+    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
 
     /**
      * 获取作业平台所有业务

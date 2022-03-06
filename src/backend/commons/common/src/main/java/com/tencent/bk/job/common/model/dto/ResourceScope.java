@@ -57,6 +57,7 @@ public class ResourceScope {
         this.id = id;
     }
 
+
     @Override
     public String toString() {
         return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")

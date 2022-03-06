@@ -140,6 +140,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
+        return applicationDAO.listAppsByType(appType);
+    }
+
+    @Override
     public Long createApp(ApplicationDTO application) {
         Long appId = applicationDAO.insertApp(dslContext, application);
         try {
