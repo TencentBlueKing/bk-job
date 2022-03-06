@@ -33,8 +33,8 @@ import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.sdk.CcClient;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.exception.ObtainHostServiceException;
@@ -86,7 +86,7 @@ public class ServerServiceImpl implements ServerService {
     public List<IpDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
         CcClient ccClient = CcClientFactory.getCcClient();
         try {
-            ApplicationInfoDTO appInfo = applicationService.getAppById(appId);
+            ApplicationDTO appInfo = applicationService.getAppById(appId);
             List<CcGroupHostPropDTO> ccgroupHostList = ccClient.getCustomGroupIp(appId,
                 appInfo.getBkSupplierAccount(), "admin", groupId);
             List<IpDTO> ips = new ArrayList<>();

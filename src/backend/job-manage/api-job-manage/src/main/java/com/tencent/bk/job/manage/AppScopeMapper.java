@@ -22,58 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.app;
+package com.tencent.bk.job.manage;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * 仅处理业务类型的示例转换类，仅用于验证代码兼容性
+ * 业务与资源范围转换
  */
-@Service
-public class SampleAppTransferServiceImpl implements AppTransferService {
-    @Override
+public class AppScopeMapper {
+
+    private final ServiceApplicationResource applicationResource;
+
+    public AppScopeMapper(ServiceApplicationResource applicationResource) {
+        this.applicationResource = applicationResource;
+    }
+
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        if (resourceScope == null) {
-            return null;
-        }
-
-        // TODO app-transfer
-        return Long.valueOf(resourceScope.getId());
+        return applicationResource.queryAppByScope(resourceScope.getType().getValue(), resourceScope.getId()).getId();
     }
 
-    @Override
     public ResourceScope getScopeByAppId(Long appId) {
-        // TODO app-transfer
-        return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId);
+        ServiceApplicationDTO application = applicationResource.queryAppById(appId);
+        return new ResourceScope(application.getScopeType(), application.getScopeId());
     }
 
-    @Override
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        Map<Long, ResourceScope> map = new HashMap<>();
-        // TODO app-transfer
-        for (Long appId : appIds) {
-            map.put(appId, new ResourceScope(ResourceScopeTypeEnum.BIZ, appId.toString(), appId));
-        }
-        return map;
-    }
-
-    @Override
-    public ResourceScope getResourceScope(Long appId, String scopeType, String scopeId) {
-        ResourceScope resourceScope = null;
-        if (scopeType != null) {
-            resourceScope = new ResourceScope(scopeType, scopeId,
-                getAppIdByScope(new ResourceScope(scopeType, scopeId)));
-        } else if (appId != null) {
-            ResourceScope resourceScopeForApp = getScopeByAppId(appId);
-            resourceScope = new ResourceScope(resourceScopeForApp.getType(), resourceScopeForApp.getId(), appId);
-        }
-        return resourceScope;
+        String appIdsStr = StringUtil.concatCollection(appIds, ",");
+        List<ServiceApplicationDTO> applications = applicationResource.listAppsByAppIds(appIdsStr);
+        return applications.stream().collect(Collectors.toMap(ServiceApplicationDTO::getId,
+            app -> new ResourceScope(app.getScopeType(), app.getScopeId())));
     }
 }

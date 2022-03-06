@@ -49,10 +49,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SqlConfig(encoding = "utf-8")
 @Sql({"/init_application_data.sql"})
 @DisplayName("应用信息缓存 DAO 集成测试")
-public class ApplicationInfoDAOImplIntegrationTest {
+public class ApplicationDAOImplIntegrationTest {
 
     @Autowired
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
 
     @BeforeEach
     void initTest() {
@@ -61,6 +61,6 @@ public class ApplicationInfoDAOImplIntegrationTest {
 
     @Test
     void giveApplicationIdReturnApplicationType() {
-        assertThat(applicationInfoDAO.getAppTypeById(2L)).isEqualTo(AppTypeEnum.NORMAL);
+        assertThat(applicationDAO.getAppTypeById(2L)).isEqualTo(AppTypeEnum.NORMAL);
     }
 }

@@ -22,28 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 
-/**
- * Job 业务 Service
- */
-public interface AppService {
-    /**
-     * 根据资源范围获取Job业务ID
-     *
-     * @param resourceScope 资源范围类型
-     * @return Job业务ID
-     */
-    Long getAppIdByScope(ResourceScope resourceScope);
+import java.util.List;
 
-    /**
-     * 根据Job业务ID获取资源范围
-     *
-     * @param appId Job业务ID
-     * @return 资源范围
-     */
-    ResourceScope getScopeByAppId(Long appId);
+public interface HostService {
 
+    boolean existsHost(long appId, String ip);
+
+    List<ServiceHostStatusDTO> getHostStatusByNode(String username,
+                                                   Long appId,
+                                                   List<AppTopologyTreeNode> treeNodeList);
+
+    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(String username,
+                                                           Long appId,
+                                                           List<String> dynamicGroupIdList);
+
+    List<ServiceHostStatusDTO> getHostStatusByIp(String username,
+                                                 Long appId,
+                                                 List<String> ipList);
 }

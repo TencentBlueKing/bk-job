@@ -22,9 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service;
+package com.tencent.bk.job.analysis.client;
 
-public interface ApplicationHostService {
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-    boolean existsHost(long appId, String ip);
+/**
+ * 主机服务远程调用客户端
+ */
+@FeignClient(value = "job-manage", contextId = "host")
+public interface HostResourceClient extends ServiceHostResource {
 }

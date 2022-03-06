@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -34,11 +32,13 @@ import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.OperationPermissionReq;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -59,15 +59,16 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private final TaskTemplateService taskTemplateService;
 
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
-    public WebPermissionResourceImpl(WebAuthService authService, TaskPlanService taskPlanService,
+    public WebPermissionResourceImpl(WebAuthService authService,
+                                     TaskPlanService taskPlanService,
                                      TaskTemplateService taskTemplateService,
-                                     AppTransferService appTransferService) {
+                                     ApplicationService applicationService) {
         this.authService = authService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateService = taskTemplateService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -220,7 +221,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         TaskTemplateInfoDTO jobTemplate;
         TaskPlanInfoDTO plan;
-        Long appId = appTransferService.getAppIdByScope(resourceScope);
+        Long appId = applicationService.getAppIdByScope(resourceScope);
         switch (action) {
             case "create":
                 Long templateId = Long.valueOf(resourceId);

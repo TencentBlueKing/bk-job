@@ -29,15 +29,15 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -74,7 +74,7 @@ public class IndexServiceImpl implements IndexService {
     private final DSLContext dslContext;
     private final IndexGreetingDAO indexGreetingDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
-    private final ApplicationInfoDAO applicationInfoDAO;
+    private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final TopologyHelper topologyHelper;
     private final TaskTemplateService taskTemplateService;
@@ -83,14 +83,14 @@ public class IndexServiceImpl implements IndexService {
 
     @Autowired
     public IndexServiceImpl(DSLContext dslContext, IndexGreetingDAO indexGreetingDAO,
-                            QueryAgentStatusClient queryAgentStatusClient, ApplicationInfoDAO applicationInfoDAO,
+                            QueryAgentStatusClient queryAgentStatusClient, ApplicationDAO applicationDAO,
                             ApplicationHostDAO applicationHostDAO, TopologyHelper topologyHelper,
                             TaskTemplateService taskTemplateService, GlobalSettingsService globalSettingsService,
                             MessageI18nService i18nService, TaskTemplateDAO taskTemplateDAO, ScriptDAO scriptDAO) {
         this.dslContext = dslContext;
         this.indexGreetingDAO = indexGreetingDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.topologyHelper = topologyHelper;
         this.taskTemplateService = taskTemplateService;
@@ -138,7 +138,7 @@ public class IndexServiceImpl implements IndexService {
      */
     private List<Long> getQueryConditionAppIds(Long appId) {
         // 查出业务
-        ApplicationInfoDTO appInfo = applicationInfoDAO.getCacheAppInfoById(appId);
+        ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
         List<Long> appIds = null;
         if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
             appIds = Collections.singletonList(appId);

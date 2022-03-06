@@ -22,26 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.remote;
+package com.tencent.bk.job.common.annotation;
 
-import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
-import com.tencent.bk.job.analysis.service.ApplicationHostService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Slf4j
-@Service
-public class ApplicationHostServiceImpl implements ApplicationHostService {
-    private final ApplicationResourceClient applicationResourceClient;
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
 
-    @Autowired
-    public ApplicationHostServiceImpl(ApplicationResourceClient applicationResourceClient) {
-        this.applicationResourceClient = applicationResourceClient;
-    }
-
-    @Override
-    public boolean existsHost(long appId, String ip) {
-        return applicationResourceClient.existsHost(appId, ip).getData();
-    }
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
+public @interface DeprecatedAppLogic {
 }

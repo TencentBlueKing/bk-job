@@ -30,8 +30,8 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationHostService;
 import com.tencent.bk.job.analysis.service.ApplicationService;
+import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
@@ -83,8 +83,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
 
     private final TaskPlanService taskPlanService;
     private final TaskTemplateService templateService;
-    private final ApplicationService applicationService;
-    private final ApplicationHostService applicationHostService;
+    private final HostService hostService;
 
     @Autowired
     public TaskPlanTargetChecker(
@@ -94,13 +93,12 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         TaskTemplateService templateService,
         TaskPlanService taskPlanService,
         ApplicationService applicationService,
-        ApplicationHostService applicationHostService
+        HostService hostService
     ) {
         super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
         this.templateService = templateService;
         this.taskPlanService = taskPlanService;
-        this.applicationService = applicationService;
-        this.applicationHostService = applicationHostService;
+        this.hostService = hostService;
     }
 
     @Override
@@ -278,7 +276,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //（1）目标节点
         List<ServiceTaskNodeInfoDTO> targetNodeVOList = serviceTaskHostNodeDTO.getNodeInfoList();
         if (targetNodeVOList != null && !targetNodeVOList.isEmpty()) {
-            hostStatusDTOList.addAll(applicationService.getHostStatusByNode(username, appId,
+            hostStatusDTOList.addAll(hostService.getHostStatusByNode(username, appId,
                 targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                     it.getType(),
                     "",
@@ -299,7 +297,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //找到动态分组对应的所有主机
         List<String> dynamicGroupIdList = serviceTaskHostNodeDTO.getDynamicGroupId();
         if (dynamicGroupIdList != null && !dynamicGroupIdList.isEmpty()) {
-            hostStatusDTOList.addAll(applicationService.getHostStatusByDynamicGroup(username, appId,
+            hostStatusDTOList.addAll(hostService.getHostStatusByDynamicGroup(username, appId,
                 dynamicGroupIdList));
         }
         //找到目标节点对应的所有主机//主机异常
@@ -317,7 +315,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             serviceHostInfoDTO.getCloudAreaId() + ":" + serviceHostInfoDTO.getIp()
         ).collect(Collectors.toList());
         List<ServiceHostStatusDTO> hostStatusDTOListByIp =
-            applicationService.getHostStatusByIp(username, appId, ipList);
+            hostService.getHostStatusByIp(username, appId, ipList);
         Map<String, ServiceHostStatusDTO> map = new HashMap<>();
         hostStatusDTOListByIp.forEach(serviceHostStatusDTO -> {
             map.put(serviceHostStatusDTO.getIp(), serviceHostStatusDTO);

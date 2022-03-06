@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,15 +34,24 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 业务信息
+ * Job业务
  */
 @NoArgsConstructor
 @Data
-public class ApplicationInfoDTO implements Serializable {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApplicationDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 业务ID
+     */
     private Long id;
+
+    /**
+     * 资源范围
+     */
+    private ResourceScope scope;
 
     /**
      * 业务名称
@@ -50,16 +61,19 @@ public class ApplicationInfoDTO implements Serializable {
     /**
      * 业务类型
      */
+    @DeprecatedAppLogic
     private AppTypeEnum appType;
 
     /**
      * 子业务
      */
+    @DeprecatedAppLogic
     private List<Long> subAppIds;
 
     /**
      * 业务运维
      */
+    @DeprecatedAppLogic
     private String maintainers;
 
     /**
@@ -67,11 +81,15 @@ public class ApplicationInfoDTO implements Serializable {
      */
     private transient String bkSupplierAccount;
 
+    /**
+     * 业务时区
+     */
     private String timeZone;
 
     /**
      * 初始运维部门Id
      */
+    @DeprecatedAppLogic
     private Long operateDeptId;
 
     /**

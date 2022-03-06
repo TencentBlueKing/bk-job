@@ -22,35 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.service.CommonApplicationService;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.StringJoiner;
 
 /**
- * @since 9/3/2020 22:23
+ * 资源范围
  */
-@Service
-public class CommonApplicationServiceImpl implements CommonApplicationService {
+@Getter
+@Setter
+@NoArgsConstructor
+public class ResourceScope {
+    /**
+     * 资源范围类型
+     */
+    private ResourceScopeTypeEnum type;
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String id;
 
-    private ApplicationService applicationService;
+    public ResourceScope(String type, String id) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
+    }
 
-    @Autowired
-    public CommonApplicationServiceImpl(ApplicationService applicationService) {
-        this.applicationService = applicationService;
+    public ResourceScope(ResourceScopeTypeEnum type, String id) {
+        this.type = type;
+        this.id = id;
     }
 
     @Override
-    public Boolean checkAppPermission(long appId, String username) {
-        return applicationService.checkAppPermission(appId, username);
+    public String toString() {
+        return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
+            .add("type=" + type)
+            .add("id='" + id + "'")
+            .toString();
     }
-
-    @Override
-    public ApplicationInfoDTO getAppInfo(long appId) {
-        return applicationService.getAppInfoById(appId);
-    }
-
 }

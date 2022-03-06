@@ -22,62 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.app;
+package com.tencent.bk.job.common.annotation;
 
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.StringJoiner;
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
 
 /**
- * 资源范围
+ * 兼容历史版本的实现
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class ResourceScope {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
+public @interface CompatibleImplementation {
     /**
-     * 资源范围类型
+     * 说明
      */
-    private ResourceScopeTypeEnum type;
+    String explain();
+
     /**
-     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     * 兼容实现被废除的版本
      */
-    private String id;
-    /**
-     * 作业平台业务ID
-     */
-    private Long appId;
-
-    public ResourceScope(String type, String id) {
-        this.type = ResourceScopeTypeEnum.from(type);
-        this.id = id;
-    }
-
-    public ResourceScope(ResourceScopeTypeEnum type, String id) {
-        this.type = type;
-        this.id = id;
-    }
-
-    public ResourceScope(ResourceScopeTypeEnum type, String id, Long appId) {
-        this.type = type;
-        this.id = id;
-        this.appId = appId;
-    }
-
-    public ResourceScope(String type, String id, Long appId) {
-        this.type = ResourceScopeTypeEnum.from(type);
-        this.id = id;
-        this.appId = appId;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
-            .add("type=" + type)
-            .add("id='" + id + "'")
-            .toString();
-    }
+    String version();
 }

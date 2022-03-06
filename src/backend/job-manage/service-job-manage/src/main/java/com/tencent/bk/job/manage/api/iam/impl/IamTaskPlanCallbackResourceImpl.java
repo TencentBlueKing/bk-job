@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTaskPlanCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -62,13 +62,13 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
     implements IamTaskPlanCallbackResource {
 
     private final TaskPlanService planService;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public IamTaskPlanCallbackResourceImpl(TaskPlanService planService,
-                                           AppTransferService appTransferService) {
+                                           ApplicationService applicationService) {
         this.planService = planService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     private InstanceInfoDTO convert(TaskPlanInfoDTO planInfoDTO) {
@@ -140,7 +140,7 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(taskPlanBasicInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);

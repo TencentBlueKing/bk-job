@@ -25,60 +25,59 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
-import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 public class ServiceApplicationResourceImpl implements ServiceApplicationResource {
     private final ApplicationService applicationService;
-    private final ApplicationInfoDAO applicationInfoDAO;
 
     @Autowired
-    public ServiceApplicationResourceImpl(ApplicationService applicationService,
-                                          ApplicationInfoDAO applicationInfoDAO) {
+    public ServiceApplicationResourceImpl(ApplicationService applicationService) {
         this.applicationService = applicationService;
-        this.applicationInfoDAO = applicationInfoDAO;
     }
 
     @Override
     public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
-        List<ApplicationInfoDTO> applicationInfoDTOList = applicationInfoDAO.listAppInfoByType(AppTypeEnum.NORMAL);
+        List<ApplicationDTO> appList = applicationService.listAllApps();
         List<ServiceAppBaseInfoDTO> resultList =
-            applicationInfoDTOList.parallelStream().map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
+            appList.parallelStream().filter(app -> app.getAppType() == AppTypeEnum.NORMAL)
+                .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
 
     @Override
     public ServiceApplicationDTO queryAppById(Long appId) {
-        ApplicationInfoDTO appInfo = applicationService.getAppInfoById(appId);
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         if (appInfo == null) {
-            return null;
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
         return convertToServiceApp(appInfo);
     }
 
-    private ServiceApplicationDTO convertToServiceApp(ApplicationInfoDTO appInfo) {
+    private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
+        if (appInfo == null) {
+            return null;
+        }
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setId(appInfo.getId());
         app.setName(appInfo.getName());
@@ -92,11 +91,31 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         return app;
     }
 
-    private ServiceAppBaseInfoDTO convertToServiceAppBaseInfo(ApplicationInfoDTO appInfo) {
+    private ServiceAppBaseInfoDTO convertToServiceAppBaseInfo(ApplicationDTO appInfo) {
         ServiceAppBaseInfoDTO appBaseInfoDTO = new ServiceAppBaseInfoDTO();
         appBaseInfoDTO.setId(appInfo.getId());
         appBaseInfoDTO.setName(appInfo.getName());
         return appBaseInfoDTO;
+    }
+
+    @Override
+    public ServiceApplicationDTO queryAppByScope(String scopeType, String scopeId) {
+        ApplicationDTO appInfo = applicationService.getAppByScope(new ResourceScope(scopeType, scopeId));
+        if (appInfo == null) {
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return convertToServiceApp(appInfo);
+    }
+
+    @Override
+    public List<ServiceApplicationDTO> listAppsByAppIds(String appIds) {
+        Set<Long> appIdList = Arrays.stream(appIds.split(","))
+            .map(Long::parseLong).collect(Collectors.toSet());
+        List<ApplicationDTO> applications = applicationService.listAppsByAppIds(appIdList);
+        if (CollectionUtils.isEmpty(applications)) {
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return applications.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
 
     @Override
@@ -108,88 +127,22 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public InternalResponse<List<ServiceApplicationDTO>> listLocalDBApps(Integer appType) {
-        List<ApplicationInfoDTO> applicationInfoDTOList;
-        if (appType == null || appType <= 0) {
-            applicationInfoDTOList = applicationInfoDAO.listAppInfo();
-        } else {
-            applicationInfoDTOList = applicationInfoDAO.listAppInfoByType(AppTypeEnum.valueOf(appType));
+    public InternalResponse<List<ServiceApplicationDTO>> listApps(Integer appType, String scopeType) {
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        if (CollectionUtils.isEmpty(appList)) {
+            InternalResponse.buildSuccessResp(appList);
+        }
+
+        if (appType != null) {
+            appList = appList.stream().filter(app -> app.getAppType() == AppTypeEnum.valueOf(appType))
+                .collect(Collectors.toList());
+        } else if (StringUtils.isNotEmpty(scopeType)) {
+            appList = appList.stream().filter(app -> app.getScope().getType() == ResourceScopeTypeEnum.from(scopeType))
+                .collect(Collectors.toList());
         }
         List<ServiceApplicationDTO> resultList =
-            applicationInfoDTOList.parallelStream().map(this::convertToServiceApp).collect(Collectors.toList());
+            appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
 
-    @Override
-    public InternalResponse<Boolean> existsHost(Long appId, String ip) {
-        return InternalResponse.buildSuccessResp(applicationService.existsHost(appId, ip));
-    }
-
-    @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
-        Long appId,
-        String username,
-        ServiceGetHostStatusByNodeReq req
-    ) {
-        List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
-        List<NodeInfoVO> nodeInfoVOList = applicationService.getHostsByNode(username, appId, treeNodeList);
-        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        nodeInfoVOList.parallelStream().forEach(nodeInfoVO -> {
-            nodeInfoVO.getIpListStatus().forEach(hostInfoVO -> {
-                ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-                serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-                serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-                serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
-                if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                    hostStatusDTOList.add(serviceHostStatusDTO);
-                }
-            });
-        });
-        return InternalResponse.buildSuccessResp(hostStatusDTOList);
-    }
-
-    @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
-        Long appId,
-        String username,
-        ServiceGetHostStatusByDynamicGroupReq req
-    ) {
-        List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
-        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = applicationService.getDynamicGroupHostList(
-            username,
-            appId,
-            dynamicGroupIdList
-        );
-        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        dynamicGroupInfoDTOList.parallelStream().forEach(dynamicGroupInfoDTO -> {
-            dynamicGroupInfoDTO.getIpListStatus().forEach(hostInfoVO -> {
-                ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-                serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-                serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-                serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
-                if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                    hostStatusDTOList.add(serviceHostStatusDTO);
-                }
-            });
-        });
-        return InternalResponse.buildSuccessResp(hostStatusDTOList);
-    }
-
-    @Override
-    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
-                                                                     ServiceGetHostStatusByIpReq req) {
-        List<String> ipList = req.getIpList();
-        List<HostInfoVO> hostInfoVOList = applicationService.getHostsByIp(username, appId, null, ipList);
-        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        hostInfoVOList.forEach(hostInfoVO -> {
-            ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setIp(hostInfoVO.getCloudAreaInfo().getId() + ":" + hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
-            if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                hostStatusDTOList.add(serviceHostStatusDTO);
-            }
-        });
-        return InternalResponse.buildSuccessResp(hostStatusDTOList);
-    }
 }

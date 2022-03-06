@@ -25,19 +25,18 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import org.jooq.DSLContext;
 
 import java.util.List;
 
-/**
- * @since 4/11/2019 22:46
- */
-public interface ApplicationInfoDAO {
 
-    ApplicationInfoDTO getCacheAppInfoById(long appId);
+public interface ApplicationDAO {
 
-    ApplicationInfoDTO getAppInfoById(long appId);
+    ApplicationDTO getCacheAppById(long appId);
+
+    ApplicationDTO getAppById(long appId);
 
     AppTypeEnum getAppTypeById(long appId);
 
@@ -45,15 +44,15 @@ public interface ApplicationInfoDAO {
 
     List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
 
-    List<ApplicationInfoDTO> getAppInfoByIds(List<Long> appIdList);
+    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
 
-    List<ApplicationInfoDTO> listAppInfo();
+    List<ApplicationDTO> listAllApps();
 
-    List<ApplicationInfoDTO> listAppInfoByType(AppTypeEnum appType);
+    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
 
-    Long insertAppInfo(DSLContext dslContext, ApplicationInfoDTO applicationInfoDTO);
+    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
-    int updateAppInfo(DSLContext dslContext, ApplicationInfoDTO applicationInfoDTO);
+    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
     int deleteAppInfoById(DSLContext dslContext, long appId);
 
@@ -62,4 +61,6 @@ public interface ApplicationInfoDAO {
     int updateSubAppIds(long appId, String subAppIds);
 
     Integer countApps();
+
+    ApplicationDTO getAppByScope(ResourceScope scope);
 }

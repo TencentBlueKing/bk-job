@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.web;
 
-import com.tencent.bk.job.common.app.DeprecatedAppLogic;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

@@ -24,16 +24,16 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -60,13 +60,13 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
     implements IamTaskTemplateCallbackResource {
 
     private final TaskTemplateService templateService;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public IamTaskTemplateCallbackResourceImpl(TaskTemplateService templateService,
-                                               AppTransferService appTransferService) {
+                                               ApplicationService applicationService) {
         this.templateService = templateService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     private InstanceInfoDTO convert(TaskTemplateInfoDTO templateInfo) {
@@ -81,7 +81,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         return TaskTemplateQuery.builder()
             .appId(appId)
             .baseSearchCondition(baseSearchCondition)
@@ -132,7 +132,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(templateInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);

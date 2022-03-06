@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import io.micrometer.core.instrument.Tag;
 
 import javax.servlet.http.HttpServletRequest;

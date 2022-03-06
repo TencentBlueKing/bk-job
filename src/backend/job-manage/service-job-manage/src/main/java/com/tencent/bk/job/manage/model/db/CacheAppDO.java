@@ -22,10 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,8 +41,20 @@ import java.util.List;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class CacheAppDO {
-
+    /**
+     * 业务ID
+     */
     private Long id;
+
+    /**
+     * 资源范围类型
+     */
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    private String scopeId;
 
     /**
      * 业务名称
@@ -49,31 +64,49 @@ public class CacheAppDO {
     /**
      * 业务类型
      */
+    @DeprecatedAppLogic
     private Integer appType;
 
     /**
      * 子业务
      */
+    @DeprecatedAppLogic
     private List<Long> subAppIds;
 
     /**
      * 业务运维
      */
+    @DeprecatedAppLogic
     private String maintainers;
 
     /**
      * 临时字段-业务初始部门ID
      */
+    @DeprecatedAppLogic
     private Long operateDeptId;
 
-    public static CacheAppDO fromApplicationInfoDTO(ApplicationDTO application) {
+    public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
         CacheAppDO cacheAppDO = new CacheAppDO();
         cacheAppDO.setId(application.getId());
+        cacheAppDO.setScopeType(application.getScope().getType().getValue());
+        cacheAppDO.setScopeId(application.getScope().getId());
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAppType(application.getAppType().getValue());
         cacheAppDO.setMaintainers(application.getMaintainers());
         cacheAppDO.setSubAppIds(application.getSubAppIds());
         cacheAppDO.setOperateDeptId(application.getOperateDeptId());
         return cacheAppDO;
+    }
+
+    public static ApplicationDTO toApplicationDTO(CacheAppDO cacheAppDO) {
+        ApplicationDTO application = new ApplicationDTO();
+        application.setId(cacheAppDO.getId());
+        application.setScope(new ResourceScope(cacheAppDO.getScopeType(), cacheAppDO.getScopeId()));
+        application.setName(cacheAppDO.getName());
+        application.setAppType(AppTypeEnum.valueOf(cacheAppDO.getAppType()));
+        application.setMaintainers(cacheAppDO.getMaintainers());
+        application.setSubAppIds(cacheAppDO.getSubAppIds());
+        application.setOperateDeptId(cacheAppDO.getOperateDeptId());
+        return application;
     }
 }

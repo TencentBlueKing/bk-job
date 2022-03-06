@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.context;
 
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 

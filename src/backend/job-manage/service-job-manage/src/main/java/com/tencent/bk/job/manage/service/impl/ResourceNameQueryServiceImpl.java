@@ -28,10 +28,11 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.CredentialService;
@@ -39,7 +40,6 @@ import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +79,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     }
 
     private String getAppName(Long appId) {
-        ApplicationInfoDTO appInfo = applicationService.getAppInfoById(appId);
+        ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         if (appInfo != null) {
             if (StringUtils.isNotBlank(appInfo.getName())) {
                 return appInfo.getName();

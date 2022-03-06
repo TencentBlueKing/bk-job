@@ -88,8 +88,8 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.util.ApiUtil;
@@ -948,8 +948,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @return
      */
     @Override
-    public List<ApplicationInfoDTO> getAllApps() {
-        List<ApplicationInfoDTO> appList = new ArrayList<>();
+    public List<ApplicationDTO> getAllApps() {
+        List<ApplicationDTO> appList = new ArrayList<>();
         int limit = 200;
         int start = 0;
         boolean isLastPage = false;
@@ -984,8 +984,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return appList;
     }
 
-    private ApplicationInfoDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
-        ApplicationInfoDTO appInfo = new ApplicationInfoDTO();
+    private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
+        ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setId(businessInfo.getAppId());
         appInfo.setName(businessInfo.getAppName());
         appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
@@ -1006,8 +1006,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @throws ServiceException
      */
     @Override
-    public List<ApplicationInfoDTO> getAppByUser(String uin, String owner) throws ServiceException {
-        List<ApplicationInfoDTO> appList = new ArrayList<>();
+    public List<ApplicationDTO> getAppByUser(String uin, String owner) throws ServiceException {
+        List<ApplicationDTO> appList = new ArrayList<>();
         boolean isLastPage = false;
         int limit = 200;
         int start = 0;
@@ -1055,7 +1055,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @return
      */
     @Override
-    public ApplicationInfoDTO getAppById(long appId, String owner, String uin) {
+    public ApplicationDTO getAppById(long appId, String owner, String uin) {
         owner = defaultSupplierAccount;
         uin = defaultUin;
         GetAppReq req = makeBaseReq(GetAppReq.class, uin, owner);
