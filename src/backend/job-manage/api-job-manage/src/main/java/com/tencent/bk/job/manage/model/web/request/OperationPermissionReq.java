@@ -47,7 +47,7 @@ public class OperationPermissionReq {
     @ApiModelProperty("业务ID")
     private Long appId;
 
-    @ApiModelProperty("范畴类型:biz/business_set")
+    @ApiModelProperty("范畴类型:biz/biz_set")
     private String scopeType;
 
     @ApiModelProperty("范畴ID")
