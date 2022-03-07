@@ -22,16 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.cc.config.CcConfig;
 import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.encrypt.Encryptor;
+import com.tencent.bk.job.common.encrypt.RSAEncryptor;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 @Configuration
-public class CCAutoConfig {
+public class JobManageAutoConfiguration {
+    @Bean
+    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
+                                               @Autowired MeterRegistry meterRegistry) {
+        return new ArtifactoryClient(
+            artifactoryConfig.getArtifactoryBaseUrl(),
+            artifactoryConfig.getArtifactoryJobUsername(),
+            artifactoryConfig.getArtifactoryJobPassword(),
+            meterRegistry);
+    }
 
     @Bean
     public CcConfigSetter ccConfigSetter(@Autowired CcConfig ccConfig) {
@@ -43,5 +60,15 @@ public class CCAutoConfig {
     static class CcConfigSetter {
         public CcConfigSetter() {
         }
+    }
+
+    @Bean
+    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
+        return new EsbApiTimedAspect(meterRegistry);
+    }
+
+    @Bean("gseRsaEncryptor")
+    public Encryptor rsaEncryptor(@Autowired GseConfigForManage config) throws IOException, GeneralSecurityException {
+        return new RSAEncryptor(config.getGsePublicKeyPermBase64());
     }
 }

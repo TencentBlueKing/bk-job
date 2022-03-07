@@ -22,37 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.impl;
+package com.tencent.bk.job.manage;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
-import com.tencent.bk.job.manage.AppScopeMapper;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-@Service
+/**
+ * 业务与资源范围转换
+ */
 public class AppScopeMappingServiceImpl implements AppScopeMappingService {
-    private final AppScopeMapper appScopeMapper;
 
-    public AppScopeMappingServiceImpl(ServiceApplicationResourceClient applicationResourceClient) {
-        this.appScopeMapper = new AppScopeMapper(applicationResourceClient);
+    private final ServiceApplicationResource applicationResource;
+
+    public AppScopeMappingServiceImpl(ServiceApplicationResource applicationResource) {
+        this.applicationResource = applicationResource;
     }
 
-    @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return appScopeMapper.getAppIdByScope(resourceScope);
+        return applicationResource.queryAppByScope(resourceScope.getType().getValue(), resourceScope.getId()).getId();
     }
 
-    @Override
     public ResourceScope getScopeByAppId(Long appId) {
-        return appScopeMapper.getScopeByAppId(appId);
+        ServiceApplicationDTO application = applicationResource.queryAppById(appId);
+        return new ResourceScope(application.getScopeType(), application.getScopeId());
     }
 
-    @Override
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        return appScopeMapper.getScopeByAppIds(appIds);
+        String appIdsStr = StringUtil.concatCollection(appIds, ",");
+        List<ServiceApplicationDTO> applications = applicationResource.listAppsByAppIds(appIdsStr);
+        return applications.stream().collect(Collectors.toMap(ServiceApplicationDTO::getId,
+            app -> new ResourceScope(app.getScopeType(), app.getScopeId())));
     }
 }

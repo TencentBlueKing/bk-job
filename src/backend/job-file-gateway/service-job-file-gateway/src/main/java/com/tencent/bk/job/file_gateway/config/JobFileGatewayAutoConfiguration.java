@@ -22,26 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.file_gateway.config;
 
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ArtifactoryClientAutoConfig {
+public class JobFileGatewayAutoConfiguration {
+
     @Bean
-    public ArtifactoryClient artifactoryClient(
-        @Autowired ArtifactoryConfig artifactoryConfig,
-        @Autowired MeterRegistry meterRegistry
-    ) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
-        );
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

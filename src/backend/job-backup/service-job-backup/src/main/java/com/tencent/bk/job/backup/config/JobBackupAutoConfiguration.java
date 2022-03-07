@@ -22,37 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.service.impl;
+package com.tencent.bk.job.backup.config;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.backup.client.ServiceApplicationResourceClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
-import com.tencent.bk.job.manage.AppScopeMapper;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Collection;
-import java.util.Map;
-
-@Service
-public class AppScopeMappingServiceImpl implements AppScopeMappingService {
-    private final AppScopeMapper appScopeMapper;
-
-    public AppScopeMappingServiceImpl(ServiceApplicationResourceClient applicationResourceClient) {
-        this.appScopeMapper = new AppScopeMapper(applicationResourceClient);
+@Configuration
+public class JobBackupAutoConfiguration {
+    @Bean
+    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
+        return new EsbApiTimedAspect(meterRegistry);
     }
 
-    @Override
-    public Long getAppIdByScope(ResourceScope resourceScope) {
-        return appScopeMapper.getAppIdByScope(resourceScope);
+    @Bean
+    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
+                                               @Autowired MeterRegistry meterRegistry) {
+        return new ArtifactoryClient(
+            artifactoryConfig.getArtifactoryBaseUrl(),
+            artifactoryConfig.getArtifactoryJobUsername(),
+            artifactoryConfig.getArtifactoryJobPassword(),
+            meterRegistry
+        );
     }
 
-    @Override
-    public ResourceScope getScopeByAppId(Long appId) {
-        return appScopeMapper.getScopeByAppId(appId);
-    }
-
-    @Override
-    public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        return appScopeMapper.getScopeByAppIds(appIds);
+    @Bean
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

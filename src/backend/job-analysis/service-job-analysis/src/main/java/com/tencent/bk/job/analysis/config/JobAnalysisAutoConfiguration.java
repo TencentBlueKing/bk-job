@@ -22,24 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.analysis.config;
 
-import com.tencent.bk.job.common.encrypt.Encryptor;
-import com.tencent.bk.job.common.encrypt.RSAEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
 @Configuration
-@AutoConfigureAfter(GseConfigForManage.class)
-public class EncryptAutoConfig {
+public class JobAnalysisAutoConfiguration {
 
-    @Bean("gseRsaEncryptor")
-    public Encryptor rsaEncryptor(@Autowired GseConfigForManage config) throws IOException, GeneralSecurityException {
-        return new RSAEncryptor(config.getGsePublicKeyPermBase64());
+    @Bean
+    AppScopeMappingService appScopeMappingService(ApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

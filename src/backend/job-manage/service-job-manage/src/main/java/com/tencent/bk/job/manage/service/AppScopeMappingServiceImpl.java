@@ -22,37 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.client.ApplicationResourceClient;
-import com.tencent.bk.job.manage.AppScopeMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class AppScopeMappingServiceImpl implements AppScopeMappingService {
-    private final AppScopeMapper appScopeMapper;
 
-    public AppScopeMappingServiceImpl(ApplicationResourceClient applicationResourceClient) {
-        this.appScopeMapper = new AppScopeMapper(applicationResourceClient);
+    private ApplicationService applicationService;
+
+    @Autowired
+    public AppScopeMappingServiceImpl(ApplicationService applicationService) {
+        this.applicationService = applicationService;
     }
 
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return appScopeMapper.getAppIdByScope(resourceScope);
+        return applicationService.getAppIdByScope(resourceScope);
     }
 
     @Override
     public ResourceScope getScopeByAppId(Long appId) {
-        return appScopeMapper.getScopeByAppId(appId);
+        return applicationService.getScopeByAppId(appId);
     }
 
     @Override
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        return appScopeMapper.getScopeByAppIds(appIds);
+        return applicationService.getScopeByAppIds(appIds);
     }
 }
