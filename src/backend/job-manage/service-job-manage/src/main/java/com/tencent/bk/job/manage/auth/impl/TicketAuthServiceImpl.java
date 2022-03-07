@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class TicketAuthServiceImpl implements TicketAuthService {
     @Override
-    public AuthResult authCreateTicket(String username, AppResourceScope resourceScope) {
+    public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authManageTicket(String username,
-                                       AppResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
         // TODO
@@ -53,7 +53,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public AuthResult authUseTicket(String username,
-                                    AppResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
         // TODO
@@ -62,7 +62,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public List<String> batchAuthManageTicket(String username,
-                                              AppResourceScope resourceScope,
+                                              AppResourceScope appResourceScope,
                                               List<String> ticketIdList) {
         // TODO
         return ticketIdList;
@@ -70,7 +70,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public List<String> batchAuthUseTicket(String username,
-                                           AppResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            List<String> ticketIdList) {
         // TODO
         return ticketIdList;

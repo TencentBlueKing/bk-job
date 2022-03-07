@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
     @Override
     public AuthResult authFastPushFile(String username,
-                                       AppResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        ServersDTO servers) {
         // TODO
         return AuthResult.pass();
@@ -45,21 +45,21 @@ public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
 
     @Override
     public AuthResult authFastExecuteScript(String username,
-                                            AppResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             ServersDTO servers) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
-    public AuthResult authViewHistory(String username, AppResourceScope resourceScope) {
+    public AuthResult authViewHistory(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authExecuteScript(String username,
-                                        AppResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         String scriptId,
                                         String scriptName,
                                         ServersDTO servers) {
@@ -69,7 +69,7 @@ public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
 
     @Override
     public AuthResult authLaunchJobPlan(String username,
-                                        AppResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {

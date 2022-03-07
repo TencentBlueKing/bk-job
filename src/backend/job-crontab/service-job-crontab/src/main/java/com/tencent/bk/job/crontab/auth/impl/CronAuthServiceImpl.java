@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class CronAuthServiceImpl implements CronAuthService {
     @Override
-    public AuthResult authCreateCron(String username, AppResourceScope resourceScope) {
+    public AuthResult authCreateCron(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authManageCron(String username,
-                                     AppResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long cronId,
                                      String cronName) {
         // TODO
@@ -53,7 +53,7 @@ public class CronAuthServiceImpl implements CronAuthService {
 
     @Override
     public List<Long> batchAuthManageCron(String username,
-                                          AppResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> cronIdList) {
         // TODO
         return cronIdList;

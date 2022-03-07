@@ -76,7 +76,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        AppResourceScope resourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -99,7 +99,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                     case "redo":
-                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, resourceScope,
+                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope,
                             taskInstanceId);
                         if (!authResult.isPass() && isReturnApplyUrl) {
                             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));

@@ -37,10 +37,10 @@ public interface AccountAuthService {
      * 资源范围下创建账号鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateAccount(String username, AppResourceScope resourceScope);
+    AuthResult authCreateAccount(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理账号鉴权
@@ -52,7 +52,7 @@ public interface AccountAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageAccount(String username,
-                                 AppResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  Long accountId,
                                  String accountName);
 
@@ -66,7 +66,7 @@ public interface AccountAuthService {
      * @return 鉴权结果
      */
     AuthResult authUseAccount(String username,
-                              AppResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               Long accountId,
                               String accountName);
 
@@ -79,7 +79,7 @@ public interface AccountAuthService {
      * @return 有权限的账号ID
      */
     List<Long> batchAuthManageAccount(String username,
-                                      AppResourceScope resourceScope,
+                                      AppResourceScope appResourceScope,
                                       List<Long> accountIdList);
 
     /**
@@ -91,6 +91,6 @@ public interface AccountAuthService {
      * @return 有权限的账号ID
      */
     List<Long> batchAuthUseAccount(String username,
-                                   AppResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    List<Long> accountIdList);
 }

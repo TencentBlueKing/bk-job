@@ -21,7 +21,7 @@ BEGIN
         ALTER TABLE application ADD COLUMN bk_scope_type VARCHAR(32) NOT NULL DEFAULT '';
     END IF;
 	
-	IF NOT EXISTS(SELECT 1
+    IF NOT EXISTS(SELECT 1
                   FROM information_schema.columns
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'application'

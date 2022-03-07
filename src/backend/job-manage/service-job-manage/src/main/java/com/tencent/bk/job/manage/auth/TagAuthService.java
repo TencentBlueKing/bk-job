@@ -40,7 +40,7 @@ public interface TagAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateTag(String username, AppResourceScope resourceScope);
+    AuthResult authCreateTag(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理标签鉴权
@@ -52,7 +52,7 @@ public interface TagAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageTag(String username,
-                             AppResourceScope resourceScope,
+                             AppResourceScope appResourceScope,
                              Long tagId,
                              String tagName);
 
@@ -65,6 +65,6 @@ public interface TagAuthService {
      * @return 有权限的标签ID
      */
     List<Long> batchAuthManageTag(String username,
-                                  AppResourceScope resourceScope,
+                                  AppResourceScope appResourceScope,
                                   List<Long> tagIdList);
 }

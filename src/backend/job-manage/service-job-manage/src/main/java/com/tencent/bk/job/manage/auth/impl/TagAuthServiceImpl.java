@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class TagAuthServiceImpl implements TagAuthService {
     @Override
-    public AuthResult authCreateTag(String username, AppResourceScope resourceScope) {
+    public AuthResult authCreateTag(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authManageTag(String username,
-                                    AppResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     Long tagId,
                                     String tagName) {
         // TODO
@@ -53,7 +53,7 @@ public class TagAuthServiceImpl implements TagAuthService {
 
     @Override
     public List<Long> batchAuthManageTag(String username,
-                                         AppResourceScope resourceScope,
+                                         AppResourceScope appResourceScope,
                                          List<Long> tagIdList) {
         // TODO
         return tagIdList;

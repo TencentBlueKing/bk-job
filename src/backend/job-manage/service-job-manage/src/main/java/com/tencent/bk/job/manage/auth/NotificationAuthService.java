@@ -38,6 +38,6 @@ public interface NotificationAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authNotificationSetting(String username, AppResourceScope resourceScope);
+    AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope);
 
 }

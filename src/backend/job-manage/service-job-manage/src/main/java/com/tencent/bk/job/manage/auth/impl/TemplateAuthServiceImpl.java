@@ -38,7 +38,7 @@ import java.util.List;
 public class TemplateAuthServiceImpl implements TemplateAuthService {
     @Override
     public AuthResult authViewJobTemplate(String username,
-                                          AppResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
         // TODO
         return AuthResult.pass();
@@ -46,7 +46,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public AuthResult authEditJobTemplate(String username,
-                                          AppResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
         // TODO
         return AuthResult.pass();
@@ -54,7 +54,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public AuthResult authDeleteJobTemplate(String username,
-                                            AppResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             Long jobTemplateId) {
         // TODO
         return AuthResult.pass();
@@ -62,7 +62,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public AuthResult authDebugJobTemplate(String username,
-                                           AppResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            Long jobTemplateId) {
         // TODO
         return AuthResult.pass();
@@ -70,7 +70,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public List<Long> batchAuthViewJobTemplate(String username,
-                                               AppResourceScope resourceScope,
+                                               AppResourceScope appResourceScope,
                                                List<Long> jobTemplateIdList) {
         // TODO
         return jobTemplateIdList;
@@ -78,7 +78,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public List<Long> batchAuthEditJobTemplate(String username,
-                                               AppResourceScope resourceScope,
+                                               AppResourceScope appResourceScope,
                                                List<Long> jobTemplateIdList) {
         // TODO
         return jobTemplateIdList;
@@ -86,7 +86,7 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
 
     @Override
     public List<Long> batchAuthDeleteJobTemplate(String username,
-                                                 AppResourceScope resourceScope,
+                                                 AppResourceScope appResourceScope,
                                                  List<Long> jobTemplateIdList) {
         // TODO
         return jobTemplateIdList;

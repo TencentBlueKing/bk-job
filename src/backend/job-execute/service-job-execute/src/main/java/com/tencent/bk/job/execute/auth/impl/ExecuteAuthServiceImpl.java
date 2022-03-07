@@ -555,7 +555,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username, AppResourceScope resourceScope, long taskInstanceId) {
+    public AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -564,7 +564,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             return AuthResult.pass();
         }
         return authService.auth(false, username, ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
-            resourceScope.getId(), IamUtil.buildScopePathInfo(resourceScope));
+            appResourceScope.getId(), IamUtil.buildScopePathInfo(appResourceScope));
     }
 
     @Override

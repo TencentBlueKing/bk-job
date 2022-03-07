@@ -44,7 +44,7 @@ public interface PlanAuthService {
      * @return 鉴权结果
      */
     AuthResult authCreateJobPlan(String username,
-                                 AppResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  Long jobTemplateId,
                                  String jobTemplateName);
 
@@ -59,7 +59,7 @@ public interface PlanAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewJobPlan(String username,
-                               AppResourceScope resourceScope,
+                               AppResourceScope appResourceScope,
                                Long jobTemplateId,
                                Long jobPlanId,
                                String jobPlanName);
@@ -75,7 +75,7 @@ public interface PlanAuthService {
      * @return 鉴权结果
      */
     AuthResult authEditJobPlan(String username,
-                               AppResourceScope resourceScope,
+                               AppResourceScope appResourceScope,
                                Long jobTemplateId,
                                Long jobPlanId,
                                String jobPlanName);
@@ -91,7 +91,7 @@ public interface PlanAuthService {
      * @return 鉴权结果
      */
     AuthResult authDeleteJobPlan(String username,
-                                 AppResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  Long jobTemplateId,
                                  Long jobPlanId,
                                  String jobPlanName);
@@ -107,7 +107,7 @@ public interface PlanAuthService {
      * @return 鉴权结果
      */
     AuthResult authSyncJobPlan(String username,
-                               AppResourceScope resourceScope,
+                               AppResourceScope appResourceScope,
                                Long jobTemplateId,
                                Long jobPlanId,
                                String jobPlanName);
@@ -122,7 +122,7 @@ public interface PlanAuthService {
      * @return 有权限的执行方案ID
      */
     List<Long> batchAuthViewJobPlan(String username,
-                                    AppResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     List<Long> jobTemplateIdList,
                                     List<Long> jobPlanIdList);
 
@@ -136,7 +136,7 @@ public interface PlanAuthService {
      * @return 有权限的执行方案ID
      */
     List<Long> batchAuthEditJobPlan(String username,
-                                    AppResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     List<Long> jobTemplateIdList,
                                     List<Long> jobPlanIdList);
 
@@ -150,7 +150,7 @@ public interface PlanAuthService {
      * @return 有权限的执行方案ID
      */
     List<Long> batchAuthDeleteJobPlan(String username,
-                                      AppResourceScope resourceScope,
+                                      AppResourceScope appResourceScope,
                                       List<Long> jobTemplateIdList,
                                       List<Long> jobPlanIdList);
 }

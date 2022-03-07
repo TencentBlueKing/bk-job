@@ -39,14 +39,14 @@ import java.util.List;
 public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
-    public AuthResult authCreateFileSource(String username, AppResourceScope resourceScope) {
+    public AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authViewFileSource(String username,
-                                         AppResourceScope resourceScope,
+                                         AppResourceScope appResourceScope,
                                          Integer fileSourceId,
                                          String fileSourceName) {
         // TODO
@@ -55,7 +55,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public AuthResult authManageFileSource(String username,
-                                           AppResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            Integer fileSourceId,
                                            String fileSourceName) {
         // TODO
@@ -64,7 +64,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public List<Integer> batchAuthViewFileSource(String username,
-                                                 AppResourceScope resourceScope,
+                                                 AppResourceScope appResourceScope,
                                                  List<Integer> fileSourceIdList) {
         // TODO
         return fileSourceIdList;
@@ -72,7 +72,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public List<Integer> batchAuthManageFileSource(String username,
-                                                   AppResourceScope resourceScope,
+                                                   AppResourceScope appResourceScope,
                                                    List<Integer> fileSourceIdList) {
         // TODO
         return fileSourceIdList;

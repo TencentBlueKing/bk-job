@@ -40,7 +40,7 @@ public interface CronAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateCron(String username, AppResourceScope resourceScope);
+    AuthResult authCreateCron(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理定时任务鉴权
@@ -52,7 +52,7 @@ public interface CronAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageCron(String username,
-                              AppResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               Long cronId,
                               String cronName);
 
@@ -65,6 +65,6 @@ public interface CronAuthService {
      * @return 有权限的定时任务ID
      */
     List<Long> batchAuthManageCron(String username,
-                                   AppResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    List<Long> cronIdList);
 }

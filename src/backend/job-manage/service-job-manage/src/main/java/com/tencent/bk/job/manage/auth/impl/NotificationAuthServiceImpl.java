@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationAuthServiceImpl implements NotificationAuthService {
     @Override
-    public AuthResult authNotificationSetting(String username, AppResourceScope resourceScope) {
+    public AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
