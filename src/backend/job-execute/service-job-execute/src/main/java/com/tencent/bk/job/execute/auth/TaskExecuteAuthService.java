@@ -42,7 +42,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authFastPushFile(String username,
-                                AppResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 ServersDTO servers);
 
     /**
@@ -54,7 +54,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authFastExecuteScript(String username,
-                                     AppResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      ServersDTO servers);
 
     /**
@@ -65,7 +65,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewHistory(String username,
-                               AppResourceScope resourceScope);
+                               AppResourceScope appResourceScope);
 
     /**
      * 资源范围下执行脚本鉴权
@@ -78,7 +78,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authExecuteScript(String username,
-                                 AppResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  String scriptId,
                                  String scriptName,
                                  ServersDTO servers);
@@ -94,7 +94,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authLaunchJobPlan(String username,
-                                 AppResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  Long jobTemplateId,
                                  Long jobPlanId,
                                  String jobPlanName);

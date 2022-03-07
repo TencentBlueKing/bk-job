@@ -54,14 +54,14 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authCreateAccount(String username, AppResourceScope resourceScope) {
-        log.info("authCreateAccount scope={}", resourceScope);
-        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, resourceScope);
+    public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
+        log.info("authCreateAccount scope={}", appResourceScope);
+        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, appResourceScope);
     }
 
     @Override
     public AuthResult authManageAccount(String username,
-                                        AppResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long accountId,
                                         String accountName) {
         // TODO
@@ -70,7 +70,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public AuthResult authUseAccount(String username,
-                                     AppResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long accountId,
                                      String accountName) {
         // TODO
@@ -79,7 +79,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public List<Long> batchAuthManageAccount(String username,
-                                             AppResourceScope resourceScope,
+                                             AppResourceScope appResourceScope,
                                              List<Long> accountIdList) {
         // TODO
         return accountIdList;
@@ -87,7 +87,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public List<Long> batchAuthUseAccount(String username,
-                                          AppResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> accountIdList) {
         // TODO
         return accountIdList;

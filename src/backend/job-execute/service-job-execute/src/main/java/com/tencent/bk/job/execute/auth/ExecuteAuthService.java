@@ -114,7 +114,7 @@ public interface ExecuteAuthService {
      * @param taskInstanceId 作业实例ID
      * @return 鉴权结果
      */
-    AuthResult authViewTaskInstance(String username, AppResourceScope resourceScope, long taskInstanceId);
+    AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope, long taskInstanceId);
 
     /**
      * 作业执行实例查看权限鉴权

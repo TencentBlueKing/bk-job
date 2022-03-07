@@ -36,8 +36,8 @@ public class IamAppTransferAspect {
             Object[] args = pjp.getArgs();
             for (Object arg : args) {
                 if (arg instanceof AppResourceScope) {
-                    AppResourceScope resourceScope = (AppResourceScope) arg;
-                    appScopeMappingService.fillResourceScope(resourceScope);
+                    AppResourceScope appResourceScope = (AppResourceScope) arg;
+                    appScopeMappingService.fillResourceScope(appResourceScope);
                 }
             }
         } catch (Throwable throwable) {

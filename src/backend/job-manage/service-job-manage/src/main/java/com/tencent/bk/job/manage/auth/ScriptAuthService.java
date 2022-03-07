@@ -40,7 +40,7 @@ public interface ScriptAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateScript(String username, AppResourceScope resourceScope);
+    AuthResult authCreateScript(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看脚本鉴权
@@ -52,7 +52,7 @@ public interface ScriptAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewScript(String username,
-                              AppResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               String scriptId,
                               String scriptName);
 
@@ -66,7 +66,7 @@ public interface ScriptAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageScript(String username,
-                                AppResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 String scriptId,
                                 String scriptName);
 
@@ -79,7 +79,7 @@ public interface ScriptAuthService {
      * @return 有权限的脚本ID
      */
     List<String> batchAuthViewScript(String username,
-                                     AppResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      List<String> scriptIdList);
 
     /**
@@ -91,6 +91,6 @@ public interface ScriptAuthService {
      * @return 有权限的脚本ID
      */
     List<String> batchAuthManageScript(String username,
-                                       AppResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        List<String> scriptIdList);
 }

@@ -40,7 +40,7 @@ public interface FileSourceAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateFileSource(String username, AppResourceScope resourceScope);
+    AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看文件源鉴权
@@ -52,7 +52,7 @@ public interface FileSourceAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewFileSource(String username,
-                                  AppResourceScope resourceScope,
+                                  AppResourceScope appResourceScope,
                                   Integer fileSourceId,
                                   String fileSourceName);
 
@@ -66,7 +66,7 @@ public interface FileSourceAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageFileSource(String username,
-                                    AppResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     Integer fileSourceId,
                                     String fileSourceName);
 
@@ -79,7 +79,7 @@ public interface FileSourceAuthService {
      * @return 有权限的文件源ID
      */
     List<Integer> batchAuthViewFileSource(String username,
-                                          AppResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Integer> fileSourceIdList);
 
     /**
@@ -91,6 +91,6 @@ public interface FileSourceAuthService {
      * @return 有权限的文件源ID
      */
     List<Integer> batchAuthManageFileSource(String username,
-                                            AppResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             List<Integer> fileSourceIdList);
 }

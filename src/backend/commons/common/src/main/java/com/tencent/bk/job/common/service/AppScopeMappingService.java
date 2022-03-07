@@ -43,16 +43,16 @@ public interface AppScopeMappingService {
 
     Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
 
-    default void fillResourceScope(AppResourceScope resourceScope) {
-        if (resourceScope.getType() != null && StringUtils.isNotBlank(resourceScope.getId())) {
+    default void fillResourceScope(AppResourceScope appResourceScope) {
+        if (appResourceScope.getType() != null && StringUtils.isNotBlank(appResourceScope.getId())) {
             return;
         }
-        if (resourceScope.getAppId() != null) {
-            ResourceScope scope = getScopeByAppId(resourceScope.getAppId());
-            resourceScope.setType(scope.getType());
-            resourceScope.setId(scope.getId());
+        if (appResourceScope.getAppId() != null) {
+            ResourceScope scope = getScopeByAppId(appResourceScope.getAppId());
+            appResourceScope.setType(scope.getType());
+            appResourceScope.setId(scope.getId());
             return;
         }
-        throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        throw new InternalException("Invalid AppResourceScope", ErrorCode.INTERNAL_ERROR);
     }
 }
