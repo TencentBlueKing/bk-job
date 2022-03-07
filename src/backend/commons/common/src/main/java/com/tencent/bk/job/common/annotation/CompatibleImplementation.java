@@ -22,18 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.common.annotation;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Configuration
-public class EsbApiAspectAutoConfig {
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+
+/**
+ * 兼容历史版本的实现
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
+public @interface CompatibleImplementation {
+    /**
+     * 说明
+     */
+    String explain();
+
+    /**
+     * 兼容实现被废除的版本
+     */
+    String version();
 }

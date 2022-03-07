@@ -24,24 +24,36 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ArtifactoryClientAutoConfig {
+public class JobBackupAutoConfiguration {
     @Bean
-    public ArtifactoryClient artifactoryClient(
-        @Autowired ArtifactoryConfig artifactoryConfig,
-        @Autowired MeterRegistry meterRegistry
-    ) {
+    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
+        return new EsbApiTimedAspect(meterRegistry);
+    }
+
+    @Bean
+    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
+                                               @Autowired MeterRegistry meterRegistry) {
         return new ArtifactoryClient(
             artifactoryConfig.getArtifactoryBaseUrl(),
             artifactoryConfig.getArtifactoryJobUsername(),
             artifactoryConfig.getArtifactoryJobPassword(),
             meterRegistry
         );
+    }
+
+    @Bean
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

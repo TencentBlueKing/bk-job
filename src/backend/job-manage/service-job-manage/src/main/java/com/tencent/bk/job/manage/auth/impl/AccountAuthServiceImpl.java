@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,14 +54,14 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authCreateAccount(String username, ResourceScope resourceScope) {
-        log.info("authCreateAccount scope={}", resourceScope);
-        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, resourceScope);
+    public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
+        log.info("authCreateAccount scope={}", appResourceScope);
+        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, appResourceScope);
     }
 
     @Override
     public AuthResult authManageAccount(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long accountId,
                                         String accountName) {
         // TODO
@@ -70,7 +70,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public AuthResult authUseAccount(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long accountId,
                                      String accountName) {
         // TODO
@@ -79,7 +79,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public List<Long> batchAuthManageAccount(String username,
-                                             ResourceScope resourceScope,
+                                             AppResourceScope appResourceScope,
                                              List<Long> accountIdList) {
         // TODO
         return accountIdList;
@@ -87,7 +87,7 @@ public class AccountAuthServiceImpl implements AccountAuthService {
 
     @Override
     public List<Long> batchAuthUseAccount(String username,
-                                          ResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> accountIdList) {
         // TODO
         return accountIdList;

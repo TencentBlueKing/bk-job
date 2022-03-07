@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.crontab.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import org.springframework.stereotype.Service;
 
@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class CronAuthServiceImpl implements CronAuthService {
     @Override
-    public AuthResult authCreateCron(String username, ResourceScope resourceScope) {
+    public AuthResult authCreateCron(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authManageCron(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long cronId,
                                      String cronName) {
         // TODO
@@ -53,7 +53,7 @@ public class CronAuthServiceImpl implements CronAuthService {
 
     @Override
     public List<Long> batchAuthManageCron(String username,
-                                          ResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> cronIdList) {
         // TODO
         return cronIdList;

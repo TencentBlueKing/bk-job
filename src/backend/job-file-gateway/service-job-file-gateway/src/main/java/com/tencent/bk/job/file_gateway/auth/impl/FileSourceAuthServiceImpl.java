@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file_gateway.auth.impl;
 
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import org.springframework.stereotype.Service;
 
@@ -39,14 +39,14 @@ import java.util.List;
 public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
-    public AuthResult authCreateFileSource(String username, ResourceScope resourceScope) {
+    public AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authViewFileSource(String username,
-                                         ResourceScope resourceScope,
+                                         AppResourceScope appResourceScope,
                                          Integer fileSourceId,
                                          String fileSourceName) {
         // TODO
@@ -55,7 +55,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public AuthResult authManageFileSource(String username,
-                                           ResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            Integer fileSourceId,
                                            String fileSourceName) {
         // TODO
@@ -64,7 +64,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public List<Integer> batchAuthViewFileSource(String username,
-                                                 ResourceScope resourceScope,
+                                                 AppResourceScope appResourceScope,
                                                  List<Integer> fileSourceIdList) {
         // TODO
         return fileSourceIdList;
@@ -72,7 +72,7 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
     @Override
     public List<Integer> batchAuthManageFileSource(String username,
-                                                   ResourceScope resourceScope,
+                                                   AppResourceScope appResourceScope,
                                                    List<Integer> fileSourceIdList) {
         // TODO
         return fileSourceIdList;

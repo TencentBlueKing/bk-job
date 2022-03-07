@@ -1,7 +1,7 @@
 package com.tencent.bk.job.common.iam.aspect;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -19,21 +19,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class IamAppTransferAspect {
 
-    private final AppTransferService appTransferService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    @Autowired
-    public IamAppTransferAspect(AppTransferService appTransferService) {
-        this.appTransferService = appTransferService;
+
+    public IamAppTransferAspect(@Autowired(required = false) AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Pointcut("execution (* com.tencent.bk.job.*.auth..impl.*.auth*(..))")
     public void processAuthResourceAction() {
-    }
-
-    private void fillResourceScope(ResourceScope resourceScope) {
-        log.debug("before transfer, resourceScope={}", resourceScope);
-        appTransferService.fillResourceScope(resourceScope);
-        log.debug("after transfer, resourceScope={}", resourceScope);
     }
 
     @Around("processAuthResourceAction()")
@@ -41,9 +35,9 @@ public class IamAppTransferAspect {
         try {
             Object[] args = pjp.getArgs();
             for (Object arg : args) {
-                if (arg instanceof ResourceScope) {
-                    ResourceScope resourceScope = (ResourceScope) arg;
-                    fillResourceScope(resourceScope);
+                if (arg instanceof AppResourceScope) {
+                    AppResourceScope appResourceScope = (AppResourceScope) arg;
+                    appScopeMappingService.fillResourceScope(appResourceScope);
                 }
             }
         } catch (Throwable throwable) {

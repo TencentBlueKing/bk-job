@@ -27,14 +27,14 @@ package com.tencent.bk.job.manage.dao.impl;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -77,16 +77,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     private DSLContext context;
 
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
     private HostTopoDAO hostTopoDAO;
     private TopologyHelper topologyHelper;
 
     @Autowired
     public ApplicationHostDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context,
-                                  ApplicationInfoDAO applicationInfoDAO, HostTopoDAO hostTopoDAO,
+                                  ApplicationDAO applicationDAO, HostTopoDAO hostTopoDAO,
                                   TopologyHelper topologyHelper) {
         this.context = context;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.topologyHelper = topologyHelper;
         this.hostTopoDAO = hostTopoDAO;
     }
@@ -979,7 +979,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     private List<Condition> buildAppIdCondition(long appId) {
-        ApplicationInfoDTO appInfo = applicationInfoDAO.getAppInfoById(appId);
+        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
         AppTypeEnum appType = appInfo.getAppType();
         List<Condition> conditions = new ArrayList<>();
         if (appType == null) {

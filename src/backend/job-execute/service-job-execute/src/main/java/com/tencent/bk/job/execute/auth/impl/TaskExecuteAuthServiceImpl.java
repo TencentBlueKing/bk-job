@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.TaskExecuteAuthService;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
     @Override
     public AuthResult authFastPushFile(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        ServersDTO servers) {
         // TODO
         return AuthResult.pass();
@@ -45,21 +45,21 @@ public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
 
     @Override
     public AuthResult authFastExecuteScript(String username,
-                                            ResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             ServersDTO servers) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
-    public AuthResult authViewHistory(String username, ResourceScope resourceScope) {
+    public AuthResult authViewHistory(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authExecuteScript(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         String scriptId,
                                         String scriptName,
                                         ServersDTO servers) {
@@ -69,7 +69,7 @@ public class TaskExecuteAuthServiceImpl implements TaskExecuteAuthService {
 
     @Override
     public AuthResult authLaunchJobPlan(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {

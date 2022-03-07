@@ -34,8 +34,8 @@ import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.ApplicationHostService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -55,26 +55,26 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     private final ScriptService scriptService;
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
-    private final ApplicationHostService applicationHostService;
+    private final HostService hostService;
     private final TagService tagService;
 
     @Autowired
     public ServiceMetricsResourceImpl(ApplicationService applicationService, AccountService accountService,
                                       ScriptService scriptService, TaskTemplateService taskTemplateService,
-                                      TaskPlanService taskPlanService, ApplicationHostService applicationHostService,
+                                      TaskPlanService taskPlanService, HostService hostService,
                                       TagService tagService) {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.scriptService = scriptService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
-        this.applicationHostService = applicationHostService;
+        this.hostService = hostService;
         this.tagService = tagService;
     }
 
     @Override
     public InternalResponse<Integer> countApps(String username) {
-        return InternalResponse.buildSuccessResp(applicationService.countApps(username));
+        return InternalResponse.buildSuccessResp(applicationService.countApps());
     }
 
     @Override
@@ -126,7 +126,7 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
     @Override
     public InternalResponse<Long> countHostsByOsType(String osType) {
-        return InternalResponse.buildSuccessResp(applicationHostService.countHostsByOsType(osType));
+        return InternalResponse.buildSuccessResp(hostService.countHostsByOsType(osType));
     }
 
     @Override

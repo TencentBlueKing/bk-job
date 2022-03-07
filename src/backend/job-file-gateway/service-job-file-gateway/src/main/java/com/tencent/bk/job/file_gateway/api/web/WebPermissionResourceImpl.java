@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -33,6 +32,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
 import lombok.extern.slf4j.Slf4j;

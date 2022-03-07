@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamAccountCallbackResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.service.AccountService;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -58,13 +58,13 @@ import java.util.Set;
 @Slf4j
 public class IamAccountCallbackResourceImpl extends BaseIamCallbackService implements IamAccountCallbackResource {
     private final AccountService accountService;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public IamAccountCallbackResourceImpl(AccountService accountService,
-                                          AppTransferService appTransferService) {
+                                          ApplicationService applicationService) {
         this.accountService = accountService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     private Pair<AccountDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -74,7 +74,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         AccountDTO accountQuery = new AccountDTO();
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         accountQuery.setAppId(appId);
         return Pair.of(accountQuery, baseSearchCondition);
     }
@@ -131,7 +131,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         // Job app --> CMDB biz/businessSet转换
         Set<Long> appIdSet = new HashSet<>();
         accountInfoMap.values().forEach(accountDisplayDTO -> appIdSet.add(accountDisplayDTO.getAppId()));
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 long id = Long.parseLong(instanceId);

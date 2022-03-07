@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.iam.service;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.AppIdResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public interface AppAuthService {
 
     void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService);
 
-    AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceScope resourceScope);
+    AuthResult auth(boolean returnApplyUrl, String username, String actionId, AppResourceScope appResourceScope);
 
     /**
      * 批量鉴权

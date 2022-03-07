@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -41,6 +40,7 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -555,7 +555,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username, ResourceScope resourceScope, long taskInstanceId) {
+    public AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope, long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -564,7 +564,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             return AuthResult.pass();
         }
         return authService.auth(false, username, ActionId.VIEW_HISTORY, ResourceTypeEnum.BUSINESS,
-            resourceScope.getId(), IamUtil.buildScopePathInfo(resourceScope));
+            appResourceScope.getId(), IamUtil.buildScopePathInfo(appResourceScope));
     }
 
     @Override

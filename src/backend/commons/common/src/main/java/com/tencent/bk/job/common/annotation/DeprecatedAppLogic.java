@@ -22,56 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.app;
+package com.tencent.bk.job.common.annotation;
 
-import java.util.Collection;
-import java.util.Map;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * 将Job内业务ID与CMDB业务、业务集等ID进行转换的工具
- */
-public interface AppTransferService {
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
 
-    /**
-     * 根据资源范围获取Job业务ID
-     *
-     * @param resourceScope 资源范围
-     * @return Job业务ID
-     */
-    Long getAppIdByScope(ResourceScope resourceScope);
-
-    /**
-     * 根据资源范围中已有数据转换得到未知数据将实例填满，如根据appId填充scope，或反向填充
-     *
-     * @param resourceScope 资源范围
-     */
-    void fillResourceScope(ResourceScope resourceScope);
-
-    /**
-     * 根据Job业务ID获取资源范围实例
-     *
-     * @param appId Job业务ID
-     * @return 资源范围实例
-     */
-    ResourceScope getScopeByAppId(Long appId);
-
-    /**
-     * 根据Job业务IDs批量获取资源范围实例
-     *
-     * @param appIds Job业务ID集合
-     * @return Map<appId, resourceScope>
-     */
-    Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
-
-
-    /**
-     * 根据可能存在的若干字段构造资源范围
-     *
-     * @param appId     Job业务ID
-     * @param scopeType 资源范围类型
-     * @param scopeId   资源范围ID
-     * @return 资源范围实例
-     */
-    ResourceScope getResourceScope(Long appId, String scopeType, String scopeId);
-
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
+public @interface DeprecatedAppLogic {
 }

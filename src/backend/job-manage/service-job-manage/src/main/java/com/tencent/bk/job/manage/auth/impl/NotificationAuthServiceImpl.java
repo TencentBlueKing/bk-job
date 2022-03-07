@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationAuthServiceImpl implements NotificationAuthService {
     @Override
-    public AuthResult authNotificationSetting(String username, ResourceScope resourceScope) {
+    public AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }

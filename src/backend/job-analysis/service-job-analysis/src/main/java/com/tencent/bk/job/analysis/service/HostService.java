@@ -22,35 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import com.tencent.bk.job.common.service.CommonApplicationService;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 
-/**
- * @since 9/3/2020 22:23
- */
-@Service
-public class CommonApplicationServiceImpl implements CommonApplicationService {
+import java.util.List;
 
-    private ApplicationService applicationService;
+public interface HostService {
 
-    @Autowired
-    public CommonApplicationServiceImpl(ApplicationService applicationService) {
-        this.applicationService = applicationService;
-    }
+    List<ServiceHostStatusDTO> getHostStatusByNode(String username,
+                                                   Long appId,
+                                                   List<AppTopologyTreeNode> treeNodeList);
 
-    @Override
-    public Boolean checkAppPermission(long appId, String username) {
-        return applicationService.checkAppPermission(appId, username);
-    }
+    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(String username,
+                                                           Long appId,
+                                                           List<String> dynamicGroupIdList);
 
-    @Override
-    public ApplicationInfoDTO getAppInfo(long appId) {
-        return applicationService.getAppInfoById(appId);
-    }
-
+    List<ServiceHostStatusDTO> getHostStatusByIp(String username,
+                                                 Long appId,
+                                                 List<String> ipList);
 }

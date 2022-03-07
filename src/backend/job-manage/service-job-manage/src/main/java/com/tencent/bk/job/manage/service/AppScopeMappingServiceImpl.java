@@ -22,26 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.remote;
+package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
-import com.tencent.bk.job.analysis.service.ApplicationHostService;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Map;
+
 @Slf4j
 @Service
-public class ApplicationHostServiceImpl implements ApplicationHostService {
-    private final ApplicationResourceClient applicationResourceClient;
+public class AppScopeMappingServiceImpl implements AppScopeMappingService {
+
+    private ApplicationService applicationService;
 
     @Autowired
-    public ApplicationHostServiceImpl(ApplicationResourceClient applicationResourceClient) {
-        this.applicationResourceClient = applicationResourceClient;
+    public AppScopeMappingServiceImpl(ApplicationService applicationService) {
+        this.applicationService = applicationService;
     }
 
     @Override
-    public boolean existsHost(long appId, String ip) {
-        return applicationResourceClient.existsHost(appId, ip).getData();
+    public Long getAppIdByScope(ResourceScope resourceScope) {
+        return applicationService.getAppIdByScope(resourceScope);
+    }
+
+    @Override
+    public ResourceScope getScopeByAppId(Long appId) {
+        return applicationService.getScopeByAppId(appId);
+    }
+
+    @Override
+    public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
+        return applicationService.getScopeByAppIds(appIds);
     }
 }

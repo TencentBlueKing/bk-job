@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ import java.util.List;
 public class PlanAuthServiceImpl implements PlanAuthService {
     @Override
     public AuthResult authCreateJobPlan(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         String jobTemplateName) {
         // TODO
@@ -47,7 +47,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public AuthResult authViewJobPlan(String username,
-                                      ResourceScope resourceScope,
+                                      AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
@@ -57,7 +57,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public AuthResult authEditJobPlan(String username,
-                                      ResourceScope resourceScope,
+                                      AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
@@ -67,7 +67,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public AuthResult authDeleteJobPlan(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {
@@ -77,7 +77,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public AuthResult authSyncJobPlan(String username,
-                                      ResourceScope resourceScope,
+                                      AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
@@ -87,7 +87,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public List<Long> batchAuthViewJobPlan(String username,
-                                           ResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
         // TODO
@@ -96,7 +96,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public List<Long> batchAuthEditJobPlan(String username,
-                                           ResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
         // TODO
@@ -105,7 +105,7 @@ public class PlanAuthServiceImpl implements PlanAuthService {
 
     @Override
     public List<Long> batchAuthDeleteJobPlan(String username,
-                                             ResourceScope resourceScope,
+                                             AppResourceScope appResourceScope,
                                              List<Long> jobTemplateIdList,
                                              List<Long> jobPlanIdList) {
         // TODO

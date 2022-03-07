@@ -22,44 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
+import java.util.StringJoiner;
 
 /**
- * @since 4/11/2019 22:46
+ * 资源范围-包含业务ID
  */
-public interface ApplicationInfoDAO {
+@Getter
+@Setter
+@NoArgsConstructor
+public class AppResourceScope extends ResourceScope {
+    /**
+     * Job业务ID
+     */
+    private Long appId;
 
-    ApplicationInfoDTO getCacheAppInfoById(long appId);
+    public AppResourceScope(Long appId) {
+        this.appId = appId;
+    }
 
-    ApplicationInfoDTO getAppInfoById(long appId);
+    public AppResourceScope(String type, String id, Long appId) {
+        super(type, id);
+        this.appId = appId;
+    }
 
-    AppTypeEnum getAppTypeById(long appId);
+    public AppResourceScope(ResourceScopeTypeEnum type, String id, Long appId) {
+        super(type, id);
+        this.appId = appId;
+    }
 
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationInfoDTO> getAppInfoByIds(List<Long> appIdList);
-
-    List<ApplicationInfoDTO> listAppInfo();
-
-    List<ApplicationInfoDTO> listAppInfoByType(AppTypeEnum appType);
-
-    Long insertAppInfo(DSLContext dslContext, ApplicationInfoDTO applicationInfoDTO);
-
-    int updateAppInfo(DSLContext dslContext, ApplicationInfoDTO applicationInfoDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", AppResourceScope.class.getSimpleName() + "[", "]")
+            .add("appId=" + appId)
+            .toString();
+    }
 }

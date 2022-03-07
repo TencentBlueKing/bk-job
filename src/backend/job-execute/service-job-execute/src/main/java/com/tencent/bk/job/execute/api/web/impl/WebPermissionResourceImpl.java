@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.execute.api.web.WebPermissionResource;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.OperationPermissionReq;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,15 +55,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         this.taskInstanceService = taskInstanceService;
     }
 
-    private ResourceScope getScope(Long bizId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new ResourceScope(scopeType, scopeId);
-        } else if (bizId != null) {
-            return new ResourceScope(ResourceTypeId.BIZ, bizId.toString());
-        }
-        return null;
-    }
-
     @Override
     public Response<String> getApplyUrl(String username, OperationPermissionReq req) {
 //        authService.
@@ -80,13 +70,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long bizId,
+                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -96,7 +86,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
+        boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {
             case "task_instance":
@@ -109,8 +99,8 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "view":
                     case "redo":
-                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, resourceScope,
-                                                                                        taskInstanceId);
+                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope,
+                            taskInstanceId);
                         if (!authResult.isPass() && isReturnApplyUrl) {
                             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
                         }

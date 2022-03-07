@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public interface TemplateAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewJobTemplate(String username,
-                                   ResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    Long jobTemplateId);
 
     /**
@@ -55,7 +55,7 @@ public interface TemplateAuthService {
      * @return 鉴权结果
      */
     AuthResult authEditJobTemplate(String username,
-                                   ResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    Long jobTemplateId);
 
     /**
@@ -67,7 +67,7 @@ public interface TemplateAuthService {
      * @return 鉴权结果
      */
     AuthResult authDeleteJobTemplate(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long jobTemplateId);
 
     /**
@@ -79,7 +79,7 @@ public interface TemplateAuthService {
      * @return 鉴权结果
      */
     AuthResult authDebugJobTemplate(String username,
-                                    ResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     Long jobTemplateId);
 
     /**
@@ -91,7 +91,7 @@ public interface TemplateAuthService {
      * @return 有权限的作业模板ID
      */
     List<Long> batchAuthViewJobTemplate(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         List<Long> jobTemplateIdList);
 
     /**
@@ -103,7 +103,7 @@ public interface TemplateAuthService {
      * @return 有权限的作业模板ID
      */
     List<Long> batchAuthEditJobTemplate(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         List<Long> jobTemplateIdList);
 
     /**
@@ -115,6 +115,6 @@ public interface TemplateAuthService {
      * @return 有权限的作业模板ID
      */
     List<Long> batchAuthDeleteJobTemplate(String username,
-                                          ResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> jobTemplateIdList);
 }

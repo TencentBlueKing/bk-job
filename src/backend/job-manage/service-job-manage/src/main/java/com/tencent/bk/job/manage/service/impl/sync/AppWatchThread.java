@@ -30,13 +30,14 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CcClient;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -66,17 +67,22 @@ public class AppWatchThread extends Thread {
     }
 
     private final DSLContext dslContext;
-    private final ApplicationInfoDAO applicationInfoDAO;
+    private final ApplicationDAO applicationDAO;
     private final ApplicationService applicationService;
+    private final ApplicationCache applicationCache;
     private final RedisTemplate<String, String> redisTemplate;
     private final String REDIS_KEY_RESOURCE_WATCH_APP_JOB_RUNNING_MACHINE = "resource-watch-app-job-running-machine";
     private final AtomicBoolean appWatchFlag = new AtomicBoolean(true);
 
-    public AppWatchThread(DSLContext dslContext, ApplicationInfoDAO applicationInfoDAO,
-                          ApplicationService applicationService, RedisTemplate<String, String> redisTemplate) {
+    public AppWatchThread(DSLContext dslContext,
+                          ApplicationDAO applicationDAO,
+                          ApplicationService applicationService,
+                          ApplicationCache applicationCache,
+                          RedisTemplate<String, String> redisTemplate) {
         this.dslContext = dslContext;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.applicationService = applicationService;
+        this.applicationCache = applicationCache;
         this.redisTemplate = redisTemplate;
         this.setName("[" + getId() + "]-AppWatchThread-" + instanceNum.getAndIncrement());
     }
@@ -87,14 +93,14 @@ public class AppWatchThread extends Thread {
 
     private void handleOneEvent(ResourceEvent<AppEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationInfoDTO appInfoDTO = AppEventDetail.toAppInfoDTO(event.getDetail());
+        ApplicationDTO appInfoDTO = AppEventDetail.toAppInfoDTO(event.getDetail());
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
-                    ApplicationInfoDTO oldAppInfoDTO = applicationInfoDAO.getAppInfoById(appInfoDTO.getId());
+                    ApplicationDTO oldAppInfoDTO = applicationDAO.getAppById(appInfoDTO.getId());
                     if (oldAppInfoDTO != null) {
-                        applicationInfoDAO.updateAppInfo(dslContext, appInfoDTO);
+                        applicationDAO.updateApp(dslContext, appInfoDTO);
                     } else {
                         try {
                             applicationService.createApp(appInfoDTO);
@@ -107,12 +113,14 @@ public class AppWatchThread extends Thread {
                             }
                         }
                     }
+                    applicationCache.addOrUpdateApp(appInfoDTO);
                 } catch (Throwable t) {
                     log.error("handle app event fail", t);
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationInfoDAO.deleteAppInfoById(dslContext, appInfoDTO.getId());
+                applicationDAO.deleteAppInfoById(dslContext, appInfoDTO.getId());
+                applicationCache.deleteApp(appInfoDTO.getScope());
                 break;
             default:
                 break;

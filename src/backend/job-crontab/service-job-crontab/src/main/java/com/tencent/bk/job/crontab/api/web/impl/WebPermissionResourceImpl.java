@@ -24,17 +24,18 @@
 
 package com.tencent.bk.job.crontab.api.web.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
+import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
+import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,12 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService authService;
-    private final AppTransferService appTransferService;
+    private final ServiceApplicationResourceClient applicationResourceClient;
 
     public WebPermissionResourceImpl(WebAuthService authService,
-                                     AppTransferService appTransferService) {
+                                     ServiceApplicationResourceClient applicationResourceClient) {
         this.authService = authService;
-        this.appTransferService = appTransferService;
+        this.applicationResourceClient = applicationResourceClient;
     }
 
     @Override
@@ -72,11 +73,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        ResourceScope resourceScope = appTransferService.getResourceScope(appId, scopeType, scopeId);
-        if (resourceScope == null) {
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
-        }
+        ResourceScope resourceScope = toResourceScope(appId, scopeType, scopeId);
         if (StringUtils.isEmpty(operation)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
@@ -86,7 +83,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
+        boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {
             case "cron":
@@ -112,5 +109,15 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
+    }
+
+    private ResourceScope toResourceScope(Long appId, String scopeType, String scopeId) {
+        if (scopeType != null) {
+            return new ResourceScope(scopeType, scopeId);
+        } else if (appId != null) {
+            ServiceApplicationDTO application = applicationResourceClient.queryAppById(appId);
+            return new ResourceScope(application.getScopeType(), application.getScopeId());
+        }
+        return null;
     }
 }

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.crontab.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public interface CronAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateCron(String username, ResourceScope resourceScope);
+    AuthResult authCreateCron(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理定时任务鉴权
@@ -52,7 +52,7 @@ public interface CronAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageCron(String username,
-                              ResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               Long cronId,
                               String cronName);
 
@@ -65,6 +65,6 @@ public interface CronAuthService {
      * @return 有权限的定时任务ID
      */
     List<Long> batchAuthManageCron(String username,
-                                   ResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    List<Long> cronIdList);
 }

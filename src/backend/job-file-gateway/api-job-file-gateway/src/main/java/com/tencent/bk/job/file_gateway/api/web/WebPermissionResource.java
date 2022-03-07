@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;

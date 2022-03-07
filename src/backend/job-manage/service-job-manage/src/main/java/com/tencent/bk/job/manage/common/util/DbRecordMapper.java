@@ -25,11 +25,9 @@
 package com.tencent.bk.job.manage.common.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -50,14 +48,12 @@ import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record11;
 import org.jooq.Record12;
 import org.jooq.Record13;
 import org.jooq.Record15;
 import org.jooq.Record6;
 import org.jooq.Record9;
-import org.jooq.generated.tables.Application;
 import org.jooq.generated.tables.Host;
 import org.jooq.generated.tables.TaskPlan;
 import org.jooq.generated.tables.TaskTemplate;
@@ -67,7 +63,6 @@ import org.jooq.types.ULong;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -291,38 +286,6 @@ public class DbRecordMapper {
         applicationHostInfoDTO.setModuleType(StringUtil.strToList(record.get(table.MODULE_TYPE), Long.class, ","));
         applicationHostInfoDTO.setHostId(record.get(table.HOST_ID).longValue());
         return applicationHostInfoDTO;
-    }
-
-    public static ApplicationInfoDTO
-    convertRecordToApplicationInfo(Record9<ULong, String, String, String, Byte, String, String, Long, String> record) {
-        if (record == null) {
-            return null;
-        }
-        Application table = Application.APPLICATION;
-        ApplicationInfoDTO applicationInfoDTO = new ApplicationInfoDTO();
-        applicationInfoDTO.setId(record.get(table.APP_ID).longValue());
-        applicationInfoDTO.setName(record.get(table.APP_NAME));
-        applicationInfoDTO.setMaintainers(record.get(table.MAINTAINERS));
-        applicationInfoDTO.setBkSupplierAccount(record.get(table.BK_SUPPLIER_ACCOUNT));
-        applicationInfoDTO.setAppType(AppTypeEnum.valueOf(record.get(table.APP_TYPE)));
-        applicationInfoDTO.setSubAppIds(splitSubAppIds(record.get(table.SUB_APP_IDS)));
-        applicationInfoDTO.setTimeZone(record.get(table.TIMEZONE));
-        applicationInfoDTO.setOperateDeptId(record.get(table.BK_OPERATE_DEPT_ID));
-        applicationInfoDTO.setLanguage(record.get(table.LANGUAGE));
-        return applicationInfoDTO;
-    }
-
-    private static List<Long> splitSubAppIds(String appIds) {
-        List<Long> appIdList = new LinkedList<>();
-        if (StringUtils.isNotBlank(appIds)) {
-            for (String appIdStr : appIds.split("[,;]")) {
-                if (StringUtils.isNotBlank(appIdStr)) {
-                    appIdList.add(Long.valueOf(appIdStr));
-                }
-            }
-
-        }
-        return appIdList;
     }
 
     public static ULong getJooqLongValue(Long longValue) {

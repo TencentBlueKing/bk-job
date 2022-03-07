@@ -27,13 +27,11 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -42,6 +40,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
@@ -49,6 +48,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistModeEnum;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
@@ -88,7 +88,6 @@ import com.tencent.bk.job.execute.model.web.vo.StepExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteResultVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecutionVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -602,8 +601,7 @@ public class WebTaskExecutionResultResourceImpl
         }
         // TODO:scope改造
         AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new ResourceScope(ResourceTypeId.BIZ, appId.toString()),
-            stepInstance.getTaskInstanceId());
+            username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
         }

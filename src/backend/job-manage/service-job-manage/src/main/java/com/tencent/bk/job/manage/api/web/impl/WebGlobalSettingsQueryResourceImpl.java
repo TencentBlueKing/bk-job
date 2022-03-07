@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.api.web.WebGlobalSettingsQueryResource;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
@@ -239,10 +239,10 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public Response<String> getApplyBusinessUrl(String username, Long appId) {
-        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
-        if (applicationInfoDTO != null && applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL) {
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+        if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.NORMAL) {
             return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(appId));
-        } else if (applicationInfoDTO != null) {
+        } else if (applicationDTO != null) {
             return Response.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
         } else {
             return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));

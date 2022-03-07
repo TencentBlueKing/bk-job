@@ -22,45 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.StringJoiner;
 
 /**
- * @since 5/11/2019 12:09
+ * 资源范围
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test.properties")
-@SqlConfig(encoding = "utf-8")
-@Sql({"/init_application_data.sql"})
-@DisplayName("应用信息缓存 DAO 集成测试")
-public class ApplicationInfoDAOImplIntegrationTest {
+@Getter
+@Setter
+@NoArgsConstructor
+public class ResourceScope {
+    /**
+     * 资源范围类型
+     */
+    private ResourceScopeTypeEnum type;
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String id;
 
-    @Autowired
-    private ApplicationInfoDAO applicationInfoDAO;
-
-    @BeforeEach
-    void initTest() {
-
+    public ResourceScope(String type, String id) {
+        this.type = ResourceScopeTypeEnum.from(type);
+        this.id = id;
     }
 
-    @Test
-    void giveApplicationIdReturnApplicationType() {
-        assertThat(applicationInfoDAO.getAppTypeById(2L)).isEqualTo(AppTypeEnum.NORMAL);
+    public ResourceScope(ResourceScopeTypeEnum type, String id) {
+        this.type = type;
+        this.id = id;
+    }
+
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
+            .add("type=" + type)
+            .add("id='" + id + "'")
+            .toString();
     }
 }

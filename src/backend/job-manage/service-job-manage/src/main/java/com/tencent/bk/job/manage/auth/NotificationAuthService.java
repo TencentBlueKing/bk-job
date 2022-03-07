@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 /**
  * 消息通知相关操作鉴权接口
@@ -38,6 +38,6 @@ public interface NotificationAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authNotificationSetting(String username, ResourceScope resourceScope);
+    AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope);
 
 }

@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -33,12 +31,15 @@ import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.OperationPermissionReq;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -53,24 +54,25 @@ import java.util.List;
 @RestController
 @Slf4j
 public class WebPermissionResourceImpl implements WebPermissionResource {
-    private final WebAuthService webAuthService;
+    private final WebAuthService authService;
 
     private final TaskPlanService taskPlanService;
 
     private final TaskTemplateService taskTemplateService;
 
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     private final AccountAuthService accountAuthService;
 
-    public WebPermissionResourceImpl(WebAuthService webAuthService, TaskPlanService taskPlanService,
+    public WebPermissionResourceImpl(WebAuthService authService,
+                                     TaskPlanService taskPlanService,
                                      TaskTemplateService taskTemplateService,
-                                     AppTransferService appTransferService,
+                                     ApplicationService applicationService,
                                      AccountAuthService accountAuthService) {
-        this.webAuthService = webAuthService;
+        this.authService = authService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateService = taskTemplateService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
         this.accountAuthService = accountAuthService;
     }
 
@@ -112,16 +114,16 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username, ActionId.CREATE_SCRIPT,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username, ActionId.CREATE_SCRIPT,
                     ResourceTypeEnum.BUSINESS, resourceScope.getId(), IamUtil.buildScopePathInfo(resourceScope)));
             case "view":
             case "execute":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "clone":
@@ -135,7 +137,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 );
                 actionResources.add(manageScriptActionResource);
                 return Response.buildSuccessResp(
-                    webAuthService.auth(isReturnApplyUrl, username, actionResources)
+                    authService.auth(isReturnApplyUrl, username, actionResources)
                 );
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
@@ -149,14 +151,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     ) {
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_PUBLIC_SCRIPT));
             case "view":
             case "execute":
                 return Response.buildSuccessResp(AuthResultVO.pass());
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, ResourceTypeEnum.PUBLIC_SCRIPT, resourceId, null));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
@@ -175,20 +177,20 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS, resourceScope
                         .getId(), IamUtil.buildScopePathInfo(resourceScope)));
             case "view":
             case "debug":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.VIEW_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "edit":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.EDIT_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.DELETE_JOB_TEMPLATE, ResourceTypeEnum.TEMPLATE, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "clone":
@@ -203,7 +205,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     IamUtil.buildScopePathInfo(resourceScope));
                 actionResources.add(viewTemplateActionResource);
                 actionResources.add(createTemplateActionResource);
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username, actionResources));
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username, actionResources));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
@@ -224,7 +226,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         TaskTemplateInfoDTO jobTemplate;
         TaskPlanInfoDTO plan;
-        Long appId = appTransferService.getAppIdByScope(resourceScope);
+        Long appId = applicationService.getAppIdByScope(resourceScope);
         switch (action) {
             case "create":
                 Long templateId = Long.valueOf(resourceId);
@@ -232,7 +234,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 if (jobTemplate == null) {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE, templateId.toString(),
                     buildTaskPlanPathInfo(resourceScope, templateId)));
             case "view":
@@ -241,7 +243,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 if (plan == null) {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(resourceScope,
                         plan.getTemplateId())));
             case "edit":
@@ -249,7 +251,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 if (plan == null) {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(resourceScope,
                         plan.getTemplateId())));
             case "delete":
@@ -257,7 +259,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 if (plan == null) {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(resourceScope,
                         plan.getTemplateId())));
             case "sync":
@@ -265,7 +267,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 if (plan == null) {
                     return Response.buildSuccessResp(AuthResultVO.fail());
                 }
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN, resourceId, buildTaskPlanPathInfo(resourceScope,
                         plan.getTemplateId())));
         }
@@ -274,30 +276,30 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private Response<AuthResultVO> checkAccountOperationPermission(
         String username,
-        ResourceScope resourceScope,
+        AppResourceScope appResourceScope,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
     ) {
-        if (resourceScope == null) {
+        if (appResourceScope == null) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"});
         }
         switch (action) {
             case "create":
-                log.info("before transfer, scope={}", resourceScope);
+                log.info("before transfer, scope={}", appResourceScope);
                 return Response.buildSuccessResp(
-                    webAuthService.toAuthResultVO(accountAuthService.authCreateAccount(username, resourceScope)));
+                    authService.toAuthResultVO(accountAuthService.authCreateAccount(username, appResourceScope)));
             case "view":
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId,
-                    IamUtil.buildScopePathInfo(resourceScope)));
+                    IamUtil.buildScopePathInfo(appResourceScope)));
             case "use":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.USE_ACCOUNT, ResourceTypeEnum.ACCOUNT, resourceId,
-                    IamUtil.buildScopePathInfo(resourceScope)));
+                    IamUtil.buildScopePathInfo(appResourceScope)));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
@@ -315,12 +317,12 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_TAG, ResourceTypeEnum.BUSINESS, resourceScope.getId(),
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, resourceId, IamUtil.buildScopePathInfo(resourceScope)));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
@@ -339,16 +341,16 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         switch (action) {
             case "use":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.USE_TICKET, ResourceTypeEnum.TICKET, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS, resourceScope
                         .getId(), IamUtil.buildScopePathInfo(resourceScope)));
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, resourceId,
                     IamUtil.buildScopePathInfo(resourceScope)));
             default:
@@ -364,24 +366,15 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     ) {
         switch (action) {
             case "create":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.CREATE_WHITELIST));
             case "view":
             case "edit":
             case "delete":
-                return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                     ActionId.MANAGE_WHITELIST));
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
-    }
-
-    private ResourceScope getScope(Long appId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new ResourceScope(scopeType, scopeId);
-        } else if (appId != null) {
-            return new ResourceScope(appId);
-        }
-        return null;
     }
 
     @Override
@@ -403,33 +396,35 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        ResourceScope resourceScope = getScope(appId, scopeType, scopeId);
-        boolean isReturnApplyUrl = returnPermissionDetail == null ? false : returnPermissionDetail;
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
+        boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {
             case "biz":
                 if ("access_business".equals(action)) {
-                    return Response.buildSuccessResp(webAuthService.auth(isReturnApplyUrl, username,
+                    return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
                         ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS, resourceId, null));
                 }
                 break;
             case "script":
-                return checkScriptOperationPermission(username, resourceScope, action, resourceId, isReturnApplyUrl);
+                return checkScriptOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
             case "public_script":
                 return checkPublicScriptOperationPermission(username, action, resourceId, isReturnApplyUrl);
             case "job_template":
-                return checkJobTemplateOperationPermission(username, resourceScope, action, resourceId,
+                return checkJobTemplateOperationPermission(username, appResourceScope, action, resourceId,
                     isReturnApplyUrl);
             case "job_plan":
-                return checkJobPlanOperationPermission(username, resourceScope, action, resourceId, isReturnApplyUrl);
+                return checkJobPlanOperationPermission(username, appResourceScope, action, resourceId,
+                    isReturnApplyUrl);
             case "account":
-                return checkAccountOperationPermission(username, resourceScope, action, resourceId, isReturnApplyUrl);
+                return checkAccountOperationPermission(username, appResourceScope, action, resourceId,
+                    isReturnApplyUrl);
             case "whitelist":
                 return checkWhiteIPOperationPermission(username, action, isReturnApplyUrl);
             case "tag":
-                return checkTagOperationPermission(username, resourceScope, action, resourceId, isReturnApplyUrl);
+                return checkTagOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
             case "ticket":
-                return checkTicketOperationPermission(username, resourceScope, action, resourceId, isReturnApplyUrl);
+                return checkTicketOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }

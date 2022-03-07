@@ -22,16 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.cc.config.CcConfig;
 import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.execute.client.ApplicationResourceClient;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CCAutoConfig {
+public class JobExecuteAutoConfiguration {
+    @Bean
+    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
+        return new EsbApiTimedAspect(meterRegistry);
+    }
 
     @Bean
     public CcConfigSetter ccConfigSetter(@Autowired CcConfig ccConfig) {
@@ -40,8 +50,24 @@ public class CCAutoConfig {
         return new CcConfigSetter();
     }
 
+    @Bean
+    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
+                                               @Autowired MeterRegistry meterRegistry) {
+        return new ArtifactoryClient(
+            artifactoryConfig.getArtifactoryBaseUrl(),
+            artifactoryConfig.getArtifactoryJobUsername(),
+            artifactoryConfig.getArtifactoryJobPassword(),
+            meterRegistry
+        );
+    }
+
     static class CcConfigSetter {
         public CcConfigSetter() {
         }
+    }
+
+    @Bean
+    AppScopeMappingService appScopeMappingService(ApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

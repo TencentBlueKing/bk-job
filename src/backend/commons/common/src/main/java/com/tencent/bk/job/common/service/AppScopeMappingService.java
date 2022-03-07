@@ -22,24 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.service;
 
-import com.tencent.bk.job.common.encrypt.Encryptor;
-import com.tencent.bk.job.common.encrypt.RSAEncryptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.util.Collection;
+import java.util.Map;
 
-@Configuration
-@AutoConfigureAfter(GseConfigForManage.class)
-public class EncryptAutoConfig {
+/**
+ * 业务与资源范围映射公共接口
+ */
+public interface AppScopeMappingService {
+    Long getAppIdByScope(ResourceScope resourceScope);
 
-    @Bean("gseRsaEncryptor")
-    public Encryptor rsaEncryptor(@Autowired GseConfigForManage config) throws IOException, GeneralSecurityException {
-        return new RSAEncryptor(config.getGsePublicKeyPermBase64());
+    ResourceScope getScopeByAppId(Long appId);
+
+    Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
+
+    default void fillResourceScope(AppResourceScope appResourceScope) {
+        if (appResourceScope.getType() != null && StringUtils.isNotBlank(appResourceScope.getId())) {
+            return;
+        }
+        if (appResourceScope.getAppId() != null) {
+            ResourceScope scope = getScopeByAppId(appResourceScope.getAppId());
+            appResourceScope.setType(scope.getType());
+            appResourceScope.setId(scope.getId());
+            return;
+        }
+        throw new InternalException("Invalid AppResourceScope", ErrorCode.INTERNAL_ERROR);
     }
 }

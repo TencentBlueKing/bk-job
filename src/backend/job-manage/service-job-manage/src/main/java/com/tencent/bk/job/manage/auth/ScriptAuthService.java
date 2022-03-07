@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public interface ScriptAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateScript(String username, ResourceScope resourceScope);
+    AuthResult authCreateScript(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看脚本鉴权
@@ -52,7 +52,7 @@ public interface ScriptAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewScript(String username,
-                              ResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               String scriptId,
                               String scriptName);
 
@@ -66,7 +66,7 @@ public interface ScriptAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageScript(String username,
-                                ResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 String scriptId,
                                 String scriptName);
 
@@ -79,7 +79,7 @@ public interface ScriptAuthService {
      * @return 有权限的脚本ID
      */
     List<String> batchAuthViewScript(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      List<String> scriptIdList);
 
     /**
@@ -91,6 +91,6 @@ public interface ScriptAuthService {
      * @return 有权限的脚本ID
      */
     List<String> batchAuthManageScript(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        List<String> scriptIdList);
 }

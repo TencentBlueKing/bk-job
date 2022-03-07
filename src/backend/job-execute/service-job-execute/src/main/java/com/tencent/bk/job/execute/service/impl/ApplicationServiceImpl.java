@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
 import com.tencent.bk.job.execute.client.SyncResourceClient;
@@ -72,10 +72,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ApplicationInfoDTO getAppById(long appId) {
+    public ApplicationDTO getAppById(long appId) {
         ServiceApplicationDTO returnApp = applicationResourceClient.queryAppById(appId);
         if (returnApp == null) {
-            ApplicationInfoDTO appInfo = ccClient.getAppById(appId, null, null);
+            ApplicationDTO appInfo = ccClient.getAppById(appId, null, null);
             log.info("Query app from cmdb, appId:{}, app:{}", appId, appInfo);
             return appInfo;
         } else {
@@ -83,8 +83,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
     }
 
-    private ApplicationInfoDTO convertToApplicationInfoDTO(ServiceApplicationDTO app) {
-        ApplicationInfoDTO applicationInfo = new ApplicationInfoDTO();
+    private ApplicationDTO convertToApplicationInfoDTO(ServiceApplicationDTO app) {
+        ApplicationDTO applicationInfo = new ApplicationDTO();
         applicationInfo.setId(app.getId());
         applicationInfo.setName(app.getName());
         applicationInfo.setAppType(AppTypeEnum.valueOf(app.getAppType()));
@@ -96,7 +96,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public List<ApplicationInfoDTO> listAllApps() {
+    public List<ApplicationDTO> listAllApps() {
         List<ServiceApplicationDTO> apps = syncResourceClient.listAllApps();
         if (apps == null) {
             return Collections.emptyList();
@@ -118,7 +118,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         Object appObj = redisTemplate.opsForHash().get("job:execute:apps", String.valueOf(appId));
         if (appObj == null) {
             log.info("App is not in cache, get from job-manage module!");
-            ApplicationInfoDTO appInfo = getAppById(appId);
+            ApplicationDTO appInfo = getAppById(appId);
             if (appInfo == null) {
                 return null;
             }

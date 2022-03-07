@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public interface TicketAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateTicket(String username, ResourceScope resourceScope);
+    AuthResult authCreateTicket(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理凭证鉴权
@@ -52,7 +52,7 @@ public interface TicketAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageTicket(String username,
-                                ResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 String ticketId,
                                 String ticketName);
 
@@ -66,7 +66,7 @@ public interface TicketAuthService {
      * @return 鉴权结果
      */
     AuthResult authUseTicket(String username,
-                             ResourceScope resourceScope,
+                             AppResourceScope appResourceScope,
                              String ticketId,
                              String ticketName);
 
@@ -79,7 +79,7 @@ public interface TicketAuthService {
      * @return 有权限的凭证ID
      */
     List<String> batchAuthManageTicket(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        List<String> ticketIdList);
 
     /**
@@ -91,6 +91,6 @@ public interface TicketAuthService {
      * @return 有权限的凭证ID
      */
     List<String> batchAuthUseTicket(String username,
-                                    ResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     List<String> ticketIdList);
 }

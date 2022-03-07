@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -96,8 +96,8 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     @Override
     public Response<Long> saveAccount(String username, Long appId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
-        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
-        if (applicationInfoDTO == null) {
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+        if (applicationDTO == null) {
             return Response.buildCommonFailResp(ErrorCode.WRONG_APP_ID);
         }
         AuthResult authResult = checkCreateAccountPermission(username, appId);
@@ -195,8 +195,8 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         Integer order,
         String keyword
     ) {
-        ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appId);
-        if (applicationInfoDTO == null) {
+        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+        if (applicationDTO == null) {
             return Response.buildCommonFailResp(ErrorCode.WRONG_APP_ID);
         }
         PageData<AccountDTO> pageData;

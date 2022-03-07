@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
@@ -43,6 +42,7 @@ import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -103,12 +103,12 @@ public class AppAuthServiceImpl implements AppAuthService {
         this.resourceNameQueryService = resourceNameQueryService;
     }
 
-    public boolean authSpecialAppByMaintainer(String username, ResourceScope resourceScope) {
+    public boolean authSpecialAppByMaintainer(String username, AppResourceScope appResourceScope) {
         // 业务集、全业务特殊鉴权
         if (resourceAppInfoQueryService != null) {
             ResourceAppInfo resourceAppInfo =
                 resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS,
-                    resourceScope.getAppId().toString());
+                    appResourceScope.getAppId().toString());
             if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
                 return resourceAppInfo.getMaintainerList().contains(username);
             }
@@ -119,35 +119,35 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId, ResourceScope resourceScope) {
+    public AuthResult auth(boolean returnApplyUrl, String username, String actionId, AppResourceScope appResourceScope) {
         // 兼容旧的业务集鉴权逻辑
-        if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
-            && authSpecialAppByMaintainer(username, resourceScope)) {
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
+            && authSpecialAppByMaintainer(username, appResourceScope)) {
             return AuthResult.pass();
         }
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(resourceScope));
+        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(appResourceScope));
         if (isAllowed) {
             return AuthResult.pass();
         } else {
-            return buildFailAuthResult(returnApplyUrl, actionId, resourceScope);
+            return buildFailAuthResult(returnApplyUrl, actionId, appResourceScope);
         }
     }
 
-    public String getApplyUrl(String actionId, ResourceScope resourceScope) {
+    public String getApplyUrl(String actionId, AppResourceScope appResourceScope) {
         InstanceDTO instance = new InstanceDTO();
         RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-        if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            instance.setId(resourceScope.getId());
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
+            instance.setId(appResourceScope.getId());
             instance.setType(ResourceTypeEnum.BUSINESS.getId());
 
             relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
             relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
             relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
 
-        } else if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             instance.setType(ResourceTypeEnum.BUSINESS_SET.getId());
-            instance.setId(resourceScope.getId());
-            instance.setPath(buildResourceScopePath(resourceScope));
+            instance.setId(appResourceScope.getId());
+            instance.setPath(buildResourceScopePath(appResourceScope));
 
             relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
             relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
@@ -155,7 +155,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         } else {
             FormattingTuple msg = MessageFormatter.format(
                 "not supported resourceType:{}",
-                resourceScope.getType().getValue());
+                appResourceScope.getType().getValue());
             throw new RuntimeException(msg.getMessage());
         }
         ActionDTO action = new ActionDTO();
@@ -165,38 +165,38 @@ public class AppAuthServiceImpl implements AppAuthService {
         return iamClient.getApplyUrl(Collections.singletonList(action));
     }
 
-    private AuthResult buildFailAuthResult(boolean returnApplyUrl, String actionId, ResourceScope resourceScope) {
+    private AuthResult buildFailAuthResult(boolean returnApplyUrl, String actionId, AppResourceScope appResourceScope) {
         AuthResult authResult = AuthResult.fail();
-        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(resourceScope);
-        String resourceId = resourceScope.getId();
+        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
+        String resourceId = appResourceScope.getId();
         String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
         if (returnApplyUrl) {
-            authResult.setApplyUrl(getApplyUrl(actionId, resourceScope));
+            authResult.setApplyUrl(getApplyUrl(actionId, appResourceScope));
         }
         // TODO
         authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
         return authResult;
     }
 
-    private PathInfoDTO buildResourceScopePath(ResourceScope resourceScope) {
-        return IamUtil.buildScopePathInfo(resourceScope);
+    private PathInfoDTO buildResourceScopePath(AppResourceScope appResourceScope) {
+        return IamUtil.buildScopePathInfo(appResourceScope);
     }
 
-    private InstanceDTO buildInstance(ResourceScope resourceScope) {
+    private InstanceDTO buildInstance(AppResourceScope appResourceScope) {
         InstanceDTO instance = new InstanceDTO();
-        if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            instance.setId(resourceScope.getId());
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
+            instance.setId(appResourceScope.getId());
             instance.setType(ResourceTypeEnum.BUSINESS.getId());
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setPath(null);
-        } else if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             instance.setType(ResourceTypeEnum.BUSINESS.getId());
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
-            instance.setPath(buildResourceScopePath(resourceScope));
+            instance.setPath(buildResourceScopePath(appResourceScope));
         } else {
             FormattingTuple msg = MessageFormatter.format(
                 "not supported resourceType:{}",
-                resourceScope.getType().getValue());
+                appResourceScope.getType().getValue());
             throw new RuntimeException(msg.getMessage());
         }
         return instance;

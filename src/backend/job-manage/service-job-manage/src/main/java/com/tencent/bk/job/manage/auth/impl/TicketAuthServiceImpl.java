@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import org.springframework.stereotype.Service;
 
@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class TicketAuthServiceImpl implements TicketAuthService {
     @Override
-    public AuthResult authCreateTicket(String username, ResourceScope resourceScope) {
+    public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authManageTicket(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
         // TODO
@@ -53,7 +53,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public AuthResult authUseTicket(String username,
-                                    ResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
         // TODO
@@ -62,7 +62,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public List<String> batchAuthManageTicket(String username,
-                                              ResourceScope resourceScope,
+                                              AppResourceScope appResourceScope,
                                               List<String> ticketIdList) {
         // TODO
         return ticketIdList;
@@ -70,7 +70,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
 
     @Override
     public List<String> batchAuthUseTicket(String username,
-                                           ResourceScope resourceScope,
+                                           AppResourceScope appResourceScope,
                                            List<String> ticketIdList) {
         // TODO
         return ticketIdList;

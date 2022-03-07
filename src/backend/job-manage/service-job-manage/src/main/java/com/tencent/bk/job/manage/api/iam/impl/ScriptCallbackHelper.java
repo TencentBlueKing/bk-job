@@ -1,15 +1,15 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -33,15 +33,15 @@ import java.util.Set;
 public class ScriptCallbackHelper extends BaseIamCallbackService {
     private final ScriptService scriptService;
     private final IGetBasicInfo basicInfoInterface;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     public ScriptCallbackHelper(
         ScriptService scriptService,
         IGetBasicInfo basicInfoInterface,
-        AppTransferService appTransferService) {
+        ApplicationService applicationService) {
         this.scriptService = scriptService;
         this.basicInfoInterface = basicInfoInterface;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     public interface IGetBasicInfo {
@@ -101,7 +101,7 @@ public class ScriptCallbackHelper extends BaseIamCallbackService {
             appIdSet.add(scriptBasicDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(instanceId);

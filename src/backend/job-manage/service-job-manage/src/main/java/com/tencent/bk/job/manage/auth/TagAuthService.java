@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public interface TagAuthService {
      * @param resourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateTag(String username, ResourceScope resourceScope);
+    AuthResult authCreateTag(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理标签鉴权
@@ -52,7 +52,7 @@ public interface TagAuthService {
      * @return 鉴权结果
      */
     AuthResult authManageTag(String username,
-                             ResourceScope resourceScope,
+                             AppResourceScope appResourceScope,
                              Long tagId,
                              String tagName);
 
@@ -65,6 +65,6 @@ public interface TagAuthService {
      * @return 有权限的标签ID
      */
     List<Long> batchAuthManageTag(String username,
-                                  ResourceScope resourceScope,
+                                  AppResourceScope appResourceScope,
                                   List<Long> tagIdList);
 }

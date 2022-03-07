@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.ServersDTO;
 
 /**
@@ -42,7 +42,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authFastPushFile(String username,
-                                ResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 ServersDTO servers);
 
     /**
@@ -54,7 +54,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authFastExecuteScript(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      ServersDTO servers);
 
     /**
@@ -65,7 +65,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authViewHistory(String username,
-                               ResourceScope resourceScope);
+                               AppResourceScope appResourceScope);
 
     /**
      * 资源范围下执行脚本鉴权
@@ -78,7 +78,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authExecuteScript(String username,
-                                 ResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  String scriptId,
                                  String scriptName,
                                  ServersDTO servers);
@@ -94,7 +94,7 @@ public interface TaskExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authLaunchJobPlan(String username,
-                                 ResourceScope resourceScope,
+                                 AppResourceScope appResourceScope,
                                  Long jobTemplateId,
                                  Long jobPlanId,
                                  String jobPlanName);

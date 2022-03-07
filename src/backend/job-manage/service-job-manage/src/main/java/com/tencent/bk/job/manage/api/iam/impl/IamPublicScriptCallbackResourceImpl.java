@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.api.iam.IamPublicScriptCallbackResource;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -45,7 +45,7 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
 
     @Autowired
     public IamPublicScriptCallbackResourceImpl(ScriptService scriptService,
-                                               AppTransferService appTransferService) {
+                                               ApplicationService applicationService) {
         this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
             @Override
             public Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -56,7 +56,7 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
             public boolean isPublicScript() {
                 return true;
             }
-        }, appTransferService);
+        }, applicationService);
     }
 
     private Pair<ScriptQuery, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {

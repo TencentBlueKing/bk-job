@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
@@ -114,7 +114,7 @@ public interface ExecuteAuthService {
      * @param taskInstanceId 作业实例ID
      * @return 鉴权结果
      */
-    AuthResult authViewTaskInstance(String username, ResourceScope resourceScope, long taskInstanceId);
+    AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope, long taskInstanceId);
 
     /**
      * 作业执行实例查看权限鉴权

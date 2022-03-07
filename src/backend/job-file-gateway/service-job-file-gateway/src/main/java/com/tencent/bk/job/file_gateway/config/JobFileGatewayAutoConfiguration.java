@@ -22,61 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.file_gateway.config;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.file_gateway.client.ServiceApplicationResourceClient;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.io.Serializable;
-import java.util.List;
+@Configuration
+public class JobFileGatewayAutoConfiguration {
 
-/**
- * 业务信息
- */
-@NoArgsConstructor
-@Data
-public class ApplicationInfoDTO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    private Long id;
-
-    /**
-     * 业务名称
-     */
-    private String name;
-
-    /**
-     * 业务类型
-     */
-    private AppTypeEnum appType;
-
-    /**
-     * 子业务
-     */
-    private List<Long> subAppIds;
-
-    /**
-     * 业务运维
-     */
-    private String maintainers;
-
-    /**
-     * 开发商账号
-     */
-    private transient String bkSupplierAccount;
-
-    private String timeZone;
-
-    /**
-     * 初始运维部门Id
-     */
-    private Long operateDeptId;
-
-    /**
-     * 语言
-     */
-    private String language;
-
+    @Bean
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
+    }
 }

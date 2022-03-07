@@ -22,47 +22,79 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.service.ApplicationHostService;
-import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
- * @Description
- * @Date 2020/3/20
- * @Version 1.0
+ * Job业务
  */
-@Slf4j
-@Service
-public class ApplicationHostServiceImpl implements ApplicationHostService {
-    private final DSLContext dslContext;
-    private final ApplicationHostDAO applicationHostDAO;
+@NoArgsConstructor
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApplicationDTO implements Serializable {
 
-    @Autowired
-    public ApplicationHostServiceImpl(DSLContext dslContext, ApplicationHostDAO applicationHostDAO) {
-        this.dslContext = dslContext;
-        this.applicationHostDAO = applicationHostDAO;
-    }
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    public boolean existHost(long appId, String ip) {
-        return applicationHostDAO.existsHost(dslContext, appId, ip);
-    }
+    /**
+     * 业务ID
+     */
+    private Long id;
 
-    @Override
-    public List<ApplicationHostInfoDTO> getHostsByAppId(Long appId) {
-        return applicationHostDAO.listHostInfoByAppId(appId);
-    }
+    /**
+     * 资源范围
+     */
+    private ResourceScope scope;
 
-    @Override
-    public long countHostsByOsType(String osType) {
-        return applicationHostDAO.countHostsByOsType(osType);
-    }
+    /**
+     * 业务名称
+     */
+    private String name;
+
+    /**
+     * 业务类型
+     */
+    @DeprecatedAppLogic
+    private AppTypeEnum appType;
+
+    /**
+     * 子业务
+     */
+    @DeprecatedAppLogic
+    private List<Long> subAppIds;
+
+    /**
+     * 业务运维
+     */
+    @DeprecatedAppLogic
+    private String maintainers;
+
+    /**
+     * 开发商账号
+     */
+    private transient String bkSupplierAccount;
+
+    /**
+     * 业务时区
+     */
+    private String timeZone;
+
+    /**
+     * 初始运维部门Id
+     */
+    @DeprecatedAppLogic
+    private Long operateDeptId;
+
+    /**
+     * 语言
+     */
+    private String language;
+
 }

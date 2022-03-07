@@ -22,42 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.app;
+package com.tencent.bk.job.analysis.config;
 
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Collection;
-import java.util.Map;
+@Configuration
+public class JobAnalysisAutoConfiguration {
 
-/**
- * 业务类型转换基础类
- */
-@Service
-public abstract class BasicAppTransferService implements AppTransferService {
-    @Override
-    public abstract Long getAppIdByScope(ResourceScope resourceScope);
-
-    @Override
-    public void fillResourceScope(ResourceScope resourceScope) {
-        if (resourceScope.isFull()) {
-            return;
-        }
-        if (resourceScope.hasAppId()) {
-            ResourceScope scope = getScopeByAppId(resourceScope.getAppId());
-            resourceScope.setType(scope.getType());
-            resourceScope.setId(scope.getId());
-            return;
-        }
-        Long appId = getAppIdByScope(resourceScope);
-        resourceScope.setAppId(appId);
+    @Bean
+    AppScopeMappingService appScopeMappingService(ApplicationResourceClient applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
-
-    @Override
-    public abstract ResourceScope getScopeByAppId(Long appId);
-
-    @Override
-    public abstract Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
-
-    @Override
-    public abstract ResourceScope getResourceScope(Long appId, String scopeType, String scopeId);
 }

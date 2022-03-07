@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.client.TaskTemplateResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
@@ -105,7 +105,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     }
 
     private String getAppName(Long appId) {
-        ApplicationInfoDTO applicationInfo = applicationService.getAppById(appId);
+        ApplicationDTO applicationInfo = applicationService.getAppById(appId);
         if (applicationInfo != null) {
             if (StringUtils.isNotBlank(applicationInfo.getName())) {
                 return applicationInfo.getName();

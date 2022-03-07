@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
@@ -34,14 +33,15 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
@@ -66,7 +66,6 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.ServerService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -141,8 +140,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         }
         // TODO:scope改造
         return executeAuthService.authViewTaskInstance(
-            username, new ResourceScope(ResourceTypeId.BIZ, appId.toString()),
-            stepInstance.getTaskInstanceId());
+            username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
     }
 
     private void convertFileSources(ExecuteFileStepVO fileStepVO, StepInstanceDTO stepInstance) {

@@ -22,18 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.dao;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@Configuration
-public class EsbApiAspectAutoConfig {
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * @since 5/11/2019 12:09
+ */
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:test.properties")
+@SqlConfig(encoding = "utf-8")
+@Sql({"/init_application_data.sql"})
+@DisplayName("应用信息缓存 DAO 集成测试")
+public class ApplicationDAOImplIntegrationTest {
+
+    @Autowired
+    private ApplicationDAO applicationDAO;
+
+    @BeforeEach
+    void initTest() {
+
+    }
+
+    @Test
+    void giveApplicationIdReturnApplicationType() {
+        assertThat(applicationDAO.getAppTypeById(2L)).isEqualTo(AppTypeEnum.NORMAL);
     }
 }

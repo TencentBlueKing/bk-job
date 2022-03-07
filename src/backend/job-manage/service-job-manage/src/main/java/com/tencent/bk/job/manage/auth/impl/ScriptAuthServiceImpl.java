@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import org.springframework.stereotype.Service;
 
@@ -37,14 +37,14 @@ import java.util.List;
 @Service
 public class ScriptAuthServiceImpl implements ScriptAuthService {
     @Override
-    public AuthResult authCreateScript(String username, ResourceScope resourceScope) {
+    public AuthResult authCreateScript(String username, AppResourceScope appResourceScope) {
         // TODO
         return AuthResult.pass();
     }
 
     @Override
     public AuthResult authViewScript(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      String scriptId,
                                      String scriptName) {
         // TODO
@@ -53,7 +53,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
 
     @Override
     public AuthResult authManageScript(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        String scriptId,
                                        String scriptName) {
         // TODO
@@ -62,7 +62,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
 
     @Override
     public List<String> batchAuthViewScript(String username,
-                                            ResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             List<String> scriptIdList) {
         // TODO
         return scriptIdList;
@@ -70,7 +70,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
 
     @Override
     public List<String> batchAuthManageScript(String username,
-                                              ResourceScope resourceScope,
+                                              AppResourceScope appResourceScope,
                                               List<String> scriptIdList) {
         // TODO
         return scriptIdList;

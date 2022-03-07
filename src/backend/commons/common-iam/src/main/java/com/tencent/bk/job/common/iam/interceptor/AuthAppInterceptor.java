@@ -27,7 +27,6 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -35,6 +34,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;

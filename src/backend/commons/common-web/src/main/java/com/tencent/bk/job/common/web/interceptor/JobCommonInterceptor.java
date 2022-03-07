@@ -26,11 +26,11 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.tencent.bk.job.common.app.DeprecatedAppLogic;
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
