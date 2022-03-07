@@ -62,8 +62,7 @@ public class JobExecuteAutoConfiguration {
     }
 
     static class CcConfigSetter {
-        public CcConfigSetter() {
-        }
+        CcConfigSetter() {}
     }
 
     @Bean

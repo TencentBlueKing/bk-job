@@ -41,9 +41,16 @@ public class FeatureToggleConfig {
 
     private ToggleConfig pullFileResultByIp = new ToggleConfig();
 
+    private ToggleConfig cmdbBizSet = new ToggleConfig();
+
     public void setPullFileResultByIp(ToggleConfig pullFileResultByIp) {
         this.pullFileResultByIp = pullFileResultByIp;
         log.info("FeatureToggleConfig.pullFileResultByIp:{}", pullFileResultByIp);
+    }
+
+    public void setCmdbBizSet(ToggleConfig cmdbBizSet) {
+        this.cmdbBizSet = cmdbBizSet;
+        log.info("FeatureToggleConfig.cmdbBizSet:{}", cmdbBizSet);
     }
 
     @ToString
@@ -86,6 +93,16 @@ public class FeatureToggleConfig {
     public boolean enablePullFileResultByIp(Long appId) {
         return pullFileResultByIp.enabled
             && (!pullFileResultByIp.gray || pullFileResultByIp.grayAppList.contains(appId));
+    }
+
+    /**
+     * 是否对接cmdb业务集。临时实现，待核心功能完成之后使用第三方框架完成特性开关，支持运行时更新开关
+     *
+     * @param appId Job业务ID
+     */
+    public boolean enableCmdbBizSet(Long appId) {
+        return cmdbBizSet.enabled
+            && (!cmdbBizSet.gray || cmdbBizSet.grayAppList.contains(appId));
     }
 
 }
