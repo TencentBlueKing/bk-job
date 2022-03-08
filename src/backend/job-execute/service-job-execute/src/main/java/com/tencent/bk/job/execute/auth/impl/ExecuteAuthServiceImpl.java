@@ -641,6 +641,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             ).child(ResourceTypeEnum.ACCOUNT.getId(), accountId.toString()).build());
             return accountResource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, ActionId.USE_ACCOUNT, appId, accountResources);
+        return appAuthService.batchAuthResources(username, ActionId.USE_ACCOUNT, new AppResourceScope(appId),
+            accountResources);
     }
 }

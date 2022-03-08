@@ -47,37 +47,46 @@ public interface AppAuthService {
     /**
      * 批量鉴权
      *
-     * @param username       用户名
-     * @param actionId       操作ID
-     * @param appId          业务ID
-     * @param resourceType   资源类型
-     * @param resourceIdList 资源ID列表
+     * @param username         用户名
+     * @param actionId         操作ID
+     * @param appResourceScope 资源范围
+     * @param resourceType     资源类型
+     * @param resourceIdList   资源ID列表
      * @return 有权限的资源ID列表
      */
-    List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
+    List<String> batchAuth(String username,
+                           String actionId,
+                           AppResourceScope appResourceScope,
+                           ResourceTypeEnum resourceType,
                            List<String> resourceIdList);
 
     /**
      * 批量鉴权
      *
-     * @param username  用户名
-     * @param actionId  操作ID
-     * @param appId     业务ID
-     * @param resources 资源列表
+     * @param username         用户名
+     * @param actionId         操作ID
+     * @param appResourceScope 资源范围
+     * @param resources        资源列表
      * @return 鉴权结果
      */
-    AuthResult batchAuthResources(String username, String actionId, Long appId, List<PermissionResource> resources);
+    AuthResult batchAuthResources(String username,
+                                  String actionId,
+                                  AppResourceScope appResourceScope,
+                                  List<PermissionResource> resources);
 
     /**
      * 批量鉴权
      *
-     * @param username     用户名
-     * @param actionId     操作 ID
-     * @param appId        业务 ID
-     * @param resourceList 资源列表
+     * @param username         用户名
+     * @param actionId         操作 ID
+     * @param appResourceScope 资源范围
+     * @param resourceList     资源列表
      * @return 有权限的资源 ID 列表
      */
-    List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList);
+    List<String> batchAuth(String username,
+                           String actionId,
+                           AppResourceScope appResourceScope,
+                           List<PermissionResource> resourceList);
 
     AppIdResult getAppIdList(String username, List<Long> allAppIdList);
 

@@ -28,9 +28,9 @@ import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -59,10 +59,13 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     @DeprecatedAppLogic
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
     private final Tracer tracer;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public JobCommonInterceptor(Tracer tracer) {
+    public JobCommonInterceptor(Tracer tracer,
+                                AppScopeMappingService appScopeMappingService) {
         this.tracer = tracer;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -140,7 +143,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
             if (appIdMatcher.find()) {
                 String appId = appIdMatcher.group(1);
-                return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId);
+                return appScopeMappingService.getScopeByAppId(Long.valueOf(appId));
             }
         } else {
             return new ResourceScope(scopeType, scopeId);
@@ -161,7 +164,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             // 兼容当前业务ID参数
             String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizId)) {
-                return new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId);
+                return appScopeMappingService.getScopeByAppId(Long.valueOf(bizId));
             }
         }
         return null;

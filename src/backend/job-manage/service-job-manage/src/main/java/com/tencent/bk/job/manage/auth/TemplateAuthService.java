@@ -35,10 +35,20 @@ import java.util.List;
 public interface TemplateAuthService {
 
     /**
+     * 资源范围下创建作业模板鉴权
+     *
+     * @param username      用户名
+     * @param appResourceScope 资源范围
+     * @return 鉴权结果
+     */
+    AuthResult authCreateJobTemplate(String username,
+                                   AppResourceScope appResourceScope);
+
+    /**
      * 资源范围下查看作业模板鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @return 鉴权结果
      */
@@ -50,7 +60,7 @@ public interface TemplateAuthService {
      * 资源范围下编辑作业模板鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @return 鉴权结果
      */
@@ -62,7 +72,7 @@ public interface TemplateAuthService {
      * 资源范围下删除作业模板鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @return 鉴权结果
      */
@@ -74,7 +84,7 @@ public interface TemplateAuthService {
      * 资源范围下调试作业模板鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @return 鉴权结果
      */
@@ -86,7 +96,7 @@ public interface TemplateAuthService {
      * 资源范围下查看作业模板批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */
@@ -98,7 +108,7 @@ public interface TemplateAuthService {
      * 资源范围下编辑作业模板批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */
@@ -110,7 +120,7 @@ public interface TemplateAuthService {
      * 资源范围下删除作业模板批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */

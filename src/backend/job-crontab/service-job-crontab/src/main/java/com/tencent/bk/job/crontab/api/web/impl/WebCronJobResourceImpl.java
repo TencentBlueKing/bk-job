@@ -31,11 +31,11 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
+import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
@@ -84,17 +85,17 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private final CronJobService cronJobService;
     private final CronJobHistoryService cronJobHistoryService;
     private final AuthService authService;
-    private final AppAuthService appAuthService;
+    private final CronAuthService cronAuthService;
 
     @Autowired
     public WebCronJobResourceImpl(CronJobService cronJobService,
                                   CronJobHistoryService cronJobHistoryService,
                                   AuthService authService,
-                                  AppAuthService appAuthService) {
+                                  CronAuthService cronAuthService) {
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
         this.authService = authService;
-        this.appAuthService = appAuthService;
+        this.cronAuthService = cronAuthService;
     }
 
     @Override
@@ -193,11 +194,10 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     private void processCronJobPermission(Long appId, List<CronJobVO> cronJobList) {
-        List<String> cronJobIdList = new ArrayList<>();
-        cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId().toString()));
-        List<Long> allowedCronJob = appAuthService
-            .batchAuth(JobContextUtil.getUsername(), ActionId.MANAGE_CRON, appId, ResourceTypeEnum.CRON, cronJobIdList)
-            .parallelStream().map(Long::valueOf).collect(Collectors.toList());
+        List<Long> cronJobIdList = new ArrayList<>();
+        cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId()));
+        List<Long> allowedCronJob = cronAuthService.batchAuthManageCron(
+            JobContextUtil.getUsername(), new AppResourceScope(appId), cronJobIdList);
         cronJobList.forEach(cronJob -> {
             cronJob.setCanManage(allowedCronJob.contains(cronJob.getId()));
             if (!cronJob.getCanManage()) {
@@ -447,12 +447,11 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     @Override
     public Response<Boolean> batchUpdateCronJob(String username, Long appId,
                                                 BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        List<String> cronJobInstanceList = new ArrayList<>();
+        List<Long> cronJobInstanceList = new ArrayList<>();
         batchUpdateCronJobReq.getCronJobInfoList()
-            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId().toString()));
+            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
         List<Long> allowed =
-            appAuthService.batchAuth(username, ActionId.MANAGE_CRON, appId, ResourceTypeEnum.CRON, cronJobInstanceList)
-                .parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            cronAuthService.batchAuthManageCron(username, new AppResourceScope(appId), cronJobInstanceList);
         if (allowed.size() == cronJobInstanceList.size()) {
             return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(appId, batchUpdateCronJobReq));
         } else {

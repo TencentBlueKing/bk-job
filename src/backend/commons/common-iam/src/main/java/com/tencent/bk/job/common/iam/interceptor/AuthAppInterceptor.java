@@ -28,11 +28,9 @@
 package com.tencent.bk.job.common.iam.interceptor;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -51,11 +49,11 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
-    public AuthAppInterceptor(AuthService authService) {
-        this.authService = authService;
+    public AuthAppInterceptor(BusinessAuthService businessAuthService) {
+        this.businessAuthService = businessAuthService;
     }
 
     @Override
@@ -71,8 +69,7 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
                 PathInfoDTO pathInfo = new PathInfoDTO();
                 pathInfo.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
                 pathInfo.setId(resourceScope.getId());
-                AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-                                                         ResourceTypeEnum.BUSINESS, resourceScope.getId(), pathInfo);
+                AuthResult authResult = businessAuthService.authAccessBusiness(username, resourceScope);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }

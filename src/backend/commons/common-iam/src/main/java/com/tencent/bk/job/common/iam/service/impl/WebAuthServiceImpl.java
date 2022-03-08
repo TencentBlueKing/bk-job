@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
@@ -93,12 +94,12 @@ public class WebAuthServiceImpl implements WebAuthService {
     @Override
     public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
                                   List<String> resourceIds) {
-        return appAuthService.batchAuth(username, actionId, appId, resourceType, resourceIds);
+        return appAuthService.batchAuth(username, actionId, new AppResourceScope(appId), resourceType, resourceIds);
     }
 
     @Override
     public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
-        return appAuthService.batchAuth(username, actionId, appId, resourceList);
+        return appAuthService.batchAuth(username, actionId, new AppResourceScope(appId), resourceList);
     }
 
     @Override

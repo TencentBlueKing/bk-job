@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.auth;
 
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 
 import java.util.List;
 
@@ -38,7 +40,7 @@ public interface PlanAuthService {
      * 资源范围下创建执行方案鉴权
      *
      * @param username        用户名
-     * @param resourceScope   资源范围
+     * @param appResourceScope   资源范围
      * @param jobTemplateId   作业模板ID
      * @param jobTemplateName 作业模板名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
@@ -52,7 +54,7 @@ public interface PlanAuthService {
      * 资源范围下查看执行方案鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @param jobPlanId     执行方案ID
      * @param jobPlanName   执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
@@ -68,7 +70,7 @@ public interface PlanAuthService {
      * 资源范围下编辑执行方案鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @param jobPlanId     执行方案ID
      * @param jobPlanName   执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
@@ -84,7 +86,7 @@ public interface PlanAuthService {
      * 资源范围下删除执行方案鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @param jobPlanId     执行方案ID
      * @param jobPlanName   执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
@@ -100,7 +102,7 @@ public interface PlanAuthService {
      * 资源范围下同步执行方案鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param jobTemplateId 作业模板ID
      * @param jobPlanId     执行方案ID
      * @param jobPlanName   执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
@@ -116,7 +118,7 @@ public interface PlanAuthService {
      * 资源范围下查看执行方案批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @param jobPlanIdList     执行方案ID列表
      * @return 有权限的执行方案ID
@@ -130,7 +132,7 @@ public interface PlanAuthService {
      * 资源范围下编辑执行方案批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @param jobPlanIdList     执行方案ID列表
      * @return 有权限的执行方案ID
@@ -144,7 +146,7 @@ public interface PlanAuthService {
      * 资源范围下删除执行方案批量鉴权
      *
      * @param username          用户名
-     * @param resourceScope     资源范围
+     * @param appResourceScope     资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @param jobPlanIdList     执行方案ID列表
      * @return 有权限的执行方案ID
@@ -153,4 +155,14 @@ public interface PlanAuthService {
                                       AppResourceScope appResourceScope,
                                       List<Long> jobTemplateIdList,
                                       List<Long> jobPlanIdList);
+
+    /**
+     * 注册执行方案实例
+     *
+     * @param id        执行方案 ID
+     * @param name      资源实例名称
+     * @param creator   资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerPlan(Long id, String name, String creator);
 }

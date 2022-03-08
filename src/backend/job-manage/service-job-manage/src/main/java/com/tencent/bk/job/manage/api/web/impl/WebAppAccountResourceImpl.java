@@ -30,21 +30,18 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.web.WebAppAccountResource;
+import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -53,7 +50,6 @@ import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +59,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -73,22 +68,19 @@ import java.util.stream.Collectors;
 public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private final AccountService accountService;
     private final MessageI18nService i18nService;
-    private final AuthService authService;
-    private final AppAuthService appAuthService;
+    private final AccountAuthService accountAuthService;
     private final ApplicationService applicationService;
     private final JobManageConfig jobManageConfig;
 
     @Autowired
     public WebAppAccountResourceImpl(AccountService accountService,
                                      MessageI18nService i18nService,
-                                     AuthService authService,
-                                     AppAuthService appAuthService,
+                                     AccountAuthService accountAuthService,
                                      ApplicationService applicationService,
                                      JobManageConfig jobManageConfig) {
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+        this.accountAuthService = accountAuthService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
     }
@@ -108,12 +100,10 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
         AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appId, accountCreateUpdateReq);
         long accountId = accountService.saveAccount(newAccount);
-        authService.registerResource(
-            "" + accountId,
-            newAccount.getAlias(),
-            ResourceTypeId.ACCOUNT,
+        accountAuthService.registerAccount(
             username,
-            null
+            accountId,
+            newAccount.getAlias()
         );
         return Response.buildSuccessResp(accountId);
     }
@@ -237,11 +227,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             }
         }
         // 添加权限数据
-        List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
-                accountVOS.parallelStream().map(AccountVO::getId).map(Objects::toString).collect(Collectors.toList()));
+        List<Long> canManageIdList =
+            accountAuthService.batchAuthManageAccount(username, new AppResourceScope(appId),
+                accountVOS.parallelStream().map(AccountVO::getId).collect(Collectors.toList()));
         accountVOS.forEach(it -> {
-            it.setCanManage(canManageIdList.contains(it.getId().toString()));
+            it.setCanManage(canManageIdList.contains(it.getId()));
         });
         result.setData(accountVOS);
         result.setCanCreate(checkCreateAccountPermission(username, appId).isPass());
@@ -331,11 +321,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                 accountVOS.add(accountVO);
             }
             // 批量鉴权
-            Set<String> allowedManageAccounts = new HashSet<>(appAuthService
-                .batchAuth(username, ActionId.MANAGE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
-                    accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList())));
+            List<Long> canManageIdList = accountAuthService.batchAuthManageAccount(username,
+                new AppResourceScope(appId), accountIdList);
+            Set<Long> canManageIdSet = new HashSet<>(canManageIdList);
             accountVOS.forEach(accountVO ->
-                accountVO.setCanManage(allowedManageAccounts.contains(accountVO.getId().toString())));
+                accountVO.setCanManage(canManageIdSet.contains(accountVO.getId())));
 
             setUseAccountPermission(username, appId, accountVOS);
         }
@@ -344,20 +334,12 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     private AuthResult checkCreateAccountPermission(String username, Long appId) {
         // 需要拥有在业务下创建账号的权限
-        return authService.auth(
-            true,
-            username,
-            ActionId.CREATE_ACCOUNT,
-            ResourceTypeEnum.BUSINESS,
-            appId.toString(),
-            null
-        );
+        return accountAuthService.authCreateAccount(username, new AppResourceScope(appId));
     }
 
     private AuthResult checkManageAccountPermission(String username, Long appId, Long accountId) {
         // 需要拥有在业务下管理某个具体账号的权限
-        return authService.auth(true, username, ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT,
-            accountId.toString(), PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        return accountAuthService.authManageAccount(username, new AppResourceScope(appId), accountId, null);
     }
 
     private void setUseAccountPermission(String username, Long appId, List<AccountVO> accountVOS) {
@@ -366,11 +348,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         if (shouldAuthAccount(appId)) {
             List<Long> accountIdList = accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList());
-            Set<String> allowedUseAccounts = new HashSet<>(appAuthService
-                .batchAuth(username, ActionId.USE_ACCOUNT, appId, ResourceTypeEnum.ACCOUNT,
-                    accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList())));
+            List<Long> allowedIdList = accountAuthService.batchAuthUseAccount(username, new AppResourceScope(appId),
+                accountIdList);
+            Set<Long> allowedIdSet = new HashSet<>(allowedIdList);
             accountVOS.forEach(accountVO ->
-                accountVO.setCanUse(allowedUseAccounts.contains(accountVO.getId().toString())));
+                accountVO.setCanUse(allowedIdSet.contains(accountVO.getId())));
         } else {
             accountVOS.forEach(accountVO -> accountVO.setCanUse(true));
         }
