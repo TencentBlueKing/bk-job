@@ -110,7 +110,8 @@ public class WebAppResourceImpl implements WebAppResource {
             finalAppList.addAll(normalAppList);
         }
         finalAppList.addAll(specialAppList);
-        List<AppVO> appVOList = finalAppList.parallelStream().map(it -> new AppVO(it.getId(), it.getName(),
+        List<AppVO> appVOList = finalAppList.parallelStream().map(it -> new AppVO(it.getId(),
+            it.getScope().getType().getValue(), it.getScope().getId(), it.getName(),
             it.getAppType().getValue(), true, null, null)).collect(Collectors.toList());
         return Response.buildSuccessResp(appVOList);
     }
@@ -137,7 +138,8 @@ public class WebAppResourceImpl implements WebAppResource {
         List<Long> availableAppIds = new ArrayList<>(authorizedAppIds);
         if (appIdResult.getAny()) {
             for (ApplicationDTO normalApp : normalAppList) {
-                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getName(), normalApp.getAppType().getValue(),
+                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getScope().getType().getValue(),
+                    normalApp.getScope().getId(), normalApp.getName(), normalApp.getAppType().getValue(),
                     true, null, null);
                 finalAppList.add(appVO);
                 availableAppIds.add(normalApp.getId());
@@ -145,8 +147,9 @@ public class WebAppResourceImpl implements WebAppResource {
         } else {
             // 普通业务根据权限中心结果鉴权
             for (ApplicationDTO normalApp : normalAppList) {
-                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getName(), normalApp.getAppType().getValue(),
-                    null, null, null);
+                AppVO appVO = new AppVO(normalApp.getId(), normalApp.getScope().getType().getValue(),
+                    normalApp.getScope().getId(), normalApp.getName(), normalApp.getAppType().getValue(),
+                    true, null, null);
                 if (authorizedAppIds.contains(normalApp.getId())) {
                     appVO.setHasPermission(true);
                     finalAppList.add(appVO);
@@ -157,7 +160,8 @@ public class WebAppResourceImpl implements WebAppResource {
             }
         }
         for (ApplicationDTO specialApp : specialAppList) {
-            AppVO appVO = new AppVO(specialApp.getId(), specialApp.getName(), specialApp.getAppType().getValue(),
+            AppVO appVO = new AppVO(specialApp.getId(), specialApp.getScope().getType().getValue(),
+                specialApp.getScope().getId(), specialApp.getName(), specialApp.getAppType().getValue(),
                 true, null, null);
             finalAppList.add(appVO);
             availableAppIds.add(specialApp.getId());
