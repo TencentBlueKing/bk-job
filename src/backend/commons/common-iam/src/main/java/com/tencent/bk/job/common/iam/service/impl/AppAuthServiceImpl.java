@@ -225,7 +225,16 @@ public class AppAuthServiceImpl implements AppAuthService {
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         // 业务集、全业务特殊鉴权
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+        boolean authBizSet = false;
+        Long appId = appResourceScope.getAppId();
+        if (resourceAppInfoQueryService != null && appId != null) {
+            ResourceAppInfo resourceAppInfo =
+                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
+            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
+                authBizSet = true;
+            }
+        }
+        if (authBizSet || appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             if (authSpecialAppByMaintainer(username, appResourceScope)) {
                 return resourceIdList;
             }
