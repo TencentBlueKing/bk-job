@@ -24,22 +24,18 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
+import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,17 +50,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebCredentialResourceImpl implements WebCredentialResource {
 
-    private final AuthService authService;
-    private final AppAuthService appAuthService;
     private final CredentialService credentialService;
+    private final TicketAuthService ticketAuthService;
 
     @Autowired
-    public WebCredentialResourceImpl(AuthService authService,
-                                     AppAuthService appAuthService,
-                                     CredentialService credentialService) {
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+    public WebCredentialResourceImpl(CredentialService credentialService,
+                                     TicketAuthService ticketAuthService) {
         this.credentialService = credentialService;
+        this.ticketAuthService = ticketAuthService;
     }
 
     @Override
@@ -130,18 +123,14 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     private void addPermissionData(String username, Long appId, PageData<CredentialVO> credentialVOPageData) {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
+        List<String> credentialIdList = credentialVOList.parallelStream()
+            .map(CredentialVO::getId)
+            .map(Objects::toString)
+            .collect(Collectors.toList());
         List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
-                credentialVOList.parallelStream()
-                    .map(CredentialVO::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.toList()));
+            ticketAuthService.batchAuthManageTicket(username, new AppResourceScope(appId), credentialIdList);
         List<String> canUseIdList =
-            appAuthService.batchAuth(username, ActionId.USE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
-                credentialVOList.parallelStream()
-                    .map(CredentialVO::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.toList()));
+            ticketAuthService.batchAuthUseTicket(username, new AppResourceScope(appId), credentialIdList);
         credentialVOList.forEach(it -> {
             it.setCanManage(canManageIdList.contains(it.getId()));
             it.setCanUse(canUseIdList.contains(it.getId()));
@@ -149,21 +138,13 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appId).isPass());
     }
 
-    public AuthResult checkUseTicketPermission(String username, Long appId, String credentialId) {
-        // 需要拥有在业务下使用某个凭证的权限
-        return authService.auth(true, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, credentialId,
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
-    }
-
     public AuthResult checkCreateTicketPermission(String username, Long appId) {
         // 需要拥有在业务下创建凭证的权限
-        return authService.auth(true, username, ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS,
-            appId.toString(), null);
+        return ticketAuthService.authCreateTicket(username, new AppResourceScope(appId));
     }
 
     public AuthResult checkManageTicketPermission(String username, Long appId, String credentialId) {
         // 需要拥有在业务下管理某个具体凭证的权限
-        return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET,
-            credentialId, PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        return ticketAuthService.authManageTicket(username, new AppResourceScope(appId), credentialId, null);
     }
 }
