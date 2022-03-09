@@ -37,6 +37,9 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -242,7 +245,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private AccountVO convertToAccountVO(AccountDTO accountDTO) {
         AccountVO accountVO = new AccountVO();
         accountVO.setId(accountDTO.getId());
+
         accountVO.setAppId(accountDTO.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(accountDTO.getAppId());
+        accountVO.setScopeType(resourceScope.getType().getValue());
+        accountVO.setScopeId(resourceScope.getId());
         accountVO.setAccount(accountDTO.getAccount());
         accountVO.setAlias(accountDTO.getAlias());
         accountVO.setCategory(accountDTO.getCategory().getValue());
