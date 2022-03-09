@@ -34,7 +34,7 @@ class AccountManage extends ModuleBase {
 
     // 获取业务下的所有账号
     getWhole (params = {}) {
-        return Request.get(`${this.path}/accounts/`, {
+        return Request.get(`${this.path}/accounts`, {
             params,
             cache: 2000,
         });

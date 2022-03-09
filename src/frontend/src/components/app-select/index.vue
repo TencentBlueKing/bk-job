@@ -59,17 +59,19 @@
                         <auth-component
                             class="app-item"
                             :class="{
-                                active: app.id === appId,
+                                active: app.scopeType === scopeType && app.scopeId === scopeId,
                                 hover: index === activeIndex,
                             }"
                             :key="app.id"
                             :permission="app.hasPermission"
                             :resource-id="app.id"
                             auth="biz/access_business">
-                            <div @mouseenter.self="handleMouseenter(index)" @click="handleAppChange(app.id)">
+                            <div
+                                @mouseenter.self="handleMouseenter(index)"
+                                @click="handleAppChange(app)">
                                 <div class="app-wrapper">
                                     <span class="app-name">{{ app.name }}</span>
-                                    <span class="app-id">(#{{ app.id }})</span>
+                                    <span class="app-id">(#{{ app.scopeId }})</span>
                                 </div>
                                 <div class="app-collection">
                                     <Icon
@@ -77,24 +79,31 @@
                                         class="favor"
                                         type="collection"
                                         svg
-                                        @click.stop="handleFavor(app.id, false)" />
+                                        @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
                                     <Icon
                                         v-else
                                         class="unfavor"
                                         type="star-line"
                                         svg
-                                        @click.stop="handleFavor(app.id, true)" />
+                                        @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
                                 </div>
                             </div>
                             <div slot="forbid" class="app-wrapper">
                                 <span class="app-name">{{ app.name }}</span>
-                                <span class="app-id">(#{{ app.id }})</span>
+                                <span class="app-id">(#{{ app.scopeId }})</span>
                             </div>
                         </auth-component>
                     </template>
-                    <div v-if="renderList.length < 1" class="app-list-empty">{{ $t('无匹配数据') }}</div>
+                    <div
+                        v-if="renderList.length < 1"
+                        class="app-list-empty">
+                        {{ $t('无匹配数据') }}
+                    </div>
                 </div>
-                <div class="app-create" key="create" @click="handleGoCreateApp">
+                <div
+                    class="app-create"
+                    key="create"
+                    @click="handleGoCreateApp">
                     <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建业务') }}
                 </div>
             </div>
@@ -112,7 +121,7 @@
         prettyDateTimeFormat,
     } from '@/utils/assist';
     import {
-        appIdCache,
+        scopeCache,
     } from '@/utils/cache-helper';
 
     const getTransformInfo = (text) => {
@@ -171,7 +180,9 @@
             return {
                 isFocus: false,
                 renderList: [],
-                appId: window.PROJECT_CONFIG.APP_ID,
+                // appId: window.PROJECT_CONFIG.APP_ID,
+                scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
+                scopeId: window.PROJECT_CONFIG.SCOPE_ID,
                 appName: '',
                 activeIndex: -1,
                 query: '',
@@ -218,9 +229,14 @@
                         ]);
                         // eslint-disable-next-line no-plusplus
                         for (let i = 0; i < this.list.length; i++) {
-                            if (this.list[i].id === this.appId) {
+                            const {
+                                scopeType,
+                                scopeId,
+                                name,
+                            } = this.list[i];
+                            if (scopeType === this.scopeType && scopeId === this.scopeId) {
                                 this.activeIndex = i;
-                                this.appName = this.list[i].name;
+                                this.appName = name;
                                 break;
                             }
                         }
@@ -340,14 +356,16 @@
             }, 100),
             /**
              * @desc 收藏业务
-             * @param {Number} appId 业务id
+             * @param {String} scopeType 业务id
+             * @param {String} scopeId 业务id
              * @param {Boolean} favor 收藏状态
              */
-            handleFavor (appId, favor) {
-                const app = _.find(this.list, _ => _.id === appId);
+            handleFavor (scopeType, scopeId, favor) {
+                const app = _.find(this.list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
                 if (favor) {
                     AppManageService.favorApp({
-                        appId,
+                        scopeType,
+                        scopeId,
                     }).then(() => {
                         app.favor = true;
                         app.favorTime = prettyDateTimeFormat(Date.now());
@@ -358,7 +376,8 @@
                     });
                 } else {
                     AppManageService.cancelFavorApp({
-                        appId,
+                        scopeType,
+                        scopeId,
                     }).then(() => {
                         app.favor = false;
                         this.renderList = Object.freeze([
@@ -370,19 +389,28 @@
             },
             /**
              * @desc 切换业务
-             * @param {Number} appId 最新业务id
+             * @param { object } appInfo 最新业务信息
              */
-            handleAppChange (appId) {
+            handleAppChange (appInfo) {
+                const {
+                    scopeType,
+                    scopeId,
+                } = appInfo;
+                
                 this.loading = true;
-                const { matched } = this.$route;
-                if (!window.PROJECT_CONFIG.APP_ID) {
-                    window.location.href = `/${appId}`;
+                const pathRoot = `/${scopeType}/${scopeId}`;
+                if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
+                    window.location.href = pathRoot;
                     return;
                 }
-                appIdCache.setItem(appId);
+                
+                scopeCache.setItem({
+                    scopeType,
+                    scopeId,
+                });
                 const reload = (targetPath) => {
                     setTimeout(() => {
-                        const path = targetPath.replace(/^\/(\d+)\//, `/${appId}/`);
+                        const path = targetPath.replace(/^\/[^/]+\/\d+/, pathRoot);
                         window.location.href = path;
                     }, 100);
                 };
@@ -399,6 +427,7 @@
                     reload(currentRoute.path);
                     return;
                 }
+                const { matched } = this.$route;
                 // 2，当前路由带有请求参数，切换业务时则需要做回退处理
                 // 路由只匹配到了一个
                 if (matched.length < 2) {

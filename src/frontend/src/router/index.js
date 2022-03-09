@@ -74,21 +74,26 @@ const renderPageWithComponent = (route, component) => {
     }
 };
 
-export default ({ appList, isAdmin, appId }) => {
-    // appid是否有效
-    let isValidAppId = false;
-    // appid是有有权限查看
-    let hasAPPIdPermission = false;
+export default ({ appList, isAdmin, scopeType, scopeId }) => {
+    // scope 是否有效
+    let isValidScope = false;
+    // scope 是有有权限查看
+    let hasScopePermission = false;
     
-    const appInfo = appList.find(_ => _.id === appId);
-    // appId存在于业务列表中——有效的appid
+    const appInfo = appList.find(_ => _.scopeType === scopeType && _.scopeId === scopeId);
+    // scope 存在于业务列表中——有效的 scope
     if (appInfo) {
-        isValidAppId = true;
-        // appId存在于业务列表中——有权限访问
+        isValidScope = true;
+        // scope 存在于业务列表中——有权限访问
         if (appInfo.hasPermission) {
-            hasAPPIdPermission = true;
+            hasScopePermission = true;
         }
     }
+
+    const systemManageRoute = [
+        Dashboard,
+        ScriptTemplate,
+    ];
 
     // 生成路由配置
     const routes = [
@@ -98,13 +103,10 @@ export default ({ appList, isAdmin, appId }) => {
             redirect: {
                 name: 'home',
             },
-            children: [
-                Dashboard,
-                ScriptTemplate,
-            ],
+            children: systemManageRoute,
         },
         {
-            path: `/${appId}`,
+            path: `/${scopeType}/${scopeId}`,
             component: Entry,
             redirect: {
                 name: 'home',
@@ -139,20 +141,20 @@ export default ({ appList, isAdmin, appId }) => {
         },
     ];
 
-    if (!isValidAppId) {
+    if (!isValidScope) {
         renderPageWithComponent(routes[1], NotFound);
-    } else if (!hasAPPIdPermission) {
+    } else if (!hasScopePermission) {
         renderPageWithComponent(routes[1], BusinessPermission);
     }
 
     // admin用户拥有系统设置功能
     if (isAdmin) {
-        routes[0].children.push(PublicScriptManage);
-        routes[0].children.push(WhiteIP);
-        routes[0].children.push(GlobalSetting);
-        routes[0].children.push(ServiceState);
-        routes[0].children.push(DangerousRuleManage);
-        routes[0].children.push(DetectRecords);
+        systemManageRoute.push(PublicScriptManage);
+        systemManageRoute.push(WhiteIP);
+        systemManageRoute.push(GlobalSetting);
+        systemManageRoute.push(ServiceState);
+        systemManageRoute.push(DangerousRuleManage);
+        systemManageRoute.push(DetectRecords);
     }
 
     const router = new VueRouter({

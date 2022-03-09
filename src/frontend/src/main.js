@@ -33,7 +33,7 @@ import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
 import EntryTask from '@/utils/entry-task';
-import { appIdCache } from '@/utils/cache-helper';
+import { scopeCache } from '@/utils/cache-helper';
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
@@ -89,30 +89,43 @@ const entryTask = new EntryTask();
 let EntryApp = App;
 
 /**
- * @desc 解析默认appid
+ * @desc 解析路由 scopeType、scopeId
  */
 entryTask.add((context) => {
-    const pathAppIdMatch = window.location.pathname.match(/^\/(\d+)\/?/);
+    const pathRoot = window.location.pathname.match(/^\/([^/]+)\/(\d+)\/?/);
 
-    if (pathAppIdMatch) {
-    // 路由指定了业务id
-    // eslint-disable-next-line no-param-reassign
-        context.appId = ~~pathAppIdMatch[1];
+    if (pathRoot) {
+        // 路由指定了业务id
+        [,
+            context.scopeType,
+            context.scopeId,
+        ] = pathRoot;
     } else {
-    // 本地缓存
-    // eslint-disable-next-line no-param-reassign
-        context.appId = appIdCache.getItem();
+        // 本地缓存
+        const {
+            scopeType,
+            scopeId,
+        } = scopeCache.getItem();
+        if (scopeType && scopeId) {
+            context.scopeType = scopeType;
+            context.scopeId = scopeId;
+        }
     }
 });
 /**
  * @desc 完整的业务列表
  */
 entryTask.add(context => AppService.fetchWholeAppList().then((data) => {
-    // eslint-disable-next-line no-param-reassign
     context.appList = data.data;
-    if (!context.appId) {
-    // eslint-disable-next-line no-param-reassign
-        context.appId = data.data[0].id;
+    if (!context.scopeType || !context.scopeId) {
+        const [
+            {
+                scopeType,
+                scopeId,
+            },
+        ] = data.data;
+        context.scopeType = scopeType;
+        context.scopeId = scopeId;
     }
 }));
 /**
@@ -135,10 +148,9 @@ if (apiExecute) {
         context => TaskExecuteService.fetchTaskInstanceFromAllApp({
             taskInstanceId: apiExecute[1],
         }).then((data) => {
-            // eslint-disable-next-line no-param-reassign
             context.taskData = data;
-            // eslint-disable-next-line no-param-reassign
-            context.appId = data.appId;
+            context.scopeType = data.scopeType;
+            context.scopeId = data.scopeId;
         }),
         (context) => {
             const { taskData } = context;
@@ -169,10 +181,9 @@ if (apiPlan) {
         context => TaskPlanService.fetchPlanData({
             id: apiPlan[1],
         }).then((data) => {
-            // eslint-disable-next-line no-param-reassign
             context.planData = data;
-            // eslint-disable-next-line no-param-reassign
-            context.appId = data.appId;
+            context.scopeType = data.scopeType;
+            context.scopeId = data.scopeId;
         }),
         (context) => {
             const { planData } = context;
@@ -194,13 +205,27 @@ if (apiPlan) {
  */
 entryTask.add('', (context) => {
     // 判断是在浏览器访问还是iframe访问，走不同的入口
-    const { appList, isAdmin, appId } = context;
-    window.PROJECT_CONFIG.APP_ID = appId;
-    appIdCache.setItem(context.appId);
+    const {
+        appList,
+        isAdmin,
+        scopeType,
+        scopeId,
+    } = context;
+    window.PROJECT_CONFIG.SCOPE_TYPE = scopeType;
+    window.PROJECT_CONFIG.SCOPE_ID = scopeId;
+    scopeCache.setItem({
+        scopeType,
+        scopeId,
+    });
 
     window.BKApp = new Vue({
         el: '#app',
-        router: createRouter({ appList, isAdmin, appId }),
+        router: createRouter({
+            appList,
+            isAdmin,
+            scopeType,
+            scopeId,
+        }),
         store,
         i18n,
         render: h => h(EntryApp),
