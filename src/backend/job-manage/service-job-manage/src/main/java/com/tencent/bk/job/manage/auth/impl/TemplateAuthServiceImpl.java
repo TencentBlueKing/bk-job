@@ -37,6 +37,12 @@ import java.util.List;
 @Service
 public class TemplateAuthServiceImpl implements TemplateAuthService {
     @Override
+    public AuthResult authCreateJobTemplate(String username, AppResourceScope appResourceScope) {
+        // TODO
+        return AuthResult.pass();
+    }
+
+    @Override
     public AuthResult authViewJobTemplate(String username,
                                           AppResourceScope appResourceScope,
                                           Long jobTemplateId) {

@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
@@ -130,13 +131,13 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
         List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, appId, ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)
                     .collect(Collectors.toList()));
         List<String> canUseIdList =
-            appAuthService.batchAuth(username, ActionId.USE_TICKET, appId, ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.USE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)

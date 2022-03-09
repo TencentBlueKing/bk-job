@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.manage.common.client.PAASClientFactory;
+import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +43,21 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private EsbUserInfoUpdateTask esbUserInfoUpdateTask;
-    private SyncService syncService;
-    private UserUploadFileCleanTask userUploadFileCleanTask;
+    private final EsbUserInfoUpdateTask esbUserInfoUpdateTask;
+    private final SyncService syncService;
+    private final UserUploadFileCleanTask userUploadFileCleanTask;
+    private final ApplicationCache applicationCache;
 
     @Autowired
     public ScheduledTasks(
         EsbUserInfoUpdateTask esbUserInfoUpdateTask,
         SyncService syncService,
-        UserUploadFileCleanTask userUploadFileCleanTask) {
+        UserUploadFileCleanTask userUploadFileCleanTask,
+        ApplicationCache applicationCache) {
         this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
         this.syncService = syncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
+        this.applicationCache = applicationCache;
     }
 
     /**
@@ -79,6 +83,19 @@ public class ScheduledTasks {
             syncService.syncApp();
         } catch (Exception e) {
             log.error("testAppSyncTask fail", e);
+        }
+    }
+
+    /**
+     * 业务缓存刷新：1min/次
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void refreshAppCache() {
+        log.info(Thread.currentThread().getId() + ":refreshAppCache start");
+        try {
+            applicationCache.refreshCache();
+        } catch (Exception e) {
+            log.error("refreshAppCache fail", e);
         }
     }
 

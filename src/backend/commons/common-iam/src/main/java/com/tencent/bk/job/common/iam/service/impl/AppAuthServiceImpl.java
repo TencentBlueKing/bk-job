@@ -53,7 +53,6 @@ import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.RelatedResourceTypeDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
@@ -119,10 +118,12 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public AuthResult auth(boolean returnApplyUrl, String username, String actionId, AppResourceScope appResourceScope) {
+    public AuthResult auth(boolean returnApplyUrl, String username, String actionId,
+                           AppResourceScope appResourceScope) {
         // 兼容旧的业务集鉴权逻辑
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
             && authSpecialAppByMaintainer(username, appResourceScope)) {
+            log.debug("{} is maintainer of job biz_set {}", username, appResourceScope.getAppId());
             return AuthResult.pass();
         }
         boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(appResourceScope));
@@ -218,43 +219,31 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
+    public List<String> batchAuth(String username,
+                                  String actionId,
+                                  AppResourceScope appResourceScope,
+                                  ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return resourceIdList;
-                } else {
-                    return Collections.emptyList();
-                }
+        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
+            if (authSpecialAppByMaintainer(username, appResourceScope)) {
+                return resourceIdList;
             }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
         }
-        return authHelper.isAllowed(username, actionId, buildAppInstanceList(appId, resourceType, resourceIdList));
+        return authHelper.isAllowed(
+            username, actionId,
+            buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList));
     }
 
     @Override
-    public AuthResult batchAuthResources(String username, String actionId, Long appId,
+    public AuthResult batchAuthResources(String username,
+                                         String actionId,
+                                         AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return AuthResult.pass();
-                } else {
-                    return AuthResult.fail();
-                }
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
+        if (authSpecialAppByMaintainer(username, appResourceScope)) {
+            return AuthResult.pass();
         }
-
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
         List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
@@ -270,25 +259,17 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
+    public List<String> batchAuth(String username,
+                                  String actionId,
+                                  AppResourceScope appResourceScope,
+                                  List<PermissionResource> resourceList) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS, appId.toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                if (resourceAppInfo.getMaintainerList().contains(username)) {
-                    return resourceList.parallelStream()
-                        .map(PermissionResource::getResourceId).collect(Collectors.toList());
-                } else {
-                    return Collections.emptyList();
-                }
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
+        if (authSpecialAppByMaintainer(username, appResourceScope)) {
+            return resourceList.parallelStream()
+                .map(PermissionResource::getResourceId).collect(Collectors.toList());
         }
         return authHelper.isAllowed(username, actionId, buildInstanceList(resourceList));
     }
-
 
     @Override
     public AppIdResult getAppIdList(String username, List<Long> allAppIdList) {
@@ -321,11 +302,12 @@ public class AppAuthServiceImpl implements AppAuthService {
         return result;
     }
 
-    private List<InstanceDTO> buildAppInstanceList(Long appId, ResourceTypeEnum resourceType,
-                                                   List<String> resourceIds) {
+    private List<InstanceDTO> buildAppResourceScopeInstanceList(AppResourceScope appResourceScope,
+                                                                ResourceTypeEnum resourceType,
+                                                                List<String> resourceIds) {
         List<InstanceDTO> instances = new LinkedList<>();
         resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId,
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build())));
+            buildResourceScopePath(appResourceScope))));
         return instances;
     }
 

@@ -95,6 +95,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         }
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setId(appInfo.getId());
+        app.setScopeType(appInfo.getScope().getType().getValue());
+        app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
         app.setAppType(appInfo.getAppType().getValue());
         app.setSubAppIds(appInfo.getSubAppIds());

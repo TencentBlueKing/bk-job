@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
@@ -130,7 +131,7 @@ public class WebTagResourceImpl implements WebTagResource {
             tags.stream().map(tag -> String.valueOf(tag.getId())).distinct().collect(Collectors.toList());
 
         List<String> allowTagIds = appAuthService
-            .batchAuth(username, ActionId.MANAGE_TAG, appId, ResourceTypeEnum.TAG, tagIds)
+            .batchAuth(username, ActionId.MANAGE_TAG, new AppResourceScope(appId), ResourceTypeEnum.TAG, tagIds)
             .parallelStream().collect(Collectors.toList());
 
         tags.forEach(tagVO -> tagVO.setCanManage(allowTagIds.contains(String.valueOf(tagVO.getId()))));

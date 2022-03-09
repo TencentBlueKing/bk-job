@@ -25,17 +25,13 @@
 package com.tencent.bk.job.crontab.api.web.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
-import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
+import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
-import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,13 +39,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 public class WebPermissionResourceImpl implements WebPermissionResource {
-    private final WebAuthService authService;
-    private final ServiceApplicationResourceClient applicationResourceClient;
+    private final WebAuthService webAuthService;
+    private final CronAuthService cronAuthService;
 
-    public WebPermissionResourceImpl(WebAuthService authService,
-                                     ServiceApplicationResourceClient applicationResourceClient) {
-        this.authService = authService;
-        this.applicationResourceClient = applicationResourceClient;
+    public WebPermissionResourceImpl(WebAuthService webAuthService,
+                                     CronAuthService cronAuthService) {
+        this.webAuthService = webAuthService;
+        this.cronAuthService = cronAuthService;
     }
 
     @Override
@@ -73,7 +69,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        ResourceScope resourceScope = toResourceScope(appId, scopeType, scopeId);
+        AppResourceScope appResourceScope = toAppResourceScope(appId, scopeType, scopeId);
         if (StringUtils.isEmpty(operation)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
@@ -89,35 +85,28 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             case "cron":
                 switch (action) {
                     case "create":
-                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.CREATE_CRON, ResourceTypeEnum.BUSINESS, scopeId,
-                            IamUtil.buildScopePathInfo(resourceScope)));
+                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(
+                            cronAuthService.authCreateCron(username, appResourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
-                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, resourceId,
-                            IamUtil.buildScopePathInfo(resourceScope)));
+                        return Response.buildSuccessResp(webAuthService.toAuthResultVO(
+                            cronAuthService.authManageCron(
+                                username, appResourceScope, Long.valueOf(resourceId), null)));
                     default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
+                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
                             returnPermissionDetail);
                 }
                 break;
             default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
+                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
-    private ResourceScope toResourceScope(Long appId, String scopeType, String scopeId) {
-        if (scopeType != null) {
-            return new ResourceScope(scopeType, scopeId);
-        } else if (appId != null) {
-            ServiceApplicationDTO application = applicationResourceClient.queryAppById(appId);
-            return new ResourceScope(application.getScopeType(), application.getScopeId());
-        }
-        return null;
+    private AppResourceScope toAppResourceScope(Long appId, String scopeType, String scopeId) {
+        return new AppResourceScope(scopeType, scopeId, appId);
     }
 }
