@@ -27,9 +27,7 @@ package com.tencent.bk.job.common.web.interceptor;
 import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -134,7 +132,9 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private void addAppResourceScope(HttpServletRequest request) {
         AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
         log.debug("Scope from path:{}", appResourceScope);
-        JobContextUtil.setAppResourceScope(appResourceScope);
+        if (appResourceScope != null) {
+            JobContextUtil.setAppResourceScope(appResourceScope);
+        }
     }
 
     private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
@@ -149,7 +149,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             return buildAppResourceScope(appId);
         }
 
-        throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        return null;
     }
 
     private ResourceScope parseResourceScopeFromURI(String requestURI) {
