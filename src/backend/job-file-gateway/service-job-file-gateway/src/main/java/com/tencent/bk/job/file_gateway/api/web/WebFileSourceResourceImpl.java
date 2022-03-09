@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
@@ -238,10 +239,10 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         }
         // 添加权限数据
         List<String> currentAppCanManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
                 currentAppFileSourceIdList);
         List<String> currentAppCanViewIdList =
-            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
                 currentAppFileSourceIdList);
         fileSourceVOList.forEach(it -> {
             if (currentAppFileSourceIdList.contains(it.getId().toString())) {
@@ -261,14 +262,14 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         List<FileSourceVO> fileSourceVOList = fileSourceVOPageData.getData();
         // 添加权限数据
         List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
                 fileSourceVOList.parallelStream()
                     .map(FileSourceVO::getId)
                     .map(Objects::toString)
                     .collect(Collectors.toList())
             );
         List<String> canViewIdList =
-            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appId, ResourceTypeEnum.FILE_SOURCE,
+            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
                 fileSourceVOList.parallelStream()
                     .map(FileSourceVO::getId)
                     .map(Objects::toString)

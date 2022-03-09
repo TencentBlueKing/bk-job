@@ -24,25 +24,59 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 执行方案相关操作鉴权接口
  */
 @Service
 public class PlanAuthServiceImpl implements PlanAuthService {
+
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public PlanAuthServiceImpl(AuthService authService,
+                               AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
+    private PathInfoDTO buildAppScopeResourcePath(AppResourceScope appResourceScope,
+                                                  String resourceId) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).child(ResourceTypeEnum.TEMPLATE.getId(), resourceId).build();
+    }
+
     @Override
     public AuthResult authCreateJobPlan(String username,
                                         AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         String jobTemplateName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.CREATE_JOB_PLAN, ResourceTypeEnum.TEMPLATE,
+            jobTemplateId.toString(), buildAppScopePath(appResourceScope));
     }
 
     @Override
@@ -51,8 +85,8 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.VIEW_JOB_PLAN, ResourceTypeEnum.PLAN,
+            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
     @Override
@@ -61,8 +95,8 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.EDIT_JOB_PLAN, ResourceTypeEnum.PLAN,
+            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
     @Override
@@ -71,8 +105,8 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.DELETE_JOB_PLAN, ResourceTypeEnum.PLAN,
+            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
     }
 
     @Override
@@ -81,8 +115,24 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.SYNC_JOB_PLAN, ResourceTypeEnum.PLAN,
+            jobPlanId.toString(), buildAppScopeResourcePath(appResourceScope, jobTemplateId.toString()));
+    }
+
+    private List<PermissionResource> buildPlanPermissionResource(AppResourceScope appResourceScope,
+                                                                 List<Long> jobTemplateIdList,
+                                                                 List<Long> jobPlanIdList) {
+        List<PermissionResource> planPermissionResourceList = new ArrayList<>();
+        for (int i = 0; i < jobPlanIdList.size(); i++) {
+            Long planId = jobPlanIdList.get(i);
+            Long templateId = jobTemplateIdList.get(i);
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(planId.toString());
+            resource.setResourceType(ResourceTypeEnum.PLAN);
+            resource.setPathInfo(buildAppScopeResourcePath(appResourceScope, templateId.toString()));
+            planPermissionResourceList.add(resource);
+        }
+        return planPermissionResourceList;
     }
 
     @Override
@@ -90,8 +140,11 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                            AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
-        // TODO
-        return jobPlanIdList;
+        List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
+            appResourceScope, jobTemplateIdList, jobPlanIdList);
+        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.VIEW_JOB_PLAN, appResourceScope,
+            planPermissionResourceList).parallelStream().collect(Collectors.toList());
+        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -99,8 +152,11 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                            AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
-        // TODO
-        return jobPlanIdList;
+        List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
+            appResourceScope, jobTemplateIdList, jobPlanIdList);
+        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appResourceScope,
+            planPermissionResourceList).parallelStream().collect(Collectors.toList());
+        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -108,7 +164,15 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                              AppResourceScope appResourceScope,
                                              List<Long> jobTemplateIdList,
                                              List<Long> jobPlanIdList) {
-        // TODO
-        return jobPlanIdList;
+        List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
+            appResourceScope, jobTemplateIdList, jobPlanIdList);
+        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.DELETE_JOB_PLAN, appResourceScope,
+            planPermissionResourceList).parallelStream().collect(Collectors.toList());
+        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean registerPlan(Long id, String name, String creator) {
+        return authService.registerResource(id.toString(), name, ResourceTypeId.PLAN, creator, null);
     }
 }

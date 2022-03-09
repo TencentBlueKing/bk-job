@@ -35,7 +35,7 @@ public interface NotificationAuthService {
      * 资源范围下配置消息通知鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
     AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope);

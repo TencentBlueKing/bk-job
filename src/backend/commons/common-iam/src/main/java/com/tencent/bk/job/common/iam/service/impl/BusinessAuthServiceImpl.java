@@ -22,45 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.iam.service.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
- * @since 6/11/2019 10:26
+ * 账号相关操作鉴权接口
  */
-@Data
-public class JobContext {
+@Slf4j
+@Service
+public class BusinessAuthServiceImpl implements BusinessAuthService {
 
-    private Long startTime;
+    private final AppAuthService appAuthService;
 
-    private String username;
+    @Autowired
+    public BusinessAuthServiceImpl(AppAuthService appAuthService) {
+        this.appAuthService = appAuthService;
+    }
 
-    private AppResourceScope appResourceScope;
+    @Override
+    public AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope) {
+        return appAuthService.auth(true, username, ActionId.ACCESS_BUSINESS, appResourceScope);
+    }
 
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
 }

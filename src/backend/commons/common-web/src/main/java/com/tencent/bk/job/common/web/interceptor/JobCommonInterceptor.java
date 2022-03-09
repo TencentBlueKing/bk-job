@@ -28,9 +28,8 @@ import brave.Tracer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -106,14 +105,14 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
 
-        ResourceScope resourceScope = parseScopeFromPath(request.getRequestURI());
-        log.debug("scope from path:{}", resourceScope);
-        if (resourceScope == null) {
-            resourceScope = parseScopeFromQueryStringOrBody(request);
-            log.debug("scope from query/body:{}", resourceScope);
+        AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
+        log.debug("scope from path:{}", appResourceScope);
+        if (appResourceScope == null) {
+            appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
+            log.debug("scope from query/body:{}", appResourceScope);
         }
-        if (resourceScope != null) {
-            JobContextUtil.setScope(resourceScope);
+        if (appResourceScope != null) {
+            JobContextUtil.setAppResourceScope(appResourceScope);
         }
         return true;
     }
@@ -124,7 +123,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private ResourceScope parseScopeFromPath(String requestURI) {
+    private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
         Matcher scopeTypeMatcher = SCOPE_TYPE_PATTERN.matcher(requestURI);
         Matcher scopeIdMatcher = SCOPE_ID_PATTERN.matcher(requestURI);
         String scopeType = null;
@@ -140,10 +139,10 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
             Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
             if (appIdMatcher.find()) {
                 String appId = appIdMatcher.group(1);
-                return new ResourceScope(ResourceScopeTypeEnum.BIZ, appId);
+                return new AppResourceScope(Long.valueOf(appId));
             }
         } else {
-            return new ResourceScope(scopeType, scopeId);
+            return new AppResourceScope(scopeType, scopeId, null);
         }
         return null;
     }
@@ -152,16 +151,16 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         return parseValueFromQueryStringOrBody(request, "bk_username");
     }
 
-    private ResourceScope parseScopeFromQueryStringOrBody(HttpServletRequest request) {
+    private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
         String scopeType = parseValueFromQueryStringOrBody(request, "bk_scope_type");
         String scopeId = parseValueFromQueryStringOrBody(request, "bk_scope_id");
         if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new ResourceScope(scopeType, scopeId);
+            return new AppResourceScope(scopeType, scopeId, null);
         } else {
             // 兼容当前业务ID参数
             String bizId = parseValueFromQueryStringOrBody(request, "bk_biz_id");
             if (StringUtils.isNotBlank(bizId)) {
-                return new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId);
+                return new AppResourceScope(Long.valueOf(bizId));
             }
         }
         return null;
@@ -200,7 +199,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
-            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), JobContextUtil.getScope(),
+            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
+                JobContextUtil.getAppResourceScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
@@ -216,12 +216,12 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         }
         if (ex != null) {
             log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getScope(),
+                JobContextUtil.getAppResourceScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI(), ex);
         } else {
             log.debug("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                JobContextUtil.getScope(),
+                JobContextUtil.getAppResourceScope(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }

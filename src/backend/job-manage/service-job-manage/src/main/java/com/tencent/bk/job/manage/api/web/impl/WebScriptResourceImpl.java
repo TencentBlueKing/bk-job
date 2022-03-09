@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
@@ -422,9 +423,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
             resultPageData.getData()
                 .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
             resultPageData.getData().forEach(script -> {
@@ -758,9 +759,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             });
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
             scriptList
                 .forEach(script -> {
                     script.setCanManage(allowedManageScriptIdList.contains(script.getId()));
@@ -1107,7 +1108,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             }
             return resource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, actionId, appId, resources);
+        return appAuthService.batchAuthResources(username, actionId, new AppResourceScope(appId), resources);
     }
 
     private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {

@@ -37,7 +37,7 @@ public interface TicketAuthService {
      * 资源范围下创建凭证鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
     AuthResult authCreateTicket(String username, AppResourceScope appResourceScope);
@@ -46,7 +46,7 @@ public interface TicketAuthService {
      * 资源范围下管理凭证鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param ticketId      凭证ID
      * @param ticketName    凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
@@ -60,7 +60,7 @@ public interface TicketAuthService {
      * 资源范围下使用凭证鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param ticketId      凭证ID
      * @param ticketName    凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
@@ -74,7 +74,7 @@ public interface TicketAuthService {
      * 资源范围下管理凭证批量鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param ticketIdList  凭证ID列表
      * @return 有权限的凭证ID
      */
@@ -86,7 +86,7 @@ public interface TicketAuthService {
      * 资源范围下使用凭证批量鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param ticketIdList  凭证ID列表
      * @return 有权限的凭证ID
      */

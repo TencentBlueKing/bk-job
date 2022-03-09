@@ -22,45 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.iam.service;
 
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
 
 /**
- * @since 6/11/2019 10:26
+ * 业务（集）相关操作鉴权接口
  */
-@Data
-public class JobContext {
+public interface BusinessAuthService {
+    /**
+     * 资源范围下访问业务（集）
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @return 鉴权结果
+     */
+    AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope);
 
-    private Long startTime;
-
-    private String username;
-
-    private AppResourceScope appResourceScope;
-
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
 }

@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
@@ -415,7 +416,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             ).build());
             return resource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, actionId, appId, resources);
+        return appAuthService.batchAuthResources(username, actionId, new AppResourceScope(appId), resources);
     }
 
     private ValidateResult checkTemplateTagBatchPatchReq(TemplateTagBatchPatchReq req) {
