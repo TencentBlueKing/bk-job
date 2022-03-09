@@ -61,7 +61,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -71,7 +70,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class AppAuthServiceImpl implements AppAuthService {
+public class AppAuthServiceImpl extends BasicAuthService implements AppAuthService {
     private final AuthHelper authHelper;
     private final BusinessAuthHelper businessAuthHelper;
     private final PolicyService policyService;
@@ -100,6 +99,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
+        super.setResourceNameQueryService(resourceNameQueryService);
     }
 
     public boolean authSpecialAppByMaintainer(String username, AppResourceScope appResourceScope) {
@@ -203,20 +203,6 @@ public class AppAuthServiceImpl implements AppAuthService {
         return instance;
     }
 
-    private AuthResult buildFailAuthResult(String actionId, ResourceTypeEnum resourceType,
-                                           Collection<String> resourceIds) {
-        AuthResult authResult = AuthResult.fail();
-        if (resourceType == null) {
-            authResult.addRequiredPermission(actionId, null);
-        } else {
-            for (String resourceId : resourceIds) {
-                String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-                authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId,
-                    resourceName));
-            }
-        }
-        return authResult;
-    }
 
     @Override
     public List<String> batchAuth(String username,
@@ -320,13 +306,6 @@ public class AppAuthServiceImpl implements AppAuthService {
         return instances;
     }
 
-    private List<InstanceDTO> buildInstanceList(List<PermissionResource> resources) {
-        List<InstanceDTO> instances = new LinkedList<>();
-        resources.forEach(resource -> instances.add(buildInstance(resource.getResourceType(), resource.getResourceId(),
-            resource.getPathInfo())));
-        return instances;
-    }
-
     private Map<String, Map<String, List<PermissionResource>>> groupResourcesByActionAndResourceType(
         List<PermissionActionResource> permissionActionResources) {
         Map<String, Map<String, List<PermissionResource>>> resourcesGroupByActionAndType = new HashMap<>();
@@ -347,18 +326,6 @@ public class AppAuthServiceImpl implements AppAuthService {
                 return resourcesGroupByType;
             }));
         return resourcesGroupByActionAndType;
-    }
-
-    private InstanceDTO convertPermissionResourceToInstance(PermissionResource permissionResource) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(permissionResource.getResourceId());
-        if (StringUtils.isEmpty(permissionResource.getType())) {
-            instance.setType(permissionResource.getResourceType().getId());
-        } else {
-            instance.setType(permissionResource.getType());
-        }
-        instance.setName(permissionResource.getResourceName());
-        return instance;
     }
 
     @Override
@@ -383,14 +350,5 @@ public class AppAuthServiceImpl implements AppAuthService {
         relatedResourceTypes.add(businessResourceTypeDTO);
         action.setRelatedResourceTypes(relatedResourceTypes);
         return iamClient.getApplyUrl(Collections.singletonList(action));
-    }
-
-    private InstanceDTO buildInstance(ResourceTypeEnum resourceType, String resourceId, PathInfoDTO path) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(resourceId);
-        instance.setType(resourceType.getId());
-        instance.setSystem(resourceType.getSystemId());
-        instance.setPath(path);
-        return instance;
     }
 }

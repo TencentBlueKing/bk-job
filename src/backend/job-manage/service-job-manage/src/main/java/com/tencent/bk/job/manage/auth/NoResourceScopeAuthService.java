@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
 
+import java.util.List;
+
 /**
  * 资源范围无关的相关操作鉴权接口
  */
@@ -64,6 +66,24 @@ public interface NoResourceScopeAuthService {
     AuthResult authManagePublicScript(String username, String scriptId);
 
     /**
+     * 管理公共脚本批量鉴权
+     *
+     * @param username     用户名
+     * @param scriptIdList 公共脚本ID列表
+     * @return 有权限的公共脚本ID
+     */
+    List<String> batchAuthManagePublicScript(String username, List<String> scriptIdList);
+
+    /**
+     * 管理公共脚本批量鉴权并返回鉴权结果
+     *
+     * @param username     用户名
+     * @param scriptIdList 公共脚本ID列表
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResultManagePublicScript(String username, List<String> scriptIdList);
+
+    /**
      * 全局设置鉴权
      *
      * @param username 用户名
@@ -94,4 +114,14 @@ public interface NoResourceScopeAuthService {
      * @return 鉴权结果
      */
     AuthResult authHighRiskDetectRule(String username);
+
+    /**
+     * 注册公共脚本实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerPublicScript(String id, String name, String creator);
 }
