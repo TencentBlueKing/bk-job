@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.ArrayUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.web.WebAppAccountResource;
@@ -172,26 +173,24 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    public Response<PageData<AccountVO>> listAppAccounts(
-        String username,
-        Long appId,
-        Long id,
-        String name,
-        String alias,
-        Integer category,
-        Integer type,
-        String creator,
-        String lastModifyUser,
-        Integer start,
-        Integer pageSize,
-        String orderField,
-        Integer order,
-        String keyword
-    ) {
-        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
-        if (applicationDTO == null) {
-            return Response.buildCommonFailResp(ErrorCode.WRONG_APP_ID);
-        }
+    public Response<PageData<AccountVO>> listAppAccounts(String username,
+                                                         Long appId,
+                                                         String scopeType,
+                                                         String scopeId,
+                                                         Long id,
+                                                         String name,
+                                                         String alias,
+                                                         Integer category,
+                                                         Integer type,
+                                                         String creator,
+                                                         String lastModifyUser,
+                                                         Integer start,
+                                                         Integer pageSize,
+                                                         String orderField,
+                                                         Integer order,
+                                                         String keyword) {
+        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+
         PageData<AccountDTO> pageData;
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);
@@ -201,7 +200,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         if (keyword == null) {
             // 按字段搜索
             AccountDTO accountQuery = new AccountDTO();
-            accountQuery.setAppId(appId);
+            accountQuery.setAppId(appResourceScope.getAppId());
             if (id != null) {
                 accountQuery.setId(id);
             } else {
@@ -215,7 +214,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             pageData = accountService.listPageAccount(accountQuery, baseSearchCondition);
         } else {
             // 模糊搜索
-            pageData = accountService.searchPageAccount(appId, keyword, baseSearchCondition);
+            pageData = accountService.searchPageAccount(appResourceScope.getAppId(), keyword, baseSearchCondition);
         }
         PageData<AccountVO> result = new PageData<>();
         result.setTotal(pageData.getTotal());
@@ -232,13 +231,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         // 添加权限数据
         // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> canManageIdList =
-            accountAuthService.batchAuthManageAccount(username, new AppResourceScope(appId),
+            accountAuthService.batchAuthManageAccount(username, appResourceScope,
                 accountVOS.parallelStream().map(AccountVO::getId).collect(Collectors.toList()));
         accountVOS.forEach(it -> {
             it.setCanManage(canManageIdList.contains(it.getId()));
         });
         result.setData(accountVOS);
-        result.setCanCreate(checkCreateAccountPermission(username, appId).isPass());
+        result.setCanCreate(checkCreateAccountPermission(username, appResourceScope.getAppId()).isPass());
         return Response.buildSuccessResp(result);
     }
 

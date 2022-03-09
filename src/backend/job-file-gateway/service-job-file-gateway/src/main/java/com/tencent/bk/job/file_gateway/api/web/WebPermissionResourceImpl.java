@@ -74,13 +74,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long bizId,
+                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
+        ResourceScope resourceScope = getScope(appId, scopeType, scopeId);
         if (resourceScope == null) {
             return Response.buildCommonFailResp(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -45,37 +46,50 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 /**
- * @since 8/11/2019 15:29
+ * 账号 Web API
  */
 @Api(tags = {"job-manage:web:App_Account"})
-@RequestMapping("/web/account/app/{appId}")
+@RequestMapping("/web")
 @WebAPI
 public interface WebAppAccountResource {
 
     @ApiOperation(value = "新增账号", produces = "application/json")
-    @PostMapping("/account")
+    @PostMapping("/account/app/{appId}/account")
     Response<Long> saveAccount(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "创建账号请求") @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
-
-    @ApiOperation(value = "更新账号", produces = "application/json")
-    @PutMapping("/account")
-    Response updateAccount(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "更新账号请求") @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
-
-    @ApiOperation(value = "根据条件获取业务下的所有账号", produces = "application/json")
-    @GetMapping("/accounts/page")
-    Response<PageData<AccountVO>> listAppAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
         @ApiParam(value = "业务 ID", required = true)
         @PathVariable("appId")
             Long appId,
-        @ApiParam(value = "账号ID：精确搜索（若传入则自动屏蔽其他条件）", required = false)
+        @ApiParam(value = "创建账号请求")
+        @RequestBody
+            AccountCreateUpdateReq accountCreateUpdateReq);
+
+    @ApiOperation(value = "更新账号", produces = "application/json")
+    @PutMapping("/account/app/{appId}/account")
+    Response updateAccount(
+        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
+        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
+        @ApiParam(value = "更新账号请求") @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
+
+    @ApiOperation(value = "根据条件获取业务下的所有账号", produces = "application/json")
+    @GetMapping({"/account/app/{appId}/accounts/page", "/scope/{scopeType}/{scopeId}/accounts/page"})
+    Response<PageData<AccountVO>> listAppAccounts(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
+        @ApiParam(value = "账号ID：精确搜索（若传入则自动屏蔽其他条件）")
         @RequestParam(value = "id", required = false)
             Long id,
         @ApiParam(value = "账号名称：模糊搜索")
@@ -114,21 +128,21 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "删除账号", produces = "application/json")
-    @DeleteMapping("/account/{accountId}")
+    @DeleteMapping("/account/app/{appId}/account/{accountId}")
     Response deleteAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "账号ID", required = true) @PathVariable("accountId") Long accountId);
 
     @ApiOperation(value = "获取账号详情", produces = "application/json")
-    @GetMapping("/account/{accountId}")
+    @GetMapping("/account/app/{appId}/account/{accountId}")
     Response<AccountVO> getAccountById(
         @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "账号ID", required = true) @PathVariable("accountId") Long accountId);
 
     @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
-    @GetMapping("/accounts")
+    @GetMapping("/account/app/{appId}/accounts")
     Response<List<AccountVO>> listAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
