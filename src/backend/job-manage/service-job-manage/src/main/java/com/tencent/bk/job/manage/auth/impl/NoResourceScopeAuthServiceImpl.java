@@ -94,8 +94,9 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
     }
 
     @Override
-    public AuthResult authViewDashBoard(String username) {
-        return authService.auth(true, username, ActionId.DASHBOARD_VIEW);
+    public AuthResult authViewDashBoard(String username, String dashBoardId) {
+        return authService.auth(true, username, ActionId.DASHBOARD_VIEW, ResourceTypeEnum.DASHBOARD_VIEW,
+            dashBoardId, null);
     }
 
     @Override
@@ -106,6 +107,11 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
     @Override
     public AuthResult authHighRiskDetectRule(String username) {
         return authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RULE);
+    }
+
+    @Override
+    public AuthResult authHighRiskDetectRecord(String username) {
+        return authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RECORD);
     }
 
     @Override

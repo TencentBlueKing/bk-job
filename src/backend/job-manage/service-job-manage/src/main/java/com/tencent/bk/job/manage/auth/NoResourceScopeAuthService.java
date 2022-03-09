@@ -94,10 +94,11 @@ public interface NoResourceScopeAuthService {
     /**
      * 运营视图查看鉴权
      *
-     * @param username 用户名
+     * @param username    用户名
+     * @param dashBoardId 运营视图ID
      * @return 鉴权结果
      */
-    AuthResult authViewDashBoard(String username);
+    AuthResult authViewDashBoard(String username, String dashBoardId);
 
     /**
      * 服务状态查看鉴权
@@ -114,6 +115,14 @@ public interface NoResourceScopeAuthService {
      * @return 鉴权结果
      */
     AuthResult authHighRiskDetectRule(String username);
+
+    /**
+     * 高危语句拦截记录查看鉴权
+     *
+     * @param username 用户名
+     * @return 鉴权结果
+     */
+    AuthResult authHighRiskDetectRecord(String username);
 
     /**
      * 注册公共脚本实例
