@@ -45,7 +45,9 @@ public class IamAppTransferAspect {
             for (Object arg : args) {
                 if (arg instanceof AppResourceScope) {
                     AppResourceScope appResourceScope = (AppResourceScope) arg;
+                    log.debug("before appTransfer:scope={}", appResourceScope);
                     appScopeMappingService.fillResourceScope(appResourceScope);
+                    log.debug("after  appTransfer:scope={}", appResourceScope);
                 }
             }
         } catch (Throwable throwable) {

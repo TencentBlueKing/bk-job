@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 
 /**
  * 业务（集）相关操作鉴权接口
@@ -41,12 +40,4 @@ public interface BusinessAuthService {
      */
     AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope);
 
-    /**
-     * 资源范围下访问业务（集）
-     *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @return 鉴权结果
-     */
-    AuthResult authAccessBusiness(String username, ResourceScope resourceScope);
 }

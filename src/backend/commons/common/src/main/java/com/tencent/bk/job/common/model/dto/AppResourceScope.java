@@ -61,7 +61,7 @@ public class AppResourceScope extends ResourceScope {
     public String toString() {
         return new StringJoiner(", ", AppResourceScope.class.getSimpleName() + "[", "]")
             .add("appId=" + appId)
-            .add("type=" + getType().getValue())
+            .add("type=" + (getType() == null ? "null" : getType().getValue()))
             .add("id=" + getId())
             .toString();
     }

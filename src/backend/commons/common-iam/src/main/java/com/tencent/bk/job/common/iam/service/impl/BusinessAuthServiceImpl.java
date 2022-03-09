@@ -29,8 +29,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,13 +41,10 @@ import org.springframework.stereotype.Service;
 public class BusinessAuthServiceImpl implements BusinessAuthService {
 
     private final AppAuthService appAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public BusinessAuthServiceImpl(AppAuthService appAuthService,
-                                   AppScopeMappingService appScopeMappingService) {
+    public BusinessAuthServiceImpl(AppAuthService appAuthService) {
         this.appAuthService = appAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -57,10 +52,4 @@ public class BusinessAuthServiceImpl implements BusinessAuthService {
         return appAuthService.auth(true, username, ActionId.ACCESS_BUSINESS, appResourceScope);
     }
 
-    @Override
-    public AuthResult authAccessBusiness(String username, ResourceScope resourceScope) {
-        Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
-        AppResourceScope appResourceScope = new AppResourceScope(resourceScope.getType(), resourceScope.getId(), appId);
-        return appAuthService.auth(true, username, ActionId.ACCESS_BUSINESS, appResourceScope);
-    }
 }
