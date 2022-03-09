@@ -227,6 +227,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             }
         }
         // 添加权限数据
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> canManageIdList =
             accountAuthService.batchAuthManageAccount(username, new AppResourceScope(appId),
                 accountVOS.parallelStream().map(AccountVO::getId).collect(Collectors.toList()));
@@ -321,6 +322,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                 accountVOS.add(accountVO);
             }
             // 批量鉴权
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<Long> canManageIdList = accountAuthService.batchAuthManageAccount(username,
                 new AppResourceScope(appId), accountIdList);
             Set<Long> canManageIdSet = new HashSet<>(canManageIdList);
@@ -334,11 +336,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     private AuthResult checkCreateAccountPermission(String username, Long appId) {
         // 需要拥有在业务下创建账号的权限
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return accountAuthService.authCreateAccount(username, new AppResourceScope(appId));
     }
 
     private AuthResult checkManageAccountPermission(String username, Long appId, Long accountId) {
         // 需要拥有在业务下管理某个具体账号的权限
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return accountAuthService.authManageAccount(username, new AppResourceScope(appId), accountId, null);
     }
 
@@ -348,6 +352,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         if (shouldAuthAccount(appId)) {
             List<Long> accountIdList = accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList());
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<Long> allowedIdList = accountAuthService.batchAuthUseAccount(username, new AppResourceScope(appId),
                 accountIdList);
             Set<Long> allowedIdSet = new HashSet<>(allowedIdList);

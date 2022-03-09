@@ -168,6 +168,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     private void processCronJobPermission(Long appId, PageData<CronJobVO> resultPageData) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         resultPageData.setCanCreate(
             cronAuthService.authCreateCron(JobContextUtil.getUsername(), new AppResourceScope(appId)).isPass());
 
@@ -177,6 +178,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private void processCronJobPermission(Long appId, List<CronJobVO> cronJobList) {
         List<Long> cronJobIdList = new ArrayList<>();
         cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId()));
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedCronJob = cronAuthService.batchAuthManageCron(
             JobContextUtil.getUsername(), new AppResourceScope(appId), cronJobIdList);
         cronJobList.forEach(cronJob -> {
@@ -334,6 +336,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
         CronJobVO cronJobVO = CronJobInfoDTO.toVO(cronJobService.getCronJobInfoById(appId, cronJobId));
 
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = cronAuthService.authManageCron(username,
             new AppResourceScope(appId), cronJobId, cronJobVO.getName());
         if (authResult.isPass()) {
@@ -349,12 +352,14 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
         if (cronJobId > 0) {
             cronJobCreateUpdateReq.setId(cronJobId);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             AuthResult authResult = cronAuthService.authManageCron(username,
                 new AppResourceScope(appId), cronJobId, null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             AuthResult authResult = cronAuthService.authCreateCron(username,
                 new AppResourceScope(appId));
             if (!authResult.isPass()) {
@@ -385,6 +390,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
     @Override
     public Response<Boolean> deleteCronJob(String username, Long appId, Long cronJobId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = cronAuthService.authManageCron(username,
             new AppResourceScope(appId), cronJobId, null);
         if (authResult.isPass()) {
@@ -397,6 +403,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     @Override
     public Response<Boolean> changeCronJobEnableStatus(String username, Long appId, Long cronJobId,
                                                        Boolean enable) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = cronAuthService.authManageCron(username,
             new AppResourceScope(appId), cronJobId, null);
         if (authResult.isPass()) {
@@ -426,6 +433,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         List<Long> cronJobInstanceList = new ArrayList<>();
         batchUpdateCronJobReq.getCronJobInfoList()
             .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowed =
             cronAuthService.batchAuthManageCron(username, new AppResourceScope(appId), cronJobInstanceList);
         if (allowed.size() == cronJobInstanceList.size()) {

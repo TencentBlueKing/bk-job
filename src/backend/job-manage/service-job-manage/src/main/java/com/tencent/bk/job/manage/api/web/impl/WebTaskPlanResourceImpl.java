@@ -240,12 +240,15 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             taskPlanList.parallelStream().map(TaskPlanVO::getTemplateId).collect(Collectors.toList());
         List<Long> jobPlanIdList =
             taskPlanList.parallelStream().map(TaskPlanVO::getId).collect(Collectors.toList());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedViewPlan =
             planAuthService.batchAuthViewJobPlan(username, new AppResourceScope(appId), jobTemplateIdList,
                 jobPlanIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedEditPlan =
             planAuthService.batchAuthEditJobPlan(username, new AppResourceScope(appId), jobTemplateIdList,
                 jobPlanIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedDeletePlan =
             planAuthService.batchAuthDeleteJobPlan(username, new AppResourceScope(appId), jobTemplateIdList,
                 jobPlanIdList);
@@ -304,6 +307,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         if (taskPlan == null) {
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = planAuthService.authViewJobPlan(username, new AppResourceScope(appId), templateId,
             planId, taskPlan.getName());
         if (!authResult.isPass()) {
@@ -320,9 +324,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         fillCronInfo(appId, taskPlan);
         TaskPlanVO taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
         taskPlanVO.setCanView(true);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskPlanVO.setCanEdit(planAuthService.authEditJobPlan(username, new AppResourceScope(appId), templateId,
             planId, taskPlan.getName())
             .isPass());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskPlanVO.setCanDelete(planAuthService.authDeleteJobPlan(username, new AppResourceScope(appId), templateId,
             planId, taskPlan.getName())
             .isPass());
@@ -359,14 +365,17 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         AuthResult authResult;
         if (planId > 0) {
             if (planService.isDebugPlan(appId, templateId, planId)) {
+                // TODO: 通过scopeType与scopeId构造AppResourceScope
                 authResult = planAuthService.authEditJobPlan(username, new AppResourceScope(appId), templateId,
                     planId, null);
             } else {
+                // TODO: 通过scopeType与scopeId构造AppResourceScope
                 authResult = planAuthService.authEditJobPlan(username, new AppResourceScope(appId), templateId,
                     planId, null);
             }
             taskPlanCreateUpdateReq.setId(planId);
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             authResult = planAuthService.authCreateJobPlan(username, new AppResourceScope(appId), templateId, null);
         }
         if (!authResult.isPass()) {
@@ -390,6 +399,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<Boolean> deletePlan(String username, Long appId, Long templateId, Long planId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = planAuthService.authDeleteJobPlan(username, new AppResourceScope(appId), templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -431,6 +441,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<TaskPlanSyncInfoVO> syncInfo(String username, Long appId, Long templateId, Long planId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = planAuthService.authSyncJobPlan(username, new AppResourceScope(appId), templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -456,6 +467,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> syncConfirm(String username, Long appId, Long templateId, Long planId,
                                          String templateVersion) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = planAuthService.authSyncJobPlan(username, new AppResourceScope(appId), templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -523,6 +535,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             planIdList.add(taskVariableValueUpdateReq.getPlanId());
         }
 
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> canEditPlanIdList = planAuthService.batchAuthEditJobPlan(username, new AppResourceScope(appId),
             templateIdList, planIdList);
         if (CollectionUtils.isEmpty(canEditPlanIdList) || (canEditPlanIdList.size() != planIdSet.size())) {
