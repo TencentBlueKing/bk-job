@@ -70,7 +70,6 @@ public class BasicScriptVO {
     /**
      * 业务id
      */
-    @ApiModelProperty("业务ID")
     @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
     private Long appId;
 

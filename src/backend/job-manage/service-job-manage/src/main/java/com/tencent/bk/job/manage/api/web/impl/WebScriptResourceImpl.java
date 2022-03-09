@@ -43,6 +43,8 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
@@ -129,6 +131,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final TagService tagService;
 
+    private final AppScopeMappingService appScopeMappingService;
+
     @Autowired
     public WebScriptResourceImpl(ScriptService scriptService,
                                  MessageI18nService i18nService,
@@ -136,7 +140,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                  ScriptDTOBuilder scriptDTOBuilder,
                                  AuthService authService,
                                  AppAuthService appAuthService,
-                                 TagService tagService) {
+                                 TagService tagService,
+                                 AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
@@ -144,6 +149,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         this.authService = authService;
         this.appAuthService = appAuthService;
         this.tagService = tagService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -964,6 +970,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
             ScriptSyncResultVO syncVO = new ScriptSyncResultVO();
             ScriptSyncTemplateStepDTO syncStep = syncResult.getTemplateStep();
             syncVO.setAppId(syncStep.getAppId());
+            if (syncStep.getAppId() != null && !syncStep.getAppId().equals(PUBLIC_APP_ID)) {
+                ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(syncStep.getAppId());
+                syncVO.setScopeType(resourceScope.getType().getValue());
+                syncVO.setScopeId(resourceScope.getId());
+            }
             syncVO.setScriptId(syncStep.getScriptId());
             syncVO.setScriptVersionId(syncStep.getScriptVersionId());
             syncVO.setScriptVersion(syncStep.getScriptVersion());
