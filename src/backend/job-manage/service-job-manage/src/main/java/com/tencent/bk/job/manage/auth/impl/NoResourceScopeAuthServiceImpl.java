@@ -52,14 +52,12 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
 
     @Override
     public AuthResult authCreateWhiteList(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.CREATE_WHITELIST);
     }
 
     @Override
     public AuthResult authManageWhiteList(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.MANAGE_WHITELIST);
     }
 
     @Override
@@ -92,26 +90,22 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
 
     @Override
     public AuthResult authGlobalSetting(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.GLOBAL_SETTINGS);
     }
 
     @Override
     public AuthResult authViewDashBoard(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.DASHBOARD_VIEW);
     }
 
     @Override
     public AuthResult authViewServiceState(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.SERVICE_STATE_ACCESS);
     }
 
     @Override
     public AuthResult authHighRiskDetectRule(String username) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.HIGH_RISK_DETECT_RULE);
     }
 
     @Override

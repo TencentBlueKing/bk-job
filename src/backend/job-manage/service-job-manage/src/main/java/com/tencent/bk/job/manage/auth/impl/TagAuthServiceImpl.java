@@ -24,22 +24,46 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TagAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 标签相关操作鉴权接口
  */
 @Service
 public class TagAuthServiceImpl implements TagAuthService {
+
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public TagAuthServiceImpl(AuthService authService,
+                              AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
     @Override
     public AuthResult authCreateTag(String username, AppResourceScope appResourceScope) {
-        // TODO
-        return AuthResult.pass();
+        return appAuthService.auth(true, username, ActionId.CREATE_TAG, appResourceScope);
     }
 
     @Override
@@ -47,15 +71,17 @@ public class TagAuthServiceImpl implements TagAuthService {
                                     AppResourceScope appResourceScope,
                                     Long tagId,
                                     String tagName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.MANAGE_TAG, ResourceTypeEnum.TAG, tagId.toString(),
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public List<Long> batchAuthManageTag(String username,
                                          AppResourceScope appResourceScope,
                                          List<Long> tagIdList) {
-        // TODO
-        return tagIdList;
+        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_TAG,
+            appResourceScope, ResourceTypeEnum.TAG,
+            tagIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
     }
 }

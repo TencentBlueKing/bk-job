@@ -117,6 +117,18 @@ public interface TemplateAuthService {
                                         List<Long> jobTemplateIdList);
 
     /**
+     * 资源范围下编辑作业模板批量鉴权并返回鉴权结果
+     *
+     * @param username          用户名
+     * @param appResourceScope     资源范围
+     * @param jobTemplateIdList 作业模板ID列表
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResultEditJobTemplate(String username,
+                                        AppResourceScope appResourceScope,
+                                        List<Long> jobTemplateIdList);
+
+    /**
      * 资源范围下删除作业模板批量鉴权
      *
      * @param username          用户名
@@ -127,4 +139,14 @@ public interface TemplateAuthService {
     List<Long> batchAuthDeleteJobTemplate(String username,
                                           AppResourceScope appResourceScope,
                                           List<Long> jobTemplateIdList);
+
+    /**
+     * 注册作业模板实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerTemplate(Long id, String name, String creator);
 }
