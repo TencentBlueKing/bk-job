@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -52,86 +53,159 @@ import java.util.List;
  * @date 2019/10/10
  */
 @Api(tags = {"job-manage:web:Tag_Management"})
-@RequestMapping("/web/tag/app/{appId}")
+@RequestMapping("/web")
 @RestController
 @WebAPI
 public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
-    @GetMapping("/tag/list")
+    @GetMapping(value = {"/tag/app/{appId}/tag/list", "/scope/{scopeType}/{scopeId}/tag/list"})
     Response<PageData<TagVO>> listPageTags(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam("标签名称,支持模糊查询")
-        @RequestParam(value = "name", required = false) String name,
+        @RequestParam(value = "name", required = false)
+            String name,
         @ApiParam("创建人")
-        @RequestParam(value = "creator", required = false) String creator,
+        @RequestParam(value = "creator", required = false)
+            String creator,
         @ApiParam("更新人")
-        @RequestParam(value = "lastModifyUser", required = false) String lastModifyUser,
+        @RequestParam(value = "lastModifyUser", required = false)
+            String lastModifyUser,
         @ApiParam("分页-开始")
-        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "start", required = false)
+            Integer start,
         @ApiParam("分页-每页大小")
-        @RequestParam(value = "pageSize", required = false) Integer pageSize,
+        @RequestParam(value = "pageSize", required = false)
+            Integer pageSize,
         @ApiParam("排序字段,标签名:name,创建时间:createTime,更新时间:lastModifyTime")
-        @RequestParam(value = "orderField", required = false) String orderField,
+        @RequestParam(value = "orderField", required = false)
+            String orderField,
         @ApiParam("排序顺序,0:降序;1:升序")
-        @RequestParam(value = "order", required = false) Integer order);
+        @RequestParam(value = "order", required = false)
+            Integer order
+    );
 
     @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)", produces = "application/json")
-    @GetMapping("/tag/basic/list")
+    @GetMapping(value = {"/tag/app/{appId}/tag/basic/list", "/scope/{scopeType}/{scopeId}/tag/basic/list"})
     Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam("标签名称")
-        @RequestParam(value = "name", required = false) String name);
+        @RequestParam(value = "name", required = false)
+            String name
+    );
 
     @ApiOperation(value = "更新标签名称", produces = "application/json")
-    @PutMapping("/tag/{tagId}")
+    @PutMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}")
     Response<Boolean> updateTagInfo(
-        @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable(
-            "appId") Long appId,
-        @ApiParam(value = "标签 ID", required = true) @PathVariable("tagId") Long tagId,
-        @ApiParam("标签修改请求") @RequestBody TagCreateUpdateReq tagCreateUpdateReq);
+        @ApiParam("用户名，网关自动传入") @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
+        @ApiParam(value = "标签 ID", required = true)
+        @PathVariable("tagId")
+            Long tagId,
+        @ApiParam("标签修改请求")
+        @RequestBody
+            TagCreateUpdateReq tagCreateUpdateReq
+    );
 
     @ApiOperation(value = "创建标签", produces = "application/json")
-    @PostMapping("/tag")
+    @PostMapping("/scope/{scopeType}/{scopeId}/tag")
     Response<TagVO> saveTagInfo(
-        @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam("标签创建请求") @RequestBody TagCreateUpdateReq tagCreateUpdateReq);
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam("标签创建请求")
+        @RequestBody
+            TagCreateUpdateReq tagCreateUpdateReq
+    );
 
     @ApiOperation(value = "删除标签", produces = "application/json")
-    @DeleteMapping("/tag/{tagId}")
+    @DeleteMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}")
     Response<Boolean> deleteTag(
-        @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "标签 ID", required = true) @PathVariable("tagId") Long tagId);
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "标签 ID", required = true)
+        @PathVariable("tagId")
+            Long tagId
+    );
 
 
     @ApiOperation(value = "批量流转标签", produces = "application/json")
-    @PutMapping("/tag/{tagId}/resources")
+    @PutMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}/resources")
     Response<?> patchTagRefResourceTags(
-        @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable(
-            "appId") Long appId,
-        @ApiParam(value = "标签 ID", required = true) @PathVariable("tagId") Long tagId,
-        @ApiParam("批量修改资源引用的标签的请求") @RequestBody BatchPatchResourceTagReq tagBatchUpdateReq);
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "标签 ID", required = true)
+        @PathVariable("tagId")
+            Long tagId,
+        @ApiParam("批量修改资源引用的标签的请求")
+        @RequestBody
+            BatchPatchResourceTagReq tagBatchUpdateReq
+    );
 
     @ApiOperation(value = "检查标签名称是否合法", produces = "application/json")
-    @GetMapping("/tag/{tagId}/checkName")
+    @GetMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}/checkName")
     Response<Boolean> checkTagName(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "标签ID，新建时填 0", required = true)
         @PathVariable("tagId") Long tagId,
         @ApiParam(value = "名称", required = true)
-        @RequestParam(value = "name") String name);
+        @RequestParam(value = "name") String name
+    );
 
 }

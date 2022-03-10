@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,30 +48,34 @@ public class TaskTemplateAuthServiceImpl implements TaskTemplateAuthService {
     }
 
     @Override
-    public void processTemplatePermission(String username, Long appId,
+    public void processTemplatePermission(String username, AppResourceScope appResourceScope,
                                           PageData<TaskTemplateVO> taskTemplateVOPageData) {
         taskTemplateVOPageData
             .setCanCreate(authService.auth(false, username, ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS,
-                appId.toString(), null).isPass());
-        processTemplatePermission(username, appId, taskTemplateVOPageData.getData());
+                appResourceScope.getAppId().toString(), null).isPass());
+        processTemplatePermission(username, appResourceScope, taskTemplateVOPageData.getData());
     }
 
     @Override
-    public void processTemplatePermission(String username, Long appId, List<TaskTemplateVO> taskTemplateVOList) {
+    public void processTemplatePermission(String username, AppResourceScope appResourceScope,
+                                          List<TaskTemplateVO> taskTemplateVOList) {
         boolean canCreate = authService.auth(false, username, ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS
-            , appId.toString(), null).isPass();
+            , appResourceScope.getAppId().toString(), null).isPass();
         List<String> templateIdList = new ArrayList<>();
         taskTemplateVOList.forEach(template -> {
             templateIdList.add(template.getId().toString());
         });
         List<Long> allowedViewTemplate = authService
-            .batchAuth(username, ActionId.VIEW_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
+            .batchAuth(username, ActionId.VIEW_JOB_TEMPLATE, appResourceScope.getAppId(), ResourceTypeEnum.TEMPLATE,
+                templateIdList)
             .parallelStream().map(Long::valueOf).collect(Collectors.toList());
         List<Long> allowedEditTemplate = authService
-            .batchAuth(username, ActionId.EDIT_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
+            .batchAuth(username, ActionId.EDIT_JOB_TEMPLATE, appResourceScope.getAppId(), ResourceTypeEnum.TEMPLATE,
+                templateIdList)
             .parallelStream().map(Long::valueOf).collect(Collectors.toList());
         List<Long> allowedDeleteTemplate = authService
-            .batchAuth(username, ActionId.DELETE_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
+            .batchAuth(username, ActionId.DELETE_JOB_TEMPLATE, appResourceScope.getAppId(), ResourceTypeEnum.TEMPLATE
+                , templateIdList)
             .parallelStream().map(Long::valueOf).collect(Collectors.toList());
         // List<Long> allowedDebugTemplate = authService
         // .batchAuth(username, ActionId.DEBUG_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)

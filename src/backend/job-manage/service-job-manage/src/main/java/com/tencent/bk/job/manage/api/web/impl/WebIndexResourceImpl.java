@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebIndexResource;
@@ -97,9 +98,9 @@ public class WebIndexResourceImpl implements WebIndexResource {
     @Override
     public Response<List<TaskTemplateVO>> listMyFavorTasks(String username, String scopeType, String scopeId,
                                                            Long limit) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        List<TaskTemplateVO> resultList = indexService.listMyFavorTasks(username, appId, limit);
-        taskTemplateAuthService.processTemplatePermission(username, appId, resultList);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        List<TaskTemplateVO> resultList = indexService.listMyFavorTasks(username, appResourceScope.getAppId(), limit);
+        taskTemplateAuthService.processTemplatePermission(username, appResourceScope, resultList);
         return Response.buildSuccessResp(resultList);
     }
 }

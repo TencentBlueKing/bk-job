@@ -29,6 +29,8 @@ import com.tencent.bk.job.backup.client.WebTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
@@ -50,19 +52,24 @@ import java.util.stream.Collectors;
 public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final WebTemplateResourceClient webTemplateResourceClient;
     private final ServiceTemplateResourceClient serviceTemplateResourceClient;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public TaskTemplateServiceImpl(WebTemplateResourceClient webTemplateResourceClient,
-                                   ServiceTemplateResourceClient serviceTemplateResourceClient) {
+                                   ServiceTemplateResourceClient serviceTemplateResourceClient,
+                                   AppScopeMappingService appScopeMappingService) {
         this.webTemplateResourceClient = webTemplateResourceClient;
         this.serviceTemplateResourceClient = serviceTemplateResourceClient;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<TaskTemplateVO> templateByIdResponse =
-                webTemplateResourceClient.getTemplateById(username, appId, id);
+                webTemplateResourceClient.getTemplateById(username, resourceScope.getType().getValue(),
+                    resourceScope.getId(), id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
                     return templateByIdResponse.getData();
