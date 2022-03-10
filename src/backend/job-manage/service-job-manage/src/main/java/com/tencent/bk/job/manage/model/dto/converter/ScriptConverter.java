@@ -37,6 +37,8 @@ import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
+
 /**
  * 脚本DTO转换器
  */
@@ -48,11 +50,13 @@ public class ScriptConverter {
         ScriptVO scriptVO = new ScriptVO();
 
         scriptVO.setAppId(script.getAppId());
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
-        scriptVO.setScopeType(resourceScope.getType().getValue());
-        scriptVO.setScopeId(resourceScope.getId());
+        if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
+            scriptVO.setScopeType(resourceScope.getType().getValue());
+            scriptVO.setScopeId(resourceScope.getId());
+        }
 
         scriptVO.setLastModifyUser(script.getLastModifyUser());
         scriptVO.setCategory(script.getCategory());
@@ -92,11 +96,13 @@ public class ScriptConverter {
         }
         BasicScriptVO scriptVO = new BasicScriptVO();
         scriptVO.setAppId(script.getAppId());
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
-        scriptVO.setScopeType(resourceScope.getType().getValue());
-        scriptVO.setScopeId(resourceScope.getId());
+        if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
+            AppScopeMappingService appScopeMappingService =
+                ApplicationContextRegister.getBean(AppScopeMappingService.class);
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(scriptVO.getAppId());
+            scriptVO.setScopeType(resourceScope.getType().getValue());
+            scriptVO.setScopeId(resourceScope.getId());
+        }
         scriptVO.setCategory(script.getCategory());
         scriptVO.setScriptVersionId(script.getScriptVersionId());
         scriptVO.setId(script.getId());

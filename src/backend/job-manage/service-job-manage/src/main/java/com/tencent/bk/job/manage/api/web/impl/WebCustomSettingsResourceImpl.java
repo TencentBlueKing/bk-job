@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsResource;
@@ -107,14 +109,17 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
+    @DeprecatedAppLogic
     public Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(String username,
                                                                                  String scriptLanguages,
+                                                                                 Long appId,
                                                                                  String scopeType,
                                                                                  String scopeId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<ScriptTemplateDTO> scriptTemplates = getUserCustomScriptTemplate(username, scriptLanguages);
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+        // 业务ID内置变量设计上需要修改，暂时先使用appId
         scriptTemplates.forEach(scriptTemplate -> customScriptTemplateService.renderScriptTemplate(
-            new ScriptTemplateVariableRenderDTO(appId, username), scriptTemplate));
+            new ScriptTemplateVariableRenderDTO(appResourceScope.getAppId(), username), scriptTemplate));
         List<ScriptTemplateVO> scriptTemplateVOS = scriptTemplates.stream().map(this::toScriptTemplateVO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(scriptTemplateVOS);
