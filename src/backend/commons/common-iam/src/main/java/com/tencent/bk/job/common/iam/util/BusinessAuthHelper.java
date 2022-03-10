@@ -55,7 +55,7 @@ public class BusinessAuthHelper extends AuthHelper {
             instance.setId(appId.toString());
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setType(ResourceTypeEnum.BUSINESS.getId());
-            Map<String, InstanceDTO> instanceMap = new HashMap(1);
+            Map<String, InstanceDTO> instanceMap = new HashMap<>(1);
             instanceMap.put(instance.getType(), instance);
             if (calculateExpression(instanceMap, expression)) {
                 resultList.add(appId);

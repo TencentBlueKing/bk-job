@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
+import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
@@ -53,14 +52,14 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
-    private final AuthService authService;
+    private final NotificationAuthService notificationAuthService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 AuthService authService) {
+                                 NotificationAuthService notificationAuthService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = authService;
+        this.notificationAuthService = notificationAuthService;
     }
 
     @Override
@@ -74,8 +73,7 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
         Long appId,
         NotifyPoliciesCreateUpdateReq createUpdateReq
     ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
+        AuthResult authResult = notificationAuthService.authNotificationSetting(username, new AppResourceScope(appId));
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
