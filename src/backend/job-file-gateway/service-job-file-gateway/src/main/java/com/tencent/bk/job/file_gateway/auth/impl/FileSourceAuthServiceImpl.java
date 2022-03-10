@@ -25,12 +25,22 @@
 package com.tencent.bk.job.file_gateway.auth.impl;
 
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 文件源相关操作鉴权接口
@@ -38,10 +48,24 @@ import java.util.List;
 @Service
 public class FileSourceAuthServiceImpl implements FileSourceAuthService {
 
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public FileSourceAuthServiceImpl(AuthService authService,
+                                     AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
     @Override
     public AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope) {
-        // TODO
-        return AuthResult.pass();
+        return appAuthService.auth(true, username, ActionId.CREATE_FILE_SOURCE, appResourceScope);
     }
 
     @Override
@@ -49,8 +73,8 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                          AppResourceScope appResourceScope,
                                          Integer fileSourceId,
                                          String fileSourceName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
+            fileSourceId.toString(), buildAppScopePath(appResourceScope));
     }
 
     @Override
@@ -58,23 +82,32 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                            AppResourceScope appResourceScope,
                                            Integer fileSourceId,
                                            String fileSourceName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
+            fileSourceId.toString(), buildAppScopePath(appResourceScope));
     }
 
     @Override
     public List<Integer> batchAuthViewFileSource(String username,
                                                  AppResourceScope appResourceScope,
                                                  List<Integer> fileSourceIdList) {
-        // TODO
-        return fileSourceIdList;
+        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appResourceScope,
+            ResourceTypeEnum.FILE_SOURCE,
+            fileSourceIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.parallelStream().map(Integer::valueOf).collect(Collectors.toList());
     }
 
     @Override
     public List<Integer> batchAuthManageFileSource(String username,
                                                    AppResourceScope appResourceScope,
                                                    List<Integer> fileSourceIdList) {
-        // TODO
-        return fileSourceIdList;
+        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appResourceScope,
+            ResourceTypeEnum.FILE_SOURCE,
+            fileSourceIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.parallelStream().map(Integer::valueOf).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean registerFileSource(String creator, Integer id, String name) {
+        return authService.registerResource(id.toString(), name, ResourceTypeId.FILE_SOURCE, creator, null);
     }
 }
