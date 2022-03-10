@@ -24,10 +24,9 @@
 
 package com.tencent.bk.job.manage.service.auth.impl;
 
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,46 +34,42 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskTemplateAuthServiceImpl implements TaskTemplateAuthService {
-    private final WebAuthService authService;
+    private final TemplateAuthService templateAuthService;
 
     @Autowired
-    public TaskTemplateAuthServiceImpl(WebAuthService authService) {
-        this.authService = authService;
+    public TaskTemplateAuthServiceImpl(TemplateAuthService templateAuthService) {
+        this.templateAuthService = templateAuthService;
     }
 
     @Override
     public void processTemplatePermission(String username, Long appId,
                                           PageData<TaskTemplateVO> taskTemplateVOPageData) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVOPageData
-            .setCanCreate(authService.auth(false, username, ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS,
-                appId.toString(), null).isPass());
+            .setCanCreate(templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass());
         processTemplatePermission(username, appId, taskTemplateVOPageData.getData());
     }
 
     @Override
     public void processTemplatePermission(String username, Long appId, List<TaskTemplateVO> taskTemplateVOList) {
-        boolean canCreate = authService.auth(false, username, ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS
-            , appId.toString(), null).isPass();
-        List<String> templateIdList = new ArrayList<>();
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        boolean canCreate = templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass();
+        List<Long> templateIdList = new ArrayList<>();
         taskTemplateVOList.forEach(template -> {
-            templateIdList.add(template.getId().toString());
+            templateIdList.add(template.getId());
         });
-        List<Long> allowedViewTemplate = authService
-            .batchAuth(username, ActionId.VIEW_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
-            .parallelStream().map(Long::valueOf).collect(Collectors.toList());
-        List<Long> allowedEditTemplate = authService
-            .batchAuth(username, ActionId.EDIT_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
-            .parallelStream().map(Long::valueOf).collect(Collectors.toList());
-        List<Long> allowedDeleteTemplate = authService
-            .batchAuth(username, ActionId.DELETE_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
-            .parallelStream().map(Long::valueOf).collect(Collectors.toList());
-        // List<Long> allowedDebugTemplate = authService
-        // .batchAuth(username, ActionId.DEBUG_JOB_TEMPLATE, appId, ResourceTypeEnum.TEMPLATE, templateIdList)
-        // .parallelStream().map(Long::valueOf).collect(Collectors.toList());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        List<Long> allowedViewTemplate = templateAuthService.batchAuthViewJobTemplate(
+            username, new AppResourceScope(appId), templateIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        List<Long> allowedEditTemplate = templateAuthService.batchAuthEditJobTemplate(
+            username, new AppResourceScope(appId), templateIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        List<Long> allowedDeleteTemplate = templateAuthService.batchAuthDeleteJobTemplate(
+            username, new AppResourceScope(appId), templateIdList);
 
         taskTemplateVOList.forEach(template -> {
             template.setCanView(allowedViewTemplate.contains(template.getId()));

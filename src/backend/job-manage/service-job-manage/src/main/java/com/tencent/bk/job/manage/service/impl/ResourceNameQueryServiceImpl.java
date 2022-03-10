@@ -28,7 +28,9 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
@@ -49,13 +51,14 @@ import org.springframework.stereotype.Service;
 @Service("ResourceNameQueryService")
 public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
-    private ApplicationService applicationService;
-    private ScriptService scriptService;
-    private TaskTemplateService templateService;
-    private TaskPlanService planService;
-    private AccountService accountService;
-    private TagService tagService;
-    private CredentialService credentialService;
+    private final ApplicationService applicationService;
+    private final ScriptService scriptService;
+    private final TaskTemplateService templateService;
+    private final TaskPlanService planService;
+    private final AccountService accountService;
+    private final TagService tagService;
+    private final CredentialService credentialService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public ResourceNameQueryServiceImpl(ApplicationService applicationService,
@@ -66,7 +69,8 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                                         TagService tagService,
                                         AuthService authService,
                                         AppAuthService appAuthService,
-                                        CredentialService credentialService) {
+                                        CredentialService credentialService,
+                                        AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.templateService = templateService;
@@ -74,6 +78,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
         this.accountService = accountService;
         this.tagService = tagService;
         this.credentialService = credentialService;
+        this.appScopeMappingService = appScopeMappingService;
         authService.setResourceNameQueryService(this);
         appAuthService.setResourceNameQueryService(this);
     }
@@ -92,8 +97,10 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
     public String getResourceName(ResourceTypeEnum resourceType, String resourceId) {
         switch (resourceType) {
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
+            case BUSINESS_SET:
+                Long appId = appScopeMappingService.getAppIdByScope(
+                    IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
+                if (appId != null && appId > 0) {
                     return getAppName(appId);
                 }
                 break;

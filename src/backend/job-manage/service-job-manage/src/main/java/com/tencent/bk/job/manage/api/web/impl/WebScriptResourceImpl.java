@@ -399,6 +399,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 noResourceScopeAuthService.authCreatePublicScript(username).isPass()
             );
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             resultPageData.setCanCreate(
                 scriptAuthService.authCreateScript(username, new AppResourceScope(appId)).isPass());
         }
@@ -413,8 +414,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
                     noResourceScopeAuthService.authManagePublicScript(username, script.getId()).isPass()));
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedManageScriptIdList =
                 scriptAuthService.batchAuthManageScript(username, new AppResourceScope(appId), scriptIdList);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedViewScriptIdList =
                 scriptAuthService.batchAuthViewScript(username, new AppResourceScope(appId), scriptIdList);
             resultPageData.getData()
@@ -736,8 +739,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
             });
         } else {
 
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedManageScriptIdList =
                 scriptAuthService.batchAuthManageScript(username, new AppResourceScope(appId), scriptIdList);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedViewScriptIdList =
                 scriptAuthService.batchAuthViewScript(username, new AppResourceScope(appId), scriptIdList);
             scriptList
@@ -842,6 +847,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return scriptAuthService.authViewScript(username, new AppResourceScope(appId), scriptId, null);
     }
 
@@ -850,6 +856,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return scriptAuthService.authViewScript(username, new AppResourceScope(appId), script.getId(), null);
     }
 
@@ -859,6 +866,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (isPublicScript) {
             return noResourceScopeAuthService.authManagePublicScript(username, scriptId);
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             return scriptAuthService.authManageScript(username, new AppResourceScope(appId), scriptId, null);
         }
     }
@@ -868,6 +876,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (isPublicScript) {
             return noResourceScopeAuthService.authCreatePublicScript(username);
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             return scriptAuthService.authCreateScript(username, new AppResourceScope(appId));
         }
     }
@@ -1039,6 +1048,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (isPublicScript) {
             authResult = noResourceScopeAuthService.batchAuthResultManagePublicScript(username, scriptIdList);
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             authResult = scriptAuthService.batchAuthResultManageScript(username, new AppResourceScope(appId),
                 scriptIdList);
         }

@@ -337,6 +337,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<TaskPlanVO> getDebugPlan(String username, Long appId, Long templateId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = templateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
             templateId);
         if (!authResult.isPass()) {
@@ -431,6 +432,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> checkPlanName(String username, Long appId, Long templateId, Long planId,
                                            String name) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = templateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
             templateId);
         if (!authResult.isPass()) {

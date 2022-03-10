@@ -135,6 +135,7 @@ public class WebTagResourceImpl implements WebTagResource {
         List<Long> tagIds =
             tags.stream().map(TagVO::getId).distinct().collect(Collectors.toList());
 
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowTagIds = tagAuthService.batchAuthManageTag(username, new AppResourceScope(appId), tagIds);
 
         tags.forEach(tagVO -> tagVO.setCanManage(allowTagIds.contains(tagVO.getId())));
@@ -200,10 +201,12 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     private AuthResult checkManageTagPermission(String username, Long appId, Long tagId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return tagAuthService.authManageTag(username, new AppResourceScope(appId), tagId, null);
     }
 
     private AuthResult checkCreateTagPermission(String username, Long appId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return tagAuthService.authCreateTag(username, new AppResourceScope(appId));
     }
 
@@ -272,6 +275,7 @@ public class WebTagResourceImpl implements WebTagResource {
             Set<String> resources = entry.getValue();
             switch (resourceType) {
                 case APP_SCRIPT:
+                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(scriptAuthService.batchAuthResultManageScript(username,
                         new AppResourceScope(appId), new ArrayList<>(resources)));
                     break;
@@ -283,6 +287,7 @@ public class WebTagResourceImpl implements WebTagResource {
                     );
                     break;
                 case TEMPLATE:
+                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(
                         templateAuthService.batchAuthResultEditJobTemplate(
                             username, new AppResourceScope(appId),
