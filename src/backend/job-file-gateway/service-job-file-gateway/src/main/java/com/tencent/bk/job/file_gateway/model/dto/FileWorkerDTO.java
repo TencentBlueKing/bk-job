@@ -35,7 +35,6 @@ import com.tencent.bk.job.file_gateway.model.resp.web.BaseFileWorkerVO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
@@ -44,7 +43,6 @@ import java.util.*;
  * 文件Worker
  */
 @Data
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class FileWorkerDTO {

@@ -24,13 +24,13 @@
 
 apply plugin: 'java'
 dependencies {
-    compile project(":commons:common")
-    compile project(":commons:esb-sdk")
-    compile project(":commons:common-i18n")
+    api project(":commons:common")
+    api project(":commons:esb-sdk")
+    api project(":commons:common-i18n")
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    compile 'org.apache.commons:commons-lang3'
+    api 'org.apache.commons:commons-lang3'
     implementation "net.sf.dozer:dozer"
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.apache.commons:commons-collections4'

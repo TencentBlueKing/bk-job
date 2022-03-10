@@ -23,12 +23,12 @@
  */
 
 dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-i18n')
-    compile project(':commons:common-iam')
-    compile project(':commons:esb-sdk')
-    compile project(":job-logsvr:api-job-logsvr")
-    compile project(":job-file-gateway:api-job-file-gateway-worker")
+    api project(':commons:common')
+    api project(':commons:common-i18n')
+    api project(':commons:common-iam')
+    api project(':commons:esb-sdk')
+    api project(":job-logsvr:api-job-logsvr")
+    api project(":job-file-gateway:api-job-file-gateway-worker")
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation 'com.fasterxml.jackson.core:jackson-core'

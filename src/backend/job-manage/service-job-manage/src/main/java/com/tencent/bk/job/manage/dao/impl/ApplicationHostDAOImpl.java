@@ -40,15 +40,8 @@ import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jooq.BatchBindStep;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.Query;
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.Record12;
-import org.jooq.Result;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.*;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Host;
 import org.jooq.generated.tables.HostTopo;
@@ -59,12 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**

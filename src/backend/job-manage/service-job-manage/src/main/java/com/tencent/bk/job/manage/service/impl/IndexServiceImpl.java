@@ -51,7 +51,7 @@ import com.tencent.bk.job.manage.service.IndexService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;

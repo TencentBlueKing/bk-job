@@ -35,7 +35,7 @@ version "${jobExecuteVersion}"
 subprojects {
     version "${jobExecuteVersion}"
     dependencies {
-        compile("org.springframework.boot:spring-boot-autoconfigure")
+        api("org.springframework.boot:spring-boot-autoconfigure")
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -43,7 +43,7 @@ subprojects {
         implementation 'ch.qos.logback:logback-classic'
         implementation 'io.springfox:springfox-swagger2'
         implementation 'io.springfox:springfox-swagger-ui'
-        testCompile("org.springframework.boot:spring-boot-starter-test")
+        testImplementation("org.springframework.boot:spring-boot-starter-test")
         testImplementation "org.junit.jupiter:junit-jupiter"
     }
 }

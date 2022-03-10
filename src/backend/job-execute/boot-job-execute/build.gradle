@@ -25,10 +25,11 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-execute:service-job-execute")
-    compile project(":commons:common-i18n")
+    api project(":job-execute:service-job-execute")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
@@ -41,7 +42,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.execute.JobExecuteBootApplication"
+    mainClass = "com.tencent.bk.job.execute.JobExecuteBootApplication"
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

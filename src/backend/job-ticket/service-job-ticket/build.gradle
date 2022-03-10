@@ -23,10 +23,10 @@
  */
 
 dependencies {
-    compile project(":commons:common-web")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-ticket:api-job-ticket")
-    compile project(":job-ticket:model-job-ticket")
+    api project(":commons:common-web")
+    api project(":job-manage:api-job-manage")
+    api project(":job-ticket:api-job-ticket")
+    api project(":job-ticket:model-job-ticket")
     implementation group: 'org.apache.httpcomponents', name: 'httpclient'
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')

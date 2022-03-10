@@ -25,9 +25,9 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-manage:service-job-manage")
-    compile project(":commons:common-redis")
-    compile project(":commons:common-i18n")
+    api project(":job-manage:service-job-manage")
+    api project(":commons:common-redis")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -37,6 +37,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     implementation 'org.springframework:spring-webmvc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     implementation 'io.prometheus:simpleclient_pushgateway'
     implementation 'io.micrometer:micrometer-registry-prometheus'
@@ -45,7 +46,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.manage.JobManageBootApplication"
+    mainClass = "com.tencent.bk.job.manage.JobManageBootApplication"
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

@@ -32,7 +32,7 @@ import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.*;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Application;

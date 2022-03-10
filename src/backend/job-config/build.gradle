@@ -33,9 +33,9 @@ ext {
 }
 version "${jobConfigVersion}"
 dependencies {
-    compile project(':commons:common')
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-spring-ext")
+    api project(':commons:common')
+    api project(":commons:common-i18n")
+    api project(":commons:common-spring-ext")
     implementation 'io.springfox:springfox-swagger2'
     implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -43,6 +43,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.prometheus:simpleclient_pushgateway'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-config-server'
@@ -53,13 +54,13 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
 apply plugin: 'org.springframework.boot'
 springBoot {
-    mainClassName = "com.tencent.bk.job.config.JobConfigBootApplication"
+    mainClass = "com.tencent.bk.job.config.JobConfigBootApplication"
     buildInfo()
 }
 apply from: "$rootDir/task_job_package.gradle"

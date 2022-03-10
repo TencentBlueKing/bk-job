@@ -33,13 +33,7 @@ import com.tencent.bk.job.manage.dao.TagDAO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.Record5;
-import org.jooq.Result;
-import org.jooq.SelectSeekStepN;
-import org.jooq.SortField;
+import org.jooq.*;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
 import org.jooq.generated.tables.Tag;
@@ -217,7 +211,7 @@ public class TagDAOImpl implements TagDAO {
         long count = getTagCount(tagCondition, baseSearchCondition);
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
-        if (org.apache.commons.lang.StringUtils.isBlank(baseSearchCondition.getOrderField())) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TABLE.ID.desc());
         } else {
             String orderField = baseSearchCondition.getOrderField();

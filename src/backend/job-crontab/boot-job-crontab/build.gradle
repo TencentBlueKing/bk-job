@@ -25,8 +25,8 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-crontab:service-job-crontab")
-    compile project(":commons:common-i18n")
+    api project(":job-crontab:service-job-crontab")
+    api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -39,12 +39,13 @@ dependencies {
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-quartz')
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     implementation 'org.springframework:spring-webmvc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     runtimeOnly 'mysql:mysql-connector-java'
 
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.crontab.JobCrontabBootApplication"
+    mainClass = "com.tencent.bk.job.crontab.JobCrontabBootApplication"
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

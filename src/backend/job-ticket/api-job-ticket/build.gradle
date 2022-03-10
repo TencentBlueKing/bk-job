@@ -23,10 +23,10 @@
  */
 
 dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-iam')
-    compile project(':commons:common-web')
-    compile project(':job-ticket:api-job-ticket-pojo')
+    api project(':commons:common')
+    api project(':commons:common-iam')
+    api project(':commons:common-web')
+    api project(':job-ticket:api-job-ticket-pojo')
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation 'com.fasterxml.jackson.core:jackson-core'

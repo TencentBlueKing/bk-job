@@ -33,23 +33,8 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -421,5 +406,45 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
 
     public void remove(String pattern) {
         patternSet.add(pattern);
+    }
+
+    public FileCollection getBootJarOutputFiles() {
+        return bootJarOutputFiles;
+    }
+
+    public void setBootJarOutputFiles(FileCollection bootJarOutputFiles) {
+        this.bootJarOutputFiles = bootJarOutputFiles;
+    }
+
+    public String getCompleteJarListsRootPath() {
+        return completeJarListsRootPath;
+    }
+
+    public void setCompleteJarListsRootPath(String completeJarListsRootPath) {
+        this.completeJarListsRootPath = completeJarListsRootPath;
+    }
+
+    public String getDependJarInfoRootPath() {
+        return dependJarInfoRootPath;
+    }
+
+    public void setDependJarInfoRootPath(String dependJarInfoRootPath) {
+        this.dependJarInfoRootPath = dependJarInfoRootPath;
+    }
+
+    public String getDefaultEdition() {
+        return defaultEdition;
+    }
+
+    public void setDefaultEdition(String defaultEdition) {
+        this.defaultEdition = defaultEdition;
+    }
+
+    public String getDefaultPackageType() {
+        return defaultPackageType;
+    }
+
+    public void setDefaultPackageType(String defaultPackageType) {
+        this.defaultPackageType = defaultPackageType;
     }
 }

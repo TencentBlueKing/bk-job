@@ -24,15 +24,15 @@
 
 apply plugin: 'java'
 dependencies {
-    compile project(":commons:common")
-    compile project(":commons:esb-sdk")
-    compile project(":commons:gse-sdk")
-    compile project(":commons:common-i18n")
+    api project(":commons:common")
+    api project(":commons:esb-sdk")
+    api project(":commons:gse-sdk")
+    api project(":commons:common-i18n")
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-    compile 'org.apache.commons:commons-lang3'
+    api 'org.apache.commons:commons-lang3'
     implementation "net.sf.dozer:dozer"
     implementation 'org.apache.commons:commons-collections4'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient'
@@ -40,6 +40,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    compile "com.google.guava:guava:20.0"
-    compile("org.springframework:spring-context")
+    api "com.google.guava:guava:20.0"
+    api("org.springframework:spring-context")
 }

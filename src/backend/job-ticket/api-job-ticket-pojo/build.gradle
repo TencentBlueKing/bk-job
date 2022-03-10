@@ -23,7 +23,7 @@
  */
 
 dependencies {
-    compile project(':commons:common')
+    api project(':commons:common')
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation 'com.fasterxml.jackson.core:jackson-core'

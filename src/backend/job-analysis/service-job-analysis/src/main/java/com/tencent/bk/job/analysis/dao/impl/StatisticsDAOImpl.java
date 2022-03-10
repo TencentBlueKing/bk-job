@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.util.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.*;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Statistics;

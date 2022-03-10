@@ -23,8 +23,8 @@
  */
 
 dependencies {
-    compile project(":commons:common-i18n")
-    compile project(":job-file-worker-sdk:api-job-file-worker-sdk")
+    api project(":commons:common-i18n")
+    api project(":job-file-worker-sdk:api-job-file-worker-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"

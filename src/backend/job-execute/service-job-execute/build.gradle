@@ -24,20 +24,20 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(':commons:common-web')
-    compile project(":job-file-gateway:api-job-file-gateway")
-    compile project(":job-execute:api-job-execute")
-    compile project(":job-execute:model-job-execute")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-logsvr:api-job-logsvr")
-    compile project(':commons:gse-sdk')
-    compile project(':commons:common-security')
-    compile project(':commons:common-redis')
-    compile project(":commons:cmdb-sdk-ext")
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-jdbc")
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
-    compile "org.springframework.boot:spring-boot-starter-jooq"
+    api project(':commons:common-web')
+    api project(":job-file-gateway:api-job-file-gateway")
+    api project(":job-execute:api-job-execute")
+    api project(":job-execute:model-job-execute")
+    api project(":job-manage:api-job-manage")
+    api project(":job-logsvr:api-job-logsvr")
+    api project(':commons:gse-sdk')
+    api project(':commons:common-security')
+    api project(':commons:common-redis')
+    api project(":commons:cmdb-sdk-ext")
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.springframework.boot:spring-boot-starter-jdbc")
+    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+    api "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
@@ -53,9 +53,9 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation "org.hibernate.validator:hibernate-validator"
     // https://mvnrepository.com/artifact/org.apache.curator/curator-framework
-    compile(group: 'org.apache.curator', name: 'curator-framework', version: '2.13.0')
+    api(group: 'org.apache.curator', name: 'curator-framework', version: '2.13.0')
     // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes
-    compile(group: 'org.apache.curator', name: 'curator-recipes', version: '2.13.0')
+    api(group: 'org.apache.curator', name: 'curator-recipes', version: '2.13.0')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'

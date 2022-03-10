@@ -24,19 +24,19 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-analysis:api-job-analysis")
-    compile project(":job-analysis:model-job-analysis")
-    compile project(":job-crontab:api-job-crontab")
-    compile project(":commons:common")
-    compile project(":commons:common-web")
-    compile project(":commons:common-iam")
-    compile project(":commons:common-security")
-    compile project(":commons:common-redis")
-    compile project(":commons:cmdb-sdk")
-    compile project(":commons:paas-sdk")
-    compile project(":commons:esb-sdk")
-    compile project(":commons:gse-sdk")
+    api project(":job-manage:api-job-manage")
+    api project(":job-analysis:api-job-analysis")
+    api project(":job-analysis:model-job-analysis")
+    api project(":job-crontab:api-job-crontab")
+    api project(":commons:common")
+    api project(":commons:common-web")
+    api project(":commons:common-iam")
+    api project(":commons:common-security")
+    api project(":commons:common-redis")
+    api project(":commons:cmdb-sdk")
+    api project(":commons:paas-sdk")
+    api project(":commons:esb-sdk")
+    api project(":commons:gse-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
