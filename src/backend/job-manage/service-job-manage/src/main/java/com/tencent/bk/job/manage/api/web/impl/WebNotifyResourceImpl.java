@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
@@ -54,26 +55,32 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
     private final AuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebNotifyResourceImpl(NotifyService notifyService, LocalPermissionService localPermissionService,
-                                 AuthService authService) {
+    public WebNotifyResourceImpl(NotifyService notifyService,
+                                 LocalPermissionService localPermissionService,
+                                 AuthService authService,
+                                 AppScopeMappingService appScopeMappingService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
         this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username, Long appId) {
+    public Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username, String scopeType,
+                                                                        String scopeId) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username, appId));
     }
 
     @Override
-    public Response<Long> saveAppDefaultNotifyPolicies(
-        String username,
-        Long appId,
-        NotifyPoliciesCreateUpdateReq createUpdateReq
-    ) {
+    public Response<Long> saveAppDefaultNotifyPolicies(String username,
+                                                       String scopeType,
+                                                       String scopeId,
+                                                       NotifyPoliciesCreateUpdateReq createUpdateReq) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         AuthResult authResult = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
             ResourceTypeEnum.BUSINESS, appId.toString(), null);
         if (!authResult.isPass()) {

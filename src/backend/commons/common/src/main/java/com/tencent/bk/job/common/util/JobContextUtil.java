@@ -85,15 +85,15 @@ public class JobContextUtil {
         jobContext.setUsername(username);
     }
 
-    public static AppResourceScope getAppResourceScope() {
-        JobContext jobContext = JobContextThreadLocal.get();
-        AppResourceScope appResourceScope = null;
-        if (jobContext != null) {
-            appResourceScope = jobContext.getAppResourceScope();
-        }
-
-        return appResourceScope;
-    }
+//    public static AppResourceScope getAppResourceScope() {
+//        JobContext jobContext = JobContextThreadLocal.get();
+//        AppResourceScope appResourceScope = null;
+//        if (jobContext != null) {
+//            appResourceScope = jobContext.getAppResourceScope();
+//        }
+//
+//        return appResourceScope;
+//    }
 
     public static void setAppResourceScope(AppResourceScope appResourceScope) {
         JobContext jobContext = getOrInitContext();

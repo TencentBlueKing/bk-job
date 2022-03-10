@@ -49,6 +49,7 @@ public class AppVO {
     @ApiModelProperty("业务名称")
     private String name;
     @ApiModelProperty("业务类型")
+    @DeprecatedAppLogic
     private Integer type;
     @ApiModelProperty("是否有权限")
     private Boolean hasPermission;

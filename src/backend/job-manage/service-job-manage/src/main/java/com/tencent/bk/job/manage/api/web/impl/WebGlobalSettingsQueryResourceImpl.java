@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -55,23 +56,17 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @Description
- * @Date 2020/2/27
- * @Version 1.0
- */
-
 @RestController
 @Slf4j
 public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQueryResource, DisposableBean {
 
-    private GlobalSettingsService globalSettingsService;
-    private ApplicationService applicationService;
-    private AuthService authService;
-    private AppAuthService appAuthService;
-    private JobManageConfig jobManageConfig;
+    private final GlobalSettingsService globalSettingsService;
+    private final ApplicationService applicationService;
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+    private final JobManageConfig jobManageConfig;
 
-    private ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
         5, 5, 30, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>());
 
@@ -238,10 +233,10 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public Response<String> getApplyBusinessUrl(String username, Long appId) {
-        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
+    public Response<String> getApplyBusinessUrl(String username, String scopeType, String scopeId) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(scopeType, scopeId);
         if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.NORMAL) {
-            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(appId));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(applicationDTO.getId()));
         } else if (applicationDTO != null) {
             return Response.buildCommonFailResp(ErrorCode.NEED_APP_SET_CONFIG);
         } else {
@@ -250,9 +245,13 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public Response<String> getCMDBAppIndexUrl(String username, Long appId) {
+    public Response<String> getCMDBAppIndexUrl(String username, String scopeType, String scopeId) {
+        String scopeTypePlaceholderValue = ResourceScopeTypeEnum.from(scopeType) == ResourceScopeTypeEnum.BIZ ?
+            "business" : "business-set";
         return Response.buildSuccessResp(jobManageConfig.getCmdbServerUrl()
-            + jobManageConfig.getCmdbAppIndexPath().replace("{appId}", appId.toString()));
+            + jobManageConfig.getCmdbAppIndexPath()
+            .replace("{scopeType}", scopeTypePlaceholderValue)
+            .replace("{scopeId}", scopeId));
     }
 
     @Override
@@ -276,7 +275,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         executor.shutdown();
     }
 }

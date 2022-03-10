@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-ticket:web:Credential"})
-@RequestMapping("/web/credentials/app/{appId}")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}/credential")
 @RestController
 @WebAPI
 public interface WebCredentialResource {
@@ -54,8 +54,12 @@ public interface WebCredentialResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "业务ID", required = true)
-        @PathVariable("appId") Long appId,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam("搜索条件：凭证ID")
         @RequestParam(value = "id", required = false)
             String id,
@@ -76,7 +80,8 @@ public interface WebCredentialResource {
             Integer start,
         @ApiParam("分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
-            Integer pageSize);
+            Integer pageSize
+    );
 
 
     @ApiOperation(value = "新增/更新凭据", produces = "application/json")
@@ -85,8 +90,12 @@ public interface WebCredentialResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "业务ID", required = true)
-        @PathVariable("appId") Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
             CredentialCreateUpdateReq createUpdateReq
@@ -99,8 +108,12 @@ public interface WebCredentialResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "业务ID", required = true)
-        @PathVariable("appId") Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam("凭据ID")
         @PathVariable("id")
             String id

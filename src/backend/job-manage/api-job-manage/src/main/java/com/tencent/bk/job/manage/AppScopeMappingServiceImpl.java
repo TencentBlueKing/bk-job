@@ -28,11 +28,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -104,8 +106,23 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         return scopeAndAppIdCache.getIfPresent(resourceScope);
     }
 
+    @Override
+    public Long getAppIdByScope(String scopeType, String scopeId) {
+        return getAppIdByScope(new ResourceScope(scopeType, scopeId));
+    }
+
     public ResourceScope getScopeByAppId(Long appId) {
         return appIdAndScopeCache.getIfPresent(appId);
+    }
+
+    @Override
+    public AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
+        } else {
+            ResourceScope resourceScope = getScopeByAppId(appId);
+            return new AppResourceScope(appId, resourceScope);
+        }
     }
 
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {

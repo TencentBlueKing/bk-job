@@ -53,26 +53,32 @@ import java.util.List;
 public interface WebNotifyResource {
 
     @ApiOperation(value = "获取业务通知策略列表", produces = "application/json")
-    @GetMapping("/app/{appId}/policies/listDefault")
+    @GetMapping("/scope/{scopeType}/{scopeId}/policies/listDefault")
     Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("业务ID")
-        @PathVariable("appId")
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
 
     @ApiOperation(value = "保存业务下默认通知策略", produces = "application/json")
-    @PostMapping("/app/{appId}/saveAppDefaultPolicies")
+    @PostMapping("/scope/{scopeType}/{scopeId}/saveAppDefaultPolicies")
     Response<Long> saveAppDefaultNotifyPolicies(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("业务ID")
-        @PathVariable("appId")
-            Long appId,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
             NotifyPoliciesCreateUpdateReq createUpdateReq

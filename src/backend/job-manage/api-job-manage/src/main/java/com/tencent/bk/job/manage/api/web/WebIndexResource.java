@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Api(tags = {"job-manage:web:Index"})
-@RequestMapping("/web/index/app/{appId}")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}/index")
 @RestController
 @WebAPI
 public interface WebIndexResource {
@@ -57,9 +57,12 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
     @ApiOperation(value = "获取Agent统计数据", produces = "application/json")
@@ -68,9 +71,12 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
     @ApiOperation(value = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
@@ -79,10 +85,13 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId,
-        @ApiParam("业务Id")
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam("Agent状态")
         @PathVariable("agentStatus")
             Integer agentStatus,
         @ApiParam("起始位置")
@@ -99,10 +108,13 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId,
-        @ApiParam("业务Id")
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam("Agent状态")
         @PathVariable("agentStatus")
             Integer agentStatus,
         @ApiParam("起始位置")
@@ -119,9 +131,12 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
     @ApiOperation(value = "获取我收藏的作业", produces = "application/json")
@@ -130,9 +145,12 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam("拉取数量，不传为拉全量")
         @RequestParam(value = "limit", required = false)
             Long limit

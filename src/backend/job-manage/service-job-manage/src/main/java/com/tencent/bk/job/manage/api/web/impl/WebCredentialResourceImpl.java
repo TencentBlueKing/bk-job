@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
@@ -57,33 +58,34 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     private final AuthService authService;
     private final AppAuthService appAuthService;
     private final CredentialService credentialService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebCredentialResourceImpl(AuthService authService,
                                      AppAuthService appAuthService,
-                                     CredentialService credentialService) {
+                                     CredentialService credentialService,
+                                     AppScopeMappingService appScopeMappingService) {
         this.authService = authService;
         this.appAuthService = appAuthService;
         this.credentialService = credentialService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<PageData<CredentialVO>> listCredentials(
-        String username,
-        Long appId,
-        String id,
-        String name,
-        String description,
-        String creator,
-        String lastModifyUser,
-        Integer start,
-        Integer pageSize
-    ) {
-        log.debug("Input=({},{},{},{},{},{},{},{},{})", username, appId, id, name, description, creator,
-            lastModifyUser, start, pageSize);
+    public Response<PageData<CredentialVO>> listCredentials(String username,
+                                                            String scopeType,
+                                                            String scopeId,
+                                                            String id,
+                                                            String name,
+                                                            String description,
+                                                            String creator,
+                                                            String lastModifyUser,
+                                                            Integer start,
+                                                            Integer pageSize) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         CredentialDTO credentialQuery = new CredentialDTO();
         credentialQuery.setId(id);
-        credentialQuery.setAppId(appId);
+        credentialQuery.setAppId(appResourceScope.getAppId());
         credentialQuery.setName(name);
         credentialQuery.setDescription(description);
         credentialQuery.setCreator(creator);
@@ -99,45 +101,52 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         finalPageData.setPageSize(pageData.getPageSize());
         finalPageData.setTotal(pageData.getTotal());
         finalPageData.setData(credentialVOList);
-        addPermissionData(username, appId, finalPageData);
+        addPermissionData(username, appResourceScope, finalPageData);
         return Response.buildSuccessResp(finalPageData);
     }
 
     @Override
-    public Response<String> saveCredential(String username, Long appId,
+    public Response<String> saveCredential(String username, String scopeType, String scopeId,
                                            CredentialCreateUpdateReq createUpdateReq) {
-        AuthResult authResult = null;
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AuthResult authResult;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
-            authResult = checkCreateTicketPermission(username, appId);
+            authResult = checkCreateTicketPermission(username, appResourceScope);
         } else {
-            authResult = checkManageTicketPermission(username, appId, createUpdateReq.getId());
+            authResult = checkManageTicketPermission(username, appResourceScope, createUpdateReq.getId());
         }
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        return Response.buildSuccessResp(credentialService.saveCredential(username, appId, createUpdateReq));
+        return Response.buildSuccessResp(credentialService.saveCredential(username, appResourceScope.getAppId(),
+            createUpdateReq));
     }
 
     @Override
-    public Response<Integer> deleteCredentialById(String username, Long appId, String id) {
-        AuthResult authResult = checkManageTicketPermission(username, appId, id);
+    public Response<Integer> deleteCredentialById(String username, String scopeType, String scopeId, String id) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AuthResult authResult = checkManageTicketPermission(username, appResourceScope, id);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        return Response.buildSuccessResp(credentialService.deleteCredentialById(username, appId, id));
+        return Response.buildSuccessResp(credentialService.deleteCredentialById(username, appResourceScope.getAppId(),
+            id));
     }
 
-    private void addPermissionData(String username, Long appId, PageData<CredentialVO> credentialVOPageData) {
+    private void addPermissionData(String username, AppResourceScope appResourceScope,
+                                   PageData<CredentialVO> credentialVOPageData) {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
         List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, appResourceScope,
+                ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)
                     .collect(Collectors.toList()));
         List<String> canUseIdList =
-            appAuthService.batchAuth(username, ActionId.USE_TICKET, new AppResourceScope(appId), ResourceTypeEnum.TICKET,
+            appAuthService.batchAuth(username, ActionId.USE_TICKET, appResourceScope,
+                ResourceTypeEnum.TICKET,
                 credentialVOList.parallelStream()
                     .map(CredentialVO::getId)
                     .map(Objects::toString)
@@ -146,24 +155,20 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             it.setCanManage(canManageIdList.contains(it.getId()));
             it.setCanUse(canUseIdList.contains(it.getId()));
         });
-        credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appId).isPass());
+        credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appResourceScope).isPass());
     }
 
-    public AuthResult checkUseTicketPermission(String username, Long appId, String credentialId) {
-        // 需要拥有在业务下使用某个凭证的权限
-        return authService.auth(true, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, credentialId,
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
-    }
-
-    public AuthResult checkCreateTicketPermission(String username, Long appId) {
+    private AuthResult checkCreateTicketPermission(String username, AppResourceScope appResourceScope) {
         // 需要拥有在业务下创建凭证的权限
         return authService.auth(true, username, ActionId.CREATE_TICKET, ResourceTypeEnum.BUSINESS,
-            appId.toString(), null);
+            appResourceScope.getAppId().toString(), null);
     }
 
-    public AuthResult checkManageTicketPermission(String username, Long appId, String credentialId) {
+    private AuthResult checkManageTicketPermission(String username, AppResourceScope appResourceScope,
+                                                  String credentialId) {
         // 需要拥有在业务下管理某个具体凭证的权限
         return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET,
-            credentialId, PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+            credentialId, PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(),
+                appResourceScope.getAppId().toString()).build());
     }
 }

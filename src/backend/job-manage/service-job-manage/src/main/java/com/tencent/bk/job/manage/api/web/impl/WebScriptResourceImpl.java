@@ -154,18 +154,20 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptVO> getScriptVersionDetail(String username, Long appId, Long scriptVersionId) {
-        if (appId == null || appId < 0) {
-            log.warn("Get script version by id, param appId is empty");
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
-        }
+    public Response<ScriptVO> getScriptVersionDetail(String username,
+                                                     Long appId,
+                                                     String scopeType,
+                                                     String scopeId,
+                                                     Long scriptVersionId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         if (scriptVersionId == null || scriptVersionId <= 0) {
             log.warn("Get script version by id, param scriptVersionId is empty");
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
-        ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
+        ScriptDTO script = scriptService.getScriptVersion(username, appResourceScope.getAppId(), scriptVersionId);
         if (script == null) {
-            log.warn("Get script version by id, appId={},id={}, the script is not exist", appId, scriptVersionId);
+            log.warn("Get script version by id, appId={},id={}, the script is not exist", appResourceScope.getAppId(),
+                scriptVersionId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
         }
 
@@ -423,9 +425,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId),
+                    ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId),
+                    ResourceTypeEnum.SCRIPT, scriptIdList);
             resultPageData.getData()
                 .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
             resultPageData.getData().forEach(script -> {
@@ -759,9 +763,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
             });
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId),
+                    ResourceTypeEnum.SCRIPT, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, scriptIdList);
+                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId),
+                    ResourceTypeEnum.SCRIPT, scriptIdList);
             scriptList
                 .forEach(script -> {
                     script.setCanManage(allowedManageScriptIdList.contains(script.getId()));

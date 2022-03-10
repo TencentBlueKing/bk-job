@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebIndexResource;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
@@ -46,45 +47,57 @@ public class WebIndexResourceImpl implements WebIndexResource {
 
     private final IndexService indexService;
     private final TaskTemplateAuthService taskTemplateAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebIndexResourceImpl(IndexService indexService, TaskTemplateAuthService taskTemplateAuthService) {
+    public WebIndexResourceImpl(IndexService indexService,
+                                TaskTemplateAuthService taskTemplateAuthService,
+                                AppScopeMappingService appScopeMappingService) {
         this.indexService = indexService;
         this.taskTemplateAuthService = taskTemplateAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<List<GreetingVO>> listGreeting(String username, Long appId) {
+    public Response<List<GreetingVO>> listGreeting(String username, String scopeType, String scopeId) {
         return Response.buildSuccessResp(indexService.listGreeting(username));
     }
 
     @Override
-    public Response<AgentStatistics> getAgentStatistics(String username, Long appId) {
+    public Response<AgentStatistics> getAgentStatistics(String username, String scopeType, String scopeId) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         return Response.buildSuccessResp(indexService.getAgentStatistics(username, appId));
     }
 
     @Override
-    public Response<PageData<HostInfoVO>> listHostsByAgentStatus(String username, Long appId,
+    public Response<PageData<HostInfoVO>> listHostsByAgentStatus(String username, String scopeType, String scopeId,
                                                                  Integer agentStatus, Long start,
                                                                  Long pageSize) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         return Response.buildSuccessResp(indexService.listHostsByAgentStatus(username, appId, agentStatus,
             start, pageSize));
     }
 
     @Override
-    public Response<PageData<String>> listIPsByAgentStatus(String username, Long appId, Integer agentStatus,
+    public Response<PageData<String>> listIPsByAgentStatus(String username, String scopeType, String scopeId,
+                                                           Integer agentStatus,
                                                            Long start, Long pageSize) {
-        return Response.buildSuccessResp(indexService.listIPsByAgentStatus(username, appId, agentStatus, start
-            , pageSize));
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+        return Response.buildSuccessResp(indexService.listIPsByAgentStatus(username, appId, agentStatus, start,
+            pageSize));
     }
 
     @Override
-    public Response<JobAndScriptStatistics> getJobAndScriptStatistics(String username, Long appId) {
+    public Response<JobAndScriptStatistics> getJobAndScriptStatistics(String username, String scopeType,
+                                                                      String scopeId) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         return Response.buildSuccessResp(indexService.getJobAndScriptStatistics(username, appId));
     }
 
     @Override
-    public Response<List<TaskTemplateVO>> listMyFavorTasks(String username, Long appId, Long limit) {
+    public Response<List<TaskTemplateVO>> listMyFavorTasks(String username, String scopeType, String scopeId,
+                                                           Long limit) {
+        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         List<TaskTemplateVO> resultList = indexService.listMyFavorTasks(username, appId, limit);
         taskTemplateAuthService.processTemplatePermission(username, appId, resultList);
         return Response.buildSuccessResp(resultList);

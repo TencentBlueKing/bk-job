@@ -89,21 +89,27 @@ public interface WebGlobalSettingsQueryResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @RequestParam(value = "appId", required = false)
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @RequestParam(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @RequestParam(value = "scopeId")
+            String scopeId
     );
 
 
     @ApiOperation(value = "获取CMDB业务首页地址", produces = "application/json")
-    @GetMapping("/app/{appId}/cmdbAppIndexUrl")
+    @GetMapping("/scope/{scopeType}/{scopeId}/cmdbAppIndexUrl")
     Response<String> getCMDBAppIndexUrl(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
 
