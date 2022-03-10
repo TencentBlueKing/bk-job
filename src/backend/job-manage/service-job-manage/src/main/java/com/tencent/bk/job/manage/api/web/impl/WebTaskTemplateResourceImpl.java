@@ -235,6 +235,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         taskTemplateVO.setCanDelete(templateAuthService.authDeleteJobTemplate(username, appResourceScope,
             templateId).isPass());
         taskTemplateVO.setCanDebug(true);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVO.setCanClone(taskTemplateVO.getCanView()
             && templateAuthService.authCreateJobTemplate(username, appResourceScope).isPass());
 

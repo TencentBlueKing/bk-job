@@ -139,44 +139,44 @@ public class WebTaskExecutionResultResourceImpl
 
     private LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-        build(new CacheLoader<String, Map<String, String>>() {
-                  @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
-                      log.info("Get notify roles, resp={}", resp);
-                      if (!resp.isSuccess() || resp.getData() == null) {
-                          return new HashMap<>();
-                      } else {
-                          List<ServiceAppRoleDTO> appRoles = resp.getData();
-                          Map<String, String> codeNameMap = new HashMap<>();
-                          if (appRoles != null) {
-                              appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
+            build(new CacheLoader<String, Map<String, String>>() {
+                      @Override
+                      public Map<String, String> load(String lang) {
+                          InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
+                          log.info("Get notify roles, resp={}", resp);
+                          if (!resp.isSuccess() || resp.getData() == null) {
+                              return new HashMap<>();
+                          } else {
+                              List<ServiceAppRoleDTO> appRoles = resp.getData();
+                              Map<String, String> codeNameMap = new HashMap<>();
+                              if (appRoles != null) {
+                                  appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
+                              }
+                              return codeNameMap;
                           }
-                          return codeNameMap;
                       }
                   }
-              }
-        );
+            );
     private LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-        build(new CacheLoader<String, Map<String, String>>() {
-                  @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
-                      log.info("Get notify channels, resp={}", resp);
-                      if (!resp.isSuccess() || resp.getData() == null) {
-                          return new HashMap<>();
-                      } else {
-                          List<ServiceNotifyChannelDTO> channels = resp.getData();
-                          Map<String, String> typeNameMap = new HashMap<>();
-                          if (channels != null) {
-                              channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
+            build(new CacheLoader<String, Map<String, String>>() {
+                      @Override
+                      public Map<String, String> load(String lang) {
+                          InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                          log.info("Get notify channels, resp={}", resp);
+                          if (!resp.isSuccess() || resp.getData() == null) {
+                              return new HashMap<>();
+                          } else {
+                              List<ServiceNotifyChannelDTO> channels = resp.getData();
+                              Map<String, String> typeNameMap = new HashMap<>();
+                              if (channels != null) {
+                                  channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
+                              }
+                              return typeNameMap;
                           }
-                          return typeNameMap;
                       }
                   }
-              }
-        );
+            );
 
     @Autowired
     public WebTaskExecutionResultResourceImpl(TaskResultService taskResultService,
@@ -338,7 +338,9 @@ public class WebTaskExecutionResultResourceImpl
         if (CustomCollectionUtils.isEmptyCollection(taskInstances)) {
             return;
         }
-        boolean hasViewAllPermission = executeAuthService.authViewAllTaskInstance(username, appId).isPass();
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        boolean hasViewAllPermission = executeAuthService.authViewAllTaskInstance(
+            username, new AppResourceScope(appId)).isPass();
         if (hasViewAllPermission) {
             taskInstances.forEach(taskInstance -> {
                 taskInstance.setCanView(true);
@@ -599,7 +601,7 @@ public class WebTaskExecutionResultResourceImpl
         if (username.equals(operator)) {
             return AuthResult.pass();
         }
-        // TODO:scope改造
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = executeAuthService.authViewTaskInstance(
             username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {

@@ -797,8 +797,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
             });
         } else {
 
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedManageScriptIdList =
                 scriptAuthService.batchAuthManageScript(username, appResourceScope, scriptIdList);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             List<String> allowedViewScriptIdList =
                 scriptAuthService.batchAuthViewScript(username, appResourceScope, scriptIdList);
             scriptList

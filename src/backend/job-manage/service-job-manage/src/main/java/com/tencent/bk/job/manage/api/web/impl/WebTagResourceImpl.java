@@ -286,6 +286,7 @@ public class WebTagResourceImpl implements WebTagResource {
             Set<String> resources = entry.getValue();
             switch (resourceType) {
                 case APP_SCRIPT:
+                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(scriptAuthService.batchAuthResultManageScript(username,
                         appResourceScope, new ArrayList<>(resources)));
                     break;
@@ -297,6 +298,7 @@ public class WebTagResourceImpl implements WebTagResource {
                     );
                     break;
                 case TEMPLATE:
+                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(
                         templateAuthService.batchAuthResultEditJobTemplate(
                             username, appResourceScope,

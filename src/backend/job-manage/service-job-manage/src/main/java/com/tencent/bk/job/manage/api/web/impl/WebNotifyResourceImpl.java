@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
+import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
@@ -54,17 +53,17 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
 
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
-    private final AuthService authService;
+    private final NotificationAuthService notificationAuthService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService,
                                  LocalPermissionService localPermissionService,
-                                 AuthService authService,
+                                 NotificationAuthService notificationAuthService,
                                  AppScopeMappingService appScopeMappingService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
-        this.authService = authService;
+        this.notificationAuthService = notificationAuthService;
         this.appScopeMappingService = appScopeMappingService;
     }
 
@@ -80,14 +79,13 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        NotifyPoliciesCreateUpdateReq createUpdateReq) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        AuthResult authResult = authService.auth(true, username, ActionId.NOTIFICATION_SETTING,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AuthResult authResult = notificationAuthService.authNotificationSetting(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
         return Response.buildSuccessResp(notifyService.saveAppDefaultNotifyPolicies(
-            username, appId, createUpdateReq));
+            username, appResourceScope.getAppId(), createUpdateReq));
     }
 
     @Override

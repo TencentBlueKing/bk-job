@@ -134,8 +134,10 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             .map(CredentialVO::getId)
             .map(Objects::toString)
             .collect(Collectors.toList());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canManageIdList =
             ticketAuthService.batchAuthManageTicket(username, appResourceScope, credentialIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canUseIdList =
             ticketAuthService.batchAuthUseTicket(username, appResourceScope, credentialIdList);
         credentialVOList.forEach(it -> {

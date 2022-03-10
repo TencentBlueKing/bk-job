@@ -130,7 +130,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     private AuthResult authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        return executeAuthService.authViewTaskInstance(username, appId, taskInstance);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        return executeAuthService.authViewTaskInstance(username, new AppResourceScope(appId), taskInstance);
     }
 
     private AuthResult authViewStepInstance(String username, Long appId, StepInstanceDTO stepInstance) {
@@ -138,7 +139,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (username.equals(operator)) {
             return AuthResult.pass();
         }
-        // TODO:scope改造
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return executeAuthService.authViewTaskInstance(
             username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
     }
