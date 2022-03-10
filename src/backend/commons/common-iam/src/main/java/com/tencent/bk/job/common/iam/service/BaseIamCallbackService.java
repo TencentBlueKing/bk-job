@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.util.IamUtil;
@@ -134,19 +133,7 @@ public abstract class BaseIamCallbackService {
         if (StringUtils.isNotBlank(searchCondition.getParentResourceTypeId())) {
             ResourceTypeEnum iamResourceType =
                 ResourceTypeEnum.getByResourceTypeId(searchCondition.getParentResourceTypeId());
-            ResourceScopeTypeEnum resourceScopeType;
-            switch (iamResourceType) {
-                case BUSINESS:
-                    resourceScopeType = ResourceScopeTypeEnum.BIZ;
-                    break;
-                case BUSINESS_SET:
-                    resourceScopeType = ResourceScopeTypeEnum.BIZ_SET;
-                    break;
-                default:
-                    log.error("Invalid iam resource type: {}", searchCondition.getParentResourceTypeId());
-                    throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
-            return new ResourceScope(resourceScopeType, searchCondition.getParentResourceId());
+            return IamUtil.getResourceScopeFromIamResource(iamResourceType, searchCondition.getParentResourceId());
         } else {
             return null;
         }
