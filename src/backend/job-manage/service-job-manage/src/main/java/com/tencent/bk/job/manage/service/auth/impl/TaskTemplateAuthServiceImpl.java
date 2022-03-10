@@ -47,6 +47,7 @@ public class TaskTemplateAuthServiceImpl implements TaskTemplateAuthService {
     @Override
     public void processTemplatePermission(String username, Long appId,
                                           PageData<TaskTemplateVO> taskTemplateVOPageData) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVOPageData
             .setCanCreate(templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass());
         processTemplatePermission(username, appId, taskTemplateVOPageData.getData());
@@ -54,15 +55,19 @@ public class TaskTemplateAuthServiceImpl implements TaskTemplateAuthService {
 
     @Override
     public void processTemplatePermission(String username, Long appId, List<TaskTemplateVO> taskTemplateVOList) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         boolean canCreate = templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass();
         List<Long> templateIdList = new ArrayList<>();
         taskTemplateVOList.forEach(template -> {
             templateIdList.add(template.getId());
         });
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedViewTemplate = templateAuthService.batchAuthViewJobTemplate(
             username, new AppResourceScope(appId), templateIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedEditTemplate = templateAuthService.batchAuthEditJobTemplate(
             username, new AppResourceScope(appId), templateIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<Long> allowedDeleteTemplate = templateAuthService.batchAuthDeleteJobTemplate(
             username, new AppResourceScope(appId), templateIdList);
 

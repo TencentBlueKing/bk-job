@@ -127,8 +127,10 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             .map(CredentialVO::getId)
             .map(Objects::toString)
             .collect(Collectors.toList());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canManageIdList =
             ticketAuthService.batchAuthManageTicket(username, new AppResourceScope(appId), credentialIdList);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canUseIdList =
             ticketAuthService.batchAuthUseTicket(username, new AppResourceScope(appId), credentialIdList);
         credentialVOList.forEach(it -> {
@@ -140,11 +142,13 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
 
     public AuthResult checkCreateTicketPermission(String username, Long appId) {
         // 需要拥有在业务下创建凭证的权限
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return ticketAuthService.authCreateTicket(username, new AppResourceScope(appId));
     }
 
     public AuthResult checkManageTicketPermission(String username, Long appId, String credentialId) {
         // 需要拥有在业务下管理某个具体凭证的权限
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         return ticketAuthService.authManageTicket(username, new AppResourceScope(appId), credentialId, null);
     }
 }

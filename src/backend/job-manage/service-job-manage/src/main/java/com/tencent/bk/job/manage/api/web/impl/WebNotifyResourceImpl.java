@@ -73,6 +73,7 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
         Long appId,
         NotifyPoliciesCreateUpdateReq createUpdateReq
     ) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = notificationAuthService.authNotificationSetting(username, new AppResourceScope(appId));
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

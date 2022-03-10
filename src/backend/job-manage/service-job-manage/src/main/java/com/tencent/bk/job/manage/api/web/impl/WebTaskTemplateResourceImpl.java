@@ -210,6 +210,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<TaskTemplateVO> getTemplateById(String username, Long appId, Long templateId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = tempateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
             templateId);
         if (!authResult.isPass()) {
@@ -223,11 +224,14 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
         taskTemplateVO.setCanView(true);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVO.setCanEdit(tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
             templateId).isPass());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVO.setCanDelete(tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
             templateId).isPass());
         taskTemplateVO.setCanDebug(true);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVO.setCanClone(taskTemplateVO.getCanView()
             && tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass());
 
@@ -240,8 +244,10 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         AuthResult authResult;
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
         } else {
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
             authResult = tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
         }
         if (!authResult.isPass()) {
@@ -261,6 +267,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     @Override
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public Response<Boolean> deleteTemplate(String username, Long appId, Long templateId) {
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
             templateId);
         if (!authResult.isPass()) {
@@ -287,6 +294,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         } else {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
             templateId);
         if (!authResult.isPass()) {
@@ -335,6 +343,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             return Response.buildSuccessResp(true);
         }
 
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = tempateAuthService.batchAuthResultEditJobTemplate(username, new AppResourceScope(appId),
             req.getIdList());
         if (!authResult.isPass()) {
