@@ -74,10 +74,10 @@ public interface WebCustomSettingsResource {
         @RequestParam(value = "appId", required = false)
             Long appId,
         @ApiParam(value = "资源范围类型", required = false)
-        @RequestParam(value = "scopeType")
+        @RequestParam(value = "scopeType", required = false)
             String scopeType,
         @ApiParam(value = "资源范围ID", required = false)
-        @RequestParam(value = "scopeId")
+        @RequestParam(value = "scopeId", required = false)
             String scopeId
     );
 
