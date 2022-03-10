@@ -93,4 +93,26 @@ public interface ScriptAuthService {
     List<String> batchAuthManageScript(String username,
                                        AppResourceScope appResourceScope,
                                        List<String> scriptIdList);
+
+    /**
+     * 资源范围下管理脚本批量鉴权并返回鉴权结果
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptIdList     脚本ID列表
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResultManageScript(String username,
+                                       AppResourceScope appResourceScope,
+                                       List<String> scriptIdList);
+
+    /**
+     * 注册脚本实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerScript(String id, String name, String creator);
 }
