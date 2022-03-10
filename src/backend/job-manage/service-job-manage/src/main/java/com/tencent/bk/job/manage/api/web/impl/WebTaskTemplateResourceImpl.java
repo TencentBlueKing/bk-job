@@ -29,23 +29,17 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
+import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
-import com.tencent.bk.job.manage.common.util.IamPathUtil;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
@@ -60,7 +54,6 @@ import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.auth.TaskTemplateAuthService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -85,23 +78,20 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
-    private final AuthService authService;
-    private final AppAuthService appAuthService;
     private final TaskTemplateAuthService taskTemplateAuthService;
     private final TagService tagService;
+    private final TemplateAuthService tempateAuthService;
 
     @Autowired
     public WebTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        AuthService authService,
-        AppAuthService appAuthService,
         TaskTemplateAuthService taskTemplateAuthService,
-        TagService tagService) {
+        TagService tagService,
+        TemplateAuthService tempateAuthService) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+        this.tempateAuthService = tempateAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
         this.tagService = tagService;
     }
@@ -123,12 +113,6 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         String orderField,
         Integer order
     ) {
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
         List<Long> favoriteList = taskFavoriteService.listFavorites(appId, username);
 
         TaskTemplateQuery query = buildTaskTemplateQuery(appId, name, templateId, status, tags, panelTag, type,
@@ -226,8 +210,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<TaskTemplateVO> getTemplateById(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.VIEW_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId));
+        AuthResult authResult = tempateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
+            templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -239,15 +223,13 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
         taskTemplateVO.setCanView(true);
-        taskTemplateVO.setCanEdit(authService.auth(false, username, ActionId.EDIT_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId)).isPass());
-        taskTemplateVO.setCanDelete(authService.auth(false, username, ActionId.DELETE_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId)).isPass());
+        taskTemplateVO.setCanEdit(tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+            templateId).isPass());
+        taskTemplateVO.setCanDelete(tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+            templateId).isPass());
         taskTemplateVO.setCanDebug(true);
-        taskTemplateVO.setCanClone(taskTemplateVO.getCanView() && authService
-            .auth(false, username, ActionId.CREATE_JOB_TEMPLATE,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null)
-            .isPass());
+        taskTemplateVO.setCanClone(taskTemplateVO.getCanView()
+            && tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass());
 
         return Response.buildSuccessResp(taskTemplateVO);
     }
@@ -258,22 +240,18 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         AuthResult authResult;
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
-            authResult = authService.auth(true, username, ActionId.EDIT_JOB_TEMPLATE,
-                ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId));
+            authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
         } else {
-            authResult = authService.auth(true, username,
-                ActionId.CREATE_JOB_TEMPLATE, ResourceTypeEnum.BUSINESS,
-                appId.toString(), null);
+            authResult = tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
         }
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        
+
         if (taskTemplateCreateUpdateReq.validate()) {
             Long finalTemplateId = templateService
                 .saveTaskTemplate(TaskTemplateInfoDTO.fromReq(username, appId, taskTemplateCreateUpdateReq));
-            authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
-                                         ResourceTypeId.TEMPLATE, username, null);
+            tempateAuthService.registerTemplate(finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return Response.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -283,12 +261,12 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     @Override
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public Response<Boolean> deleteTemplate(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.DELETE_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId));
+        AuthResult authResult = tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+            templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        
+
         if (templateService.deleteTaskTemplate(appId, templateId)) {
             taskFavoriteService.deleteFavorite(appId, username, templateId);
             return Response.buildSuccessResp(true);
@@ -298,12 +276,6 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     public Response<TagCountVO> getTagTemplateCount(String username, Long appId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        
         return Response.buildSuccessResp(templateService.getTagTemplateCount(appId));
     }
 
@@ -315,46 +287,28 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         } else {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
-        AuthResult authResult = authService.auth(true, username, ActionId.EDIT_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE, templateId.toString(), IamPathUtil.buildTemplatePathInfo(appId));
+        AuthResult authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+            templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        
+
         return Response.buildSuccessResp(templateService
             .saveTaskTemplateBasicInfo(TaskTemplateInfoDTO.fromBasicReq(username, appId, templateBasicInfoUpdateReq)));
     }
 
     @Override
     public Response<Boolean> addFavorite(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        
         return Response.buildSuccessResp(taskFavoriteService.addFavorite(appId, username, templateId));
     }
 
     @Override
     public Response<Boolean> removeFavorite(String username, Long appId, Long templateId) {
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
         return Response.buildSuccessResp(taskFavoriteService.deleteFavorite(appId, username, templateId));
     }
 
     @Override
     public Response<Boolean> checkTemplateName(String username, Long appId, Long templateId, String name) {
-        AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, appId.toString(), null);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
         return Response.buildSuccessResp(templateService.checkTemplateName(appId, templateId, name));
     }
 
@@ -381,8 +335,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             return Response.buildSuccessResp(true);
         }
 
-        AuthResult authResult = batchAuthTemplate(username, ActionId.EDIT_JOB_TEMPLATE, appId,
-            req.getIdList().stream().map(String::valueOf).collect(Collectors.toList()));
+        AuthResult authResult = tempateAuthService.batchAuthResultEditJobTemplate(username, new AppResourceScope(appId),
+            req.getIdList());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -403,20 +357,6 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
 
         return Response.buildSuccessResp(null);
-    }
-
-    private AuthResult batchAuthTemplate(String username, String actionId, Long appId, List<String> templateIdList) {
-        List<PermissionResource> resources = templateIdList.stream().map(templateId -> {
-            PermissionResource resource = new PermissionResource();
-            resource.setResourceId(templateId);
-            resource.setResourceType(ResourceTypeEnum.TEMPLATE);
-            resource.setPathInfo(PathBuilder.newBuilder(
-                ResourceTypeEnum.BUSINESS.getId(),
-                appId.toString()
-            ).build());
-            return resource;
-        }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, actionId, new AppResourceScope(appId), resources);
     }
 
     private ValidateResult checkTemplateTagBatchPatchReq(TemplateTagBatchPatchReq req) {

@@ -31,14 +31,9 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -59,6 +54,8 @@ import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
+import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -126,9 +123,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final ScriptDTOBuilder scriptDTOBuilder;
 
-    private final AuthService authService;
+    private final ScriptAuthService scriptAuthService;
 
-    private final AppAuthService appAuthService;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
 
     private final TagService tagService;
 
@@ -139,16 +136,16 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                  MessageI18nService i18nService,
                                  ScriptCheckService scriptCheckService,
                                  ScriptDTOBuilder scriptDTOBuilder,
-                                 AuthService authService,
-                                 AppAuthService appAuthService,
+                                 ScriptAuthService scriptAuthService,
+                                 NoResourceScopeAuthService noResourceScopeAuthService,
                                  TagService tagService,
                                  AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+        this.scriptAuthService = scriptAuthService;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
         this.tagService = tagService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -219,7 +216,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptVO> getScript(String username, Long appId, String scriptId) {
+    public Response<ScriptVO> getScript(String username,
+                                        Long appId,
+                                        String scopeType,
+                                        String scopeId,
+                                        String scriptId) {
         ScriptDTO script = scriptService.getScript(username, appId, scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
@@ -407,11 +408,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
         boolean isQueryPublicScript = (appId == 0);
         if (isQueryPublicScript) {
             resultPageData.setCanCreate(
-                authService.auth(false, username, ActionId.CREATE_PUBLIC_SCRIPT).isPass()
+                noResourceScopeAuthService.authCreatePublicScript(username).isPass()
             );
         } else {
-            resultPageData.setCanCreate(authService.auth(false, username, ActionId.CREATE_SCRIPT,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null).isPass());
+            resultPageData.setCanCreate(
+                scriptAuthService.authCreateScript(username, new AppResourceScope(appId)).isPass());
         }
 
         List<String> scriptIdList = new ArrayList<>();
@@ -420,16 +421,14 @@ public class WebScriptResourceImpl implements WebScriptResource {
         });
         if (isQueryPublicScript) {
             resultPageData.getData()
-                .forEach(script -> script.setCanManage(authService.auth(false, username,
-                    ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE).isPass()));
+                .forEach(script -> script.setCanManage(
+                    noResourceScopeAuthService.authManagePublicScript(username, script.getId()).isPass()));
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId),
-                    ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthManageScript(username, new AppResourceScope(appId), scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId),
-                    ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthViewScript(username, new AppResourceScope(appId), scriptIdList);
             resultPageData.getData()
                 .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
             resultPageData.getData().forEach(script -> {
@@ -623,22 +622,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (StringUtils.isBlank(scriptCreateUpdateReq.getId())) {
             if (script.isPublicScript()) {
                 // 公共脚本
-                authService.registerResource(
-                    savedScript.getId(),
-                    script.getName(),
-                    ResourceTypeId.PUBLIC_SCRIPT,
-                    username,
-                    null
-                );
+                noResourceScopeAuthService.registerPublicScript(savedScript.getId(), script.getName(), username);
             } else {
                 // 业务脚本
-                authService.registerResource(
-                    savedScript.getId(),
-                    script.getName(),
-                    ResourceTypeId.SCRIPT,
-                    username,
-                    null
-                );
+                scriptAuthService.registerScript(savedScript.getId(), script.getName(), username);
             }
         }
         ScriptVO scriptVO = new ScriptVO();
@@ -752,22 +739,19 @@ public class WebScriptResourceImpl implements WebScriptResource {
         scriptList.forEach(script -> scriptIdList.add(script.getId()));
 
         if (PUBLIC_APP_ID == appId) {
-            AuthResult managePermAuthResult = authService.auth(
-                false,
-                username,
-                ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE
-            );
             scriptList.forEach(script -> {
+                // TODO:batchAuth
+                AuthResult managePermAuthResult = noResourceScopeAuthService.authManagePublicScript(username,
+                    script.getId());
                 script.setCanManage(managePermAuthResult.isPass());
                 script.setCanView(true);
             });
         } else {
+
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, new AppResourceScope(appId),
-                    ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthManageScript(username, new AppResourceScope(appId), scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, new AppResourceScope(appId),
-                    ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthViewScript(username, new AppResourceScope(appId), scriptIdList);
             scriptList
                 .forEach(script -> {
                     script.setCanManage(allowedManageScriptIdList.contains(script.getId()));
@@ -870,8 +854,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
-        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
-            buildAppScriptPathInfo(appId));
+        return scriptAuthService.authViewScript(username, new AppResourceScope(appId), scriptId, null);
     }
 
     private AuthResult checkScriptViewPermission(String username, long appId, ScriptDTO script) {
@@ -879,29 +862,25 @@ public class WebScriptResourceImpl implements WebScriptResource {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
-        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT,
-            script.getId(), buildAppScriptPathInfo(appId));
+        return scriptAuthService.authViewScript(username, new AppResourceScope(appId), script.getId(), null);
     }
 
 
-    private AuthResult checkScriptManagePermission(String username, long appId, String scriptId) {
+    private AuthResult checkScriptManagePermission(String username, AppResourceScope appResourceScope, String scriptId) {
         boolean isPublicScript = (appId == PUBLIC_APP_ID);
         if (isPublicScript) {
-            return authService.auth(true, username, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
-                ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
+            return noResourceScopeAuthService.authManagePublicScript(username, scriptId);
         } else {
-            return authService.auth(true, username, ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT,
-                scriptId, buildAppScriptPathInfo(appId));
+            return scriptAuthService.authManageScript(username, new AppResourceScope(appId), scriptId, null);
         }
     }
 
     private AuthResult checkScriptCreatePermission(String username, long appId) {
         boolean isPublicScript = (appId == PUBLIC_APP_ID);
         if (isPublicScript) {
-            return authService.auth(true, username, ActionId.CREATE_PUBLIC_SCRIPT);
+            return noResourceScopeAuthService.authCreatePublicScript(username);
         } else {
-            return authService.auth(true, username, ActionId.CREATE_SCRIPT, ResourceTypeEnum.BUSINESS,
-                String.valueOf(appId), null);
+            return scriptAuthService.authCreateScript(username, new AppResourceScope(appId));
         }
     }
 
@@ -1073,10 +1052,14 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
         boolean isPublicScript = appId == PUBLIC_APP_ID;
         List<String> scriptIdList = req.getIdList();
+        AuthResult authResult;
+        if (isPublicScript) {
+            authResult = noResourceScopeAuthService.batchAuthResultManagePublicScript(username, scriptIdList);
+        } else {
+            authResult = scriptAuthService.batchAuthResultManageScript(username, new AppResourceScope(appId),
+                scriptIdList);
+        }
 
-        ResourceTypeEnum iamResourceType = isPublicScript ? ResourceTypeEnum.PUBLIC_SCRIPT : ResourceTypeEnum.SCRIPT;
-        String actionId = isPublicScript ? ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE : ActionId.MANAGE_SCRIPT;
-        AuthResult authResult = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -1098,23 +1081,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
 
         return Response.buildSuccessResp(true);
-    }
-
-    private AuthResult batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                       List<String> scriptIdList) {
-        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
-            PermissionResource resource = new PermissionResource();
-            resource.setResourceId(scriptId);
-            resource.setResourceType(resourceType);
-            if (resourceType == ResourceTypeEnum.SCRIPT) {
-                resource.setPathInfo(PathBuilder.newBuilder(
-                    ResourceTypeEnum.BUSINESS.getId(),
-                    appId.toString()
-                ).build());
-            }
-            return resource;
-        }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, actionId, new AppResourceScope(appId), resources);
     }
 
     private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {

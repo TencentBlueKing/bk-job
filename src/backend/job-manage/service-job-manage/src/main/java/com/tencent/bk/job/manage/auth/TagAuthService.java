@@ -67,4 +67,14 @@ public interface TagAuthService {
     List<Long> batchAuthManageTag(String username,
                                   AppResourceScope appResourceScope,
                                   List<Long> tagIdList);
+
+    /**
+     * 注册标签实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerTag(Long id, String name, String creator);
 }
