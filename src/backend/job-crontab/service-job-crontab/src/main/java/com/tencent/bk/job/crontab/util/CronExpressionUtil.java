@@ -28,6 +28,7 @@ import com.cronutils.mapper.CronMapper;
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.cronutils.model.CronType.QUARTZ;
 import static com.cronutils.model.CronType.UNIX;
@@ -41,16 +42,18 @@ public class CronExpressionUtil {
     private static final CronParser UNIX_PARSER = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(UNIX));
 
     public static String fixExpressionForQuartz(String expression) {
+        if (StringUtils.isBlank(expression)) {
+            return expression;
+        }
         Cron unixCron = UNIX_PARSER.parse(expression);
         unixCron.validate();
         return CronMapper.fromUnixToQuartz().map(unixCron).validate().asString();
     }
 
     public static String fixExpressionForUser(String expression) {
+        if (StringUtils.isBlank(expression)) {
+            return expression;
+        }
         return CronMapper.fromQuartzToUnix().map(QUARTZ_PARSER.parse(expression)).asString();
-    }
-
-    public static void main(String[] args) {
-        System.out.println(CronExpressionUtil.fixExpressionForUser("0 30 10 8 * ? *"));
     }
 }
