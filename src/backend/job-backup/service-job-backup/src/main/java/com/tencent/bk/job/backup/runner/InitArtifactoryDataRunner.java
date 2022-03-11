@@ -3,6 +3,7 @@ package com.tencent.bk.job.backup.runner;
 import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -23,6 +24,10 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(backupStorageConfig.getStorageBackend())) {
+            //不使用制品库作为后端存储时不初始化
+            return;
+        }
         String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
         String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
         String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
