@@ -23,11 +23,11 @@
  */
 
 dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-iam')
-    compile project(':commons:common-i18n')
-    compile project(':commons:esb-sdk')
-    compile project(':commons:common-statistics')
+    api project(':commons:common')
+    api project(':commons:common-iam')
+    api project(':commons:common-i18n')
+    api project(':commons:esb-sdk')
+    api project(':commons:common-statistics')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'

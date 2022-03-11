@@ -23,14 +23,14 @@
  */
 
 dependencies {
-    compile project(":commons:common-web")
-    compile project(":commons:common-redis")
-    compile project(":job-ticket:api-job-ticket")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-execute:api-job-execute")
-    compile project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    compile project(":job-file-gateway:api-job-file-gateway")
-    compile project(":job-file-gateway:model-job-file-gateway")
+    api project(":commons:common-web")
+    api project(":commons:common-redis")
+    api project(":job-ticket:api-job-ticket")
+    api project(":job-manage:api-job-manage")
+    api project(":job-execute:api-job-execute")
+    api project(":job-file-worker-sdk:api-job-file-worker-sdk")
+    api project(":job-file-gateway:api-job-file-gateway")
+    api project(":job-file-gateway:model-job-file-gateway")
     implementation group: 'org.apache.httpcomponents', name: 'httpclient'
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.cloud:spring-cloud-starter-sleuth"

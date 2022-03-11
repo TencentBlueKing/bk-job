@@ -33,11 +33,11 @@ ext {
 }
 version "${jobGatewayVersion}"
 dependencies {
-    compile project(':commons:common')
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-security")
-    compile project(":commons:common-spring-ext")
-    compile project(":commons:paas-sdk")
+    api project(':commons:common')
+    api project(":commons:common-i18n")
+    api project(":commons:common-security")
+    api project(":commons:common-spring-ext")
+    api project(":commons:paas-sdk")
     implementation 'io.springfox:springfox-swagger2'
     implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -49,8 +49,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    // CVE-2022-22947
-    implementation 'org.springframework.cloud:spring-cloud-gateway-server:3.0.7'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -59,15 +58,16 @@ dependencies {
     implementation 'commons-io:commons-io'
     implementation 'io.jsonwebtoken:jjwt'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'joda-time:joda-time'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
 apply plugin: 'org.springframework.boot'
 springBoot {
-    mainClassName = "com.tencent.bk.job.gateway.JobGatewayBootApplication"
+    mainClass = "com.tencent.bk.job.gateway.JobGatewayBootApplication"
     buildInfo()
 }
 test {

@@ -653,7 +653,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public String getDocCenterBaseUrl() {
         String url = "";
-        if (org.apache.commons.lang.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
             url = removeSuffixBackSlash(jobManageConfig.getBkDocRoot());
         } else {
             String jobEdition = jobManageConfig.getJobEdition();

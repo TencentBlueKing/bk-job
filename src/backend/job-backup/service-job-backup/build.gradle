@@ -24,22 +24,23 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-backup:api-job-backup")
-    compile project(":job-backup:model-job-backup")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-execute:model-job-execute")
-    compile project(":commons:common-web")
-    compile project(":commons:common-security")
-    compile project(":commons:common-redis")
+    api project(":job-backup:api-job-backup")
+    api project(":job-backup:model-job-backup")
+    api project(":job-manage:api-job-manage")
+    api project(":job-execute:model-job-execute")
+    api project(":commons:common-web")
+    api project(":commons:common-security")
+    api project(":commons:common-redis")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation "org.apache.commons:commons-collections4"
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
-    compile("org.springframework.cloud:spring-cloud-starter-sleuth")
+    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+    api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"
+    implementation 'joda-time:joda-time'
 }

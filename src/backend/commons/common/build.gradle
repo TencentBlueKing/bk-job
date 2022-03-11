@@ -24,8 +24,8 @@
 
 apply plugin: 'java'
 dependencies {
-    compile project(":commons:common-i18n")
-    compile project(":commons:common-utils")
+    api project(":commons:common-i18n")
+    api project(":commons:common-utils")
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
@@ -38,7 +38,7 @@ dependencies {
     implementation "org.hibernate.validator:hibernate-validator"
     implementation('jakarta.validation:jakarta.validation-api')
     compileOnly "org.springframework:spring-web"
-    compile 'org.apache.commons:commons-lang3'
+    api 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation "org.junit.jupiter:junit-jupiter"

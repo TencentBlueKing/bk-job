@@ -30,7 +30,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.file.worker.JobFileWorkerBootApplication"
+    mainClass = "com.tencent.bk.job.file.worker.JobFileWorkerBootApplication"
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

@@ -32,14 +32,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
@@ -165,5 +158,45 @@ class ReplaceEditionTextTask extends DefaultTask {
 
     public void process(String pattern) {
         patternSet.add(pattern);
+    }
+
+    public FileCollection getProcessResourcesOutputFiles() {
+        return processResourcesOutputFiles;
+    }
+
+    public void setProcessResourcesOutputFiles(FileCollection processResourcesOutputFiles) {
+        this.processResourcesOutputFiles = processResourcesOutputFiles;
+    }
+
+    public String getSrcStr() {
+        return srcStr;
+    }
+
+    public void setSrcStr(String srcStr) {
+        this.srcStr = srcStr;
+    }
+
+    public String getTargetStr() {
+        return targetStr;
+    }
+
+    public void setTargetStr(String targetStr) {
+        this.targetStr = targetStr;
+    }
+
+    public String getDefaultEdition() {
+        return defaultEdition;
+    }
+
+    public void setDefaultEdition(String defaultEdition) {
+        this.defaultEdition = defaultEdition;
+    }
+
+    public String getDefaultPackageType() {
+        return defaultPackageType;
+    }
+
+    public void setDefaultPackageType(String defaultPackageType) {
+        this.defaultPackageType = defaultPackageType;
     }
 }

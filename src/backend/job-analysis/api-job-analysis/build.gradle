@@ -23,13 +23,13 @@
  */
 
 dependencies {
-    compile project(':commons:common')
-    compile project(':commons:common-i18n')
-    compile project(':commons:cmdb-sdk')
-    compile project(':commons:common-iam')
-    compile project(':commons:common-statistics')
-    compile project(':job-execute:api-job-execute')
-    compile project(':job-manage:api-job-manage')
+    api project(':commons:common')
+    api project(':commons:common-i18n')
+    api project(':commons:cmdb-sdk')
+    api project(':commons:common-iam')
+    api project(':commons:common-statistics')
+    api project(':job-execute:api-job-execute')
+    api project(':job-manage:api-job-manage')
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation("org.apache.commons:commons-collections4")

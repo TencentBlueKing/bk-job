@@ -24,13 +24,13 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-logsvr:api-job-logsvr")
-    compile project(':commons:common-security')
-    compile project(':commons:common-web')
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
-    compile("org.springframework.cloud:spring-cloud-starter-sleuth")
+    api project(":job-logsvr:api-job-logsvr")
+    api project(':commons:common-security')
+    api project(':commons:common-web')
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.springframework.boot:spring-boot-starter-data-mongodb")
+    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+    api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation 'org.apache.commons:commons-collections4'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'

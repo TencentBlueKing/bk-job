@@ -24,21 +24,21 @@
 
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":commons:common-redis")
-    compile project(":commons:common-web")
-    compile project(':commons:common-security')
-    compile project(":job-execute:api-job-execute")
-    compile project(":job-manage:api-job-manage")
-    compile project(":job-crontab:api-job-crontab")
-    compile project(":job-crontab:model-job-crontab")
+    api project(":commons:common-redis")
+    api project(":commons:common-web")
+    api project(':commons:common-security')
+    api project(":job-execute:api-job-execute")
+    api project(":job-manage:api-job-manage")
+    api project(":job-crontab:api-job-crontab")
+    api project(":job-crontab:model-job-crontab")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-quartz')
     implementation "org.apache.commons:commons-collections4"
-    compile("org.springframework.cloud:spring-cloud-starter-consul-discovery")
-    compile("org.springframework.cloud:spring-cloud-starter-sleuth")
+    api("org.springframework.cloud:spring-cloud-starter-consul-discovery")
+    api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"

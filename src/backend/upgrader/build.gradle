@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 plugins {
-    id "com.github.johnrengelman.shadow" version "5.1.0"
+    id "com.github.johnrengelman.shadow" version "7.1.1"
 }
 ext {
     if (System.getProperty("jobVersion")) {
@@ -35,10 +35,10 @@ ext {
 }
 version "${jobVersion}"
 dependencies {
-    compile project(":commons:common")
-    compile project(":commons:common-iam")
-    compile project(":commons:common-utils")
-    compile project(":commons:esb-sdk")
+    api project(":commons:common")
+    api project(":commons:common-iam")
+    api project(":commons:common-utils")
+    api project(":commons:esb-sdk")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'ch.qos.logback:logback-core'

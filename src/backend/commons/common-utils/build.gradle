@@ -32,7 +32,7 @@ dependencies {
     implementation 'commons-codec:commons-codec'
     implementation 'com.google.guava:guava'
     implementation 'io.jsonwebtoken:jjwt'
-    compile 'org.apache.commons:commons-lang3'
+    api 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation "org.junit.jupiter:junit-jupiter"

@@ -25,17 +25,18 @@
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
-    compile project(":job-ticket:service-job-ticket")
+    api project(":job-ticket:service-job-ticket")
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     runtimeOnly('mysql:mysql-connector-java')
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.ticket.JobTicketBootApplication"
+    mainClass = "com.tencent.bk.job.ticket.JobTicketBootApplication"
     buildInfo()
 }
 task renameArtifacts(type: Copy) {
