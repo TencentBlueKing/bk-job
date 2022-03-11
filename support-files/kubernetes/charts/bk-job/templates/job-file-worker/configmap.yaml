@@ -22,7 +22,7 @@ data:
           port: {{ .Values.fileWorkerConfig.containerPort }}
         cloud-area-id: {{ .Values.fileWorkerConfig.cloudAreaId }}
         download-file:
-          dir: {{ .Values.fileWorkerConfig.downloadFile.dir }}
+          dir: /data/job/storage
           max-size-gb: {{ .Values.fileWorkerConfig.downloadFile.maxSizeGB }}
           expire-days: {{ .Values.fileWorkerConfig.downloadFile.expireDays }}
         instance-name: {{ .Values.fileWorkerConfig.instanceName }}

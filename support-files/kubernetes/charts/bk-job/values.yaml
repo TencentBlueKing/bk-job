@@ -1118,8 +1118,6 @@ fileWorkerConfig:
   cloudAreaId: 0
   # 文件下载相关配置
   downloadFile:
-    # 文件下载路径
-    dir: /tmp
     # 最大占用空间（GB），超过则进行清理
     maxSizeGB: 100
     # 下载的文件过期时间

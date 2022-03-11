@@ -11,15 +11,13 @@ BK-JOB由11个微服务/独立程序构成
 - PV provisioner
 
 ## 宿主机要求
-注意：若完全使用默认参数，需要保证宿主机/data/bkjob目录下有足够大的空间，且该目录在chart卸载后需要进行清理。
+注意：若完全使用默认参数，需要保证宿主机/data存在、可读写、且目录下有足够大的空间，chart将自动创建bkjob目录用于存放日志与临时文件，该目录在chart卸载后若无需保留则需要进行清理：
+参考命令：
+rm -r /data/bkjob
 
-1.日志与临时文件存储
-作业平台使用Persistent Volume存储程序产生的日志、导入导出操作产生的临时文件，使用PVC进行声明，若K8s集群不提供合适的共享存储作为PV资源，则默认采用宿主机路径进行HostPath挂载，需要保证配置的路径在宿主机上存在：
-默认路径为：/data/bkjob，可通过values文件中的`persistence.localStorage.path`进行配置。
-
-2.分发源文件临时存储
-作业平台file-worker使用HostPath类型的Persistent Volume存储程序运行过程中产生的文件用于分发：
-默认路径为：/tmp，可通过values文件中的`fileWorkerConfig.downloadFile.dir`进行配置。
+日志与临时文件存储说明：
+作业平台使用Persistent Volume存储程序产生的日志、导入导出操作产生的临时文件、第三方源文件分发产生的临时文件，使用PVC进行声明，若K8s集群不提供合适的共享存储作为PV资源，则默认采用宿主机路径进行HostPath挂载，需要保证配置的路径在宿主机上存在且可读写；
+默认路径为：/data/bkjob，其中bkjob层将自动创建，可通过values文件中的`persistence.localStorage.path`进行配置。
 
 ## 安装Chart
 使用以下命令在命名空间bk-job中安装名称为`bk-job`的release, 其中`<bk-job helm repo url>`代表helm仓库地址:
@@ -231,7 +229,6 @@ bitnami/rabbitmq
 |---|---|---|
 | `fileWorkerConfig.instanceName` | 实例名称    | `job-file-worker-public-1`       |
 | `fileWorkerConfig.token` | 实例凭据    | `testToken`       |
-| `fileWorkerConfig.downloadFile.dir` | 文件下载根路径    | `/tmp/job`       |
 | `fileWorkerConfig.downloadFile.maxSizeGB` | 最大占用空间（GB），超过则进行清理    | `100`       |
 | `fileWorkerConfig.downloadFile.expireDays` | 临时文件过期清理时间（天）    | `7`       |
 | `fileWorkerConfig.jvmOptions` | 运行时JVM参数    | `-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8`       |
