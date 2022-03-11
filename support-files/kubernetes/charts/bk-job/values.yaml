@@ -394,6 +394,8 @@ appCode: bk_job
 ## appSecret
 appSecret: ""
 
+## 蓝鲸 HTTP(s) Scheme
+bkDomainScheme: "http"
 ## 蓝鲸 ESB url
 bkComponentApiUrl: "http://bkapi.paas.example.com"
 ## 蓝鲸 Login url
@@ -552,12 +554,13 @@ job:
     domain: "job.example.com"
     # 作业平台API域名
     apiDomain: "jobapi.example.com"
+  ingress:
     https:
-      # 是否开启HTTPS
+      # ingress是否开启HTTPS
       enabled: false
-      # 开启HTTPS时使用的证书base64编码
+      # ingress开启HTTPS时使用的证书base64编码
       certBase64: ""
-      # 开启HTTPS时使用的证书私钥base64编码
+      # ingress开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
 
 ## 持久化存储配置

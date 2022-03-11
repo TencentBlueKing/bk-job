@@ -475,11 +475,7 @@ Return the gse secret
 Return the Job Web Scheme
 */}}
 {{- define "job.web.scheme" -}}
-{{- if .Values.job.web.https.enabled -}}
-    {{- printf "https" -}}
-{{- else -}}
-    {{- printf "http" -}}
-{{- end -}}
+    {{- printf "%s" .Values.bkDomainScheme -}}
 {{- end -}}
 
 {{/*

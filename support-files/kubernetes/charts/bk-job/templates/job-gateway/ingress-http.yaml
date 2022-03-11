@@ -23,7 +23,7 @@ spec:
   {{- if and .Values.ingress.ingressClassName (include "common.ingress.supportsIngressClassname" .) }}
   ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
   {{- end }}
-  {{- if .Values.job.web.https.enabled }}
+  {{- if .Values.job.ingress.https.enabled }}
   tls:
   - hosts:
       - {{ .Values.job.web.apiDomain }}
