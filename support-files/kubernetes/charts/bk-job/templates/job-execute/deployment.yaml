@@ -77,8 +77,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: BK_JOB_STORAGE_ROOT_PATH
-              value: {{ .Values.job.storage.rootPath }}
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-execute
             - name: JOB_COMMON_CONFIGMAP_NAME
