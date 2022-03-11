@@ -120,8 +120,6 @@ spec:
           volumeMounts:
             - name: job-storage
               mountPath: /data/job/storage
-            - name: local-file-dir
-              mountPath: {{ .Values.job.storage.rootPath }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -141,9 +139,6 @@ spec:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "common.names.fullname" . }}-pv-claim
-        - name: local-file-dir
-          hostPath:
-            path: {{ .Values.job.storage.rootPath }}
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

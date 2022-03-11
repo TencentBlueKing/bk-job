@@ -538,9 +538,6 @@ job:
       fileManage:
         # 是否开启文件管理特性，容器化环境默认开启
         enabled: true
-  storage:
-    # 存储文件（用户上传的本地文件、导入导出生成的临时文件等）到本地的根路径
-    rootPath: /data/job/local
   migration:
     iamModel:
       # 是否开启权限模型migration
@@ -572,7 +569,7 @@ persistence:
   # 存储模式：默认将日志存储于pod所在节点HostPath下，若使用其他共享存储可配置为对应的storageClass
   storageClass: job-local
   localStorage:
-    # 是否使用hostpath作为本地存储，用于存储日志
+    # 是否使用hostpath作为本地存储，用于存储日志、导入导出操作产生的临时文件等
     enabled: true
     # 节点本地存储路径
     path: /data/bkjob
@@ -1122,7 +1119,7 @@ fileWorkerConfig:
   # 文件下载相关配置
   downloadFile:
     # 文件下载路径
-    dir: /tmp/job
+    dir: /tmp
     # 最大占用空间（GB），超过则进行清理
     maxSizeGB: 100
     # 下载的文件过期时间
