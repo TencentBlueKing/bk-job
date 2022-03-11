@@ -27,6 +27,7 @@ spec:
       initContainers:
         - name: wait-mariadb
           image: {{ include "common.images.image" (dict "imageRoot" .Values.migrationInit.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.migrationInit.image.pullPolicy }}
           command: ['sh', '-c', 'until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done']
       containers:
         - name: "job-migration"
