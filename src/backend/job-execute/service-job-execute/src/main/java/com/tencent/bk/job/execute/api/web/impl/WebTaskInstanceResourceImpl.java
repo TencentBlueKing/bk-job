@@ -440,7 +440,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     private TaskInstanceDetailVO convertToTaskInstanceDetailVO(TaskInstanceDTO taskInstanceDTO) {
         TaskInstanceDetailVO taskInstanceDetailVO = new TaskInstanceDetailVO();
-        TaskInstanceVO taskInstanceVO = TaskInstanceConverter.convertToTaskInstanceVO(taskInstanceDTO, i18nService);
+        TaskInstanceVO taskInstanceVO = TaskInstanceConverter.convertToTaskInstanceVO(taskInstanceDTO);
         taskInstanceDetailVO.setTaskInstance(taskInstanceVO);
 
         List<StepInstanceDTO> stepInstances = taskInstanceDTO.getStepInstances();
@@ -477,7 +477,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        return Response.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance,
-            i18nService));
+        return Response.buildSuccessResp(TaskInstanceConverter.convertToTaskInstanceVO(taskInstance));
     }
 }

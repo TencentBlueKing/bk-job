@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -124,8 +125,7 @@ import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTOR
 
 @RestController
 @Slf4j
-public class WebTaskExecutionResultResourceImpl
-    implements WebTaskExecutionResultResource {
+public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResultResource {
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
     private final LogService logService;
@@ -136,6 +136,7 @@ public class WebTaskExecutionResultResourceImpl
     private final ExecuteAuthService executeAuthService;
     private final WebAuthService webAuthService;
     private final GseTaskLogService gseTaskLogService;
+    private final AppScopeMappingService appScopeMappingService;
 
     private LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -188,7 +189,8 @@ public class WebTaskExecutionResultResourceImpl
                                               ServiceNotificationResourceClient notifyResource,
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService,
-                                              GseTaskLogService gseTaskLogService) {
+                                              GseTaskLogService gseTaskLogService,
+                                              AppScopeMappingService appScopeMappingService) {
         this.taskResultService = taskResultService;
         this.i18nService = i18nService;
         this.logService = logService;
@@ -199,11 +201,14 @@ public class WebTaskExecutionResultResourceImpl
         this.executeAuthService = executeAuthService;
         this.webAuthService = webAuthService;
         this.gseTaskLogService = gseTaskLogService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<PageData<TaskInstanceVO>> getTaskHistoryList(String username,
                                                                  Long appId,
+                                                                 String scopeType,
+                                                                 String scopeId,
                                                                  String taskName,
                                                                  Long taskInstanceId,
                                                                  Integer status,
@@ -218,9 +223,10 @@ public class WebTaskExecutionResultResourceImpl
                                                                  Long cronTaskId,
                                                                  String startupModes,
                                                                  String ip) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
-        taskQuery.setAppId(appId);
+        taskQuery.setAppId(appResourceScope.getAppId());
         taskQuery.setTaskName(taskName);
         taskQuery.setCronTaskId(cronTaskId);
 
@@ -257,10 +263,10 @@ public class WebTaskExecutionResultResourceImpl
         List<TaskInstanceVO> taskInstanceVOS = new ArrayList<>();
         if (pageData.getData() != null) {
             pageData.getData().forEach(taskInstanceDTO -> taskInstanceVOS.add(TaskInstanceConverter
-                .convertToTaskInstanceVO(taskInstanceDTO, i18nService)));
+                .convertToTaskInstanceVO(taskInstanceDTO)));
         }
         pageDataVO.setData(taskInstanceVOS);
-        batchSetPermissionsForTaskInstance(username, appId, taskInstanceVOS);
+        batchSetPermissionsForTaskInstance(username, appResourceScope, taskInstanceVOS);
         return Response.buildSuccessResp(pageDataVO);
     }
 
@@ -334,13 +340,13 @@ public class WebTaskExecutionResultResourceImpl
         }
     }
 
-    private void batchSetPermissionsForTaskInstance(String username, long appId, List<TaskInstanceVO> taskInstances) {
+    private void batchSetPermissionsForTaskInstance(String username, AppResourceScope appResourceScope,
+                                                    List<TaskInstanceVO> taskInstances) {
         if (CustomCollectionUtils.isEmptyCollection(taskInstances)) {
             return;
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
         boolean hasViewAllPermission = executeAuthService.authViewAllTaskInstance(
-            username, new AppResourceScope(appId)).isPass();
+            username, appResourceScope).isPass();
         if (hasViewAllPermission) {
             taskInstances.forEach(taskInstance -> {
                 taskInstance.setCanView(true);
@@ -356,10 +362,14 @@ public class WebTaskExecutionResultResourceImpl
 
 
     @Override
-    public Response<TaskExecuteResultVO> getTaskExecutionResult(String username, Long appId,
+    public Response<TaskExecuteResultVO> getTaskExecutionResult(String username,
+                                                                Long appId,
+                                                                String scopeType,
+                                                                String scopeId,
                                                                 Long taskInstanceId) {
-        TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username, appId,
-            taskInstanceId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username,
+            appResourceScope.getAppId(), taskInstanceId);
         TaskExecuteResultVO taskExecuteResultVO = convertToTaskExecuteResultVO(taskExecuteResult);
         return Response.buildSuccessResp(taskExecuteResultVO);
     }
@@ -462,14 +472,21 @@ public class WebTaskExecutionResultResourceImpl
     }
 
     @Override
-    public Response<StepExecutionDetailVO> getStepExecutionResult(String username, Long appId,
-                                                                  Long stepInstanceId, Integer executeCount,
-                                                                  Integer resultType, String tag,
+    public Response<StepExecutionDetailVO> getStepExecutionResult(String username,
+                                                                  Long appId,
+                                                                  String scopeType,
+                                                                  String scopeId,
+                                                                  Long stepInstanceId,
+                                                                  Integer executeCount,
+                                                                  Integer resultType,
+                                                                  String tag,
                                                                   Integer maxIpsPerResultGroup,
                                                                   String keyword,
                                                                   String searchIp,
                                                                   String orderField,
                                                                   Integer order) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+
         StepExecutionResultQuery query = new StepExecutionResultQuery();
         query.setStepInstanceId(stepInstanceId);
         query.setExecuteCount(executeCount);
@@ -482,7 +499,7 @@ public class WebTaskExecutionResultResourceImpl
         query.setOrder(Order.valueOf(order));
 
         StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username,
-            appId, query);
+            appResourceScope.getAppId(), query);
         return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
     }
 

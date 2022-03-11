@@ -39,14 +39,15 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class TaskInstanceConverter {
-    public static TaskInstanceVO convertToTaskInstanceVO(@NotNull TaskInstanceDTO taskInstanceDTO,
-                                                         @NotNull MessageI18nService i18nService) {
+    public static TaskInstanceVO convertToTaskInstanceVO(TaskInstanceDTO taskInstanceDTO) {
+        MessageI18nService i18nService = ApplicationContextRegister.getBean(MessageI18nService.class);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+
         TaskInstanceVO taskInstanceVO = new TaskInstanceVO();
         taskInstanceVO.setId(taskInstanceDTO.getId());
 
         taskInstanceVO.setAppId(taskInstanceDTO.getAppId());
-        AppScopeMappingService appScopeMappingService =
-            ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(taskInstanceDTO.getAppId());
         taskInstanceVO.setScopeType(resourceScope.getType().getValue());
         taskInstanceVO.setScopeId(resourceScope.getId());

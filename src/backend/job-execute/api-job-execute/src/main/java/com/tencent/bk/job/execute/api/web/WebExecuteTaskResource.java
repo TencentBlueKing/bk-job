@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
@@ -57,64 +58,137 @@ import org.springframework.web.bind.annotation.RestController;
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")
-    @PostMapping("/app/{appId}/task-execution")
+    @PostMapping(value = {"/app/{appId}/task-execution", "/scope/{scopeType}/{scopeId}/task-execution"})
     Response<TaskExecuteVO> executeTask(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "执行作业请求报文", name = "webTaskExecuteRequest", required = true)
-        @RequestBody WebTaskExecuteRequest request);
+        @RequestBody
+            WebTaskExecuteRequest request
+    );
 
     @ApiOperation(value = "重新执行作业", produces = "application/json")
-    @PostMapping("/app/{appId}/task-execution/redo-task")
+    @PostMapping(value = {"/app/{appId}/task-execution/redo-task",
+        "/scope/{scopeType}/{scopeId}/task-execution/redo-task"})
     Response<TaskExecuteVO> redoTask(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "重新执行作业请求报文", name = "redoTaskRequest", required = true)
-        @RequestBody RedoTaskRequest request);
+        @RequestBody
+            RedoTaskRequest request
+    );
 
     @ApiOperation(value = "快速执行脚本", produces = "application/json")
-    @PostMapping("/app/{appId}/fast-execute-script")
+    @PostMapping(value = {"/app/{appId}/fast-execute-script", "/scope/{scopeType}/{scopeId}/fast-execute-script"})
     Response<StepExecuteVO> fastExecuteScript(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "快速执行脚本请求报文", name = "webScriptExecuteRequest", required = true)
-        @RequestBody @Validated WebFastExecuteScriptRequest request);
+        @RequestBody
+        @Validated
+            WebFastExecuteScriptRequest request
+    );
 
     @ApiOperation(value = "快速分发文件", produces = "application/json")
-    @PostMapping("/app/{appId}/fast-push-file")
+    @PostMapping(value = {"/app/{appId}/fast-push-file", "/scope/{scopeType}/{scopeId}/fast-push-file"})
     Response<StepExecuteVO> fastPushFile(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "快速分发文件请求报文", name = "webPushFileRequest", required = true)
-        @RequestBody @Validated WebFastPushFileRequest request);
+        @RequestBody
+        @Validated
+            WebFastPushFileRequest request
+    );
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
-    @PostMapping("/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}")
-    Response<StepOperationVO> doStepOperation(@ApiParam("用户名，网关自动传入")
-                                                     @RequestHeader("username") String username,
-                                              @ApiParam(value = "业务ID", required = true, example = "1")
-                                                     @PathVariable("appId") Long appId,
-                                              @ApiParam(value = "步骤实例ID", required = true, example = "1")
-                                                     @PathVariable("stepInstanceId") Long stepInstanceId,
-                                              @ApiParam(value = "步骤实例操作请求报文", name = "operation", required =
-                                                         true)
-                                                     @RequestBody WebStepOperation operation);
+    @PostMapping(value = {"/app/{appId}/do-step-operation/stepInstanceId/{stepInstanceId}",
+        "/scope/{scopeType}/{scopeId}/do-step-operation/stepInstanceId/{stepInstanceId}"})
+    Response<StepOperationVO> doStepOperation(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
+        @ApiParam(value = "步骤实例ID", required = true, example = "1")
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "步骤实例操作请求报文", name = "operation", required = true)
+        @RequestBody
+            WebStepOperation operation
+    );
 
     @ApiOperation(value = "终止作业", produces = "application/json")
-    @PostMapping("/app/{appId}/taskInstance/{taskInstanceId}/terminate")
-    Response terminateJob(@ApiParam("用户名，网关自动传入")
-                                 @RequestHeader("username") String username,
-                          @ApiParam(value = "业务ID", required = true, example = "1")
-                                 @PathVariable("appId") Long appId,
-                          @ApiParam(value = "作业实例ID", required = true, example = "1")
-                                 @PathVariable("taskInstanceId") Long taskInstanceId);
+    @PostMapping(value = {"/app/{appId}/taskInstance/{taskInstanceId}/terminate",
+        "/scope/{scopeType}/{scopeId}/taskInstance/{taskInstanceId}/terminate"})
+    Response terminateJob(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
+        @ApiParam(value = "作业实例ID", required = true, example = "1")
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId
+    );
 
 }
