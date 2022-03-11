@@ -331,6 +331,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }
             return new AppVO(
                 it.getId(),
+                it.getScope().getType().getValue(),
+                it.getScope().getId(),
                 it.getName(),
                 appType,
                 null,

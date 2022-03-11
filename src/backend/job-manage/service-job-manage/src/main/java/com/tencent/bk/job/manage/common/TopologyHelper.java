@@ -33,8 +33,11 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
@@ -248,6 +251,11 @@ public class TopologyHelper {
         }
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
         dynamicGroupInfoVO.setAppId(dynamicGroupInfoDTO.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(dynamicGroupInfoDTO.getAppId());
+        dynamicGroupInfoVO.setScopeType(resourceScope.getType().getValue());
+        dynamicGroupInfoVO.setScopeId(resourceScope.getId());
         dynamicGroupInfoVO.setAppName(dynamicGroupInfoDTO.getAppName());
         dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
         dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());

@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
@@ -80,7 +81,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     private final TaskFavoriteService taskFavoriteService;
     private final TaskTemplateAuthService taskTemplateAuthService;
     private final TagService tagService;
-    private final TemplateAuthService tempateAuthService;
+    private final TemplateAuthService templateAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTaskTemplateResourceImpl(
@@ -88,31 +90,34 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         TaskTemplateAuthService taskTemplateAuthService,
         TagService tagService,
-        TemplateAuthService tempateAuthService) {
+        TemplateAuthService templateAuthService,
+        AppScopeMappingService appScopeMappingService) {
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
-        this.tempateAuthService = tempateAuthService;
+        this.templateAuthService = templateAuthService;
         this.taskTemplateAuthService = taskTemplateAuthService;
         this.tagService = tagService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<PageData<TaskTemplateVO>> listPageTemplates(
-        String username,
-        Long appId,
-        Long templateId,
-        String name,
-        Integer status,
-        String tags,
-        Long panelTag,
-        Integer type,
-        String creator,
-        String lastModifyUser,
-        Integer start,
-        Integer pageSize,
-        String orderField,
-        Integer order
-    ) {
+    public Response<PageData<TaskTemplateVO>> listPageTemplates(String username,
+                                                                String scopeType,
+                                                                String scopeId,
+                                                                Long templateId,
+                                                                String name,
+                                                                Integer status,
+                                                                String tags,
+                                                                Long panelTag,
+                                                                Integer type,
+                                                                String creator,
+                                                                String lastModifyUser,
+                                                                Integer start,
+                                                                Integer pageSize,
+                                                                String orderField,
+                                                                Integer order) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        Long appId = appResourceScope.getAppId();
         List<Long> favoriteList = taskFavoriteService.listFavorites(appId, username);
 
         TaskTemplateQuery query = buildTaskTemplateQuery(appId, name, templateId, status, tags, panelTag, type,
@@ -138,7 +143,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         resultPageData.setData(resultTemplates);
         resultPageData.setExistAny(templateService.isExistAnyAppTemplate(appId));
 
-        taskTemplateAuthService.processTemplatePermission(username, appId, resultPageData);
+        taskTemplateAuthService.processTemplatePermission(username, appResourceScope, resultPageData);
 
         return Response.buildSuccessResp(resultPageData);
     }
@@ -209,14 +214,15 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
-    public Response<TaskTemplateVO> getTemplateById(String username, Long appId, Long templateId) {
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = tempateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
+    public Response<TaskTemplateVO> getTemplateById(String username, String scopeType, String scopeId,
+                                                    Long templateId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AuthResult authResult = templateAuthService.authViewJobTemplate(username, appResourceScope,
             templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appId, templateId);
+        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appResourceScope.getAppId(), templateId);
         if (templateInfo == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
@@ -224,31 +230,28 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
         taskTemplateVO.setCanView(true);
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        taskTemplateVO.setCanEdit(tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+        taskTemplateVO.setCanEdit(templateAuthService.authEditJobTemplate(username, appResourceScope,
             templateId).isPass());
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        taskTemplateVO.setCanDelete(tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+        taskTemplateVO.setCanDelete(templateAuthService.authDeleteJobTemplate(username, appResourceScope,
             templateId).isPass());
         taskTemplateVO.setCanDebug(true);
         // TODO: 通过scopeType与scopeId构造AppResourceScope
         taskTemplateVO.setCanClone(taskTemplateVO.getCanView()
-            && tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).isPass());
+            && templateAuthService.authCreateJobTemplate(username, appResourceScope).isPass());
 
         return Response.buildSuccessResp(taskTemplateVO);
     }
 
     @Override
-    public Response<Long> saveTemplate(String username, Long appId, Long templateId,
+    public Response<Long> saveTemplate(String username, String scopeType, String scopeId, Long templateId,
                                        TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult;
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
-            authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
+            authResult = templateAuthService.authEditJobTemplate(username, appResourceScope, templateId);
         } else {
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
-            authResult = tempateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
+            authResult = templateAuthService.authCreateJobTemplate(username, appResourceScope);
         }
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -256,8 +259,9 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
         if (taskTemplateCreateUpdateReq.validate()) {
             Long finalTemplateId = templateService
-                .saveTaskTemplate(TaskTemplateInfoDTO.fromReq(username, appId, taskTemplateCreateUpdateReq));
-            tempateAuthService.registerTemplate(finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
+                .saveTaskTemplate(TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(),
+                    taskTemplateCreateUpdateReq));
+            templateAuthService.registerTemplate(finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return Response.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -266,14 +270,15 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
 
     @Override
     @Transactional(rollbackFor = {Exception.class, Error.class})
-    public Response<Boolean> deleteTemplate(String username, Long appId, Long templateId) {
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = tempateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+    public Response<Boolean> deleteTemplate(String username, String scopeType, String scopeId, Long templateId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AuthResult authResult = templateAuthService.authDeleteJobTemplate(username, appResourceScope,
             templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
+        Long appId = appResourceScope.getAppId();
         if (templateService.deleteTaskTemplate(appId, templateId)) {
             taskFavoriteService.deleteFavorite(appId, username, templateId);
             return Response.buildSuccessResp(true);
@@ -282,57 +287,68 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
-    public Response<TagCountVO> getTagTemplateCount(String username, Long appId) {
-        return Response.buildSuccessResp(templateService.getTagTemplateCount(appId));
+    public Response<TagCountVO> getTagTemplateCount(String username, String scopeType, String scopeId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        return Response.buildSuccessResp(templateService.getTagTemplateCount(appResourceScope.getAppId()));
     }
 
     @Override
-    public Response<Boolean> updateTemplateBasicInfo(String username, Long appId, Long templateId,
+    public Response<Boolean> updateTemplateBasicInfo(String username, String scopeType, String scopeId, Long templateId,
                                                      TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         if (templateId > 0) {
             templateBasicInfoUpdateReq.setId(templateId);
         } else {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = tempateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+        AuthResult authResult = templateAuthService.authEditJobTemplate(username, appResourceScope,
             templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        return Response.buildSuccessResp(templateService
-            .saveTaskTemplateBasicInfo(TaskTemplateInfoDTO.fromBasicReq(username, appId, templateBasicInfoUpdateReq)));
+        return Response.buildSuccessResp(
+            templateService.saveTaskTemplateBasicInfo(
+                TaskTemplateInfoDTO.fromBasicReq(username, appResourceScope.getAppId(), templateBasicInfoUpdateReq)));
     }
 
     @Override
-    public Response<Boolean> addFavorite(String username, Long appId, Long templateId) {
-        return Response.buildSuccessResp(taskFavoriteService.addFavorite(appId, username, templateId));
+    public Response<Boolean> addFavorite(String username, String scopeType, String scopeId, Long templateId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        return Response.buildSuccessResp(taskFavoriteService.addFavorite(appResourceScope.getAppId(), username,
+            templateId));
     }
 
     @Override
-    public Response<Boolean> removeFavorite(String username, Long appId, Long templateId) {
-        return Response.buildSuccessResp(taskFavoriteService.deleteFavorite(appId, username, templateId));
+    public Response<Boolean> removeFavorite(String username, String scopeType, String scopeId, Long templateId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        return Response.buildSuccessResp(taskFavoriteService.deleteFavorite(appResourceScope.getAppId(), username,
+            templateId));
     }
 
     @Override
-    public Response<Boolean> checkTemplateName(String username, Long appId, Long templateId, String name) {
-        return Response.buildSuccessResp(templateService.checkTemplateName(appId, templateId, name));
+    public Response<Boolean> checkTemplateName(String username, String scopeType, String scopeId, Long templateId,
+                                               String name) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        return Response.buildSuccessResp(templateService.checkTemplateName(appResourceScope.getAppId(), templateId,
+            name));
     }
 
     @Override
-    public Response<List<TaskTemplateVO>> listTemplateBasicInfoByIds(String username, Long appId,
+    public Response<List<TaskTemplateVO>> listTemplateBasicInfoByIds(String username, String scopeType, String scopeId,
                                                                      List<Long> templateIds) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         List<TaskTemplateInfoDTO> taskTemplateBasicInfo =
-            templateService.listTaskTemplateBasicInfoByIds(appId, templateIds);
+            templateService.listTaskTemplateBasicInfoByIds(appResourceScope.getAppId(), templateIds);
         List<TaskTemplateVO> templateBasicInfoVOList = taskTemplateBasicInfo.stream()
             .map(TaskTemplateInfoDTO::toVO).collect(Collectors.toList());
         return Response.buildSuccessResp(templateBasicInfoVOList);
     }
 
     @Override
-    public Response<Boolean> batchPatchTemplateTags(String username, Long appId,
+    public Response<Boolean> batchPatchTemplateTags(String username, String scopeType, String scopeId,
                                                     TemplateTagBatchPatchReq req) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         ValidateResult validateResult = checkTemplateTagBatchPatchReq(req);
         if (!validateResult.isPass()) {
             throw new InvalidParamException(validateResult);
@@ -343,8 +359,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             return Response.buildSuccessResp(true);
         }
 
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = tempateAuthService.batchAuthResultEditJobTemplate(username, new AppResourceScope(appId),
+        AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(username,
+            appResourceScope,
             req.getIdList());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

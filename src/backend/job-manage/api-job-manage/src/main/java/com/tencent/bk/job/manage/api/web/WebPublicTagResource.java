@@ -49,11 +49,13 @@ public interface WebPublicTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
     @GetMapping("/list")
-    Response<List<TagVO>> listTags(@ApiParam("用户名，网关自动传入")
-                                          @RequestHeader("username")
-                                              String username,
-                                   @ApiParam("标签名称")
-                                          @RequestParam(value = "name", required = false)
-                                              String name);
+    Response<List<TagVO>> listTags(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam("标签名称")
+        @RequestParam(value = "name", required = false)
+            String name
+    );
 
 }

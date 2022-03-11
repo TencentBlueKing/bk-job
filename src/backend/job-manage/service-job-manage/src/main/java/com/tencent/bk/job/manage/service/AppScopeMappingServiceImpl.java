@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +39,7 @@ import java.util.Map;
 @Service
 public class AppScopeMappingServiceImpl implements AppScopeMappingService {
 
-    private ApplicationService applicationService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public AppScopeMappingServiceImpl(ApplicationService applicationService) {
@@ -50,8 +52,23 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     }
 
     @Override
+    public Long getAppIdByScope(String scopeType, String scopeId) {
+        return getAppIdByScope(new ResourceScope(scopeType, scopeId));
+    }
+
+    @Override
     public ResourceScope getScopeByAppId(Long appId) {
         return applicationService.getScopeByAppId(appId);
+    }
+
+    @Override
+    public AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
+        } else {
+            ResourceScope resourceScope = getScopeByAppId(appId);
+            return new AppResourceScope(appId, resourceScope);
+        }
     }
 
     @Override

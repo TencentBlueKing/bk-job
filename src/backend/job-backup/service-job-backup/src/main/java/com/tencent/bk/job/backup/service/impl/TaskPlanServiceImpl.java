@@ -29,6 +29,8 @@ import com.tencent.bk.job.backup.client.WebPlanResourceClient;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
@@ -50,12 +52,15 @@ import java.util.stream.Collectors;
 public class TaskPlanServiceImpl implements TaskPlanService {
     private final WebPlanResourceClient webPlanResourceClient;
     private final ServicePlanResourceClient servicePlanResourceClient;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public TaskPlanServiceImpl(WebPlanResourceClient webPlanResourceClient,
-                               ServicePlanResourceClient servicePlanResourceClient) {
+                               ServicePlanResourceClient servicePlanResourceClient,
+                               AppScopeMappingService appScopeMappingService) {
         this.webPlanResourceClient = webPlanResourceClient;
         this.servicePlanResourceClient = servicePlanResourceClient;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -71,8 +76,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     continue;
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
+                ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
                 Response<TaskPlanVO> planByIdResponse =
-                    webPlanResourceClient.getPlanById(username, appId, templateId, planId);
+                    webPlanResourceClient.getPlanById(username, appId, resourceScope.getType().getValue(),
+                        resourceScope.getId(), templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
                         taskPlanList.add(planByIdResponse.getData());
@@ -93,8 +100,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<List<TaskPlanVO>> planListResponse =
-                webPlanResourceClient.listPlans(username, appId, templateId);
+                webPlanResourceClient.listPlans(username, appId, resourceScope.getType().getValue(),
+                    resourceScope.getId(), templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
                     log.debug("Fetching plan list of {}/{} finished.", appId, templateId);

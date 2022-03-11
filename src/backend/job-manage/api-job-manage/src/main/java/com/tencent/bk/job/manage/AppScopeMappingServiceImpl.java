@@ -24,21 +24,77 @@
 
 package com.tencent.bk.job.manage;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 业务与资源范围转换
  */
+@Slf4j
 public class AppScopeMappingServiceImpl implements AppScopeMappingService {
+
+    /**
+     * appId 与 resourceScope 的映射关系缓存
+     * 由于appId与resourceScope映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
+     */
+    private final Cache<Long, ResourceScope> appIdAndScopeCache =
+        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
+            .build(new CacheLoader<Long, ResourceScope>() {
+                       @Override
+                       public ResourceScope load(Long appId) {
+                           try {
+                               ServiceApplicationDTO app = applicationResource.queryAppById(appId);
+                               if (app == null) {
+                                   return null;
+                               }
+                               return new ResourceScope(app.getScopeType(), app.getScopeId());
+                           } catch (NotFoundException e) {
+                               log.error("App not found for appId: {}", appId);
+                               return null;
+                           }
+                       }
+                   }
+            );
+
+    /**
+     * resourceScope 与 appId 的映射关系缓存
+     * 由于resourceScope与appId映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
+     */
+    private final Cache<ResourceScope, Long> scopeAndAppIdCache =
+        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
+            .build(new CacheLoader<ResourceScope, Long>() {
+                       @Override
+                       public Long load(ResourceScope resourceScope) {
+                           try {
+                               ServiceApplicationDTO app = applicationResource.queryAppByScope(
+                                   resourceScope.getType().getValue(),
+                                   resourceScope.getId());
+                               if (app == null) {
+                                   return null;
+                               }
+                               return app.getId();
+                           } catch (NotFoundException e) {
+                               log.error("App not found for scope: {}", resourceScope);
+                               return null;
+                           }
+                       }
+                   }
+            );
+
 
     private final ServiceApplicationResource applicationResource;
 
@@ -47,18 +103,36 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     }
 
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return applicationResource.queryAppByScope(resourceScope.getType().getValue(), resourceScope.getId()).getId();
+        return scopeAndAppIdCache.getIfPresent(resourceScope);
+    }
+
+    @Override
+    public Long getAppIdByScope(String scopeType, String scopeId) {
+        return getAppIdByScope(new ResourceScope(scopeType, scopeId));
     }
 
     public ResourceScope getScopeByAppId(Long appId) {
-        ServiceApplicationDTO application = applicationResource.queryAppById(appId);
-        return new ResourceScope(application.getScopeType(), application.getScopeId());
+        return appIdAndScopeCache.getIfPresent(appId);
+    }
+
+    @Override
+    public AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId) {
+        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+            return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
+        } else {
+            ResourceScope resourceScope = getScopeByAppId(appId);
+            return new AppResourceScope(appId, resourceScope);
+        }
     }
 
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
-        String appIdsStr = StringUtil.concatCollection(appIds, ",");
-        List<ServiceApplicationDTO> applications = applicationResource.listAppsByAppIds(appIdsStr);
-        return applications.stream().collect(Collectors.toMap(ServiceApplicationDTO::getId,
-            app -> new ResourceScope(app.getScopeType(), app.getScopeId())));
+        Map<Long, ResourceScope> mapping = new HashMap<>();
+        appIds.forEach(appId -> {
+            ResourceScope resourceScope = getScopeByAppId(appId);
+            if (resourceScope != null) {
+                mapping.put(appId, resourceScope);
+            }
+        });
+        return mapping;
     }
 }
