@@ -26,7 +26,7 @@ spec:
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       initContainers:
         - name: wait-mariadb
-          image: busybox:1.28
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.migrationInit.image "global" .Values.global) }}
           command: ['sh', '-c', 'until nslookup {{ include "job.mariadb.host" . }}; do echo waiting for mariadb; sleep 2; done']
       containers:
         - name: "job-migration"

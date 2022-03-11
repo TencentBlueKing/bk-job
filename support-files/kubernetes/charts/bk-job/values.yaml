@@ -11,15 +11,11 @@
 ## @param global.imagePullSecrets Global Docker registry secret names as an array
 ## @param global.storageClass Global StorageClass for Persistent Volume(s)
 ##
+# 镜像源公共配置
 global:
   imageRegistry: ""
   imagePullSecrets: []
   storageClass: ""
-
-# 作业平台各模块镜像源公共配置
-jobImage:
-  imageRegistry: ""
-  imagePullSecrets: []
 
 ## @section Common parameters
 
@@ -1199,5 +1195,29 @@ migration:
     repository: "blueking/job-migration"
     # 镜像标签
     tag: 3.4.5-beta.3
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+
+## migration的init任务配置
+migrationInit:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "busybox"
+    # 镜像标签
+    tag: 1.28
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+
+## 其他服务Pod等待migration完成的init任务配置
+waitForMigration:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "groundnuty/k8s-wait-for"
+    # 镜像标签
+    tag: 1.3
     # 镜像拉取策略
     pullPolicy: IfNotPresent
