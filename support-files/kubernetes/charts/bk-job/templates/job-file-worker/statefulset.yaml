@@ -73,9 +73,9 @@ spec:
             - name: BK_JOB_JAR
               value: job-file-worker.jar
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
-              value: /data/job/storage
+              value: /data/job/storage/JobFileWorkerWorkspace
             - name: BK_JOB_FILE_WORKER_WORKSPACE_OUTER_DIR
-              value: {{ .Values.persistence.localStorage.path }}
+              value: {{ .Values.persistence.localStorage.path }}/JobFileWorkerWorkspace
             - name: BK_JOB_NODE_IP
               valueFrom:
                 fieldRef:
