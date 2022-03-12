@@ -25,6 +25,9 @@
 package com.tencent.bk.job.execute.model.converter;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -40,7 +43,14 @@ public class TaskInstanceConverter {
                                                          @NotNull MessageI18nService i18nService) {
         TaskInstanceVO taskInstanceVO = new TaskInstanceVO();
         taskInstanceVO.setId(taskInstanceDTO.getId());
+
         taskInstanceVO.setAppId(taskInstanceDTO.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(taskInstanceDTO.getAppId());
+        taskInstanceVO.setScopeType(resourceScope.getType().getValue());
+        taskInstanceVO.setScopeId(resourceScope.getId());
+
         taskInstanceVO.setName(taskInstanceDTO.getName());
         taskInstanceVO.setOperator(taskInstanceDTO.getOperator());
         taskInstanceVO.setStartupMode(taskInstanceDTO.getStartupMode());

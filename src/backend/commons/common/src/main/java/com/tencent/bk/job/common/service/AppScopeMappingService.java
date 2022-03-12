@@ -39,9 +39,21 @@ import java.util.Map;
 public interface AppScopeMappingService {
     Long getAppIdByScope(ResourceScope resourceScope);
 
+    Long getAppIdByScope(String scopeType, String scopeId);
+
     ResourceScope getScopeByAppId(Long appId);
 
     Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
+
+    /**
+     * 根据业务ID或者scopeType&scopeId获取AppResourceScope
+     *
+     * @param appId     业务ID
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围ID
+     * @return AppResourceScope, 包含业务ID、资源范围类型、资源范围ID
+     */
+    AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId);
 
     default void fillResourceScope(AppResourceScope appResourceScope) {
         if (appResourceScope.getType() != null && StringUtils.isNotBlank(appResourceScope.getId())) {

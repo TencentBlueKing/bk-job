@@ -52,11 +52,6 @@ public class AccountCreateUpdateReq {
     private Integer category;
 
     /**
-     * 业务 ID
-     */
-    @ApiModelProperty(value = "业务ID", required = true)
-    private Long appId;
-    /**
      * 所属用户
      */
     @ApiModelProperty(value = "所属用户", required = false)

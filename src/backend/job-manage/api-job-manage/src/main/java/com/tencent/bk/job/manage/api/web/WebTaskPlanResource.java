@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -48,9 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.ws.rs.QueryParam;
 import java.util.List;
 
-/**
- * @since 19/11/2019 15:44
- */
 @Api(tags = {"job-manage:web:Task_Plan_Management"})
 @RequestMapping("/web")
 @RestController
@@ -58,200 +56,331 @@ import java.util.List;
 public interface WebTaskPlanResource {
 
     @ApiOperation(value = "获取业务下的执行方案列表", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/list")
+    @GetMapping(value = {"/app/{appId}/task/plan/list", "/scope/{scopeType}/{scopeId}/task/plan/list"})
     Response<PageData<TaskPlanVO>> listAllPlans(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "执行方案 ID")
-        @RequestParam(value = "planId", required = false) Long planId,
+        @RequestParam(value = "planId", required = false)
+            Long planId,
         @ApiParam(value = "模板名称")
-        @RequestParam(value = "templateName", required = false) String templateName,
+        @RequestParam(value = "templateName", required = false)
+            String templateName,
         @ApiParam(value = "模板 ID")
-        @RequestParam(value = "templateId", required = false) Long templateId,
+        @RequestParam(value = "templateId", required = false)
+            Long templateId,
         @ApiParam(value = "执行方案名称")
-        @RequestParam(value = "planName", required = false) String planName,
+        @RequestParam(value = "planName", required = false)
+            String planName,
         @ApiParam(value = "创建人")
-        @RequestParam(value = "creator", required = false) String creator,
+        @RequestParam(value = "creator", required = false)
+            String creator,
         @ApiParam(value = "更新人")
-        @RequestParam(value = "lastModifyUser", required = false) String lastModifyUser,
+        @RequestParam(value = "lastModifyUser", required = false)
+            String lastModifyUser,
         @ApiParam(value = "分页-开始 -1 不分页")
-        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "start", required = false)
+            Integer start,
         @ApiParam(value = "分页-每页大小 -1 不分页")
-        @RequestParam(value = "pageSize", required = false) Integer pageSize
+        @RequestParam(value = "pageSize", required = false)
+            Integer pageSize
     );
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}")
+    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}", "/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
     Response<List<TaskPlanVO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable(value = "templateId") Long templateId
+        @PathVariable(value = "templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "批量获取执行方案基本信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan:batchGet")
+    @GetMapping(value = {"/app/{appId}/task/plan:batchGet", "/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
     Response<List<TaskPlanVO>> batchGetPlans(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "模板ID列表，用英文逗号分隔", required = true)
-        @RequestParam(value = "templateIds") String templateIds);
+        @RequestParam(value = "templateIds")
+            String templateIds
+    );
 
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}/{planId}")
+    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}/{planId}",
+        "/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
     Response<TaskPlanVO> getPlanById(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "获取模版对应的调试方案信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}/debug")
+    @GetMapping(value = {"/app/{appId}/task/plan/{templateId}/debug",
+        "/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
     Response<TaskPlanVO> getDebugPlan(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable("templateId") Long templateId
+        @PathVariable("templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "更新执行方案", produces = "application/json")
-    @PutMapping("/app/{appId}/task/plan/{templateId}/{planId}")
+    @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<Long> savePlan(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID，新建时填 0", required = true)
-        @PathVariable("planId") Long planId,
+        @PathVariable("planId")
+            Long planId,
         @ApiParam(value = "更新的执行方案对象", name = "planCreateUpdateReq")
-        @RequestBody TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
+        @RequestBody
+            TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 
     @ApiOperation(value = "删除执行方案", produces = "application/json")
-    @DeleteMapping("/app/{appId}/task/plan/{templateId}/{planId}")
+    @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<Boolean> deletePlan(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "根据执行方案 ID 批量拉基础信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan")
+    @GetMapping(value = {"/app/{appId}/task/plan", "/scope/{scopeType}/{scopeId}/task/plan"})
     Response<List<TaskPlanVO>> listPlanBasicInfoByIds(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "执行方案 ID 列表，逗号分隔", required = true, example = "1,2,3")
-        @QueryParam("ids") String planIds
+        @QueryParam("ids")
+            String planIds
     );
 
     @ApiOperation(value = "检查执行方案名称是否已占用", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}/{planId}/check_name")
+    @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/check_name")
     Response<Boolean> checkPlanName(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "作业模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID，新建时填 0", required = true)
-        @PathVariable("planId") Long planId,
+        @PathVariable("planId")
+            Long planId,
         @ApiParam(value = "名称", required = true)
-        @RequestParam(value = "name") String name
+        @RequestParam(value = "name")
+            String name
     );
 
     @ApiOperation(value = "获取执行方案同步信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}/{planId}/sync_info")
+    @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync_info")
     Response<TaskPlanSyncInfoVO> syncInfo(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "作业模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "同步执行方案", produces = "application/json")
-    @PostMapping("/app/{appId}/task/plan/{templateId}/{planId}/sync")
+    @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync")
     Response<Boolean> syncConfirm(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "作业模版 ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId,
+        @PathVariable("planId")
+            Long planId,
         @ApiParam(value = "作业模版版本", required = true)
-        @RequestParam("templateVersion") String templateVersion
+        @RequestParam("templateVersion")
+            String templateVersion
     );
 
     @ApiOperation(value = "新增收藏", produces = "application/json")
-    @PutMapping("/app/{appId}/task/plan/{templateId}/{planId}/favorite")
+    @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> addFavorite(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "删除收藏", produces = "application/json")
-    @DeleteMapping("/app/{appId}/task/plan/{templateId}/{planId}/favorite")
+    @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> removeFavorite(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "根据执行方案 ID 拉基本信息", produces = "application/json")
     @GetMapping("/task/plan/{planId}")
     Response<TaskPlanVO> getPlanBasicInfoById(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
+        @RequestHeader("username")
+            String username,
         @ApiParam(value = "执行方案 ID", required = true)
-        @PathVariable("planId") Long planId
+        @PathVariable("planId")
+            Long planId
     );
 
     @ApiOperation(value = "批量根据变量名更新执行方案变量值", produces = "application/json")
-    @PostMapping("/app/{appId}/task/plan/batch_update_variable")
+    @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/batch_update_variable")
     Response<Boolean> batchUpdatePlanVariableValueByName(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "批量更新请求体", required = true)
-        @RequestBody List<TaskVariableValueUpdateReq> planVariableInfoList
+        @RequestBody
+            List<TaskVariableValueUpdateReq> planVariableInfoList
     );
 }
