@@ -44,16 +44,6 @@ public interface WebAuthService {
     void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService);
 
     /**
-     * 无关联资源操作鉴权
-     *
-     * @param returnApplyUrl 是否返回权限申请url
-     * @param username       用户名
-     * @param actionId       操作ID
-     * @return
-     */
-    AuthResultVO auth(boolean returnApplyUrl, String username, String actionId);
-
-    /**
      * 关联资源操作鉴权
      *
      * @param returnApplyUrl 是否返回权限申请url
@@ -76,34 +66,6 @@ public interface WebAuthService {
      * @return 鉴权结果
      */
     AuthResultVO auth(boolean isReturnApplyUrl, String username, List<PermissionActionResource> actionResources);
-
-    /**
-     * 批量鉴权
-     *
-     * @param username     用户名
-     * @param actionId     操作ID
-     * @param appId        业务ID
-     * @param resourceType 资源类型
-     * @param resourceIds  资源ID列表
-     * @return 有权限的资源ID列表
-     */
-    List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                           List<String> resourceIds);
-
-    /**
-     * 批量鉴权
-     *
-     * @param username     用户名
-     * @param actionId     操作 ID
-     * @param appId        业务 ID
-     * @param resourceList 资源列表
-     * @return 有权限的资源 ID 列表
-     */
-    List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList);
-
-    String getApplyUrl(String actionId);
-
-    String getApplyUrl(String actionId, ResourceTypeEnum resourceType, String resourceId);
 
     String getApplyUrl(List<PermissionActionResource> permissionActionResources);
 

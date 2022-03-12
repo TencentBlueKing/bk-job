@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
@@ -51,9 +50,9 @@ import java.util.StringJoiner;
 @Slf4j
 @Service
 public class WebAuthServiceImpl implements WebAuthService {
-    private MessageI18nService i18nService;
-    private AuthService authService;
-    private AppAuthService appAuthService;
+    private final MessageI18nService i18nService;
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService,
@@ -75,11 +74,6 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
-    public AuthResultVO auth(boolean returnApplyUrl, String username, String actionId) {
-        return toAuthResultVO(authService.auth(returnApplyUrl, username, actionId));
-    }
-
-    @Override
     public AuthResultVO auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
                              String resourceId, PathInfoDTO pathInfo) {
         return toAuthResultVO(authService.auth(returnApplyUrl, username, actionId, resourceType, resourceId, pathInfo));
@@ -89,27 +83,6 @@ public class WebAuthServiceImpl implements WebAuthService {
     public AuthResultVO auth(boolean isReturnApplyUrl, String username,
                              List<PermissionActionResource> actionResources) {
         return toAuthResultVO(authService.auth(isReturnApplyUrl, username, actionResources));
-    }
-
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                  List<String> resourceIds) {
-        return appAuthService.batchAuth(username, actionId, new AppResourceScope(appId), resourceType, resourceIds);
-    }
-
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
-        return appAuthService.batchAuth(username, actionId, new AppResourceScope(appId), resourceList);
-    }
-
-    @Override
-    public String getApplyUrl(String actionId) {
-        return authService.getApplyUrl(actionId);
-    }
-
-    @Override
-    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType, String resourceId) {
-        return authService.getApplyUrl(actionId, resourceType, resourceId);
     }
 
     @Override
