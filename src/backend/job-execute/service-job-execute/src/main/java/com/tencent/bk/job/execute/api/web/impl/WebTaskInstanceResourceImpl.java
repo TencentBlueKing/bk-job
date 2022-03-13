@@ -93,7 +93,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final MessageI18nService i18nService;
     private final ExecuteAuthService executeAuthService;
     private final AuthService authService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
@@ -111,16 +110,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         this.i18nService = i18nService;
         this.executeAuthService = executeAuthService;
         this.authService = authService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<ExecuteStepVO> getStepInstanceDetail(String username,
-                                                         Long appId,
+                                                         AppResourceScope appResourceScope,
                                                          String scopeType,
                                                          String scopeId,
                                                          Long stepInstanceId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
@@ -305,11 +302,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     public Response<List<ExecuteVariableVO>> getTaskInstanceVariables(String username,
-                                                                      Long appId,
+                                                                      AppResourceScope appResourceScope,
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       Long taskInstanceId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appResourceScope.getAppId())) {
@@ -368,11 +364,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     public Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(String username,
-                                                                          Long appId,
+                                                                          AppResourceScope appResourceScope,
                                                                           String scopeType,
                                                                           String scopeId,
                                                                           Long taskInstanceId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appResourceScope.getAppId())) {
@@ -444,11 +439,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     public Response<TaskInstanceDetailVO> getTaskInstanceDetail(String username,
-                                                                Long appId,
+                                                                AppResourceScope appResourceScope,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 Long taskInstanceId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appResourceScope.getAppId())) {

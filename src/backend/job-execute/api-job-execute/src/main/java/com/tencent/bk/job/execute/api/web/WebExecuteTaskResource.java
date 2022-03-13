@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.api.web;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
 import com.tencent.bk.job.execute.model.web.request.WebFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.model.web.request.WebFastPushFileRequest;
@@ -41,10 +41,12 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 /**
  * 作业执行API-前端调用
@@ -63,10 +65,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -85,10 +86,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -106,10 +106,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -128,10 +127,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -151,10 +149,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -176,10 +173,9 @@ public interface WebExecuteTaskResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -93,23 +92,19 @@ import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
 @Slf4j
 public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                      AppScopeMappingService appScopeMappingService) {
+    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<TaskExecuteVO> executeTask(String username,
-                                               Long appId,
+                                               AppResourceScope appResourceScope,
                                                String scopeType,
                                                String scopeId,
                                                WebTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         if (!checkExecuteTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -151,12 +146,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @Override
     public Response<TaskExecuteVO> redoTask(String username,
-                                            Long appId,
+                                            AppResourceScope appResourceScope,
                                             String scopeType,
                                             String scopeId,
                                             RedoTaskRequest request) {
         log.info("Redo task, request={}", request);
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
 
         if (!checkRedoTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -219,11 +213,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @Override
     public Response<StepExecuteVO> fastExecuteScript(String username,
-                                                     Long appId,
+                                                     AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      WebFastExecuteScriptRequest request) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         log.debug("Fast execute script, scope={}, operator={}, request={}", appResourceScope, username, request);
 
         if (!checkFastExecuteScriptRequest(request)) {
@@ -350,11 +343,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @Override
     public Response<StepExecuteVO> fastPushFile(String username,
-                                                Long appId,
+                                                AppResourceScope appResourceScope,
                                                 String scopeType,
                                                 String scopeId,
                                                 WebFastPushFileRequest request) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         log.debug("Fast send file, scope={}, operator={}, request={}", appResourceScope, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
@@ -550,12 +542,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @Override
     public Response<StepOperationVO> doStepOperation(String username,
-                                                     Long appId,
+                                                     AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -571,11 +562,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
     @Override
     public Response terminateJob(String username,
-                                 Long appId,
+                                 AppResourceScope appResourceScope,
                                  String scopeType,
                                  String scopeId,
                                  Long taskInstanceId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         if (taskInstanceId == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

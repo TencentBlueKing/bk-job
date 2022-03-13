@@ -72,7 +72,6 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTaskLogResourceImpl(TaskInstanceService taskInstanceService,
@@ -89,7 +88,6 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     private boolean existsLogZipFileInNFS(String zipFileName) {
@@ -117,12 +115,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
     @Override
     public Response<LogExportJobInfoVO> requestDownloadLogFile(String username,
+                                                               AppResourceScope appResourceScope,
                                                                String scopeType,
                                                                String scopeId,
                                                                Long stepInstanceId,
                                                                String ip,
                                                                Boolean repackage) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         Long appId = appResourceScope.getAppId();
 
         if (repackage == null) {
@@ -242,11 +240,11 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     @Override
     public ResponseEntity<StreamingResponseBody> downloadLogFile(HttpServletResponse response,
                                                                  String username,
+                                                                 AppResourceScope appResourceScope,
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         Long appId = appResourceScope.getAppId();
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
