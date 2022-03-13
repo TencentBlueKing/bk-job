@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.iam.dto;
 
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.Data;
 
 import java.util.List;
@@ -32,8 +33,8 @@ import java.util.List;
  * @since 16/6/2020 16:07
  */
 @Data
-public class AppIdResult {
-    private List<Long> appId;
+public class AppResourceScopeResult {
+    private List<AppResourceScope> appResourceScopeList;
 
     private Boolean any;
 }

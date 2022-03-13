@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
+import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -88,7 +88,7 @@ public interface AppAuthService {
                            AppResourceScope appResourceScope,
                            List<PermissionResource> resourceList);
 
-    AppIdResult getAppIdList(String username, List<Long> allAppIdList);
+    AppResourceScopeResult getAppResourceScopeList(String username, List<AppResourceScope> allAppResourceScopeList);
 
     String getBusinessApplyUrl(Long appId);
 }

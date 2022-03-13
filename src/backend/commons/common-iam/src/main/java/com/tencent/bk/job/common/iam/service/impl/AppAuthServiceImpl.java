@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
-import com.tencent.bk.job.common.iam.dto.AppIdResult;
+import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -77,16 +78,19 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final EsbIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
     private ResourceAppInfoQueryService resourceAppInfoQueryService;
+    private final AppScopeMappingService appScopeMappingService;
 
 
     public AppAuthServiceImpl(@Autowired AuthHelper authHelper,
                               @Autowired BusinessAuthHelper businessAuthHelper,
                               @Autowired IamConfiguration iamConfiguration,
                               @Autowired PolicyService policyService,
-                              @Autowired EsbConfiguration esbConfiguration) {
+                              @Autowired EsbConfiguration esbConfiguration,
+                              AppScopeMappingService appScopeMappingService) {
         this.authHelper = authHelper;
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
+        this.appScopeMappingService = appScopeMappingService;
         this.iamClient = new EsbIamClient(esbConfiguration.getEsbUrl(), iamConfiguration.getAppCode(),
             iamConfiguration.getAppSecret(), esbConfiguration.isUseEsbTestEnv());
     }
@@ -267,9 +271,10 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public AppIdResult getAppIdList(String username, List<Long> allAppIdList) {
-        AppIdResult result = new AppIdResult();
-        result.setAppId(new ArrayList<>());
+    public AppResourceScopeResult getAppResourceScopeList(String username,
+                                                          List<AppResourceScope> allAppResourceScopeList) {
+        AppResourceScopeResult result = new AppResourceScopeResult();
+        result.setAppResourceScopeList(new ArrayList<>());
         result.setAny(false);
 
         ActionDTO action = new ActionDTO();
@@ -283,15 +288,23 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                 if (expression.getValue() instanceof List) {
                     List<?> list = ((List<?>) expression.getValue());
                     if (list.size() > 0) {
-                        ((List<String>) expression.getValue()).forEach(id -> result.getAppId().add(Long.parseLong(id)));
+                        ((List<String>) expression.getValue()).forEach(id -> {
+                            AppResourceScope appResourceScope = new AppResourceScope(
+                                ResourceScopeTypeEnum.BIZ, id, null);
+                            appScopeMappingService.fillResourceScope(appResourceScope);
+                            result.getAppResourceScopeList().add(appResourceScope);
+                        });
                     }
                 } else if (ExpressionOperationEnum.EQUAL == expression.getOperator()) {
-                    result.getAppId().add(Long.parseLong(String.valueOf(expression.getValue())));
+                    result.getAppResourceScopeList().add(
+                        new AppResourceScope(Long.parseLong(String.valueOf(expression.getValue()))));
                 } else {
-                    result.getAppId().addAll(businessAuthHelper.getAuthedAppIdList(username, expression, allAppIdList));
+                    result.getAppResourceScopeList().addAll(
+                        businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));
                 }
             } else {
-                result.getAppId().addAll(businessAuthHelper.getAuthedAppIdList(username, expression, allAppIdList));
+                result.getAppResourceScopeList().addAll(
+                    businessAuthHelper.getAuthedAppResourceScopeList(expression, allAppResourceScopeList));
             }
         }
         return result;
