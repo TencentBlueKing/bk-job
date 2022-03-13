@@ -29,9 +29,10 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskLogResource;
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
@@ -71,6 +72,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTaskLogResourceImpl(TaskInstanceService taskInstanceService,
@@ -78,7 +80,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                   LogExportService logExportService,
                                   ArtifactoryClient artifactoryClient,
                                   ArtifactoryConfig artifactoryConfig,
-                                  LogExportConfig logExportConfig) {
+                                  LogExportConfig logExportConfig,
+                                  AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
@@ -86,6 +89,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     private boolean existsLogZipFileInNFS(String zipFileName) {
@@ -112,19 +116,21 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
-    public Response<LogExportJobInfoVO> requestDownloadLogFile(String username, Long appId,
-                                                               Long stepInstanceId, String ip,
+    public Response<LogExportJobInfoVO> requestDownloadLogFile(String username,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               Long stepInstanceId,
+                                                               String ip,
                                                                Boolean repackage) {
-        if (appId == null || appId <= 0 || stepInstanceId == null || stepInstanceId < 0) {
-            log.warn("Check request param fail, appId={}, stepInstanceId={}", appId, stepInstanceId);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        Long appId = appResourceScope.getAppId();
+
         if (repackage == null) {
             repackage = false;
         }
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        if (!stepInstance.getAppId().equals(appId)) {
+        if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
@@ -234,12 +240,15 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> downloadLogFile(HttpServletResponse response, String username,
-                                                                 Long appId, Long stepInstanceId, String ip) {
-        if (appId == null || appId <= 0 || stepInstanceId == null || stepInstanceId < 0) {
-            log.warn("Check request param fail, appId={}, stepInstanceId={}", appId, stepInstanceId);
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<StreamingResponseBody> downloadLogFile(HttpServletResponse response,
+                                                                 String username,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 Long stepInstanceId,
+                                                                 String ip) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        Long appId = appResourceScope.getAppId();
+
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             return ResponseEntity.notFound().build();

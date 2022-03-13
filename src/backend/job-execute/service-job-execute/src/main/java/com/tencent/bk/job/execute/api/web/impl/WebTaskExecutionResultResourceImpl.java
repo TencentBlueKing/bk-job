@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -506,12 +507,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     @Override
     public Response<StepExecutionDetailVO> getFastTaskStepExecutionResult(String username,
                                                                           Long appId,
+                                                                          String scopeType,
+                                                                          String scopeId,
                                                                           Long taskInstanceId,
                                                                           Integer resultType,
                                                                           String tag,
                                                                           Integer maxIpsPerResultGroup,
                                                                           String orderField,
                                                                           Integer order) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+
         StepExecutionResultQuery query = new StepExecutionResultQuery();
         query.setResultType(resultType);
         query.setTag(tag);
@@ -519,7 +524,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         query.setOrderField(orderField);
         query.setOrder(Order.valueOf(order));
         StepExecutionDetailDTO executionResult = taskResultService.getFastTaskStepExecutionResult(username,
-            appId, taskInstanceId, query);
+            appResourceScope.getAppId(), taskInstanceId, query);
         return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
     }
 
@@ -581,9 +586,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     }
 
     @Override
-    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username, Long appId,
-                                                                  Long stepInstanceId, Integer executeCount,
+    public Response<IpScriptLogContentVO> getScriptLogContentByIp(String username,
+                                                                  Long appId,
+                                                                  String scopeType,
+                                                                  String scopeId,
+                                                                  Long stepInstanceId,
+                                                                  Integer executeCount,
                                                                   String ip) {
+
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -593,14 +603,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        if (stepInstance == null) {
-            return Response.buildCommonFailResp(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        authViewStepInstance(username, appResourceScope, stepInstanceId);
 
         ScriptIpLogContent scriptIpLogContent = logService.getScriptIpLogContent(stepInstanceId, executeCount,
             IpDTO.fromCloudAreaIdAndIpStr(ip));
@@ -613,14 +617,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return Response.buildSuccessResp(ipScriptLogContentVO);
     }
 
-    private AuthResult authViewStepInstance(String username, Long appId, StepInstanceBaseDTO stepInstance) {
+    private AuthResult authViewStepInstance(String username, AppResourceScope appResourceScope,
+                                            StepInstanceBaseDTO stepInstance) {
         String operator = stepInstance.getOperator();
         if (username.equals(operator)) {
             return AuthResult.pass();
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new AppResourceScope(appId), stepInstance.getTaskInstanceId());
+            username, appResourceScope, stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
         }
@@ -629,8 +633,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
 
     @Override
-    public Response<List<ExecuteVariableVO>> getStepVariableByIp(String username, Long appId,
-                                                                 Long stepInstanceId, String ip) {
+    public Response<List<ExecuteVariableVO>> getStepVariableByIp(String username,
+                                                                 Long appId,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 Long stepInstanceId,
+                                                                 String ip) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             return Response.buildSuccessResp(Collections.emptyList());
@@ -640,7 +649,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             return Response.buildSuccessResp(Collections.emptyList());
         }
 
-        AuthResult authResult = authViewStepInstance(username, appId, stepInstance);
+        AuthResult authResult = authViewStepInstance(username, appResourceScope, stepInstance);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -735,9 +744,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public Response<IpFileLogContentVO> getFileLogContentByIp(String username, Long appId, Long stepInstanceId,
+    public Response<IpFileLogContentVO> getFileLogContentByIp(String username,
+                                                              Long appId,
+                                                              String scopeType,
+                                                              String scopeId,
+                                                              Long stepInstanceId,
                                                               Integer executeCount,
-                                                              String ip, String mode) {
+                                                              String ip,
+                                                              String mode) {
 
         if (stepInstanceId == null || executeCount == null || ip == null) {
             log.warn("Get ip log content, param is illegal!");
@@ -747,6 +761,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             log.warn("Get ip log content, param ip is illegal! ip={}", ip);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        authViewStepInstance(username, appResourceScope, stepInstanceId);
 
         IpFileLogContentVO result = new IpFileLogContentVO();
         List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
@@ -832,10 +849,15 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     }
 
     @Override
-    public Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(String username, Long appId,
+    public Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(String username,
+                                                                                   Long appId,
+                                                                                   String scopeType,
+                                                                                   String scopeId,
                                                                                    Long stepInstanceId,
                                                                                    Integer executeCount,
                                                                                    List<String> taskIds) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        authViewStepInstance(username, appResourceScope, stepInstanceId);
 
         List<ServiceFileTaskLogDTO> fileTaskLogs = logService.getFileLogContentByTaskIds(stepInstanceId, executeCount
             , taskIds);
@@ -849,21 +871,44 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return Response.buildSuccessResp(fileDistDetailVOS);
     }
 
+    private void authViewStepInstance(String username, AppResourceScope appResourceScope, Long stepInstanceId) {
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        if (stepInstance == null) {
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        AuthResult authResult = authViewStepInstance(username, appResourceScope, stepInstance);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
+    }
+
     @Override
-    public Response<List<HostDTO>> getHostsByResultType(String username, Long appId, Long stepInstanceId,
-                                                        Integer executeCount, Integer resultType,
-                                                        String tag, String keyword) {
-        List<IpDTO> hosts = taskResultService.getHostsByResultType(username, appId, stepInstanceId, executeCount,
-            resultType, tag, keyword);
+    public Response<List<HostDTO>> getHostsByResultType(String username,
+                                                        Long appId,
+                                                        String scopeType,
+                                                        String scopeId,
+                                                        Long stepInstanceId,
+                                                        Integer executeCount,
+                                                        Integer resultType,
+                                                        String tag,
+                                                        String keyword) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+        List<IpDTO> hosts = taskResultService.getHostsByResultType(username, appResourceScope.getAppId(),
+            stepInstanceId, executeCount, resultType, tag, keyword);
         return Response.buildSuccessResp(hosts.stream().map(IpDTO::toHost)
             .collect(Collectors.toList()));
     }
 
     @Override
-    public Response<List<StepExecutionRecordVO>> listStepExecutionHistory(String username, Long appId,
+    public Response<List<StepExecutionRecordVO>> listStepExecutionHistory(String username,
+                                                                          Long appId,
+                                                                          String scopeType,
+                                                                          String scopeId,
                                                                           Long stepInstanceId) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+
         List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
-            appId, stepInstanceId);
+            appResourceScope.getAppId(), stepInstanceId);
 
         return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
             StepExecutionRecordVO vo = new StepExecutionRecordVO();

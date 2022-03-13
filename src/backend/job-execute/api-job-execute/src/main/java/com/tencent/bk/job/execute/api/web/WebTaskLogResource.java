@@ -51,31 +51,46 @@ import javax.servlet.http.HttpServletResponse;
 public interface WebTaskLogResource {
 
     @ApiOperation(value = "请求下载执行日志文件", produces = "application/json")
-    @GetMapping("/app/{appId}/step-execution-result/{stepInstanceId}/log-file")
+    @GetMapping("/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}/log-file")
     Response<LogExportJobInfoVO> requestDownloadLogFile(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
         @ApiParam(value = "ip", name = "ip")
-        @RequestParam(value = "ip", required = false) String ip,
+        @RequestParam(value = "ip", required = false)
+            String ip,
         @ApiParam(value = "重新打包", name = "repackage")
-        @RequestParam(value = "repackage", required = false) Boolean repackage
+        @RequestParam(value = "repackage", required = false)
+            Boolean repackage
     );
 
     @ApiOperation(value = "下载执行日志文件", produces = "application/json")
-    @GetMapping("/app/{appId}/step-execution-result/{stepInstanceId}/log-file/download")
+    @GetMapping("/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}/log-file/download")
     ResponseEntity<StreamingResponseBody> downloadLogFile(
         HttpServletResponse response,
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
         @ApiParam(value = "ip", name = "ip")
-        @RequestParam(value = "ip", required = false) String ip
+        @RequestParam(value = "ip", required = false)
+            String ip
     );
 }

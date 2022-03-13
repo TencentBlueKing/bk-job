@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
@@ -51,44 +52,92 @@ import java.util.List;
 @WebAPI
 public interface WebTaskInstanceResource {
     @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
-    @GetMapping("/app/{appId}/task-instance/step_instance/{stepInstanceId}")
+    @GetMapping(value = {"/app/{appId}/task-instance/step_instance/{stepInstanceId}",
+        "/scope/{scopeType}/{scopeId}/task-instance/step_instance/{stepInstanceId}"})
     Response<ExecuteStepVO> getStepInstanceDetail(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId") Long stepInstanceId);
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId
+    );
 
     @ApiOperation(value = "获取作业实例全局参数", produces = "application/json")
-    @GetMapping("/app/{appId}/task-instance/task-variables/{taskInstanceId}")
+    @GetMapping(value = {"/app/{appId}/task-instance/task-variables/{taskInstanceId}",
+        "/scope/{scopeType}/{scopeId}/task-instance/task-variables/{taskInstanceId}"})
     Response<List<ExecuteVariableVO>> getTaskInstanceVariables(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
-        @PathVariable("taskInstanceId") Long taskInstanceId);
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId
+    );
 
     @ApiOperation(value = "获取作业操作日志", produces = "application/json")
-    @GetMapping("/app/{appId}/task-instance/operation-log/{taskInstanceId}")
+    @GetMapping(value = {"/app/{appId}/task-instance/operation-log/{taskInstanceId}",
+        "/scope/{scopeType}/{scopeId}/task-instance/operation-log/{taskInstanceId}"})
     Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
-        @PathVariable("taskInstanceId") Long taskInstanceId);
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId
+    );
 
     @ApiOperation(value = "获取作业实例详情,包括步骤列表和全局变量列表", produces = "application/json")
-    @GetMapping("/app/{appId}/task-instance/{taskInstanceId}")
+    @GetMapping(value = {"/app/{appId}/task-instance/{taskInstanceId}",
+        "/scope/{scopeType}/{scopeId}/task-instance/{taskInstanceId}"})
     Response<TaskInstanceDetailVO> getTaskInstanceDetail(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "1")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务 ID", required = false)
+        @PathVariable(value = "appId", required = false)
+            Long appId,
+        @ApiParam(value = "资源范围类型", required = false)
+        @PathVariable(value = "scopeType", required = false)
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = false)
+        @PathVariable(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
-        @PathVariable("taskInstanceId") Long taskInstanceId);
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId
+    );
 
     @ApiOperation(value = "获取作业实例基本信息", produces = "application/json")
     @GetMapping("/task_instance/{taskInstanceId}")
@@ -96,5 +145,7 @@ public interface WebTaskInstanceResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
-        @PathVariable("taskInstanceId") Long taskInstanceId);
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId
+    );
 }
