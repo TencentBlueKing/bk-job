@@ -220,7 +220,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult authResult = executeAuthService.authViewTaskInstance(
             username, new AppResourceScope(appId), taskInstance);
         if (!authResult.isPass()) {
@@ -233,7 +233,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (username.equals(operator)) {
             return;
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult authResult = executeAuthService.authViewTaskInstance(
             username, new AppResourceScope(appId),
             stepInstance.getTaskInstanceId());

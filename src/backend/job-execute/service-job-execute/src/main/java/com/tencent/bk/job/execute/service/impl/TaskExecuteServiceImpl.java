@@ -497,7 +497,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (accountId == null) {
             return AuthResult.fail();
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, new AppResourceScope(appId)
             , accountId);
 
@@ -511,16 +511,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ScriptSourceEnum scriptSource = ScriptSourceEnum.getScriptSourceEnum(stepInstance.getScriptSource());
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
+
             serverAuthResult = executeAuthService.authFastExecuteScript(
                 username, new AppResourceScope(appId), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
+
             serverAuthResult = executeAuthService.authExecuteAppScript(
                 username, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
+
             serverAuthResult = executeAuthService.authExecutePublicScript(
                 username, new AppResourceScope(appId), stepInstance.getScriptId()
                 , stepInstance.getScriptName(), servers);
@@ -580,7 +580,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> {
                 accounts.add(fileSource.getAccountId());
             });
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
 
@@ -597,7 +597,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 如果主机为空，无需对主机进行权限
             return accountAuthResult;
         }
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
             username, new AppResourceScope(appId), servers);
 
@@ -1132,7 +1132,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
 
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
+
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accountIds);
 
@@ -1145,13 +1145,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AuthResult serverAuthResult = null;
             if (isDebugTask) {
                 // 鉴权调试
-                // TODO: 通过scopeType与scopeId构造AppResourceScope
+
                 serverAuthResult = executeAuthService.authDebugTemplate(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     authServers);
             } else {
                 // 鉴权执行方案
-                // TODO: 通过scopeType与scopeId构造AppResourceScope
+
                 serverAuthResult = executeAuthService.authExecutePlan(
                     username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
