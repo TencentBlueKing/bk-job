@@ -22,10 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.auth;
+package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,11 @@ import java.util.Map;
  * ESB接口鉴权服务
  */
 public interface EsbAuthService {
-    EsbResp batchAuthJobResources(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                  List<String> resourceIds, Map<String, String> idNameMap);
+    EsbResp batchAuthJobResources(String username,
+                                  String actionId,
+                                  AppResourceScope appResourceScope,
+                                  ResourceTypeEnum resourceType,
+                                  List<String> resourceIds,
+                                  Map<String, String> idNameMap);
 }
 

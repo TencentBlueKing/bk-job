@@ -37,8 +37,6 @@ import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,20 +61,9 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
-    public AuthService getAuthService() {
-        return authService;
-    }
-
-    @Override
     public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
-    }
-
-    @Override
-    public AuthResultVO auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
-                             String resourceId, PathInfoDTO pathInfo) {
-        return toAuthResultVO(authService.auth(returnApplyUrl, username, actionId, resourceType, resourceId, pathInfo));
     }
 
     @Override
@@ -118,11 +105,6 @@ public class WebAuthServiceImpl implements WebAuthService {
         }
 
         return vo;
-    }
-
-    @Override
-    public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors) {
-        return authService.registerResource(id, name, type, creator, ancestors);
     }
 
     private String buildResourceName(PermissionResourceGroup resourceGroup) {

@@ -133,7 +133,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private PathInfoDTO buildTaskPlanPathInfo(AppResourceScope appResourceScope, Long templateId) {
         return PathBuilder.newBuilder(
-            IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope), appResourceScope.getId())
+                IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope), appResourceScope.getId())
             .child(ResourceTypeEnum.TEMPLATE.getId(), templateId.toString())
             .build();
     }
@@ -217,8 +217,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(webAuthService.toAuthResultVO(
                     templateAuthService.authDeleteJobTemplate(username, appResourceScope, templateId)));
             case "clone":
-                templateId = Long.valueOf(resourceId);
-                // TODO
                 List<PermissionActionResource> actionResources = new ArrayList<>(2);
                 PermissionActionResource viewTemplateActionResource = new PermissionActionResource();
                 viewTemplateActionResource.setActionId(ActionId.VIEW_JOB_TEMPLATE);
@@ -226,7 +224,9 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     IamUtil.buildScopePathInfo(appResourceScope));
                 PermissionActionResource createTemplateActionResource = new PermissionActionResource();
                 createTemplateActionResource.setActionId(ActionId.CREATE_JOB_TEMPLATE);
-                createTemplateActionResource.addResource(ResourceTypeEnum.BUSINESS, appResourceScope.getId(),
+                createTemplateActionResource.addResource(
+                    IamUtil.getIamResourceTypeForResourceScope(appResourceScope),
+                    appResourceScope.getId(),
                     IamUtil.buildScopePathInfo(appResourceScope));
                 actionResources.add(viewTemplateActionResource);
                 actionResources.add(createTemplateActionResource);
