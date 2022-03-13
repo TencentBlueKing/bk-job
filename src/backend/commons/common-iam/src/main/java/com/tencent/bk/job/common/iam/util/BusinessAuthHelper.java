@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.iam.util;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
@@ -32,6 +33,7 @@ import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -47,18 +49,29 @@ public class BusinessAuthHelper extends AuthHelper {
         super(tokenService, policyService, iamConfiguration);
     }
 
-    public List<Long> getAuthedAppIdList(String username, ExpressionDTO expression, List<Long> allAppIdList) {
+    private InstanceDTO buildAppResourceScopeInstance(AppResourceScope appResourceScope) {
+        InstanceDTO instance = new InstanceDTO();
+        ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
+        if (resourceType == ResourceTypeEnum.BUSINESS) {
+            instance.setId(appResourceScope.getId());
+        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+            instance.setPath(PathBuilder.newBuilder(resourceType.getId(), appResourceScope.getId()).build());
+        }
+        instance.setSystem(resourceType.getSystemId());
+        instance.setType(resourceType.getId());
+        return instance;
+    }
+
+    public List<AppResourceScope> getAuthedAppResourceScopeList(ExpressionDTO expression,
+                                                                List<AppResourceScope> allAppResourceScopeList) {
         log.debug("expression={}", JsonUtils.toJson(expression));
-        List<Long> resultList = new ArrayList<>();
-        allAppIdList.forEach(appId -> {
-            InstanceDTO instance = new InstanceDTO();
-            instance.setId(appId.toString());
-            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
-            instance.setType(ResourceTypeEnum.BUSINESS.getId());
+        List<AppResourceScope> resultList = new ArrayList<>();
+        allAppResourceScopeList.forEach(appResourceScope -> {
+            InstanceDTO instance = buildAppResourceScopeInstance(appResourceScope);
             Map<String, InstanceDTO> instanceMap = new HashMap<>(1);
             instanceMap.put(instance.getType(), instance);
             if (calculateExpression(instanceMap, expression)) {
-                resultList.add(appId);
+                resultList.add(appResourceScope);
             }
         });
         log.debug("resultList={}", JsonUtils.toJson(resultList));

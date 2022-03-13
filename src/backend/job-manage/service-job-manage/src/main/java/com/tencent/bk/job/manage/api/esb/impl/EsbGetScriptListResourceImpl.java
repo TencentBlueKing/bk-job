@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -45,7 +46,7 @@ import com.tencent.bk.job.manage.model.esb.EsbScriptDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetScriptListRequest;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
+import com.tencent.bk.job.manage.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -116,8 +117,9 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
                 return it.getId();
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
+                // TODO: 通过scopeType与scopeId构造AppResourceScope
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }

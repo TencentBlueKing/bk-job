@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
@@ -48,7 +49,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
+import com.tencent.bk.job.manage.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -180,7 +181,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }
@@ -373,8 +374,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
                     return it.getId();
                 }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
+                // TODO: 通过scopeType与scopeId构造AppResourceScope
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }

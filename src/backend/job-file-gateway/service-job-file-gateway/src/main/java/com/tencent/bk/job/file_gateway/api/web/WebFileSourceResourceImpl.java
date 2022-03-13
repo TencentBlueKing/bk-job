@@ -27,23 +27,18 @@ package com.tencent.bk.job.file_gateway.api.web;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.tools.StringUtils;
@@ -52,7 +47,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -60,18 +54,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
-    private final AuthService authService;
-    private final AppAuthService appAuthService;
     private final FileSourceService fileSourceService;
+    private final FileSourceAuthService fileSourceAuthService;
 
     @Autowired
     public WebFileSourceResourceImpl(
-        AuthService authService,
-        AppAuthService appAuthService, FileSourceService fileSourceService
-    ) {
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+        FileSourceService fileSourceService,
+        FileSourceAuthService fileSourceAuthService) {
         this.fileSourceService = fileSourceService;
+        this.fileSourceAuthService = fileSourceAuthService;
     }
 
     private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
@@ -97,8 +88,8 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
             checkParam(fileSourceCreateUpdateReq);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
             Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
-            boolean registerResult = authService.registerResource("" + fileSourceId, fileSourceDTO.getAlias(),
-                                                                  ResourceTypeId.FILE_SOURCE, username, null);
+            boolean registerResult = fileSourceAuthService.registerFileSource(
+                username, fileSourceId, fileSourceDTO.getAlias());
             if (!registerResult) {
                 log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
             }
@@ -231,24 +222,24 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     private void addAvailableFileSourcePermissionData(String username, Long appId,
                                                       PageData<FileSourceVO> fileSourceVOPageData) {
         List<FileSourceVO> fileSourceVOList = fileSourceVOPageData.getData();
-        List<String> currentAppFileSourceIdList = new ArrayList<>();
+        List<Integer> currentAppFileSourceIdList = new ArrayList<>();
         for (FileSourceVO fileSourceVO : fileSourceVOList) {
             if (appId.equals(fileSourceVO.getAppId())) {
-                currentAppFileSourceIdList.add(fileSourceVO.getId().toString());
+                currentAppFileSourceIdList.add(fileSourceVO.getId());
             }
         }
         // 添加权限数据
-        List<String> currentAppCanManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
-                currentAppFileSourceIdList);
-        List<String> currentAppCanViewIdList =
-            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
-                currentAppFileSourceIdList);
+        List<Integer> currentAppCanManageIdList =
+            fileSourceAuthService.batchAuthManageFileSource(
+                username, new AppResourceScope(appId), currentAppFileSourceIdList);
+        List<Integer> currentAppCanViewIdList =
+            fileSourceAuthService.batchAuthViewFileSource(
+                username, new AppResourceScope(appId), currentAppFileSourceIdList);
         fileSourceVOList.forEach(it -> {
-            if (currentAppFileSourceIdList.contains(it.getId().toString())) {
+            if (currentAppFileSourceIdList.contains(it.getId())) {
                 // 当前业务下的文件源走批量鉴权
-                it.setCanManage(currentAppCanManageIdList.contains(it.getId().toString()));
-                it.setCanView(currentAppCanViewIdList.contains(it.getId().toString()));
+                it.setCanManage(currentAppCanManageIdList.contains(it.getId()));
+                it.setCanView(currentAppCanViewIdList.contains(it.getId()));
             } else {
                 // 共享的文件源逐个鉴权
                 it.setCanManage(checkManageFileSourcePermission(username, it.getAppId(), it.getId()).isPass());
@@ -260,45 +251,35 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     private void addPermissionData(String username, Long appId, PageData<FileSourceVO> fileSourceVOPageData) {
         List<FileSourceVO> fileSourceVOList = fileSourceVOPageData.getData();
+        List<Integer> currentAppFileSourceIdList = fileSourceVOList.parallelStream()
+            .map(FileSourceVO::getId)
+            .collect(Collectors.toList());
         // 添加权限数据
-        List<String> canManageIdList =
-            appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
-                fileSourceVOList.parallelStream()
-                    .map(FileSourceVO::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.toList())
-            );
-        List<String> canViewIdList =
-            appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, new AppResourceScope(appId), ResourceTypeEnum.FILE_SOURCE,
-                fileSourceVOList.parallelStream()
-                    .map(FileSourceVO::getId)
-                    .map(Objects::toString)
-                    .collect(Collectors.toList())
-            );
+        List<Integer> canManageIdList =
+            fileSourceAuthService.batchAuthManageFileSource(
+                username, new AppResourceScope(appId), currentAppFileSourceIdList);
+        List<Integer> canViewIdList =
+            fileSourceAuthService.batchAuthViewFileSource(
+                username, new AppResourceScope(appId), currentAppFileSourceIdList);
         fileSourceVOList.forEach(it -> {
-            it.setCanManage(canManageIdList.contains(it.getId().toString()));
-            it.setCanView(canViewIdList.contains(it.getId().toString()));
+            it.setCanManage(canManageIdList.contains(it.getId()));
+            it.setCanView(canViewIdList.contains(it.getId()));
         });
         fileSourceVOPageData.setCanCreate(checkCreateFileSourcePermission(username, appId).isPass());
     }
 
     public AuthResult checkViewFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下查看某个具体文件源的权限
-        return authService.auth(true, username, ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
-            fileSourceId.toString(),
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        return fileSourceAuthService.authViewFileSource(username, new AppResourceScope(appId), fileSourceId, null);
     }
 
     public AuthResult checkCreateFileSourcePermission(String username, Long appId) {
         // 需要拥有在业务下创建文件源的权限
-        return authService.auth(true, username, ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS,
-            appId.toString(), null);
+        return fileSourceAuthService.authCreateFileSource(username, new AppResourceScope(appId));
     }
 
     public AuthResult checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下管理某个具体文件源的权限
-        return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
-            fileSourceId.toString(),
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        return fileSourceAuthService.authManageFileSource(username, new AppResourceScope(appId), fileSourceId, null);
     }
 }

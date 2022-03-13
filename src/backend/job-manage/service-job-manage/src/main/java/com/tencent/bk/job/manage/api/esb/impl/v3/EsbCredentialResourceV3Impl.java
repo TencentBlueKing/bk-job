@@ -28,9 +28,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.api.inner.ServiceCredentialResource;
@@ -49,15 +48,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final ServiceCredentialResource credentialService;
-    private final AuthService authService;
-    private final MessageI18nService i18nService;
 
     @Autowired
-    public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService, AuthService authService,
-                                       MessageI18nService i18nService) {
+    public EsbCredentialResourceV3Impl(ServiceCredentialResource credentialService) {
         this.credentialService = credentialService;
-        this.authService = authService;
-        this.i18nService = i18nService;
     }
 
     @Override
@@ -118,9 +112,7 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
             );
         }
         if (resp.getAuthResult() != null) {
-            return authService.buildEsbAuthFailResp(
-                AuthResult.fromAuthResultDTO(resp.getAuthResult()).getRequiredActionResources()
-            );
+            throw new PermissionDeniedException(AuthResult.fromAuthResultDTO(resp.getAuthResult()));
         } else if (!resp.isSuccess()) {
             throw new InternalException(resp.getCode());
         }

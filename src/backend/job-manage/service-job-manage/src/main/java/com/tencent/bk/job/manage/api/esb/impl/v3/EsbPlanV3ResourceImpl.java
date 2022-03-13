@@ -28,16 +28,16 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
-import com.tencent.bk.job.manage.common.util.IamPathUtil;
+import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanDetailV3Request;
@@ -57,12 +57,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
     private final TaskPlanService taskPlanService;
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
+    private final PlanAuthService planAuthService;
 
     @Autowired
-    public EsbPlanV3ResourceImpl(TaskPlanService taskPlanService, AuthService authService) {
+    public EsbPlanV3ResourceImpl(TaskPlanService taskPlanService,
+                                 BusinessAuthService businessAuthService,
+                                 PlanAuthService planAuthService) {
         this.taskPlanService = taskPlanService;
-        this.authService = authService;
+        this.businessAuthService = businessAuthService;
+        this.planAuthService = planAuthService;
     }
 
     @Override
@@ -117,10 +121,12 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
         long appId = request.getAppId();
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        AuthResult authResult =
+            businessAuthService.authAccessBusiness(
+                request.getUserName(), new AppResourceScope(appId));
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
 
         TaskPlanQueryDTO taskPlanQueryDTO = new TaskPlanQueryDTO();
@@ -161,11 +167,13 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         if (validateResult.isPass()) {
             TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlanById(request.getAppId(), request.getPlanId());
             if (taskPlanInfo != null) {
-                AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.VIEW_JOB_PLAN,
-                    ResourceTypeEnum.PLAN, request.getPlanId().toString(),
-                    IamPathUtil.buildPlanPathInfo(taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId()));
+                // TODO: 通过scopeType与scopeId构造AppResourceScope
+                AuthResult authResult =
+                    planAuthService.authViewJobPlan(request.getUserName(),
+                        new AppResourceScope(taskPlanInfo.getAppId()),
+                        taskPlanInfo.getTemplateId(), request.getPlanId(), taskPlanInfo.getName());
                 if (!authResult.isPass()) {
-                    return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+                    throw new PermissionDeniedException(authResult);
                 }
                 return EsbResp.buildSuccessResp(TaskPlanInfoDTO.toEsbPlanInfoV3(taskPlanInfo));
             }
