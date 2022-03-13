@@ -122,72 +122,72 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
 
     @Override
     public Response updateScriptInfo(String username, String scriptId, ScriptInfoUpdateReq scriptInfoUpdateReq) {
-        return scriptResourceProxy.updateScriptInfo(username, null, null, scriptId,
+        return scriptResourceProxy.updateScriptInfo(username, null, null, null, scriptId,
             scriptInfoUpdateReq);
     }
 
     @Override
     public Response<ScriptVO> saveScript(String username, ScriptCreateUpdateReq scriptCreateUpdateReq) {
-        return scriptResourceProxy.saveScript(username, null, null, scriptCreateUpdateReq);
+        return scriptResourceProxy.saveScript(username, null, null, null, scriptCreateUpdateReq);
     }
 
     @Override
     public Response publishScriptVersion(String username, String scriptId, Long scriptVersionId) {
-        return scriptResourceProxy.publishScriptVersion(username, null, null, scriptId,
+        return scriptResourceProxy.publishScriptVersion(username, null, null, null, scriptId,
             scriptVersionId);
     }
 
     @Override
     public Response disableScriptVersion(String username, String scriptId, Long scriptVersionId) {
-        return scriptResourceProxy.disableScriptVersion(username, null, null, scriptId,
+        return scriptResourceProxy.disableScriptVersion(username, null, null, null, scriptId,
             scriptVersionId);
     }
 
     @Override
     public Response deleteScriptByScriptId(String username, String scriptId) {
-        return scriptResourceProxy.deleteScriptByScriptId(username, null, null, scriptId);
+        return scriptResourceProxy.deleteScriptByScriptId(username, null, null, null, scriptId);
     }
 
     @Override
     public Response deleteScriptByScriptVersionId(String username, Long scriptVersionId) {
-        return scriptResourceProxy.deleteScriptByScriptVersionId(username, null, null, scriptVersionId);
+        return scriptResourceProxy.deleteScriptByScriptVersionId(username, null, null, null, scriptVersionId);
     }
 
     @Override
     public Response<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(String username,
                                                                                    String scriptId,
                                                                                    Long scriptVersionId) {
-        return scriptResourceProxy.listScriptSyncTemplateSteps(username, null, null, scriptId,
+        return scriptResourceProxy.listScriptSyncTemplateSteps(username, null, null, null, scriptId,
             scriptVersionId);
     }
 
     @Override
     public Response<List<ScriptSyncResultVO>> syncScripts(String username, String scriptId,
                                                           Long scriptVersionId, ScriptSyncReq scriptSyncReq) {
-        return scriptResourceProxy.syncScripts(username, null, null, scriptId, scriptVersionId,
+        return scriptResourceProxy.syncScripts(username, null, null, null, scriptId, scriptVersionId,
             scriptSyncReq);
     }
 
     @Override
     public Response<ScriptCiteCountVO> getPublicScriptCiteCount(String username, String scriptId,
                                                                 Long scriptVersionId) {
-        return scriptResourceProxy.getScriptCiteCount(username, null, null, scriptId, scriptVersionId);
+        return scriptResourceProxy.getScriptCiteCount(username, null, null, null, scriptId, scriptVersionId);
     }
 
     @Override
     public Response<ScriptCiteInfoVO> getPublicScriptCiteInfo(String username, String scriptId,
                                                               Long scriptVersionId) {
-        return scriptResourceProxy.getScriptCiteInfo(username, null, null, scriptId, scriptVersionId);
+        return scriptResourceProxy.getScriptCiteInfo(username, null, null, null, scriptId, scriptVersionId);
     }
 
     @Override
     public Response<?> batchUpdatePublicScriptTags(String username,
                                                    ScriptTagBatchPatchReq tagBatchUpdateReq) {
-        return scriptResourceProxy.batchUpdateScriptTags(username, null, null, tagBatchUpdateReq);
+        return scriptResourceProxy.batchUpdateScriptTags(username, null, null, null, tagBatchUpdateReq);
     }
 
     @Override
     public Response<TagCountVO> getTagPublicScriptCount(String username) {
-        return scriptResourceProxy.getTagScriptCount(username, null, null);
+        return scriptResourceProxy.getTagScriptCount(username, null, null, null);
     }
 }
