@@ -55,6 +55,15 @@ public interface AppScopeMappingService {
      */
     AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId);
 
+    /**
+     * 根据scopeType&scopeId获取AppResourceScope
+     *
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围ID
+     * @return AppResourceScope, 包含业务ID、资源范围类型、资源范围ID
+     */
+    AppResourceScope getAppResourceScope(String scopeType, String scopeId);
+
     default void fillResourceScope(AppResourceScope appResourceScope) {
         if (appResourceScope.getType() != null && StringUtils.isNotBlank(appResourceScope.getId())) {
             return;

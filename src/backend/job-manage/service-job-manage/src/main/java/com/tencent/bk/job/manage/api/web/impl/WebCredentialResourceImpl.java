@@ -75,7 +75,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                             String lastModifyUser,
                                                             Integer start,
                                                             Integer pageSize) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         CredentialDTO credentialQuery = new CredentialDTO();
         credentialQuery.setId(id);
         credentialQuery.setAppId(appResourceScope.getAppId());
@@ -101,7 +101,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     @Override
     public Response<String> saveCredential(String username, String scopeType, String scopeId,
                                            CredentialCreateUpdateReq createUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
             authResult = checkCreateTicketPermission(username, appResourceScope);
@@ -117,7 +117,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
 
     @Override
     public Response<Integer> deleteCredentialById(String username, String scopeType, String scopeId, String id) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = checkManageTicketPermission(username, appResourceScope, id);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

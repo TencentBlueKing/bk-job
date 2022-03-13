@@ -125,6 +125,11 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         }
     }
 
+    @Override
+    public AppResourceScope getAppResourceScope(String scopeType, String scopeId) {
+        return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
+    }
+
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
         Map<Long, ResourceScope> mapping = new HashMap<>();
         appIds.forEach(appId -> {

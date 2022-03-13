@@ -48,11 +48,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-/**
- * @since 21/7/2020 15:42
- */
 @Api(tags = {"job-backup:web:Backup"})
-@RequestMapping("/web/app/{appId}/backup")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}/backup")
 @RestController
 @WebAPI
 public interface WebBackupResource {

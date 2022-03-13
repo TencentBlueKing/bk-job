@@ -29,6 +29,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -43,6 +46,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -56,7 +60,13 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/app/(\\d+)");
 
     private final Tracer tracer;
-//    private final AppScopeMappingService appScopeMappingService;
+
+    private AppScopeMappingService appScopeMappingService;
+
+    @Autowired
+    public void setAppScopeMappingService(AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
+    }
 
     @Autowired
     public JobCommonInterceptor(Tracer tracer) {
@@ -77,7 +87,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
         addUsername(request);
         addLang(request);
-//        addAppResourceScope(request);
+        addAppResourceScope(request);
 
         return true;
     }
@@ -123,56 +133,56 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-//    private void addAppResourceScope(HttpServletRequest request) {
-//        AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
-//        log.debug("Scope from path:{}", appResourceScope);
-//        if (appResourceScope != null) {
-//            JobContextUtil.setAppResourceScope(appResourceScope);
-//        }
-//    }
+    private void addAppResourceScope(HttpServletRequest request) {
+        AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
+        log.debug("Scope from path:{}", appResourceScope);
+        if (appResourceScope != null) {
+            JobContextUtil.setAppResourceScope(appResourceScope);
+        }
+    }
 
-//    private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
-//        ResourceScope resourceScope = parseResourceScopeFromURI(requestURI);
-//        if (resourceScope != null) {
-//            return buildAppResourceScope(resourceScope);
-//        }
-//
-//        // 兼容当前业务ID路径模式
-//        Long appId = parseAppIdFromURI(requestURI);
-//        if (appId != null) {
-//            return buildAppResourceScope(appId);
-//        }
-//
-//        return null;
-//    }
+    private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
+        ResourceScope resourceScope = parseResourceScopeFromURI(requestURI);
+        if (resourceScope != null) {
+            return buildAppResourceScope(resourceScope);
+        }
 
-//    private ResourceScope parseResourceScopeFromURI(String requestURI) {
-//        ResourceScope resourceScope = null;
-//        Matcher scopeMatcher = SCOPE_PATTERN.matcher(requestURI);
-//        if (scopeMatcher.find()) {
-//            resourceScope = new ResourceScope(scopeMatcher.group(1), scopeMatcher.group(2));
-//        }
-//        return resourceScope;
-//    }
+        // 兼容当前业务ID路径模式
+        Long appId = parseAppIdFromURI(requestURI);
+        if (appId != null) {
+            return buildAppResourceScope(appId);
+        }
 
-//    private Long parseAppIdFromURI(String requestURI) {
-//        Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
-//        Long appId = null;
-//        if (appIdMatcher.find()) {
-//            appId = Long.valueOf(appIdMatcher.group(1));
-//        }
-//        return appId;
-//    }
-//
-//    private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
-//        Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
-//        return new AppResourceScope(appId, resourceScope);
-//    }
-//
-//    private AppResourceScope buildAppResourceScope(Long appId) {
-//        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-//        return new AppResourceScope(appId, resourceScope);
-//    }
+        return null;
+    }
+
+    private ResourceScope parseResourceScopeFromURI(String requestURI) {
+        ResourceScope resourceScope = null;
+        Matcher scopeMatcher = SCOPE_PATTERN.matcher(requestURI);
+        if (scopeMatcher.find()) {
+            resourceScope = new ResourceScope(scopeMatcher.group(1), scopeMatcher.group(2));
+        }
+        return resourceScope;
+    }
+
+    private Long parseAppIdFromURI(String requestURI) {
+        Matcher appIdMatcher = APP_ID_PATTERN.matcher(requestURI);
+        Long appId = null;
+        if (appIdMatcher.find()) {
+            appId = Long.valueOf(appIdMatcher.group(1));
+        }
+        return appId;
+    }
+
+    private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
+        Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
+        return new AppResourceScope(appId, resourceScope);
+    }
+
+    private AppResourceScope buildAppResourceScope(Long appId) {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        return new AppResourceScope(appId, resourceScope);
+    }
 
     private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
         return parseValueFromQueryStringOrBody(request, "bk_username");

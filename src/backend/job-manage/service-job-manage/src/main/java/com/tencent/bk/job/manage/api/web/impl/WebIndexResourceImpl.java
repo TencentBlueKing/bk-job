@@ -98,7 +98,7 @@ public class WebIndexResourceImpl implements WebIndexResource {
     @Override
     public Response<List<TaskTemplateVO>> listMyFavorTasks(String username, String scopeType, String scopeId,
                                                            Long limit) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         List<TaskTemplateVO> resultList = indexService.listMyFavorTasks(username, appResourceScope.getAppId(), limit);
         taskTemplateAuthService.processTemplatePermission(username, appResourceScope, resultList);
         return Response.buildSuccessResp(resultList);

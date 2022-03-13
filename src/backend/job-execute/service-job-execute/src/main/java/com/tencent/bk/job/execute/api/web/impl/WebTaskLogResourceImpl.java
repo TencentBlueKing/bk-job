@@ -122,7 +122,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                Long stepInstanceId,
                                                                String ip,
                                                                Boolean repackage) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         Long appId = appResourceScope.getAppId();
 
         if (repackage == null) {
@@ -246,7 +246,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         Long appId = appResourceScope.getAppId();
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);

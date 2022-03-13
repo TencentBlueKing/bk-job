@@ -374,7 +374,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Long> savePlan(String username, String scopeType, String scopeId, Long templateId, Long planId,
                                    TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         taskPlanCreateUpdateReq.setTemplateId(templateId);
         AuthResult authResult;
         if (planId > 0) {
@@ -412,7 +412,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> deletePlan(String username, String scopeType, String scopeId, Long templateId,
                                         Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = planAuthService.authDeleteJobPlan(username, appResourceScope, templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -448,7 +448,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> checkPlanName(String username, String scopeType, String scopeId,
                                            Long templateId, Long planId, String name) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = templateAuthService.authViewJobTemplate(username, appResourceScope,
             templateId);
         if (!authResult.isPass()) {
@@ -461,7 +461,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<TaskPlanSyncInfoVO> syncInfo(String username, String scopeType, String scopeId, Long templateId,
                                                  Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = planAuthService.authSyncJobPlan(username, appResourceScope, templateId, planId, null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -487,7 +487,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> syncConfirm(String username, String scopeType, String scopeId, Long templateId,
                                          Long planId, String templateVersion) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = planAuthService.authSyncJobPlan(username, appResourceScope, templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -500,7 +500,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> addFavorite(String username, String scopeType, String scopeId, Long templateId,
                                          Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -512,7 +512,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     @Override
     public Response<Boolean> removeFavorite(String username, String scopeType, String scopeId, Long templateId,
                                             Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -545,7 +545,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 List<TaskVariableValueUpdateReq> planVariableInfoList) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         if (CollectionUtils.isEmpty(planVariableInfoList)) {
             return Response.buildSuccessResp(true);
         }

@@ -177,13 +177,13 @@ public class WebAppResourceImpl implements WebAppResource {
 
     @Override
     public Response<Integer> favorApp(String username, String scopeType, String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         return Response.buildSuccessResp(applicationFavorService.favorApp(username, appResourceScope.getAppId()));
     }
 
     @Override
     public Response<Integer> cancelFavorApp(String username, String scopeType, String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         return Response.buildSuccessResp(applicationFavorService.cancelFavorApp(username, appResourceScope.getAppId()));
     }
 

@@ -89,7 +89,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     @Override
     public Response<Long> saveAccount(String username, String scopeType, String scopeId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         AuthResult authResult = checkCreateAccountPermission(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -110,7 +110,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     @Override
     public Response updateAccount(String username, String scopeType, String scopeId,
                                   AccountCreateUpdateReq accountCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         Long accountId = accountCreateUpdateReq.getId();
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
@@ -271,7 +271,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     @Override
     public Response deleteAccount(String username, String scopeType, String scopeId, Long accountId) {
 
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
         log.info("Delete account, operator={}, scope={}, accountId={}", username, appResourceScope, accountId);
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
