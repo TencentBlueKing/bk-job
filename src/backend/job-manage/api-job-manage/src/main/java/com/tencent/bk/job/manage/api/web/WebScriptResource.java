@@ -75,13 +75,7 @@ public interface WebScriptResource {
     @GetMapping(value = {"/script/app/{appId}/scriptVersion/{scriptVersionId}",
         "/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
     Response<ScriptVO> getScriptVersionDetail(
-        @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-//        @DeprecatedAppLogic
-//        @ApiParam(value = "业务 ID", required = false)
-//        @PathVariable(value = "appId", required = false)
-//            Long appId,
-        @ApiParam(value = "资源范围", required = false)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
