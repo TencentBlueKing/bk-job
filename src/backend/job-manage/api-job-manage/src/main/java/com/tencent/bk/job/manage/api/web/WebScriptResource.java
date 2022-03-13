@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -75,7 +76,10 @@ public interface WebScriptResource {
     @GetMapping(value = {"/script/app/{appId}/scriptVersion/{scriptVersionId}",
         "/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
     Response<ScriptVO> getScriptVersionDetail(
-        @RequestHeader("username") String username,
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
