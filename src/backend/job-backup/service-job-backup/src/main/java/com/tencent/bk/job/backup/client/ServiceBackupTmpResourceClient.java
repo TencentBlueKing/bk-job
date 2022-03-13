@@ -22,40 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.service;
+package com.tencent.bk.job.backup.client;
 
-import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-import java.util.List;
 
-/**
- * @since 24/11/2020 20:58
- */
-public interface AccountService {
-    /**
-     * 按账号 ID 拉账号信息
-     *
-     * @param id 账号 ID
-     * @return 账号信息
-     */
-    ServiceAccountDTO getAccountAliasById(Long id);
-
-    /**
-     * 按业务 ID 批量拉取账号信息
-     *
-     * @param username 用户名
-     * @param appId    业务 ID
-     * @return 账号信息列表
-     */
-    List<ServiceAccountDTO> listAccountByAppId(String username, Long appId);
-
-    /**
-     * 新建/修改账号
-     *
-     * @param username 用户名
-     * @param appId    业务 ID
-     * @param account  账号信息
-     * @return 账号 ID
-     */
-    Long saveAccount(String username, Long appId, ServiceAccountDTO account);
+@FeignClient(value = "job-manage", contextId = "job-manage-backup-tmp")
+public interface ServiceBackupTmpResourceClient extends ServiceBackupTmpResource {
 }

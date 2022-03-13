@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import io.swagger.annotations.Api;
@@ -37,7 +38,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 账号服务
@@ -95,4 +99,28 @@ public interface ServiceAccountResource {
         @ApiParam("修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
         @ApiParam("最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
         @PathVariable("appId") Long appId, @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
+
+    @ApiOperation(value = "新增账号", produces = "application/json")
+    @PostMapping(value = "/app/{appId}/account")
+    Response<Long> saveAccount(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username,
+        @PathVariable("appId")
+            Long appId,
+        @ApiParam(value = "创建账号请求")
+        @RequestBody
+            AccountCreateUpdateReq accountCreateUpdateReq
+    );
+
+    @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
+    @GetMapping("/account/app/{appId}/accounts")
+    Response<List<ServiceAccountDTO>> listAccounts(
+        @ApiParam(value = "业务ID", required = true)
+        @PathVariable("appId")
+            Long appId,
+        @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途")
+        @RequestParam(value = "category", required = false)
+            Integer category
+    );
 }

@@ -24,13 +24,11 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
+import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
 import com.tencent.bk.job.backup.client.ServiceTemplateResourceClient;
-import com.tencent.bk.job.backup.client.WebTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
@@ -50,26 +48,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TaskTemplateServiceImpl implements TaskTemplateService {
-    private final WebTemplateResourceClient webTemplateResourceClient;
     private final ServiceTemplateResourceClient serviceTemplateResourceClient;
-    private final AppScopeMappingService appScopeMappingService;
+    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
 
     @Autowired
-    public TaskTemplateServiceImpl(WebTemplateResourceClient webTemplateResourceClient,
-                                   ServiceTemplateResourceClient serviceTemplateResourceClient,
-                                   AppScopeMappingService appScopeMappingService) {
-        this.webTemplateResourceClient = webTemplateResourceClient;
+    public TaskTemplateServiceImpl(ServiceTemplateResourceClient serviceTemplateResourceClient,
+                                   ServiceBackupTmpResourceClient serviceBackupTmpResourceClient) {
         this.serviceTemplateResourceClient = serviceTemplateResourceClient;
-        this.appScopeMappingService = appScopeMappingService;
+        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
     }
 
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<TaskTemplateVO> templateByIdResponse =
-                webTemplateResourceClient.getTemplateById(username, null, resourceScope.getType().getValue(),
-                    resourceScope.getId(), id);
+                serviceBackupTmpResourceClient.getTemplateById(username, appId, id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
                     return templateByIdResponse.getData();

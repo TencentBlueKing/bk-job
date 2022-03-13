@@ -25,17 +25,13 @@
 package com.tencent.bk.job.backup.service.impl;
 
 import com.tencent.bk.job.backup.client.ServiceAccountResourceClient;
-import com.tencent.bk.job.backup.client.WebAccountResourceClient;
 import com.tencent.bk.job.backup.service.AccountService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,16 +48,10 @@ import java.util.List;
 @Service
 public class AccountServiceImpl implements AccountService {
     private final ServiceAccountResourceClient serviceAccountResourceClient;
-    private final WebAccountResourceClient webAccountResourceClient;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public AccountServiceImpl(ServiceAccountResourceClient serviceAccountResourceClient,
-                              WebAccountResourceClient webAccountResourceClient,
-                              AppScopeMappingService appScopeMappingService) {
+    public AccountServiceImpl(ServiceAccountResourceClient serviceAccountResourceClient) {
         this.serviceAccountResourceClient = serviceAccountResourceClient;
-        this.webAccountResourceClient = webAccountResourceClient;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -90,13 +80,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountVO> listAccountByAppId(String username, Long appId) {
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        Response<List<AccountVO>> appAccountListResp = webAccountResourceClient.listAccounts(username, null,
-            resourceScope.getType().getValue(), resourceScope.getId(), null);
+    public List<ServiceAccountDTO> listAccountByAppId(String username, Long appId) {
+        Response<List<ServiceAccountDTO>> appAccountListResp = serviceAccountResourceClient.listAccounts(appId, null);
         if (appAccountListResp != null) {
             if (0 == appAccountListResp.getCode()) {
-                List<AccountVO> accountList = appAccountListResp.getData();
+                List<ServiceAccountDTO> accountList = appAccountListResp.getData();
                 if (CollectionUtils.isNotEmpty(accountList)) {
                     return accountList;
                 } else {
@@ -129,9 +117,8 @@ public class AccountServiceImpl implements AccountService {
         accountCreateUpdateReq.setDbPassword(account.getDbPassword());
         accountCreateUpdateReq.setDbPort(account.getDbPort());
 
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        Response<Long> saveAccountResp = webAccountResourceClient.saveAccount(username,
-            null, resourceScope.getType().getValue(), resourceScope.getId(), accountCreateUpdateReq);
+        Response<Long> saveAccountResp = serviceAccountResourceClient.saveAccount(username,
+            appId, accountCreateUpdateReq);
 
         Integer errorCode = -1;
         if (saveAccountResp != null) {

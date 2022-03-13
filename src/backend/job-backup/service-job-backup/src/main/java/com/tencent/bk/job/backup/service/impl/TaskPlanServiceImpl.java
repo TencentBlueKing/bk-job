@@ -24,13 +24,11 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
+import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
 import com.tencent.bk.job.backup.client.ServicePlanResourceClient;
-import com.tencent.bk.job.backup.client.WebPlanResourceClient;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
@@ -50,17 +48,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final WebPlanResourceClient webPlanResourceClient;
+    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
     private final ServicePlanResourceClient servicePlanResourceClient;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public TaskPlanServiceImpl(WebPlanResourceClient webPlanResourceClient,
-                               ServicePlanResourceClient servicePlanResourceClient,
-                               AppScopeMappingService appScopeMappingService) {
-        this.webPlanResourceClient = webPlanResourceClient;
+    public TaskPlanServiceImpl(ServiceBackupTmpResourceClient serviceBackupTmpResourceClient,
+                               ServicePlanResourceClient servicePlanResourceClient) {
+        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
         this.servicePlanResourceClient = servicePlanResourceClient;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -76,10 +71,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     continue;
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
-                ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
                 Response<TaskPlanVO> planByIdResponse =
-                    webPlanResourceClient.getPlanById(username, null, resourceScope.getType().getValue(),
-                        resourceScope.getId(), templateId, planId);
+                    serviceBackupTmpResourceClient.getPlanById(username, appId, templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
                         taskPlanList.add(planByIdResponse.getData());
@@ -100,10 +93,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<List<TaskPlanVO>> planListResponse =
-                webPlanResourceClient.listPlans(username, null, resourceScope.getType().getValue(),
-                    resourceScope.getId(), templateId);
+                serviceBackupTmpResourceClient.listPlans(username, appId, templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
                     log.debug("Fetching plan list of {}/{} finished.", appId, templateId);
