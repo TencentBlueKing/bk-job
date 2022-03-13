@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
@@ -63,7 +64,8 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
     private AppScopeMappingService appScopeMappingService;
 
-    @Autowired
+    @Autowired(required = false)
+    @Lazy
     public void setAppScopeMappingService(AppScopeMappingService appScopeMappingService) {
         this.appScopeMappingService = appScopeMappingService;
     }
