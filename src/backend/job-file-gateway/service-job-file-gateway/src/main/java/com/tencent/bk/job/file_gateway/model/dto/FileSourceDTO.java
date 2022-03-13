@@ -25,6 +25,9 @@
 package com.tencent.bk.job.file_gateway.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.file_gateway.model.resp.common.SimpleFileSourceVO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
@@ -133,7 +136,11 @@ public class FileSourceDTO {
         }
         SimpleFileSourceVO fileSourceVO = new SimpleFileSourceVO();
         fileSourceVO.setId(fileSourceDTO.getId());
-        fileSourceVO.setAppId(fileSourceDTO.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(fileSourceDTO.getAppId());
+        fileSourceVO.setScopeType(resourceScope.getType().getValue());
+        fileSourceVO.setScopeId(resourceScope.getId());
         fileSourceVO.setCode(fileSourceDTO.getCode());
         fileSourceVO.setAlias(fileSourceDTO.getAlias());
         return fileSourceVO;
@@ -145,7 +152,13 @@ public class FileSourceDTO {
         }
         FileSourceVO fileSourceVO = new FileSourceVO();
         fileSourceVO.setId(fileSourceDTO.getId());
-        fileSourceVO.setAppId(fileSourceDTO.getAppId());
+
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(fileSourceDTO.getAppId());
+        fileSourceVO.setScopeType(resourceScope.getType().getValue());
+        fileSourceVO.setScopeId(resourceScope.getId());
+
         fileSourceVO.setCode(fileSourceDTO.getCode());
         fileSourceVO.setAlias(fileSourceDTO.getAlias());
         Integer status = fileSourceDTO.getStatus();
