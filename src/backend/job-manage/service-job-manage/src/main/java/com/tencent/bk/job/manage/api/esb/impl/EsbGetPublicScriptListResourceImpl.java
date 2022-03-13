@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbPageData;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -58,11 +57,9 @@ import java.util.List;
 public class EsbGetPublicScriptListResourceImpl implements EsbGetPublicScriptListResource {
 
     private final ScriptService scriptService;
-    private final MessageI18nService i18nService;
 
-    public EsbGetPublicScriptListResourceImpl(ScriptService scriptService, MessageI18nService i18nService) {
+    public EsbGetPublicScriptListResourceImpl(ScriptService scriptService) {
         this.scriptService = scriptService;
-        this.i18nService = i18nService;
     }
 
     @Override

@@ -29,15 +29,14 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptDetailResource;
+import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.EsbScriptDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetScriptDetailRequest;
@@ -52,14 +51,12 @@ import java.time.temporal.ChronoUnit;
 @Slf4j
 public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResource {
     private final ScriptService scriptService;
-    private final MessageI18nService i18nService;
-    private final AuthService authService;
+    private final ScriptAuthService scriptAuthService;
 
-    public EsbGetScriptDetailResourceImpl(ScriptService scriptService, MessageI18nService i18nService,
-                                          AuthService authService) {
+    public EsbGetScriptDetailResourceImpl(ScriptService scriptService,
+                                          ScriptAuthService scriptAuthService) {
         this.scriptService = scriptService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.scriptAuthService = scriptAuthService;
     }
 
     @Override
@@ -81,10 +78,11 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         String scriptId = scriptVersion.getId();
         // 非公共脚本鉴权
         if (!scriptVersion.isPublicScript()) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.VIEW_SCRIPT,
-                ResourceTypeEnum.SCRIPT, scriptId, null);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
+            AuthResult authResult =
+                scriptAuthService.authViewScript(request.getUserName(), new AppResourceScope(appId), scriptId, null);
             if (!authResult.isPass()) {
-                return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+                throw new PermissionDeniedException(authResult);
             }
         }
         if (!scriptVersion.isPublicScript()) {

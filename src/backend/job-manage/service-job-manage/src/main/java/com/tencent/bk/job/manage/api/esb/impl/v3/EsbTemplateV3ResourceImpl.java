@@ -29,15 +29,14 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
@@ -55,15 +54,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private final TaskTemplateService taskTemplateService;
-    private final MessageI18nService i18nService;
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
-    public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService, MessageI18nService i18nService,
-                                     AuthService authService) {
+    public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService,
+                                     BusinessAuthService businessAuthService) {
         this.taskTemplateService = taskTemplateService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.businessAuthService = businessAuthService;
     }
 
     @Override
@@ -106,10 +103,11 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         }
         long appId = request.getAppId();
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
+        AuthResult authResult =
+            businessAuthService.authAccessBusiness(
+                request.getUserName(), new AppResourceScope(request.getAppId()));
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();

@@ -28,18 +28,16 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
+import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.util.IamPathUtil;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
@@ -70,6 +68,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     private final TaskTemplateService templateService;
     private final AbstractTaskVariableService taskVariableService;
     private final WebAuthService authService;
+    private final TemplateAuthService templateAuthService;
     private final TagService tagService;
 
     @Autowired
@@ -77,10 +76,12 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
         WebAuthService authService,
+        TemplateAuthService templateAuthService,
         TagService tagService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.authService = authService;
+        this.templateAuthService = templateAuthService;
         this.tagService = tagService;
     }
 
@@ -135,17 +136,12 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         AuthResultVO authResultVO;
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
-            authResultVO = authService.auth(true, username, ActionId.EDIT_JOB_TEMPLATE,
-                ResourceTypeEnum.TEMPLATE, templateId.toString(),
-                IamPathUtil.buildTemplatePathInfo(appId));
+            authResultVO = authService.toAuthResultVO(
+                templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId)
+            );
         } else {
-            authResultVO = authService.auth(
-                true,
-                username,
-                ActionId.CREATE_JOB_TEMPLATE,
-                ResourceTypeEnum.BUSINESS,
-                appId.toString(),
-                null
+            authResultVO = authService.toAuthResultVO(
+                templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId))
             );
         }
         if (!authResultVO.isPass()) {
@@ -162,8 +158,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
             templateInfo.setCreator(username);
             Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
                 lastModifyTime, lastModifyUser);
-            authService.registerResource(finalTemplateId.toString(), taskTemplateCreateUpdateReq.getName(),
-                                         ResourceTypeId.TEMPLATE, username, null);
+            templateAuthService.registerTemplate(
+                finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -199,7 +195,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
 
     @Override
     public InternalResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(String username, Long appId,
-                                                                         Long templateId) {
+                                                                              Long templateId) {
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(templateId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =

@@ -28,14 +28,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobListResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -57,12 +57,12 @@ import java.util.List;
 @Slf4j
 public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
     private final TaskPlanService taskPlanService;
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     public EsbGetJobListResourceImpl(TaskPlanService taskPlanService,
-                                     AuthService authService) {
+                                     BusinessAuthService businessAuthService) {
         this.taskPlanService = taskPlanService;
-        this.authService = authService;
+        this.businessAuthService = businessAuthService;
     }
 
 
@@ -76,10 +76,11 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         }
         long appId = request.getAppId();
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-            ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        AuthResult authResult =
+            businessAuthService.authAccessBusiness(request.getUserName(), new AppResourceScope(request.getAppId()));
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
 
         TaskPlanQueryDTO taskPlanQueryDTO = new TaskPlanQueryDTO();

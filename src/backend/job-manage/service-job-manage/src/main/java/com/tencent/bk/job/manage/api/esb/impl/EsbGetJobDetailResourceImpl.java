@@ -31,16 +31,16 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbFileSourceDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobDetailResource;
+import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
@@ -62,7 +62,6 @@ import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -78,19 +77,21 @@ import java.util.Map;
 @Slf4j
 public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
     private final TaskPlanService taskPlanService;
-    private final MessageI18nService i18nService;
     private final ScriptService scriptService;
     private final AccountService accountService;
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
+    private final PlanAuthService planAuthService;
 
-    public EsbGetJobDetailResourceImpl(TaskPlanService taskPlanService, ScriptService scriptService,
-                                       AccountService accountService, MessageI18nService i18nService,
-                                       AuthService authService) {
+    public EsbGetJobDetailResourceImpl(TaskPlanService taskPlanService,
+                                       ScriptService scriptService,
+                                       AccountService accountService,
+                                       BusinessAuthService businessAuthService,
+                                       PlanAuthService planAuthService) {
         this.taskPlanService = taskPlanService;
         this.scriptService = scriptService;
         this.accountService = accountService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.businessAuthService = businessAuthService;
+        this.planAuthService = planAuthService;
     }
 
     @Override
@@ -106,23 +107,23 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
 
         TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlanById(appId, jobId);
         if (taskPlan == null) {
-            AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
-                ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
+            // TODO: 通过scopeType与scopeId构造AppResourceScope
+            AuthResult authResult =
+                businessAuthService.authAccessBusiness(request.getUserName(), new AppResourceScope(appId));
             if (!authResult.isPass()) {
-                return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+                throw new PermissionDeniedException(authResult);
             } else {
                 log.info("Get job detail, job is not exist! appId={}, jobId={}", appId, jobId);
                 return EsbResp.buildSuccessResp(null);
             }
         }
 
-        AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.VIEW_JOB_PLAN,
-            ResourceTypeEnum.PLAN, request.getPlanId().toString(), PathBuilder
-                .newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString())
-                .child(ResourceTypeEnum.TEMPLATE.getId(), taskPlan.getTemplateId().toString())
-                .build());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        AuthResult authResult =
+            planAuthService.authViewJobPlan(request.getUserName(), new AppResourceScope(appId),
+                taskPlan.getTemplateId(), request.getPlanId(), taskPlan.getName());
         if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
+            throw new PermissionDeniedException(authResult);
         }
 
         return EsbResp.buildSuccessResp(buildJobDetail(taskPlan));

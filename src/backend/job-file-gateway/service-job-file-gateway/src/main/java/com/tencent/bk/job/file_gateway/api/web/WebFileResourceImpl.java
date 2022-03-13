@@ -66,12 +66,12 @@ public class WebFileResourceImpl implements WebFileResource {
         try {
             Long appId = appResourceScope.getAppId();
             AuthResult viewFileSourceAuthResult = webFileSourceResource.checkViewFileSourcePermission(username,
-                appId, fileSourceId);
+                appResourceScope, fileSourceId);
             if (!viewFileSourceAuthResult.isPass()) {
                 throw new PermissionDeniedException(viewFileSourceAuthResult);
             }
             AuthResult manageFileSourceAuthResult =
-                webFileSourceResource.checkManageFileSourcePermission(username, appId, fileSourceId);
+                webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope, fileSourceId);
             FileNodesVO fileNodesVO = fileService.listFileNode(username, appId, fileSourceId, path, name, start,
                 pageSize);
             for (Map<String, Object> map : fileNodesVO.getPageData().getData()) {
@@ -92,7 +92,7 @@ public class WebFileResourceImpl implements WebFileResource {
                                            ExecuteActionReq req) {
         try {
             Long appId = appResourceScope.getAppId();
-            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appId,
+            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope,
                 fileSourceId);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);

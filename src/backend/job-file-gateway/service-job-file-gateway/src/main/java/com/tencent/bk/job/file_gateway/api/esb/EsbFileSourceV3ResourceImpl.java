@@ -3,18 +3,16 @@ package com.tencent.bk.job.file_gateway.api.esb;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +24,13 @@ import java.util.Collections;
 @Slf4j
 public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
-    private final AuthService authService;
+    private final FileSourceAuthService fileSourceAuthService;
     private final FileSourceService fileSourceService;
 
     @Autowired
-    public EsbFileSourceV3ResourceImpl(AuthService authService, FileSourceService fileSourceService) {
-        this.authService = authService;
+    public EsbFileSourceV3ResourceImpl(FileSourceAuthService fileSourceAuthService,
+                                       FileSourceService fileSourceService) {
+        this.fileSourceAuthService = fileSourceAuthService;
         this.fileSourceService = fileSourceService;
     }
 
@@ -39,15 +38,12 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
         Long appId = req.getAppId();
         String username = req.getUserName();
-        AuthResult authResult = checkCreateFileSourcePermission(username, appId);
-        if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
-        }
+        checkCreateFileSourcePermission(username, appId);
         checkCreateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
-        boolean registerResult = authService.registerResource("" + fileSourceId, fileSourceDTO.getAlias(),
-                                                              ResourceTypeId.FILE_SOURCE, username, null);
+        boolean registerResult = fileSourceAuthService.registerFileSource(
+            username, fileSourceId, fileSourceDTO.getAlias());
         if (!registerResult) {
             log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
         }
@@ -60,10 +56,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Long appId = req.getAppId();
         String username = req.getUserName();
         Integer id = req.getId();
-        AuthResult authResult = checkManageFileSourcePermission(username, appId, id);
-        if (!authResult.isPass()) {
-            return authService.buildEsbAuthFailResp(authResult.getRequiredActionResources());
-        }
+        checkManageFileSourcePermission(username, appId, id);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(fileSourceId));
@@ -157,16 +150,22 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         return fileSourceDTO;
     }
 
-    public AuthResult checkCreateFileSourcePermission(String username, Long appId) {
+    public void checkCreateFileSourcePermission(String username, Long appId) {
         // 需要拥有在业务下创建文件源的权限
-        return authService.auth(true, username, ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS,
-            appId.toString(), null);
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        AuthResult authResult = fileSourceAuthService.authCreateFileSource(username, new AppResourceScope(appId));
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
     }
 
-    public AuthResult checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public void checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
         // 需要拥有在业务下管理某个具体文件源的权限
-        return authService.auth(true, username, ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE,
-            fileSourceId.toString(),
-            PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build());
+        // TODO: 通过scopeType与scopeId构造AppResourceScope
+        AuthResult authResult = fileSourceAuthService.authManageFileSource(username, new AppResourceScope(appId),
+            fileSourceId, null);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
     }
 }

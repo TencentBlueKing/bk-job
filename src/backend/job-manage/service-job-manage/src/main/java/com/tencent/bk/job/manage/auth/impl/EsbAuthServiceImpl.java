@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.auth.impl;
+package com.tencent.bk.job.manage.auth.impl;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
+import com.tencent.bk.job.manage.auth.EsbAuthService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,9 +56,14 @@ public class EsbAuthServiceImpl implements EsbAuthService {
     }
 
     @Override
-    public EsbResp batchAuthJobResources(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                         List<String> resourceIds, Map<String, String> idNameMap) {
-        List<String> hasPermissionIds = appAuthService.batchAuth(username, actionId, new AppResourceScope(appId), resourceType, resourceIds);
+    public EsbResp batchAuthJobResources(String username,
+                                         String actionId,
+                                         AppResourceScope appResourceScope,
+                                         ResourceTypeEnum resourceType,
+                                         List<String> resourceIds,
+                                         Map<String, String> idNameMap) {
+        List<String> hasPermissionIds = appAuthService.batchAuth(
+            username, actionId, appResourceScope, resourceType, resourceIds);
         resourceIds.removeAll(hasPermissionIds);
         List<String> noPermissionIds = resourceIds;
         if (!noPermissionIds.isEmpty()) {
