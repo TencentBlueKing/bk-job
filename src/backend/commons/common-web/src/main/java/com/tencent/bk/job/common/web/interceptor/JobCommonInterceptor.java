@@ -64,6 +64,11 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
 
     private AppScopeMappingService appScopeMappingService;
 
+    /**
+     * 通过Set方式，同时使用@Lazy，避免Bean循环依赖
+     *
+     * @param appScopeMappingService 依赖的AppScopeMappingService
+     */
     @Autowired(required = false)
     @Lazy
     public void setAppScopeMappingService(AppScopeMappingService appScopeMappingService) {

@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,10 +77,13 @@ public interface WebScriptResource {
     Response<ScriptVO> getScriptVersionDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+//        @DeprecatedAppLogic
+//        @ApiParam(value = "业务 ID", required = false)
+//        @PathVariable(value = "appId", required = false)
+//            Long appId,
+        @ApiParam(value = "资源范围", required = false)
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,

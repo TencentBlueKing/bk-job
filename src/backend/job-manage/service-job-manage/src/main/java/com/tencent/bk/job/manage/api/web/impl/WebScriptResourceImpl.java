@@ -148,11 +148,12 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     @Override
     public Response<ScriptVO> getScriptVersionDetail(String username,
-                                                     Long appId,
+//                                                     Long appId,
+                                                     AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      Long scriptVersionId) {
-        AppResourceScope appResourceScope = buildAppResourceScope(appId, scopeType, scopeId);
+//        AppResourceScope appResourceScope = buildAppResourceScope(appId, scopeType, scopeId);
         if (scriptVersionId == null || scriptVersionId <= 0) {
             log.warn("Get script version by id, param scriptVersionId is empty");
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
