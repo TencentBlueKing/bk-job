@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import io.swagger.annotations.Api;
@@ -38,10 +38,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -59,6 +61,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -76,6 +81,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -93,10 +101,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -147,6 +154,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -165,10 +175,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -186,10 +195,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,

@@ -68,7 +68,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         try {
             ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<TaskTemplateVO> templateByIdResponse =
-                webTemplateResourceClient.getTemplateById(username, resourceScope.getType().getValue(),
+                webTemplateResourceClient.getTemplateById(username, null, resourceScope.getType().getValue(),
                     resourceScope.getId(), id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {

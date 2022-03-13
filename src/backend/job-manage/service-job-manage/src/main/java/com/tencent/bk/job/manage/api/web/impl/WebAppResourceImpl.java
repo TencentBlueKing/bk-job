@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
@@ -74,27 +73,22 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
     private final HostService hostService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
-                              HostService hostService,
-                              AppScopeMappingService appScopeMappingService) {
+                              HostService hostService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.hostService = hostService;
         this.appAuthService = appAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
-        String username,
-        Integer start,
-        Integer pageSize
-    ) {
+    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
+                                                                               Integer start,
+                                                                               Integer pageSize) {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<ApplicationDTO> normalAppList =
             appList.parallelStream().filter(it -> it.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
@@ -176,27 +170,30 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<Integer> favorApp(String username, String scopeType, String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
+    public Response<Integer> favorApp(String username,
+                                      AppResourceScope appResourceScope,
+                                      String scopeType,
+                                      String scopeId) {
         return Response.buildSuccessResp(applicationFavorService.favorApp(username, appResourceScope.getAppId()));
     }
 
     @Override
-    public Response<Integer> cancelFavorApp(String username, String scopeType, String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
+    public Response<Integer> cancelFavorApp(String username,
+                                            AppResourceScope appResourceScope,
+                                            String scopeType,
+                                            String scopeId) {
         return Response.buildSuccessResp(applicationFavorService.cancelFavorApp(username, appResourceScope.getAppId()));
     }
 
     @Override
     public Response<PageData<HostInfoVO>> listAppHost(String username,
-                                                      Long appId,
+                                                      AppResourceScope appResourceScope,
                                                       String scopeType,
                                                       String scopeId,
                                                       Integer start,
                                                       Integer pageSize,
                                                       Long moduleType,
                                                       String ipCondition) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         ApplicationHostInfoDTO applicationHostInfoCondition = new ApplicationHostInfoDTO();
         applicationHostInfoCondition.setAppId(appResourceScope.getAppId());
         applicationHostInfoCondition.setIp(ipCondition);
@@ -227,48 +224,56 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyTree(String username, Long appId, String scopeType,
+    public Response<CcTopologyNodeVO> listAppTopologyTree(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
                                                           String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.listAppTopologyTree(username, appResourceScope.getAppId()));
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username, Long appId, String scopeType,
+    public Response<CcTopologyNodeVO> listAppTopologyHostTree(String username,
+                                                              AppResourceScope appResourceScope,
+                                                              String scopeType,
                                                               String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.listAppTopologyHostTree(username, appResourceScope.getAppId()));
     }
 
     @Override
-    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username, Long appId, String scopeType,
+    public Response<CcTopologyNodeVO> listAppTopologyHostCountTree(String username,
+                                                                   AppResourceScope appResourceScope,
+                                                                   String scopeType,
                                                                    String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.listAppTopologyHostCountTree(username,
             appResourceScope.getAppId()));
     }
 
     @Override
-    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username, Long appId, String scopeType,
+    public Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(String username,
+                                                                     AppResourceScope appResourceScope,
+                                                                     String scopeType,
                                                                      String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.listHostByBizTopologyNodes(username, appResourceScope.getAppId()
             , req));
     }
 
     @Override
-    public Response<PageData<String>> listIpByBizTopologyNodes(String username, Long appId, String scopeType,
-                                                               String scopeId, ListHostByBizTopologyNodesReq req) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<PageData<String>> listIpByBizTopologyNodes(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               ListHostByBizTopologyNodesReq req) {
         return Response.buildSuccessResp(hostService.listIPByBizTopologyNodes(username, appResourceScope.getAppId(),
             req));
     }
 
     @Override
-    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username, Long appId, String scopeType,
-                                                             String scopeId, List<TargetNodeVO> targetNodeVOList) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<List<AppTopologyTreeNode>> getNodeDetail(String username,
+                                                             AppResourceScope appResourceScope,
+                                                             String scopeType,
+                                                             String scopeId,
+                                                             List<TargetNodeVO> targetNodeVOList) {
         List<AppTopologyTreeNode> treeNodeList = hostService.getAppTopologyTreeNodeDetail(username,
             appResourceScope.getAppId(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
@@ -282,9 +287,11 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username, Long appId, String scopeType,
-                                                                 String scopeId, List<TargetNodeVO> targetNodeVOList) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<List<List<CcTopologyNodeVO>>> queryNodePaths(String username,
+                                                                 AppResourceScope appResourceScope,
+                                                                 String scopeType,
+                                                                 String scopeId,
+                                                                 List<TargetNodeVO> targetNodeVOList) {
         List<List<InstanceTopologyDTO>> pathList = hostService.queryNodePaths(username, appResourceScope.getAppId(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
@@ -311,9 +318,11 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<NodeInfoVO>> listHostByNode(String username, Long appId, String scopeType, String scopeId,
+    public Response<List<NodeInfoVO>> listHostByNode(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
                                                      List<TargetNodeVO> targetNodeVOList) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<NodeInfoVO> moduleHostInfoList = hostService.getHostsByNode(username, appResourceScope.getAppId(),
             targetNodeVOList.stream().map(it -> new AppTopologyTreeNode(
                 it.getType(),
@@ -326,15 +335,17 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username, Long appId, String scopeType,
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroup(String username,
+                                                                  AppResourceScope appResourceScope,
+                                                                  String scopeType,
                                                                   String scopeId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appResourceScope.getAppId());
         // 业务集动态分组暂不支持
         if (applicationDTO.getAppType() != AppTypeEnum.NORMAL) {
             return Response.buildSuccessResp(new ArrayList<>());
         }
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getDynamicGroupList(username, appId);
+        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getDynamicGroupList(username,
+            appResourceScope.getAppId());
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
@@ -342,9 +353,10 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username, Long appId, String scopeType,
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username,
+                                                                      AppResourceScope appResourceScope,
+                                                                      String scopeType,
                                                                       String scopeId, List<String> dynamicGroupIds) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<DynamicGroupInfoDTO> dynamicGroupList =
             hostService.getDynamicGroupHostList(username, appResourceScope.getAppId(), dynamicGroupIds);
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
@@ -354,10 +366,11 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username, Long appId,
-                                                                              String scopeType, String scopeId,
+    public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(String username,
+                                                                              AppResourceScope appResourceScope,
+                                                                              String scopeType,
+                                                                              String scopeId,
                                                                               List<String> dynamicGroupIds) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getDynamicGroupList(username,
             appResourceScope.getAppId());
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
@@ -368,9 +381,11 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<HostInfoVO>> listHostByIp(String username, Long appId, String scopeType, String scopeId,
+    public Response<List<HostInfoVO>> listHostByIp(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
                                                    IpCheckReq req) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.getHostsByIp(
             username,
             appResourceScope.getAppId(),
@@ -380,9 +395,11 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<AgentStatistics> agentStatistics(String username, Long appId, String scopeType, String scopeId,
+    public Response<AgentStatistics> agentStatistics(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
                                                      AgentStatisticsReq agentStatisticsReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         return Response.buildSuccessResp(hostService.getAgentStatistics(username, appResourceScope.getAppId(),
             agentStatisticsReq));
     }

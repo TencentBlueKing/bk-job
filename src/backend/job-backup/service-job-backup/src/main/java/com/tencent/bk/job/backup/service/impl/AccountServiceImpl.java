@@ -92,7 +92,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<AccountVO> listAccountByAppId(String username, Long appId) {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
-        Response<List<AccountVO>> appAccountListResp = webAccountResourceClient.listAccounts(username, appId,
+        Response<List<AccountVO>> appAccountListResp = webAccountResourceClient.listAccounts(username, null,
             resourceScope.getType().getValue(), resourceScope.getId(), null);
         if (appAccountListResp != null) {
             if (0 == appAccountListResp.getCode()) {
@@ -131,7 +131,7 @@ public class AccountServiceImpl implements AccountService {
 
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         Response<Long> saveAccountResp = webAccountResourceClient.saveAccount(username,
-            resourceScope.getType().getValue(), resourceScope.getId(), accountCreateUpdateReq);
+            null, resourceScope.getType().getValue(), resourceScope.getId(), accountCreateUpdateReq);
 
         Integer errorCode = -1;
         if (saveAccountResp != null) {

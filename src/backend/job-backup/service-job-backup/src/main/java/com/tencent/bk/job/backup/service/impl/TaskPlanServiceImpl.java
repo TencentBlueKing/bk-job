@@ -78,7 +78,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
                 ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
                 Response<TaskPlanVO> planByIdResponse =
-                    webPlanResourceClient.getPlanById(username, appId, resourceScope.getType().getValue(),
+                    webPlanResourceClient.getPlanById(username, null, resourceScope.getType().getValue(),
                         resourceScope.getId(), templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
@@ -102,7 +102,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         try {
             ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
             Response<List<TaskPlanVO>> planListResponse =
-                webPlanResourceClient.listPlans(username, appId, resourceScope.getType().getValue(),
+                webPlanResourceClient.listPlans(username, null, resourceScope.getType().getValue(),
                     resourceScope.getId(), templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
