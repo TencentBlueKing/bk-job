@@ -144,6 +144,7 @@ public class JobCommonInterceptor extends HandlerInterceptorAdapter {
         AppResourceScope appResourceScope = parseAppResourceScopeFromPath(request.getRequestURI());
         log.debug("Scope from path:{}", appResourceScope);
         if (appResourceScope != null) {
+            request.setAttribute("appResourceScope", appResourceScope);
             JobContextUtil.setAppResourceScope(appResourceScope);
         }
     }
