@@ -427,7 +427,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "检查脚本内容", produces = "application/json")
-    @PutMapping("/script/check")
+    @PutMapping("/check")
     Response<List<ScriptCheckResultItemVO>> checkScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -438,7 +438,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "上传脚本获取内容", produces = "application/json")
-    @PostMapping("/script/upload")
+    @PostMapping("/upload")
     Response<ScriptVO> uploadScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
