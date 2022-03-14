@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.BatchPatchResourceTagReq;
 import com.tencent.bk.job.manage.model.web.request.TagCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
@@ -39,11 +39,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -64,10 +66,9 @@ public interface WebTagResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -102,10 +103,9 @@ public interface WebTagResource {
     Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @DeprecatedAppLogic
-        @ApiParam(value = "业务 ID", required = false)
-        @PathVariable(value = "appId", required = false)
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -122,6 +122,9 @@ public interface WebTagResource {
     Response<Boolean> updateTagInfo(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = false)
         @PathVariable(value = "scopeType", required = false)
             String scopeType,
@@ -142,6 +145,9 @@ public interface WebTagResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -159,6 +165,9 @@ public interface WebTagResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -177,6 +186,9 @@ public interface WebTagResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -196,6 +208,9 @@ public interface WebTagResource {
     Response<Boolean> checkTagName(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username") String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -52,20 +51,18 @@ import java.util.stream.Collectors;
 public class WebCredentialResourceImpl implements WebCredentialResource {
 
     private final CredentialService credentialService;
-    private final AppScopeMappingService appScopeMappingService;
     private final TicketAuthService ticketAuthService;
 
     @Autowired
     public WebCredentialResourceImpl(CredentialService credentialService,
-                                     AppScopeMappingService appScopeMappingService,
                                      TicketAuthService ticketAuthService) {
         this.credentialService = credentialService;
-        this.appScopeMappingService = appScopeMappingService;
         this.ticketAuthService = ticketAuthService;
     }
 
     @Override
     public Response<PageData<CredentialVO>> listCredentials(String username,
+                                                            AppResourceScope appResourceScope,
                                                             String scopeType,
                                                             String scopeId,
                                                             String id,
@@ -75,7 +72,6 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                             String lastModifyUser,
                                                             Integer start,
                                                             Integer pageSize) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         CredentialDTO credentialQuery = new CredentialDTO();
         credentialQuery.setId(id);
         credentialQuery.setAppId(appResourceScope.getAppId());
@@ -99,9 +95,11 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
-    public Response<String> saveCredential(String username, String scopeType, String scopeId,
+    public Response<String> saveCredential(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
                                            CredentialCreateUpdateReq createUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult;
         if (StringUtils.isBlank(createUpdateReq.getId())) {
             authResult = checkCreateTicketPermission(username, appResourceScope);
@@ -116,8 +114,11 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
-    public Response<Integer> deleteCredentialById(String username, String scopeType, String scopeId, String id) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+    public Response<Integer> deleteCredentialById(String username,
+                                                  AppResourceScope appResourceScope,
+                                                  String scopeType,
+                                                  String scopeId,
+                                                  String id) {
         AuthResult authResult = checkManageTicketPermission(username, appResourceScope, id);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -134,10 +135,8 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             .map(CredentialVO::getId)
             .map(Objects::toString)
             .collect(Collectors.toList());
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canManageIdList =
             ticketAuthService.batchAuthManageTicket(username, appResourceScope, credentialIdList);
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
         List<String> canUseIdList =
             ticketAuthService.batchAuthUseTicket(username, appResourceScope, credentialIdList);
         credentialVOList.forEach(it -> {

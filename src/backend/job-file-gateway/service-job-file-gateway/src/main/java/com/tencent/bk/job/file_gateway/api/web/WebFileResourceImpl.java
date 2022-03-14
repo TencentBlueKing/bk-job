@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,28 +45,33 @@ public class WebFileResourceImpl implements WebFileResource {
 
     private final WebFileSourceResourceImpl webFileSourceResource;
     private final FileService fileService;
-    private final DispatchService dispatchService;
 
     @Autowired
-    public WebFileResourceImpl(WebFileSourceResourceImpl webFileSourceResource, FileService fileService,
-                               DispatchService dispatchService) {
+    public WebFileResourceImpl(WebFileSourceResourceImpl webFileSourceResource, FileService fileService) {
         this.webFileSourceResource = webFileSourceResource;
         this.fileService = fileService;
-        this.dispatchService = dispatchService;
     }
 
 
     @Override
-    public Response<FileNodesVO> listFileNode(String username, Long appId, Integer fileSourceId, String path,
-                                              String name, Integer start, Integer pageSize) {
+    public Response<FileNodesVO> listFileNode(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              Integer fileSourceId,
+                                              String path,
+                                              String name,
+                                              Integer start,
+                                              Integer pageSize) {
         try {
+            Long appId = appResourceScope.getAppId();
             AuthResult viewFileSourceAuthResult = webFileSourceResource.checkViewFileSourcePermission(username,
-                appId, fileSourceId);
+                appResourceScope, fileSourceId);
             if (!viewFileSourceAuthResult.isPass()) {
                 throw new PermissionDeniedException(viewFileSourceAuthResult);
             }
             AuthResult manageFileSourceAuthResult =
-                webFileSourceResource.checkManageFileSourcePermission(username, appId, fileSourceId);
+                webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope, fileSourceId);
             FileNodesVO fileNodesVO = fileService.listFileNode(username, appId, fileSourceId, path, name, start,
                 pageSize);
             for (Map<String, Object> map : fileNodesVO.getPageData().getData()) {
@@ -79,10 +84,15 @@ public class WebFileResourceImpl implements WebFileResource {
     }
 
     @Override
-    public Response<Boolean> executeAction(String username, Long appId, Integer fileSourceId,
+    public Response<Boolean> executeAction(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
+                                           Integer fileSourceId,
                                            ExecuteActionReq req) {
         try {
-            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appId,
+            Long appId = appResourceScope.getAppId();
+            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope,
                 fileSourceId);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);

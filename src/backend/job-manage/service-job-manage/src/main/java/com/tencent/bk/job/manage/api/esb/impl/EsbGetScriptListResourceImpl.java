@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
+import com.tencent.bk.job.manage.auth.EsbAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -46,7 +47,6 @@ import com.tencent.bk.job.manage.model.esb.EsbScriptDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetScriptListRequest;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
-import com.tencent.bk.job.manage.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -94,7 +93,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final BusinessAuthService businessAuthService;
     private final TemplateAuthService templateAuthService;
     private final PlanAuthService planAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
@@ -112,12 +110,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         this.businessAuthService = businessAuthService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<PageData<TaskPlanVO>> listAllPlans(String username,
-                                                       Long appId,
+                                                       AppResourceScope appResourceScope,
                                                        String scopeType,
                                                        String scopeId,
                                                        Long planId,
@@ -128,7 +125,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                                        String lastModifyUser,
                                                        Integer start,
                                                        Integer pageSize) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -209,14 +205,16 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         taskPlanPageData.setPageSize(taskPlanInfoPageData.getPageSize());
         taskPlanPageData.setTotal(taskPlanInfoPageData.getTotal());
         taskPlanPageData.setData(resultPlans);
-        taskPlanPageData.setExistAny(planService.isExistAnyAppPlan(appId));
+        taskPlanPageData.setExistAny(planService.isExistAnyAppPlan(appResourceScope.getAppId()));
         return Response.buildSuccessResp(taskPlanPageData);
     }
 
     @Override
-    public Response<List<TaskPlanVO>> listPlans(String username, Long appId, String scopeType, String scopeId,
+    public Response<List<TaskPlanVO>> listPlans(String username,
+                                                AppResourceScope appResourceScope,
+                                                String scopeType,
+                                                String scopeId,
                                                 Long templateId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -273,9 +271,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<List<TaskPlanVO>> batchGetPlans(String username, Long appId, String scopeType, String scopeId,
+    public Response<List<TaskPlanVO>> batchGetPlans(String username,
+                                                    AppResourceScope appResourceScope,
+                                                    String scopeType,
+                                                    String scopeId,
                                                     String templateIds) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         if (StringUtils.isEmpty(templateIds)) {
             log.warn("TemplateIds is empty!");
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
@@ -309,9 +309,12 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<TaskPlanVO> getPlanById(String username, Long appId, String scopeType, String scopeId,
-                                            Long templateId, Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<TaskPlanVO> getPlanById(String username,
+                                            AppResourceScope appResourceScope,
+                                            String scopeType,
+                                            String scopeId,
+                                            Long templateId,
+                                            Long planId) {
         TaskTemplateInfoDTO taskTemplateBasicInfo =
             templateService.getTaskTemplateBasicInfoById(appResourceScope.getAppId(), templateId);
         if (taskTemplateBasicInfo == null) {
@@ -347,9 +350,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<TaskPlanVO> getDebugPlan(String username, Long appId, String scopeType, String scopeId,
+    public Response<TaskPlanVO> getDebugPlan(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
                                              Long templateId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         AuthResult authResult = templateAuthService.authViewJobTemplate(username, appResourceScope, templateId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -372,9 +377,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Long> savePlan(String username, String scopeType, String scopeId, Long templateId, Long planId,
+    public Response<Long> savePlan(String username,
+                                   AppResourceScope appResourceScope,
+                                   String scopeType,
+                                   String scopeId,
+                                   Long templateId,
+                                   Long planId,
                                    TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         taskPlanCreateUpdateReq.setTemplateId(templateId);
         AuthResult authResult;
         if (planId > 0) {
@@ -410,9 +419,12 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Boolean> deletePlan(String username, String scopeType, String scopeId, Long templateId,
+    public Response<Boolean> deletePlan(String username,
+                                        AppResourceScope appResourceScope,
+                                        String scopeType,
+                                        String scopeId,
+                                        Long templateId,
                                         Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = planAuthService.authDeleteJobPlan(username, appResourceScope, templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -422,9 +434,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<List<TaskPlanVO>> listPlanBasicInfoByIds(String username, Long appId, String scopeType,
-                                                             String scopeId, String planIds) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<List<TaskPlanVO>> listPlanBasicInfoByIds(String username,
+                                                             AppResourceScope appResourceScope,
+                                                             String scopeType,
+                                                             String scopeId,
+                                                             String planIds) {
 
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
@@ -446,9 +460,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Boolean> checkPlanName(String username, String scopeType, String scopeId,
-                                           Long templateId, Long planId, String name) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+    public Response<Boolean> checkPlanName(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
+                                           Long templateId,
+                                           Long planId,
+                                           String name) {
         AuthResult authResult = templateAuthService.authViewJobTemplate(username, appResourceScope,
             templateId);
         if (!authResult.isPass()) {
@@ -459,9 +477,12 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<TaskPlanSyncInfoVO> syncInfo(String username, String scopeType, String scopeId, Long templateId,
+    public Response<TaskPlanSyncInfoVO> syncInfo(String username,
+                                                 AppResourceScope appResourceScope,
+                                                 String scopeType,
+                                                 String scopeId,
+                                                 Long templateId,
                                                  Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = planAuthService.authSyncJobPlan(username, appResourceScope, templateId, planId, null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -485,9 +506,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Boolean> syncConfirm(String username, String scopeType, String scopeId, Long templateId,
-                                         Long planId, String templateVersion) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+    public Response<Boolean> syncConfirm(String username,
+                                         AppResourceScope appResourceScope,
+                                         String scopeType,
+                                         String scopeId,
+                                         Long templateId,
+                                         Long planId,
+                                         String templateVersion) {
         AuthResult authResult = planAuthService.authSyncJobPlan(username, appResourceScope, templateId,
             planId, null);
         if (!authResult.isPass()) {
@@ -498,9 +523,12 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Boolean> addFavorite(String username, String scopeType, String scopeId, Long templateId,
+    public Response<Boolean> addFavorite(String username,
+                                         AppResourceScope appResourceScope,
+                                         String scopeType,
+                                         String scopeId,
+                                         Long templateId,
                                          Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -510,9 +538,12 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     }
 
     @Override
-    public Response<Boolean> removeFavorite(String username, String scopeType, String scopeId, Long templateId,
+    public Response<Boolean> removeFavorite(String username,
+                                            AppResourceScope appResourceScope,
+                                            String scopeType,
+                                            String scopeId,
+                                            Long templateId,
                                             Long planId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -542,14 +573,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Override
     public Response<Boolean> batchUpdatePlanVariableValueByName(String username,
+                                                                AppResourceScope appResourceScope,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 List<TaskVariableValueUpdateReq> planVariableInfoList) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         if (CollectionUtils.isEmpty(planVariableInfoList)) {
             return Response.buildSuccessResp(true);
         }
-        List<PermissionResource> permissionResources = new ArrayList<>();
         List<Long> templateIdList = new ArrayList<>();
         List<Long> planIdList = new ArrayList<>();
         Set<Long> planIdSet = new HashSet<>();

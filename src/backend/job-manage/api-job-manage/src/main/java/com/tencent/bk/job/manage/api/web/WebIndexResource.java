@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
@@ -37,10 +38,12 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -57,6 +60,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -71,6 +77,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -85,6 +94,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -108,6 +120,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -131,6 +146,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -145,6 +163,9 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,

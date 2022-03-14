@@ -71,25 +71,24 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private final MessageI18nService i18nService;
     private final AccountAuthService accountAuthService;
     private final JobManageConfig jobManageConfig;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebAppAccountResourceImpl(AccountService accountService,
                                      MessageI18nService i18nService,
                                      AccountAuthService accountAuthService,
-                                     JobManageConfig jobManageConfig,
-                                     AppScopeMappingService appScopeMappingService) {
+                                     JobManageConfig jobManageConfig) {
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.accountAuthService = accountAuthService;
         this.jobManageConfig = jobManageConfig;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<Long> saveAccount(String username, String scopeType, String scopeId,
+    public Response<Long> saveAccount(String username,
+                                      AppResourceScope appResourceScope,
+                                      String scopeType,
+                                      String scopeId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = checkCreateAccountPermission(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -108,9 +107,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    public Response updateAccount(String username, String scopeType, String scopeId,
+    public Response updateAccount(String username,
+                                  AppResourceScope appResourceScope,
+                                  String scopeType,
+                                  String scopeId,
                                   AccountCreateUpdateReq accountCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         Long accountId = accountCreateUpdateReq.getId();
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
@@ -168,7 +169,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
 
     @Override
     public Response<PageData<AccountVO>> listAppAccounts(String username,
-                                                         Long appId,
+                                                         AppResourceScope appResourceScope,
                                                          String scopeType,
                                                          String scopeId,
                                                          Long id,
@@ -183,8 +184,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                                          String orderField,
                                                          Integer order,
                                                          String keyword) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
-
         PageData<AccountDTO> pageData;
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);
@@ -269,9 +268,12 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    public Response deleteAccount(String username, String scopeType, String scopeId, Long accountId) {
+    public Response deleteAccount(String username,
+                                  AppResourceScope appResourceScope,
+                                  String scopeType,
+                                  String scopeId,
+                                  Long accountId) {
 
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         log.info("Delete account, operator={}, scope={}, accountId={}", username, appResourceScope, accountId);
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
@@ -293,9 +295,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    public Response<AccountVO> getAccountById(String username, Long appId, String scopeType, String scopeId,
+    public Response<AccountVO> getAccountById(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
                                               Long accountId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         AccountDTO account = accountService.getAccountById(accountId);
         if (account == null) {
             log.info("Account is not exist, accountId={}", accountId);
@@ -308,12 +312,14 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     }
 
     @Override
-    public Response<List<AccountVO>> listAccounts(String username, Long appId, String scopeType, String scopeId,
+    public Response<List<AccountVO>> listAccounts(String username,
+                                                  AppResourceScope appResourceScope,
+                                                  String scopeType,
+                                                  String scopeId,
                                                   Integer category) {
         if (category != null && AccountCategoryEnum.valOf(category) == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         List<AccountDTO> accountDTOS =
             accountService.listAllAppAccount(appResourceScope.getAppId(), AccountCategoryEnum.valOf(category));
         List<AccountVO> accountVOS = new ArrayList<>();

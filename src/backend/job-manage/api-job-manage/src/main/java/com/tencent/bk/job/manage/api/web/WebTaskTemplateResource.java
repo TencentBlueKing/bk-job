@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
@@ -40,11 +41,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -63,6 +66,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -113,6 +119,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -130,6 +139,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -151,6 +163,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -168,6 +183,9 @@ public interface WebTaskTemplateResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -182,6 +200,9 @@ public interface WebTaskTemplateResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -202,6 +223,9 @@ public interface WebTaskTemplateResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -217,7 +241,11 @@ public interface WebTaskTemplateResource {
     @DeleteMapping("/{templateId}/favorite")
     Response<Boolean> removeFavorite(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -235,6 +263,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -255,6 +286,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
@@ -272,6 +306,9 @@ public interface WebTaskTemplateResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,

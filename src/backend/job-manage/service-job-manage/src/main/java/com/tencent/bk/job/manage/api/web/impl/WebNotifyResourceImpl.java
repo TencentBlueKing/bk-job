@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
@@ -54,32 +53,31 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     private final NotifyService notifyService;
     private final LocalPermissionService localPermissionService;
     private final NotificationAuthService notificationAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebNotifyResourceImpl(NotifyService notifyService,
                                  LocalPermissionService localPermissionService,
-                                 NotificationAuthService notificationAuthService,
-                                 AppScopeMappingService appScopeMappingService) {
+                                 NotificationAuthService notificationAuthService) {
         this.notifyService = notifyService;
         this.localPermissionService = localPermissionService;
         this.notificationAuthService = notificationAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username, String scopeType,
+    public Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(String username,
+                                                                        AppResourceScope appResourceScope,
+                                                                        String scopeType,
                                                                         String scopeId) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username, appId));
+        return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username,
+            appResourceScope.getAppId()));
     }
 
     @Override
     public Response<Long> saveAppDefaultNotifyPolicies(String username,
+                                                       AppResourceScope appResourceScope,
                                                        String scopeType,
                                                        String scopeId,
                                                        NotifyPoliciesCreateUpdateReq createUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = notificationAuthService.authNotificationSetting(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -99,12 +97,10 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     }
 
     @Override
-    public Response<List<UserVO>> listUsers(
-        String username,
-        String prefixStr,
-        Long offset,
-        Long limit
-    ) {
+    public Response<List<UserVO>> listUsers(String username,
+                                            String prefixStr,
+                                            Long offset,
+                                            Long limit) {
         return Response.buildSuccessResp(notifyService.listUsers(username, prefixStr, offset, limit, true));
     }
 

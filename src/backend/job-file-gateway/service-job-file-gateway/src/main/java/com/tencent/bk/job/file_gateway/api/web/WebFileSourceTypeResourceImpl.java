@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceTypeVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
@@ -50,11 +51,11 @@ public class WebFileSourceTypeResourceImpl implements WebFileSourceTypeResource 
     }
 
     @Override
-    public Response<List<FileSourceTypeVO>> listFileSourceType(
-        String username,
-        Long appId,
-        String storageType
-    ) {
+    public Response<List<FileSourceTypeVO>> listFileSourceType(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               String storageType) {
         List<FileSourceTypeVO> resultList =
             fileSourceService.listUniqueFileSourceType(storageType).parallelStream()
                 .map(FileSourceTypeDTO::toVO)

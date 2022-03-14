@@ -66,7 +66,6 @@ public class WebTagResourceImpl implements WebTagResource {
     private final ScriptAuthService scriptAuthService;
     private final TemplateAuthService templateAuthService;
     private final NoResourceScopeAuthService noResourceScopeAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebTagResourceImpl(TagService tagService,
@@ -80,12 +79,11 @@ public class WebTagResourceImpl implements WebTagResource {
         this.scriptAuthService = scriptAuthService;
         this.templateAuthService = templateAuthService;
         this.noResourceScopeAuthService = noResourceScopeAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<PageData<TagVO>> listPageTags(String username,
-                                                  Long appId,
+                                                  AppResourceScope appResourceScope,
                                                   String scopeType,
                                                   String scopeId,
                                                   String name,
@@ -95,7 +93,6 @@ public class WebTagResourceImpl implements WebTagResource {
                                                   Integer pageSize,
                                                   String orderField,
                                                   Integer order) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
         TagDTO tagQuery = new TagDTO();
         tagQuery.setAppId(appResourceScope.getAppId());
         tagQuery.setName(name);
@@ -164,9 +161,11 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<List<TagVO>> listTagsBasic(String username, Long appId, String scopeType,
-                                               String scopeId, String name) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, scopeType, scopeId);
+    public Response<List<TagVO>> listTagsBasic(String username,
+                                               AppResourceScope appResourceScope,
+                                               String scopeType,
+                                               String scopeId,
+                                               String name) {
         List<TagDTO> tags = tagService.listTags(appResourceScope.getAppId(), name);
         List<TagVO> tagVOS = new ArrayList<>(tags.size());
         for (TagDTO tag : tags) {
@@ -180,9 +179,12 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<Boolean> updateTagInfo(String username, String scopeType, String scopeId, Long tagId,
+    public Response<Boolean> updateTagInfo(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
+                                           Long tagId,
                                            TagCreateUpdateReq tagCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = checkManageTagPermission(username, appResourceScope, tagId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -196,9 +198,11 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<TagVO> saveTagInfo(String username, String scopeType, String scopeId,
+    public Response<TagVO> saveTagInfo(String username,
+                                       AppResourceScope appResourceScope,
+                                       String scopeType,
+                                       String scopeId,
                                        TagCreateUpdateReq tagCreateUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         AuthResult authResult = checkCreateTagPermission(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
@@ -223,8 +227,11 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<Boolean> deleteTag(String username, String scopeType, String scopeId, Long tagId) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+    public Response<Boolean> deleteTag(String username,
+                                       AppResourceScope appResourceScope,
+                                       String scopeType,
+                                       String scopeId,
+                                       Long tagId) {
         AuthResult authResult = checkManageTagPermission(username, appResourceScope, tagId);
 
         if (!authResult.isPass()) {
@@ -235,9 +242,12 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<?> patchTagRefResourceTags(String username, String scopeType, String scopeId, Long tagId,
+    public Response<?> patchTagRefResourceTags(String username,
+                                               AppResourceScope appResourceScope,
+                                               String scopeType,
+                                               String scopeId,
+                                               Long tagId,
                                                BatchPatchResourceTagReq tagBatchUpdateReq) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
         ValidateResult validateResult = checkBatchPatchResourceTagReq(tagId, tagBatchUpdateReq);
         if (!validateResult.isPass()) {
             return Response.buildValidateFailResp(validateResult);
@@ -286,7 +296,6 @@ public class WebTagResourceImpl implements WebTagResource {
             Set<String> resources = entry.getValue();
             switch (resourceType) {
                 case APP_SCRIPT:
-                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(scriptAuthService.batchAuthResultManageScript(username,
                         appResourceScope, new ArrayList<>(resources)));
                     break;
@@ -298,7 +307,6 @@ public class WebTagResourceImpl implements WebTagResource {
                     );
                     break;
                 case TEMPLATE:
-                    // TODO: 通过scopeType与scopeId构造AppResourceScope
                     authResult = authResult.mergeAuthResult(
                         templateAuthService.batchAuthResultEditJobTemplate(
                             username, appResourceScope,
@@ -353,8 +361,12 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
-    public Response<Boolean> checkTagName(String username, String scopeType, String scopeId, Long tagId, String name) {
-        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(null, scopeType, scopeId);
+    public Response<Boolean> checkTagName(String username,
+                                          AppResourceScope appResourceScope,
+                                          String scopeType,
+                                          String scopeId,
+                                          Long tagId,
+                                          String name) {
         boolean isTagNameValid = tagService.checkTagName(appResourceScope.getAppId(), tagId, name);
         return Response.buildSuccessResp(isTagNameValid);
     }
