@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.api.esb.EsbBaseResource;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -41,7 +42,7 @@ import java.util.List;
  * 作业执行公用
  */
 @Slf4j
-public class JobExecuteCommonV3Processor {
+public class JobExecuteCommonV3Processor extends EsbBaseResource {
 
     protected ValidateResult checkServer(EsbServerV3DTO server) {
         if (server == null) {

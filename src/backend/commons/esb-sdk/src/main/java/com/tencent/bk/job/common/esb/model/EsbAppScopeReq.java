@@ -53,4 +53,10 @@ public class EsbAppScopeReq extends EsbReq {
     @JsonProperty("bk_scope_id")
     private String scopeId;
 
+    interface UseAppIdParam {
+    }
+
+    interface UseScopeParam {
+    }
+
 }

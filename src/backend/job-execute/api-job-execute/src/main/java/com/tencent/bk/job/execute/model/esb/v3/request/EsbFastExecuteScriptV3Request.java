@@ -42,11 +42,6 @@ import java.util.List;
 @Getter
 @Setter
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
 
     /**
      * 脚本执行任务名称
