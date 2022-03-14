@@ -73,7 +73,7 @@ data:
         file-manage:
           enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
       storage:
-        root-path: /data/job/storage/local
+        root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
      app:
        index:

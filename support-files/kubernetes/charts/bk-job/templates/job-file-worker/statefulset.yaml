@@ -64,6 +64,7 @@ spec:
           image: {{ include "job-file-worker.image" . }}
           imagePullPolicy: {{ .Values.fileWorkerConfig.image.pullPolicy }}
           env:
+            {{- include "job.storage.env" . | nindent 12 }}
             - name: BK_JOB_APP_NAME
               value: "job-file-worker"
             - name: BK_JOB_JVM_OPTION
@@ -73,9 +74,7 @@ spec:
             - name: BK_JOB_JAR
               value: job-file-worker.jar
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
-              value: /data/job/storage/JobFileWorkerWorkspace
-            - name: BK_JOB_FILE_WORKER_WORKSPACE_OUTER_DIR
-              value: {{ .Values.persistence.localStorage.path }}
+              value: {{ .Values.persistence.localStorage.path }}/JobFileWorkerWorkspace
             - name: BK_JOB_NODE_IP
               valueFrom:
                 fieldRef:
@@ -126,7 +125,7 @@ spec:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:
             - name: job-storage
-              mountPath: /data/job/storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:

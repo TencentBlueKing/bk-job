@@ -499,3 +499,15 @@ Return the sha256sum of configmap
 {{ include "job.annotationKeys.sha256SumCommonConfigMap" . }}: {{ include (print .context.Template.BasePath "/configmap-common.yaml") .context | sha256sum }}
 {{ include "job.annotationKeys.sha256SumServiceConfigMap" . }}: {{ include (print .context.Template.BasePath "/" .service "/configmap.yaml") .context | sha256sum }}
 {{- end -}}
+
+{{/*
+Return the Job Storage Env Content
+*/}}
+{{- define "job.storage.env" -}}
+- name: BK_JOB_STORAGE_BASE_DIR
+  value: {{ .Values.persistence.localStorage.path }}
+- name: BK_JOB_STORAGE_OUTER_DIR
+  value: {{ .Values.persistence.localStorage.path }}
+- name: BK_JOB_STORAGE_LOCAL_DIR
+  value: {{ .Values.persistence.localStorage.path }}/local
+{{- end -}}
