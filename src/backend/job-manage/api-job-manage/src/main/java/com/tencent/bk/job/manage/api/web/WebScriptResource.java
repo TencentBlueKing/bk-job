@@ -66,13 +66,13 @@ import java.util.List;
  * @date 2019/09/19
  */
 @Api(value = "脚本管理", tags = {"job-manage:web:Script_Management"})
-@RequestMapping("/web")
+@RequestMapping("/web/script")
 @RestController
 @WebAPI
 public interface WebScriptResource {
 
     @ApiOperation(value = "根据脚本版本ID获取脚本版本详情", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/scriptVersion/{scriptVersionId}",
+    @GetMapping(value = {"/app/{appId}/scriptVersion/{scriptVersionId}",
         "/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
     Response<ScriptVO> getScriptVersionDetail(
         @ApiParam("用户名，网关自动传入")
@@ -93,7 +93,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据脚本ID获取脚本详情", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/script/{scriptId}",
+    @GetMapping(value = {"/app/{appId}/script/{scriptId}",
         "/scope/{scopeType}/{scopeId}/script/{scriptId}"})
     Response<ScriptVO> getScript(
         @ApiParam("用户名，网关自动传入")
@@ -113,7 +113,7 @@ public interface WebScriptResource {
             String scriptId);
 
     @ApiOperation(value = "根据脚本ID获取脚本基本信息", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/script/basic/{scriptId}",
+    @GetMapping(value = {"/app/{appId}/script/basic/{scriptId}",
         "/scope/{scopeType}/{scopeId}/script/basic/{scriptId}"})
     Response<ScriptVO> getScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
@@ -134,7 +134,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据脚本ID获取已上线脚本", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/scriptVersion/online/{scriptId}",
+    @GetMapping(value = {"/app/{appId}/scriptVersion/online/{scriptId}",
         "/scope/{scopeType}/{scopeId}/scriptVersion/online/{scriptId}"})
     Response<ScriptVO> getOnlineScriptVersionByScriptId(
         @ApiParam("用户名，网关自动传入")
@@ -157,7 +157,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本列表", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/script/list",
+    @GetMapping(value = {"/app/{appId}/script/list",
         "/scope/{scopeType}/{scopeId}/script/list"})
     Response<PageData<ScriptVO>> listPageScript(
         @ApiParam("用户名，网关自动传入")
@@ -213,7 +213,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本列表(仅包含基础信息)", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/script/basic/list",
+    @GetMapping(value = {"/app/{appId}/script/basic/list",
         "/scope/{scopeType}/{scopeId}/script/basic/list"})
     Response<List<ScriptVO>> listScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
@@ -234,7 +234,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取脚本的所有版本", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/script/{scriptId}/scriptVersion/list",
+    @GetMapping(value = {"/app/{appId}/script/{scriptId}/scriptVersion/list",
         "/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/list"})
     Response<List<ScriptVO>> listScriptVersion(
         @ApiParam("用户名，网关自动传入")
@@ -385,7 +385,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据条件查询业务下的脚本名称列表", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/scriptNames",
+    @GetMapping(value = {"/app/{appId}/scriptNames",
         "/scope/{scopeType}/{scopeId}/scriptNames"})
     Response listAppScriptNames(
         @ApiParam("用户名，网关自动传入")
@@ -406,7 +406,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取业务下面的已在线脚本列表", produces = "application/json")
-    @GetMapping(value = {"/script/app/{appId}/scripts/online",
+    @GetMapping(value = {"/app/{appId}/scripts/online",
         "/scope/{scopeType}/{scopeId}/scripts/online"})
     Response<List<BasicScriptVO>> listScriptOnline(
         @ApiParam("用户名，网关自动传入")

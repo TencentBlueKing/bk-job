@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 @Api(tags = {"job-ticket:web:Credential"})
-@RequestMapping("/web/scope/{scopeType}/{scopeId}/credential")
+@RequestMapping("/web/credentials/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebCredentialResource {

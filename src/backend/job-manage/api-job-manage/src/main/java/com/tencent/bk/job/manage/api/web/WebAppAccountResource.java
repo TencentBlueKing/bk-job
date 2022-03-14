@@ -51,7 +51,7 @@ import java.util.List;
  * 账号 Web API
  */
 @Api(tags = {"job-manage:web:App_Account"})
-@RequestMapping("/web")
+@RequestMapping("/web/account")
 @WebAPI
 public interface WebAppAccountResource {
 
@@ -96,7 +96,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "根据条件获取业务下的所有账号", produces = "application/json")
-    @GetMapping({"/account/app/{appId}/accounts/page", "/scope/{scopeType}/{scopeId}/accounts/page"})
+    @GetMapping({"/app{appId}/accounts/page", "/scope/{scopeType}/{scopeId}/accounts/page"})
     Response<PageData<AccountVO>> listAppAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -169,7 +169,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取账号详情", produces = "application/json")
-    @GetMapping(value = {"/account/app/{appId}/account/{accountId}",
+    @GetMapping(value = {"/app{appId}/account/{accountId}",
         "/scope/{scopeType}/{scopeId}/account/{accountId}"})
     Response<AccountVO> getAccountById(
         @ApiParam(value = "用户名，网关自动传入", required = true)
@@ -190,7 +190,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
-    @GetMapping({"/account/app/{appId}/accounts", "/scope/{scopeType}/{scopeId}/accounts"})
+    @GetMapping({"/app{appId}/accounts", "/scope/{scopeType}/{scopeId}/accounts"})
     Response<List<AccountVO>> listAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
