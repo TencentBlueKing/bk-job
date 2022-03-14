@@ -43,7 +43,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.List;
 
 @Api(tags = {"job-analysis:web:Index"})
-@RequestMapping("/web/index/scope/{scopeType}/{scopeId}/index")
+@RequestMapping("/web/index/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebIndexResource {
