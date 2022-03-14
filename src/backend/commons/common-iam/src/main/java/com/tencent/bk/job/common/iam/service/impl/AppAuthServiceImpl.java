@@ -43,7 +43,6 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -78,19 +77,16 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final EsbIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
     private ResourceAppInfoQueryService resourceAppInfoQueryService;
-    private final AppScopeMappingService appScopeMappingService;
 
 
     public AppAuthServiceImpl(@Autowired AuthHelper authHelper,
                               @Autowired BusinessAuthHelper businessAuthHelper,
                               @Autowired IamConfiguration iamConfiguration,
                               @Autowired PolicyService policyService,
-                              @Autowired EsbConfiguration esbConfiguration,
-                              AppScopeMappingService appScopeMappingService) {
+                              @Autowired EsbConfiguration esbConfiguration) {
         this.authHelper = authHelper;
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
-        this.appScopeMappingService = appScopeMappingService;
         this.iamClient = new EsbIamClient(esbConfiguration.getEsbUrl(), iamConfiguration.getAppCode(),
             iamConfiguration.getAppSecret(), esbConfiguration.isUseEsbTestEnv());
     }
@@ -291,7 +287,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                         ((List<String>) expression.getValue()).forEach(id -> {
                             AppResourceScope appResourceScope = new AppResourceScope(
                                 ResourceScopeTypeEnum.BIZ, id, null);
-                            appScopeMappingService.fillResourceScope(appResourceScope);
                             result.getAppResourceScopeList().add(appResourceScope);
                         });
                     }
