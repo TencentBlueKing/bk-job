@@ -24,15 +24,10 @@
 
 package com.tencent.bk.job.upgrader.task;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.*;
-import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
 import com.tencent.bk.job.common.util.jwt.JwtManager;
@@ -44,17 +39,15 @@ import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.iam.JobIamHelper;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
-import com.tencent.bk.job.upgrader.model.BasicAppInfo;
+import com.tencent.bk.job.upgrader.model.AppInfo;
 import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
-import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 账号使用权限迁移任务
@@ -74,7 +67,7 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
 
     private IamClient iamClient;
     private EsbIamClient esbIamClient;
-    private List<BasicAppInfo> basicAppInfoList;
+    private List<AppInfo> appInfoList;
     private Map<Long, String> appInfoMap;
 
     private String getJobHostUrlByAddress(String address) {
@@ -113,10 +106,10 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
         );
-        this.basicAppInfoList = getAllNormalAppInfoFromManage();
+        this.appInfoList = getAllBizSetAppInfoFromManage();
         appInfoMap = new HashMap<>();
-        basicAppInfoList.forEach(basicAppInfo -> {
-            appInfoMap.put(basicAppInfo.getAppId(), basicAppInfo.getName());
+        appInfoList.forEach(appInfo -> {
+            appInfoMap.put(appInfo.getId(), appInfo.getName());
         });
     }
 
@@ -150,29 +143,13 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
         return actionPolicies.getResults();
     }
 
-    private List<BasicAppInfo> getAllNormalAppInfoFromManage() {
+    private List<AppInfo> getAllBizSetAppInfoFromManage() {
         try {
-            return jobManageClient.listNormalApps();
+            return jobManageClient.listBizSetApps();
         } catch (Exception e) {
             log.error("Fail to get normal apps from job-manage, please confirm job-manage version>=3.3.5.0");
             throw e;
         }
-    }
-
-    /**
-     * 根据策略计算出有权限的业务Id列表
-     *
-     * @param policy
-     * @return
-     */
-    private List<Long> getAuthorizedAppIdList(Policy policy) {
-        BusinessAuthHelper businessAuthHelper = jobIamHelper.businessAuthHelper();
-        return businessAuthHelper.getAuthedAppResourceScopeList(
-            policy.getExpression(),
-            basicAppInfoList.stream().map(
-                it -> new AppResourceScope(it.getScopeType(), it.getScopeId(), it.getAppId())
-            ).collect(Collectors.toList())
-        ).stream().map(AppResourceScope::getAppId).collect(Collectors.toList());
     }
 
     /**
@@ -184,72 +161,6 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
     private String getAppNameById(Long appId) {
         if (appInfoMap.containsKey(appId)) return appInfoMap.get(appId);
         return null;
-    }
-
-    private boolean authByPolicy(Policy policy) {
-        if ("any".equals(policy.getExpression().getOperator().getOperator())) {
-            // 授予任意业务任意账号权限
-            log.info("auth any biz permission to {}", policy.getSubject());
-            return authAnyBizUseAccountByPolicy(policy);
-        } else {
-            List<Long> appIdList = getAuthorizedAppIdList(policy);
-            log.info("auth {} permission to {}", appIdList, policy.getSubject());
-            // 授予业务下任意账号权限
-            return authBizUseAccountByPolicy(policy, appIdList);
-        }
-    }
-
-    private List<EsbIamAction> getUseAccountActions() {
-        EsbIamAction esbIamAction = new EsbIamAction();
-        esbIamAction.setId(ActionId.USE_ACCOUNT);
-        List<EsbIamAction> actions = new ArrayList<>();
-        actions.add(esbIamAction);
-        return actions;
-    }
-
-    private EsbIamSubject getSubjectByPolicy(Policy policy) {
-        EsbIamSubject esbIamSubject = new EsbIamSubject();
-        esbIamSubject.setId(policy.getSubject().getId());
-        esbIamSubject.setType(policy.getSubject().getType());
-        return esbIamSubject;
-    }
-
-    /**
-     * 授予任意业务下任意执行账号使用的权限
-     *
-     * @param policy 权限策略
-     * @return 是否授权成功
-     */
-    private boolean authAnyBizUseAccountByPolicy(Policy policy) {
-        EsbIamBatchPathResource esbIamBatchPathResource = new EsbIamBatchPathResource();
-        esbIamBatchPathResource.setSystem(SystemId.JOB);
-        esbIamBatchPathResource.setType(ResourceTypeEnum.ACCOUNT.getId());
-        esbIamBatchPathResource.setPaths(new ArrayList<>());
-        return batchAuth(policy, getUseAccountActions(), getSubjectByPolicy(policy), esbIamBatchPathResource);
-    }
-
-    /**
-     * 授予某些业务下任意执行账号使用的权限
-     *
-     * @param policy 权限策略
-     * @return 是否授权成功
-     */
-    private boolean authBizUseAccountByPolicy(Policy policy, List<Long> appIdList) {
-        EsbIamBatchPathResource esbIamBatchPathResource = new EsbIamBatchPathResource();
-        esbIamBatchPathResource.setSystem(SystemId.JOB);
-        esbIamBatchPathResource.setType(ResourceTypeEnum.ACCOUNT.getId());
-        List<List<EsbIamPathItem>> pathList = new ArrayList<>();
-        for (Long appId : appIdList) {
-            List<EsbIamPathItem> esbIamPathItemList = new ArrayList<>();
-            EsbIamPathItem pathItem = new EsbIamPathItem();
-            pathItem.setType(ResourceTypeEnum.BUSINESS.getId());
-            pathItem.setId(appId.toString());
-            pathItem.setName(getAppNameById(appId));
-            esbIamPathItemList.add(pathItem);
-            pathList.add(esbIamPathItemList);
-        }
-        esbIamBatchPathResource.setPaths(pathList);
-        return batchAuth(policy, getUseAccountActions(), getSubjectByPolicy(policy), esbIamBatchPathResource);
     }
 
     /**
@@ -295,16 +206,16 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        // 1.权限模板数据读取
+        // 1.权限模板数据读取  TODO
         // List<EsbIamBatchPathResource> resourceList=JsonUtils.fromJson(authTemplateStr, new TypeReference<List<EsbIamBatchPathResource>>() {
         //});
         printSeparateLine();
 
         printSeparateLine();
         log.info("Begin to auth according to oldPolicies:");
-        // 2.业务集运维人员授权
+        // 2.业务集运维人员授权  TODO
 
-        // 3.新权限策略查询
+        // 3.新权限策略查询  TODO
 
         printSeparateLine();
         log.info("newAuthorizedPolicies:");
