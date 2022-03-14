@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.context;
 
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 
@@ -44,7 +44,7 @@ public class JobContext {
 
     private String username;
 
-    private ResourceScope resourceScope;
+    private AppResourceScope appResourceScope;
 
     private String requestId;
 

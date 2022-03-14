@@ -24,14 +24,16 @@
 
 package com.tencent.bk.job.common.iam.util;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class IamUtil {
     /**
      * 根据资源范围获取IAM资源ID
@@ -59,6 +61,26 @@ public class IamUtil {
             default:
                 throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    /**
+     * 根据IAM资源类型获取资源范围
+     *
+     * @param resourceType 权限资源类型
+     * @param resourceId   权限资源ID
+     * @return 资源范围
+     */
+    public static ResourceScope getResourceScopeFromIamResource(ResourceTypeEnum resourceType, String resourceId) {
+        ResourceScopeTypeEnum resourceScopeType;
+        if (resourceType == ResourceTypeEnum.BUSINESS) {
+            resourceScopeType = ResourceScopeTypeEnum.BIZ;
+        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+            resourceScopeType = ResourceScopeTypeEnum.BIZ_SET;
+        } else {
+            log.error("Invalid iam resource type: {}", resourceType);
+            throw new InternalException(ErrorCode.INTERNAL_ERROR);
+        }
+        return new ResourceScope(resourceScopeType, resourceId);
     }
 
     public static PathInfoDTO buildScopePathInfo(ResourceScope resourceScope) {

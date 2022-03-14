@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.cc.model.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -57,16 +57,16 @@ public class AppEventDetail {
     @JsonProperty("language")
     private String language;
 
-    public static ApplicationInfoDTO toAppInfoDTO(AppEventDetail appEventDetail) {
-        ApplicationInfoDTO applicationInfoDTO = new ApplicationInfoDTO();
-        applicationInfoDTO.setId(appEventDetail.getAppId());
-        applicationInfoDTO.setAppType(AppTypeEnum.NORMAL);
-        applicationInfoDTO.setName(appEventDetail.getAppName());
-        applicationInfoDTO.setMaintainers(VersionCompatUtil.convertMaintainers(appEventDetail.getMaintainers()));
-        applicationInfoDTO.setBkSupplierAccount(appEventDetail.getSupplierAccount());
-        applicationInfoDTO.setTimeZone(appEventDetail.getTimezone());
-        applicationInfoDTO.setOperateDeptId(appEventDetail.getOperateDeptId());
-        applicationInfoDTO.setLanguage(appEventDetail.getLanguage());
-        return applicationInfoDTO;
+    public static ApplicationDTO toAppInfoDTO(AppEventDetail appEventDetail) {
+        ApplicationDTO applicationDTO = new ApplicationDTO();
+        applicationDTO.setId(appEventDetail.getAppId());
+        applicationDTO.setAppType(AppTypeEnum.NORMAL);
+        applicationDTO.setName(appEventDetail.getAppName());
+        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(appEventDetail.getMaintainers()));
+        applicationDTO.setBkSupplierAccount(appEventDetail.getSupplierAccount());
+        applicationDTO.setTimeZone(appEventDetail.getTimezone());
+        applicationDTO.setOperateDeptId(appEventDetail.getOperateDeptId());
+        applicationDTO.setLanguage(appEventDetail.getLanguage());
+        return applicationDTO;
     }
 }

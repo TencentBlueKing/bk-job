@@ -27,7 +27,9 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.client.TaskTemplateResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
@@ -48,6 +50,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     private final TaskPlanService taskPlanService;
     private final TaskTemplateResourceClient taskTemplateService;
     private final AccountService accountService;
+    private final AppScopeMappingService appScopeMappingService;
 
 
     @Autowired
@@ -55,12 +58,14 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
                                            ScriptService scriptService,
                                            TaskPlanService taskPlanService,
                                            TaskTemplateResourceClient taskTemplateService,
-                                           AccountService accountService) {
+                                           AccountService accountService,
+                                           AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateService = taskTemplateService;
         this.accountService = accountService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -70,8 +75,10 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
                 ServiceScriptDTO script = scriptService.getBasicScriptInfo(resourceId);
                 return script == null ? null : script.getName();
             case BUSINESS:
-                long appId = Long.parseLong(resourceId);
-                if (appId > 0) {
+            case BUSINESS_SET:
+                Long appId = appScopeMappingService.getAppIdByScope(
+                    IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
+                if (appId != null && appId > 0) {
                     return getAppName(appId);
                 }
                 break;
@@ -105,7 +112,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     }
 
     private String getAppName(Long appId) {
-        ApplicationInfoDTO applicationInfo = applicationService.getAppById(appId);
+        ApplicationDTO applicationInfo = applicationService.getAppById(appId);
         if (applicationInfo != null) {
             if (StringUtils.isNotBlank(applicationInfo.getName())) {
                 return applicationInfo.getName();

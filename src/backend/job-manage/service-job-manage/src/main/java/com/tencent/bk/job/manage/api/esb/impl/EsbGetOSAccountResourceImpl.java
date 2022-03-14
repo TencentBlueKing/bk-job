@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -38,7 +37,6 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.esb.EsbAccountDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetOSAccountListRequest;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,15 +50,10 @@ import java.util.List;
 @Slf4j
 public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
-    private final EsbAuthService authService;
 
     @Autowired
-    public EsbGetOSAccountResourceImpl(AccountService accountService, MessageI18nService i18nService,
-                                       EsbAuthService authService) {
+    public EsbGetOSAccountResourceImpl(AccountService accountService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
-        this.authService = authService;
     }
 
     @Override

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.app.DeprecatedAppLogic;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.execute.model.web.request.OperationPermissionReq;
@@ -45,43 +45,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @WebAPI
 public interface WebPermissionResource {
-    /**
-     * 获取权限申请URL
-     *
-     * @param username 用户名
-     * @param req      操作鉴权请求
-     * @return 权限申请URL
-     */
-    @ApiOperation(value = "获取权限申请URL", produces = "application/json")
-    @PostMapping("/apply-url")
-    Response<String> getApplyUrl(@ApiParam("用户名，网关自动传入")
-                                 @RequestHeader("username") String username,
-                                 @ApiParam("权限检查请求")
-                                 @RequestBody OperationPermissionReq req);
 
     /**
      * 检查操作权限
      *
      * @param username 用户名
      * @param req      操作鉴权请求
-     * @return
+     * @return 鉴权结果
      */
     @ApiOperation(value = "检查操作权限", produces = "application/json")
     @PostMapping("/check")
-    Response<AuthResultVO> checkOperationPermission(@ApiParam("用户名，网关自动传入")
-                                                    @RequestHeader("username") String username,
-                                                    @ApiParam("权限检查请求")
-                                                    @RequestBody OperationPermissionReq req);
+    Response<AuthResultVO> checkOperationPermission(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam("权限检查请求")
+        @RequestBody OperationPermissionReq req
+    );
 
     /**
      * 检查操作权限
      *
      * @param username               用户名
-     * @param bizId                  业务ID
+     * @param appId                  业务ID
      * @param operation              操作ID
      * @param resourceId             资源ID
      * @param returnPermissionDetail 是否返回详细的权限信息
-     * @return
+     * @return 鉴权结果
      */
     @ApiOperation(value = "检查操作权限", produces = "application/json")
     @GetMapping("/check")
@@ -89,13 +79,16 @@ public interface WebPermissionResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @DeprecatedAppLogic @ApiParam(value = "业务ID", required = false)
+        @DeprecatedAppLogic
+        @ApiParam(value = "业务ID", required = false)
         @RequestParam(value = "appId", required = false)
-            Long bizId,
+            Long appId,
         @ApiParam(value = "范畴类型", required = false)
-        @RequestParam(value = "scopeType", required = false) String scopeType,
+        @RequestParam(value = "scopeType", required = false)
+            String scopeType,
         @ApiParam(value = "范畴ID", required = false)
-        @RequestParam(value = "scopeId", required = false) String scopeId,
+        @RequestParam(value = "scopeId", required = false)
+            String scopeId,
         @ApiParam("操作ID,取值为: [script/create,script/view," +
             "script/edit,script/delete,script/execute," +
             "script/clone],[job_template/create,job_template/view," +
@@ -116,5 +109,6 @@ public interface WebPermissionResource {
             String resourceId,
         @ApiParam(value = "是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
         @RequestParam(value = "returnPermissionDetail", required = false)
-            Boolean returnPermissionDetail);
+            Boolean returnPermissionDetail
+    );
 }

@@ -24,17 +24,23 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 账号相关操作鉴权接口
@@ -54,42 +60,59 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authCreateAccount(String username, ResourceScope resourceScope) {
-        log.info("authCreateAccount scope={}", resourceScope);
-        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, resourceScope);
+    public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
+        return appAuthService.auth(true, username, ActionId.CREATE_ACCOUNT, appResourceScope);
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
     }
 
     @Override
     public AuthResult authManageAccount(String username,
-                                        ResourceScope resourceScope,
+                                        AppResourceScope appResourceScope,
                                         Long accountId,
                                         String accountName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(
+            true, username,
+            ActionId.MANAGE_ACCOUNT, ResourceTypeEnum.ACCOUNT, accountId.toString(),
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public AuthResult authUseAccount(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      Long accountId,
                                      String accountName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(
+            true, username,
+            ActionId.USE_ACCOUNT, ResourceTypeEnum.ACCOUNT, accountId.toString(),
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public List<Long> batchAuthManageAccount(String username,
-                                             ResourceScope resourceScope,
+                                             AppResourceScope appResourceScope,
                                              List<Long> accountIdList) {
-        // TODO
-        return accountIdList;
+        List<String> allowIdList = appAuthService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appResourceScope,
+            ResourceTypeEnum.ACCOUNT,
+            accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
+        return allowIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
     public List<Long> batchAuthUseAccount(String username,
-                                          ResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Long> accountIdList) {
-        // TODO
-        return accountIdList;
+        List<String> allowIdList = appAuthService.batchAuth(username, ActionId.USE_ACCOUNT, appResourceScope,
+            ResourceTypeEnum.ACCOUNT,
+            accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
+        return allowIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean registerAccount(String creator, Long id, String name) {
+        return authService.registerResource(id.toString(), name, ResourceTypeId.ACCOUNT, creator, null);
     }
 }

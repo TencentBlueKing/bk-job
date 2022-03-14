@@ -24,15 +24,15 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTagCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -58,13 +58,13 @@ import java.util.Set;
 @Slf4j
 public class IamTagCallbackResourceImpl extends BaseIamCallbackService implements IamTagCallbackResource {
     private final TagService tagService;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public IamTagCallbackResourceImpl(TagService tagService,
-                                      AppTransferService appTransferService) {
+                                      ApplicationService applicationService) {
         this.tagService = tagService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     private Pair<TagDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -74,7 +74,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         TagDTO tagQuery = new TagDTO();
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         tagQuery.setAppId(appId);
         return Pair.of(tagQuery, baseSearchCondition);
     }
@@ -131,7 +131,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
             appIdSet.add(tagDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String instanceId : searchCondition.getIdList()) {
             try {
                 Long tagId = Long.parseLong(instanceId);

@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.crontab.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.crontab.api.iam.IamCallbackController;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
@@ -58,13 +58,13 @@ import java.util.Set;
 public class IamCallbackControllerImpl extends BaseIamCallbackService implements IamCallbackController {
 
     private final CronJobService cronJobService;
-    private final AppTransferService appTransferService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public IamCallbackControllerImpl(CronJobService cronJobService,
-                                     AppTransferService appTransferService) {
+                                     AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
-        this.appTransferService = appTransferService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     private Pair<CronJobInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -74,7 +74,7 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         cronJobQuery.setAppId(appId);
         return Pair.of(cronJobQuery, baseSearchCondition);
     }
@@ -134,7 +134,7 @@ public class IamCallbackControllerImpl extends BaseIamCallbackService implements
         // Job app --> CMDB biz/businessSet转换
         Set<Long> appIdSet = new HashSet<>();
         cronJobInfoMap.values().forEach(cronJobInfoDTO -> appIdSet.add(cronJobInfoDTO.getAppId()));
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appScopeMappingService.getScopeByAppIds(appIdSet);
         for (Long id : cronJobIdList) {
             CronJobInfoDTO cronJobInfoDTO = cronJobInfoMap.get(id);
             if (cronJobInfoDTO == null) {

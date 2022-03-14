@@ -24,13 +24,24 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
-import com.tencent.bk.job.common.cc.model.*;
+import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
-import com.tencent.bk.job.common.cc.model.result.*;
+import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ListBizHostsTopoResult;
+import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 
 import java.util.Collection;
@@ -109,7 +120,7 @@ public interface CcClient {
      *
      * @return
      */
-    List<ApplicationInfoDTO> getAllApps();
+    List<ApplicationDTO> getAllApps();
 
     /**
      * 获取用户的业务
@@ -119,7 +130,7 @@ public interface CcClient {
      * @return
      * @throws ServiceException
      */
-    List<ApplicationInfoDTO> getAppByUser(String uin, String owner) throws ServiceException;
+    List<ApplicationDTO> getAppByUser(String uin, String owner) throws ServiceException;
 
     /**
      * 获取业务详细信息
@@ -129,7 +140,7 @@ public interface CcClient {
      * @param owner
      * @return
      */
-    ApplicationInfoDTO getAppById(long appId, String owner, String uin);
+    ApplicationDTO getAppById(long appId, String owner, String uin);
 
     /**
      * 查询自定义分组

@@ -24,16 +24,16 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.iam.IamTicketCallbackResource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.CredentialService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -61,13 +61,13 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
     implements IamTicketCallbackResource {
 
     private final CredentialService credentialService;
-    private final AppTransferService appTransferService;
+    private final ApplicationService applicationService;
 
     @Autowired
     public IamTicketCallbackResourceImpl(CredentialService credentialService,
-                                         AppTransferService appTransferService) {
+                                         ApplicationService applicationService) {
         this.credentialService = credentialService;
-        this.appTransferService = appTransferService;
+        this.applicationService = applicationService;
     }
 
     private Pair<CredentialDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -77,7 +77,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CredentialDTO credentialQuery = new CredentialDTO();
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         credentialQuery.setAppId(appId);
         return Pair.of(credentialQuery, baseSearchCondition);
     }
@@ -140,7 +140,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(credentialDisplayDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String id : searchCondition.getIdList()) {
             ServiceCredentialDisplayDTO credentialDisplayDTO = credentialDTOMap.get(id);
             if (credentialDisplayDTO == null) {

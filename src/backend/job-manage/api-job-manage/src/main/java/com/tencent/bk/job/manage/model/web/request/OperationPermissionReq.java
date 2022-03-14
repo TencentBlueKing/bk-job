@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import com.tencent.bk.job.common.app.DeprecatedAppLogic;
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -47,7 +47,7 @@ public class OperationPermissionReq {
     @ApiModelProperty("业务ID")
     private Long appId;
 
-    @ApiModelProperty("范畴类型:biz/business_set")
+    @ApiModelProperty("范畴类型:biz/biz_set")
     private String scopeType;
 
     @ApiModelProperty("范畴ID")

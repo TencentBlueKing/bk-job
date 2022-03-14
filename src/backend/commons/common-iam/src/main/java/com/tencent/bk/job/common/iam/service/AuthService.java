@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 
@@ -100,6 +101,18 @@ public interface AuthService {
      */
     List<String> batchAuth(String username, String actionId, ResourceTypeEnum resourceType,
                            List<String> resourceIdList);
+
+    /**
+     * 批量鉴权：用于Job自有非业务下资源（如公共脚本）的批量鉴权
+     *
+     * @param username  用户名
+     * @param actionId  操作ID
+     * @param resources 资源
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResources(String username,
+                                  String actionId,
+                                  List<PermissionResource> resources);
 
     /**
      * 获取权限申请URL

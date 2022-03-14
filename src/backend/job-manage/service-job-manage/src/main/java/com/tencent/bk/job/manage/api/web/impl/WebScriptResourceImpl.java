@@ -31,18 +31,14 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.model.PermissionResource;
-import com.tencent.bk.job.common.iam.service.AppAuthService;
-import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
@@ -56,6 +52,8 @@ import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
+import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -89,8 +87,6 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.TagService;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.CollectionUtils;
@@ -123,47 +119,52 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
     private final ScriptDTOBuilder scriptDTOBuilder;
 
-    private final AuthService authService;
+    private final ScriptAuthService scriptAuthService;
 
-    private final AppAuthService appAuthService;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
 
     private final TagService tagService;
+
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebScriptResourceImpl(ScriptService scriptService,
                                  MessageI18nService i18nService,
                                  ScriptCheckService scriptCheckService,
                                  ScriptDTOBuilder scriptDTOBuilder,
-                                 AuthService authService,
-                                 AppAuthService appAuthService,
-                                 TagService tagService) {
+                                 ScriptAuthService scriptAuthService,
+                                 NoResourceScopeAuthService noResourceScopeAuthService,
+                                 TagService tagService,
+                                 AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.i18nService = i18nService;
         this.scriptCheckService = scriptCheckService;
         this.scriptDTOBuilder = scriptDTOBuilder;
-        this.authService = authService;
-        this.appAuthService = appAuthService;
+        this.scriptAuthService = scriptAuthService;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
         this.tagService = tagService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
-    public Response<ScriptVO> getScriptVersionDetail(String username, Long appId, Long scriptVersionId) {
-        if (appId == null || appId < 0) {
-            log.warn("Get script version by id, param appId is empty");
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
-        }
+    public Response<ScriptVO> getScriptVersionDetail(String username,
+                                                     AppResourceScope appResourceScope,
+                                                     String scopeType,
+                                                     String scopeId,
+                                                     Long scriptVersionId) {
         if (scriptVersionId == null || scriptVersionId <= 0) {
             log.warn("Get script version by id, param scriptVersionId is empty");
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
-        ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
+        ScriptDTO script = scriptService.getScriptVersion(username, appResourceScope.getAppId(), scriptVersionId);
         if (script == null) {
-            log.warn("Get script version by id, appId={},id={}, the script is not exist", appId, scriptVersionId);
+            log.warn("Get script version by id, appId={},id={}, the script is not exist", appResourceScope.getAppId(),
+                scriptVersionId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
         }
 
         // 鉴权
-        AuthResult authResult = checkScriptViewPermission(username, appId, script);
+        AuthResult authResult = checkScriptViewPermission(username, appResourceScope, script);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -185,7 +186,9 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return true;
         }
 
-        AuthResult authResult = checkScriptManagePermission(username, script.getAppId(), script.getId());
+        AuthResult authResult = checkScriptManagePermission(username,
+            appScopeMappingService.getAppResourceScope(script.getAppId(), null, null),
+            script.getId());
         if (authResult.isPass()) {
             return true;
         } else {
@@ -195,10 +198,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     private List<ScriptVO> excludeNotOnlinePublicScriptVersion(String username,
-                                                               Long appId,
+                                                               AppResourceScope appResourceScope,
                                                                String scriptId,
                                                                List<ScriptVO> scriptVersions) {
-        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, scriptId);
         if (authResult.isPass()) {
             return scriptVersions;
         } else {
@@ -210,14 +213,19 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptVO> getScript(String username, Long appId, String scriptId) {
+    public Response<ScriptVO> getScript(String username,
+                                        AppResourceScope appResourceScope,
+                                        String scopeType,
+                                        String scopeId,
+                                        String scriptId) {
+        Long appId = appResourceScope.getAppId();
         ScriptDTO script = scriptService.getScript(username, appId, scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
         // 鉴权
-        AuthResult authResult = checkScriptViewPermission(username, appId, script);
+        AuthResult authResult = checkScriptViewPermission(username, appResourceScope, script);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -244,8 +252,12 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptVO> getScriptBasicInfo(String username, Long appId, String scriptId) {
-        ScriptDTO script = scriptService.getScript(username, appId, scriptId);
+    public Response<ScriptVO> getScriptBasicInfo(String username,
+                                                 AppResourceScope appResourceScope,
+                                                 String scopeType,
+                                                 String scopeId,
+                                                 String scriptId) {
+        ScriptDTO script = scriptService.getScript(username, appResourceScope.getAppId(), scriptId);
         if (script == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
@@ -254,19 +266,20 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptVO> getOnlineScriptVersionByScriptId(String username, Long appId, String scriptId,
+    public Response<ScriptVO> getOnlineScriptVersionByScriptId(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               String scriptId,
                                                                Boolean publicScript) {
-        long targetAppId = appId;
-        if (publicScript != null && publicScript) {
-            targetAppId = PUBLIC_APP_ID;
-        }
-        ScriptDTO onlineScriptVersion = scriptService.getOnlineScriptVersionByScriptId(username, targetAppId, scriptId);
+        ScriptDTO onlineScriptVersion = scriptService.getOnlineScriptVersionByScriptId(username,
+            appResourceScope.getAppId(), scriptId);
         if (onlineScriptVersion == null) {
             return Response.buildSuccessResp(null);
         }
 
         // 鉴权
-        AuthResult authResult = checkScriptViewPermission(username, appId, onlineScriptVersion);
+        AuthResult authResult = checkScriptViewPermission(username, appResourceScope, onlineScriptVersion);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -276,30 +289,30 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<PageData<ScriptVO>> listPageScript(
-        String username,
-        Long appId,
-        Boolean publicScript,
-        String name,
-        Integer type,
-        String tags,
-        Long panelTag,
-        Integer panelType,
-        String creator,
-        String lastModifyUser,
-        String scriptId,
-        Integer start,
-        Integer pageSize,
-        String orderField,
-        Integer order
-    ) {
+    public Response<PageData<ScriptVO>> listPageScript(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       String scopeType,
+                                                       String scopeId,
+                                                       Boolean publicScript,
+                                                       String name,
+                                                       Integer type,
+                                                       String tags,
+                                                       Long panelTag,
+                                                       Integer panelType,
+                                                       String creator,
+                                                       String lastModifyUser,
+                                                       String scriptId,
+                                                       Integer start,
+                                                       Integer pageSize,
+                                                       String orderField,
+                                                       Integer order) {
         ScriptQuery scriptQuery = new ScriptQuery();
         if (publicScript != null && publicScript) {
             scriptQuery.setPublicScript(true);
             scriptQuery.setAppId(PUBLIC_APP_ID);
         } else {
             scriptQuery.setPublicScript(false);
-            scriptQuery.setAppId(appId);
+            scriptQuery.setAppId(appResourceScope.getAppId());
         }
         scriptQuery.setId(scriptId);
         scriptQuery.setName(name);
@@ -358,8 +371,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
         resultPageData.setTotal(pageData.getTotal());
         resultPageData.setData(resultScripts);
 
-        processPermissionForList(username, appId, resultPageData);
-        processAnyScriptExistFlag(appId, publicScript, resultPageData);
+        processPermissionForList(username, appResourceScope, resultPageData);
+        processAnyScriptExistFlag(appResourceScope.getAppId(), publicScript, resultPageData);
 
         return Response.buildSuccessResp(resultPageData);
     }
@@ -394,15 +407,16 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
     }
 
-    private void processPermissionForList(String username, Long appId, PageData<ScriptVO> resultPageData) {
-        boolean isQueryPublicScript = (appId == 0);
+    private void processPermissionForList(String username, AppResourceScope appResourceScope,
+                                          PageData<ScriptVO> resultPageData) {
+        boolean isQueryPublicScript = (appResourceScope.getAppId() == PUBLIC_APP_ID);
         if (isQueryPublicScript) {
             resultPageData.setCanCreate(
-                authService.auth(false, username, ActionId.CREATE_PUBLIC_SCRIPT).isPass()
+                noResourceScopeAuthService.authCreatePublicScript(username).isPass()
             );
         } else {
-            resultPageData.setCanCreate(authService.auth(false, username, ActionId.CREATE_SCRIPT,
-                ResourceTypeEnum.BUSINESS, appId.toString(), null).isPass());
+            resultPageData.setCanCreate(
+                scriptAuthService.authCreateScript(username, appResourceScope).isPass());
         }
 
         List<String> scriptIdList = new ArrayList<>();
@@ -411,14 +425,14 @@ public class WebScriptResourceImpl implements WebScriptResource {
         });
         if (isQueryPublicScript) {
             resultPageData.getData()
-                .forEach(script -> script.setCanManage(authService.auth(false, username,
-                    ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE).isPass()));
+                .forEach(script -> script.setCanManage(
+                    noResourceScopeAuthService.authManagePublicScript(username, script.getId()).isPass()));
             resultPageData.getData().forEach(script -> script.setCanView(true));
         } else {
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthManageScript(username, appResourceScope, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthViewScript(username, appResourceScope, scriptIdList);
             resultPageData.getData()
                 .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
             resultPageData.getData().forEach(script -> {
@@ -478,11 +492,12 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response updateScriptInfo(String username, Long appId, String scriptId,
+    public Response updateScriptInfo(String username,
+                                     AppResourceScope appResourceScope,
+                                     String scopeType,
+                                     String scopeId,
+                                     String scriptId,
                                      ScriptInfoUpdateReq scriptInfoUpdateReq) {
-        if (StringUtils.isBlank(scriptId) || scriptInfoUpdateReq == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         String updateField = scriptInfoUpdateReq.getUpdateField();
         boolean isUpdateDesc = "scriptDesc".equals(updateField);
         boolean isUpdateName = "scriptName".equals(updateField);
@@ -493,30 +508,36 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
 
         // 鉴权
-        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, scriptId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
         if (isUpdateDesc) {
-            scriptService.updateScriptDesc(appId, username, scriptId, scriptInfoUpdateReq.getScriptDesc());
+            scriptService.updateScriptDesc(appResourceScope.getAppId(), username, scriptId,
+                scriptInfoUpdateReq.getScriptDesc());
         } else if (isUpdateName) {
-            updateScriptName(username, appId, scriptId, scriptInfoUpdateReq);
+            updateScriptName(username, appResourceScope.getAppId(), scriptId, scriptInfoUpdateReq);
         } else {
-            updateScriptTags(username, appId, scriptId, scriptInfoUpdateReq);
+            updateScriptTags(username, appResourceScope.getAppId(), scriptId, scriptInfoUpdateReq);
         }
         return Response.buildSuccessResp(null);
     }
 
     @Override
-    public Response<List<ScriptVO>> listScriptBasicInfo(String username, Long appId, List<String> scriptIds) {
+    public Response<List<ScriptVO>> listScriptBasicInfo(String username,
+                                                        AppResourceScope appResourceScope,
+                                                        String scopeType,
+                                                        String scopeId,
+                                                        List<String> scriptIds) {
         ScriptQuery scriptQuery = new ScriptQuery();
-        scriptQuery.setAppId(appId);
+        scriptQuery.setAppId(appResourceScope.getAppId());
         scriptQuery.setIds(scriptIds);
-        scriptQuery.setPublicScript(appId == PUBLIC_APP_ID);
+        scriptQuery.setPublicScript(appResourceScope.getAppId() == PUBLIC_APP_ID);
         List<ScriptDTO> scripts = scriptService.listScripts(scriptQuery);
         if (CollectionUtils.isNotEmpty(scripts)) {
-            scripts = scripts.stream().filter(script -> script.getAppId().equals(appId)).collect(Collectors.toList());
+            scripts = scripts.stream().filter(script -> script.getAppId().equals(appResourceScope.getAppId()))
+                .collect(Collectors.toList());
         }
 
         List<ScriptVO> scriptVOS = scripts.stream().map(ScriptConverter::convertToScriptVO)
@@ -525,15 +546,19 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<List<ScriptVO>> listScriptVersion(String username, Long appId, String scriptId) {
+    public Response<List<ScriptVO>> listScriptVersion(String username,
+                                                      AppResourceScope appResourceScope,
+                                                      String scopeType,
+                                                      String scopeId,
+                                                      String scriptId) {
         // 鉴权
-        AuthResult viewAuthResult = checkScriptViewPermission(username, appId, scriptId);
+        AuthResult viewAuthResult = checkScriptViewPermission(username, appResourceScope, scriptId);
         if (!viewAuthResult.isPass()) {
             throw new PermissionDeniedException(viewAuthResult);
         }
-        AuthResult manageAuthResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult manageAuthResult = checkScriptManagePermission(username, appResourceScope, scriptId);
 
-        List<ScriptDTO> scripts = scriptService.listScriptVersion(username, appId, scriptId);
+        List<ScriptDTO> scripts = scriptService.listScriptVersion(username, appResourceScope.getAppId(), scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
         if (scripts != null && !scripts.isEmpty()) {
 
@@ -551,16 +576,19 @@ public class WebScriptResourceImpl implements WebScriptResource {
                 scriptVO.setCanClone(manageAuthResult.isPass());
 
                 // 统计被引用次数
-                Integer taskTemplateCiteCount = scriptService.getScriptTemplateCiteCount(username, appId,
+                Integer taskTemplateCiteCount = scriptService.getScriptTemplateCiteCount(username,
+                    appResourceScope.getAppId(),
                     scriptDTO.getId(), scriptDTO.getScriptVersionId());
                 scriptVO.setRelatedTaskTemplateNum(taskTemplateCiteCount);
-                Integer taskPlanCiteCount = scriptService.getScriptTaskPlanCiteCount(username, appId,
+                Integer taskPlanCiteCount = scriptService.getScriptTaskPlanCiteCount(username,
+                    appResourceScope.getAppId(),
                     scriptDTO.getId(), scriptDTO.getScriptVersionId());
                 scriptVO.setRelatedTaskPlanNum(taskPlanCiteCount);
 
                 // 是否支持同步操作
                 if (scriptDTO.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
-                    List<ScriptSyncTemplateStepDTO> syncSteps = getSyncTemplateSteps(username, appId, scriptId,
+                    List<ScriptSyncTemplateStepDTO> syncSteps = getSyncTemplateSteps(username,
+                        appResourceScope.getAppId(), scriptId,
                         scriptDTO.getScriptVersionId());
                     scriptVO.setSyncEnabled(!syncSteps.isEmpty());
                 } else {
@@ -571,17 +599,21 @@ public class WebScriptResourceImpl implements WebScriptResource {
             }
         }
 
-        resultVOS = excludeNotOnlinePublicScriptVersion(username, appId, scriptId, resultVOS);
+        resultVOS = excludeNotOnlinePublicScriptVersion(username, appResourceScope, scriptId, resultVOS);
         return Response.buildSuccessResp(resultVOS);
     }
 
     @Override
-    public Response<ScriptVO> saveScript(String username, Long appId,
+    public Response<ScriptVO> saveScript(String username,
+                                         AppResourceScope appResourceScope,
+                                         String scopeType,
+                                         String scopeId,
                                          ScriptCreateUpdateReq scriptCreateUpdateReq) {
-        scriptCreateUpdateReq.setAppId(appId);
-        log.info("Save script,operator={},appId={},script={}", username, appId, scriptCreateUpdateReq.toString());
+        scriptCreateUpdateReq.setAppId(appResourceScope.getAppId());
+        log.info("Save script,operator={},appId={},script={}", username, appResourceScope.getAppId(),
+            scriptCreateUpdateReq.toString());
 
-        AuthResult authResult = checkSaveScript(username, appId, scriptCreateUpdateReq);
+        AuthResult authResult = checkSaveScript(username, appResourceScope, scriptCreateUpdateReq);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -604,30 +636,18 @@ public class WebScriptResourceImpl implements WebScriptResource {
             throw new InvalidParamException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
         }
         ScriptDTO script = scriptDTOBuilder.buildFromCreateUpdateReq(scriptCreateUpdateReq);
-        script.setAppId(appId);
+        script.setAppId(appResourceScope.getAppId());
         script.setCreator(username);
         script.setLastModifyUser(username);
-        ScriptDTO savedScript = scriptService.saveScript(username, appId, script);
+        ScriptDTO savedScript = scriptService.saveScript(username, appResourceScope.getAppId(), script);
         // 只在新建脚本时新建关联权限，编辑/复制并新建版本时不动
         if (StringUtils.isBlank(scriptCreateUpdateReq.getId())) {
             if (script.isPublicScript()) {
                 // 公共脚本
-                authService.registerResource(
-                    savedScript.getId(),
-                    script.getName(),
-                    ResourceTypeId.PUBLIC_SCRIPT,
-                    username,
-                    null
-                );
+                noResourceScopeAuthService.registerPublicScript(savedScript.getId(), script.getName(), username);
             } else {
                 // 业务脚本
-                authService.registerResource(
-                    savedScript.getId(),
-                    script.getName(),
-                    ResourceTypeId.SCRIPT,
-                    username,
-                    null
-                );
+                scriptAuthService.registerScript(savedScript.getId(), script.getName(), username);
             }
         }
         ScriptVO scriptVO = new ScriptVO();
@@ -636,93 +656,118 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return Response.buildSuccessResp(scriptVO);
     }
 
-    private AuthResult checkSaveScript(String username, long appId, ScriptCreateUpdateReq scriptCreateUpdateReq) {
+    private AuthResult checkSaveScript(String username, AppResourceScope appResourceScope,
+                                       ScriptCreateUpdateReq scriptCreateUpdateReq) {
         Long scriptVersionId = scriptCreateUpdateReq.getScriptVersionId();
         boolean isCreateNew = scriptVersionId == null || scriptVersionId < 0;
         // 创建脚本版本鉴管理权限
         if (!StringUtils.isBlank(scriptCreateUpdateReq.getId())) {
             isCreateNew = false;
         }
-        return isCreateNew ? checkScriptCreatePermission(username, appId)
-            : checkScriptManagePermission(username, appId, scriptCreateUpdateReq.getId());
+        return isCreateNew ? checkScriptCreatePermission(username, appResourceScope)
+            : checkScriptManagePermission(username, appResourceScope, scriptCreateUpdateReq.getId());
     }
 
     @Override
-    public Response publishScriptVersion(String username, Long appId, String scriptId, Long scriptVersionId) {
-        log.info("Publish script version, appId={}, scriptId={}, scriptVersionId={}, username={}", appId, scriptId,
-            scriptVersionId, username);
-        if (appId == null || scriptId == null || scriptVersionId == null) {
-            log.warn("Illegal param,appId:{}, scriptId:{}, scriptVersion:{}", appId, scriptId, scriptVersionId);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+    public Response publishScriptVersion(String username,
+                                         AppResourceScope appResourceScope,
+                                         String scopeType,
+                                         String scopeId,
+                                         String scriptId,
+                                         Long scriptVersionId) {
+        log.info("Publish script version, scope={}, scriptId={}, scriptVersionId={}, username={}", appResourceScope,
+            scriptId, scriptVersionId, username);
 
-        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, scriptId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        scriptService.publishScript(appId, username, scriptId, scriptVersionId);
+        scriptService.publishScript(appResourceScope.getAppId(), username, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
     @Override
-    public Response disableScriptVersion(String username, Long appId, String scriptId, Long scriptVersionId) {
-        log.info("Disable script version, appId={}, scriptId={}, scriptVersionId={}, username={}", appId, scriptId,
-            scriptVersionId, username);
+    public Response disableScriptVersion(String username,
+                                         AppResourceScope appResourceScope,
+                                         String scopeType,
+                                         String scopeId,
+                                         String scriptId,
+                                         Long scriptVersionId) {
+        log.info("Disable script version, scope={}, scriptId={}, scriptVersionId={}, username={}", appResourceScope,
+            scriptId, scriptVersionId, username);
 
-        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, scriptId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        scriptService.disableScript(appId, username, scriptId, scriptVersionId);
+        scriptService.disableScript(appResourceScope.getAppId(), username, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
     @Override
-    public Response deleteScriptByScriptId(String username, Long appId, String scriptId) {
-        log.info("Delete script[{}], operator={}, appId={}", scriptId, username, appId);
+    public Response deleteScriptByScriptId(String username,
+                                           AppResourceScope appResourceScope,
+                                           String scopeType,
+                                           String scopeId,
+                                           String scriptId) {
+        log.info("Delete script[{}], operator={}, scope={}", scriptId, username, appResourceScope);
 
-        AuthResult authResult = checkScriptManagePermission(username, appId, scriptId);
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, scriptId);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        scriptService.deleteScript(username, appId, scriptId);
+        scriptService.deleteScript(username, appResourceScope.getAppId(), scriptId);
         return Response.buildSuccessResp(null);
     }
 
     @Override
-    public Response deleteScriptByScriptVersionId(String username, Long appId, Long scriptVersionId) {
-        log.info("Delete scriptVersion[{}], operator={}, appId={}", scriptVersionId, username, appId);
+    public Response deleteScriptByScriptVersionId(String username,
+                                                  AppResourceScope appResourceScope,
+                                                  String scopeType,
+                                                  String scopeId,
+                                                  Long scriptVersionId) {
+        log.info("Delete scriptVersion[{}], operator={}, scope={}", scriptVersionId, username, appResourceScope);
 
-        ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
+        ScriptDTO script = scriptService.getScriptVersion(username, appResourceScope.getAppId(), scriptVersionId);
         if (script == null) {
             return Response.buildCommonFailResp(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        AuthResult authResult = checkScriptManagePermission(username, appId, script.getId());
+        AuthResult authResult = checkScriptManagePermission(username, appResourceScope, script.getId());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        scriptService.deleteScriptVersion(username, appId, scriptVersionId);
+        scriptService.deleteScriptVersion(username, appResourceScope.getAppId(), scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
     @Override
-    public Response listAppScriptNames(String username, Long appId, String scriptName) {
-        List<String> scriptNames = scriptService.listScriptNames(appId, scriptName);
+    public Response listAppScriptNames(String username,
+                                       AppResourceScope appResourceScope,
+                                       String scopeType,
+                                       String scopeId,
+                                       String scriptName) {
+        List<String> scriptNames = scriptService.listScriptNames(appResourceScope.getAppId(), scriptName);
         return Response.buildSuccessResp(scriptNames);
     }
 
     @Override
-    public Response<List<BasicScriptVO>> listScriptOnline(String username, Long appId, Boolean publicScript) {
-        long queryAppId = appId;
+    public Response<List<BasicScriptVO>> listScriptOnline(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId,
+                                                          Boolean publicScript) {
+        long queryAppId = appResourceScope.getAppId();
         if (publicScript != null && publicScript) {
             queryAppId = PUBLIC_APP_ID;
         }
-        List<ScriptDTO> scriptList = scriptService.listOnlineScriptForApp(username, queryAppId);
+        appResourceScope.setAppId(queryAppId);
+
+        List<ScriptDTO> scriptList = scriptService.listOnlineScriptForApp(username, appResourceScope.getAppId());
         if (scriptList == null || scriptList.isEmpty()) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
@@ -732,29 +777,29 @@ public class WebScriptResourceImpl implements WebScriptResource {
             BasicScriptVO basicScriptVO = ScriptConverter.convertToBasicScriptVO(script);
             scriptVOList.add(basicScriptVO);
         }
-        processScriptPermission(username, queryAppId, scriptVOList);
+        processScriptPermission(username, appResourceScope, scriptVOList);
         return Response.buildSuccessResp(scriptVOList);
     }
 
-    private void processScriptPermission(String username, Long appId, List<BasicScriptVO> scriptList) {
+    private void processScriptPermission(String username, AppResourceScope appResourceScope,
+                                         List<BasicScriptVO> scriptList) {
         List<String> scriptIdList = new ArrayList<>();
         scriptList.forEach(script -> scriptIdList.add(script.getId()));
 
-        if (PUBLIC_APP_ID == appId) {
-            AuthResult managePermAuthResult = authService.auth(
-                false,
-                username,
-                ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE
-            );
+        if (PUBLIC_APP_ID == appResourceScope.getAppId()) {
             scriptList.forEach(script -> {
+                // TODO:batchAuth
+                AuthResult managePermAuthResult = noResourceScopeAuthService.authManagePublicScript(username,
+                    script.getId());
                 script.setCanManage(managePermAuthResult.isPass());
                 script.setCanView(true);
             });
         } else {
+
             List<String> allowedManageScriptIdList =
-                appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthManageScript(username, appResourceScope, scriptIdList);
             List<String> allowedViewScriptIdList =
-                appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appId, ResourceTypeEnum.SCRIPT, scriptIdList);
+                scriptAuthService.batchAuthViewScript(username, appResourceScope, scriptIdList);
             scriptList
                 .forEach(script -> {
                     script.setCanManage(allowedManageScriptIdList.contains(script.getId()));
@@ -851,59 +896,52 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return fileContent;
     }
 
-    private AuthResult checkScriptViewPermission(String username, long appId, String scriptId) {
-        boolean isPublicScript = (appId == PUBLIC_APP_ID);
+    private AuthResult checkScriptViewPermission(String username, AppResourceScope appResourceScope, String scriptId) {
+        boolean isPublicScript = (appResourceScope.getAppId() == PUBLIC_APP_ID);
         if (isPublicScript) {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
-        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
-            buildAppScriptPathInfo(appId));
+        return scriptAuthService.authViewScript(username, appResourceScope, scriptId, null);
     }
 
-    private AuthResult checkScriptViewPermission(String username, long appId, ScriptDTO script) {
+    private AuthResult checkScriptViewPermission(String username, AppResourceScope appResourceScope, ScriptDTO script) {
         if (script.isPublicScript()) {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
         }
-        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT,
-            script.getId(), buildAppScriptPathInfo(appId));
+        return scriptAuthService.authViewScript(username, appResourceScope, script.getId(), null);
     }
 
 
-    private AuthResult checkScriptManagePermission(String username, long appId, String scriptId) {
-        boolean isPublicScript = (appId == PUBLIC_APP_ID);
+    private AuthResult checkScriptManagePermission(String username, AppResourceScope appResourceScope,
+                                                   String scriptId) {
+        boolean isPublicScript = appResourceScope == null;
         if (isPublicScript) {
-            return authService.auth(true, username, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
-                ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
+            return noResourceScopeAuthService.authManagePublicScript(username, scriptId);
         } else {
-            return authService.auth(true, username, ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT,
-                scriptId, buildAppScriptPathInfo(appId));
+            return scriptAuthService.authManageScript(username, appResourceScope, scriptId, null);
         }
     }
 
-    private AuthResult checkScriptCreatePermission(String username, long appId) {
-        boolean isPublicScript = (appId == PUBLIC_APP_ID);
+    private AuthResult checkScriptCreatePermission(String username, AppResourceScope appResourceScope) {
+        boolean isPublicScript = appResourceScope == null;
         if (isPublicScript) {
-            return authService.auth(true, username, ActionId.CREATE_PUBLIC_SCRIPT);
+            return noResourceScopeAuthService.authCreatePublicScript(username);
         } else {
-            return authService.auth(true, username, ActionId.CREATE_SCRIPT, ResourceTypeEnum.BUSINESS,
-                String.valueOf(appId), null);
+            return scriptAuthService.authCreateScript(username, appResourceScope);
         }
-    }
-
-    private PathInfoDTO buildAppScriptPathInfo(Long appId) {
-        return PathBuilder.newBuilder(ResourceTypeEnum.BUSINESS.getId(), appId.toString()).build();
     }
 
     @Override
-    public Response<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
-        List<ScriptSyncTemplateStepDTO> steps = getSyncTemplateSteps(username, appId, scriptId, scriptVersionId);
+    public Response<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(String username,
+                                                                                   AppResourceScope appResourceScope,
+                                                                                   String scopeType,
+                                                                                   String scopeId,
+                                                                                   String scriptId,
+                                                                                   Long scriptVersionId) {
+        List<ScriptSyncTemplateStepDTO> steps = getSyncTemplateSteps(username, appResourceScope.getAppId(), scriptId,
+            scriptVersionId);
         if (CollectionUtils.isEmpty(steps)) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
@@ -922,12 +960,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return Response.buildSuccessResp(stepVOS);
     }
 
-    private List<ScriptSyncTemplateStepDTO> getSyncTemplateSteps(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
+    private List<ScriptSyncTemplateStepDTO> getSyncTemplateSteps(String username,
+                                                                 Long appId,
+                                                                 String scriptId,
+                                                                 Long scriptVersionId) {
         List<ScriptSyncTemplateStepDTO> steps = scriptService.listScriptSyncTemplateSteps(username, appId, scriptId);
         if (CollectionUtils.isEmpty(steps)) {
             return Collections.emptyList();
@@ -942,28 +978,30 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
 
     @Override
-    public Response<List<ScriptSyncResultVO>> syncScripts(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId,
-        ScriptSyncReq scriptSyncReq
-    ) {
-        if (scriptSyncReq == null || CollectionUtils.isEmpty(scriptSyncReq.getSteps())) {
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
+    public Response<List<ScriptSyncResultVO>> syncScripts(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId,
+                                                          String scriptId,
+                                                          Long scriptVersionId,
+                                                          ScriptSyncReq scriptSyncReq) {
         List<TemplateStepIDDTO> templateStepIDs = new ArrayList<>(scriptSyncReq.getSteps().size());
         scriptSyncReq.getSteps().forEach(step -> {
             templateStepIDs.add(new TemplateStepIDDTO(step.getTemplateId(), step.getStepId()));
         });
 
-        List<SyncScriptResultDTO> syncResults = scriptService.syncScriptToTaskTemplate(username, appId, scriptId,
-            scriptVersionId, templateStepIDs);
+        List<SyncScriptResultDTO> syncResults = scriptService.syncScriptToTaskTemplate(username,
+            appResourceScope.getAppId(),
+            scriptId, scriptVersionId, templateStepIDs);
         List<ScriptSyncResultVO> syncResultVOS = new ArrayList<>(syncResults.size());
         for (SyncScriptResultDTO syncResult : syncResults) {
             ScriptSyncResultVO syncVO = new ScriptSyncResultVO();
             ScriptSyncTemplateStepDTO syncStep = syncResult.getTemplateStep();
             syncVO.setAppId(syncStep.getAppId());
+            if (syncStep.getAppId() != null && !syncStep.getAppId().equals(PUBLIC_APP_ID)) {
+                syncVO.setScopeType(scopeType);
+                syncVO.setScopeId(scopeId);
+            }
             syncVO.setScriptId(syncStep.getScriptId());
             syncVO.setScriptVersionId(syncStep.getScriptVersionId());
             syncVO.setScriptVersion(syncStep.getScriptVersion());
@@ -988,12 +1026,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return Response.buildSuccessResp(syncResultVOS);
     }
 
-    private ScriptCiteCountVO getScriptCiteCountOfAllScript(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
+    private ScriptCiteCountVO getScriptCiteCountOfAllScript(String username,
+                                                            Long appId,
+                                                            String scriptId,
+                                                            Long scriptVersionId) {
         Integer templateCiteCount = scriptService.getScriptTemplateCiteCount(username, appId, scriptId,
             scriptVersionId);
         Integer taskPlanCiteCount = scriptService.getScriptTaskPlanCiteCount(username, appId, scriptId,
@@ -1001,12 +1037,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
         return new ScriptCiteCountVO(templateCiteCount, taskPlanCiteCount);
     }
 
-    private ScriptCiteInfoVO getScriptCiteInfoOfAllScript(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
+    private ScriptCiteInfoVO getScriptCiteInfoOfAllScript(String username,
+                                                          Long appId,
+                                                          String scriptId,
+                                                          Long scriptVersionId) {
         List<ScriptCitedTaskTemplateDTO> citedTemplateList = scriptService.getScriptCitedTemplates(username, appId,
             scriptId, scriptVersionId);
         if (citedTemplateList == null) {
@@ -1025,47 +1059,58 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<ScriptCiteInfoVO> getScriptCiteInfo(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
-        ScriptCiteInfoVO scriptCiteInfoVO = getScriptCiteInfoOfAllScript(username, appId, scriptId, scriptVersionId);
+    public Response<ScriptCiteInfoVO> getScriptCiteInfo(String username,
+                                                        AppResourceScope appResourceScope,
+                                                        String scopeType,
+                                                        String scopeId,
+                                                        String scriptId,
+                                                        Long scriptVersionId) {
+        ScriptCiteInfoVO scriptCiteInfoVO = getScriptCiteInfoOfAllScript(username, appResourceScope.getAppId(),
+            scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteInfoVO);
     }
 
     @Override
-    public Response<ScriptCiteCountVO> getScriptCiteCount(
-        String username,
-        Long appId,
-        String scriptId,
-        Long scriptVersionId
-    ) {
-        ScriptCiteCountVO scriptCiteCountVO = getScriptCiteCountOfAllScript(username, appId, scriptId, scriptVersionId);
+    public Response<ScriptCiteCountVO> getScriptCiteCount(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId,
+                                                          String scriptId,
+                                                          Long scriptVersionId) {
+        ScriptCiteCountVO scriptCiteCountVO = getScriptCiteCountOfAllScript(username, appResourceScope.getAppId(),
+            scriptId, scriptVersionId);
         return Response.buildSuccessResp(scriptCiteCountVO);
     }
 
     @Override
-    public Response<?> batchUpdateScriptTags(String username, Long appId, ScriptTagBatchPatchReq req) {
+    public Response<?> batchUpdateScriptTags(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
+                                             ScriptTagBatchPatchReq req) {
+
         ValidateResult validateResult = checkScriptTagBatchPatchReq(req);
         if (!validateResult.isPass()) {
             return Response.buildValidateFailResp(validateResult);
         }
 
-        boolean isPublicScript = appId == PUBLIC_APP_ID;
+        boolean isPublicScript = appResourceScope.getAppId() == PUBLIC_APP_ID;
         List<String> scriptIdList = req.getIdList();
+        AuthResult authResult;
+        if (isPublicScript) {
+            authResult = noResourceScopeAuthService.batchAuthResultManagePublicScript(username, scriptIdList);
+        } else {
+            authResult = scriptAuthService.batchAuthResultManageScript(username, appResourceScope, scriptIdList);
+        }
 
-        ResourceTypeEnum iamResourceType = isPublicScript ? ResourceTypeEnum.PUBLIC_SCRIPT : ResourceTypeEnum.SCRIPT;
-        String actionId = isPublicScript ? ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE : ActionId.MANAGE_SCRIPT;
-        AuthResult authResult = batchAuthScript(username, actionId, appId, iamResourceType, scriptIdList);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
         List<ResourceTagDTO> addResourceTags = null;
         List<ResourceTagDTO> deleteResourceTags = null;
-        Integer resourceType = appId == PUBLIC_APP_ID ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+        Integer resourceType = appResourceScope.getAppId() == PUBLIC_APP_ID ?
+            JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
             addResourceTags = tagService.buildResourceTags(resourceType,
@@ -1080,23 +1125,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         tagService.batchPatchResourceTags(addResourceTags, deleteResourceTags);
 
         return Response.buildSuccessResp(true);
-    }
-
-    private AuthResult batchAuthScript(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                       List<String> scriptIdList) {
-        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
-            PermissionResource resource = new PermissionResource();
-            resource.setResourceId(scriptId);
-            resource.setResourceType(resourceType);
-            if (resourceType == ResourceTypeEnum.SCRIPT) {
-                resource.setPathInfo(PathBuilder.newBuilder(
-                    ResourceTypeEnum.BUSINESS.getId(),
-                    appId.toString()
-                ).build());
-            }
-            return resource;
-        }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, actionId, appId, resources);
     }
 
     private ValidateResult checkScriptTagBatchPatchReq(ScriptTagBatchPatchReq req) {
@@ -1114,8 +1142,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     @Override
-    public Response<TagCountVO> getTagScriptCount(String username, Long appId) {
-
-        return Response.buildSuccessResp(scriptService.getTagScriptCount(appId));
+    public Response<TagCountVO> getTagScriptCount(String username,
+                                                  AppResourceScope appResourceScope,
+                                                  String scopeType,
+                                                  String scopeId) {
+        return Response.buildSuccessResp(scriptService.getTagScriptCount(appResourceScope.getAppId()));
     }
 }

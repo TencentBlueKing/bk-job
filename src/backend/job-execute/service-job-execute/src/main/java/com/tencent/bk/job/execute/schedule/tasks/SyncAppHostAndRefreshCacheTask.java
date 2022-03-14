@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.schedule.tasks;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.execute.model.db.CacheHostDO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -65,20 +65,20 @@ public class SyncAppHostAndRefreshCacheTask {
         try {
             log.info("Get all apps from job-manage!");
             watch.start("sync-apps");
-            List<ApplicationInfoDTO> allApps = applicationService.listAllApps();
+            List<ApplicationDTO> allApps = applicationService.listAllApps();
 
             if (allApps == null || allApps.isEmpty()) {
                 log.warn("Get empty app list from job-manage, skip execution");
                 return;
             }
             log.info("Get all apps from job-manage, result:{}",
-                allApps.stream().map(ApplicationInfoDTO::getId).collect(Collectors.toSet()));
+                allApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet()));
             watch.stop();
 
-            List<ApplicationInfoDTO> normalApps =
+            List<ApplicationDTO> normalApps =
                 allApps.stream().filter(app -> app.getAppType() == AppTypeEnum.NORMAL).collect(Collectors.toList());
 
-            for (ApplicationInfoDTO app : normalApps) {
+            for (ApplicationDTO app : normalApps) {
                 try {
                     Set<CacheHostDO> appHosts = getAppHosts(watch, app);
                     refreshCache(watch, app.getId().toString(), appHosts);
@@ -94,7 +94,7 @@ public class SyncAppHostAndRefreshCacheTask {
         }
     }
 
-    private Set<CacheHostDO> getAppHosts(StopWatch watch, ApplicationInfoDTO app) {
+    private Set<CacheHostDO> getAppHosts(StopWatch watch, ApplicationDTO app) {
         try {
             Set<CacheHostDO> appHosts = new HashSet<>();
             watch.start("sync-app-hosts-" + app.getId());

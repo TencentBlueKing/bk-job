@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.dao.customsetting.CustomScriptTemplateDAO;
@@ -101,7 +101,7 @@ public class CustomScriptTemplateServiceImpl implements CustomScriptTemplateServ
                 }
             } else if (variable.equals(BIZ_NAME.getName())) {
                 if (scriptTemplateVariableRender.getAppId() != null) {
-                    ApplicationInfoDTO app = applicationService.getAppInfoById(scriptTemplateVariableRender.getAppId());
+                    ApplicationDTO app = applicationService.getAppByAppId(scriptTemplateVariableRender.getAppId());
                     String appName = app == null ? "" : app.getName();
                     scriptContent = scriptContent.replaceAll(variablePattern, appName);
                 } else {

@@ -1,7 +1,7 @@
 package com.tencent.bk.job.common.iam.aspect;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -19,31 +19,35 @@ import org.springframework.stereotype.Component;
 @Component
 public class IamAppTransferAspect {
 
-    private final AppTransferService appTransferService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    @Autowired
-    public IamAppTransferAspect(AppTransferService appTransferService) {
-        this.appTransferService = appTransferService;
+
+    public IamAppTransferAspect(@Autowired(required = false) AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
+    }
+
+    @Pointcut("execution (* com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl.auth*(..))")
+    public void processAuthBusinessAction() {
     }
 
     @Pointcut("execution (* com.tencent.bk.job.*.auth..impl.*.auth*(..))")
     public void processAuthResourceAction() {
     }
 
-    private void fillResourceScope(ResourceScope resourceScope) {
-        log.debug("before transfer, resourceScope={}", resourceScope);
-        appTransferService.fillResourceScope(resourceScope);
-        log.debug("after transfer, resourceScope={}", resourceScope);
+    @Pointcut("execution (* com.tencent.bk.job.*.auth..impl.*.batchAuth*(..))")
+    public void processBatchAuthResourceAction() {
     }
 
-    @Around("processAuthResourceAction()")
+    @Around("processAuthBusinessAction() || processAuthResourceAction() || processBatchAuthResourceAction()")
     public Object logBeforeProcessCallbackRequest(ProceedingJoinPoint pjp) throws Throwable {
         try {
             Object[] args = pjp.getArgs();
             for (Object arg : args) {
-                if (arg instanceof ResourceScope) {
-                    ResourceScope resourceScope = (ResourceScope) arg;
-                    fillResourceScope(resourceScope);
+                if (arg instanceof AppResourceScope) {
+                    AppResourceScope appResourceScope = (AppResourceScope) arg;
+                    log.debug("before appTransfer:scope={}", appResourceScope);
+                    appScopeMappingService.fillResourceScope(appResourceScope);
+                    log.debug("after  appTransfer:scope={}", appResourceScope);
                 }
             }
         } catch (Throwable throwable) {

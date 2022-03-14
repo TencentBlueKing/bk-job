@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.service;
 
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
-import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 
 import java.util.List;
 
@@ -48,7 +47,7 @@ public interface AccountService {
      * @param appId    业务 ID
      * @return 账号信息列表
      */
-    List<AccountVO> listAccountByAppId(String username, Long appId);
+    List<ServiceAccountDTO> listAccountByAppId(String username, Long appId);
 
     /**
      * 新建/修改账号

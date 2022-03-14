@@ -26,6 +26,9 @@ package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanInfoV3DTO;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
@@ -157,6 +160,11 @@ public class TaskPlanInfoDTO {
         TaskPlanVO planVO = new TaskPlanVO();
         planVO.setId(planInfo.getId());
         planVO.setAppId(planInfo.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(planInfo.getAppId());
+        planVO.setScopeType(resourceScope.getType().getValue());
+        planVO.setScopeId(resourceScope.getId());
         planVO.setTemplateId(planInfo.getTemplateId());
         planVO.setName(planInfo.getName());
         planVO.setCreator(planInfo.getCreator());

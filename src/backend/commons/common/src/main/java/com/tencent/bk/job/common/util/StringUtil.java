@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -116,28 +117,28 @@ public class StringUtil {
     }
 
     /**
-     * 将list数据拼接为字符串，默认使用英文逗号作为分隔符
+     * 将集合拼接为字符串，默认使用英文逗号作为分隔符
      *
-     * @param list 原始list
-     * @param <T>  数据类型
+     * @param collection 原始集合
+     * @param <T>        数据类型
      * @return 拼接后的字符串
      */
-    public static <T> String listToStr(List<T> list) {
-        return listToStr(list, ",");
+    public static <T> String concatCollection(Collection<T> collection) {
+        return concatCollection(collection, ",");
     }
 
     /**
-     * 将list数据拼接为字符串
+     * 将集合拼接为字符串
      *
-     * @param list      原始list
-     * @param separator 分隔符
-     * @param <T>       数据类型
+     * @param collection 原始集合
+     * @param separator  分隔符
+     * @param <T>        数据类型
      * @return 拼接后的字符串
      */
-    public static <T> String listToStr(List<T> list, String separator) {
+    public static <T> String concatCollection(Collection<T> collection, String separator) {
         String str = null;
-        if (list != null) {
-            str = list.stream().map(Object::toString).collect(Collectors.joining(separator));
+        if (collection != null) {
+            str = collection.stream().map(Object::toString).collect(Collectors.joining(separator));
         }
         return str;
     }

@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +41,15 @@ import org.springframework.stereotype.Service;
 public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     private final ServiceApplicationResourceClient applicationResourceClient;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public ResourceNameQueryServiceImpl(AuthService authService,
                                         AppAuthService appAuthService,
-                                        ServiceApplicationResourceClient applicationResourceClient) {
+                                        ServiceApplicationResourceClient applicationResourceClient,
+                                        AppScopeMappingService appScopeMappingService) {
         this.applicationResourceClient = applicationResourceClient;
+        this.appScopeMappingService = appScopeMappingService;
         authService.setResourceNameQueryService(this);
         appAuthService.setResourceNameQueryService(this);
     }
@@ -57,9 +62,10 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     @Override
     public String getResourceName(ResourceTypeEnum resourceType, String resourceId) {
-        if (resourceType == ResourceTypeEnum.BUSINESS) {
-            long appId = Long.parseLong(resourceId);
-            if (appId > 0) {
+        if (resourceType == ResourceTypeEnum.BUSINESS || resourceType == ResourceTypeEnum.BUSINESS_SET) {
+            Long appId = appScopeMappingService.getAppIdByScope(
+                IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
+            if (appId != null && appId > 0) {
                 return getAppName(appId);
             }
             log.warn("Cannot find appName by appId {}", appId);

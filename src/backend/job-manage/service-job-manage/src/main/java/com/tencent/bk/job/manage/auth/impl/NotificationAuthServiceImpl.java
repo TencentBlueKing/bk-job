@@ -24,9 +24,15 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,9 +40,21 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class NotificationAuthServiceImpl implements NotificationAuthService {
+
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public NotificationAuthServiceImpl(AppAuthService appAuthService) {
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
     @Override
-    public AuthResult authNotificationSetting(String username, ResourceScope resourceScope) {
-        // TODO
-        return AuthResult.pass();
+    public AuthResult authNotificationSetting(String username, AppResourceScope appResourceScope) {
+        return appAuthService.auth(true, username, ActionId.NOTIFICATION_SETTING, appResourceScope);
     }
 }

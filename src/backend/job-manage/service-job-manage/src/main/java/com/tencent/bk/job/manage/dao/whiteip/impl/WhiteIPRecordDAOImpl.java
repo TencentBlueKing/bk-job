@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
@@ -99,17 +99,17 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     private WhiteIPAppRelDAO whiteIPAppRelDAO;
     private ActionScopeDAO actionScopeDAO;
     private WhiteIPActionScopeDAO whiteIPActionScopeDAO;
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
     @Autowired
     public WhiteIPRecordDAOImpl(WhiteIPIPDAO whiteIPIPDAO, WhiteIPAppRelDAO whiteIPAppRelDAO,
                                 ActionScopeDAO actionScopeDAO, WhiteIPActionScopeDAO whiteIPActionScopeDAO,
-                                ApplicationInfoDAO applicationInfoDAO,
+                                ApplicationDAO applicationDAO,
                                 @Qualifier("job-manage-dsl-context") DSLContext defaultContext) {
         this.whiteIPIPDAO = whiteIPIPDAO;
         this.whiteIPAppRelDAO = whiteIPAppRelDAO;
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPActionScopeDAO = whiteIPActionScopeDAO;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.defaultContext = defaultContext;
     }
 
@@ -365,12 +365,14 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val appIdListStr = (String) record.get(KEY_APP_ID_LIST);
                 List<String> appIdList = CustomCollectionUtils.getNoDuplicateList(appIdListStr, ",");
                 List<AppVO> appVOList = appIdList.stream().map(appId -> {
-                    ApplicationInfoDTO applicationInfoDTO =
-                        applicationInfoDAO.getCacheAppInfoById(Long.parseLong(appId));
+                    ApplicationDTO applicationDTO =
+                        applicationDAO.getCacheAppById(Long.parseLong(appId));
                     return new AppVO(
-                        applicationInfoDTO.getId(),
-                        applicationInfoDTO.getName(),
-                        applicationInfoDTO.getAppType().getValue(),
+                        applicationDTO.getId(),
+                        applicationDTO.getScope().getType().getValue(),
+                        applicationDTO.getScope().getId(),
+                        applicationDTO.getName(),
+                        applicationDTO.getAppType().getValue(),
                         null,
                         null,
                         null

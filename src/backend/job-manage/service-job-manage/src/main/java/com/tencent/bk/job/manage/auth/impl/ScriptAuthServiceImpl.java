@@ -24,55 +24,99 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.model.PermissionResource;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 脚本相关操作鉴权接口
  */
 @Service
 public class ScriptAuthServiceImpl implements ScriptAuthService {
+
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public ScriptAuthServiceImpl(AuthService authService,
+                                 AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
     @Override
-    public AuthResult authCreateScript(String username, ResourceScope resourceScope) {
-        // TODO
-        return AuthResult.pass();
+    public AuthResult authCreateScript(String username, AppResourceScope appResourceScope) {
+        return appAuthService.auth(true, username, ActionId.CREATE_SCRIPT, appResourceScope);
     }
 
     @Override
     public AuthResult authViewScript(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      String scriptId,
                                      String scriptName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.VIEW_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public AuthResult authManageScript(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        String scriptId,
                                        String scriptName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.MANAGE_SCRIPT, ResourceTypeEnum.SCRIPT, scriptId,
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public List<String> batchAuthViewScript(String username,
-                                            ResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             List<String> scriptIdList) {
-        // TODO
-        return scriptIdList;
+        return appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appResourceScope,
+            ResourceTypeEnum.SCRIPT, scriptIdList);
     }
 
     @Override
     public List<String> batchAuthManageScript(String username,
-                                              ResourceScope resourceScope,
+                                              AppResourceScope appResourceScope,
                                               List<String> scriptIdList) {
-        // TODO
-        return scriptIdList;
+        return appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appResourceScope,
+            ResourceTypeEnum.SCRIPT, scriptIdList);
+    }
+
+    @Override
+    public AuthResult batchAuthResultManageScript(String username, AppResourceScope appResourceScope,
+                                                  List<String> scriptIdList) {
+        List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(scriptId);
+            resource.setResourceType(ResourceTypeEnum.SCRIPT);
+            resource.setPathInfo(buildAppScopePath(appResourceScope));
+            return resource;
+        }).collect(Collectors.toList());
+        return appAuthService.batchAuthResources(username, ActionId.MANAGE_SCRIPT, appResourceScope, resources);
+    }
+
+    @Override
+    public boolean registerScript(String id, String name, String creator) {
+        return authService.registerResource(id, name, ResourceTypeId.SCRIPT, creator, null);
     }
 }

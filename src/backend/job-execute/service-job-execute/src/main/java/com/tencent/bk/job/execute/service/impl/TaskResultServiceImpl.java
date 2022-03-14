@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
@@ -64,7 +64,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.GseTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ServerService;
@@ -221,7 +220,9 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
+
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, new AppResourceScope(appId), taskInstance);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -232,9 +233,9 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (username.equals(operator)) {
             return;
         }
-        //TODO:scope改造
+
         AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new ResourceScope(ResourceTypeId.BIZ, appId.toString()),
+            username, new AppResourceScope(appId),
             stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

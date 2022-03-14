@@ -41,11 +41,13 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceUserResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -77,7 +79,6 @@ import com.tencent.bk.job.execute.model.db.CacheAppDO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.ServerService;
@@ -496,7 +497,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (accountId == null) {
             return AuthResult.fail();
         }
-        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, appId, accountId);
+
+        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, new AppResourceScope(appId)
+            , accountId);
 
         AuthResult serverAuthResult;
         ServersDTO servers = stepInstance.getTargetServers().clone();
@@ -508,12 +511,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ScriptSourceEnum scriptSource = ScriptSourceEnum.getScriptSourceEnum(stepInstance.getScriptSource());
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
-            serverAuthResult = executeAuthService.authFastExecuteScript(username, appId, servers);
+
+            serverAuthResult = executeAuthService.authFastExecuteScript(
+                username, new AppResourceScope(appId), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
-            serverAuthResult = executeAuthService.authExecuteAppScript(username, appId, stepInstance.getScriptId(),
+
+            serverAuthResult = executeAuthService.authExecuteAppScript(
+                username, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), servers);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
-            serverAuthResult = executeAuthService.authExecutePublicScript(username, appId, stepInstance.getScriptId()
+
+            serverAuthResult = executeAuthService.authExecutePublicScript(
+                username, new AppResourceScope(appId), stepInstance.getScriptId()
                 , stepInstance.getScriptName(), servers);
         } else {
             serverAuthResult = AuthResult.fail();
@@ -571,7 +580,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> {
                 accounts.add(fileSource.getAccountId());
             });
-        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(username, appId, accounts);
+
+        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
+            username, new AppResourceScope(appId), accounts);
 
         ServersDTO servers = stepInstance.getTargetServers().clone();
         stepInstance.getFileSourceList().stream()
@@ -586,7 +597,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 如果主机为空，无需对主机进行权限
             return accountAuthResult;
         }
-        AuthResult serverAuthResult = executeAuthService.authFastPushFile(username, appId, servers);
+
+        AuthResult serverAuthResult = executeAuthService.authFastPushFile(
+            username, new AppResourceScope(appId), servers);
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -1119,7 +1132,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
 
-        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(username, appId, accountIds);
+
+        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
+            username, new AppResourceScope(appId), accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
@@ -1130,11 +1145,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             AuthResult serverAuthResult = null;
             if (isDebugTask) {
                 // 鉴权调试
-                serverAuthResult = executeAuthService.authDebugTemplate(username, appId, plan.getTaskTemplateId(),
+
+                serverAuthResult = executeAuthService.authDebugTemplate(
+                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     authServers);
             } else {
                 // 鉴权执行方案
-                serverAuthResult = executeAuthService.authExecutePlan(username, appId, plan.getTaskTemplateId(),
+
+                serverAuthResult = executeAuthService.authExecutePlan(
+                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);

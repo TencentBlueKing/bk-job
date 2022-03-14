@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -36,37 +36,37 @@ public interface FileSourceAuthService {
     /**
      * 资源范围下创建文件源鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateFileSource(String username, ResourceScope resourceScope);
+    AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看文件源鉴权
      *
-     * @param username       用户名
-     * @param resourceScope  资源范围
-     * @param fileSourceId   文件源ID
-     * @param fileSourceName 文件源名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param fileSourceId     文件源ID
+     * @param fileSourceName   文件源名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
     AuthResult authViewFileSource(String username,
-                                  ResourceScope resourceScope,
+                                  AppResourceScope appResourceScope,
                                   Integer fileSourceId,
                                   String fileSourceName);
 
     /**
      * 资源范围下管理文件源鉴权
      *
-     * @param username       用户名
-     * @param resourceScope  资源范围
-     * @param fileSourceId   文件源ID
-     * @param fileSourceName 文件源名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param fileSourceId     文件源ID
+     * @param fileSourceName   文件源名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
     AuthResult authManageFileSource(String username,
-                                    ResourceScope resourceScope,
+                                    AppResourceScope appResourceScope,
                                     Integer fileSourceId,
                                     String fileSourceName);
 
@@ -74,23 +74,33 @@ public interface FileSourceAuthService {
      * 资源范围下查看文件源批量鉴权
      *
      * @param username         用户名
-     * @param resourceScope    资源范围
+     * @param appResourceScope 资源范围
      * @param fileSourceIdList 文件源ID列表
      * @return 有权限的文件源ID
      */
     List<Integer> batchAuthViewFileSource(String username,
-                                          ResourceScope resourceScope,
+                                          AppResourceScope appResourceScope,
                                           List<Integer> fileSourceIdList);
 
     /**
      * 资源范围下管理文件源批量鉴权
      *
      * @param username         用户名
-     * @param resourceScope    资源范围
+     * @param appResourceScope 资源范围
      * @param fileSourceIdList 文件源ID列表
      * @return 有权限的文件源ID
      */
     List<Integer> batchAuthManageFileSource(String username,
-                                            ResourceScope resourceScope,
+                                            AppResourceScope appResourceScope,
                                             List<Integer> fileSourceIdList);
+
+    /**
+     * 注册文件源实例
+     *
+     * @param creator 资源实例创建者
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @return 是否注册成功
+     */
+    boolean registerFileSource(String creator, Integer id, String name);
 }

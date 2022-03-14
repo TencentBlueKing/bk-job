@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamPathItem;
 import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.jwt.BasicJwtManager;
 import com.tencent.bk.job.common.util.jwt.JwtManager;
@@ -46,8 +47,8 @@ import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.iam.JobIamHelper;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
-import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.model.BasicAppInfo;
+import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -122,7 +123,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
         this.basicAppInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();
         basicAppInfoList.forEach(basicAppInfo -> {
-            appInfoMap.put(basicAppInfo.getId(), basicAppInfo.getName());
+            appInfoMap.put(basicAppInfo.getAppId(), basicAppInfo.getName());
         });
     }
 
@@ -173,11 +174,12 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
      */
     private List<Long> getAuthorizedAppIdList(Policy policy) {
         BusinessAuthHelper businessAuthHelper = jobIamHelper.businessAuthHelper();
-        return businessAuthHelper.getAuthedAppIdList(
-            null,
+        return businessAuthHelper.getAuthedAppResourceScopeList(
             policy.getExpression(),
-            basicAppInfoList.parallelStream().map(BasicAppInfo::getId).collect(Collectors.toList())
-        );
+            basicAppInfoList.stream().map(
+                it -> new AppResourceScope(it.getScopeType(), it.getScopeId(), it.getAppId())
+            ).collect(Collectors.toList())
+        ).stream().map(AppResourceScope::getAppId).collect(Collectors.toList());
     }
 
     /**

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -36,61 +36,83 @@ public interface ScriptAuthService {
     /**
      * 资源范围下创建脚本鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateScript(String username, ResourceScope resourceScope);
+    AuthResult authCreateScript(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看脚本鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param scriptId      脚本ID
-     * @param scriptName    脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptId         脚本ID
+     * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
     AuthResult authViewScript(String username,
-                              ResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               String scriptId,
                               String scriptName);
 
     /**
      * 资源范围下管理脚本鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param scriptId      脚本ID
-     * @param scriptName    脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptId         脚本ID
+     * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
     AuthResult authManageScript(String username,
-                                ResourceScope resourceScope,
+                                AppResourceScope appResourceScope,
                                 String scriptId,
                                 String scriptName);
 
     /**
      * 资源范围下查看脚本批量鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param scriptIdList  脚本ID列表
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptIdList     脚本ID列表
      * @return 有权限的脚本ID
      */
     List<String> batchAuthViewScript(String username,
-                                     ResourceScope resourceScope,
+                                     AppResourceScope appResourceScope,
                                      List<String> scriptIdList);
 
     /**
      * 资源范围下管理脚本批量鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param scriptIdList  脚本ID列表
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptIdList     脚本ID列表
      * @return 有权限的脚本ID
      */
     List<String> batchAuthManageScript(String username,
-                                       ResourceScope resourceScope,
+                                       AppResourceScope appResourceScope,
                                        List<String> scriptIdList);
+
+    /**
+     * 资源范围下管理脚本批量鉴权并返回鉴权结果
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param scriptIdList     脚本ID列表
+     * @return 鉴权结果
+     */
+    AuthResult batchAuthResultManageScript(String username,
+                                       AppResourceScope appResourceScope,
+                                       List<String> scriptIdList);
+
+    /**
+     * 注册脚本实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerScript(String id, String name, String creator);
 }

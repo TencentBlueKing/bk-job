@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -38,7 +37,6 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,15 +48,10 @@ import java.util.List;
 @Slf4j
 public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
-    private final EsbAuthService authService;
 
     @Autowired
-    public EsbAccountResourceV3Impl(AccountService accountService, MessageI18nService i18nService,
-                                    EsbAuthService authService) {
+    public EsbAccountResourceV3Impl(AccountService accountService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
-        this.authService = authService;
     }
 
     @Override

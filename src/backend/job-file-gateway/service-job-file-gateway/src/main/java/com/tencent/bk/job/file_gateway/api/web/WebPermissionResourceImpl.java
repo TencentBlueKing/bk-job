@@ -24,16 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
-import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,24 +40,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class WebPermissionResourceImpl implements WebPermissionResource {
 
-    private final WebAuthService authService;
+    private final WebAuthService webAuthService;
+    private final FileSourceAuthService fileSourceAuthService;
 
-    public WebPermissionResourceImpl(WebAuthService authService) {
-        this.authService = authService;
+    public WebPermissionResourceImpl(WebAuthService webAuthService,
+                                     FileSourceAuthService fileSourceAuthService) {
+        this.webAuthService = webAuthService;
+        this.fileSourceAuthService = fileSourceAuthService;
     }
 
     @Override
     public Response<String> getApplyUrl(String username, OperationPermissionReq req) {
         // authService.
-        return null;
-    }
-
-    private ResourceScope getScope(Long bizId, String scopeType, String scopeId) {
-        if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-            return new ResourceScope(scopeType, scopeId);
-        } else if (bizId != null) {
-            return new ResourceScope(ResourceTypeId.BIZ, bizId.toString());
-        }
         return null;
     }
 
@@ -74,19 +65,13 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
 
     @Override
     public Response<AuthResultVO> checkOperationPermission(String username,
-                                                           Long bizId,
+                                                           Long appId,
                                                            String scopeType,
                                                            String scopeId,
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
-        ResourceScope resourceScope = getScope(bizId, scopeType, scopeId);
-        if (resourceScope == null) {
-            return Response.buildCommonFailResp(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"appId/scopeType,scopeId", "appId/scopeType,scopeId cannot be null or empty"}
-            );
-        }
+        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, appId);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -102,25 +87,28 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             case "file_source":
                 switch (action) {
                     case "view":
-                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.VIEW_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            IamUtil.buildScopePathInfo(resourceScope)));
+                        return Response.buildSuccessResp(
+                            webAuthService.toAuthResultVO(fileSourceAuthService.authViewFileSource(
+                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                        );
                     case "create":
-                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.CREATE_FILE_SOURCE, ResourceTypeEnum.BUSINESS, scopeId,
-                            IamUtil.buildScopePathInfo(resourceScope)));
+                        return Response.buildSuccessResp(
+                            webAuthService.toAuthResultVO(fileSourceAuthService.authCreateFileSource(
+                                username, appResourceScope))
+                        );
                     case "edit":
                     case "delete":
-                        return Response.buildSuccessResp(authService.auth(isReturnApplyUrl, username,
-                            ActionId.MANAGE_FILE_SOURCE, ResourceTypeEnum.FILE_SOURCE, resourceId,
-                            IamUtil.buildScopePathInfo(resourceScope)));
+                        return Response.buildSuccessResp(
+                            webAuthService.toAuthResultVO(fileSourceAuthService.authManageFileSource(
+                                username, appResourceScope, Integer.valueOf(resourceId), null))
+                        );
                     default:
-                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
+                        log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
                             returnPermissionDetail);
                 }
                 break;
             default:
-                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, resourceScope, operation, resourceId,
+                log.error("Unknown resource type!|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
                     returnPermissionDetail);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());

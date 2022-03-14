@@ -25,27 +25,99 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
+import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
+import com.tencent.bk.job.manage.service.HostService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RestController
 public class ServiceHostResourceImpl implements ServiceHostResource {
-    private final DSLContext dslContext;
-    private final ApplicationHostDAO hostDAO;
+    private final HostService hostService;
 
     @Autowired
-    public ServiceHostResourceImpl(DSLContext dslContext, ApplicationHostDAO hostDAO) {
-        this.dslContext = dslContext;
-        this.hostDAO = hostDAO;
+    public ServiceHostResourceImpl(HostService hostService) {
+        this.hostService = hostService;
     }
 
     @Override
-    public InternalResponse<Boolean> existHost(long appId, String ip) {
-        return InternalResponse.buildSuccessResp(hostDAO.existsHost(dslContext, appId, ip));
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
+        Long appId,
+        String username,
+        ServiceGetHostStatusByNodeReq req
+    ) {
+        List<AppTopologyTreeNode> treeNodeList = req.getTreeNodeList();
+        List<NodeInfoVO> nodeInfoVOList = hostService.getHostsByNode(username, appId, treeNodeList);
+        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
+        nodeInfoVOList.parallelStream().forEach(nodeInfoVO -> {
+            nodeInfoVO.getIpListStatus().forEach(hostInfoVO -> {
+                ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
+                serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
+                serviceHostStatusDTO.setIp(hostInfoVO.getIp());
+                serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
+                if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
+                    hostStatusDTOList.add(serviceHostStatusDTO);
+                }
+            });
+        });
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
+
+    @Override
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
+        Long appId,
+        String username,
+        ServiceGetHostStatusByDynamicGroupReq req
+    ) {
+        List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
+        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getDynamicGroupHostList(
+            username,
+            appId,
+            dynamicGroupIdList
+        );
+        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
+        dynamicGroupInfoDTOList.parallelStream().forEach(dynamicGroupInfoDTO -> {
+            dynamicGroupInfoDTO.getIpListStatus().forEach(hostInfoVO -> {
+                ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
+                serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
+                serviceHostStatusDTO.setIp(hostInfoVO.getIp());
+                serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
+                if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
+                    hostStatusDTOList.add(serviceHostStatusDTO);
+                }
+            });
+        });
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
+    }
+
+    @Override
+    public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(Long appId, String username,
+                                                                          ServiceGetHostStatusByIpReq req) {
+        List<String> ipList = req.getIpList();
+        List<HostInfoVO> hostInfoVOList = hostService.getHostsByIp(username, appId, null, ipList);
+        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
+        hostInfoVOList.forEach(hostInfoVO -> {
+            ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
+            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
+            serviceHostStatusDTO.setIp(hostInfoVO.getCloudAreaInfo().getId() + ":" + hostInfoVO.getIp());
+            serviceHostStatusDTO.setAlive(hostInfoVO.getAlive());
+            if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
+                hostStatusDTOList.add(serviceHostStatusDTO);
+            }
+        });
+        return InternalResponse.buildSuccessResp(hostStatusDTOList);
+    }
+
 }

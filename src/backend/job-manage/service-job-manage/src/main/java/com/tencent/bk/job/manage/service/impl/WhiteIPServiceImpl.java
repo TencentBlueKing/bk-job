@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -42,7 +42,7 @@ import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.dao.ApplicationInfoDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
@@ -86,7 +86,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private DSLContext dslContext;
     private ActionScopeDAO actionScopeDAO;
     private WhiteIPRecordDAO whiteIPRecordDAO;
-    private ApplicationInfoDAO applicationInfoDAO;
+    private ApplicationDAO applicationDAO;
     private ApplicationService applicationService;
 
     @Autowired
@@ -94,17 +94,16 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         @Qualifier("job-manage-dsl-context") DSLContext dslContext,
         ActionScopeDAO actionScopeDAO,
         WhiteIPRecordDAO whiteIPRecordDAO,
-        ApplicationInfoDAO applicationInfoDAO,
+        ApplicationDAO applicationDAO,
         ApplicationService applicationService,
         MessageI18nService i18nService
     ) {
         this.dslContext = dslContext;
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
-        this.applicationInfoDAO = applicationInfoDAO;
+        this.applicationDAO = applicationDAO;
         this.i18nService = i18nService;
         this.applicationService = applicationService;
-        applicationService.setWhiteIPService(this);
     }
 
     @Override
@@ -187,7 +186,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope) {
-        List<Long> fullAppIds = applicationService.getFullAppIds(appId);
+        List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(appId);
         log.info("appId={}, contains by fullAppIds={}", appId, fullAppIds);
         ActionScopeDTO actionScopeDTO = null;
         if (actionScope != null) {
@@ -324,7 +323,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         if (record.getIpList().size() > 0) {
             cloudAreaId = record.getIpList().get(0).getCloudAreaId();
         }
-        val applicationInfoList = applicationInfoDAO.getAppInfoByIds(record.getAppIdList());
+        val applicationInfoList = applicationDAO.listAppsByAppIds(record.getAppIdList());
         List<AppVO> appVOList = applicationInfoList.stream().map(it -> {
             int appType = -1;
             if (it.getAppType() != null) {
@@ -332,6 +331,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }
             return new AppVO(
                 it.getId(),
+                it.getScope().getType().getValue(),
+                it.getScope().getId(),
                 it.getName(),
                 appType,
                 null,
@@ -388,7 +389,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId) {
         log.info("Input=({},{},{})", appId, ip, cloudAreaId);
         // 1.找出包含当前业务的业务集与全业务
-        List<Long> fullAppIds = applicationService.getFullAppIds(appId);
+        List<Long> fullAppIds = applicationService.getBizSetAppIdsForBiz(appId);
         // 2.再找对应的白名单
         return whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, fullAppIds, ip, cloudAreaId);
     }
@@ -405,8 +406,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             }
             List<Long> appIdList = whiteIPRecordDTO.getAppIdList();
             if (appIdList.size() == 1) {
-                ApplicationInfoDTO applicationInfoDTO = applicationService.getAppInfoById(appIdList.get(0));
-                if (applicationInfoDTO != null && applicationInfoDTO.getAppType() == AppTypeEnum.ALL_APP) {
+                ApplicationDTO applicationDTO = applicationService.getAppByAppId(appIdList.get(0));
+                if (applicationDTO != null && applicationDTO.getAppType() == AppTypeEnum.ALL_APP) {
                     List<WhiteIPIPDTO> whiteIPIPDTOList = whiteIPRecordDTO.getIpList();
                     whiteIPIPDTOList.forEach(whiteIPIPDTO -> {
                         ServiceWhiteIPInfo serviceWhiteIPInfo = new ServiceWhiteIPInfo();

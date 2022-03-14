@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.cache;
 
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 
 public class AppLocalCache {
-    public static ApplicationInfoDTO getCacheApp(long appId) {
+    public static ApplicationDTO getCacheApp(long appId) {
         return null;
     }
 }

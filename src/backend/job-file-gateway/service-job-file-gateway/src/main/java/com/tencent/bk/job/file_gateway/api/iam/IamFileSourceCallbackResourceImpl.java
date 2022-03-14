@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.api.iam;
 
-import com.tencent.bk.job.common.app.AppTransferService;
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
@@ -61,13 +61,13 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     implements IamFileSourceCallbackResource {
 
     private final FileSourceService fileSourceService;
-    private final AppTransferService appTransferService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public IamFileSourceCallbackResourceImpl(FileSourceService fileSourceService,
-                                             AppTransferService appTransferService) {
+                                             AppScopeMappingService appScopeMappingService) {
         this.fileSourceService = fileSourceService;
-        this.appTransferService = appTransferService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Data
@@ -99,7 +99,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     private FileSourceSearchCondition getSearchCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         // 文件源列表实现
-        Long appId = appTransferService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
@@ -193,7 +193,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
             appIdSet.add(fileSourceBasicInfoDTO.getAppId());
         }
         // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = appTransferService.getScopeByAppIds(appIdSet);
+        Map<Long, ResourceScope> appIdScopeMap = appScopeMappingService.getScopeByAppIds(appIdSet);
         for (Integer id : fileSourceIdList) {
             try {
                 // 文件源详情查询实现

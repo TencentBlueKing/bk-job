@@ -27,13 +27,13 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationInfoDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
-import com.tencent.bk.job.manage.service.ApplicationHostService;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.HostService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,21 +47,21 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceSyncResourceImpl implements ServiceSyncResource {
     private final ApplicationService applicationService;
-    private final ApplicationHostService applicationHostService;
+    private final HostService hostService;
     private final SyncService syncService;
 
 
     @Autowired
     public ServiceSyncResourceImpl(ApplicationService applicationService,
-                                   ApplicationHostService applicationHostService, SyncService syncService) {
+                                   HostService hostService, SyncService syncService) {
         this.applicationService = applicationService;
-        this.applicationHostService = applicationHostService;
+        this.hostService = hostService;
         this.syncService = syncService;
     }
 
     @Override
     public List<ServiceApplicationDTO> listAllApps() {
-        List<ApplicationInfoDTO> apps = applicationService.listAllAppsFromLocalDB();
+        List<ApplicationDTO> apps = applicationService.listAllApps();
         if (apps == null) {
             return null;
         }
@@ -69,7 +69,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         return apps.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
 
-    private ServiceApplicationDTO convertToServiceApp(ApplicationInfoDTO appInfo) {
+    private ServiceApplicationDTO convertToServiceApp(ApplicationDTO appInfo) {
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setName(appInfo.getName());
         app.setId(appInfo.getId());
@@ -85,7 +85,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     @Override
     public InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
         try {
-            List<ApplicationHostInfoDTO> hosts = applicationHostService.getHostsByAppId(appId);
+            List<ApplicationHostInfoDTO> hosts = hostService.getHostsByAppId(appId);
             List<ServiceHostInfoDTO> serviceHosts = new ArrayList<>();
             if (hosts != null) {
                 serviceHosts =

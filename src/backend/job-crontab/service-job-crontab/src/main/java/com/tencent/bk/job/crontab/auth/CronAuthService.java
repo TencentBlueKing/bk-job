@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.crontab.auth;
 
-import com.tencent.bk.job.common.app.ResourceScope;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
 
@@ -36,35 +36,35 @@ public interface CronAuthService {
     /**
      * 资源范围下创建定时任务鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param username         用户名
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateCron(String username, ResourceScope resourceScope);
+    AuthResult authCreateCron(String username, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理定时任务鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param cronId        定时任务ID
-     * @param cronName      定时任务名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param cronId           定时任务ID
+     * @param cronName         定时任务名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
     AuthResult authManageCron(String username,
-                              ResourceScope resourceScope,
+                              AppResourceScope appResourceScope,
                               Long cronId,
                               String cronName);
 
     /**
      * 资源范围下管理定时任务批量鉴权
      *
-     * @param username      用户名
-     * @param resourceScope 资源范围
-     * @param cronIdList    定时任务ID列表
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param cronIdList       定时任务ID列表
      * @return 有权限的定时任务ID
      */
     List<Long> batchAuthManageCron(String username,
-                                   ResourceScope resourceScope,
+                                   AppResourceScope appResourceScope,
                                    List<Long> cronIdList);
 }

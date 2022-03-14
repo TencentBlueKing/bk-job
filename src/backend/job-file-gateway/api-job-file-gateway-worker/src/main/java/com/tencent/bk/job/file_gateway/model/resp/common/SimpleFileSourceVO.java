@@ -37,10 +37,16 @@ public class SimpleFileSourceVO {
     @ApiModelProperty("id")
     private Integer id;
     /**
-     * 业务Id
+     * 资源范围类型
      */
-    @ApiModelProperty("业务Id")
-    private Long appId;
+    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
     /**
      * 文件源标识
      */
