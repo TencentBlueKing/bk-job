@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Charsets;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
@@ -43,11 +45,16 @@ import com.tencent.bk.job.upgrader.model.AppInfo;
 import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
+import io.micrometer.core.instrument.util.IOUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 账号使用权限迁移任务
@@ -62,13 +69,16 @@ import java.util.*;
     targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
 public class BizSetAuthMigrationTask extends BaseUpgradeTask {
 
+    private static final String PLACEHOLDER_BIZ_SET_ID = "{{biz_set_id}}";
+    private static final String PLACEHOLDER_BIZ_SET_NAME = "{{biz_set_name}}";
+
     private JobIamHelper jobIamHelper;
     private JobClient jobManageClient;
 
     private IamClient iamClient;
     private EsbIamClient esbIamClient;
-    private List<AppInfo> appInfoList;
-    private Map<Long, String> appInfoMap;
+    private List<AppInfo> bizSetAppInfoList;
+    private Map<Long, String> bizSetAppInfoMap;
 
     private String getJobHostUrlByAddress(String address) {
         if (!address.startsWith("http://") && !address.startsWith("https://")) {
@@ -106,10 +116,10 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
             getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
         );
-        this.appInfoList = getAllBizSetAppInfoFromManage();
-        appInfoMap = new HashMap<>();
-        appInfoList.forEach(appInfo -> {
-            appInfoMap.put(appInfo.getId(), appInfo.getName());
+        this.bizSetAppInfoList = getAllBizSetAppInfoFromManage();
+        bizSetAppInfoMap = new HashMap<>();
+        bizSetAppInfoList.forEach(appInfo -> {
+            bizSetAppInfoMap.put(appInfo.getId(), appInfo.getName());
         });
     }
 
@@ -159,34 +169,30 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
      * @return
      */
     private String getAppNameById(Long appId) {
-        if (appInfoMap.containsKey(appId)) return appInfoMap.get(appId);
+        if (bizSetAppInfoMap.containsKey(appId)) return bizSetAppInfoMap.get(appId);
         return null;
     }
 
     /**
      * 调用权限中心接口进行批量授权
      *
-     * @param policy                  权限策略
-     * @param actions                 授权操作列表
-     * @param esbIamSubject           授权对象
-     * @param esbIamBatchPathResource 批量资源路径
+     * @param esbIamSubject 授权对象
+     * @param actions       授权操作列表
+     * @param resourceList  批量依赖资源路径
      * @return 是否授权成功
      */
     private boolean batchAuth(
-        Policy policy,
-        List<EsbIamAction> actions,
         EsbIamSubject esbIamSubject,
-        EsbIamBatchPathResource esbIamBatchPathResource
+        List<EsbIamAction> actions,
+        List<EsbIamBatchPathResource> resourceList
     ) {
-        List<EsbIamBatchPathResource> resourceList = new ArrayList<>();
-        resourceList.add(esbIamBatchPathResource);
         try {
             List<EsbIamBatchAuthedPolicy> batchAuthedPolicy = getEsbIamClient().batchAuthByPath(actions,
-                esbIamSubject, resourceList, policy.getExpiredAt());
+                esbIamSubject, resourceList, null);
             log.info("batchAuthedPolicy={}", JsonUtils.toJson(batchAuthedPolicy));
             return true;
         } catch (Exception e) {
-            log.error("Fail to auth subject {} to {}", JsonUtils.toJson(policy.getSubject()), policy.getExpiredAt(), e);
+            log.error("Fail to auth subject {} to {}", JsonUtils.toJson(esbIamSubject), JsonUtils.toJson(actions), e);
             return false;
         }
     }
@@ -203,23 +209,198 @@ public class BizSetAuthMigrationTask extends BaseUpgradeTask {
         });
     }
 
+    private void resetResourceListTpl(List<EsbIamBatchPathResource> resourceList) {
+        fillResourceListTpl(resourceList, PLACEHOLDER_BIZ_SET_ID, PLACEHOLDER_BIZ_SET_NAME);
+    }
+
+    private void fillResourceListTpl(List<EsbIamBatchPathResource> resourceList,
+                                     String bizSetId,
+                                     String bizSetName) {
+        for (EsbIamBatchPathResource esbIamBatchPathResource : resourceList) {
+            List<List<EsbIamPathItem>> paths = esbIamBatchPathResource.getPaths();
+            if (CollectionUtils.isEmpty(paths)) {
+                continue;
+            }
+            for (List<EsbIamPathItem> path : paths) {
+                if (CollectionUtils.isEmpty(path)) {
+                    continue;
+                }
+                for (EsbIamPathItem esbIamPathItem : path) {
+                    esbIamPathItem.setId(bizSetId);
+                    esbIamPathItem.setName(bizSetName);
+                }
+            }
+        }
+    }
+
+    private void recordAuthActionResult(boolean result,
+                                        List<String> successActionList,
+                                        List<String> failedActionList,
+                                        String maintainer,
+                                        String bizSetAppStr,
+                                        BatchAuthByPathReq req) {
+        if (result) {
+            log.info(
+                "[Action] Success to auth maintainer:{}, app:{}, actions:{}",
+                maintainer,
+                bizSetAppStr,
+                JsonUtils.toJson(req.getActions())
+            );
+            successActionList.addAll(
+                req.getActions().parallelStream()
+                    .map(EsbIamAction::getId)
+                    .collect(Collectors.toList())
+            );
+        } else {
+            log.warn(
+                "[Action] Fail to auth maintainer:{}, app:{}, actions:{}, resources:{}",
+                maintainer,
+                bizSetAppStr,
+                JsonUtils.toJson(req.getActions()),
+                JsonUtils.toJson(req.getResources())
+            );
+            failedActionList.addAll(
+                req.getActions().parallelStream()
+                    .map(EsbIamAction::getId)
+                    .collect(Collectors.toList())
+            );
+        }
+    }
+
+    private void recordAuthMaintainerResult(List<String> failedActionList,
+                                            List<String> successMaintainerList,
+                                            List<String> failedMaintainerList,
+                                            String maintainer,
+                                            int successActionCount,
+                                            int actionCount,
+                                            String bizSetAppStr
+    ) {
+        // 所有Action全部授权成功
+        if (failedActionList.isEmpty()) {
+            successMaintainerList.add(maintainer);
+            log.info(
+                "[Maintainer] Success to auth maintainer:{} to {} actions of app {}",
+                maintainer,
+                successActionCount,
+                bizSetAppStr
+            );
+        } else {
+            failedMaintainerList.add(maintainer);
+            log.warn(
+                "[Maintainer] Fail to auth maintainer:{} to {}/{} actions of app {}, failed actions:{}",
+                maintainer,
+                failedActionList,
+                actionCount,
+                bizSetAppStr,
+                JsonUtils.toJson(failedActionList)
+            );
+        }
+    }
+
+    private void recordAuthBizSetResult(List<String> failedMaintainerList,
+                                        List<String> successBizSetList,
+                                        List<String> failedBizSetList,
+                                        int successMaintainerCount,
+                                        int maintainerCount,
+                                        String bizSetAppStr
+    ) {
+
+        if (failedMaintainerList.isEmpty()) {
+            successBizSetList.add(bizSetAppStr);
+            log.info(
+                "[BizSet] Success to auth {} maintainers of app {}",
+                successMaintainerCount,
+                bizSetAppStr
+            );
+        } else {
+            failedBizSetList.add(bizSetAppStr);
+            log.warn(
+                "[BizSet] Fail to auth {}/{} maintainers of app {}, failed maintainers:{}",
+                failedMaintainerList.size(),
+                maintainerCount,
+                bizSetAppStr,
+                JsonUtils.toJson(failedMaintainerList)
+            );
+        }
+    }
+
+    private void showGlobalAuthResult(List<String> failedBizSetList,
+                                      List<String> successBizSetList) {
+        if (failedBizSetList.isEmpty()) {
+            log.info(
+                "[Global] Success to auth {} bizSetApps",
+                successBizSetList.size()
+            );
+        } else {
+            log.warn(
+                "[Global] Fail to auth {}/{} bizSetApps, failed bizSetApps:{}",
+                failedBizSetList.size(),
+                bizSetAppInfoList.size(),
+                JsonUtils.toJson(failedBizSetList)
+            );
+        }
+    }
+
     @Override
     public int execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
-        // 1.权限模板数据读取  TODO
-        // List<EsbIamBatchPathResource> resourceList=JsonUtils.fromJson(authTemplateStr, new TypeReference<List<EsbIamBatchPathResource>>() {
-        //});
+        // 1.权限模板数据读取
+        String bizSetTplFileName = "biz_set_auth_template.json";
+        InputStream ins = getClass().getClassLoader().getResourceAsStream(bizSetTplFileName);
+        String authTemplateStr = IOUtils.toString(ins, Charsets.UTF_8);
+        List<BatchAuthByPathReq> reqList = JsonUtils.fromJson(
+            authTemplateStr, new TypeReference<List<BatchAuthByPathReq>>() {
+            });
+        log.info("{} auth request template(s) loaded", reqList.size());
         printSeparateLine();
-
-        printSeparateLine();
-        log.info("Begin to auth according to oldPolicies:");
-        // 2.业务集运维人员授权  TODO
-
-        // 3.新权限策略查询  TODO
-
-        printSeparateLine();
-        log.info("newAuthorizedPolicies:");
-        //showPolicies(newAuthorizedPolicies);
+        log.info("Begin to auth according to job app info:");
+        // 2.业务集运维人员授权
+        List<String> successBizSetList = new ArrayList<>();
+        List<String> failedBizSetList = new ArrayList<>();
+        for (AppInfo bizSetAppInfo : bizSetAppInfoList) {
+            String maintainerStr = bizSetAppInfo.getMaintainers();
+            if (StringUtils.isBlank(maintainerStr)) {
+                log.warn(
+                    "maintainer is blank, app:{},{}, ignore",
+                    bizSetAppInfo.getId(),
+                    bizSetAppInfo.getName()
+                );
+                continue;
+            }
+            String[] maintainers = maintainerStr.split("[,;]");
+            List<String> maintainerList = new ArrayList<>();
+            for (String maintainer : maintainers) {
+                if (!maintainerList.contains(maintainer)) {
+                    maintainerList.add(maintainer);
+                }
+            }
+            List<String> successMaintainerList = new ArrayList<>();
+            List<String> failedMaintainerList = new ArrayList<>();
+            for (String maintainer : maintainerList) {
+                EsbIamSubject esbIamSubject = new EsbIamSubject("user", maintainer);
+                List<String> successActionList = new ArrayList<>();
+                List<String> failedActionList = new ArrayList<>();
+                int actionCount = 0;
+                for (BatchAuthByPathReq req : reqList) {
+                    actionCount += req.getActions().size();
+                    boolean result = batchAuth(esbIamSubject, req.getActions(), req.getResources());
+                    recordAuthActionResult(
+                        result, successActionList, failedActionList,
+                        maintainer, bizSetAppInfo.getIdAndName(), req
+                    );
+                }
+                recordAuthMaintainerResult(
+                    failedActionList, successMaintainerList, failedMaintainerList,
+                    maintainer, successActionList.size(), actionCount, bizSetAppInfo.getIdAndName()
+                );
+            }
+            recordAuthBizSetResult(
+                failedMaintainerList, successBizSetList, failedBizSetList,
+                successMaintainerList.size(), maintainerList.size(), bizSetAppInfo.getIdAndName()
+            );
+        }
+        showGlobalAuthResult(failedBizSetList, successBizSetList);
+        log.info("auth bizSetApps finished!");
         printSeparateLine();
         return 0;
     }

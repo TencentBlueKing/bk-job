@@ -30,7 +30,11 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
 public class EsbIamAction {
     private String id;
+
+    @Override
+    public String toString() {
+        return id;
+    }
 }
