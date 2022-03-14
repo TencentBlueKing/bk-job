@@ -521,7 +521,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "根据脚本ID/脚本版本ID获取脚本引用信息", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}//citeInfo")
+    @GetMapping("/scope/{scopeType}/{scopeId}/citeInfo")
     Response<ScriptCiteInfoVO> getScriptCiteInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -562,7 +562,7 @@ public interface WebScriptResource {
     );
 
     @ApiOperation(value = "获取业务下标签关联的脚本数量", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}/tags/scriptCount")
+    @GetMapping("/scope/{scopeType}/{scopeId}/tag/count")
     Response<TagCountVO> getTagScriptCount(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
