@@ -370,7 +370,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         resultPageData.setData(resultScripts);
 
         processPermissionForList(username, appResourceScope, resultPageData);
-        processAnyScriptExistFlag(appResourceScope.getAppId(), publicScript, resultPageData);
+        processAnyScriptExistFlag(appResourceScope, publicScript, resultPageData);
 
         return Response.buildSuccessResp(resultPageData);
     }
@@ -397,11 +397,12 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
     }
 
-    private void processAnyScriptExistFlag(Long appId, Boolean publicScript, PageData resultPageData) {
+    private void processAnyScriptExistFlag(AppResourceScope appResourceScope, Boolean publicScript,
+                                           PageData resultPageData) {
         if (publicScript != null && publicScript) {
             resultPageData.setExistAny(scriptService.isExistAnyPublicScript());
         } else {
-            resultPageData.setExistAny(scriptService.isExistAnyAppScript(appId));
+            resultPageData.setExistAny(scriptService.isExistAnyAppScript(appResourceScope.getAppId()));
         }
     }
 
@@ -1144,6 +1145,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                                   AppResourceScope appResourceScope,
                                                   String scopeType,
                                                   String scopeId) {
-        return Response.buildSuccessResp(scriptService.getTagScriptCount(appResourceScope.getAppId()));
+        Long appId = appResourceScope != null ? appResourceScope.getAppId() : PUBLIC_APP_ID;
+        return Response.buildSuccessResp(scriptService.getTagScriptCount(appId));
     }
 }
