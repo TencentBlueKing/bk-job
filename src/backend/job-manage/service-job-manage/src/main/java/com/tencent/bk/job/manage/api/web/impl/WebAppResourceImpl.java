@@ -99,7 +99,13 @@ public class WebAppResourceImpl implements WebAppResource {
         // 可用的普通业务
         List<AppResourceScope> authorizedAppResourceScopes = appResourceScopeResult.getAppResourceScopeList();
         List<Long> authorizedAppIdList = authorizedAppResourceScopes.stream()
-            .map(AppResourceScope::getAppId).collect(Collectors.toList());
+            .map(appResourceScope -> {
+                if (appResourceScope.getAppId() != null) {
+                    return appResourceScope.getAppId();
+                }
+                return appScopeMappingService.getAppIdByScope(
+                    appResourceScope.getType().getValue(), appResourceScope.getId());
+            }).collect(Collectors.toList());
         // 所有可用的AppId
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
