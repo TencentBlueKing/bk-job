@@ -143,6 +143,21 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
         List<Rule> rules = new ArrayList<>();
         // 指定所有子业务ID
         List<Long> subAppIds = appInfo.getSubAppIds();
+        if (subAppIds == null) {
+            subAppIds = new ArrayList<>();
+        }
+        // 指定业务所属部门ID
+        Long operateDeptId = appInfo.getOperateDeptId();
+        // 空业务集
+        if (CollectionUtils.isEmpty(subAppIds) && operateDeptId == null) {
+            Rule subAppIdsRule = new Rule();
+            subAppIdsRule.setField("bk_biz_id");
+            subAppIdsRule.setOperator(Rule.OPERATOR_IN);
+            subAppIdsRule.setValue(subAppIds);
+            rules.add(subAppIdsRule);
+            filter.setRules(rules);
+            return filter;
+        }
         if (!CollectionUtils.isEmpty(subAppIds)) {
             Rule subAppIdsRule = new Rule();
             subAppIdsRule.setField("bk_biz_id");
@@ -150,8 +165,6 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             subAppIdsRule.setValue(subAppIds);
             rules.add(subAppIdsRule);
         }
-        // 指定业务所属部门ID
-        Long operateDeptId = appInfo.getOperateDeptId();
         if (operateDeptId != null) {
             Rule operateDeptIdRule = new Rule();
             operateDeptIdRule.setField("bk_operate_dept_id");
