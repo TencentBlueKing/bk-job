@@ -58,7 +58,7 @@ public interface ServiceApplicationResource {
      *
      * @return 业务集、全业务列表
      */
-    @RequestMapping("/list/bizSet")
+    @RequestMapping("/app/list/bizSet")
     InternalResponse<List<ServiceApplicationDTO>> listBizSetApps();
 
     /**

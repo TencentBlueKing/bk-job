@@ -39,14 +39,14 @@ public class IamAppTransferAspect {
     }
 
     @Around("processAuthBusinessAction() || processAuthResourceAction() || processBatchAuthResourceAction()")
-    public Object logBeforeProcessCallbackRequest(ProceedingJoinPoint pjp) throws Throwable {
+    public Object fillAppResourceScopeBeforeAuth(ProceedingJoinPoint pjp) throws Throwable {
         try {
             Object[] args = pjp.getArgs();
             for (Object arg : args) {
                 if (arg instanceof AppResourceScope) {
                     AppResourceScope appResourceScope = (AppResourceScope) arg;
                     log.debug("before appTransfer:scope={}", appResourceScope);
-                    appScopeMappingService.fillResourceScope(appResourceScope);
+                    appScopeMappingService.fillAppResourceScope(appResourceScope);
                     log.debug("after  appTransfer:scope={}", appResourceScope);
                 }
             }

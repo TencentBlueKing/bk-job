@@ -38,6 +38,16 @@ public class AppInfo {
     private Long id;
 
     /**
+     * 资源范围类型
+     */
+    private String scopeType;
+
+    /**
+     * 资源范围ID,比如cmdb业务ID、cmdb业务集ID
+     */
+    private String scopeId;
+
+    /**
      * 业务名称
      */
     private String name;
@@ -73,4 +83,8 @@ public class AppInfo {
      * 语言
      */
     private String language;
+
+    public String getIdAndName() {
+        return "(" + getId() + "," + getName() + ")";
+    }
 }
