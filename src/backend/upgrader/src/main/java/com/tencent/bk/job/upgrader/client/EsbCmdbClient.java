@@ -79,6 +79,7 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
         List<Rule> rules = new ArrayList<>();
         rules.add(new Rule(FIELD_KEY_BIZ_SET_ID, Rule.OPERATOR_EQUAL, id));
         filter.setRules(rules);
+        req.setFilter(filter);
         EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
             HttpGet.METHOD_NAME,
             SEARCH_BUSINESS_SET,
