@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
@@ -73,16 +74,19 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
     private final HostService hostService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
-                              HostService hostService) {
+                              HostService hostService,
+                              AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.hostService = hostService;
         this.appAuthService = appAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override

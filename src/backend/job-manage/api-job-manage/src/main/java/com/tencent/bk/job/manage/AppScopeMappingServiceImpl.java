@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.manage;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -39,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,7 +54,7 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
      * appId 与 resourceScope 的映射关系缓存
      * 由于appId与resourceScope映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
      */
-    private final Cache<Long, ResourceScope> appIdAndScopeCache =
+    private final LoadingCache<Long, ResourceScope> appIdAndScopeCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
             .build(new CacheLoader<Long, ResourceScope>() {
                        @Override
@@ -74,7 +77,7 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
      * resourceScope 与 appId 的映射关系缓存
      * 由于resourceScope与appId映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
      */
-    private final Cache<ResourceScope, Long> scopeAndAppIdCache =
+    private final LoadingCache<ResourceScope, Long> scopeAndAppIdCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.DAYS)
             .build(new CacheLoader<ResourceScope, Long>() {
                        @Override
@@ -103,7 +106,12 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     }
 
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return scopeAndAppIdCache.getIfPresent(resourceScope);
+        try {
+            return scopeAndAppIdCache.get(resourceScope);
+        } catch (ExecutionException e) {
+            log.error("Get appId from cache error", e);
+            throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
+        }
     }
 
     @Override
@@ -112,7 +120,12 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     }
 
     public ResourceScope getScopeByAppId(Long appId) {
-        return appIdAndScopeCache.getIfPresent(appId);
+        try {
+            return appIdAndScopeCache.get(appId);
+        } catch (ExecutionException e) {
+            log.error("Get scope from cache error", e);
+            throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
+        }
     }
 
     @Override
