@@ -64,7 +64,7 @@
                             }"
                             :key="app.id"
                             :permission="app.hasPermission"
-                            :resource-id="app.id"
+                            :resource-id="app.scopeId"
                             :scope-type="app.scopeType"
                             :scope-id="app.scopeId"
                             auth="biz/access_business">
