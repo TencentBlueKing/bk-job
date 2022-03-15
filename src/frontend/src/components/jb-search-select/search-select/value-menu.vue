@@ -288,19 +288,19 @@
                 // 显示错误
                 if (this.error) {
                     return (
-                    <div class="jb-bk-search-list-error">{ this.error }</div>
+                    <div class="search-error">{ this.error }</div>
                     );
                 }
                 // 显示loading
                 if (this.loading) {
                     return (
-                    <div class="jb-bk-search-list-loading">{ this.searchSelect.remoteLoadingText }</div>
+                    <div class="search-loading">{ this.searchSelect.remoteLoadingText }</div>
                     );
                 }
                 // 列表为空
                 if (this.needRender && !this.list.length) {
                     return (
-                    <div class="jb-bk-search-list-loading">{ this.searchSelect.remoteEmptyText }</div>
+                    <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
                     );
                 }
 
@@ -309,13 +309,13 @@
                     const { primaryKey } = this.searchSelect;
 
                     return (
-                    <ul ref="list" class="jb-bk-search-list-menu">
+                    <ul ref="list" class="search-menu">
                         { this.list.map((item, index) => {
                             const id = item[primaryKey];
                                 
                             return (
                                 <li class={{
-                                    'jb-bk-search-list-menu-item': true,
+                                    'search-menu-item': true,
                                     'is-group': !!item.isGroup,
                                     'is-disabled': item.disabled,
                                     active: this.activeIndex === index,
@@ -346,7 +346,7 @@
                         disabled: Object.keys(this.checkeMap).length < 1,
                     };
                     return (
-                    <div class="jb-bk-search-list-footer">
+                    <div class="search-list-footer">
                         <div class={submitBtnClasses} onClick={this.handleSubmit}>
                             {locale.t('bk.searchSelect.ok')}
                         </div>

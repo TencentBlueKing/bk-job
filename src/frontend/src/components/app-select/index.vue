@@ -65,6 +65,8 @@
                             :key="app.id"
                             :permission="app.hasPermission"
                             :resource-id="app.id"
+                            :scope-type="app.scopeType"
+                            :scope-id="app.scopeId"
                             auth="biz/access_business">
                             <div
                                 @mouseenter.self="handleMouseenter(index)"

@@ -32,9 +32,7 @@ import './style.css';
 export default {
     props: {
         permission: {
-            type: [
-                Boolean, String,
-            ],
+            type: [Boolean, String],
             default: '',
         },
         auth: {
@@ -46,6 +44,8 @@ export default {
                 Number, String,
             ],
         },
+        scopeType: String,
+        scopeId: String,
     },
     data () {
         return {
@@ -113,6 +113,8 @@ export default {
             permissionDialog({
                 operation: this.auth,
                 resourceId: this.resourceId,
+                scopeType: this.scopeType,
+                scopeId: this.scopeId,
             }, this.authResult);
         },
     },

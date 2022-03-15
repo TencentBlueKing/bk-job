@@ -64,6 +64,8 @@
                     Number, String,
                 ],
             },
+            scopeType: String,
+            scopeId: String,
         },
         data () {
             return {
@@ -131,9 +133,10 @@
                     return;
                 }
                 permissionDialog({
-                    isPublicScript: this.isPublicScript,
                     operation: this.auth,
                     resourceId: this.resourceId,
+                    scopeType: this.scopeType,
+                    scopeId: this.scopeId,
                 }, this.authResult);
             },
         },
