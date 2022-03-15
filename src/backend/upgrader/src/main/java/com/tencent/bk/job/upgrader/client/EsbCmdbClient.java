@@ -25,6 +25,7 @@
 package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.upgrader.model.cmdb.BizSetFilter;
@@ -44,13 +45,24 @@ import java.util.List;
 @Slf4j
 public class EsbCmdbClient extends AbstractEsbSdkClient {
 
+    private final String cmdbSupplierAccount;
+
     private static final String FIELD_KEY_BIZ_SET_ID = "bk_biz_set_id";
 
     private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/search_business_set/";
     private static final String CREATE_BUSINESS_SET = "/api/c/compapi/v2/cc/create_business_set/";
 
-    public EsbCmdbClient(String esbHostUrl, String appCode, String appSecret, String lang) {
+    public EsbCmdbClient(String esbHostUrl,
+                         String appCode,
+                         String appSecret,
+                         String lang,
+                         String cmdbSupplierAccount) {
         super(esbHostUrl, appCode, appSecret, lang, false);
+        this.cmdbSupplierAccount = cmdbSupplierAccount;
+    }
+
+    public <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {
+        return makeBaseReqByWeb(reqClass, null, "admin", cmdbSupplierAccount);
     }
 
     /**
@@ -60,7 +72,7 @@ public class EsbCmdbClient extends AbstractEsbSdkClient {
      * @return 业务集信息
      */
     public List<BizSetInfo> searchBizSetById(Long id) {
-        SearchBizSetReq req = new SearchBizSetReq();
+        SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
         req.setPage(new Page());
         BizSetFilter filter = new BizSetFilter();
         filter.setCondition(BizSetFilter.CONDITION_AND);

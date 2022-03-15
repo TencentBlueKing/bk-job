@@ -100,6 +100,8 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
         String securityPrivateKeyBase64 =
             (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+        String cmdbSupplierAccount =
+            (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
         JwtManager jwtManager;
         try {
             jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
@@ -114,7 +116,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
             getJobHostUrlByAddress((String) properties.get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
             jobAuthToken
         );
-        esbCmdbClient = new EsbCmdbClient(esbBaseUrl, appCode, appSecret, "zh-cn");
+        esbCmdbClient = new EsbCmdbClient(esbBaseUrl, appCode, appSecret, "zh-cn", cmdbSupplierAccount);
         // 从job-manage拉取业务集/全业务信息
         this.bizSetAppInfoList = getAllBizSetAppInfoFromManage();
     }
@@ -179,7 +181,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
      * @param appInfo 业务集/全业务信息
      */
     private boolean createCMDBResourceForApp(AppInfo appInfo) {
-        CreateBizSetReq createBizSetReq = new CreateBizSetReq();
+        CreateBizSetReq createBizSetReq = esbCmdbClient.makeCmdbBaseReq(CreateBizSetReq.class);
         String desc = "Auto created by bk-job migration";
         String supplierAccount = (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_CMDB_DEFAULT_SUPPLIER_ACCOUNT);
         BizSetAttr attr = BizSetAttr.builder()
