@@ -22,53 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.rule;
+package com.tencent.bk.job.common.esb.validate;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 处理动作枚举,1:扫描,2:拦截
+ * EsbAppScopeReq 参数联合校验
  */
-@Getter
-public enum HighRiskGrammarActionEnum {
-    SCAN(1, "scan"), INTERCEPT(2, "intercept");
+@Slf4j
+public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequenceProvider<EsbAppScopeReq> {
 
-    private final Integer code;
-    private final String name;
-
-    HighRiskGrammarActionEnum(Integer code, String name) {
-        this.code = code;
-        this.name = name;
-    }
-
-    public static String getName(Integer type) {
-        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
-            if (highRiskGrammarActionEnum.code.equals(type)) {
-                return highRiskGrammarActionEnum.getName();
+    @Override
+    public List<Class<?>> getValidationGroups(EsbAppScopeReq req) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbAppScopeReq.class);
+        if (req != null) {
+            boolean isExistScopeParam = StringUtils.isNotEmpty(req.getScopeType()) &&
+                StringUtils.isNotEmpty(req.getScopeId());
+            boolean isExistAppIdParam = req.getAppId() != null;
+            if (isExistScopeParam) {
+                validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
+            } else if (isExistAppIdParam) {
+                validationGroups.add(EsbAppScopeReq.UseAppIdParam.class);
             }
         }
-        return "";
+        log.debug("EsbAppScopeReqGroupSequenceProvider -> req: {}, groups: {}", req, validationGroups);
+        return validationGroups;
     }
-
-    public static HighRiskGrammarActionEnum valueOf(Integer type) {
-        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
-            if (highRiskGrammarActionEnum.code.equals(type)) {
-                return highRiskGrammarActionEnum;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 判断参数合法性
-     */
-    public static boolean isValid(Integer code) {
-        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : HighRiskGrammarActionEnum.values()) {
-            if (highRiskGrammarActionEnum.getCode().equals(code)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

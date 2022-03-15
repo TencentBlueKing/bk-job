@@ -26,37 +26,49 @@ package com.tencent.bk.job.common.esb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.esb.validate.EsbAppScopeReqGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 
 @Setter
 @Getter
 @ToString
+@GroupSequenceProvider(EsbAppScopeReqGroupSequenceProvider.class)
 public class EsbAppScopeReq extends EsbReq {
     /**
      * 业务ID
      */
     @CompatibleImplementation(explain = "兼容字段", version = "3.6.x")
     @JsonProperty("bk_biz_id")
+    @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}", groups = UseAppIdParam.class)
     private Long appId;
 
     /**
      * 资源范围类型
      */
     @JsonProperty("bk_scope_type")
+    @CheckEnum(enumClass = ResourceScopeTypeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.InvalidBkScopeType.message}", groups = UseScopeParam.class)
     private String scopeType;
 
     /**
      * 资源范围ID
      */
     @JsonProperty("bk_scope_id")
+    @NotBlank(message = "{validation.constraints.InvalidBkScopeId.message}", groups = UseScopeParam.class)
     private String scopeId;
 
-    interface UseAppIdParam {
+    public interface UseAppIdParam {
     }
 
-    interface UseScopeParam {
+    public interface UseScopeParam {
     }
 
 }

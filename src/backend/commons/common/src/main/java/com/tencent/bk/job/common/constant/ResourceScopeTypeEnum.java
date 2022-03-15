@@ -61,4 +61,8 @@ public enum ResourceScopeTypeEnum {
     public String getValue() {
         return value;
     }
+
+    public boolean isValid(String type) {
+        return from(type) == null;
+    }
 }
