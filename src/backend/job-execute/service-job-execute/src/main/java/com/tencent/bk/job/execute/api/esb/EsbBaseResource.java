@@ -28,10 +28,12 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * ESB API 基础服务类
@@ -39,26 +41,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public class EsbBaseResource {
 
-    @Autowired
     protected AppScopeMappingService appScopeMappingService;
 
+    @Autowired
+    @Lazy
     public void setAppScopeMappingService(AppScopeMappingService appScopeMappingService) {
         this.appScopeMappingService = appScopeMappingService;
     }
 
     /**
-     * 通过ESB请求构建AppResourceScope,包含Job业务ID,资源范围类型，资源范围ID
-     *
-     * @param appScopeReq ESB 请求
-     * @return Job业务ID, 资源范围类型，资源范围ID
+     * 补全ESB 请求中的appId/scopeType/scopeId
+     * @param appScopeReq 请求
      */
-    protected AppResourceScope buildAppResourceScope(EsbAppScopeReq appScopeReq) {
-        if (StringUtils.isNotEmpty(appScopeReq.getScopeType()) &&
-            StringUtils.isNotEmpty(appScopeReq.getScopeId())) {
-            return appScopeMappingService.getAppResourceScope(null,
-                appScopeReq.getScopeType(), appScopeReq.getScopeId());
-        } else if (appScopeReq.getAppId() != null) {
-            return appScopeMappingService.getAppResourceScope(appScopeReq.getAppId(), null, null);
+    protected void fillAppResourceScope(EsbAppScopeReq appScopeReq) {
+        boolean isExistScopeParam = StringUtils.isNotEmpty(appScopeReq.getScopeType()) &&
+            StringUtils.isNotEmpty(appScopeReq.getScopeId());
+        boolean isExistAppIdParam = appScopeReq.getAppId() != null;
+        if (isExistScopeParam) {
+            Long appId = appScopeMappingService.getAppIdByScope(appScopeReq.getScopeType(), appScopeReq.getScopeId());
+            appScopeReq.setAppId(appId);
+        } else if (isExistAppIdParam) {
+            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appScopeReq.getAppId());
+            appScopeReq.setScopeType(resourceScope.getType().getValue());
+            appScopeReq.setScopeId(resourceScope.getId());
         } else {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
                 new String[]{"bk_biz_id/bk_scope_type/bk_scope_id"});

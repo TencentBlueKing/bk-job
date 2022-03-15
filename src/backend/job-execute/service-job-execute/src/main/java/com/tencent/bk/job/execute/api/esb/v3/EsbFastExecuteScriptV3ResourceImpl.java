@@ -75,6 +75,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_fast_execute_script"})
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(EsbFastExecuteScriptV3Request request)
         throws ServiceException {
+        fillAppResourceScope(request);
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");
@@ -107,12 +108,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         boolean isSpecifiedByScriptVersionId = request.getScriptVersionId() != null;
         boolean isSpecifiedByOnlineScript = StringUtils.isNotEmpty(request.getScriptId());
         boolean isSpecifiedByScriptContent = StringUtils.isNotEmpty(request.getContent());
-        Long appId = request.getAppId();
 
-        if (appId == null || appId < 1L) {
-            log.warn("Fast execute script, bk_biz_id is invalid! bk_biz_id={}", appId);
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (!(isSpecifiedByScriptVersionId || isSpecifiedByOnlineScript || isSpecifiedByScriptContent)) {
             log.warn("Fast execute script, script is not specified!");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
