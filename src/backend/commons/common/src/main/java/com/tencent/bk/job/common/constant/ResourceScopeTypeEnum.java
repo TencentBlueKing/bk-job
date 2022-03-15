@@ -62,7 +62,7 @@ public enum ResourceScopeTypeEnum {
         return value;
     }
 
-    public boolean isValid(String type) {
+    public static boolean isValid(String type) {
         return from(type) != null;
     }
 }
