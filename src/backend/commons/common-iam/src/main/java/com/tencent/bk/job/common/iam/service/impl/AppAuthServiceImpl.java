@@ -104,16 +104,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
 
     public boolean authSpecialAppByMaintainer(String username, AppResourceScope appResourceScope) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo =
-                resourceAppInfoQueryService.getResourceAppInfo(ResourceTypeEnum.BUSINESS,
-                    appResourceScope.getAppId().toString());
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                return resourceAppInfo.getMaintainerList().contains(username);
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
+        // TODO:灰度开启
         return false;
     }
 

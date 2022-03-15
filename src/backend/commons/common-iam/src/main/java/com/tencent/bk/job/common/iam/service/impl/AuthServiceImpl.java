@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
@@ -43,7 +42,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -113,14 +111,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
                                               String resourceId) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                return resourceAppInfo.getMaintainerList().contains(username);
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
+        // TODO:灰度开启
         return false;
     }
 
