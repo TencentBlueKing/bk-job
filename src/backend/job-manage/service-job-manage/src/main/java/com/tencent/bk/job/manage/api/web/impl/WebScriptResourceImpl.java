@@ -186,9 +186,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return true;
         }
 
-        AuthResult authResult = checkScriptManagePermission(username,
-            appScopeMappingService.getAppResourceScope(script.getAppId(), null, null),
-            script.getId());
+        AuthResult authResult = checkScriptManagePermission(username, null, script.getId());
         if (authResult.isPass()) {
             return true;
         } else {
@@ -372,7 +370,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         resultPageData.setData(resultScripts);
 
         processPermissionForList(username, appResourceScope, resultPageData);
-        processAnyScriptExistFlag(appResourceScope.getAppId(), publicScript, resultPageData);
+        processAnyScriptExistFlag(appResourceScope, publicScript, resultPageData);
 
         return Response.buildSuccessResp(resultPageData);
     }
@@ -399,17 +397,18 @@ public class WebScriptResourceImpl implements WebScriptResource {
         }
     }
 
-    private void processAnyScriptExistFlag(Long appId, Boolean publicScript, PageData resultPageData) {
+    private void processAnyScriptExistFlag(AppResourceScope appResourceScope, Boolean publicScript,
+                                           PageData resultPageData) {
         if (publicScript != null && publicScript) {
             resultPageData.setExistAny(scriptService.isExistAnyPublicScript());
         } else {
-            resultPageData.setExistAny(scriptService.isExistAnyAppScript(appId));
+            resultPageData.setExistAny(scriptService.isExistAnyAppScript(appResourceScope.getAppId()));
         }
     }
 
     private void processPermissionForList(String username, AppResourceScope appResourceScope,
                                           PageData<ScriptVO> resultPageData) {
-        boolean isQueryPublicScript = (appResourceScope.getAppId() == PUBLIC_APP_ID);
+        boolean isQueryPublicScript = (appResourceScope == null);
         if (isQueryPublicScript) {
             resultPageData.setCanCreate(
                 noResourceScopeAuthService.authCreatePublicScript(username).isPass()
@@ -533,7 +532,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(appResourceScope.getAppId());
         scriptQuery.setIds(scriptIds);
-        scriptQuery.setPublicScript(appResourceScope.getAppId() == PUBLIC_APP_ID);
+        scriptQuery.setPublicScript(appResourceScope == null);
         List<ScriptDTO> scripts = scriptService.listScripts(scriptQuery);
         if (CollectionUtils.isNotEmpty(scripts)) {
             scripts = scripts.stream().filter(script -> script.getAppId().equals(appResourceScope.getAppId()))
@@ -897,7 +896,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     private AuthResult checkScriptViewPermission(String username, AppResourceScope appResourceScope, String scriptId) {
-        boolean isPublicScript = (appResourceScope.getAppId() == PUBLIC_APP_ID);
+        boolean isPublicScript = (appResourceScope == null);
         if (isPublicScript) {
             // 公共脚本默认公开，无需查看权限
             return AuthResult.pass();
@@ -1094,7 +1093,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return Response.buildValidateFailResp(validateResult);
         }
 
-        boolean isPublicScript = appResourceScope.getAppId() == PUBLIC_APP_ID;
+        boolean isPublicScript = appResourceScope == null;
         List<String> scriptIdList = req.getIdList();
         AuthResult authResult;
         if (isPublicScript) {
@@ -1109,7 +1108,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
 
         List<ResourceTagDTO> addResourceTags = null;
         List<ResourceTagDTO> deleteResourceTags = null;
-        Integer resourceType = appResourceScope.getAppId() == PUBLIC_APP_ID ?
+        Integer resourceType = appResourceScope == null ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
@@ -1146,6 +1145,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                                   AppResourceScope appResourceScope,
                                                   String scopeType,
                                                   String scopeId) {
-        return Response.buildSuccessResp(scriptService.getTagScriptCount(appResourceScope.getAppId()));
+        Long appId = appResourceScope != null ? appResourceScope.getAppId() : PUBLIC_APP_ID;
+        return Response.buildSuccessResp(scriptService.getTagScriptCount(appId));
     }
 }

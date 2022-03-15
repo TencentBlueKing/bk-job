@@ -55,13 +55,13 @@ import java.util.List;
  * @date 2019/10/10
  */
 @Api(tags = {"job-manage:web:Tag_Management"})
-@RequestMapping("/web")
+@RequestMapping("/web/tag")
 @RestController
 @WebAPI
 public interface WebTagResource {
 
     @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
-    @GetMapping(value = {"/tag/app/{appId}/tag/list", "/scope/{scopeType}/{scopeId}/tag/list"})
+    @GetMapping(value = {"/app/{appId}/tag/list", "/scope/{scopeType}/{scopeId}/tag/list"})
     Response<PageData<TagVO>> listPageTags(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -99,7 +99,7 @@ public interface WebTagResource {
     );
 
     @ApiOperation(value = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)", produces = "application/json")
-    @GetMapping(value = {"/tag/app/{appId}/tag/basic/list", "/scope/{scopeType}/{scopeId}/tag/basic/list"})
+    @GetMapping(value = {"/app/{appId}/tag/basic/list", "/scope/{scopeType}/{scopeId}/tag/basic/list"})
     Response<List<TagVO>> listTagsBasic(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,

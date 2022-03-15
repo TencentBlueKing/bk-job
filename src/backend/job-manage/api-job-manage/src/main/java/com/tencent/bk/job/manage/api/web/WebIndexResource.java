@@ -48,7 +48,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.List;
 
 @Api(tags = {"job-manage:web:Index"})
-@RequestMapping("/web/scope/{scopeType}/{scopeId}/index")
+@RequestMapping("/web/index/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebIndexResource {
