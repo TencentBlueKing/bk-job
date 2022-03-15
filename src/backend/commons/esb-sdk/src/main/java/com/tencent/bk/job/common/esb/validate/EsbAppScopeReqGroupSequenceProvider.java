@@ -43,16 +43,12 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
         List<Class<?>> validationGroups = new ArrayList<>();
         validationGroups.add(EsbAppScopeReq.class);
         if (req != null) {
-            boolean isExistScopeParam = StringUtils.isNotEmpty(req.getScopeType()) &&
-                StringUtils.isNotEmpty(req.getScopeId());
-            boolean isExistAppIdParam = req.getAppId() != null;
-            if (isExistScopeParam) {
+            if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
-            } else if (isExistAppIdParam) {
+            } else if (req.getAppId() != null) {
                 validationGroups.add(EsbAppScopeReq.UseAppIdParam.class);
             }
         }
-        log.debug("EsbAppScopeReqGroupSequenceProvider -> req: {}, groups: {}", req, validationGroups);
         return validationGroups;
     }
 }
