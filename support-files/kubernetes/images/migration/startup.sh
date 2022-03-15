@@ -47,13 +47,13 @@ function migrateIamModel(){
 echo "BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED=${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}"
 if [[ "${BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED}" == "true" ]];then
   migrateMySQL
-elif
+else
   echo "skip migrateMySQL"
 fi
 
 echo "BK_JOB_MIGRATION_IAM_MODEL_ENABLED=${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}"
 if [[ "${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}" == "true" ]];then
   migrateIamModel
-elif
+else
   echo "skip migrateIamModel"
 fi
