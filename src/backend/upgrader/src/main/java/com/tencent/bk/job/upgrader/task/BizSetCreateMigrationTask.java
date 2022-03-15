@@ -138,7 +138,7 @@ public class BizSetCreateMigrationTask extends BaseUpgradeTask {
      */
     private BizSetFilter buildAppSetFilter(AppInfo appInfo) {
         BizSetFilter filter = new BizSetFilter();
-        filter.setCondition(BizSetFilter.CONDITION_OR);
+        filter.setCondition(BizSetFilter.CONDITION_AND);
 
         List<Rule> rules = new ArrayList<>();
         // 指定所有子业务ID
