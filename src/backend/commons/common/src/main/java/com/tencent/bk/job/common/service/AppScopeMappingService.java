@@ -66,6 +66,11 @@ public interface AppScopeMappingService {
 
     default void fillResourceScope(AppResourceScope appResourceScope) {
         if (appResourceScope.getType() != null && StringUtils.isNotBlank(appResourceScope.getId())) {
+            if (appResourceScope.getAppId() == null) {
+                appResourceScope.setAppId(
+                    getAppIdByScope(appResourceScope.getType().getValue(), appResourceScope.getId())
+                );
+            }
             return;
         }
         if (appResourceScope.getAppId() != null) {
