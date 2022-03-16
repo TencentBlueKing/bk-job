@@ -25,13 +25,12 @@
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 
 @Data
-public class EsbScriptV3DTO {
+public class EsbScriptV3DTO extends EsbAppScopeDTO {
     private String id;
-    @JsonProperty("bk_biz_id")
-    private Long appId;
 
     private String name;
 

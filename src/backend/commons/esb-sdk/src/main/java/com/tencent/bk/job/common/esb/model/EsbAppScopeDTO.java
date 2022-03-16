@@ -22,23 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v2.request;
+package com.tencent.bk.job.common.esb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * get_job_instance_log,根据作业实例ID查询作业执行日志请求
+ * 资源范围-ESB DTO
  */
-@Getter
 @Setter
-public class EsbGetJobInstanceLogRequest extends EsbAppScopeReq {
+@Getter
+@ToString
+public class EsbAppScopeDTO {
+    /**
+     * 兼容字段,表示cmdb 业务/业务集ID
+     */
+    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", version = "3.6.x")
+    @JsonProperty("bk_biz_id")
+    private Long bkBizId;
 
     /**
-     * 作业执行实例 ID
+     * 资源范围类型
      */
-    @JsonProperty("job_instance_id")
-    private Long taskInstanceId;
+    @JsonProperty("bk_scope_type")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @JsonProperty("bk_scope_id")
+    private String scopeId;
 }

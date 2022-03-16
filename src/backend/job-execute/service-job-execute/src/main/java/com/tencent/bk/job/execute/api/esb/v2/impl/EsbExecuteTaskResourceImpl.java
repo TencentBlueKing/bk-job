@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbExecuteTaskResource;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -59,14 +60,20 @@ import java.util.List;
 public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implements EsbExecuteTaskResource {
 
     private final TaskExecuteService taskExecuteService;
+    private final AppScopeMappingService appScopeMappingService;
+
     @Autowired
-    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
+    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
+                                      AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_execute_job"})
     public EsbResp<EsbJobExecuteDTO> executeJob(EsbExecuteJobRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         if (!checkResult.isPass()) {

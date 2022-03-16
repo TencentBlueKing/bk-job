@@ -22,23 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v2.request;
+package com.tencent.bk.job.common.esb.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
 /**
- * get_job_instance_log,根据作业实例ID查询作业执行日志请求
+ * ESB 业务与资源范围转换工具类
  */
-@Getter
-@Setter
-public class EsbGetJobInstanceLogRequest extends EsbAppScopeReq {
-
+public class EsbDTOAppScopeMappingHelper {
     /**
-     * 作业执行实例 ID
+     * appId转换为bk_biz_id、bk_scope_type、bk_scope_id
+     *
+     * @param appId          Job业务ID
+     * @param esbAppScopeDTO 资源范围-ESB DTO
      */
-    @JsonProperty("job_instance_id")
-    private Long taskInstanceId;
+    public static void fillEsbAppScopeDTOByAppId(Long appId, EsbAppScopeDTO esbAppScopeDTO) {
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
+        esbAppScopeDTO.setScopeId(resourceScope.getId());
+        esbAppScopeDTO.setBkBizId(Long.valueOf(resourceScope.getId()));
+    }
 }

@@ -45,8 +45,8 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
         if (req != null) {
             if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
-            } else if (req.getAppId() != null) {
-                validationGroups.add(EsbAppScopeReq.UseAppIdParam.class);
+            } else if (req.getBkBizId() != null) {
+                validationGroups.add(EsbAppScopeReq.UseBkBizIdParam.class);
             }
         }
         return validationGroups;

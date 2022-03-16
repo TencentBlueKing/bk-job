@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
@@ -61,17 +62,23 @@ public class EsbGetStepInstanceStatusResourceImpl
     private final TaskInstanceService taskInstanceService;
     private final GseTaskLogService gseTaskLogService;
     private final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService, GseTaskLogService gseTaskLogService,
-                                                TaskInstanceService taskInstanceService) {
+    public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
+                                                GseTaskLogService gseTaskLogService,
+                                                TaskInstanceService taskInstanceService,
+                                                AppScopeMappingService appScopeMappingService) {
         this.i18nService = i18nService;
         this.gseTaskLogService = gseTaskLogService;
         this.taskInstanceService = taskInstanceService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_step_instance_status"})
     public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(EsbGetStepInstanceStatusRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get step instance status request is illegal!");
@@ -82,7 +89,7 @@ public class EsbGetStepInstanceStatusResourceImpl
         long stepInstanceId = request.getStepInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
-        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (stepInstance == null) {
@@ -140,10 +147,6 @@ public class EsbGetStepInstanceStatusResourceImpl
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
             log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("App is empty or illegal, appId={}", request.getAppId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
         }
         if (request.getStepInstanceId() == null || request.getStepInstanceId() < 1) {
             log.warn("StepInstanceId is empty or illegal, stepInstanceId={}", request.getStepInstanceId());

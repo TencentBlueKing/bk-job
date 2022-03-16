@@ -25,22 +25,21 @@
 package com.tencent.bk.job.crontab.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
- * @since 26/2/2020 20:58
+ * 定时任务
  */
-@Data
-public class EsbCronInfoV3DTO {
-
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+@Getter
+@Setter
+@ToString
+public class EsbCronInfoV3DTO extends EsbAppScopeDTO {
 
     /**
      * 作业模板 ID

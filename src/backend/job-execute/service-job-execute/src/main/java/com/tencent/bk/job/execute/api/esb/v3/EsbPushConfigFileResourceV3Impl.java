@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -64,19 +65,23 @@ public class EsbPushConfigFileResourceV3Impl
     private final TaskExecuteService taskExecuteService;
     private final StorageSystemConfig storageSystemConfig;
     private final AgentService agentService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
                                            StorageSystemConfig storageSystemConfig,
-                                           AgentService agentService) {
+                                           AgentService agentService,
+                                           AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_push_config_file"})
     public EsbResp<EsbJobExecuteV3DTO> pushConfigFile(EsbPushConfigFileV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -175,10 +180,6 @@ public class EsbPushConfigFileResourceV3Impl
     }
 
     private ValidateResult checkPushConfigFileRequest(EsbPushConfigFileV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("Push config file, appId is empty or invalid!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (StringUtils.isBlank(request.getTargetPath())) {
             log.warn("Push config file, targetPath is empty!");
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,

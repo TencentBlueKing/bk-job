@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
@@ -37,6 +36,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
@@ -55,18 +55,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private final TaskTemplateService taskTemplateService;
     private final BusinessAuthService businessAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService,
-                                     BusinessAuthService businessAuthService) {
+                                     BusinessAuthService businessAuthService,
+                                     AppScopeMappingService appScopeMappingService) {
         this.taskTemplateService = taskTemplateService;
         this.businessAuthService = businessAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(String username,
                                                                              String appCode,
-                                                                             Long appId,
+                                                                  Long bkBizId,
+                                                                             String scopeType,
+                                                                             String scopeId,
                                                                              String creator,
                                                                              String name,
                                                                              Long createTimeStart,
@@ -79,7 +84,9 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         EsbGetTemplateListV3Request request = new EsbGetTemplateListV3Request();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBkBizId(bkBizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setCreator(creator);
         request.setName(name);
         request.setCreateTimeStart(createTimeStart);
@@ -96,6 +103,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_template_list"})
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
         EsbGetTemplateListV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get template list, request is illegal!");
@@ -141,10 +149,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
 
 
     private ValidateResult checkRequest(EsbGetTemplateListV3Request request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         // TODO 暂不校验，后面补上
         return ValidateResult.pass();
     }

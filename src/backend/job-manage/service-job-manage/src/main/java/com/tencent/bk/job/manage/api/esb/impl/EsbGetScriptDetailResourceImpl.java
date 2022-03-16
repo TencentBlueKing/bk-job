@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptDetailResource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -52,16 +52,20 @@ import java.time.temporal.ChronoUnit;
 public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResource {
     private final ScriptService scriptService;
     private final ScriptAuthService scriptAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetScriptDetailResourceImpl(ScriptService scriptService,
-                                          ScriptAuthService scriptAuthService) {
+                                          ScriptAuthService scriptAuthService,
+                                          AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.scriptAuthService = scriptAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_detail"})
     public EsbResp<EsbScriptDTO> getScriptDetail(EsbGetScriptDetailRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script detail, request is illegal!");
@@ -78,9 +82,8 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         String scriptId = scriptVersion.getId();
         // 非公共脚本鉴权
         if (!scriptVersion.isPublicScript()) {
-            // TODO: 通过scopeType与scopeId构造AppResourceScope
             AuthResult authResult =
-                scriptAuthService.authViewScript(request.getUserName(), new AppResourceScope(appId), scriptId, null);
+                scriptAuthService.authViewScript(request.getUserName(), request.getAppResourceScope(), scriptId, null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
