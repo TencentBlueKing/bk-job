@@ -59,7 +59,6 @@ import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -86,9 +85,9 @@ public class SyncServiceImpl implements SyncService {
     private static final String REDIS_KEY_LAST_FINISH_TIME_SYNC_AGENT_STATUS = "last-finish-time-sync-agent-status";
     private static final String machineIp = IpUtils.getFirstMachineIP();
     private static final int MAX_RETRY_COUNT = 3;
-    private static List<Long> allAppInsertFailHostIds = new ArrayList<>();
-    private static List<Long> allAppUpdateFailHostIds = new ArrayList<>();
-    private static List<Long> allAppDeleteFailHostIds = new ArrayList<>();
+    private static final List<Long> allAppInsertFailHostIds = new ArrayList<>();
+    private static final List<Long> allAppUpdateFailHostIds = new ArrayList<>();
+    private static final List<Long> allAppDeleteFailHostIds = new ArrayList<>();
 
     static {
         List<String> keyList = Arrays.asList(REDIS_KEY_SYNC_APP_JOB_LOCK, REDIS_KEY_SYNC_HOST_JOB_LOCK,
@@ -128,15 +127,20 @@ public class SyncServiceImpl implements SyncService {
     private HostRelationWatchThread hostRelationWatchThread = null;
     private final ApplicationCache applicationCache;
     private final HostService hostService;
+    private final BizSyncService bizSyncService;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
-                           ApplicationDAO applicationDAO, ApplicationHostDAO applicationHostDAO,
-                           HostTopoDAO hostTopoDAO, ApplicationService applicationService,
-                           QueryAgentStatusClient queryAgentStatusClient, JobManageConfig jobManageConfig,
-                           RedisTemplate<String,
-                               String> redisTemplate,
-                           ApplicationCache applicationCache, HostService hostService) {
+                           ApplicationDAO applicationDAO,
+                           ApplicationHostDAO applicationHostDAO,
+                           HostTopoDAO hostTopoDAO,
+                           ApplicationService applicationService,
+                           QueryAgentStatusClient queryAgentStatusClient,
+                           JobManageConfig jobManageConfig,
+                           RedisTemplate<String, String> redisTemplate,
+                           ApplicationCache applicationCache,
+                           HostService hostService,
+                           BizSyncService bizSyncService) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -150,6 +154,7 @@ public class SyncServiceImpl implements SyncService {
         this.enableSyncAgentStatus = jobManageConfig.isEnableSyncAgentStatus();
         this.applicationCache = applicationCache;
         this.hostService = hostService;
+        this.bizSyncService = bizSyncService;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -281,76 +286,10 @@ public class SyncServiceImpl implements SyncService {
                 StopWatch watch = new StopWatch("syncApp");
                 watch.start("total");
                 try {
-                    log.info(Thread.currentThread().getName() + ":begin to sync app from cc");
-                    CcClient ccClient = CcClientFactory.getCcClient();
-                    List<ApplicationDTO> ccApps = ccClient.getAllApps();
+                    // 从CMDB同步业务信息
+                    bizSyncService.syncBizFromCMDB();
+                    // TODO: 从CMDB同步业务集信息
 
-                    //对比业务信息，分出要删的/要改的/要新增的分别处理
-                    List<ApplicationDTO> insertList;
-                    List<ApplicationDTO> updateList;
-                    List<ApplicationDTO> deleteList;
-                    //对比库中数据与接口数据
-                    List<ApplicationDTO> localApps = applicationDAO.listAllApps();
-                    Set<Long> ccAppIds = ccApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet());
-                    //CC接口空数据保护
-                    if (ccAppIds.isEmpty()) {
-                        log.warn("CC App data is empty, quit sync");
-                        return;
-                    }
-                    log.info(String.format("ccAppIds:%s", String.join(",",
-                        ccAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-                    Set<Long> localAppIds =
-                        localApps.stream().map(ApplicationDTO::getId).collect(Collectors.toSet());
-                    log.info(String.format("localAppIds:%s", String.join(",",
-                        localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-                    insertList =
-                        ccApps.stream().filter(applicationInfoDTO ->
-                            !localAppIds.contains(applicationInfoDTO.getId())).collect(Collectors.toList());
-                    log.info(String.format("app insertList:%s", String.join(",",
-                        insertList.stream().map(applicationInfoDTO -> applicationInfoDTO.getId().toString())
-                            .collect(Collectors.toSet()))));
-                    // 当前CC无业务类型数据，业务类型数据只能从本地数据判断
-                    List<Long> intersectLocalAppIds =
-                        localAppIds.stream().filter(id -> ccAppIds.contains(id)).collect(Collectors.toList());
-                    List<Long> updateIdList =
-                        localApps.stream().filter(applicationInfoDTO ->
-                            applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL
-                                && intersectLocalAppIds.contains(applicationInfoDTO.getId()))
-                            .map(it -> it.getId()).collect(Collectors.toList());
-                    updateList =
-                        ccApps.stream().filter(applicationInfoDTO ->
-                            updateIdList.contains(applicationInfoDTO.getId())).collect(Collectors.toList());
-                    log.info(String.format("app updateList:%s", String.join(",",
-                        updateList.stream().map(applicationInfoDTO ->
-                            applicationInfoDTO.getId().toString()).collect(Collectors.toSet()))));
-                    deleteList =
-                        localApps.stream().filter(applicationInfoDTO ->
-                            applicationInfoDTO.getAppType() == AppTypeEnum.NORMAL
-                                && !ccAppIds.contains(applicationInfoDTO.getId())).collect(Collectors.toList());
-                    log.info(String.format("app deleteList:%s", String.join(",",
-                        deleteList.stream().map(applicationInfoDTO ->
-                            applicationInfoDTO.getId().toString()).collect(Collectors.toSet()))));
-                    insertList.forEach(applicationInfoDTO -> {
-                        try {
-                            addAppToDb(applicationInfoDTO, Collections.emptyList());
-                        } catch (Throwable t) {
-                            log.error("FATAL: insertApp fail:appId=" + applicationInfoDTO.getId(), t);
-                        }
-                    });
-                    updateList.forEach(applicationInfoDTO -> {
-                        try {
-                            applicationDAO.updateApp(dslContext, applicationInfoDTO);
-                        } catch (Throwable t) {
-                            log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
-                        }
-                    });
-                    deleteList.forEach(applicationInfoDTO -> {
-                        try {
-                            deleteAppFromDb(applicationInfoDTO);
-                        } catch (Throwable t) {
-                            log.error("FATAL: deleteApp fail:appId=" + applicationInfoDTO.getId(), t);
-                        }
-                    });
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
@@ -763,29 +702,6 @@ public class SyncServiceImpl implements SyncService {
         // 获取Agent状态
         hostService.fillAgentStatus(applicationHostInfoDTOList);
         return applicationHostInfoDTOList;
-    }
-
-    private int deleteAppFromDb(ApplicationDTO applicationDTO) {
-        log.info("deleteAppFromDb:" + applicationDTO.getId());
-        //先删业务对应主机
-        applicationHostDAO.deleteAppHostInfoByAppId(dslContext, applicationDTO.getId());
-        //再删业务本身
-        applicationDAO.deleteAppInfoById(dslContext, applicationDTO.getId());
-        return 1;
-    }
-
-    private int addAppToDb(ApplicationDTO applicationDTO,
-                           List<ApplicationHostInfoDTO> applicationHostInfoDTOList) {
-        log.info("addAppToDb:" + applicationDTO.getId() + "," + applicationHostInfoDTOList.size() + "hosts");
-        //先添加业务本身
-        log.info("insertAppInfo:" + JsonUtils.toJson(applicationDTO));
-        applicationService.createApp(applicationDTO);
-        //再添加业务对应主机
-        applicationHostInfoDTOList.forEach(applicationHostInfoDTO -> {
-            log.info("insertAppHostInfo:" + JsonUtils.toJson(applicationHostInfoDTO));
-            applicationHostDAO.insertAppHostInfo(dslContext, applicationHostInfoDTO);
-        });
-        return 1;
     }
 
     private void updateHostsInApp(Long appId, List<ApplicationHostInfoDTO> updateList) {
