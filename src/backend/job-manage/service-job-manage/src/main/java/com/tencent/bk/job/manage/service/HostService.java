@@ -48,6 +48,33 @@ public interface HostService {
 
     List<ApplicationHostInfoDTO> getHostsByAppId(Long appId);
 
+    /**
+     * 新增业务下的主机
+     *
+     * @param appId      业务ID
+     * @param insertList 主机信息
+     * @return 新增失败的主机ID
+     */
+    List<Long> insertHostsToApp(Long appId, List<ApplicationHostInfoDTO> insertList);
+
+    /**
+     * 更新业务下的主机
+     *
+     * @param appId        业务ID
+     * @param hostInfoList 主机信息
+     * @return 更新失败的主机ID
+     */
+    List<Long> updateHostsInApp(Long appId, List<ApplicationHostInfoDTO> hostInfoList);
+
+    /**
+     * 删除业务下的主机
+     *
+     * @param appId      业务ID
+     * @param deleteList 主机信息
+     * @return 删除失败的主机ID
+     */
+    List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostInfoDTO> deleteList);
+
     long countHostsByOsType(String osType);
 
     /**
