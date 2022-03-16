@@ -189,14 +189,14 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private MeterRegistry meterRegistry;
     private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-            build(new CacheLoader<String, InstanceTopologyDTO>() {
-                      @Override
-                      public InstanceTopologyDTO load(String searchKey) throws Exception {
-                          String[] keys = searchKey.split(":");
-                          return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
-                      }
+        build(new CacheLoader<String, InstanceTopologyDTO>() {
+                  @Override
+                  public InstanceTopologyDTO load(String searchKey) throws Exception {
+                      String[] keys = searchKey.split(":");
+                      return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
                   }
-            );
+              }
+        );
 
     public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, QueryAgentStatusClient queryAgentStatusClient,
                        MeterRegistry meterRegistry) {
@@ -848,7 +848,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @return
      */
     @Override
-    public List<ApplicationDTO> getAllApps() {
+    public List<ApplicationDTO> getAllBizApps() {
         List<ApplicationDTO> appList = new ArrayList<>();
         int limit = 200;
         int start = 0;
@@ -882,6 +882,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             }
         }
         return appList;
+    }
+
+    @Override
+    public List<ApplicationDTO> getAllBizSetApps() {
+        // TODO:拉取CMDB业务集
+        return Collections.emptyList();
     }
 
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {

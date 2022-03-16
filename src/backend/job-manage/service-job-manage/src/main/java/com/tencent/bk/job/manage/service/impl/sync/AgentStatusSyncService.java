@@ -83,7 +83,7 @@ public class AgentStatusSyncService {
 
     public void syncAgentStatusFromGSE() {
         log.info(Thread.currentThread().getName() + ":begin to sync agentStatus from GSE");
-        List<ApplicationDTO> localApps = applicationDAO.listAllApps();
+        List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
         Set<Long> localAppIds =
             localApps.stream().filter(app ->
                     app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
@@ -194,10 +195,24 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllApps() {
+    public List<ApplicationDTO> listAllBizApps() {
         Result<Record> result = context
             .select(ALL_FIELDS)
             .from(T_APP)
+            .fetch();
+        List<ApplicationDTO> applicationList = new ArrayList<>();
+        if (result.size() > 0) {
+            result.map(record -> applicationList.add(extract(record)));
+        }
+        return applicationList;
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizSetApps() {
+        Result<Record> result = context
+            .select(ALL_FIELDS)
+            .from(T_APP)
+            .where(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()))
             .fetch();
         List<ApplicationDTO> applicationList = new ArrayList<>();
         if (result.size() > 0) {

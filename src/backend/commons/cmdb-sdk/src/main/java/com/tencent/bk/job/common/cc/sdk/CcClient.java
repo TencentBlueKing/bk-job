@@ -120,7 +120,14 @@ public interface CcClient {
      *
      * @return
      */
-    List<ApplicationDTO> getAllApps();
+    List<ApplicationDTO> getAllBizApps();
+
+    /**
+     * 从CC获取所有业务集信息
+     *
+     * @return
+     */
+    List<ApplicationDTO> getAllBizSetApps();
 
     /**
      * 获取用户的业务

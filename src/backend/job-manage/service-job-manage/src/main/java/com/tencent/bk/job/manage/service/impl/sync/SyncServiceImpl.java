@@ -115,6 +115,7 @@ public class SyncServiceImpl implements SyncService {
     private HostRelationWatchThread hostRelationWatchThread = null;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
+    private final BizSetSyncService bizSetSyncService;
     private final HostSyncService hostSyncService;
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
@@ -130,6 +131,7 @@ public class SyncServiceImpl implements SyncService {
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
                            BizSyncService bizSyncService,
+                           BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
                            AppHostsUpdateHelper appHostsUpdateHelper,
                            AgentStatusSyncService agentStatusSyncService) {
@@ -146,6 +148,7 @@ public class SyncServiceImpl implements SyncService {
         this.enableSyncAgentStatus = jobManageConfig.isEnableSyncAgentStatus();
         this.applicationCache = applicationCache;
         this.bizSyncService = bizSyncService;
+        this.bizSetSyncService = bizSetSyncService;
         this.hostSyncService = hostSyncService;
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
@@ -284,7 +287,7 @@ public class SyncServiceImpl implements SyncService {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
                     // TODO: 从CMDB同步业务集信息
-
+                    bizSetSyncService.syncBizSetFromCMDB();
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
                     // 将最后同步时间写入Redis
                     redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
@@ -385,7 +388,7 @@ public class SyncServiceImpl implements SyncService {
                 watch.start("total");
                 try {
                     log.info(Thread.currentThread().getName() + ":begin to sync host from cc");
-                    List<ApplicationDTO> localApps = applicationDAO.listAllApps();
+                    List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
                         localApps.stream().filter(app ->
                                 app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)

@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.model.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -96,5 +97,10 @@ public class ApplicationDTO implements Serializable {
      * 语言
      */
     private String language;
+
+    public boolean isBiz() {
+        return (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ) ||
+            getAppType() == AppTypeEnum.NORMAL;
+    }
 
 }
