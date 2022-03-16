@@ -117,7 +117,7 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
 
     @Override
     public Response<List<BasicScriptVO>> listScriptOnline(String username) {
-        return scriptResourceProxy.listScriptOnline(username, null, null, null, true);
+        return scriptResourceProxy.listScriptOnline(username, null, null, null);
     }
 
     @Override
