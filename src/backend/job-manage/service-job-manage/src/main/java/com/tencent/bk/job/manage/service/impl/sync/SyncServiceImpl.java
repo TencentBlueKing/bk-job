@@ -276,7 +276,6 @@ public class SyncServiceImpl implements SyncService {
                 appSyncRedisKeyHeartBeatThread.setName("[" + appSyncRedisKeyHeartBeatThread.getId() +
                     "]-appSyncRedisKeyHeartBeatThread");
                 appSyncRedisKeyHeartBeatThread.start();
-                createBkPlatformAppIfNotExist();
                 log.info("start sync app at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
                     System.currentTimeMillis());
                 StopWatch watch = new StopWatch("syncApp");
@@ -372,22 +371,6 @@ public class SyncServiceImpl implements SyncService {
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_APP_JOB_LOCK, machineIp);
         }
         return 1L;
-    }
-
-    /*
-     * 创建蓝鲸全业务，用于平台业务的调用
-     */
-    private void createBkPlatformAppIfNotExist() {
-        ApplicationDTO bkApp = applicationService.getAppByAppId(9991001L);
-        if (bkApp == null) {
-            bkApp = new ApplicationDTO();
-            bkApp.setAppType(AppTypeEnum.ALL_APP);
-            bkApp.setId(9991001L);
-            bkApp.setMaintainers("admin");
-            bkApp.setBkSupplierAccount("0");
-            bkApp.setName("BlueKing");
-            addAppToDb(bkApp, Collections.emptyList());
-        }
     }
 
     /**
