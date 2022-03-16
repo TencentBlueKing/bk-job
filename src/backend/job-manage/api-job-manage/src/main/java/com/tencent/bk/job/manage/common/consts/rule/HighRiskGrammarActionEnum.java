@@ -64,7 +64,7 @@ public enum HighRiskGrammarActionEnum {
      */
     public static boolean isValid(Integer code) {
         for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : HighRiskGrammarActionEnum.values()) {
-            if (highRiskGrammarActionEnum.getCode() == code) {
+            if (highRiskGrammarActionEnum.getCode().equals(code)) {
                 return true;
             }
         }

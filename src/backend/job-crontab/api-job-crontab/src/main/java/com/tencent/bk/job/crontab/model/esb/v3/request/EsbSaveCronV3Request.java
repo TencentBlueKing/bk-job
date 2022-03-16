@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
@@ -46,15 +46,7 @@ import java.util.List;
 @GroupSequenceProvider(EsbSaveCronV3RequestSequenceProvider.class)
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class EsbSaveCronV3Request extends EsbReq {
-
-    /**
-     * 业务 ID
-     */
-    @JsonProperty("bk_biz_id")
-    @NotNull(message = "{validation.constraints.InvalidBkBizId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}")
-    private Long appId;
+public class EsbSaveCronV3Request extends EsbAppScopeReq {
 
     /**
      * 定时任务ID，更新定时任务时，必须传这个值

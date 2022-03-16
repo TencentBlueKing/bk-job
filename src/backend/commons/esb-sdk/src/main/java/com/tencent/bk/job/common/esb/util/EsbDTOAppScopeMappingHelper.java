@@ -22,47 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.common.esb.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
 /**
- * 资源范围类型
+ * ESB 业务与资源范围转换工具类
  */
-public enum ResourceScopeTypeEnum {
+public class EsbDTOAppScopeMappingHelper {
     /**
-     * CMDB业务
+     * appId转换为bk_biz_id、bk_scope_type、bk_scope_id
+     *
+     * @param appId          Job业务ID
+     * @param esbAppScopeDTO 资源范围-ESB DTO
      */
-    BIZ("biz"),
-    /**
-     * CMDB业务集
-     */
-    BIZ_SET("biz_set");
-
-    /**
-     * 资源范围类型
-     */
-    private final String value;
-
-    ResourceScopeTypeEnum(String value) {
-        this.value = value;
-    }
-
-    @JsonCreator
-    public static ResourceScopeTypeEnum from(String type) {
-        for (ResourceScopeTypeEnum scopeType : values()) {
-            if (scopeType.value.equals(type)) {
-                return scopeType;
-            }
+    public static void fillEsbAppScopeDTOByAppId(Long appId, EsbAppScopeDTO esbAppScopeDTO) {
+        if (appId == null) {
+            return;
         }
-        return null;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public static boolean isValid(String type) {
-        return from(type) != null;
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
+        esbAppScopeDTO.setScopeId(resourceScope.getId());
+        esbAppScopeDTO.setBkBizId(Long.valueOf(resourceScope.getId()));
     }
 }

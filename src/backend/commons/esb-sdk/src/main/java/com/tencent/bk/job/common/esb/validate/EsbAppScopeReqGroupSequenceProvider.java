@@ -22,47 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.common.esb.validate;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 资源范围类型
+ * EsbAppScopeReq 参数联合校验
  */
-public enum ResourceScopeTypeEnum {
-    /**
-     * CMDB业务
-     */
-    BIZ("biz"),
-    /**
-     * CMDB业务集
-     */
-    BIZ_SET("biz_set");
+@Slf4j
+public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequenceProvider<EsbAppScopeReq> {
 
-    /**
-     * 资源范围类型
-     */
-    private final String value;
-
-    ResourceScopeTypeEnum(String value) {
-        this.value = value;
-    }
-
-    @JsonCreator
-    public static ResourceScopeTypeEnum from(String type) {
-        for (ResourceScopeTypeEnum scopeType : values()) {
-            if (scopeType.value.equals(type)) {
-                return scopeType;
+    @Override
+    public List<Class<?>> getValidationGroups(EsbAppScopeReq req) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbAppScopeReq.class);
+        if (req != null) {
+            if (StringUtils.isNotEmpty(req.getScopeType()) || StringUtils.isNotEmpty(req.getScopeId())) {
+                validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
+            } else if (req.getBkBizId() != null) {
+                validationGroups.add(EsbAppScopeReq.UseBkBizIdParam.class);
             }
         }
-        return null;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public static boolean isValid(String type) {
-        return from(type) != null;
+        return validationGroups;
     }
 }

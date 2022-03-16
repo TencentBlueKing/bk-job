@@ -6,6 +6,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
@@ -26,19 +27,23 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     private final FileSourceAuthService fileSourceAuthService;
     private final FileSourceService fileSourceService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceAuthService fileSourceAuthService,
-                                       FileSourceService fileSourceService) {
+                                       FileSourceService fileSourceService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.fileSourceAuthService = fileSourceAuthService;
         this.fileSourceService = fileSourceService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         Long appId = req.getAppId();
         String username = req.getUserName();
-        checkCreateFileSourcePermission(username, appId);
+        checkCreateFileSourcePermission(username, req.getAppResourceScope());
         checkCreateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
@@ -52,25 +57,18 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     @Override
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
         checkUpdateParam(req);
         Long appId = req.getAppId();
         String username = req.getUserName();
         Integer id = req.getId();
-        checkManageFileSourcePermission(username, appId, id);
+        checkManageFileSourcePermission(username, req.getAppResourceScope(), id);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(req.getUserName(), appId, req);
         Integer fileSourceId = fileSourceService.updateFileSourceById(appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(fileSourceId));
     }
 
-    private void checkAppId(EsbCreateOrUpdateFileSourceV3Req req) {
-        if (req.getAppId() == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"bk_biz_id", "bk_biz_id cannot be null"});
-        }
-    }
-
     private void checkCreateParam(EsbCreateOrUpdateFileSourceV3Req req) {
-        checkAppId(req);
         String code = req.getCode();
         if (StringUtils.isBlank(code)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
@@ -95,7 +93,6 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     }
 
     private void checkUpdateParam(EsbCreateOrUpdateFileSourceV3Req req) {
-        checkAppId(req);
         Long appId = req.getAppId();
         Integer id = req.getId();
         String code = req.getCode();
@@ -150,19 +147,18 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         return fileSourceDTO;
     }
 
-    public void checkCreateFileSourcePermission(String username, Long appId) {
+    public void checkCreateFileSourcePermission(String username, AppResourceScope appResourceScope) {
         // 需要拥有在业务下创建文件源的权限
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = fileSourceAuthService.authCreateFileSource(username, new AppResourceScope(appId));
+        AuthResult authResult = fileSourceAuthService.authCreateFileSource(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
     }
 
-    public void checkManageFileSourcePermission(String username, Long appId, Integer fileSourceId) {
+    public void checkManageFileSourcePermission(String username, AppResourceScope appResourceScope,
+                                                Integer fileSourceId) {
         // 需要拥有在业务下管理某个具体文件源的权限
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
-        AuthResult authResult = fileSourceAuthService.authManageFileSource(username, new AppResourceScope(appId),
+        AuthResult authResult = fileSourceAuthService.authManageFileSource(username, appResourceScope,
             fileSourceId, null);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

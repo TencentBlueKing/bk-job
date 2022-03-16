@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbPageData;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -36,7 +37,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
 import com.tencent.bk.job.manage.auth.EsbAuthService;
@@ -64,17 +65,21 @@ import java.util.stream.Collectors;
 public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
     private final ScriptService scriptService;
     private final EsbAuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetScriptListResourceImpl(ScriptService scriptService,
-                                        EsbAuthService authService) {
+                                        EsbAuthService authService,
+                                        AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_list"})
     public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(EsbGetScriptListRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
@@ -117,9 +122,8 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
                 return it.getId();
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
-                // TODO: 通过scopeType与scopeId构造AppResourceScope
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    request.getAppResourceScope(), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }
@@ -143,7 +147,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         List<EsbScriptDTO> esbScriptList = new ArrayList<>();
         for (ScriptDTO script : pageScripts.getData()) {
             EsbScriptDTO esbScript = new EsbScriptDTO();
-            esbScript.setAppId(script.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(script.getAppId(), esbScript);
             esbScript.setId(script.getScriptVersionId());
             esbScript.setCreator(script.getCreator());
             esbScript.setCreateTime(DateUtils.formatUnixTimestamp(script.getCreateTime(), ChronoUnit.MILLIS, "yyyy-MM" +

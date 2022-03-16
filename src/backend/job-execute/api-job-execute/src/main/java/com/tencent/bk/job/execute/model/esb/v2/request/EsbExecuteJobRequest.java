@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v2.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Getter;
@@ -38,12 +38,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class EsbExecuteJobRequest extends EsbReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbExecuteJobRequest extends EsbAppScopeReq {
 
     /**
      * 执行方案 ID

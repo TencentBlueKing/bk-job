@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.manage.api.esb.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobListResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -58,17 +58,21 @@ import java.util.List;
 public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
     private final TaskPlanService taskPlanService;
     private final BusinessAuthService businessAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobListResourceImpl(TaskPlanService taskPlanService,
-                                     BusinessAuthService businessAuthService) {
+                                     BusinessAuthService businessAuthService,
+                                     AppScopeMappingService appScopeMappingService) {
         this.taskPlanService = taskPlanService;
         this.businessAuthService = businessAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_list"})
     public EsbResp<List<EsbJobBasicInfoDTO>> getJobList(EsbGetJobListRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job list, request is illegal!");
@@ -76,9 +80,8 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         }
         long appId = request.getAppId();
 
-        // TODO: 通过scopeType与scopeId构造AppResourceScope
         AuthResult authResult =
-            businessAuthService.authAccessBusiness(request.getUserName(), new AppResourceScope(request.getAppId()));
+            businessAuthService.authAccessBusiness(request.getUserName(), request.getAppResourceScope());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -132,10 +135,6 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
     }
 
     private ValidateResult checkRequest(EsbGetJobListRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         // TODO 暂不校验，后面补上
         return ValidateResult.pass();
     }
@@ -144,7 +143,7 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         List<EsbJobBasicInfoDTO> results = new ArrayList<>(taskPlans.size());
         for (TaskPlanInfoDTO taskPlan : taskPlans) {
             EsbJobBasicInfoDTO result = new EsbJobBasicInfoDTO();
-            result.setAppId(taskPlan.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskPlan.getAppId(), result);
             result.setCreator(taskPlan.getCreator());
             result.setLastModifyUser(taskPlan.getLastModifyUser());
             result.setCreateTime(DateUtils.formatUnixTimestamp(taskPlan.getCreateTime(),

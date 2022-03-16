@@ -44,7 +44,10 @@ public interface EsbFastExecuteSQLResource {
 
     @PostMapping("/fast_execute_sql")
     EsbResp<EsbJobExecuteDTO> fastExecuteSQL(
-        @RequestBody @Validated EsbFastExecuteSQLRequest request);
+        @RequestBody
+        @Validated
+            EsbFastExecuteSQLRequest request
+    );
 
 
 }

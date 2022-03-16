@@ -22,47 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.common.esb.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 资源范围类型
+ * 资源范围-ESB DTO
  */
-public enum ResourceScopeTypeEnum {
+@Setter
+@Getter
+@ToString
+public class EsbAppScopeDTO {
     /**
-     * CMDB业务
+     * 兼容字段,表示cmdb 业务/业务集ID
      */
-    BIZ("biz"),
-    /**
-     * CMDB业务集
-     */
-    BIZ_SET("biz_set");
+    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", version = "3.6.x")
+    @JsonProperty("bk_biz_id")
+    private Long bkBizId;
 
     /**
      * 资源范围类型
      */
-    private final String value;
+    @JsonProperty("bk_scope_type")
+    private String scopeType;
 
-    ResourceScopeTypeEnum(String value) {
-        this.value = value;
-    }
-
-    @JsonCreator
-    public static ResourceScopeTypeEnum from(String type) {
-        for (ResourceScopeTypeEnum scopeType : values()) {
-            if (scopeType.value.equals(type)) {
-                return scopeType;
-            }
-        }
-        return null;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public static boolean isValid(String type) {
-        return from(type) != null;
-    }
+    /**
+     * 资源范围ID
+     */
+    @JsonProperty("bk_scope_id")
+    private String scopeId;
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -313,7 +314,7 @@ public class TaskPlanInfoDTO {
             return null;
         }
         EsbPlanInfoV3DTO esbPlanInfo = new EsbPlanInfoV3DTO();
-        esbPlanInfo.setAppId(taskPlanInfo.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskPlanInfo.getAppId(), esbPlanInfo);
         esbPlanInfo.setId(taskPlanInfo.getId());
         esbPlanInfo.setTemplateId(taskPlanInfo.getTemplateId());
         esbPlanInfo.setName(taskPlanInfo.getName());
