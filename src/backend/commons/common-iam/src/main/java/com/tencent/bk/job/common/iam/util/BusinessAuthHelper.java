@@ -58,7 +58,7 @@ public class BusinessAuthHelper extends AuthHelper {
             instance.setPath(PathBuilder.newBuilder(resourceType.getId(), appResourceScope.getId()).build());
         }
         instance.setSystem(resourceType.getSystemId());
-        instance.setType(resourceType.getId());
+        instance.setType(ResourceTypeEnum.BUSINESS.getId());
         return instance;
     }
 
