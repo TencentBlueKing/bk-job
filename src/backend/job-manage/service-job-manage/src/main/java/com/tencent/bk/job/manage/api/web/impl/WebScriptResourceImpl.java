@@ -758,15 +758,10 @@ public class WebScriptResourceImpl implements WebScriptResource {
     public Response<List<BasicScriptVO>> listScriptOnline(String username,
                                                           AppResourceScope appResourceScope,
                                                           String scopeType,
-                                                          String scopeId,
-                                                          Boolean publicScript) {
-        long queryAppId = appResourceScope.getAppId();
-        if (publicScript != null && publicScript) {
-            queryAppId = PUBLIC_APP_ID;
-        }
-        appResourceScope.setAppId(queryAppId);
+                                                          String scopeId) {
+        long queryAppId = appResourceScope == null ? PUBLIC_APP_ID : appResourceScope.getAppId();
 
-        List<ScriptDTO> scriptList = scriptService.listOnlineScriptForApp(username, appResourceScope.getAppId());
+        List<ScriptDTO> scriptList = scriptService.listOnlineScriptForApp(username, queryAppId);
         if (scriptList == null || scriptList.isEmpty()) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
@@ -784,8 +779,8 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                          List<BasicScriptVO> scriptList) {
         List<String> scriptIdList = new ArrayList<>();
         scriptList.forEach(script -> scriptIdList.add(script.getId()));
-
-        if (PUBLIC_APP_ID == appResourceScope.getAppId()) {
+        boolean isPublicScript = appResourceScope == null;
+        if (isPublicScript) {
             scriptList.forEach(script -> {
                 // TODO:batchAuth
                 AuthResult managePermAuthResult = noResourceScopeAuthService.authManagePublicScript(username,

@@ -405,7 +405,7 @@ public interface WebScriptResource {
             String scriptName
     );
 
-    @ApiOperation(value = "获取业务下面的已在线脚本列表", produces = "application/json")
+    @ApiOperation(value = "获取业务下面的已在线业务脚本列表", produces = "application/json")
     @GetMapping(value = {"/app/{appId}/scripts/online",
         "/scope/{scopeType}/{scopeId}/scripts/online"})
     Response<List<BasicScriptVO>> listScriptOnline(
@@ -420,10 +420,7 @@ public interface WebScriptResource {
             String scopeType,
         @ApiParam(value = "资源范围ID", required = false)
         @PathVariable(value = "scopeId", required = false)
-            String scopeId,
-        @ApiParam(value = "publicScript", required = false, defaultValue = "false")
-        @RequestParam(value = "publicScript", required = false, defaultValue = "false")
-            Boolean publicScript
+            String scopeId
     );
 
     @ApiOperation(value = "检查脚本内容", produces = "application/json")
