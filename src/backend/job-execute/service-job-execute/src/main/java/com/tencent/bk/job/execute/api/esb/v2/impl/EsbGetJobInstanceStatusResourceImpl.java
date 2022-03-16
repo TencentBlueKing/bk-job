@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -131,7 +132,7 @@ public class EsbGetJobInstanceStatusResourceImpl
             && !taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
 
         EsbJobInstanceStatusDTO.JobInstance jobInstance = new EsbJobInstanceStatusDTO.JobInstance();
-        jobInstance.setAppId(taskInstance.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
         jobInstance.setCurrentStepId(taskInstance.getCurrentStepId());
         jobInstance.setId(taskInstance.getId());
         jobInstance.setName(taskInstance.getName());

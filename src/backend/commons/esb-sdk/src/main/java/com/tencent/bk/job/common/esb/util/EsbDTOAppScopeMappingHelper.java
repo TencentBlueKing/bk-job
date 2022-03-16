@@ -40,6 +40,9 @@ public class EsbDTOAppScopeMappingHelper {
      * @param esbAppScopeDTO 资源范围-ESB DTO
      */
     public static void fillEsbAppScopeDTOByAppId(Long appId, EsbAppScopeDTO esbAppScopeDTO) {
+        if (appId == null) {
+            return;
+        }
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);

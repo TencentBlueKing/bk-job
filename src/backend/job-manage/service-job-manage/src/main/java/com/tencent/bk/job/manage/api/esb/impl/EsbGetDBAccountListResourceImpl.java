@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.esb.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -101,7 +102,7 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
             esbAccount.setId(account.getId());
             esbAccount.setAlias(account.getAlias());
             esbAccount.setAccount(account.getAccount());
-            esbAccount.setAppId(account.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(account.getAppId(), esbAccount);
             esbAccount.setCreator(account.getCreator());
             esbAccount.setCreateTime(DateUtils.formatUnixTimestamp(account.getCreateTime(), ChronoUnit.MILLIS, "yyyy" +
                 "-MM-dd HH:mm:ss", ZoneId.of("UTC")));

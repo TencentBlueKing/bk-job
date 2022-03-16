@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbPageData;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -146,7 +147,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         List<EsbScriptDTO> esbScriptList = new ArrayList<>();
         for (ScriptDTO script : pageScripts.getData()) {
             EsbScriptDTO esbScript = new EsbScriptDTO();
-            esbScript.setAppId(script.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(script.getAppId(), esbScript);
             esbScript.setId(script.getScriptVersionId());
             esbScript.setCreator(script.getCreator());
             esbScript.setCreateTime(DateUtils.formatUnixTimestamp(script.getCreateTime(), ChronoUnit.MILLIS, "yyyy-MM" +

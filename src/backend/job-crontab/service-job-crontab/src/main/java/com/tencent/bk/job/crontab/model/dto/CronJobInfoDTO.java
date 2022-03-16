@@ -301,7 +301,7 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(cronJobInfoDTO.getId());
-        esbCronInfoResponse.setAppId(cronJobInfoDTO.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(), esbCronInfoResponse);
         esbCronInfoResponse.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoResponse.setName(cronJobInfoDTO.getName());
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);

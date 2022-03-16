@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 
 /**
@@ -33,7 +34,7 @@ import lombok.Data;
  * @since 15/10/2020 17:54
  */
 @Data
-public class EsbPlanBasicInfoV3DTO {
+public class EsbPlanBasicInfoV3DTO extends EsbAppScopeDTO {
     /**
      * 执行方案 ID
      */
@@ -44,12 +45,6 @@ public class EsbPlanBasicInfoV3DTO {
      */
     @JsonProperty("job_template_id")
     private Long templateId;
-
-    /**
-     * 业务 ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
 
     /**
      * 执行方案名称

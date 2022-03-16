@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -118,7 +119,7 @@ public class EsbGetStepInstanceStatusResourceImpl
 
     private EsbStepInstanceStatusDTO.StepInstance convertStepInstance(StepInstanceBaseDTO stepInstance) {
         EsbStepInstanceStatusDTO.StepInstance stepInst = new EsbStepInstanceStatusDTO.StepInstance();
-        stepInst.setAppId(stepInstance.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(stepInstance.getAppId(), stepInst);
         stepInst.setId(stepInstance.getId());
         stepInst.setBadIpList(stepInstance.getBadIpList());
         stepInst.setBadIPNum(StringUtils.isEmpty(stepInstance.getBadIpList()) ? 0 :

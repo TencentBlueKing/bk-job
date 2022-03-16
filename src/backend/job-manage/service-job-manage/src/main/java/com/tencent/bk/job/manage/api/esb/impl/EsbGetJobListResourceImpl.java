@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.esb.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -142,7 +143,7 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
         List<EsbJobBasicInfoDTO> results = new ArrayList<>(taskPlans.size());
         for (TaskPlanInfoDTO taskPlan : taskPlans) {
             EsbJobBasicInfoDTO result = new EsbJobBasicInfoDTO();
-            result.setAppId(taskPlan.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskPlan.getAppId(), result);
             result.setCreator(taskPlan.getCreator());
             result.setLastModifyUser(taskPlan.getLastModifyUser());
             result.setCreateTime(DateUtils.formatUnixTimestamp(taskPlan.getCreateTime(),

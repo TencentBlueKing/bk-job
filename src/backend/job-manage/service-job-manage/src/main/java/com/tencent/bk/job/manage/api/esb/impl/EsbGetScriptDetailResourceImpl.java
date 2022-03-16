@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -111,7 +112,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         esbScript.setLastModifyUser(script.getLastModifyUser());
         esbScript.setCreateTime(DateUtils.formatUnixTimestamp(script.getCreateTime(), ChronoUnit.MILLIS, "yyyy-MM-dd " +
             "HH:mm:ss", ZoneId.of("UTC")));
-        esbScript.setAppId(script.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(script.getAppId(), esbScript);
         esbScript.setPublicScript(script.isPublicScript());
         esbScript.setId(script.getScriptVersionId());
         esbScript.setCreator(script.getCreator());

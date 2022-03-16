@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.esb.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -76,7 +77,7 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
             esbAccount.setId(account.getId());
             esbAccount.setAlias(account.getAlias());
             esbAccount.setAccount(account.getAccount());
-            esbAccount.setAppId(account.getAppId());
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(account.getAppId(), esbAccount);
             esbAccount.setCreateTime(DateUtils.formatUnixTimestamp(account.getCreateTime(), ChronoUnit.MILLIS, "yyyy" +
                 "-MM-dd HH:mm:ss", ZoneId.of("UTC")));
             esbAccount.setOs(account.getOs());

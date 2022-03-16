@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -113,7 +114,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
             && !taskInstance.getStatus().equals(RunStatusEnum.RUNNING.getValue()));
 
         EsbJobInstanceStatusV3DTO.JobInstance jobInstance = new EsbJobInstanceStatusV3DTO.JobInstance();
-        jobInstance.setAppId(taskInstance.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstance.getAppId(), jobInstance);
         jobInstance.setId(taskInstance.getId());
         jobInstance.setName(taskInstance.getName());
         jobInstance.setCreateTime(taskInstance.getCreateTime());

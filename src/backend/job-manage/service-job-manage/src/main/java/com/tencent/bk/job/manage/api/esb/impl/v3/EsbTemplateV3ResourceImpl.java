@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -69,7 +70,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(String username,
                                                                              String appCode,
-                                                                  Long bkBizId,
+                                                                             Long bkBizId,
                                                                              String scopeType,
                                                                              String scopeId,
                                                                              String creator,
@@ -156,7 +157,7 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private EsbTemplateBasicInfoV3DTO convertToEsbTemplateBasicInfo(TaskTemplateInfoDTO taskTemplate) {
         EsbTemplateBasicInfoV3DTO result = new EsbTemplateBasicInfoV3DTO();
         result.setId(taskTemplate.getId());
-        result.setAppId(taskTemplate.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskTemplate.getAppId(), result);
         result.setName(taskTemplate.getName());
         result.setCreator(taskTemplate.getCreator());
         result.setLastModifyUser(taskTemplate.getLastModifyUser());

@@ -105,7 +105,6 @@ public class EsbGetPublicScriptListResourceImpl implements EsbGetPublicScriptLis
         List<EsbScriptDTO> esbScriptList = new ArrayList<>();
         for (ScriptDTO script : pageScripts.getData()) {
             EsbScriptDTO esbScript = new EsbScriptDTO();
-            esbScript.setAppId(script.getAppId());
             esbScript.setId(script.getScriptVersionId());
             esbScript.setCreator(script.getCreator());
             esbScript.setCreateTime(DateUtils.formatUnixTimestamp(script.getCreateTime(), ChronoUnit.MILLIS, "yyyy-MM" +

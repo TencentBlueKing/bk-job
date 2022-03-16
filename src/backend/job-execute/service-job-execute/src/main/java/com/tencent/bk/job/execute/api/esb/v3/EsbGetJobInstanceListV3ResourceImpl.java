@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -116,7 +117,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         if (CollectionUtils.isNotEmpty(pageData.getData())) {
             List<EsbTaskInstanceV3DTO> taskInstanceList = pageData.getData().stream().map(taskInstanceDTO -> {
                 EsbTaskInstanceV3DTO taskInstance = new EsbTaskInstanceV3DTO();
-                taskInstance.setAppId(taskInstanceDTO.getAppId());
+                EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskInstanceDTO.getAppId(), taskInstance);
                 taskInstance.setId(taskInstanceDTO.getId());
                 taskInstance.setCreateTime(taskInstanceDTO.getCreateTime());
                 taskInstance.setName(taskInstanceDTO.getName());
@@ -160,7 +161,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     @Override
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(String username,
                                                                            String appCode,
-                                                                  Long bkBizId,
+                                                                           Long bkBizId,
                                                                            String scopeType,
                                                                            String scopeId,
                                                                            Long createTimeStart,

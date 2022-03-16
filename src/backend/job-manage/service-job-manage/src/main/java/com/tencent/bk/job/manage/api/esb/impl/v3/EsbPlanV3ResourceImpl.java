@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -201,7 +202,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     private EsbPlanBasicInfoV3DTO convertToEsbPlanBasicInfo(TaskPlanInfoDTO taskPlan) {
         EsbPlanBasicInfoV3DTO result = new EsbPlanBasicInfoV3DTO();
         result.setId(taskPlan.getId());
-        result.setAppId(taskPlan.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(taskPlan.getAppId(), result);
         result.setName(taskPlan.getName());
         result.setTemplateId(taskPlan.getTemplateId());
         result.setCreator(taskPlan.getCreator());
