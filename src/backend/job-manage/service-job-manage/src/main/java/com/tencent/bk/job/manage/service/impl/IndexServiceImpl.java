@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -180,9 +180,9 @@ public class IndexServiceImpl implements IndexService {
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
         val hosts = applicationHostDAO.listHostInfoByAppId(appId);
         //建立反映射Map
-        Map<String, ApplicationHostInfoDTO> map = new HashMap<>();
+        Map<String, ApplicationHostDTO> map = new HashMap<>();
         Set<String> ipSet = new HashSet<>();
-        for (ApplicationHostInfoDTO host : hosts) {
+        for (ApplicationHostDTO host : hosts) {
             String ipWithCloudArea = host.getCloudAreaId() + ":" + host.getIp();
             map.put(ipWithCloudArea, host);
             ipSet.add(ipWithCloudArea);
@@ -192,7 +192,7 @@ public class IndexServiceImpl implements IndexService {
         for (Map.Entry<String, QueryAgentStatusClient.AgentStatus> entry : agentStatusMap.entrySet()) {
             String ip = entry.getKey();
             QueryAgentStatusClient.AgentStatus agentStatus = entry.getValue();
-            ApplicationHostInfoDTO host = map.get(ip);
+            ApplicationHostDTO host = map.get(ip);
             if (agentStatus.status == status) {
                 host.setGseAgentAlive(status == 1);
                 hostInfoVOList.add(TopologyHelper.convertToHostInfoVO(host));

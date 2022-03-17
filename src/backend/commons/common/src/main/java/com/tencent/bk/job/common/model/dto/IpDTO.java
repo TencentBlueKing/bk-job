@@ -25,8 +25,13 @@
 package com.tencent.bk.job.common.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Objects;
 
@@ -40,9 +45,12 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString
 public class IpDTO implements Cloneable {
+    @JsonProperty("cloudAreaId")
     private Long cloudAreaId;
 
+    @JsonProperty("ip")
     private String ip;
+
     /**
      * agent状态，0-异常，1-正常
      */

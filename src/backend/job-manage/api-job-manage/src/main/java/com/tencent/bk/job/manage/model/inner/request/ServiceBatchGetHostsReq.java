@@ -22,41 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.inner.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.tencent.bk.job.common.model.dto.IpDTO;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since 4/12/2019 19:06
+ * 批量获取主机请求
  */
-@Data
-@EqualsAndHashCode
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
-@AllArgsConstructor
-public class DynamicGroupInfoDTO {
+public class ServiceBatchGetHostsReq {
+    List<IpDTO> hosts;
 
-    private Long appId;
-
-    private String appName;
-
-    private String id;
-
-    private String owner;
-
-    private String ownerName;
-
-    private String name;
-
-    private String type;
-
-    private List<String> ipList;
-
-    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
-
+    public ServiceBatchGetHostsReq(List<IpDTO> hosts) {
+        this.hosts = hosts;
+    }
 }
