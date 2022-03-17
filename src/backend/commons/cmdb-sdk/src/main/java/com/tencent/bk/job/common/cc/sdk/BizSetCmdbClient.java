@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,8 +62,8 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
 
     private final String cmdbSupplierAccount;
 
-    private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/search_business_set/";
-    private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/search_biz_in_business_set/";
+    private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
+    private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_biz_in_business_set/";
 
     public static CcConfig ccConfig = null;
 
@@ -83,23 +84,20 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
      */
     public int searchBizSetCount() {
         SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
-        BizSetFilter filter = new BizSetFilter();
-        filter.setCondition(BizSetFilter.CONDITION_AND);
-        filter.setRules(Collections.emptyList());
         Page page = new Page();
         page.setStart(0);
         page.setLimit(0);
         page.setEnableCount(true);
         req.setPage(page);
-        req.setFilter(filter);
+        req.setFilter(null);
         try {
             EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
-                HttpGet.METHOD_NAME,
+                HttpPost.METHOD_NAME,
                 SEARCH_BUSINESS_SET,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
-            if (!resp.getResult() || resp.getData() == null) {
+            if (!resp.getResult()) {
                 throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getCount();
@@ -134,18 +132,15 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
      */
     private List<BizSetInfo> searchBizSet(int start, int limit) {
         SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
-        BizSetFilter filter = new BizSetFilter();
-        filter.setCondition(BizSetFilter.CONDITION_AND);
-        filter.setRules(Collections.emptyList());
         Page page = new Page();
         page.setEnableCount(false);
         page.setStart(start);
         page.setLimit(limit);
         req.setPage(page);
-        req.setFilter(filter);
+        req.setFilter(null);
         try {
             EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
-                HttpGet.METHOD_NAME,
+                HttpPost.METHOD_NAME,
                 SEARCH_BUSINESS_SET,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
@@ -175,12 +170,12 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = getEsbRespByReq(
-                HttpGet.METHOD_NAME,
+                HttpPost.METHOD_NAME,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
-            if (!resp.getResult() || resp.getData() == null) {
+            if (!resp.getResult()) {
                 throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getCount();
@@ -218,7 +213,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = getEsbRespByReq(
-                HttpGet.METHOD_NAME,
+                HttpPost.METHOD_NAME,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {

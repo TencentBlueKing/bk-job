@@ -255,6 +255,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (subAppIds != null) {
             subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
         }
+        ResourceScope scope = applicationDTO.getScope();
         val query = dslContext.insertInto(T_APP,
             T_APP.APP_ID,
             T_APP.APP_NAME,
@@ -264,7 +265,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.SUB_APP_IDS,
             T_APP.TIMEZONE,
             T_APP.BK_OPERATE_DEPT_ID,
-            T_APP.LANGUAGE
+            T_APP.LANGUAGE,
+            T_APP.BK_SCOPE_TYPE,
+            T_APP.BK_SCOPE_ID
         ).values(
             ULong.valueOf(applicationDTO.getId()),
             applicationDTO.getName(),
@@ -274,7 +277,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             subAppIdsStr,
             applicationDTO.getTimeZone(),
             applicationDTO.getOperateDeptId(),
-            applicationDTO.getLanguage()
+            applicationDTO.getLanguage(),
+            scope == null ? null : scope.getType().getValue(),
+            scope == null ? null : scope.getId()
         );
         if (log.isDebugEnabled()) {
             log.info("SQL={}", query.getSQL(ParamType.INLINED));
