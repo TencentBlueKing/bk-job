@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.inner.request;
 
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -37,6 +38,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class ServiceCheckAppHostsReq {
     List<IpDTO> hosts;
 
