@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.cc.model.result.ListBizHostsTopoResult;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 
 import java.util.Collection;
@@ -91,7 +91,7 @@ public interface CcClient {
      * @param ccInstList topo节点列表
      * @return 主机
      */
-    List<ApplicationHostInfoDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据topo实例获取hosts
@@ -99,7 +99,7 @@ public interface CcClient {
      * @param ccInstList topo节点列表
      * @return 主机列表
      */
-    List<ApplicationHostInfoDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据module获取hosts
@@ -108,7 +108,7 @@ public interface CcClient {
      * @param owner
      * @return
      */
-    List<ApplicationHostInfoDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin, String owner);
+    List<ApplicationHostDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin, String owner);
 
     /**
      * 获取业务下的主机与拓扑
@@ -172,7 +172,7 @@ public interface CcClient {
 
     List<CcCloudAreaInfoDTO> getCloudAreaList();
 
-    List<ApplicationHostInfoDTO> getHostByIp(GetHostByIpInput input);
+    List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input);
 
     /**
      * 根据云区域ID+IP获取主机信息
@@ -181,9 +181,9 @@ public interface CcClient {
      * @param ip          IP
      * @return 主机信息
      */
-    ApplicationHostInfoDTO getHostByIp(Long cloudAreaId, String ip);
+    ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip);
 
-    List<ApplicationHostInfoDTO> listAppHosts(long appId, Collection<IpDTO> ipList);
+    List<ApplicationHostDTO> listAppHosts(long appId, Collection<IpDTO> ipList);
 
     List<FindHostBizRelationsResult> findHostBizRelations(String uin, List<Long> hostIdList);
 
@@ -195,7 +195,7 @@ public interface CcClient {
      * @param ipList
      * @return
      */
-    List<ApplicationHostInfoDTO> getHostByIpWithoutAppId(String uin, List<String> ipList);
+    List<ApplicationHostDTO> getHostByIpWithoutAppId(String uin, List<String> ipList);
 
     /**
      * 获取CMDB对象属性信息列表

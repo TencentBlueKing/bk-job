@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.cc.model;
 
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -50,6 +50,6 @@ public class TopologyNodeInfoDTO {
 
     private List<String> ipList;
 
-    private List<ApplicationHostInfoDTO> ipListStatus;
+    private List<ApplicationHostDTO> ipListStatus;
 
 }

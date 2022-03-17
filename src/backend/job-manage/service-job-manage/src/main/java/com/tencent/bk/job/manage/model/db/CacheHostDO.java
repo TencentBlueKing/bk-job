@@ -22,72 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.db;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @since 4/11/2019 15:33
+ * Redis 缓存主机DO
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class ApplicationHostInfoDTO {
-
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class CacheHostDO {
     /**
-     * 服务器ID
+     * 云区域ID
      */
-    private Long hostId;
-
-    private Long appId;
-
-    private String ip;
-
-    /**
-     * 展示用的IP，主要针对多内网IP问题
-     */
-    private String displayIp;
-
-    private String ipDesc;
-
-    private Boolean gseAgentAlive;
-
     private Long cloudAreaId;
 
     /**
-     * 操作系统
+     * ip
      */
-    private String os;
+    private String ip;
 
     /**
-     * 操作系统类型
+     * 主机ID
      */
-    private String osType;
+    private Long hostId;
 
     /**
-     * 集群ID
+     * 业务ID
      */
-    private List<Long> setId;
-
-    /**
-     * 模块id,一个主机可以属于多个模块
-     */
-    private List<Long> moduleId;
-
-    /**
-     * cc的模块类型集合， 选填0,1,2，0所有模块 1普通模块，2DB模块， 支持多个模块
-     **/
-    private List<Long> moduleType;
-
-    /**
-     * IP 列表，搜索用参数
-     */
-    private List<String> ipList;
-
+    private Long appId;
 }

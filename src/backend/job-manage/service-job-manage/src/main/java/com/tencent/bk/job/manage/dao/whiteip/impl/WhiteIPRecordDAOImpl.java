@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -283,7 +284,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             tWhiteIPRecord.ID
         ).from(tWhiteIPRecord);
         val records = query.fetch();
-        if (records != null && records.isNotEmpty()) {
+        if (CollectionUtils.isNotEmpty(records)) {
             recordIdList = records.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
         }
         return recordIdList;

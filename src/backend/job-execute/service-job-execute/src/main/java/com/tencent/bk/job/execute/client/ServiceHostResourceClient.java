@@ -22,41 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.execute.client;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
 /**
- * @since 4/12/2019 19:06
+ * 业务主机服务远程调用客户端
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class DynamicGroupInfoDTO {
-
-    private Long appId;
-
-    private String appName;
-
-    private String id;
-
-    private String owner;
-
-    private String ownerName;
-
-    private String name;
-
-    private String type;
-
-    private List<String> ipList;
-
-    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
-
+@FeignClient(value = "job-manage", contextId = "host")
+public interface ServiceHostResourceClient extends ServiceHostResource {
 }

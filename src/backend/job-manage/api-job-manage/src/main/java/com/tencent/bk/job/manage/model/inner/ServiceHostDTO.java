@@ -22,41 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.inner;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @since 4/12/2019 19:06
+ * 主机
  */
-@Data
-@EqualsAndHashCode
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
-@AllArgsConstructor
-public class DynamicGroupInfoDTO {
+public class ServiceHostDTO {
+    /**
+     * 主机ID
+     */
+    private Long hostId;
 
+    /**
+     * 云区域ID
+     */
+    private Long cloudAreaId;
+
+    /**
+     * ip
+     */
+    private String ip;
+
+
+    /**
+     * 业务ID
+     */
     private Long appId;
 
-    private String appName;
-
-    private String id;
-
-    private String owner;
-
-    private String ownerName;
-
-    private String name;
-
-    private String type;
-
-    private List<String> ipList;
-
-    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
-
+    public ServiceHostDTO(Long hostId, Long cloudAreaId, String ip, Long appId) {
+        this.hostId = hostId;
+        this.cloudAreaId = cloudAreaId;
+        this.ip = ip;
+        this.appId = appId;
+    }
 }

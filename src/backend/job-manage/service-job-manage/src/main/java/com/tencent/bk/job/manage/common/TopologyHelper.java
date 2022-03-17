@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -199,7 +199,7 @@ public class TopologyHelper {
      * @param hostInfo 作业平台内主机信息
      * @return 展示用主机信息
      */
-    public static HostInfoVO convertToHostInfoVO(ApplicationHostInfoDTO hostInfo) {
+    public static HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostInfo) {
         if (hostInfo == null) {
             return null;
         }
@@ -374,15 +374,15 @@ public class TopologyHelper {
      * @param ipList IP 地址列表
      * @return 机器 Agent 状态信息列表
      */
-    public List<ApplicationHostInfoDTO> getIpStatusListByIps(long appId, List<String> ipList) {
-        List<ApplicationHostInfoDTO> ipInfoList = new ArrayList<>();
+    public List<ApplicationHostDTO> getIpStatusListByIps(long appId, List<String> ipList) {
+        List<ApplicationHostDTO> ipInfoList = new ArrayList<>();
         if (CollectionUtils.isEmpty(ipList)) {
             return ipInfoList;
         }
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
             queryAgentStatusClient.batchGetAgentStatus(ipList);
         for (String ip : ipList) {
-            ApplicationHostInfoDTO ipInfo = new ApplicationHostInfoDTO();
+            ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
             ipInfo.setAppId(appId);
             ipInfo.setIp(ip.split(":")[1]);

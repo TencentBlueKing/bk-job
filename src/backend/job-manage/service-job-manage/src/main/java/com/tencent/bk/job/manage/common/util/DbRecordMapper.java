@@ -27,9 +27,7 @@ package com.tencent.bk.job.manage.common.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskApprovalTypeEnum;
@@ -49,12 +47,10 @@ import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Record11;
-import org.jooq.Record12;
 import org.jooq.Record13;
 import org.jooq.Record15;
 import org.jooq.Record6;
 import org.jooq.Record9;
-import org.jooq.generated.tables.Host;
 import org.jooq.generated.tables.TaskPlan;
 import org.jooq.generated.tables.TaskTemplate;
 import org.jooq.generated.tables.TaskTemplateStepFileList;
@@ -62,9 +58,7 @@ import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @since 5/10/2019 09:38
@@ -257,35 +251,6 @@ public class DbRecordMapper {
         taskTemplateInfo.setVersion(record.get(table.VERSION));
         taskTemplateInfo.setScriptStatus(record.get(table.SCRIPT_STATUS).intValue());
         return taskTemplateInfo;
-    }
-
-    public static ApplicationHostInfoDTO convertRecordToApplicationHostInfo(
-        Record12<ULong, ULong, String, String, String, String, ULong, String, String, String, String, UByte> record) {
-        if (record == null) {
-            return null;
-        }
-
-        Host table = Host.HOST;
-        ApplicationHostInfoDTO applicationHostInfoDTO = new ApplicationHostInfoDTO();
-        applicationHostInfoDTO.setAppId(record.get(table.APP_ID).longValue());
-        applicationHostInfoDTO.setIp(record.get(table.IP));
-        applicationHostInfoDTO.setIpDesc(record.get(table.IP_DESC));
-        applicationHostInfoDTO.setGseAgentAlive(record.get(table.IS_AGENT_ALIVE).intValue() == 1);
-        List<Long> setIdList = new ArrayList<>();
-        String setIdsStr = record.get(table.SET_IDS);
-        if (setIdsStr != null) {
-            setIdList = Arrays.asList(setIdsStr.split(",")).stream().filter(id -> !id.trim().equals(""))
-                .map(Long::parseLong).collect(Collectors.toList());
-        }
-        applicationHostInfoDTO.setSetId(setIdList);
-        applicationHostInfoDTO.setModuleId(StringUtil.strToList(record.get(table.MODULE_IDS), Long.class, ","));
-        applicationHostInfoDTO.setCloudAreaId(record.get(table.CLOUD_AREA_ID).longValue());
-        applicationHostInfoDTO.setDisplayIp(record.get(table.DISPLAY_IP));
-        applicationHostInfoDTO.setOs(record.get(table.OS));
-        applicationHostInfoDTO.setOsType(record.get(table.OS_TYPE));
-        applicationHostInfoDTO.setModuleType(StringUtil.strToList(record.get(table.MODULE_TYPE), Long.class, ","));
-        applicationHostInfoDTO.setHostId(record.get(table.HOST_ID).longValue());
-        return applicationHostInfoDTO;
     }
 
     public static ULong getJooqLongValue(Long longValue) {

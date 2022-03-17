@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -119,9 +120,15 @@ public class SyncServiceImpl implements SyncService {
     private final HostSyncService hostSyncService;
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
+    private final HostCache hostCache;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
+                           BizSyncService bizSyncService,
+                           BizSetSyncService bizSetSyncService,
+                           HostSyncService hostSyncService,
+                           AppHostsUpdateHelper appHostsUpdateHelper,
+                           AgentStatusSyncService agentStatusSyncService,
                            ApplicationDAO applicationDAO,
                            ApplicationHostDAO applicationHostDAO,
                            HostTopoDAO hostTopoDAO,
@@ -130,11 +137,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           BizSyncService bizSyncService,
-                           BizSetSyncService bizSetSyncService,
-                           HostSyncService hostSyncService,
-                           AppHostsUpdateHelper appHostsUpdateHelper,
-                           AgentStatusSyncService agentStatusSyncService) {
+                           HostCache hostCache) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -152,6 +155,7 @@ public class SyncServiceImpl implements SyncService {
         this.hostSyncService = hostSyncService;
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
+        this.hostCache = hostCache;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -193,7 +197,7 @@ public class SyncServiceImpl implements SyncService {
             appWatchThread.start();
             // 开一个常驻线程监听主机资源变动事件
             hostWatchThread = new HostWatchThread(dslContext, applicationHostDAO, queryAgentStatusClient,
-                redisTemplate, appHostsUpdateHelper);
+                redisTemplate, appHostsUpdateHelper, hostCache);
             hostWatchThread.start();
             // 开一个常驻线程监听主机关系资源变动事件
             hostRelationWatchThread = new HostRelationWatchThread(dslContext, applicationHostDAO, hostTopoDAO,
@@ -286,7 +290,7 @@ public class SyncServiceImpl implements SyncService {
                 try {
                     // 从CMDB同步业务信息
                     bizSyncService.syncBizFromCMDB();
-                    // TODO: 从CMDB同步业务集信息
+                    // 从CMDB同步业务集信息
                     bizSetSyncService.syncBizSetFromCMDB();
                     log.info(Thread.currentThread().getName() + ":Finished:sync app from cc");
                     // 将最后同步时间写入Redis
