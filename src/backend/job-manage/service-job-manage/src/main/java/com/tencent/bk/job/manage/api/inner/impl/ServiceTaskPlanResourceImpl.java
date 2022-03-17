@@ -184,7 +184,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     @Override
     public InternalResponse<ServiceTaskPlanDTO> getPlanById(Long appId, Long planId, Boolean includeDisabledSteps) {
         TaskPlanInfoDTO plan = taskPlanService.getTaskPlanById(appId, planId);
-        log.info("Get plan by planId, planId={}, plan={}", planId, JsonUtils.toJson(plan));
+        log.debug("Get plan by planId, planId={}, plan={}", planId, JsonUtils.toJson(plan));
         if (plan == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"planId", "Cannot find plan by id " + planId});
