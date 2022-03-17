@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,7 +65,8 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public Map<IpDTO, ServiceHostDTO> batchGetHosts(List<IpDTO> hostIps) {
-        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(hostIps).getData();
+        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(
+            new ServiceBatchGetHostsReq(hostIps)).getData();
         Map<IpDTO, ServiceHostDTO> hostMap = new HashMap<>();
         hosts.forEach(host -> hostMap.put(new IpDTO(host.getCloudAreaId(), host.getIp()), host));
         return hostMap;
