@@ -57,10 +57,17 @@ public class AppResourceScope extends ResourceScope {
         this.appId = appId;
     }
 
+    public AppResourceScope(Long appId, ResourceScope resourceScope) {
+        super(resourceScope.getType(), resourceScope.getId());
+        this.appId = appId;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", AppResourceScope.class.getSimpleName() + "[", "]")
             .add("appId=" + appId)
+            .add("type=" + (getType() == null ? "null" : getType().getValue()))
+            .add("id=" + getId())
             .toString();
     }
 }

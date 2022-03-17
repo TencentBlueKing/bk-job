@@ -25,8 +25,11 @@
 package com.tencent.bk.job.crontab.model.dto;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -186,6 +189,11 @@ public class CronJobInfoDTO {
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
         cronJobVO.setAppId(cronJobInfo.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        cronJobVO.setScopeType(resourceScope.getType().getValue());
+        cronJobVO.setScopeId(resourceScope.getId());
         cronJobVO.setName(cronJobInfo.getName());
         cronJobVO.setCreator(cronJobInfo.getCreator());
         cronJobVO.setCreateTime(cronJobInfo.getCreateTime());
@@ -225,6 +233,11 @@ public class CronJobInfoDTO {
         CronJobVO cronJobVO = new CronJobVO();
         cronJobVO.setId(cronJobInfo.getId());
         cronJobVO.setAppId(cronJobInfo.getAppId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(cronJobInfo.getAppId());
+        cronJobVO.setScopeType(resourceScope.getType().getValue());
+        cronJobVO.setScopeId(resourceScope.getId());
         cronJobVO.setName(cronJobInfo.getName());
         cronJobVO.setTaskTemplateId(cronJobInfo.getTaskTemplateId());
         cronJobVO.setTaskPlanId(cronJobInfo.getTaskPlanId());
@@ -288,7 +301,7 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(cronJobInfoDTO.getId());
-        esbCronInfoResponse.setAppId(cronJobInfoDTO.getAppId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(), esbCronInfoResponse);
         esbCronInfoResponse.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoResponse.setName(cronJobInfoDTO.getName());
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
@@ -311,7 +324,10 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
         esbCronInfoV3DTO.setId(cronJobInfoDTO.getId());
-        esbCronInfoV3DTO.setAppId(cronJobInfoDTO.getAppId());
+
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(),
+            esbCronInfoV3DTO);
+
         esbCronInfoV3DTO.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoV3DTO.setName(cronJobInfoDTO.getName());
         esbCronInfoV3DTO.setStatus(cronJobInfoDTO.getEnable() ? 1 : 2);
@@ -461,7 +477,10 @@ public class CronJobInfoDTO {
         }
         EsbCronInfoV3DTO esbCronInfoResponse = new EsbCronInfoV3DTO();
         esbCronInfoResponse.setId(cronJobInfoDTO.getId());
-        esbCronInfoResponse.setAppId(cronJobInfoDTO.getAppId());
+
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(cronJobInfoDTO.getAppId(),
+            esbCronInfoResponse);
+
         esbCronInfoResponse.setPlanId(cronJobInfoDTO.getTaskPlanId());
         esbCronInfoResponse.setName(cronJobInfoDTO.getName());
         esbCronInfoResponse.setStatus(cronJobInfoDTO.getEnable() ? 1 : 0);

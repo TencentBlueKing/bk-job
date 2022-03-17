@@ -56,12 +56,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     @Override
-    public Response<String> getApplyUrl(String username, OperationPermissionReq req) {
-//        authService.
-        return null;
-    }
-
-    @Override
     public Response<AuthResultVO> checkOperationPermission(String username, OperationPermissionReq req) {
         return checkOperationPermission(
             username, req.getAppId(), req.getScopeType(), req.getScopeId(),

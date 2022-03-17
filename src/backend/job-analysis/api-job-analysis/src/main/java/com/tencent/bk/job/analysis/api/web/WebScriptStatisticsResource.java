@@ -50,9 +50,9 @@ public interface WebScriptStatisticsResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("统计日期，例如：2020-12-16，不传默认为今天")
         @RequestParam(value = "date", required = false)
             String date

@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -74,20 +75,26 @@ public class EsbFastExecuteScriptResourceImpl
 
     private final ScriptService scriptService;
 
+    private final AppScopeMappingService appScopeMappingService;
+
     @Autowired
     public EsbFastExecuteScriptResourceImpl(TaskExecuteService taskExecuteService,
                                             AccountService accountService,
                                             MessageI18nService i18nService,
-                                            ScriptService scriptService) {
+                                            ScriptService scriptService,
+                                            AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
         this.scriptService = scriptService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_fast_execute_script"})
     public EsbResp<EsbJobExecuteDTO> fastExecuteScript(EsbFastExecuteScriptRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");
@@ -116,13 +123,6 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
     private ValidateResult checkFastExecuteScriptRequest(EsbFastExecuteScriptRequest request) {
-
-        Long appId = request.getAppId();
-        if (appId == null || appId < 1L) {
-            log.warn("Fast execute script, bk_biz_id is invalid! bk_biz_id={}", appId);
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
-
         if (request.getScriptId() != null) {
             if (request.getScriptId() < 1) {
                 log.warn("Fast execute script, scriptId:{} is invalid", request.getScriptId());

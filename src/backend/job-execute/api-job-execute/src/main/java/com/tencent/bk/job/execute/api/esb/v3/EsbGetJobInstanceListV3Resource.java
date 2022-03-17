@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.execute.model.esb.v3.EsbTaskInstanceV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceListV3Request;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,13 +49,18 @@ public interface EsbGetJobInstanceListV3Resource {
 
     @PostMapping("/get_job_instance_list")
     EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
-        @RequestBody EsbGetJobInstanceListV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetJobInstanceListV3Request request
+    );
 
     @GetMapping("/get_job_instance_list")
     EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "create_time_start") Long createTimeStart,
         @RequestParam(value = "create_time_end") Long createTimeEnd,
         @RequestParam(value = "job_instance_id", required = false) Long taskInstanceId,

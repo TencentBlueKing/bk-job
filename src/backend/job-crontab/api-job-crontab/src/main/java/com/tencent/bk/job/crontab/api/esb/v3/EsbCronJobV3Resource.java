@@ -24,15 +24,6 @@
 
 package com.tencent.bk.job.crontab.api.esb.v3;
 
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -42,6 +33,14 @@ import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbSaveCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbUpdateCronStatusV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @since 26/2/2020 16:24
@@ -55,7 +54,10 @@ public interface EsbCronJobV3Resource {
     EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId, @RequestParam(value = "id", required = false) Long id,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @RequestParam(value = "id", required = false) Long id,
         @RequestParam(value = "creator", required = false) String creator,
         @RequestParam(value = "name", required = false) String name,
         @RequestParam(value = "status", required = false) Integer status,
@@ -70,7 +72,9 @@ public interface EsbCronJobV3Resource {
     @GetMapping("/get_cron_detail")
     EsbResp<EsbCronInfoV3DTO> getCronDetail(@RequestHeader(value = JobCommonHeaders.USERNAME) String username,
                                             @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-                                            @RequestParam(value = "bk_biz_id") Long appId,
+                                            @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+                                            @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+                                            @RequestParam(value = "bk_scope_id", required = false) String scopeId,
                                             @RequestParam(value = "id") Long id);
 
     /**
@@ -80,7 +84,11 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务列表
      */
     @PostMapping("/get_cron_list")
-    EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(@RequestBody EsbGetCronListV3Request request);
+    EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(
+        @RequestBody
+        @Validated
+            EsbGetCronListV3Request request
+    );
 
     /**
      * 获取定时任务详情
@@ -89,7 +97,11 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping("/get_cron_detail")
-    EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(@RequestBody EsbGetCronDetailV3Request request);
+    EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(
+        @RequestBody
+        @Validated
+            EsbGetCronDetailV3Request request
+    );
 
     /**
      * 更新定时任务状态
@@ -98,7 +110,11 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping(value = "/update_cron_status")
-    EsbResp<EsbCronInfoV3DTO> updateCronStatus(@RequestBody EsbUpdateCronStatusV3Request request);
+    EsbResp<EsbCronInfoV3DTO> updateCronStatus(
+        @RequestBody
+        @Validated
+            EsbUpdateCronStatusV3Request request
+    );
 
     /**
      * 更新定时任务详情
@@ -107,5 +123,9 @@ public interface EsbCronJobV3Resource {
      * @return 定时任务详情
      */
     @PostMapping(value = "/save_cron")
-    EsbResp<EsbCronInfoV3DTO> saveCron(@RequestBody @Validated EsbSaveCronV3Request request);
+    EsbResp<EsbCronInfoV3DTO> saveCron(
+        @RequestBody
+        @Validated
+            EsbSaveCronV3Request request
+    );
 }

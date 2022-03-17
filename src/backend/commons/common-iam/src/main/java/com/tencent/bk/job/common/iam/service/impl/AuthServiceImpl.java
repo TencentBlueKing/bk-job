@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.service.impl;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
@@ -43,7 +42,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
-import com.tencent.bk.job.common.iam.model.ResourceAppInfo;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
@@ -72,7 +70,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final AuthHelper authHelper;
     private final EsbIamClient iamClient;
     private final MessageI18nService i18nService;
@@ -97,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void setResourceNameQueryService(ResourceNameQueryService resourceNameQueryService) {
         this.resourceNameQueryService = resourceNameQueryService;
+        super.setResourceNameQueryService(resourceNameQueryService);
     }
 
     @Override
@@ -112,14 +111,7 @@ public class AuthServiceImpl implements AuthService {
     public boolean authSpecialAppByMaintainer(String username, ResourceTypeEnum resourceType,
                                               String resourceId) {
         // 业务集、全业务特殊鉴权
-        if (resourceAppInfoQueryService != null) {
-            ResourceAppInfo resourceAppInfo = resourceAppInfoQueryService.getResourceAppInfo(resourceType, resourceId);
-            if (resourceAppInfo != null && resourceAppInfo.getAppType() != AppTypeEnum.NORMAL) {
-                return resourceAppInfo.getMaintainerList().contains(username);
-            }
-        } else {
-            log.warn("appInfoQueryService not set, cannot auth special business");
-        }
+        // TODO:灰度开启
         return false;
     }
 
@@ -218,17 +210,28 @@ public class AuthServiceImpl implements AuthService {
         return authHelper.isAllowed(username, actionId, buildInstanceList(resourceType, resourceIdList));
     }
 
+    @Override
+    public AuthResult batchAuthResources(String username,
+                                         String actionId,
+                                         List<PermissionResource> resources) {
+        ResourceTypeEnum resourceType = resources.get(0).getResourceType();
+        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+        List<String> notAllowResourceIds =
+            resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
+                .map(PermissionResource::getResourceId).collect(Collectors.toList());
+        AuthResult authResult = new AuthResult();
+        if (!notAllowResourceIds.isEmpty()) {
+            authResult = buildFailAuthResult(actionId, resourceType, notAllowResourceIds);
+        } else {
+            authResult.setPass(true);
+        }
+        return authResult;
+    }
+
     private List<InstanceDTO> buildInstanceList(ResourceTypeEnum resourceType,
                                                 List<String> resourceIds) {
         List<InstanceDTO> instances = new LinkedList<>();
         resourceIds.forEach(resourceId -> instances.add(buildInstance(resourceType, resourceId, null)));
-        return instances;
-    }
-
-    private List<InstanceDTO> buildInstanceList(List<PermissionResource> resources) {
-        List<InstanceDTO> instances = new LinkedList<>();
-        resources.forEach(resource -> instances.add(buildInstance(resource.getResourceType(), resource.getResourceId(),
-            resource.getPathInfo())));
         return instances;
     }
 
@@ -319,18 +322,6 @@ public class AuthServiceImpl implements AuthService {
         return resourcesGroupByActionAndType;
     }
 
-    private InstanceDTO convertPermissionResourceToInstance(PermissionResource permissionResource) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(permissionResource.getResourceId());
-        if (StringUtils.isEmpty(permissionResource.getType())) {
-            instance.setType(permissionResource.getResourceType().getId());
-        } else {
-            instance.setType(permissionResource.getType());
-        }
-        instance.setName(permissionResource.getResourceName());
-        return instance;
-    }
-
     @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(List<PermissionActionResource> permissionActionResources) {
         List<ActionDTO> actions = buildApplyActions(permissionActionResources);
@@ -417,14 +408,5 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors) {
         return iamClient.registerResource(id, name, type, creator, ancestors);
-    }
-
-    private InstanceDTO buildInstance(ResourceTypeEnum resourceType, String resourceId, PathInfoDTO path) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(resourceId);
-        instance.setType(resourceType.getId());
-        instance.setSystem(resourceType.getSystemId());
-        instance.setPath(path);
-        return instance;
     }
 }

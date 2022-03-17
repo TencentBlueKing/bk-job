@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
@@ -64,5 +65,19 @@ public class ResourceScope {
             .add("type=" + type)
             .add("id='" + id + "'")
             .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ResourceScope that = (ResourceScope) o;
+        return type == that.type &&
+            id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, id);
     }
 }

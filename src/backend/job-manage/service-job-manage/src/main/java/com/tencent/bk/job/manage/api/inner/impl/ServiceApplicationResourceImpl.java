@@ -95,6 +95,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         }
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setId(appInfo.getId());
+        app.setScopeType(appInfo.getScope().getType().getValue());
+        app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
         app.setAppType(appInfo.getAppType().getValue());
         app.setSubAppIds(appInfo.getSubAppIds());
@@ -108,7 +110,9 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     private ServiceAppBaseInfoDTO convertToServiceAppBaseInfo(ApplicationDTO appInfo) {
         ServiceAppBaseInfoDTO appBaseInfoDTO = new ServiceAppBaseInfoDTO();
-        appBaseInfoDTO.setId(appInfo.getId());
+        appBaseInfoDTO.setScopeType(appInfo.getScope().getType().getValue());
+        appBaseInfoDTO.setScopeId(appInfo.getScope().getId());
+        appBaseInfoDTO.setAppId(appInfo.getId());
         appBaseInfoDTO.setName(appInfo.getName());
         return appBaseInfoDTO;
     }

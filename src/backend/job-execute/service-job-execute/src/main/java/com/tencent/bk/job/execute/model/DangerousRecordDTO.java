@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.model.web.vo.DangerousRecordVO;
 import com.tencent.bk.job.execute.model.web.vo.ScriptCheckResultItemVO;
@@ -107,7 +110,13 @@ public class DangerousRecordDTO {
         recordVO.setClient(client);
         recordVO.setScriptLanguage(scriptLanguage);
         recordVO.setScriptContent(Base64Util.encodeContentToStr(scriptContent));
-        recordVO.setAppId(appId);
+
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        recordVO.setScopeType(resourceScope.getType().getValue());
+        recordVO.setScopeId(resourceScope.getId());
+
         recordVO.setAppName(appName);
         recordVO.setCreateTime(createTime);
         if (checkResult != null && CollectionUtils.isNotEmpty(checkResult.getResults())) {

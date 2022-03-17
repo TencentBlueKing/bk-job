@@ -22,19 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.auth;
+package com.tencent.bk.job.common.esb.util;
 
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
-
-import java.util.List;
-import java.util.Map;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
 /**
- * ESB接口鉴权服务
+ * ESB 业务与资源范围转换工具类
  */
-public interface EsbAuthService {
-    EsbResp batchAuthJobResources(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                  List<String> resourceIds, Map<String, String> idNameMap);
+public class EsbDTOAppScopeMappingHelper {
+    /**
+     * appId转换为bk_biz_id、bk_scope_type、bk_scope_id
+     *
+     * @param appId          Job业务ID
+     * @param esbAppScopeDTO 资源范围-ESB DTO
+     */
+    public static void fillEsbAppScopeDTOByAppId(Long appId, EsbAppScopeDTO esbAppScopeDTO) {
+        if (appId == null) {
+            return;
+        }
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
+        esbAppScopeDTO.setScopeId(resourceScope.getId());
+        esbAppScopeDTO.setBkBizId(Long.valueOf(resourceScope.getId()));
+    }
 }
-

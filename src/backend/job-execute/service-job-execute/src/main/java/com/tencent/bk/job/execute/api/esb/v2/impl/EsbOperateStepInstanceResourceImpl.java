@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateStepInstanceResource;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -43,15 +44,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanceResource {
     private final TaskExecuteService taskExecuteService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbOperateStepInstanceResourceImpl(TaskExecuteService taskExecuteService) {
+    public EsbOperateStepInstanceResourceImpl(TaskExecuteService taskExecuteService,
+                                              AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_step_instance"})
     public EsbResp<EsbJobExecuteDTO> operateStepInstance(EsbOperateStepInstanceRequest request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
+        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -67,10 +72,6 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
     }
 
     private boolean checkRequest(EsbOperateStepInstanceRequest request) {
-        if (request.getAppId() == null || request.getAppId() <= 0) {
-            log.warn("Operate step instance, appId is empty!");
-            return false;
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() <= 0) {
             log.warn("Operate step instance, taskInstanceId is empty!");
             return false;

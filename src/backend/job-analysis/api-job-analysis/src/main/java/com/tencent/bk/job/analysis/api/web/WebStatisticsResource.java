@@ -71,9 +71,9 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("统计日期，例如：2020-12-16，不传默认为今天")
         @RequestParam(value = "date", required = false)
             String date
@@ -96,9 +96,9 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("统计起始日期，例如：2019-01-30，本期需求先不传这个参数，按默认最小值处理")
         @RequestParam(value = "dataStartDate", required = false)
             String dataStartDate,
@@ -127,9 +127,9 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("统计日期，不传默认为今天，例如：2020-12-17")
         @RequestParam(value = "date", required = false)
             String date
@@ -153,9 +153,9 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             DistributionMetricEnum metric,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("统计日期，例如：2020-12-16，不传默认为今天")
         @RequestParam(value = "date", required = false)
             String date
@@ -184,9 +184,9 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "dimension", required = true)
             DimensionEnum dimension,
-        @ApiParam("业务Id列表，不传为全业务")
-        @RequestParam(value = "appIdList", required = false)
-            List<Long> appIdList,
+        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @RequestParam(value = "scopes", required = false)
+            List<String> scopes,
         @ApiParam("查询起始日期，不传默认为今天，例如：2019-01-30")
         @RequestParam(value = "startDate", required = false)
             String startDate,

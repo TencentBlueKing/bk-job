@@ -1,7 +1,7 @@
 package com.tencent.bk.job.file_gateway.model.req.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,12 +10,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class EsbCreateOrUpdateFileSourceV3Req extends EsbReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
 
     @ApiModelProperty(value = "ID,更新文件源的时候需要传入，新建文件源不需要")
     private Integer id;

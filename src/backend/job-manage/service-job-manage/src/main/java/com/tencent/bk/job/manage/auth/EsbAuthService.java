@@ -22,19 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request;
+package com.tencent.bk.job.manage.auth;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * 收藏/取消收藏请求报文
+ * ESB接口鉴权服务
  */
-
-@Data
-@ApiModel("收藏/取消收藏请求报文")
-public class FavorAppReq {
-    @ApiModelProperty(value = "目标业务Id", required = true)
-    private Long appId;
+public interface EsbAuthService {
+    EsbResp batchAuthJobResources(String username,
+                                  String actionId,
+                                  AppResourceScope appResourceScope,
+                                  ResourceTypeEnum resourceType,
+                                  List<String> resourceIds,
+                                  Map<String, String> idNameMap);
 }
+

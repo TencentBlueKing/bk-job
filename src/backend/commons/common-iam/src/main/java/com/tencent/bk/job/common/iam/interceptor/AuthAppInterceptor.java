@@ -28,15 +28,11 @@
 package com.tencent.bk.job.common.iam.interceptor;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.AuthService;
-import com.tencent.bk.job.common.iam.util.IamUtil;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,33 +47,36 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
-    private final AuthService authService;
+    private final BusinessAuthService businessAuthService;
 
     @Autowired
-    public AuthAppInterceptor(AuthService authService) {
-        this.authService = authService;
+    public AuthAppInterceptor(BusinessAuthService businessAuthService) {
+        this.businessAuthService = businessAuthService;
+    }
+
+    private boolean isPublicApp(AppResourceScope appResourceScope) {
+        if (appResourceScope.getAppId() == null) {
+            return Long.parseLong(appResourceScope.getId()) == JobConstants.PUBLIC_APP_ID;
+        }
+        return appResourceScope.getAppId() == JobConstants.PUBLIC_APP_ID;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        Pair<String, ResourceScope> userScopePair = null;
+        Pair<String, AppResourceScope> userScopePair = null;
         userScopePair = findUserAndScope();
         if (userScopePair != null) {
             String username = userScopePair.getLeft();
-            ResourceScope resourceScope = userScopePair.getRight();
-            if (resourceScope != null && Long.parseLong(resourceScope.getId()) != JobConstants.PUBLIC_APP_ID) {
-                log.debug("auth {} access_business {}", username, resourceScope);
-                PathInfoDTO pathInfo = new PathInfoDTO();
-                pathInfo.setType(IamUtil.getIamResourceTypeIdForResourceScope(resourceScope));
-                pathInfo.setId(resourceScope.getId());
-                AuthResult authResult = authService.auth(true, username, ActionId.ACCESS_BUSINESS,
-                                                         ResourceTypeEnum.BUSINESS, resourceScope.getId(), pathInfo);
+            AppResourceScope appResourceScope = userScopePair.getRight();
+            if (appResourceScope != null && !isPublicApp(appResourceScope)) {
+                log.debug("auth {} access_business {}", username, appResourceScope);
+                AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
             } else {
-                log.info("ignore auth {} access_business public scope {}", username, resourceScope);
+                log.info("ignore auth {} access_business public scope {}", username, appResourceScope);
             }
         } else {
             log.debug("can not find username/scope for url:{}", url);
@@ -85,11 +84,11 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
         return true;
     }
 
-    private Pair<String, ResourceScope> findUserAndScope() {
+    private Pair<String, AppResourceScope> findUserAndScope() {
         String username = JobContextUtil.getUsername();
-        ResourceScope resourceScope = JobContextUtil.getScope();
-        if (username != null && resourceScope != null) {
-            return Pair.of(username, resourceScope);
+        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+        if (username != null && appResourceScope != null) {
+            return Pair.of(username, appResourceScope);
         }
         return null;
     }

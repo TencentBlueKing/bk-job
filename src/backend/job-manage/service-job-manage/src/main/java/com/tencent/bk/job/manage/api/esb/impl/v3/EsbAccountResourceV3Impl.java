@@ -24,21 +24,17 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbAccountV3Resource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,25 +46,19 @@ import java.util.List;
 @Slf4j
 public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
-    private final EsbAuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbAccountResourceV3Impl(AccountService accountService, MessageI18nService i18nService,
-                                    EsbAuthService authService) {
+    public EsbAccountResourceV3Impl(AccountService accountService,
+                                    AppScopeMappingService appScopeMappingService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
-        this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_account_list"})
     public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(EsbGetAccountListV3Req request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get account list, request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
+        request.fillAppResourceScope(appScopeMappingService);
         long appId = request.getAppId();
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         int start = 0;
@@ -98,39 +88,27 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
             return esbAccounts;
         }
         for (AccountDTO account : accounts) {
-            EsbAccountV3DTO esbAccount = new EsbAccountV3DTO();
-            esbAccount.setId(account.getId());
-            esbAccount.setAppId(account.getAppId());
-            esbAccount.setAccount(account.getAccount());
-            esbAccount.setAlias(account.getAlias());
-            esbAccount.setCategory(account.getCategory().getValue());
-            esbAccount.setType(account.getType().getType());
-            esbAccount.setDbSystemAccountId(account.getDbSystemAccountId());
-            esbAccount.setOs(account.getOs());
-            esbAccount.setCreator(account.getCreator());
-            esbAccount.setCreateTime(account.getCreateTime());
-            esbAccount.setLastModifyUser(account.getLastModifyUser());
-            esbAccount.setLastModifyTime(account.getLastModifyTime());
+            EsbAccountV3DTO esbAccount = account.toEsbAccountV3DTO();
             esbAccounts.add(esbAccount);
         }
         return esbAccounts;
     }
 
-    private ValidateResult checkRequest(EsbGetAccountListV3Req request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "id");
-        }
-        return ValidateResult.pass();
-    }
-
     @Override
-    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(String username, String appCode, Long appId,
-                                                                  Integer category, Integer start, Integer length) {
+    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountList(String username,
+                                                                  String appCode,
+                                                                  Long bkBizId,
+                                                                  String scopeType,
+                                                                  String scopeId,
+                                                                  Integer category,
+                                                                  Integer start,
+                                                                  Integer length) {
         EsbGetAccountListV3Req request = new EsbGetAccountListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBkBizId(bkBizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setCategory(category);
         request.setStart(start);
         request.setLength(length);

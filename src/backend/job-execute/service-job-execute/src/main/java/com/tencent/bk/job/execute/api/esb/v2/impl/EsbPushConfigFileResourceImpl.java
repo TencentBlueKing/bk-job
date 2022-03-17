@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
@@ -70,21 +71,26 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final AccountService accountService;
     private final StorageSystemConfig storageSystemConfig;
     private final AgentService agentService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
                                          StorageSystemConfig storageSystemConfig,
-                                         AgentService agentService) {
+                                         AgentService agentService,
+                                         AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_push_config_file"})
     public EsbResp<EsbJobExecuteDTO> pushConfigFile(EsbPushConfigFileRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
+
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -193,10 +199,6 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     }
 
     private ValidateResult checkPushConfigFileRequest(EsbPushConfigFileRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("Push config file, appId is empty or invalid!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (StringUtils.isBlank(request.getTargetPath())) {
             log.warn("Push config file, targetPath is empty!");
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");

@@ -56,7 +56,6 @@ public class CronJobLaunchHistoryVO {
     /**
      * 任务状态
      *
-     * @see com.tencent.bk.job.crontab.constant.ExecuteStatusEnum
      */
     @ApiModelProperty("启动状态")
     private Integer status;

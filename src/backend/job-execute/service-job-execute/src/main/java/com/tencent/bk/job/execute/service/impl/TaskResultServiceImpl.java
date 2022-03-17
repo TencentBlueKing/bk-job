@@ -220,7 +220,9 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appId, taskInstance);
+
+        AuthResult authResult = executeAuthService.authViewTaskInstance(
+            username, new AppResourceScope(appId), taskInstance);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -231,7 +233,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (username.equals(operator)) {
             return;
         }
-        //TODO:scope改造
+
         AuthResult authResult = executeAuthService.authViewTaskInstance(
             username, new AppResourceScope(appId),
             stepInstance.getTaskInstanceId());

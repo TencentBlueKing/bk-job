@@ -22,18 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.dto;
+package com.tencent.bk.job.common.iam.service.impl;
 
-import lombok.Data;
-
-import java.util.List;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.BusinessAuthService;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
- * @since 16/6/2020 16:07
+ * 账号相关操作鉴权接口
  */
-@Data
-public class AppIdResult {
-    private List<Long> appId;
+@Slf4j
+@Service
+public class BusinessAuthServiceImpl implements BusinessAuthService {
 
-    private Boolean any;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public BusinessAuthServiceImpl(AppAuthService appAuthService) {
+        this.appAuthService = appAuthService;
+    }
+
+    @Override
+    public AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope) {
+        return appAuthService.auth(true, username, ActionId.ACCESS_BUSINESS, appResourceScope);
+    }
+
 }

@@ -22,43 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.backup.client;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import org.springframework.cloud.openfeign.FeignClient;
 
-/**
- * 引用脚本的作业执行方案VO
- *
- * @date 2019/09/19
- */
-@Getter
-@Setter
-@ToString
-@ApiModel("脚本引用的作业执行方案")
-public class ScriptRelatedTaskPlanVO {
-    @ApiModelProperty("脚本id")
-    private String scriptId;
-    @ApiModelProperty("脚本版本ID")
-    private Long scriptVersionId;
-    @ApiModelProperty("脚本版本号")
-    private String scriptVersion;
-    @ApiModelProperty("脚本名称")
-    private String scriptName;
-    @ApiModelProperty("作业执行方案ID")
-    private Long taskId;
-    @ApiModelProperty("业务ID")
-    private Long appId;
-    @ApiModelProperty("作业执行方案名称")
-    private String taskName;
-    @ApiModelProperty("脚本状态")
-    private Integer scriptStatus;
-    @ApiModelProperty("脚本状态描述")
-    private String scriptStatusDesc;
-    @ApiModelProperty("作业模板ID")
-    private Long templateId;
 
+@FeignClient(value = "job-manage", contextId = "job-manage-backup-tmp")
+public interface ServiceBackupTmpResourceClient extends ServiceBackupTmpResource {
 }
