@@ -24,35 +24,20 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.config.CcConfig;
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.config.EsbConfig;
-import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
-import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.client.SyncResourceClient;
+import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
-import com.tencent.bk.job.execute.model.db.CacheHostDO;
 import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,190 +46,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-@DependsOn({"ccConfigSetter"})
 @Service
 @Slf4j
 public class HostServiceImpl implements HostService {
-    private final SyncResourceClient syncResourceClient;
-    private final RedisTemplate redisTemplate;
-    private final EsbCcClient ccClient;
     private final WhiteIpResourceClient whiteIpResourceClient;
-    private Map<IpDTO, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
+    private final ServiceHostResourceClient hostResourceClient;
+    private final Map<IpDTO, ServiceWhiteIPInfo> whiteIpConfig = new ConcurrentHashMap<>();
     private volatile boolean isWhiteIpConfigLoaded = false;
 
     @Autowired
-    public HostServiceImpl(SyncResourceClient syncResourceClient,
-                           @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate,
-                           EsbConfig esbConfig,
-                           CcConfig ccConfig,
-                           WhiteIpResourceClient whiteIpResourceClient,
-                           QueryAgentStatusClient queryAgentStatusClient,
-                           MeterRegistry meterRegistry) {
-        this.syncResourceClient = syncResourceClient;
-        this.redisTemplate = redisTemplate;
-        ccClient = new EsbCcClient(
-            esbConfig,
-            ccConfig,
-            queryAgentStatusClient,
-            meterRegistry);
+    public HostServiceImpl(WhiteIpResourceClient whiteIpResourceClient,
+                           ServiceHostResourceClient hostResourceClient) {
+        this.hostResourceClient = hostResourceClient;
         this.whiteIpResourceClient = whiteIpResourceClient;
     }
 
     @Override
-    public InternalResponse<List<ServiceHostInfoDTO>> listSyncHosts(long appId) {
-        StopWatch watch = new StopWatch("sync-app-hosts-" + appId);
-        watch.start();
-        try {
-            return syncResourceClient.getHostByAppId(appId);
-        } catch (Exception e) {
-            log.warn("Fail to get hosts from job-manage", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        } finally {
-            watch.stop();
-            log.info("Get sync app hosts, appId:{}, cost:{}", appId, watch.getTotalTimeMillis());
-        }
-    }
-
-    @Override
-    public Long getCacheHostAppId(long cloudAreaId, String ip) {
-        String fullIp = cloudAreaId + ":" + ip;
-        String hostKey = "job:execute:host:" + fullIp;
-        try {
-            Object cacheHost = redisTemplate.opsForValue().get(hostKey);
-            return cacheHost == null ? null : ((CacheHostDO) cacheHost).getAppId();
-        } catch (Exception e) {
-            log.warn("Get host in cache exception", e);
-            return null;
-        }
-    }
-
-    private List<CacheHostDO> batchGetCacheHost(List<IpDTO> hosts) {
-        List<String> hostKeys = hosts.stream().map(host -> "job:execute:host:" + host.convertToStrIp())
-            .collect(Collectors.toList());
-        try {
-            return (List<CacheHostDO>) redisTemplate.opsForValue().multiGet(hostKeys);
-        } catch (Exception e) {
-            log.warn("Batch get host in cache exception", e);
-            return Collections.emptyList();
-        }
-    }
-
-    private CacheHostDO getCacheHost(long cloudAreaId, String ip) {
-        String fullIp = cloudAreaId + ":" + ip;
-        String hostKey = "job:execute:host:" + fullIp;
-        try {
-            Object cacheHost = redisTemplate.opsForValue().get(hostKey);
-            return cacheHost == null ? null : (CacheHostDO) cacheHost;
-        } catch (Exception e) {
-            log.warn("Get host in cache exception", e);
-            return null;
-        }
-    }
-
-    @Override
-    public ApplicationHostInfoDTO getHostPreferCache(long cloudAreaId, String ip) {
-        CacheHostDO cacheHost = getCacheHost(cloudAreaId, ip);
-        if (cacheHost != null) {
-            ApplicationHostInfoDTO host = new ApplicationHostInfoDTO();
-            host.setAppId(host.getAppId());
-            host.setCloudAreaId(cloudAreaId);
-            host.setIp(ip);
-            host.setHostId(cacheHost.getHostId());
-            return host;
-        }
-        return ccClient.getHostByIp(cloudAreaId, ip);
-    }
-
-    @Override
-    public Map<IpDTO, ApplicationHostInfoDTO> batchGetHostsPreferCache(List<IpDTO> hosts) {
-        List<CacheHostDO> cacheHosts = batchGetCacheHost(hosts);
-        Map<IpDTO, ApplicationHostInfoDTO> appHosts = new HashMap<>();
-        for (int i = 0; i < hosts.size(); i++) {
-            IpDTO host = hosts.get(i);
-            CacheHostDO cacheHost = cacheHosts.get(i);
-            if (cacheHost != null) {
-                ApplicationHostInfoDTO appHost = new ApplicationHostInfoDTO();
-                appHost.setAppId(cacheHost.getAppId());
-                appHost.setCloudAreaId(cacheHost.getCloudAreaId());
-                appHost.setIp(cacheHost.getIp());
-                appHost.setHostId(cacheHost.getHostId());
-                appHosts.put(host, appHost);
-            } else {
-                ApplicationHostInfoDTO appHost = ccClient.getHostByIp(host.getCloudAreaId(), host.getIp());
-                appHosts.put(host, appHost);
-            }
-        }
-        return appHosts;
-    }
-
-    @Override
-    public Pair<List<IpDTO>, List<IpDTO>> checkHostsNotInAppByCache(List<Long> appIdList, List<IpDTO> hosts) {
-        long start = System.currentTimeMillis();
-        List<IpDTO> notInAppHosts = new ArrayList<>();
-        List<IpDTO> notInCacheHosts = new ArrayList<>();
-        if (hosts.size() == 1) {
-            IpDTO host = hosts.get(0);
-            Long appId = getCacheHostAppId(host.getCloudAreaId(), host.getIp());
-            if (appId == null) {
-                notInCacheHosts.add(host);
-            } else if (!appIdList.contains(appId)) {
-                notInAppHosts.add(host);
-            }
-        } else {
-            List<List<IpDTO>> hostBatches = BatchUtil.buildBatchList(hosts, 1000);
-            hostBatches.forEach(batchHosts -> {
-                List<CacheHostDO> cacheHosts = batchGetCacheHost(batchHosts);
-                for (int i = 0; i < batchHosts.size(); i++) {
-                    IpDTO host = batchHosts.get(i);
-                    CacheHostDO cacheHost = cacheHosts.get(i);
-                    if (cacheHost == null) {
-                        notInCacheHosts.add(host);
-                    } else if (!appIdList.contains(cacheHost.getAppId())) {
-                        notInAppHosts.add(host);
-                    }
-                }
-            });
-        }
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.info("checkHostsNotInAppByCache is slow, cost: {}ms, host size : {}", cost, hosts.size());
-        }
-        return new ImmutablePair<>(notInAppHosts, notInCacheHosts);
-    }
-
-    public List<IpDTO> checkHostsNotInAppByCmdb(long appId, Collection<IpDTO> hosts) {
-        List<IpDTO> notSyncedHosts = new ArrayList<>(hosts);
-        // 未同步的主机
-        try {
-            List<ApplicationHostInfoDTO> newHosts = ccClient.listAppHosts(appId, hosts);
-            if (newHosts != null && !newHosts.isEmpty()) {
-                List<IpDTO> newIpDTOList = newHosts.stream().map(host -> new IpDTO(host.getCloudAreaId(),
-                    host.getIp())).collect(Collectors.toList());
-                notSyncedHosts.removeAll(newIpDTOList);
-                log.info("Add new hosts to cache, appId:{}, hosts:{}", appId, newIpDTOList);
-                addNewHostsToCache(newHosts);
-            }
-        } catch (Exception e) {
-            log.warn("Handle hosts that may not be synchronized from cmdb fail!", e);
-            notSyncedHosts.addAll(hosts);
-        }
-        return notSyncedHosts;
-    }
-
-    private void addNewHostsToCache(List<ApplicationHostInfoDTO> newHosts) {
-        for (ApplicationHostInfoDTO host : newHosts) {
-            CacheHostDO cacheHost = new CacheHostDO();
-            cacheHost.setIp(host.getIp());
-            cacheHost.setHostId(host.getHostId());
-            cacheHost.setCloudAreaId(host.getCloudAreaId());
-            cacheHost.setAppId(host.getAppId());
-            String hostKey = buildHostKey(host.getCloudAreaId(), host.getIp());
-            redisTemplate.opsForValue().set(hostKey, cacheHost, 10, TimeUnit.MINUTES);
-        }
+    public Map<IpDTO, ServiceHostDTO> batchGetHosts(List<IpDTO> hostIps) {
+        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(hostIps).getData();
+        Map<IpDTO, ServiceHostDTO> hostMap = new HashMap<>();
+        hosts.forEach(host -> hostMap.put(new IpDTO(host.getCloudAreaId(), host.getIp()), host));
+        return hostMap;
     }
 
     @Override
@@ -265,10 +88,6 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    private String buildHostKey(Long cloudAreaId, String ip) {
-        return "job:execute:host:" + cloudAreaId + ":" + ip;
-    }
-
     @Scheduled(cron = "0 * * * * ?")
     public void syncWhiteIpConfig() {
         log.info("Sync white ip config!");
@@ -283,9 +102,8 @@ public class HostServiceImpl implements HostService {
 
         List<ServiceWhiteIPInfo> whiteIpInfos = resp.getData();
         whiteIpConfig.clear();
-        whiteIpInfos.forEach(whiteIpInfo -> {
-            whiteIpConfig.put(new IpDTO(whiteIpInfo.getCloudId(), whiteIpInfo.getIp()), whiteIpInfo);
-        });
+        whiteIpInfos.forEach(whiteIpInfo ->
+            whiteIpConfig.put(new IpDTO(whiteIpInfo.getCloudId(), whiteIpInfo.getIp()), whiteIpInfo));
 
         long cost = System.currentTimeMillis() - start;
         if (cost > 1000L) {
@@ -316,5 +134,12 @@ public class HostServiceImpl implements HostService {
             log.warn("Get white ip config by host and action", e);
             return false;
         }
+    }
+
+    @Override
+    public List<IpDTO> checkAppHosts(Long appId, Collection<IpDTO> hostIps) {
+        InternalResponse<List<IpDTO>> response =
+            hostResourceClient.checkAppHosts(appId, new ServiceCheckAppHostsReq(new ArrayList<>(hostIps)));
+        return response.getData();
     }
 }

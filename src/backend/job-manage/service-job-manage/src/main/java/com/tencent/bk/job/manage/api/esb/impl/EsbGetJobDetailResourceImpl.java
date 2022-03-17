@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobDetailResource;
@@ -249,7 +249,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         }
     }
 
-    private List<EsbIpDTO> convertToEsbIpDTOList(List<ApplicationHostInfoDTO> hostList) {
+    private List<EsbIpDTO> convertToEsbIpDTOList(List<ApplicationHostDTO> hostList) {
         List<EsbIpDTO> ipList = new ArrayList<>();
         if (hostList != null && !hostList.isEmpty()) {
             hostList.forEach(host -> {

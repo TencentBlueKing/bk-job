@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
@@ -85,7 +85,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     @Override
     public InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
         try {
-            List<ApplicationHostInfoDTO> hosts = hostService.getHostsByAppId(appId);
+            List<ApplicationHostDTO> hosts = hostService.getHostsByAppId(appId);
             List<ServiceHostInfoDTO> serviceHosts = new ArrayList<>();
             if (hosts != null) {
                 serviceHosts =
@@ -153,7 +153,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         return InternalResponse.buildSuccessResp(syncService.disableSyncAgentStatus());
     }
 
-    private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostInfoDTO hostInfo) {
+    private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostDTO hostInfo) {
         ServiceHostInfoDTO serviceHostInfo = new ServiceHostInfoDTO();
         serviceHostInfo.setAppId(appId);
         serviceHostInfo.setCloudAreaId(hostInfo.getCloudAreaId());

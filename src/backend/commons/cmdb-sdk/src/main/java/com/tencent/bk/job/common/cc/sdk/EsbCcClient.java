@@ -89,7 +89,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.util.ApiUtil;
@@ -502,12 +502,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
 
     @Override
-    public List<ApplicationHostInfoDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList) {
+    public List<ApplicationHostDTO> getHosts(long appId, List<CcInstanceDTO> ccInstList) {
         return getHostsByTopology(appId, ccInstList);
     }
 
     @Override
-    public List<ApplicationHostInfoDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList) {
+    public List<ApplicationHostDTO> getHostsByTopology(long appId, List<CcInstanceDTO> ccInstList) {
         StopWatch watch = new StopWatch("getHostsByTopology");
         watch.start("getCachedBizInstCompleteTopology");
         InstanceTopologyDTO appCompleteTopology = getCachedBizInstCompleteTopology(appId, defaultSupplierAccount,
@@ -530,7 +530,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
         //根据module找主机
         watch.start("findHostByModule");
-        List<ApplicationHostInfoDTO> applicationHostInfoDTOList = findHostByModule(appId,
+        List<ApplicationHostDTO> applicationHostDTOList = findHostByModule(appId,
             new ArrayList<>(moduleIdSet), defaultUin, defaultSupplierAccount);
         watch.stop();
 
@@ -538,14 +538,14 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             log.warn("Get hosts by topo is slow, appId: {}, ccInsts: {}, watchInfo: {}", appId, ccInstList,
                 watch.prettyPrint());
         }
-        return applicationHostInfoDTOList;
+        return applicationHostDTOList;
     }
 
     @Override
-    public List<ApplicationHostInfoDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin,
-                                                         String owner) {
+    public List<ApplicationHostDTO> findHostByModule(long appId, List<Long> moduleIdList, String uin,
+                                                     String owner) {
         //moduleId分批
-        List<ApplicationHostInfoDTO> resultList = new ArrayList<>();
+        List<ApplicationHostDTO> resultList = new ArrayList<>();
         int batchSize = 200;
         int start = 0;
         int end = start + batchSize;
@@ -590,8 +590,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @param owner
      * @return
      */
-    public List<ApplicationHostInfoDTO> findModuleHostRelationConcurrently(long appId, List<Long> moduleIdList,
-                                                                           String uin, String owner) {
+    public List<ApplicationHostDTO> findModuleHostRelationConcurrently(long appId, List<Long> moduleIdList,
+                                                                       String uin, String owner) {
         if (moduleIdList == null || moduleIdList.isEmpty()) {
             return Collections.emptyList();
         }
@@ -599,7 +599,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         uin = defaultUin;
         LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue = new LinkedBlockingQueue<>();
 
-        List<ApplicationHostInfoDTO> applicationHostInfoDTOList;
+        List<ApplicationHostDTO> applicationHostDTOList;
         int start = 0;
         //已调优
         int limit = 500;
@@ -648,17 +648,17 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                 pageData.getCount(), resultQueue.size());
         }
         Long startTime = System.currentTimeMillis();
-        applicationHostInfoDTOList = convertToHostInfoDTOList(appId, new ArrayList<>(resultQueue));
+        applicationHostDTOList = convertToHostInfoDTOList(appId, new ArrayList<>(resultQueue));
         Long endTime = System.currentTimeMillis();
         long timeConsuming = endTime - startTime;
         if (timeConsuming >= 1000) {
             log.info("convertToHostInfoDTOList time consuming:" + timeConsuming);
         }
-        return applicationHostInfoDTOList;
+        return applicationHostDTOList;
     }
 
     private void fillAgentInfo(
-        ApplicationHostInfoDTO applicationHostInfoDTO,
+        ApplicationHostDTO applicationHostDTO,
         FindModuleHostRelationResult.HostProp host
     ) {
         String multiIp = host.getIp();
@@ -670,34 +670,34 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                 if (pair != null) {
                     log.debug("query agent status:{}:{}", pair.getLeft(), pair.getRight());
                     String ipWithCloudId = pair.getLeft();
-                    applicationHostInfoDTO.setGseAgentAlive(pair.getRight());
+                    applicationHostDTO.setGseAgentAlive(pair.getRight());
                     if (ipWithCloudId.contains(":")) {
                         String[] arr = ipWithCloudId.split(":");
-                        applicationHostInfoDTO.setCloudAreaId(Long.parseLong(arr[0]));
-                        applicationHostInfoDTO.setIp(arr[1]);
+                        applicationHostDTO.setCloudAreaId(Long.parseLong(arr[0]));
+                        applicationHostDTO.setIp(arr[1]);
                     } else {
-                        applicationHostInfoDTO.setIp(ipWithCloudId);
+                        applicationHostDTO.setIp(ipWithCloudId);
                     }
                 } else {
                     log.warn("Fail to get agentStatus, host={}", JsonUtils.toJson(host));
                 }
             } else {
-                applicationHostInfoDTO.setGseAgentAlive(false);
-                applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
-                applicationHostInfoDTO.setIp(multiIp);
+                applicationHostDTO.setGseAgentAlive(false);
+                applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
+                applicationHostDTO.setIp(multiIp);
             }
         } else {
             log.warn("queryAgentStatusClient==null, please check!");
             List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
             if (ipList.size() > 0) {
-                applicationHostInfoDTO.setIp(ipList.get(0));
+                applicationHostDTO.setIp(ipList.get(0));
             } else {
                 log.warn("no available ip after queryAgentStatusClient");
             }
         }
     }
 
-    private ApplicationHostInfoDTO convertToHostInfoDTO(
+    private ApplicationHostDTO convertToHostInfoDTO(
         Long appId,
         FindModuleHostRelationResult.HostWithModules hostWithModules
     ) {
@@ -709,50 +709,50 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             log.warn("multiIp is null, appId={}, host={}", appId, hostWithModules);
         }
         //包装为ApplicationHostInfoDTO
-        ApplicationHostInfoDTO applicationHostInfoDTO = new ApplicationHostInfoDTO();
-        applicationHostInfoDTO.setAppId(appId);
-        applicationHostInfoDTO.setDisplayIp(multiIp);
-        applicationHostInfoDTO.setCloudAreaId(host.getCloudAreaId());
-        applicationHostInfoDTO.setHostId(host.getHostId());
-        fillAgentInfo(applicationHostInfoDTO, host);
+        ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
+        applicationHostDTO.setAppId(appId);
+        applicationHostDTO.setDisplayIp(multiIp);
+        applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
+        applicationHostDTO.setHostId(host.getHostId());
+        fillAgentInfo(applicationHostDTO, host);
         List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
         for (FindModuleHostRelationResult.ModuleProp module : modules) {
             if (module == null || null == module.getModuleId()) {
-                log.warn("invalid host:" + JsonUtils.toJson(applicationHostInfoDTO));
+                log.warn("invalid host:" + JsonUtils.toJson(applicationHostDTO));
             }
         }
         List<FindModuleHostRelationResult.ModuleProp> validModules =
             hostWithModules.getModules().stream().filter(Objects::nonNull).collect(Collectors.toList());
-        applicationHostInfoDTO.setModuleId(
+        applicationHostDTO.setModuleId(
             validModules.stream()
                 .map(FindModuleHostRelationResult.ModuleProp::getModuleId)
                 .collect(Collectors.toList()));
-        applicationHostInfoDTO.setSetId(
+        applicationHostDTO.setSetId(
             validModules.stream()
                 .map(FindModuleHostRelationResult.ModuleProp::getSetId)
                 .collect(Collectors.toList()));
-        applicationHostInfoDTO.setModuleType(validModules.stream().map(it -> {
+        applicationHostDTO.setModuleType(validModules.stream().map(it -> {
             try {
                 return Long.parseLong(it.getModuleType());
             } catch (Exception e) {
                 return 0L;
             }
         }).collect(Collectors.toList()));
-        applicationHostInfoDTO.setIpDesc(host.getHostName());
+        applicationHostDTO.setIpDesc(host.getHostName());
         String os = host.getOs();
         if (os != null && os.length() > 512) {
-            applicationHostInfoDTO.setOs(os.substring(0, 512));
+            applicationHostDTO.setOs(os.substring(0, 512));
         } else {
-            applicationHostInfoDTO.setOs(os);
+            applicationHostDTO.setOs(os);
         }
-        applicationHostInfoDTO.setOsType(host.getOsType());
-        return applicationHostInfoDTO;
+        applicationHostDTO.setOsType(host.getOsType());
+        return applicationHostDTO;
     }
 
-    private List<ApplicationHostInfoDTO> convertToHostInfoDTOList(
+    private List<ApplicationHostDTO> convertToHostInfoDTOList(
         long appId,
         List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList) {
-        List<ApplicationHostInfoDTO> applicationHostInfoDTOList = new ArrayList<>();
+        List<ApplicationHostDTO> applicationHostDTOList = new ArrayList<>();
         Set<String> ipSet = new HashSet<>();
         for (FindModuleHostRelationResult.HostWithModules hostWithModules : hostWithModulesList) {
             FindModuleHostRelationResult.HostProp host = hostWithModules.getHost();
@@ -763,15 +763,15 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             ipSet.add(host.getCloudAreaId() + ":" + host.getIp());
             String multiIp = host.getIp();
             if (!StringUtils.isBlank(multiIp)) {
-                ApplicationHostInfoDTO applicationHostInfoDTO = convertToHostInfoDTO(appId, hostWithModules);
-                applicationHostInfoDTOList.add(applicationHostInfoDTO);
+                ApplicationHostDTO applicationHostDTO = convertToHostInfoDTO(appId, hostWithModules);
+                applicationHostDTOList.add(applicationHostDTO);
             } else {
                 log.info("bk_host_innerip is blank, ignore, hostId={},host={}", host.getHostId(),
                     JsonUtils.toJson(host));
             }
         }
         log.info("ipSet.size=" + ipSet.size());
-        return applicationHostInfoDTOList;
+        return applicationHostDTOList;
     }
 
     @Override
@@ -811,8 +811,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return hostInfoList;
     }
 
-    private ApplicationHostInfoDTO convertHost(long appId, CcHostInfoDTO hostInfo) {
-        ApplicationHostInfoDTO ipInfo = new ApplicationHostInfoDTO();
+    private ApplicationHostDTO convertHost(long appId, CcHostInfoDTO hostInfo) {
+        ApplicationHostDTO ipInfo = new ApplicationHostDTO();
         ipInfo.setHostId(hostInfo.getHostId());
         // 部分从cmdb同步过来的资源没有ip，需要过滤掉
         if (StringUtils.isBlank(hostInfo.getIp())) {
@@ -1142,11 +1142,11 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<ApplicationHostInfoDTO> listAppHosts(long appId, Collection<IpDTO> ipList) {
+    public List<ApplicationHostDTO> listAppHosts(long appId, Collection<IpDTO> ipList) {
         if (ipList == null || ipList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ApplicationHostInfoDTO> appHosts = getHostByIp(new GetHostByIpInput(appId, null, null,
+        List<ApplicationHostDTO> appHosts = getHostByIp(new GetHostByIpInput(appId, null, null,
             ipList.stream().map(IpDTO::getIp).collect(Collectors.toList())));
         if (appHosts == null || appHosts.isEmpty()) {
             return Collections.emptyList();
@@ -1172,9 +1172,9 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<ApplicationHostInfoDTO> getHostByIpWithoutAppId(String uin, List<String> ipList) {
+    public List<ApplicationHostDTO> getHostByIpWithoutAppId(String uin, List<String> ipList) {
         //ipList分批
-        List<ApplicationHostInfoDTO> resultList = new ArrayList<>();
+        List<ApplicationHostDTO> resultList = new ArrayList<>();
         int batchSize = 500;
         int start = 0;
         int end = start + batchSize;
@@ -1190,10 +1190,10 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return resultList;
     }
 
-    private List<ApplicationHostInfoDTO> getHostByIpWithoutAppIdOnce(String uin, List<String> ipList) {
+    private List<ApplicationHostDTO> getHostByIpWithoutAppIdOnce(String uin, List<String> ipList) {
         String owner = defaultSupplierAccount;
         uin = defaultUin;
-        List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);
         ConditionDTO condition = new ConditionDTO();
         condition.setCondition("AND");
@@ -1222,7 +1222,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             }
             for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
                 start++;
-                ApplicationHostInfoDTO host = convertHost(-1L, hostInfo);
+                ApplicationHostDTO host = convertHost(-1L, hostInfo);
                 if (host != null) {
                     hostInfoList.add(host);
                 }
@@ -1236,10 +1236,10 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public List<ApplicationHostInfoDTO> getHostByIp(GetHostByIpInput input) {
+    public List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input) {
         input.owner = defaultSupplierAccount;
         input.uin = defaultUin;
-        List<ApplicationHostInfoDTO> hostInfoList = new ArrayList<>();
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         ListBizHostReq req = makeBaseReq(ListBizHostReq.class, input.uin, input.owner);
         req.setAppId(input.appId);
         ConditionDTO condition = new ConditionDTO();
@@ -1269,7 +1269,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             }
             for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
                 start++;
-                ApplicationHostInfoDTO host = convertHost(input.appId, hostInfo);
+                ApplicationHostDTO host = convertHost(input.appId, hostInfo);
                 if (host != null) {
                     hostInfoList.add(host);
                 }
@@ -1283,7 +1283,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public ApplicationHostInfoDTO getHostByIp(Long cloudAreaId, String ip) {
+    public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
         String owner = defaultSupplierAccount;
         String uin = defaultUin;
         ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, uin, owner);

@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.cc.model.result;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.Data;
 
@@ -53,8 +53,8 @@ public class HostEventDetail {
     @JsonProperty("bk_cloud_id")
     private String cloudId;
 
-    public static ApplicationHostInfoDTO toHostInfoDTO(HostEventDetail eventDetail) {
-        ApplicationHostInfoDTO hostInfoDTO = new ApplicationHostInfoDTO();
+    public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
+        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
         hostInfoDTO.setHostId(eventDetail.hostId);
         List<String> ipList = StringUtil.strToList(eventDetail.hostInnerIp, String.class, ",");
         hostInfoDTO.setDisplayIp(eventDetail.hostInnerIp);

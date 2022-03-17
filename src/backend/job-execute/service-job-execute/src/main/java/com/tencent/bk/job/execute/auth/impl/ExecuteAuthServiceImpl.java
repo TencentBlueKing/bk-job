@@ -42,7 +42,6 @@ import com.tencent.bk.job.common.iam.service.ResourceAppInfoQueryService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -51,6 +50,7 @@ import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -372,26 +372,26 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         Map<String, String> ip2HostIdMap
     ) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
-        Map<IpDTO, ApplicationHostInfoDTO> appHosts =
-            hostService.batchGetHostsPreferCache(servers.getStaticIpList());
-        servers.getStaticIpList().forEach(host -> {
+        Map<IpDTO, ServiceHostDTO> appHosts =
+            hostService.batchGetHosts(servers.getStaticIpList());
+        servers.getStaticIpList().forEach(hostIp -> {
             InstanceDTO hostInstance = new InstanceDTO();
-            ApplicationHostInfoDTO hostInfo = appHosts.get(host);
-            if (hostInfo == null) {
-                log.warn("Host: {}:{} is not exist!", host.getCloudAreaId(), host.getIp());
+            ServiceHostDTO host = appHosts.get(hostIp);
+            if (host == null) {
+                log.warn("Host: {} is not exist!", hostIp);
                 throw new FailedPreconditionException(ErrorCode.SERVER_UNREGISTERED,
-                    new Object[]{host.getIp()});
+                    new Object[]{hostIp.getIp()});
             }
-            String hostIdStr = hostInfo.getHostId().toString();
+            String hostIdStr = host.getHostId().toString();
             hostInstance.setId(hostIdStr);
             hostInstance.setType(ResourceTypeEnum.HOST.getId());
             hostInstance.setSystem(SystemId.CMDB);
-            hostInstance.setName(hostInfo.getIp());
+            hostInstance.setName(host.getIp());
             hostInstance.setPath(
                 buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.HOST, hostIdStr));
             hostInstanceList.add(hostInstance);
 
-            ip2HostIdMap.put(host.convertToStrIp(), hostInfo.getHostId().toString());
+            ip2HostIdMap.put(hostIp.convertToStrIp(), host.getHostId().toString());
         });
         return hostInstanceList;
     }

@@ -22,36 +22,95 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.db;
+package com.tencent.bk.job.common.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 /**
- * Redis 缓存主机DO
+ * 主机
  */
-@Getter
-@Setter
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class CacheHostDO {
-    /**
-     * 云区域ID
-     */
-    private Long cloudAreaId;
-
-    /**
-     * ip
-     */
-    private String ip;
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class ApplicationHostDTO {
 
     /**
      * 主机ID
      */
     private Long hostId;
-
     /**
      * 业务ID
      */
     private Long appId;
+    /**
+     * IP
+     */
+    private String ip;
+
+    /**
+     * 展示用的IP
+     */
+    private String displayIp;
+    /**
+     * 主机描述
+     */
+    private String ipDesc;
+    /**
+     * 主机Agent状态
+     */
+    private Boolean gseAgentAlive;
+    /**
+     * 云区域ID
+     */
+    private Long cloudAreaId;
+    /**
+     * 云区域+ip
+     */
+    private String cloudIp;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
+     * 操作系统类型
+     */
+    private String osType;
+
+    /**
+     * 集群ID
+     */
+    private List<Long> setId;
+
+    /**
+     * 模块id,一个主机可以属于多个模块
+     */
+    private List<Long> moduleId;
+
+    /**
+     * cc的模块类型集合， 选填0,1,2，0所有模块 1普通模块，2DB模块， 支持多个模块
+     **/
+    private List<Long> moduleType;
+
+    /**
+     * IP 列表，搜索用参数
+     */
+    private List<String> ipList;
+
+    public String getCloudIp() {
+        if (StringUtils.isNotBlank(cloudIp)) {
+            return cloudIp;
+        } else {
+            return cloudAreaId + ":" + ip;
+        }
+    }
+
 }
