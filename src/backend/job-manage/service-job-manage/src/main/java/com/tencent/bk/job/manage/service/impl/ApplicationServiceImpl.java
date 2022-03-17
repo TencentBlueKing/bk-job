@@ -142,7 +142,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             allAppTypeGroupMap.get(AppTypeEnum.APP_SET).stream().forEach(appSet -> {
                 List<Long> subAppIds = appSet.getSubAppIds() == null ? new ArrayList<Long>() : appSet.getSubAppIds();
                 Long optDeptId = appSet.getOperateDeptId();
-                if (normalAppGroupMap.get(optDeptId) != null) {
+                if (optDeptId != null && normalAppGroupMap.get(optDeptId) != null) {
                     List<Long> normalAppIdList =
                         normalAppGroupMap.get(optDeptId).stream().map(a -> a.getId()).collect(Collectors.toList());
                     subAppIds.addAll(normalAppIdList);
