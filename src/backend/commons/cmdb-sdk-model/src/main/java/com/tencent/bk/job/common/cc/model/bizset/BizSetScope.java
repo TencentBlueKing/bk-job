@@ -22,29 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 /**
- * CMDB接口响应实体类，用于搜索业务集
+ * CMDB接口请求实体类，定义业务集选择业务的范围
  */
 @Setter
 @Getter
-public class SearchBizSetResp {
+public class BizSetScope {
 
     /**
-     * 满足条件的业务集总数，在请求参数未开启count查询时该值为0
+     * 是否匹配全部业务
      */
-    private int count;
+    @JsonProperty("match_all")
+    private boolean matchAll;
 
     /**
-     * 业务集信息列表，在请求参数开启count查询时该值为空
+     * 业务过滤器
      */
-    @JsonProperty("info")
-    private List<BizSetInfo> bizSetList;
+    private BizSetFilter filter;
+
 }

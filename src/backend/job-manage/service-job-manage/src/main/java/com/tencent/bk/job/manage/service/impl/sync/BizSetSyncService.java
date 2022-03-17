@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
@@ -45,18 +46,21 @@ import java.util.stream.Collectors;
 public class BizSetSyncService extends BasicAppSyncService {
 
     private final ApplicationDAO applicationDAO;
+    protected final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public BizSetSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
                              ApplicationHostDAO applicationHostDAO,
-                             ApplicationService applicationService) {
+                             ApplicationService applicationService,
+                             IBizSetCmdbClient bizSetCmdbClient) {
         super(dslContext, applicationDAO, applicationHostDAO, applicationService);
         this.applicationDAO = applicationDAO;
+        this.bizSetCmdbClient = bizSetCmdbClient;
     }
 
     public void syncBizSetFromCMDB() {
         log.info(Thread.currentThread().getName() + ":begin to sync bizSet from cc");
-        List<ApplicationDTO> ccBizSetApps = ccClient.getAllBizSetApps();
+        List<ApplicationDTO> ccBizSetApps = bizSetCmdbClient.getAllBizSetApps();
 
         // 对比业务集信息，分出要新增的/要改的/要删的分别处理
         List<ApplicationDTO> insertList;

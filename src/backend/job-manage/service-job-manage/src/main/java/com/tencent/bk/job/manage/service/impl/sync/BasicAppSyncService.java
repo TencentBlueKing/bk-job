@@ -34,7 +34,6 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -42,7 +41,6 @@ import java.util.List;
  * Job业务操作公共逻辑
  */
 @Slf4j
-@Service
 public class BasicAppSyncService {
 
     private final DSLContext dslContext;

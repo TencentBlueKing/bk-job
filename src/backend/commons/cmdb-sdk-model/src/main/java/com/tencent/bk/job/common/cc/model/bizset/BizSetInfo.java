@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -39,7 +39,7 @@ public class BizSetInfo {
      * ID
      */
     @JsonProperty("bk_biz_set_id")
-    private long id;
+    private Long id;
 
     /**
      * 名称
@@ -70,4 +70,28 @@ public class BizSetInfo {
      */
     @JsonProperty("last_time")
     private String lastTime;
+
+    /**
+     * 运维部门ID
+     */
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+
+    /**
+     * 运维部门ID
+     */
+    @JsonProperty("bk_operate_dept_id")
+    private Long operateDeptId;
+
+    /**
+     * 时区
+     */
+    @JsonProperty("timezone")
+    private String timezone;
+
+    /**
+     * 业务范围
+     */
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 }

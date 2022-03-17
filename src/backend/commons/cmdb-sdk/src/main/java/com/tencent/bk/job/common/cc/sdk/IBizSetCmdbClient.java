@@ -22,24 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:cmdb-sdk-model')
-    api project(':commons:gse-sdk')
-    api project(':commons:common-i18n')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'com.google.guava:guava'
-    implementation 'org.springframework:spring-context'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.cc.sdk;
+
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+
+import java.util.List;
+
+/**
+ * CMDB业务集相关接口
+ */
+public interface IBizSetCmdbClient {
+
+    /**
+     * 从CC获取所有业务集信息
+     *
+     * @return 业务集App列表
+     */
+    List<ApplicationDTO> getAllBizSetApps();
 }

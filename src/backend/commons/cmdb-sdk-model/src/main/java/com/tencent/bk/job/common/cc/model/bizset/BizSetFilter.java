@@ -22,47 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
- * CMDB接口请求实体类，定义业务集过滤业务的规则
+ * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Setter
 @Getter
-public class Rule {
+public class BizSetFilter {
 
-    public static final String OPERATOR_EQUAL = "equal";
-    public static final String OPERATOR_NOT_EQUAL = "not_equal";
-    public static final String OPERATOR_IN = "in";
-    public static final String OPERATOR_NOT_IN = "not_in";
-    public static final String OPERATOR_LESS = "less";
-    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
-    public static final String OPERATOR_GREATER = "greater";
-    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
-    public static final String OPERATOR_BETWEEN = "between";
-    public static final String OPERATOR_NOT_BETWEEN = "not_between";
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
 
     /**
-     * 业务字段名
+     * 多个规则之间的组合条件，取值为：AND/OR
      */
-    private String field;
+    private String condition;
 
     /**
-     * 操作符，可选值 equal,not_equal,in,not_in,
-     * less,less_or_equal,greater,greater_or_equal,
-     * between,not_between
+     * 规则列表
      */
-    private String operator;
+    private List<Rule> rules;
 
-    /**
-     * 业务字段取值，根据字段不同可为不同类型
-     */
-    private Object value;
 }

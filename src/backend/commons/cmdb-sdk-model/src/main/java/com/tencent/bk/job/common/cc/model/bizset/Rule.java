@@ -22,60 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * CMDB接口请求实体类，定义业务集字段
+ * CMDB接口请求实体类，定义业务集过滤业务的规则
  */
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Setter
 @Getter
-public class BizSetAttr {
+public class Rule {
+
+    public static final String OPERATOR_EQUAL = "equal";
+    public static final String OPERATOR_NOT_EQUAL = "not_equal";
+    public static final String OPERATOR_IN = "in";
+    public static final String OPERATOR_NOT_IN = "not_in";
+    public static final String OPERATOR_LESS = "less";
+    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
+    public static final String OPERATOR_GREATER = "greater";
+    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
+    public static final String OPERATOR_BETWEEN = "between";
+    public static final String OPERATOR_NOT_BETWEEN = "not_between";
 
     /**
-     * ID
+     * 业务字段名
      */
-    @JsonProperty("bk_biz_set_id")
-    private long id;
+    private String field;
 
     /**
-     * 名称
+     * 操作符，可选值 equal,not_equal,in,not_in,
+     * less,less_or_equal,greater,greater_or_equal,
+     * between,not_between
      */
-    @JsonProperty("bk_biz_set_name")
-    private String name;
+    private String operator;
 
     /**
-     * 描述
+     * 业务字段取值，根据字段不同可为不同类型
      */
-    @JsonProperty("bk_biz_set_desc")
-    private String desc;
-
-    /**
-     * 运维人员
-     */
-    @JsonProperty("bk_biz_maintainer")
-    private String maintainer;
-
-    /**
-     * 供应商
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-
-    /**
-     * 时区
-     */
-    @JsonProperty("timezone")
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
-
+    private Object value;
 }

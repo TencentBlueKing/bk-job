@@ -22,24 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:cmdb-sdk-model')
-    api project(':commons:gse-sdk')
-    api project(':commons:common-i18n')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'com.google.guava:guava'
-    implementation 'org.springframework:spring-context'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.cc.model.bizset;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * CMDB接口请求实体类，定义分页参数
+ */
+@Setter
+@Getter
+public class Page {
+
+    /**
+     * 数据起始位置
+     */
+    private int start = 0;
+
+    /**
+     * 单次拉取数据量，取值范围：[0,500]
+     */
+    private int limit = 500;
+
+    /**
+     * 请求是否获取数据总量
+     */
+    @JsonProperty("enable_count")
+    private boolean enableCount = false;
+
+    /**
+     * 排序字段，可在首位加-表示降序
+     */
+    private String sort;
+
 }

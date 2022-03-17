@@ -22,24 +22,60 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:cmdb-sdk-model')
-    api project(':commons:gse-sdk')
-    api project(':commons:common-i18n')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'com.google.guava:guava'
-    implementation 'org.springframework:spring-context'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.cc.model.bizset;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * CMDB接口请求实体类，定义业务集字段
+ */
+@Builder
+@Setter
+@Getter
+public class BizSetAttr {
+
+    /**
+     * ID
+     */
+    @JsonProperty("bk_biz_set_id")
+    private long id;
+
+    /**
+     * 名称
+     */
+    @JsonProperty("bk_biz_set_name")
+    private String name;
+
+    /**
+     * 描述
+     */
+    @JsonProperty("bk_biz_set_desc")
+    private String desc;
+
+    /**
+     * 运维人员
+     */
+    @JsonProperty("bk_biz_maintainer")
+    private String maintainer;
+
+    /**
+     * 供应商
+     */
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+
+    /**
+     * 时区
+     */
+    @JsonProperty("timezone")
+    private String timeZone;
+
+    /**
+     * 语言
+     */
+    private String language;
+
 }

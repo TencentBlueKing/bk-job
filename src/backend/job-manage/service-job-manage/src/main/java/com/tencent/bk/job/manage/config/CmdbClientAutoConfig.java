@@ -22,24 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:cmdb-sdk-model')
-    api project(':commons:gse-sdk')
-    api project(':commons:common-i18n')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'com.google.guava:guava'
-    implementation 'org.springframework:spring-context'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.manage.config;
+
+import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.esb.config.EsbConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CmdbClientAutoConfig {
+
+    @Bean
+    @Autowired
+    public BizSetCmdbClient gseCacheClient(EsbConfig esbConfig, CcConfig ccConfig) {
+        return new BizSetCmdbClient(esbConfig, ccConfig);
+    }
 }

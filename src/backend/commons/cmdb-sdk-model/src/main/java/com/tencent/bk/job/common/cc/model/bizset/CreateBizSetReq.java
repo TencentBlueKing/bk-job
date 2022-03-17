@@ -22,31 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 /**
- * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ * CMDB接口请求实体类，用于创建业务集
  */
 @Setter
 @Getter
-public class BizSetFilter {
-
-    public static final String CONDITION_AND = "AND";
-    public static final String CONDITION_OR = "OR";
+public class CreateBizSetReq extends EsbReq {
 
     /**
-     * 多个规则之间的组合条件，取值为：AND/OR
+     * 业务集字段集合
      */
-    private String condition;
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
 
     /**
-     * 规则列表
+     * 业务集的业务选择范围
      */
-    private List<Rule> rules;
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 
 }
