@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.HostService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,16 +50,15 @@ import java.util.stream.Collectors;
 @Service
 public class HostSyncService {
 
-    private AppHostsUpdateHelper appHostsUpdateHelper;
-    private final ApplicationDAO applicationDAO;
+    private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostService hostService;
 
     @Autowired
-    public HostSyncService(ApplicationDAO applicationDAO,
+    public HostSyncService(AppHostsUpdateHelper appHostsUpdateHelper,
                            ApplicationHostDAO applicationHostDAO,
                            HostService hostService) {
-        this.applicationDAO = applicationDAO;
+        this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.applicationHostDAO = applicationHostDAO;
         this.hostService = hostService;
     }
