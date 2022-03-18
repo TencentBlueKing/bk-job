@@ -1297,7 +1297,7 @@ public class HostServiceImpl implements HostService {
                 for (ApplicationHostDTO appHost : appHosts) {
                     IpDTO hostIp = new IpDTO(appHost.getCloudAreaId(), appHost.getIp());
                     notExistHosts.remove(hostIp);
-                    hostCache.addOrUpdateApp(appHost);
+                    hostCache.addOrUpdateHost(appHost);
                     if (!includeAppIds.contains(appHost.getAppId())) {
                         hostsNotInApp.add(hostIp);
                     }

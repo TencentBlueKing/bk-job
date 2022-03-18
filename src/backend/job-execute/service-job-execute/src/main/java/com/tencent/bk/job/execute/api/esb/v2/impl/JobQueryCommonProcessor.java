@@ -59,7 +59,7 @@ public class JobQueryCommonProcessor {
         if (taskInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
-        if (appResourceScope.getAppId().equals(taskInstance.getAppId())) {
+        if (!appResourceScope.getAppId().equals(taskInstance.getAppId())) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
