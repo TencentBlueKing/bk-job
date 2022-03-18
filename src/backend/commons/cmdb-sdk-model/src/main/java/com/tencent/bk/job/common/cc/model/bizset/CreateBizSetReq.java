@@ -28,12 +28,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB接口请求实体类，用于创建业务集
  */
 @Setter
 @Getter
+@ToString
 public class CreateBizSetReq extends EsbReq {
 
     /**

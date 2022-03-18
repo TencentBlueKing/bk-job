@@ -65,7 +65,7 @@ public class HostSyncService {
 
     private List<ApplicationHostDTO> getHostsByAppInfo(CcClient ccClient, ApplicationDTO applicationDTO) {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
-        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.APP.getType(), applicationDTO.getId()));
+        ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getId()));
         List<ApplicationHostDTO> ApplicationHostDTOList = ccClient.getHosts(applicationDTO.getId(),
             ccInstanceDTOList);
         // 获取Agent状态
@@ -76,11 +76,11 @@ public class HostSyncService {
     private List<ApplicationHostDTO> computeInsertList(
         Long appId,
         Set<Long> localAppHostIds,
-        List<ApplicationHostDTO> ApplicationHostDTOList
+        List<ApplicationHostDTO> applicationHostDTOList
     ) {
         StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> insertList =
-            ApplicationHostDTOList.stream().filter(ApplicationHostDTO ->
+            applicationHostDTOList.stream().filter(ApplicationHostDTO ->
                 !localAppHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
         watch.start("log insertList");
         log.info(String.format("appId=%s,insertHostIds=%s", appId, String.join(",",
@@ -96,11 +96,11 @@ public class HostSyncService {
     private List<ApplicationHostDTO> computeUpdateList(
         Long appId,
         Set<Long> localAppHostIds,
-        List<ApplicationHostDTO> ApplicationHostDTOList
+        List<ApplicationHostDTO> applicationHostDTOList
     ) {
         StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> updateList =
-            ApplicationHostDTOList.stream().filter(ApplicationHostDTO ->
+            applicationHostDTOList.stream().filter(ApplicationHostDTO ->
                 localAppHostIds.contains(ApplicationHostDTO.getHostId())).collect(Collectors.toList());
         watch.start("log updateList");
         log.info(String.format("appId=%s,updateHostIds=%s", appId, String.join(",",
@@ -133,8 +133,8 @@ public class HostSyncService {
         return deleteList;
     }
 
-    private int refreshAppHosts(Long appId,
-                                List<ApplicationHostDTO> ApplicationHostDTOList) {
+    private void refreshAppHosts(Long appId,
+                                 List<ApplicationHostDTO> applicationHostDTOList) {
         StopWatch watch = new StopWatch();
         //找出要删除的/更新的/新增的分别处理
         //对比库中数据与接口数据
@@ -143,7 +143,7 @@ public class HostSyncService {
         watch.stop();
         watch.start("mapTo ccAppHostIds");
         Set<Long> ccAppHostIds =
-            ApplicationHostDTOList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+            applicationHostDTOList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
         watch.stop();
         watch.start("mapTo localAppHostIds");
         Set<Long> localAppHostIds =
@@ -158,10 +158,10 @@ public class HostSyncService {
             localAppHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
         watch.stop();
         watch.start("compute insertList");
-        List<ApplicationHostDTO> insertList = computeInsertList(appId, localAppHostIds, ApplicationHostDTOList);
+        List<ApplicationHostDTO> insertList = computeInsertList(appId, localAppHostIds, applicationHostDTOList);
         watch.stop();
         watch.start("compute updateList");
-        List<ApplicationHostDTO> updateList = computeUpdateList(appId, localAppHostIds, ApplicationHostDTOList);
+        List<ApplicationHostDTO> updateList = computeUpdateList(appId, localAppHostIds, applicationHostDTOList);
         watch.stop();
         watch.start("compute deleteList");
         List<ApplicationHostDTO> deleteList = computeDeleteList(appId, ccAppHostIds, localAppHosts);
@@ -193,7 +193,6 @@ public class HostSyncService {
             updateFailHostIds,
             deleteFailHostIds
         );
-        return 1;
     }
 
     private Pair<Long, Long> syncAppHostsIndeed(ApplicationDTO applicationDTO) {
@@ -213,7 +212,7 @@ public class HostSyncService {
         refreshAppHosts(appId, hosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostsWatch.stop();
-        log.info("Performance:syncAppHosts:appId={},{}", appId, appHostsWatch.toString());
+        log.info("Performance:syncAppHosts:appId={},{}", appId, appHostsWatch);
         return Pair.of(cmdbInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 

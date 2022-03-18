@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.List;
  */
 @Setter
 @Getter
+@ToString
 public class SearchBizSetReq extends EsbReq {
 
     /**

@@ -27,12 +27,14 @@ package com.tencent.bk.job.common.cc.model.bizset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB接口响应实体类，定义业务字段
  */
 @Setter
 @Getter
+@ToString
 public class BizInfo {
 
     /**

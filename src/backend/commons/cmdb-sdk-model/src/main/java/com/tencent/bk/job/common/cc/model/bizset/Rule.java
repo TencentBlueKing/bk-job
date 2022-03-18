@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB接口请求实体类，定义业务集过滤业务的规则
@@ -36,6 +37,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
+@ToString
 public class Rule {
 
     public static final String OPERATOR_EQUAL = "equal";

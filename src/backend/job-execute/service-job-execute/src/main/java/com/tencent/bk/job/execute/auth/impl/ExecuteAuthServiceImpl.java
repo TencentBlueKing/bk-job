@@ -485,7 +485,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         resource.setSubResourceType("topo");
         resource.setResourceName(resourceName);
         resource.setSystemId(SystemId.CMDB);
-        resource.setType(CcNodeTypeEnum.APP.getType());
+        resource.setType(CcNodeTypeEnum.BIZ.getType());
         resource.setParentHierarchicalResources(null);
         hostResources.add(resource);
         return hostResources;

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.cc.model.bizset;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ import java.util.List;
  */
 @Setter
 @Getter
+@ToString
 public class BizSetFilter {
 
     public static final String CONDITION_AND = "AND";

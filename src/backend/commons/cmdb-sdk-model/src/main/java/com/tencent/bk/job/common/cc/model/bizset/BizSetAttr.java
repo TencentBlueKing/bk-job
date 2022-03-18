@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB接口请求实体类，定义业务集字段
@@ -35,6 +36,7 @@ import lombok.Setter;
 @Builder
 @Setter
 @Getter
+@ToString
 public class BizSetAttr {
 
     /**

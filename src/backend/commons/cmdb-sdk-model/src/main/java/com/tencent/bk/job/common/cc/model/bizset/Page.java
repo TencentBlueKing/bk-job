@@ -27,12 +27,14 @@ package com.tencent.bk.job.common.cc.model.bizset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * CMDB接口请求实体类，定义分页参数
  */
 @Setter
 @Getter
+@ToString
 public class Page {
 
     /**
