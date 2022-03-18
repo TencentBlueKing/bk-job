@@ -84,7 +84,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @ExceptionHandler(Throwable.class)
     @ResponseBody
     ResponseEntity<?> handleException(HttpServletRequest request, Throwable ex) {
-        log.error("Handle exception" + ex);
+        log.error("Handle exception", ex);
         // esb请求错误统一返回200，具体的错误信息放在返回数据里边
         if (ex instanceof UncheckedExecutionException) {
             if (ex.getCause() instanceof ServiceException) {

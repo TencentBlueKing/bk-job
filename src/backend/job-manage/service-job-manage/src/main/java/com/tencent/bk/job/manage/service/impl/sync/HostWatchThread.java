@@ -218,7 +218,7 @@ public class HostWatchThread extends Thread {
                     // 从拓扑表向主机表同步拓扑数据
                     applicationHostDAO.syncHostTopo(dslContext, hostInfoDTO.getHostId());
                 }
-                hostCache.addOrUpdateApp(hostInfoDTO);
+                hostCache.addOrUpdateHost(hostInfoDTO);
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 applicationHostDAO.deleteAppHostInfoById(dslContext, null, hostInfoDTO.getHostId());
