@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -87,8 +88,14 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
-        // TODO
-        return null;
+        Map<ResourceScope, Long> map = new HashMap<>();
+        for (ResourceScope resourceScope : scopeList) {
+            ApplicationDTO appDTO = applicationCache.getApplication(resourceScope);
+            if (appDTO != null) {
+                map.put(resourceScope, appDTO.getId());
+            }
+        }
+        return map;
     }
 
     @Override
