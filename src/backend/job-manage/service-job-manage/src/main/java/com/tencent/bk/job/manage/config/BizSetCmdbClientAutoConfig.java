@@ -32,11 +32,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CmdbClientAutoConfig {
+public class BizSetCmdbClientAutoConfig {
 
     @Bean
     @Autowired
-    public BizSetCmdbClient gseCacheClient(EsbConfig esbConfig, CcConfig ccConfig) {
+    public BizSetCmdbClient bizSetCmdbClient(EsbConfig esbConfig, CcConfig ccConfig) {
         return new BizSetCmdbClient(esbConfig, ccConfig);
     }
 }
