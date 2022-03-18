@@ -91,7 +91,7 @@ export default {
         return QueryGlobalSettingSource.getRelatedSystemUrls()
             .then(({ data }) => ({
                 ...data,
-                BK_CMDB_APP_INDEX_URL: data.BK_CMDB_APP_INDEX_URL.replace('{appId}', window.PROJECT_CONFIG.APP_ID),
+                BK_CMDB_APP_INDEX_URL: data.BK_CMDB_APP_INDEX_URL.replace('{appId}', window.PROJECT_CONFIG.SCOPE_ID),
             }));
     },
     fetchJobConfig (params = {}) {

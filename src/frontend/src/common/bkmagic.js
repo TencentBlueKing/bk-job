@@ -118,7 +118,7 @@ export const loginDialog = (url) => {
 
 let permissionInstance;
 
-export const permissionDialog = (authParams = '', authResult = {}) => {
+export const permissionDialog = (authParams = {}, authResult = {}) => {
     if (!permissionInstance) {
         permissionInstance = new Vue(ApplyPermissionDialog).$mount();
         permissionInstance.$watch(() => permissionInstance.isShowDialog, (isShowDialog) => {

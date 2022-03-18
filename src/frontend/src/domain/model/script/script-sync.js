@@ -61,6 +61,8 @@ export default class ScriptSync extends Model {
         this.stepId = payload.stepId;
         this.stepName = payload.stepName;
         this.appId = payload.appId;
+        this.scopeType = payload.scopeType;
+        this.scopeId = payload.scopeId;
         this.failMsg = payload.failMsg || '';
         this.syncStatus = payload.syncStatus;
     }

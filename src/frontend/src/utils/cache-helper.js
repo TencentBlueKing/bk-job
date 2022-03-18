@@ -26,13 +26,13 @@
 import _ from 'lodash';
 import { ROUTER_HISTORY_CACHE } from '@utils/constants';
 
-export const appIdCache = {
-    key: 'job_app_id',
+export const scopeCache = {
+    key: 'scope',
     setItem (value) {
-        localStorage.setItem(appIdCache.key, value);
+        localStorage.setItem(scopeCache.key, JSON.stringify(value));
     },
     getItem () {
-        return ~~localStorage.getItem(appIdCache.key);
+        return JSON.parse(localStorage.getItem(scopeCache.key) || '{}');
     },
 };
 
