@@ -25,10 +25,15 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
@@ -36,11 +41,13 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.HostService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -120,4 +127,23 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
     }
 
+    @Override
+    public InternalResponse<List<IpDTO>> checkAppHosts(Long appId,
+                                                       ServiceCheckAppHostsReq req) {
+        return InternalResponse.buildSuccessResp(hostService.checkAppHosts(appId, req.getHosts()));
+    }
+
+    @Override
+    public InternalResponse<List<ServiceHostDTO>> batchGetHosts(ServiceBatchGetHostsReq req) {
+        List<IpDTO> hostIps = req.getHosts();
+        List<ApplicationHostDTO> hosts = hostService.listHosts(hostIps);
+        if (CollectionUtils.isEmpty(hosts)) {
+            return InternalResponse.buildSuccessResp(null);
+        }
+
+        return InternalResponse.buildSuccessResp(
+            hosts.stream()
+                .map(host -> new ServiceHostDTO(host.getHostId(), host.getCloudAreaId(), host.getIp(), host.getAppId()))
+                .collect(Collectors.toList()));
+    }
 }

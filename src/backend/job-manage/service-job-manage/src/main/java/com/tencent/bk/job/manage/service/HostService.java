@@ -27,8 +27,9 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.index.AgentStatistics;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -46,7 +48,34 @@ import java.util.List;
 public interface HostService {
     boolean existHost(long appId, String ip);
 
-    List<ApplicationHostInfoDTO> getHostsByAppId(Long appId);
+    List<ApplicationHostDTO> getHostsByAppId(Long appId);
+
+    /**
+     * 新增业务下的主机
+     *
+     * @param appId      业务ID
+     * @param insertList 主机信息
+     * @return 新增失败的主机ID
+     */
+    List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList);
+
+    /**
+     * 更新业务下的主机
+     *
+     * @param appId        业务ID
+     * @param hostInfoList 主机信息
+     * @return 更新失败的主机ID
+     */
+    List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList);
+
+    /**
+     * 删除业务下的主机
+     *
+     * @param appId      业务ID
+     * @param deleteList 主机信息
+     * @return 删除失败的主机ID
+     */
+    List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList);
 
     long countHostsByOsType(String osType);
 
@@ -57,8 +86,8 @@ public interface HostService {
      * @param baseSearchCondition          通用查询分页条件
      * @return 带分页信息的主机信息列表
      */
-    PageData<ApplicationHostInfoDTO> listAppHost(ApplicationHostInfoDTO applicationHostInfoCondition,
-                                                 BaseSearchCondition baseSearchCondition);
+    PageData<ApplicationHostDTO> listAppHost(ApplicationHostDTO applicationHostInfoCondition,
+                                             BaseSearchCondition baseSearchCondition);
 
     /**
      * 查询指定业务的拓扑树
@@ -131,8 +160,25 @@ public interface HostService {
 
     AgentStatistics getAgentStatistics(String username, Long appId, AgentStatisticsReq agentStatisticsReq);
 
-    void fillAgentStatus(List<ApplicationHostInfoDTO> hosts);
+    void fillAgentStatus(List<ApplicationHostDTO> hosts);
 
 
     Boolean existsHost(Long appId, String ip);
+
+    /**
+     * 检查主机是否在业务下
+     *
+     * @param appId   Job业务ID
+     * @param hostIps 被检查的主机
+     * @return 非法的主机
+     */
+    List<IpDTO> checkAppHosts(Long appId, List<IpDTO> hostIps);
+
+    /**
+     * 根据主机IP批量获取主机
+     *
+     * @param hostIps 主机IP
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
 }

@@ -107,7 +107,6 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
                 lastModifyTime = DateTimeUtils.currentTimeMillis();
             }
         }
-        accountCreateUpdateReq.setAppId(appId);
         if (!accountService.checkCreateParam(accountCreateUpdateReq, false, false)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -115,7 +114,7 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
         if (accountId != null) {
             AccountDTO accountDTO = accountService.getAccountById(accountId);
             if (accountDTO != null) {
-                if (accountDTO.getAppId().longValue() == accountCreateUpdateReq.getAppId().longValue()
+                if (accountDTO.getAppId().longValue() == appId
                     && accountDTO.getAccount().equals(accountCreateUpdateReq.getAccount())
                     && accountDTO.getAlias().equals(accountCreateUpdateReq.getAlias())
                 ) {

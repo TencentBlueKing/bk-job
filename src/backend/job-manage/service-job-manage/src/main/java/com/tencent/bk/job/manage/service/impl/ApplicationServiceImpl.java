@@ -114,6 +114,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public ApplicationDTO getAppByScope(String scopeType, String scopeId) {
+        return getAppByScope(new ResourceScope(scopeType, scopeId));
+    }
+
+    @Override
     public List<ApplicationDTO> listAppsByAppIds(Collection<Long> appIds) {
         return applicationCache.listApplicationsByAppIds(appIds);
     }
@@ -163,7 +168,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
-        return applicationDAO.listAllApps();
+        return applicationDAO.listAllBizApps();
     }
 
     @Override

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.converter;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskNodeInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
@@ -42,7 +42,7 @@ public class TaskHostNodeConverter {
         }
         ServiceTaskHostNodeDTO serviceTaskHostNodeDTO = new ServiceTaskHostNodeDTO();
         serviceTaskHostNodeDTO.setDynamicGroupId(taskHostNodeDTO.getDynamicGroupId());
-        List<ApplicationHostInfoDTO> hostInfoDTOList = taskHostNodeDTO.getHostList();
+        List<ApplicationHostDTO> hostInfoDTOList = taskHostNodeDTO.getHostList();
         List<ServiceHostInfoDTO> serviceHostInfoDTOList = new ArrayList<>();
         if (hostInfoDTOList != null && !hostInfoDTOList.isEmpty()) {
             serviceHostInfoDTOList =

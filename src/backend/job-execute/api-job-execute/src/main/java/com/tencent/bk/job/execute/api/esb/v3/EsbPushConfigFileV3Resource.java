@@ -47,7 +47,10 @@ public interface EsbPushConfigFileV3Resource {
      */
     @PostMapping("/push_config_file")
     EsbResp<EsbJobExecuteV3DTO> pushConfigFile(
-        @RequestBody @Validated EsbPushConfigFileV3Request request);
+        @RequestBody
+        @Validated
+            EsbPushConfigFileV3Request request
+    );
 
 
 }

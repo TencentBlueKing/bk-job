@@ -24,9 +24,17 @@
 
 package com.tencent.bk.job.manage.auth.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,10 +44,25 @@ import java.util.List;
  */
 @Service
 public class TicketAuthServiceImpl implements TicketAuthService {
+
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public TicketAuthServiceImpl(AuthService authService,
+                                 AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).build();
+    }
+
     @Override
     public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
-        // TODO
-        return AuthResult.pass();
+        return appAuthService.auth(true, username, ActionId.CREATE_TICKET, appResourceScope);
     }
 
     @Override
@@ -47,8 +70,8 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                        AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.MANAGE_TICKET, ResourceTypeEnum.TICKET, ticketId,
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
@@ -56,23 +79,23 @@ public class TicketAuthServiceImpl implements TicketAuthService {
                                     AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(true, username, ActionId.USE_TICKET, ResourceTypeEnum.TICKET, ticketId,
+            buildAppScopePath(appResourceScope));
     }
 
     @Override
     public List<String> batchAuthManageTicket(String username,
                                               AppResourceScope appResourceScope,
                                               List<String> ticketIdList) {
-        // TODO
-        return ticketIdList;
+        return appAuthService.batchAuth(username, ActionId.MANAGE_TICKET, appResourceScope,
+            ResourceTypeEnum.TICKET, ticketIdList);
     }
 
     @Override
     public List<String> batchAuthUseTicket(String username,
                                            AppResourceScope appResourceScope,
                                            List<String> ticketIdList) {
-        // TODO
-        return ticketIdList;
+        return appAuthService.batchAuth(username, ActionId.USE_TICKET, appResourceScope,
+            ResourceTypeEnum.TICKET, ticketIdList);
     }
 }

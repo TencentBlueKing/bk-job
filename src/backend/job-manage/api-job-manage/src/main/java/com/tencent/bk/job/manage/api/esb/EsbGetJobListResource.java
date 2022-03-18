@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.EsbJobBasicInfoDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetJobListRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,5 +46,8 @@ public interface EsbGetJobListResource {
 
     @PostMapping("/get_job_list")
     EsbResp<List<EsbJobBasicInfoDTO>> getJobList(
-        @RequestBody EsbGetJobListRequest request);
+        @RequestBody
+        @Validated
+            EsbGetJobListRequest request
+    );
 }

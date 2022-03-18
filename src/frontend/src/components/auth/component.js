@@ -32,9 +32,7 @@ import './style.css';
 export default {
     props: {
         permission: {
-            type: [
-                Boolean, String,
-            ],
+            type: [Boolean, String],
             default: '',
         },
         auth: {
@@ -46,6 +44,8 @@ export default {
                 Number, String,
             ],
         },
+        scopeType: String,
+        scopeId: String,
     },
     data () {
         return {
@@ -84,7 +84,9 @@ export default {
             PermissionCheckService.fetchPermission({
                 operation: this.auth,
                 resourceId: this.resourceId,
-                appId: window.PROJECT_CONFIG.APP_ID,
+                // appId: window.PROJECT_CONFIG.APP_ID,
+                scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
+                scopeId: window.PROJECT_CONFIG.SCOPE_ID,
                 returnPermissionDetail: true,
             })
                 .then((data) => {
@@ -111,6 +113,8 @@ export default {
             permissionDialog({
                 operation: this.auth,
                 resourceId: this.resourceId,
+                scopeType: this.scopeType,
+                scopeId: this.scopeId,
             }, this.authResult);
         },
     },

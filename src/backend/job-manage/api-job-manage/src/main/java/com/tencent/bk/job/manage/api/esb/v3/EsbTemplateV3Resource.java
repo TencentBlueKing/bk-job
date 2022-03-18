@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbTemplateBasicInfoV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,7 +51,9 @@ public interface EsbTemplateV3Resource {
     EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "creator", required = false) String creator,
         @RequestParam(value = "name", required = false) String name,
         @RequestParam(value = "create_time_start", required = false) Long createTimeStart,
@@ -63,5 +66,8 @@ public interface EsbTemplateV3Resource {
 
     @PostMapping("/get_job_template_list")
     EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
-        @RequestBody EsbGetTemplateListV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetTemplateListV3Request request
+    );
 }

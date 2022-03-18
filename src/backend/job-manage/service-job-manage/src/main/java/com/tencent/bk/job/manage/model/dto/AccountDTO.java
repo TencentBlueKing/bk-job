@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -125,6 +127,23 @@ public class AccountDTO {
         serviceAccountDTO.setDbPort(dbPort);
         return serviceAccountDTO;
 
+    }
+
+    public EsbAccountV3DTO toEsbAccountV3DTO() {
+        EsbAccountV3DTO esbAccount = new EsbAccountV3DTO();
+        esbAccount.setId(id);
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbAccount);
+        esbAccount.setAccount(account);
+        esbAccount.setAlias(alias);
+        esbAccount.setCategory(category.getValue());
+        esbAccount.setType(type.getType());
+        esbAccount.setDbSystemAccountId(dbSystemAccountId);
+        esbAccount.setOs(os);
+        esbAccount.setCreator(creator);
+        esbAccount.setCreateTime(createTime);
+        esbAccount.setLastModifyUser(lastModifyUser);
+        esbAccount.setLastModifyTime(lastModifyTime);
+        return esbAccount;
     }
 
 

@@ -26,7 +26,7 @@ package com.tencent.bk.job.crontab.model.esb.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,13 +37,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class EsbSaveCronRequest extends EsbReq {
-
-    /**
-     * 业务 ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbSaveCronRequest extends EsbAppScopeReq {
 
     /**
      * 定时任务ID，更新定时任务时，必须传这个值
@@ -90,14 +84,6 @@ public class EsbSaveCronRequest extends EsbReq {
     }
 
     public void validate() {
-        if (appId == null || appId <= 0) {
-            throw new InvalidParamException(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new Object[]{
-                    "bk_biz_id",
-                    "bk_biz_id must be a positive number"
-                });
-        }
         // 更新定时任务需要校验id值的有效性
         if (id != null && id <= 0) {
             throw new InvalidParamException(

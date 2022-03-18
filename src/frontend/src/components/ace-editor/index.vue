@@ -542,7 +542,7 @@
                     return;
                 }
                 // eslint-disable-next-line max-len
-                const newCacheKey = `${type}_${window.PROJECT_CONFIG.APP_ID}_${this.currentUser.username}_${prettyDateTimeFormat(Date.now())}`;
+                const newCacheKey = `${type}_${window.PROJECT_CONFIG.SCOPE_TYPE}_${window.PROJECT_CONFIG.SCOPE_ID}_${this.currentUser.username}_${prettyDateTimeFormat(Date.now())}`;
                 let historyList = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
                 if (!_.isArray(historyList)) {
                     historyList = [];

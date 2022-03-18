@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import io.swagger.annotations.ApiModel;
@@ -76,10 +77,23 @@ public class ScriptVO {
     @ApiModelProperty(value = "是否公共脚本")
     private Boolean publicScript;
     /**
-     * 业务ID
+     * 业务id
      */
-    @ApiModelProperty(value = "业务ID")
+    @ApiModelProperty("业务ID")
+    @CompatibleImplementation(explain = "为了无损发布保留的历史字段，发布完成需要删除", version = "3.5.1")
     private Long appId;
+
+    /**
+     * 资源范围类型
+     */
+    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
     /**
      * 脚本内容
      */
