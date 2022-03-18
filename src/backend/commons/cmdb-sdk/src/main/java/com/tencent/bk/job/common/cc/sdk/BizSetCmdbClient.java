@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.cc.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.cc.config.CcConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.model.bizset.Page;
@@ -46,11 +45,9 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
