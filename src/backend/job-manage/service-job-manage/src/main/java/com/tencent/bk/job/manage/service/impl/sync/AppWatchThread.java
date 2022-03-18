@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -207,13 +207,13 @@ public class AppWatchThread extends Thread {
                 StopWatch watch = new StopWatch("appWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
                     ResourceWatchResult<AppEventDetail> appWatchResult;
                     while (appWatchFlag.get()) {
                         if (cursor == null) {
-                            appWatchResult = ccClient.getAppEvents(startTime, cursor);
+                            appWatchResult = bizCmdbClient.getAppEvents(startTime, cursor);
                         } else {
-                            appWatchResult = ccClient.getAppEvents(null, cursor);
+                            appWatchResult = bizCmdbClient.getAppEvents(null, cursor);
                         }
                         log.info("appWatchResult={}", JsonUtils.toJson(appWatchResult));
                         cursor = handleAppWatchResult(appWatchResult);

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -63,10 +63,10 @@ public class HostSyncService {
         this.hostService = hostService;
     }
 
-    private List<ApplicationHostDTO> getHostsByAppInfo(CcClient ccClient, ApplicationDTO applicationDTO) {
+    private List<ApplicationHostDTO> getHostsByAppInfo(IBizCmdbClient bizCmdbClient, ApplicationDTO applicationDTO) {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
         ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getId()));
-        List<ApplicationHostDTO> ApplicationHostDTOList = ccClient.getHosts(applicationDTO.getId(),
+        List<ApplicationHostDTO> ApplicationHostDTOList = bizCmdbClient.getHosts(applicationDTO.getId(),
             ccInstanceDTOList);
         // 获取Agent状态
         hostService.fillAgentStatus(ApplicationHostDTOList);
@@ -199,12 +199,12 @@ public class HostSyncService {
         Long appId = applicationDTO.getId();
         Long cmdbInterfaceTimeConsuming = 0L;
         Long writeToDBTimeConsuming = 0L;
-        CcClient ccClient = CcClientFactory.getCcClient();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
         StopWatch appHostsWatch = new StopWatch();
         appHostsWatch.start("getHostsByAppInfo from CMDB");
         Long startTime = System.currentTimeMillis();
         log.info("begin to syncAppHosts:appId={}", appId);
-        List<ApplicationHostDTO> hosts = getHostsByAppInfo(ccClient, applicationDTO);
+        List<ApplicationHostDTO> hosts = getHostsByAppInfo(bizCmdbClient, applicationDTO);
         cmdbInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         appHostsWatch.stop();
         appHostsWatch.start("updateHosts to local DB");

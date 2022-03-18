@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -47,7 +47,7 @@ public class BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
-    protected final CcClient ccClient = CcClientFactory.getCcClient();
+    protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
 
     @Autowired
     public BasicAppSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.cc.sdk;
 
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -38,50 +38,50 @@ import org.springframework.context.annotation.DependsOn;
 import java.util.Map;
 
 @Slf4j
-@DependsOn({"applicationContextRegister", "ccConfigSetter"})
-public class CcClientFactory {
+@DependsOn({"applicationContextRegister", "cmdbConfigSetter"})
+public class CmdbClientFactory {
 
-    private static final Map<String, CcClient> CC_CLIENT_MAPS = Maps.newHashMap();
+    private static final Map<String, IBizCmdbClient> CMDB_CLIENT_MAPS = Maps.newHashMap();
 
     static {
         EsbConfig esbConfig = null;
-        CcConfig ccConfig = null;
+        CmdbConfig cmdbConfig = null;
         QueryAgentStatusClient queryAgentStatusClient = null;
         MeterRegistry meterRegistry = null;
         try {
             esbConfig = ApplicationContextRegister.getBean(EsbConfig.class);
-            ccConfig = ApplicationContextRegister.getBean(CcConfig.class);
+            cmdbConfig = ApplicationContextRegister.getBean(CmdbConfig.class);
             queryAgentStatusClient = ApplicationContextRegister.getBean(QueryAgentStatusClient.class);
             meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
         } catch (Throwable e) {
             log.error("Error while initialize bk config!", e);
             throw e;
         }
-        CC_CLIENT_MAPS.put(LocaleUtils.LANG_ZH_CN,
-            new EsbCcClient(esbConfig, ccConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
+        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH_CN,
+            new BizCmdbClient(esbConfig, cmdbConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
         );
-        CC_CLIENT_MAPS.put(LocaleUtils.LANG_EN,
-            new EsbCcClient(esbConfig, ccConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
+        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN,
+            new BizCmdbClient(esbConfig, cmdbConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
         );
-        CC_CLIENT_MAPS.put(LocaleUtils.LANG_ZH,
-            new EsbCcClient(esbConfig, ccConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
+        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_ZH,
+            new BizCmdbClient(esbConfig, cmdbConfig, EsbLang.CN, queryAgentStatusClient, meterRegistry)
         );
-        CC_CLIENT_MAPS.put(LocaleUtils.LANG_EN_US,
-            new EsbCcClient(esbConfig, ccConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
+        CMDB_CLIENT_MAPS.put(LocaleUtils.LANG_EN_US,
+            new BizCmdbClient(esbConfig, cmdbConfig, EsbLang.EN, queryAgentStatusClient, meterRegistry)
         );
     }
 
-    public static CcClient getCcClient() {
+    public static IBizCmdbClient getCcClient() {
         return getCcClient(LocaleUtils.LANG_EN_US);
     }
 
-    public static CcClient getCcClient(String language) {
+    public static IBizCmdbClient getCcClient(String language) {
         if (language == null) {
             language = LocaleUtils.LANG_EN_US;
         }
-        CcClient iccClient = CC_CLIENT_MAPS.get(language);
+        IBizCmdbClient iccClient = CMDB_CLIENT_MAPS.get(language);
         if (iccClient == null) {
-            iccClient = CC_CLIENT_MAPS.get(LocaleUtils.LANG_EN_US);
+            iccClient = CMDB_CLIENT_MAPS.get(LocaleUtils.LANG_EN_US);
         }
         return iccClient;
     }

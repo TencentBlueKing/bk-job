@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.config.CcConfig;
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -48,26 +48,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@DependsOn({"ccConfigSetter"})
+@DependsOn({"cmdbConfigSetter"})
 @Service
 @Slf4j
 public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationResourceClient applicationResourceClient;
     private final SyncResourceClient syncResourceClient;
     private final RedisTemplate redisTemplate;
-    private final EsbCcClient ccClient;
+    private final BizCmdbClient ccClient;
 
     @Autowired
     public ApplicationServiceImpl(ApplicationResourceClient applicationResourceClient,
                                   @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate,
                                   EsbConfig esbConfig,
-                                  CcConfig ccConfig,
+                                  CmdbConfig cmdbConfig,
                                   QueryAgentStatusClient queryAgentStatusClient,
                                   SyncResourceClient syncResourceClient,
                                   MeterRegistry meterRegistry) {
         this.applicationResourceClient = applicationResourceClient;
         this.redisTemplate = redisTemplate;
-        this.ccClient = new EsbCcClient(esbConfig, ccConfig, queryAgentStatusClient, meterRegistry);
+        this.ccClient = new BizCmdbClient(esbConfig, cmdbConfig, queryAgentStatusClient, meterRegistry);
         this.syncResourceClient = syncResourceClient;
     }
 

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +41,13 @@ public class AppRoleServiceImpl implements AppRoleService {
 
     @Override
     public List<AppRoleDTO> listAppRoles(String lang) {
-        CcClient ccClient = CcClientFactory.getCcClient(lang);
-        return ccClient.getAppRoleList();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(lang);
+        return bizCmdbClient.getAppRoleList();
     }
 
     @Override
     public Set<String> listAppUsersByRole(Long appId, String role) {
-        CcClient ccClient = CcClientFactory.getCcClient(JobContextUtil.getUserLang());
-        return ccClient.getAppUsersByRole(appId, role);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang());
+        return bizCmdbClient.getAppUsersByRole(appId, role);
     }
 }

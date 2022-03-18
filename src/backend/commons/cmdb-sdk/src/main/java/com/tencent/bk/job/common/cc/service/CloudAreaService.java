@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.common.cc.service;
 
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
@@ -49,17 +49,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 23/12/2019 22:48
  */
 
-@DependsOn({"ccConfigSetter"})
+@DependsOn({"cmdbConfigSetter"})
 @Slf4j
 public class CloudAreaService {
     private static final Map<Long, String> CLOUD_AREA_NAME_MAP = new ConcurrentHashMap<>();
-    private static CcClient esbCcClient;
+    private static IBizCmdbClient esbBizCmdbClient;
     private static List<CcCloudAreaInfoDTO> fullCloudAreaInfoList;
 
-    public CloudAreaService(EsbConfig esbConfig, CcConfig ccConfig, QueryAgentStatusClient queryAgentStatusClient,
+    public CloudAreaService(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
                             MeterRegistry meterRegistry) {
         CloudAreaNameCacheThread cloudAreaNameCacheThread = new CloudAreaNameCacheThread();
-        esbCcClient = new EsbCcClient(esbConfig, ccConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
+        esbBizCmdbClient = new BizCmdbClient(esbConfig, cmdbConfig, LocaleUtils.LANG_EN_US, queryAgentStatusClient,
             meterRegistry);
         cloudAreaNameCacheThread.start();
     }
@@ -74,7 +74,7 @@ public class CloudAreaService {
     }
 
     private static List<CcCloudAreaInfoDTO> getCloudAreaListFromCc() {
-        List<CcCloudAreaInfoDTO> cloudAreaInfoList = esbCcClient.getCloudAreaList();
+        List<CcCloudAreaInfoDTO> cloudAreaInfoList = esbBizCmdbClient.getCloudAreaList();
         if (cloudAreaInfoList == null) {
             return new ArrayList<>();
         }

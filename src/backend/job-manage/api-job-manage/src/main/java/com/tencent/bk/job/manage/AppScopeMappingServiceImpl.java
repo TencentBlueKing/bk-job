@@ -153,4 +153,16 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         });
         return mapping;
     }
+
+    @Override
+    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
+        Map<ResourceScope, Long> mapping = new HashMap<>();
+        scopeList.forEach(scope -> {
+            Long appId = getAppIdByScope(scope);
+            if (appId != null) {
+                mapping.put(scope, appId);
+            }
+        });
+        return mapping;
+    }
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.cc.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
@@ -62,12 +62,12 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
     private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
 
-    public static CcConfig ccConfig = null;
+    public static CmdbConfig cmdbConfig = null;
 
-    public BizSetCmdbClient(EsbConfig esbConfig, CcConfig ccConfig) {
+    public BizSetCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(),
             esbConfig.getAppSecret(), null, esbConfig.isUseEsbTestEnv());
-        this.cmdbSupplierAccount = ccConfig.getDefaultSupplierAccount();
+        this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
     }
 
     public <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {

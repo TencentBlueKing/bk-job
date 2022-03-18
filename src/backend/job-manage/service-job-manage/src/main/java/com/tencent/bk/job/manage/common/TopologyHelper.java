@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopologyNodeInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -279,7 +279,7 @@ public class TopologyHelper {
     }
 
     public InstanceTopologyDTO getTopologyTreeByApplication(String username, ApplicationDTO applicationInfo) {
-        InstanceTopologyDTO instanceTopology = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
+        InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
             .getBizInstTopology(applicationInfo.getId(), applicationInfo.getBkSupplierAccount(), username);
         if (instanceTopology == null) {
             return null;
