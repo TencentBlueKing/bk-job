@@ -86,6 +86,12 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
+        // TODO
+        return null;
+    }
+
+    @Override
     public ApplicationDTO getAppByAppId(Long appId) {
         ApplicationDTO application = applicationCache.getApplication(appId);
         if (application == null) {
