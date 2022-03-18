@@ -86,8 +86,12 @@ public class BizSetInfo {
     /**
      * 时区
      */
-    @JsonProperty("timezone")
     private String timezone;
+
+    /**
+     * 语言
+     */
+    private String language;
 
     /**
      * 业务范围

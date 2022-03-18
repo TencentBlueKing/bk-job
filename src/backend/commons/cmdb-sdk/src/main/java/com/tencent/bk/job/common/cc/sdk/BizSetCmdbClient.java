@@ -63,7 +63,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     private final String cmdbSupplierAccount;
 
     private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
-    private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_biz_in_business_set/";
+    private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
 
     public static CcConfig ccConfig = null;
 
