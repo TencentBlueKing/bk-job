@@ -22,20 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web;
+package com.tencent.bk.job.common.iam.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.Data;
 
-@ApiModel("业务信息")
+import java.util.List;
+
+/**
+ * @since 16/6/2020 16:07
+ */
 @Data
-public class SimpleAppVO {
+public class AppResourceScopeResult {
+    private List<AppResourceScope> appResourceScopeList;
 
-    @ApiModelProperty("业务ID")
-    private Long id;
-
-    @ApiModelProperty("业务名称")
-    private String name;
-
+    private Boolean any;
 }

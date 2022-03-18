@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 资源范围类型
@@ -42,6 +43,7 @@ public enum ResourceScopeTypeEnum {
     /**
      * 资源范围类型
      */
+    @JsonValue
     private final String value;
 
     ResourceScopeTypeEnum(String value) {
@@ -60,5 +62,9 @@ public enum ResourceScopeTypeEnum {
 
     public String getValue() {
         return value;
+    }
+
+    public static boolean isValid(String type) {
+        return from(type) != null;
     }
 }

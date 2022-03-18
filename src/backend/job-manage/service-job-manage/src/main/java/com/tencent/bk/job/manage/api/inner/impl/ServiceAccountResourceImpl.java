@@ -27,11 +27,16 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
+import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
@@ -42,17 +47,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 @RestController
 public class ServiceAccountResourceImpl implements ServiceAccountResource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
+    private final AccountAuthService accountAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public ServiceAccountResourceImpl(AccountService accountService,
-                                      MessageI18nService i18nService) {
+                                      AccountAuthService accountAuthService,
+                                      AppScopeMappingService appScopeMappingService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
+        this.accountAuthService = accountAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -104,18 +115,22 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             log.warn("Account is not exist, appId={}, category={}, alias={}", appId, category, alias);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(alias));
         }
+
+        return InternalResponse.buildSuccessResp(toServiceAccountDTO(accountDTO));
+    }
+
+    private ServiceAccountDTO toServiceAccountDTO(AccountDTO accountDTO) {
         ServiceAccountDTO result = accountDTO.toServiceAccountDTO();
         if (accountDTO.getCategory() == AccountCategoryEnum.DB) {
             long systemAccountId = accountDTO.getDbSystemAccountId();
             AccountDTO dbSystemAccount = accountService.getAccountById(systemAccountId);
             if (dbSystemAccount == null) {
-                log.warn("Db related system account is not exist, , appId={}, category={}, alias={}", appId, category
-                    , alias);
+                log.warn("Db related system account is not exist, account: {}", accountDTO);
                 throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(systemAccountId));
             }
             result.setDbSystemAccount(dbSystemAccount.toServiceAccountDTO());
         }
-        return InternalResponse.buildSuccessResp(result);
+        return result;
     }
 
     @Override
@@ -151,5 +166,37 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
         long accountId = accountService.saveAccount(newAccount);
         newAccount.setId(accountId);
         return InternalResponse.buildSuccessResp(newAccount.toServiceAccountDTO());
+    }
+
+    @Override
+    public Response<Long> saveAccount(String username,
+                                      Long appId,
+                                      AccountCreateUpdateReq accountCreateUpdateReq) {
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, null, null);
+        AuthResult authResult = accountAuthService.authCreateAccount(username, appResourceScope);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
+        accountService.checkCreateParam(accountCreateUpdateReq, true, true);
+
+        AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appResourceScope.getAppId(),
+            accountCreateUpdateReq);
+        long accountId = accountService.saveAccount(newAccount);
+        accountAuthService.registerAccount(username, accountId, newAccount.getAlias());
+        return Response.buildSuccessResp(accountId);
+    }
+
+    @Override
+    public Response<List<ServiceAccountDTO>> listAccounts(Long appId, Integer category) {
+        List<AccountDTO> accountDTOS =
+            accountService.listAllAppAccount(appId, AccountCategoryEnum.valOf(category));
+        List<ServiceAccountDTO> accounts = new ArrayList<>();
+        if (accountDTOS != null && !accountDTOS.isEmpty()) {
+            for (AccountDTO accountDTO : accountDTOS) {
+                ServiceAccountDTO account = toServiceAccountDTO(accountDTO);
+                accounts.add(account);
+            }
+        }
+        return Response.buildSuccessResp(accounts);
     }
 }

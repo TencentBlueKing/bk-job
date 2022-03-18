@@ -30,14 +30,16 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
+import com.tencent.bk.job.manage.auth.EsbAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -48,7 +50,6 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptService;
-import com.tencent.bk.job.manage.service.auth.EsbAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,21 +65,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     private final ScriptService scriptService;
-    private final MessageI18nService i18nService;
     private final EsbAuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbScriptResourceV3Impl(ScriptService scriptService, MessageI18nService i18nService,
-                                   EsbAuthService authService) {
+    public EsbScriptResourceV3Impl(ScriptService scriptService,
+                                   EsbAuthService authService,
+                                   AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
-        this.i18nService = i18nService;
         this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
 
     @Override
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(String username,
                                                                 String appCode,
-                                                                Long appId,
+                                                                Long bkBizId,
+                                                                String scopeType,
+                                                                String scopeId,
                                                                 String name,
                                                                 Integer scriptLanguage,
                                                                 Integer start,
@@ -86,7 +90,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBkBizId(bkBizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setName(name);
         request.setScriptLanguage(scriptLanguage);
         request.setStart(start);
@@ -97,7 +103,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionList(String username,
                                                                                     String appCode,
-                                                                                    Long appId,
+                                                                                    Long bkBizId,
+                                                                                    String scopeType,
+                                                                                    String scopeId,
                                                                                     String scriptId,
                                                                                     boolean returnScriptContent,
                                                                                     Integer start,
@@ -105,7 +113,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         EsbGetScriptVersionListV3Req request = new EsbGetScriptVersionListV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBkBizId(bkBizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setScriptId(scriptId);
         request.setReturnScriptContent(returnScriptContent);
         request.setStart(start);
@@ -116,14 +126,18 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetail(String username,
                                                                        String appCode,
-                                                                       Long appId,
+                                                                       Long bkBizId,
+                                                                       String scopeType,
+                                                                       String scopeId,
                                                                        Long scriptVersionId,
                                                                        String scriptId,
                                                                        String version) {
         EsbGetScriptVersionDetailV3Req request = new EsbGetScriptVersionDetailV3Req();
         request.setUserName(username);
         request.setAppCode(appCode);
-        request.setAppId(appId);
+        request.setBkBizId(bkBizId);
+        request.setScopeType(scopeType);
+        request.setScopeId(scopeId);
         request.setId(scriptVersionId);
         request.setScriptId(scriptId);
         request.setVersion(version);
@@ -133,6 +147,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(EsbGetScriptListV3Req request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
@@ -180,7 +195,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    new AppResourceScope(appId), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }
@@ -221,16 +236,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         List<EsbScriptV3DTO> esbScriptList = new ArrayList<>();
         for (ScriptDTO script : pageScripts.getData()) {
-            EsbScriptV3DTO esbScript = new EsbScriptV3DTO();
-            esbScript.setId(script.getId());
-            esbScript.setAppId(script.getAppId());
-            esbScript.setName(script.getName());
-            esbScript.setType(script.getType());
-            esbScript.setCreator(script.getCreator());
-            esbScript.setCreateTime(script.getCreateTime());
-            esbScript.setLastModifyUser(script.getLastModifyUser());
-            esbScript.setLastModifyTime(script.getLastModifyTime());
-            esbScript.setOnlineScriptVersionId(script.getScriptVersionId());
+            EsbScriptV3DTO esbScript = script.toEsbScriptV3DTO();
             esbScriptList.add(esbScript);
         }
 
@@ -242,20 +248,10 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     private EsbScriptVersionDetailV3DTO toEsbScriptVerDtlV3DTO(ScriptDTO script, Boolean returnContent) {
-        EsbScriptVersionDetailV3DTO esbScriptVersion = new EsbScriptVersionDetailV3DTO();
-        esbScriptVersion.setId(script.getScriptVersionId());
-        esbScriptVersion.setAppId(script.getAppId());
-        esbScriptVersion.setScriptId(script.getId());
-        esbScriptVersion.setVersion(script.getVersion());
-        if (returnContent != null && returnContent) {
-            esbScriptVersion.setContent(script.getContent());
+        EsbScriptVersionDetailV3DTO esbScriptVersion = script.toEsbScriptVersionDetailV3DTO();
+        if (returnContent == null || returnContent) {
+            esbScriptVersion.setContent(null);
         }
-        esbScriptVersion.setStatus(script.getStatus());
-        esbScriptVersion.setVersionDesc(script.getVersionDesc());
-        esbScriptVersion.setCreator(script.getCreator());
-        esbScriptVersion.setCreateTime(script.getCreateTime());
-        esbScriptVersion.setLastModifyUser(script.getLastModifyUser());
-        esbScriptVersion.setLastModifyTime(script.getLastModifyTime());
         return esbScriptVersion;
     }
 
@@ -288,10 +284,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     private ValidateResult checkRequest(EsbGetScriptListV3Req request) {
-        if (request.getAppId() == null || request.getAppId() < -1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getStart() == null || request.getStart() < 0) {
             request.setStart(0);
         }
@@ -309,10 +301,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     private ValidateResult checkRequest(EsbGetScriptVersionListV3Req request) {
-        if (request.getAppId() == null || request.getAppId() < -1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (StringUtils.isBlank(request.getScriptId())) {
             log.warn("ScriptId is empty or illegal!");
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
@@ -329,8 +317,9 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_list"})
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
-        EsbGetScriptVersionListV3Req request
-    ) {
+        EsbGetScriptVersionListV3Req request) {
+
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get scriptVersion list, request is illegal!");
@@ -374,7 +363,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
                 }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
                 EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
-                    appId, ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
+                    request.getAppResourceScope(), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
                 }
@@ -386,10 +375,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     }
 
     private ValidateResult checkRequest(EsbGetScriptVersionDetailV3Req request) {
-        if (request.getAppId() == null || request.getAppId() < -1) {
-            log.warn("AppId is empty or illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
-        }
         if (request.getId() != null && request.getId() > 0) {
             return ValidateResult.pass();
         }
@@ -408,6 +393,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
         EsbGetScriptVersionDetailV3Req request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get scriptVersion list, request is illegal!");

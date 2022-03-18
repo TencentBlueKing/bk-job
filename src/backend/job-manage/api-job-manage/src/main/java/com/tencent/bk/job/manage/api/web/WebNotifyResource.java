@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
@@ -38,11 +39,13 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -53,26 +56,38 @@ import java.util.List;
 public interface WebNotifyResource {
 
     @ApiOperation(value = "获取业务通知策略列表", produces = "application/json")
-    @GetMapping("/app/{appId}/policies/listDefault")
+    @GetMapping("/scope/{scopeType}/{scopeId}/policies/listDefault")
     Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("业务ID")
-        @PathVariable("appId")
-            Long appId
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
 
     @ApiOperation(value = "保存业务下默认通知策略", produces = "application/json")
-    @PostMapping("/app/{appId}/saveAppDefaultPolicies")
+    @PostMapping("/scope/{scopeType}/{scopeId}/saveAppDefaultPolicies")
     Response<Long> saveAppDefaultNotifyPolicies(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("业务ID")
-        @PathVariable("appId")
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
             NotifyPoliciesCreateUpdateReq createUpdateReq
@@ -118,5 +133,7 @@ public interface WebNotifyResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @RequestBody ServiceNotificationDTO notification);
+        @RequestBody
+            ServiceNotificationDTO notification
+    );
 }

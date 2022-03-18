@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -38,6 +37,7 @@ import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.EsbCronJobResource;
@@ -68,21 +68,23 @@ import java.util.stream.Collectors;
 @RestController
 public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
-    private CronJobService cronJobService;
-    private MessageI18nService i18nService;
-    private AuthService authService;
+    private final CronJobService cronJobService;
+    private final AuthService authService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbCronJobResourceImpl(CronJobService cronJobService, MessageI18nService i18nService,
-                                  AuthService authService) {
+    public EsbCronJobResourceImpl(CronJobService cronJobService,
+                                  AuthService authService,
+                                  AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
-        this.i18nService = i18nService;
         this.authService = authService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_cron_list"})
     public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         if (request.validate()) {
             AuthResult authResult = authService.auth(true, request.getUserName(), ActionId.ACCESS_BUSINESS,
                 ResourceTypeEnum.BUSINESS, request.getAppId().toString(), null);
@@ -137,6 +139,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_update_cron_status"})
     public EsbResp<EsbCronInfoResponse> updateCronStatus(EsbUpdateCronStatusRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         String username = request.getUserName();
         Long appId = request.getAppId();
         if (request.validate()) {
@@ -183,6 +186,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_save_cron"})
     public EsbResp<EsbCronInfoResponse> saveCron(EsbSaveCronRequest request) {
+        request.fillAppResourceScope(appScopeMappingService);
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoResponse esbCronInfoResponse = new EsbCronInfoResponse();
         esbCronInfoResponse.setId(0L);

@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,13 +48,18 @@ public interface EsbGetJobInstanceStatusV3Resource {
 
     @PostMapping("/get_job_instance_status")
     EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(
-        @RequestBody EsbGetJobInstanceStatusV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetJobInstanceStatusV3Request request
+    );
 
     @GetMapping("/get_job_instance_status")
     EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @RequestParam(value = "return_ip_result", required = false, defaultValue = "false") boolean returnIpResult);
 

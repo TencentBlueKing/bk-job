@@ -37,7 +37,7 @@ public interface TagAuthService {
      * 资源范围下创建标签鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
     AuthResult authCreateTag(String username, AppResourceScope appResourceScope);
@@ -46,7 +46,7 @@ public interface TagAuthService {
      * 资源范围下管理标签鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param tagId         标签ID
      * @param tagName       标签名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
@@ -60,11 +60,21 @@ public interface TagAuthService {
      * 资源范围下管理标签批量鉴权
      *
      * @param username      用户名
-     * @param resourceScope 资源范围
+     * @param appResourceScope 资源范围
      * @param tagIdList     标签ID列表
      * @return 有权限的标签ID
      */
     List<Long> batchAuthManageTag(String username,
                                   AppResourceScope appResourceScope,
                                   List<Long> tagIdList);
+
+    /**
+     * 注册标签实例
+     *
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @param creator 资源实例创建者
+     * @return 是否注册成功
+     */
+    boolean registerTag(Long id, String name, String creator);
 }

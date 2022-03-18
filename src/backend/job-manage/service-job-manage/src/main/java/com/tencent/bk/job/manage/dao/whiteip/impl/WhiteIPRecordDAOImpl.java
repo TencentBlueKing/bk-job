@@ -369,6 +369,8 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                         applicationDAO.getCacheAppById(Long.parseLong(appId));
                     return new AppVO(
                         applicationDTO.getId(),
+                        applicationDTO.getScope().getType().getValue(),
+                        applicationDTO.getScope().getId(),
                         applicationDTO.getName(),
                         applicationDTO.getAppType().getValue(),
                         null,

@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateTagBatchPatchReq;
@@ -40,11 +41,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
@@ -52,7 +55,7 @@ import java.util.List;
  * @since 15/10/2019 17:16
  */
 @Api(tags = {"job-manage:web:Task_Template_Management"})
-@RequestMapping("/web/app/{appId}/task/template")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}/task/template")
 @RestController
 @WebAPI
 public interface WebTaskTemplateResource {
@@ -61,147 +64,260 @@ public interface WebTaskTemplateResource {
     @GetMapping
     Response<PageData<TaskTemplateVO>> listPageTemplates(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID")
-        @RequestParam(value = "templateId", required = false) Long templateId,
+        @RequestParam(value = "templateId", required = false)
+            Long templateId,
         @ApiParam(value = "模版名称")
-        @RequestParam(value = "name", required = false) String name,
+        @RequestParam(value = "name", required = false)
+            String name,
         @ApiParam(value = "模版状态")
-        @RequestParam(value = "status", required = false) Integer status,
+        @RequestParam(value = "status", required = false)
+            Integer status,
         @ApiParam(value = "模版标签")
-        @RequestParam(value = "tags", required = false) String tags,
+        @RequestParam(value = "tags", required = false)
+            String tags,
         @ApiParam(value = "左侧模版标签")
-        @RequestParam(value = "panelTag", required = false) Long panelTag,
+        @RequestParam(value = "panelTag", required = false)
+            Long panelTag,
         @ApiParam(value = "模版类型 1 - 全部 2 - 未分类 3 - 待更新")
-        @RequestParam(value = "type", required = false) Integer type,
+        @RequestParam(value = "type", required = false)
+            Integer type,
         @ApiParam(value = "创建人")
-        @RequestParam(value = "creator", required = false) String creator,
+        @RequestParam(value = "creator", required = false)
+            String creator,
         @ApiParam(value = "更新人")
-        @RequestParam(value = "lastModifyUser", required = false) String lastModifyUser,
+        @RequestParam(value = "lastModifyUser", required = false)
+            String lastModifyUser,
         @ApiParam(value = "分页-开始 -1 不分页")
-        @RequestParam(value = "start", required = false) Integer start,
+        @RequestParam(value = "start", required = false)
+            Integer start,
         @ApiParam(value = "分页-每页大小 -1 不分页")
-        @RequestParam(value = "pageSize", required = false) Integer pageSize,
+        @RequestParam(value = "pageSize", required = false)
+            Integer pageSize,
         @ApiParam(value = "排序字段")
-        @RequestParam(value = "orderField", required = false) String orderField,
+        @RequestParam(value = "orderField", required = false)
+            String orderField,
         @ApiParam(value = "排序顺序 0-降序 1-升序")
-        @RequestParam(value = "order", required = false) Integer order
+        @RequestParam(value = "order", required = false)
+            Integer order
     );
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/{templateId}")
     Response<TaskTemplateVO> getTemplateById(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable("templateId") Long templateId
+        @PathVariable("templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "更新模版", produces = "application/json")
     @PutMapping("/{templateId}")
     Response<Long> saveTemplate(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID 新建填 0", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "新增/更新的模版对象", name = "templateCreateUpdateReq", required = true)
-        @RequestBody @Validated TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
+        @RequestBody
+        @Validated
+            TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     );
 
     @ApiOperation(value = "删除模版", produces = "application/json")
     @DeleteMapping("/{templateId}")
     Response<Boolean> deleteTemplate(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID", required = true)
-        @PathVariable(value = "templateId") Long templateId
+        @PathVariable(value = "templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "获取业务下标签关联的模版数量", produces = "application/json")
     @GetMapping("/tag/count")
     Response<TagCountVO> getTagTemplateCount(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId
     );
 
     @ApiOperation(value = "更新模版元数据，如模版描述、名称、标签", produces = "application/json")
     @PutMapping("/{templateId}/basic")
     Response<Boolean> updateTemplateBasicInfo(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版ID", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "模版元数据更新请求报文", name = "templateBasicInfoUpdateReq", required = true)
-        @RequestBody TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq
+        @RequestBody
+            TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq
     );
 
     @ApiOperation(value = "新增收藏", produces = "application/json")
     @PutMapping("/{templateId}/favorite")
     Response<Boolean> addFavorite(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版ID", required = true)
-        @PathVariable("templateId") Long templateId
+        @PathVariable("templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "删除收藏", produces = "application/json")
     @DeleteMapping("/{templateId}/favorite")
     Response<Boolean> removeFavorite(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版ID", required = true)
-        @PathVariable("templateId") Long templateId
+        @PathVariable("templateId")
+            Long templateId
     );
 
     @ApiOperation(value = "检查作业模版名称是否已占用", produces = "application/json")
     @GetMapping("/{templateId}/check_name")
     Response<Boolean> checkTemplateName(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "作业模版 ID，新建时填 0", required = true)
-        @PathVariable("templateId") Long templateId,
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "名称", required = true)
-        @RequestParam(value = "name") String name
+        @RequestParam(value = "name")
+            String name
     );
 
     @ApiOperation(value = "根据 ID 批量获取模版基本信息列表", produces = "application/json")
     @GetMapping("/basic")
     Response<List<TaskTemplateVO>> listTemplateBasicInfoByIds(
         @ApiParam(value = "用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版 ID 列表，逗号分隔")
-        @RequestParam("ids") List<Long> templateIds
+        @RequestParam("ids")
+            List<Long> templateIds
     );
 
     @ApiOperation(value = "批量更新模板标签-Patch方式", produces = "application/json")
     @PutMapping("/tag")
     Response<Boolean> batchPatchTemplateTags(
         @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "业务ID", required = true, example = "2")
-        @PathVariable("appId") Long appId,
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam(value = "模版标签批量更新请求报文", name = "tagBatchPatchReq", required = true)
-        @RequestBody TemplateTagBatchPatchReq req
+        @RequestBody
+            TemplateTagBatchPatchReq req
     );
 
 }

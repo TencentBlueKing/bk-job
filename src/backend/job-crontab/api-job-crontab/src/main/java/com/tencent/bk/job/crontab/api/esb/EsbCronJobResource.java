@@ -30,6 +30,7 @@ import com.tencent.bk.job.crontab.model.esb.request.EsbGetCronListRequest;
 import com.tencent.bk.job.crontab.model.esb.request.EsbSaveCronRequest;
 import com.tencent.bk.job.crontab.model.esb.request.EsbUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,11 +47,23 @@ import java.util.List;
 public interface EsbCronJobResource {
 
     @PostMapping("/get_cron_list")
-    EsbResp<List<EsbCronInfoResponse>> getCronList(@RequestBody EsbGetCronListRequest request);
+    EsbResp<List<EsbCronInfoResponse>> getCronList(
+        @RequestBody
+        @Validated
+            EsbGetCronListRequest request
+    );
 
     @PostMapping(value = "/update_cron_status")
-    EsbResp<EsbCronInfoResponse> updateCronStatus(@RequestBody EsbUpdateCronStatusRequest request);
+    EsbResp<EsbCronInfoResponse> updateCronStatus(
+        @RequestBody
+        @Validated
+            EsbUpdateCronStatusRequest request
+    );
 
     @PostMapping(value = "/save_cron")
-    EsbResp<EsbCronInfoResponse> saveCron(@RequestBody EsbSaveCronRequest request);
+    EsbResp<EsbCronInfoResponse> saveCron(
+        @RequestBody
+        @Validated
+            EsbSaveCronRequest request
+    );
 }

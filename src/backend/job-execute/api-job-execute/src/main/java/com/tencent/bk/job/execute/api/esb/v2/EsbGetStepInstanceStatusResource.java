@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,10 @@ public interface EsbGetStepInstanceStatusResource {
 
     @PostMapping("/get_step_instance_status")
     EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
-        @RequestBody EsbGetStepInstanceStatusRequest request);
+        @RequestBody
+        @Validated
+            EsbGetStepInstanceStatusRequest request
+    );
 
 
 }

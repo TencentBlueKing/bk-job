@@ -22,27 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.converter;
+package com.tencent.bk.job.common.esb.model;
 
-import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
-import com.tencent.bk.job.manage.model.web.vo.ScriptRelatedTaskPlanVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 引用脚本的执行方案转换器
+ * 资源范围-ESB DTO
  */
-public class ScriptRelateTaskPlanConverter {
-    public static ScriptRelatedTaskPlanVO convertToScriptRelatedTaskPlanVO(
-        ScriptRelatedTaskPlanDTO scriptRelatedTaskPlan) {
+@Setter
+@Getter
+@ToString
+public class EsbAppScopeDTO {
+    /**
+     * 兼容字段,表示cmdb 业务/业务集ID
+     */
+    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", version = "3.6.x")
+    @JsonProperty("bk_biz_id")
+    private Long bkBizId;
 
-        ScriptRelatedTaskPlanVO scriptRelatedTaskPlanVO = new ScriptRelatedTaskPlanVO();
-        scriptRelatedTaskPlanVO.setAppId(scriptRelatedTaskPlan.getAppId());
-        scriptRelatedTaskPlanVO.setScriptId(scriptRelatedTaskPlan.getScriptId());
-        scriptRelatedTaskPlanVO.setScriptName(scriptRelatedTaskPlan.getScriptName());
-        scriptRelatedTaskPlanVO.setScriptVersion(scriptRelatedTaskPlan.getScriptVersion());
-        scriptRelatedTaskPlanVO.setScriptVersionId(scriptRelatedTaskPlan.getScriptVersionId());
-        scriptRelatedTaskPlanVO.setTaskId(scriptRelatedTaskPlan.getTaskId());
-        scriptRelatedTaskPlanVO.setTaskName(scriptRelatedTaskPlan.getTaskName());
-        scriptRelatedTaskPlanVO.setTemplateId(scriptRelatedTaskPlan.getTemplateId());
-        return scriptRelatedTaskPlanVO;
-    }
+    /**
+     * 资源范围类型
+     */
+    @JsonProperty("bk_scope_type")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @JsonProperty("bk_scope_id")
+    private String scopeId;
 }

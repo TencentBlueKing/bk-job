@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateJobInstanceResource;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
@@ -42,15 +43,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceResource {
     private final TaskExecuteService taskExecuteService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbOperateJobInstanceResourceImpl(TaskExecuteService taskExecuteService) {
+    public EsbOperateJobInstanceResourceImpl(TaskExecuteService taskExecuteService,
+                                             AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_job_instance"})
     public EsbResp<EsbJobExecuteDTO> operateJobInstance(EsbOperateJobInstanceRequest request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
+        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -64,10 +69,6 @@ public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceR
 
 
     private boolean checkRequest(EsbOperateJobInstanceRequest request) {
-        if (request.getAppId() == null || request.getAppId() <= 0) {
-            log.warn("Operate task instance, appId is empty!");
-            return false;
-        }
         if (request.getTaskInstanceId() == null || request.getTaskInstanceId() <= 0) {
             log.warn("Operate task instance, taskInstanceId is empty!");
             return false;

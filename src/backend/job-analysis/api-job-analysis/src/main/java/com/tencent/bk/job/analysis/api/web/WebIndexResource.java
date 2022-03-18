@@ -27,20 +27,23 @@ package com.tencent.bk.job.analysis.api.web;
 import com.tencent.bk.job.analysis.model.web.AnalysisResultVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 
 @Api(tags = {"job-analysis:web:Index"})
-@RequestMapping("/web/index/app/{appId}")
+@RequestMapping("/web/index/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebIndexResource {
@@ -51,9 +54,15 @@ public interface WebIndexResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("业务Id")
-        @PathVariable("appId")
-            Long appId,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
         @ApiParam("拉取数量")
         @RequestParam(value = "limit", required = false)
             Long limit

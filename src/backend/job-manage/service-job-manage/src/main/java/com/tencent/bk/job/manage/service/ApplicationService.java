@@ -79,6 +79,15 @@ public interface ApplicationService {
     ApplicationDTO getAppByScope(ResourceScope scope);
 
     /**
+     * 根据资源范围拉取业务信息
+     *
+     * @param scopeType 资源范围类型
+     * @param scopeId   资源范围ID
+     * @return 业务
+     */
+    ApplicationDTO getAppByScope(String scopeType, String scopeId);
+
+    /**
      * 根据业务ID批量查询业务
      *
      * @param appIds 业务Id列表

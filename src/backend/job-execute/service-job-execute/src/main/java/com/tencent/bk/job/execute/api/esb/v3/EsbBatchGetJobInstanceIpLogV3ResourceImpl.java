@@ -30,10 +30,10 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.IpDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
@@ -69,12 +69,12 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
 
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
-    private final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbBatchGetJobInstanceIpLogV3ResourceImpl(MessageI18nService i18nService,
-                                                     LogService logService,
-                                                     TaskInstanceService taskInstanceService) {
-        this.i18nService = i18nService;
+    public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
+                                                     TaskInstanceService taskInstanceService,
+                                                     AppScopeMappingService appScopeMappingService) {
+        this.appScopeMappingService = appScopeMappingService;
         this.logService = logService;
         this.taskInstanceService = taskInstanceService;
     }
@@ -82,6 +82,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_batch_get_job_instance_ip_log"})
     public EsbResp<EsbIpLogsV3DTO> batchGetJobInstanceIpLogs(EsbBatchGetJobInstanceIpLogV3Request request) {
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Batch get job instance ip log request is illegal!");
@@ -94,7 +95,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        authViewTaskInstance(request.getUserName(), request.getAppId(), taskInstance);
+        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {

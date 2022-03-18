@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model.esb.gse.req;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,9 +37,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class EsbGseManageProcRequest extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbGseManageProcRequest extends EsbAppScopeReq {
 
     @JsonProperty("op_type")
     private Integer opType;

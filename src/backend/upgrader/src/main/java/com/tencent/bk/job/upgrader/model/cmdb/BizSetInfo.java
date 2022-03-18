@@ -56,7 +56,7 @@ public class BizSetInfo {
     /**
      * 运维人员
      */
-    @JsonProperty("biz_set_maintainer")
+    @JsonProperty("bk_biz_maintainer")
     private String maintainer;
 
     /**

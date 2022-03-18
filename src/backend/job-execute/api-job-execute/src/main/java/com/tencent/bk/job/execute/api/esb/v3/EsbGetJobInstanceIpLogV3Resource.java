@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,13 +48,18 @@ public interface EsbGetJobInstanceIpLogV3Resource {
 
     @PostMapping("/get_job_instance_ip_log")
     EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(
-        @RequestBody EsbGetJobInstanceIpLogV3Request request);
+        @RequestBody
+        @Validated
+            EsbGetJobInstanceIpLogV3Request request
+    );
 
     @GetMapping("/get_job_instance_ip_log")
     EsbResp<EsbIpLogV3DTO> getJobInstanceIpLog(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @RequestParam(value = "step_instance_id") Long stepInstanceId,
         @RequestParam(value = "bk_cloud_id") Long cloudAreaId,

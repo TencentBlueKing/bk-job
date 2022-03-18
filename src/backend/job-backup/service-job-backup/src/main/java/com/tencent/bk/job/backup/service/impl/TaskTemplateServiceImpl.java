@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
+import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
 import com.tencent.bk.job.backup.client.ServiceTemplateResourceClient;
-import com.tencent.bk.job.backup.client.WebTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
@@ -48,21 +48,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class TaskTemplateServiceImpl implements TaskTemplateService {
-    private final WebTemplateResourceClient webTemplateResourceClient;
     private final ServiceTemplateResourceClient serviceTemplateResourceClient;
+    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
 
     @Autowired
-    public TaskTemplateServiceImpl(WebTemplateResourceClient webTemplateResourceClient,
-                                   ServiceTemplateResourceClient serviceTemplateResourceClient) {
-        this.webTemplateResourceClient = webTemplateResourceClient;
+    public TaskTemplateServiceImpl(ServiceTemplateResourceClient serviceTemplateResourceClient,
+                                   ServiceBackupTmpResourceClient serviceBackupTmpResourceClient) {
         this.serviceTemplateResourceClient = serviceTemplateResourceClient;
+        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
     }
 
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
             Response<TaskTemplateVO> templateByIdResponse =
-                webTemplateResourceClient.getTemplateById(username, appId, id);
+                serviceBackupTmpResourceClient.getTemplateById(username, appId, id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
                     return templateByIdResponse.getData();

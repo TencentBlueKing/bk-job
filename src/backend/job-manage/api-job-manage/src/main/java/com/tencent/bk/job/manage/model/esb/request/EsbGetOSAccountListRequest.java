@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.esb.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,10 +33,5 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class EsbGetOSAccountListRequest extends EsbReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbGetOSAccountListRequest extends EsbAppScopeReq {
 }
