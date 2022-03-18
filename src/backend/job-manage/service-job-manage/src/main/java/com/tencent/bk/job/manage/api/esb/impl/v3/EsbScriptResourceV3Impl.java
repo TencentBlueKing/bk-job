@@ -249,7 +249,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
     private EsbScriptVersionDetailV3DTO toEsbScriptVerDtlV3DTO(ScriptDTO script, Boolean returnContent) {
         EsbScriptVersionDetailV3DTO esbScriptVersion = script.toEsbScriptVersionDetailV3DTO();
-        if (returnContent == null || returnContent) {
+        if (returnContent == null || !returnContent) {
             esbScriptVersion.setContent(null);
         }
         return esbScriptVersion;
@@ -257,8 +257,8 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
     private EsbPageDataV3<EsbScriptVersionDetailV3DTO> toPageEsbScriptVerDtlV3DTO(
         PageData<ScriptDTO> pageScriptVersions,
-        Boolean returnContent
-    ) {
+        Boolean returnContent) {
+
         EsbPageDataV3<EsbScriptVersionDetailV3DTO> esbPageData = new EsbPageDataV3<>();
         if (pageScriptVersions == null
             || pageScriptVersions.getData() == null
