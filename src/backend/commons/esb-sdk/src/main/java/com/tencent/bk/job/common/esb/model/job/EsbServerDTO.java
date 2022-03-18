@@ -47,5 +47,5 @@ public class EsbServerDTO {
      * 分布式拓扑节点列表
      */
     @JsonProperty("topo_node_list")
-    private List<EsbCCTopoNodeDTO> topoNodes;
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
 }

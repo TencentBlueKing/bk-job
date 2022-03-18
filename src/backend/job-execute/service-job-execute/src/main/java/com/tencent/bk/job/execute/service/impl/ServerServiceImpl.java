@@ -31,8 +31,8 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
@@ -49,7 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@DependsOn({"ccConfigSetter"})
+@DependsOn({"cmdbConfigSetter"})
 @Slf4j
 @Service
 public class ServerServiceImpl implements ServerService {
@@ -59,8 +59,8 @@ public class ServerServiceImpl implements ServerService {
             build(new CacheLoader<Long, String>() {
                       @Override
                       public String load(Long cloudAreaId) throws Exception {
-                          CcClient ccClient = CcClientFactory.getCcClient();
-                          List<CcCloudAreaInfoDTO> cloudAreaList = ccClient.getCloudAreaList();
+                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+                          List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
                           if (cloudAreaList == null || cloudAreaList.isEmpty()) {
                               log.warn("Get all cloud area return empty!");
                               return "Unknown";
@@ -84,10 +84,10 @@ public class ServerServiceImpl implements ServerService {
 
     @Override
     public List<IpDTO> getIpByDynamicGroupId(long appId, String groupId) throws ObtainHostServiceException {
-        CcClient ccClient = CcClientFactory.getCcClient();
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
         try {
             ApplicationDTO appInfo = applicationService.getAppById(appId);
-            List<CcGroupHostPropDTO> ccgroupHostList = ccClient.getCustomGroupIp(appId,
+            List<CcGroupHostPropDTO> ccgroupHostList = bizCmdbClient.getCustomGroupIp(appId,
                 appInfo.getBkSupplierAccount(), "admin", groupId);
             List<IpDTO> ips = new ArrayList<>();
             if (ccgroupHostList == null || ccgroupHostList.isEmpty()) {
@@ -118,8 +118,8 @@ public class ServerServiceImpl implements ServerService {
 
     @Override
     public List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInsts) {
-        CcClient ccClient = CcClientFactory.getCcClient();
-        List<ApplicationHostDTO> apphostInfos = ccClient.getHosts(appId, ccInsts);
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
+        List<ApplicationHostDTO> apphostInfos = bizCmdbClient.getHosts(appId, ccInsts);
         List<IpDTO> ips = new ArrayList<>();
         if (apphostInfos == null || apphostInfos.isEmpty()) {
             return ips;

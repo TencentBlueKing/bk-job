@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -360,7 +360,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     @Override
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
         LOG.infoWithRequestId("Input(" + username + ")");
-        List<CcCloudAreaInfoDTO> cloudAreaInfoList = CcClientFactory.getCcClient(JobContextUtil.getUserLang())
+        List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
             .getCloudAreaList();
         return cloudAreaInfoList.stream().map(it ->
             new CloudAreaInfoVO(it.getId(), it.getName())).collect(Collectors.toList());
