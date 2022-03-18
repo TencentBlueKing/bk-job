@@ -45,6 +45,8 @@ public interface AppScopeMappingService {
 
     Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds);
 
+    Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList);
+
     /**
      * 根据业务ID或者scopeType&scopeId获取AppResourceScope
      *
