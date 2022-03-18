@@ -73,6 +73,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -131,6 +132,178 @@ public class HostServiceImpl implements HostService {
     @Override
     public List<ApplicationHostDTO> getHostsByAppId(Long appId) {
         return applicationHostDAO.listHostInfoByAppId(appId);
+    }
+
+    private boolean insertOrUpdateOneAppHost(Long appId, ApplicationHostDTO infoDTO) {
+        try {
+            applicationHostDAO.insertAppHostInfo(dslContext, infoDTO);
+        } catch (DataAccessException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
+                log.warn(String.format(
+                    "insertHost fail, try to update:Duplicate entry:appId=%d," +
+                        "insert hostInfo=%s, old " +
+                        "hostInfo=%s", appId, infoDTO,
+                    applicationHostDAO.getHostById(infoDTO.getHostId())), e);
+                try {
+                    // 插入失败了就应当更新，以后来的数据为准
+                    applicationHostDAO.updateAppHostInfoByHostId(dslContext, appId, infoDTO);
+                } catch (Throwable t) {
+                    log.error(String.format("update after insert fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
+                    return false;
+                }
+            } else {
+                log.error(String.format("insertHost fail:appId=%d,hostInfo=%s", appId, infoDTO), e);
+                return false;
+            }
+        } catch (Throwable t) {
+            log.error(String.format("insertHost fail:appId=%d,hostInfo=%s", appId, infoDTO), t);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public List<Long> insertHostsToApp(Long appId, List<ApplicationHostDTO> insertList) {
+        StopWatch watch = new StopWatch();
+        // 插入主机
+        watch.start("insertAppHostInfo");
+        List<Long> insertFailHostIds = new ArrayList<>();
+        boolean batchInserted = false;
+        try {
+            //尝试批量插入
+            if (!insertList.isEmpty()) {
+                applicationHostDAO.batchInsertAppHostInfo(dslContext, insertList);
+            }
+            batchInserted = true;
+        } catch (Throwable throwable) {
+            if (throwable instanceof DataAccessException) {
+                String errorMessage = throwable.getMessage();
+                if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
+                    log.info("Fail to batchInsertAppHostInfo, try to insert one by one");
+                } else {
+                    log.warn("Fail to batchInsertAppHostInfo, try to insert one by one.", throwable);
+                }
+            } else {
+                log.warn("Fail to batchInsertAppHostInfo, try to insert one by one..", throwable);
+            }
+            //批量插入失败，尝试逐条插入
+            for (ApplicationHostDTO infoDTO : insertList) {
+                if (!insertOrUpdateOneAppHost(appId, infoDTO)) {
+                    insertFailHostIds.add(infoDTO.getHostId());
+                }
+            }
+        }
+        watch.stop();
+        if (!batchInserted) {
+            watch.start("log insertAppHostInfo");
+            if (!insertFailHostIds.isEmpty()) {
+                log.warn(String.format("appId=%s,insertFailHostIds.size=%d,insertFailHostIds=%s",
+                    appId, insertFailHostIds.size(), String.join(",",
+                        insertFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+            }
+            watch.stop();
+        }
+        log.debug("Performance:insertHostsToApp:appId={},{}", appId, watch.prettyPrint());
+        return insertFailHostIds;
+    }
+
+    @Override
+    public List<Long> updateHostsInApp(Long appId, List<ApplicationHostDTO> hostInfoList) {
+        StopWatch watch = new StopWatch();
+        watch.start("updateAppHostInfo");
+        // 更新主机
+        long updateCount = 0L;
+        List<Long> updateHostIds = new ArrayList<>();
+        long errorCount = 0L;
+        List<Long> errorHostIds = new ArrayList<>();
+        long notChangeCount = 0L;
+        boolean batchUpdated = false;
+        try {
+            // 尝试批量更新
+            if (!hostInfoList.isEmpty()) {
+                applicationHostDAO.batchUpdateAppHostInfoByHostId(dslContext, hostInfoList);
+            }
+            batchUpdated = true;
+        } catch (Throwable throwable) {
+            if (throwable instanceof DataAccessException) {
+                String errorMessage = throwable.getMessage();
+                if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
+                    log.info("Fail to batchUpdateAppHostInfoByHostId, try to update one by one");
+                } else {
+                    log.warn("Fail to batchUpdateAppHostInfoByHostId, try to update one by one.", throwable);
+                }
+            } else {
+                log.warn("Fail to batchUpdateAppHostInfoByHostId, try to update one by one..", throwable);
+            }
+            // 批量更新失败，尝试逐条更新
+            for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
+                try {
+                    if (!applicationHostDAO.existAppHostInfoByHostId(dslContext, hostInfoDTO)) {
+                        applicationHostDAO.updateAppHostInfoByHostId(dslContext, hostInfoDTO.getAppId(), hostInfoDTO);
+                        updateCount += 1;
+                        updateHostIds.add(hostInfoDTO.getHostId());
+                    } else {
+                        notChangeCount += 1;
+                    }
+                } catch (Throwable t) {
+                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", appId, hostInfoDTO), t);
+                    errorCount += 1;
+                    errorHostIds.add(hostInfoDTO.getHostId());
+                }
+            }
+        }
+        watch.stop();
+        if (!batchUpdated) {
+            watch.start("log updateAppHostInfo");
+            log.info("Update host of appId={},errorCount={}," +
+                    "updateCount={},notChangeCount={},errorHostIds={},updateHostIds={}",
+                appId, errorCount, updateCount, notChangeCount, errorHostIds, updateHostIds);
+            watch.stop();
+        }
+        log.debug("Performance:updateHostsInApp:appId={},{}", appId, watch.prettyPrint());
+        return errorHostIds;
+    }
+
+    @Override
+    public List<Long> deleteHostsFromApp(Long appId, List<ApplicationHostDTO> deleteList) {
+        StopWatch watch = new StopWatch();
+        // 删除主机
+        watch.start("deleteAppHostInfo");
+        List<Long> deleteFailHostIds = new ArrayList<>();
+        boolean batchDeleted = false;
+        try {
+            // 尝试批量删除
+            if (!deleteList.isEmpty()) {
+                applicationHostDAO.batchDeleteAppHostInfoById(dslContext, appId,
+                    deleteList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList()));
+            }
+            batchDeleted = true;
+        } catch (Throwable throwable) {
+            log.warn("Fail to batchDeleteAppHostInfoById, try to delete one by one", throwable);
+            // 批量删除失败，尝试逐条删除
+            for (ApplicationHostDTO ApplicationHostDTO : deleteList) {
+                try {
+                    applicationHostDAO.deleteAppHostInfoById(dslContext, appId, ApplicationHostDTO.getHostId());
+                } catch (Throwable t) {
+                    log.error("deleteHost fail:appId={},hostInfo={}", appId,
+                        ApplicationHostDTO, t);
+                    deleteFailHostIds.add(ApplicationHostDTO.getHostId());
+                }
+            }
+        }
+        watch.stop();
+        if (!batchDeleted) {
+            watch.start("log deleteAppHostInfo");
+            if (!deleteFailHostIds.isEmpty()) {
+                log.warn(String.format("appId=%s,deleteFailHostIds.size=%d,deleteFailHostIds=%s",
+                    appId, deleteFailHostIds.size(), String.join(",",
+                        deleteFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+            }
+            watch.stop();
+        }
+        log.debug("Performance:deleteHostsFromApp:appId={},{}", appId, watch.prettyPrint());
+        return deleteFailHostIds;
     }
 
     @Override
@@ -396,14 +569,14 @@ public class HostServiceImpl implements HostService {
         for (DynamicGroupInfoDTO group : ccGroupInfoMap.values()) {
             List<ApplicationHostDTO> applicationHostDTOList = topologyHelper.getIpStatusListByIps(appId,
                 group.getIpList());
-            applicationHostDTOList.forEach(applicationHostInfoDTO -> {
+            applicationHostDTOList.forEach(ApplicationHostDTO -> {
                 ApplicationHostDTO appHostInfo = applicationHostDAO.getLatestHost(dslContext, appId,
-                    applicationHostInfoDTO.getCloudAreaId(), applicationHostInfoDTO.getIp());
+                    ApplicationHostDTO.getCloudAreaId(), ApplicationHostDTO.getIp());
                 if (appHostInfo != null) {
                     // 填充主机名称与操作系统
-                    applicationHostInfoDTO.setHostId(appHostInfo.getHostId());
-                    applicationHostInfoDTO.setIpDesc(appHostInfo.getIpDesc());
-                    applicationHostInfoDTO.setOs(appHostInfo.getOs());
+                    ApplicationHostDTO.setHostId(appHostInfo.getHostId());
+                    ApplicationHostDTO.setIpDesc(appHostInfo.getIpDesc());
+                    ApplicationHostDTO.setOs(appHostInfo.getOs());
                 }
             });
             group.setIpListStatus(applicationHostDTOList);
@@ -726,10 +899,10 @@ public class HostServiceImpl implements HostService {
                 //未指定云区域的IP不作为过滤条件
             }
         });
-        return applicationHostDTOList.stream().filter(applicationHostInfoDTO -> {
+        return applicationHostDTOList.stream().filter(ApplicationHostDTO -> {
             Set<String> keySet = map.keySet();
-            String ip = applicationHostInfoDTO.getIp();
-            Long cloudId = applicationHostInfoDTO.getCloudAreaId();
+            String ip = ApplicationHostDTO.getIp();
+            Long cloudId = ApplicationHostDTO.getCloudAreaId();
             if (keySet.contains(ip)) {
                 return map.get(ip).contains(cloudId);
             }

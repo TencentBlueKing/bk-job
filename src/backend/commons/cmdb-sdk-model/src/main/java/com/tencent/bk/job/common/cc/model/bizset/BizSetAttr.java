@@ -22,38 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Arrays;
-import java.util.List;
+import lombok.ToString;
 
 /**
- * CMDB接口请求实体类，用于搜索业务集
+ * CMDB接口请求实体类，定义业务集字段
  */
+@Builder
 @Setter
 @Getter
-public class SearchBizSetReq extends EsbReq {
+@ToString
+public class BizSetAttr {
 
     /**
-     * 业务集过滤器
+     * ID
      */
-    @JsonProperty("bk_biz_set_filter")
-    private BizSetFilter filter;
+    @JsonProperty("bk_biz_set_id")
+    private long id;
 
     /**
-     * 查询字段
+     * 名称
      */
-    private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
-        "bk_biz_maintainer", "create_time", "last_time");
+    @JsonProperty("bk_biz_set_name")
+    private String name;
 
     /**
-     * 分页参数
+     * 描述
      */
-    private Page page;
+    @JsonProperty("bk_biz_set_desc")
+    private String desc;
+
+    /**
+     * 运维人员
+     */
+    @JsonProperty("bk_biz_maintainer")
+    private String maintainer;
+
+    /**
+     * 供应商
+     */
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+
+    /**
+     * 时区
+     */
+    @JsonProperty("timezone")
+    private String timeZone;
+
+    /**
+     * 语言
+     */
+    private String language;
 
 }

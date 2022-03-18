@@ -22,47 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
+/**
+ * CMDB接口请求实体类，定义业务集过滤业务的规则
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
+@ToString
+public class Rule {
 
+    public static final String OPERATOR_EQUAL = "equal";
+    public static final String OPERATOR_NOT_EQUAL = "not_equal";
+    public static final String OPERATOR_IN = "in";
+    public static final String OPERATOR_NOT_IN = "not_in";
+    public static final String OPERATOR_LESS = "less";
+    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
+    public static final String OPERATOR_GREATER = "greater";
+    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
+    public static final String OPERATOR_BETWEEN = "between";
+    public static final String OPERATOR_NOT_BETWEEN = "not_between";
 
-public interface ApplicationDAO {
+    /**
+     * 业务字段名
+     */
+    private String field;
 
-    ApplicationDTO getCacheAppById(long appId);
+    /**
+     * 操作符，可选值 equal,not_equal,in,not_in,
+     * less,less_or_equal,greater,greater_or_equal,
+     * between,not_between
+     */
+    private String operator;
 
-    ApplicationDTO getAppById(long appId);
-
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
-
-    List<ApplicationDTO> listAllBizApps();
-
-    List<ApplicationDTO> listAllBizSetApps();
-
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
-
-    ApplicationDTO getAppByScope(ResourceScope scope);
+    /**
+     * 业务字段取值，根据字段不同可为不同类型
+     */
+    private Object value;
 }

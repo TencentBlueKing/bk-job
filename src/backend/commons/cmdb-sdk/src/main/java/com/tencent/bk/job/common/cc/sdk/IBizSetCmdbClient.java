@@ -22,47 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.cc.sdk;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
+/**
+ * CMDB业务集相关接口
+ */
+public interface IBizSetCmdbClient {
 
-public interface ApplicationDAO {
-
-    ApplicationDTO getCacheAppById(long appId);
-
-    ApplicationDTO getAppById(long appId);
-
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
-
-    List<ApplicationDTO> listAllBizApps();
-
-    List<ApplicationDTO> listAllBizSetApps();
-
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
-
-    ApplicationDTO getAppByScope(ResourceScope scope);
+    /**
+     * 从CC获取所有业务集信息
+     *
+     * @return 业务集App列表
+     */
+    List<ApplicationDTO> getAllBizSetApps();
 }

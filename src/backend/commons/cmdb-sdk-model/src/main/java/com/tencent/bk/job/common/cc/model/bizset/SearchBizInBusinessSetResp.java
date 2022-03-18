@@ -22,60 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
 
 /**
- * CMDB接口请求实体类，定义业务集字段
+ * CMDB接口响应实体类，用于搜索业务集
  */
-@Builder
 @Setter
 @Getter
-public class BizSetAttr {
+@ToString
+public class SearchBizInBusinessSetResp {
 
     /**
-     * ID
+     * 业务集内的业务总数，在请求参数未开启count查询时该值为0
      */
-    @JsonProperty("bk_biz_set_id")
-    private long id;
+    private int count;
 
     /**
-     * 名称
+     * 业务信息列表，在请求参数开启count查询时该值为空
      */
-    @JsonProperty("bk_biz_set_name")
-    private String name;
-
-    /**
-     * 描述
-     */
-    @JsonProperty("bk_biz_set_desc")
-    private String desc;
-
-    /**
-     * 运维人员
-     */
-    @JsonProperty("bk_biz_maintainer")
-    private String maintainer;
-
-    /**
-     * 供应商
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-
-    /**
-     * 时区
-     */
-    @JsonProperty("timezone")
-    private String timeZone;
-
-    /**
-     * 语言
-     */
-    private String language;
-
+    @JsonProperty("info")
+    private List<BizInfo> bizList;
 }

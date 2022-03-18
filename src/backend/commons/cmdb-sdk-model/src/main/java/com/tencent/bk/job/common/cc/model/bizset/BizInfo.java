@@ -22,47 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.List;
+/**
+ * CMDB接口响应实体类，定义业务字段
+ */
+@Setter
+@Getter
+@ToString
+public class BizInfo {
 
+    /**
+     * ID
+     */
+    @JsonProperty("bk_biz_id")
+    private long id;
 
-public interface ApplicationDAO {
-
-    ApplicationDTO getCacheAppById(long appId);
-
-    ApplicationDTO getAppById(long appId);
-
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
-
-    List<ApplicationDTO> listAllBizApps();
-
-    List<ApplicationDTO> listAllBizSetApps();
-
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
-
-    ApplicationDTO getAppByScope(ResourceScope scope);
 }

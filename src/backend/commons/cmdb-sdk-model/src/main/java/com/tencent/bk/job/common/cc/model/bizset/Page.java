@@ -22,30 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * CMDB接口请求实体类，用于创建业务集
+ * CMDB接口请求实体类，定义分页参数
  */
 @Setter
 @Getter
-public class CreateBizSetReq extends EsbReq {
+@ToString
+public class Page {
 
     /**
-     * 业务集字段集合
+     * 数据起始位置
      */
-    @JsonProperty("bk_biz_set_attr")
-    private BizSetAttr attr;
+    private int start = 0;
 
     /**
-     * 业务集的业务选择范围
+     * 单次拉取数据量，取值范围：[0,500]
      */
-    @JsonProperty("bk_scope")
-    private BizSetScope scope;
+    private int limit = 500;
+
+    /**
+     * 请求是否获取数据总量
+     */
+    @JsonProperty("enable_count")
+    private boolean enableCount = false;
+
+    /**
+     * 排序字段，可在首位加-表示降序
+     */
+    private String sort;
 
 }

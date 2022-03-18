@@ -22,28 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * CMDB接口请求实体类，定义业务集选择业务的范围
+ * CMDB接口请求实体类，用于搜索业务集
  */
 @Setter
 @Getter
-public class BizSetScope {
+@ToString
+public class SearchBizSetReq extends EsbReq {
 
     /**
-     * 是否匹配全部业务
+     * 业务集过滤器
      */
-    @JsonProperty("match_all")
-    private boolean matchAll;
-
-    /**
-     * 业务过滤器
-     */
+    @JsonProperty("bk_biz_set_filter")
     private BizSetFilter filter;
+
+    /**
+     * 查询字段
+     */
+    private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
+        "bk_biz_maintainer", "bk_supplier_account", "bk_operate_dept_id", "create_time", "last_time", "timezone", "language");
+
+    /**
+     * 分页参数
+     */
+    private Page page;
 
 }

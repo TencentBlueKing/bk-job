@@ -22,47 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * CMDB接口请求实体类，定义业务集过滤业务的规则
+ * CMDB接口请求实体类，用于创建业务集
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Setter
 @Getter
-public class Rule {
-
-    public static final String OPERATOR_EQUAL = "equal";
-    public static final String OPERATOR_NOT_EQUAL = "not_equal";
-    public static final String OPERATOR_IN = "in";
-    public static final String OPERATOR_NOT_IN = "not_in";
-    public static final String OPERATOR_LESS = "less";
-    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
-    public static final String OPERATOR_GREATER = "greater";
-    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
-    public static final String OPERATOR_BETWEEN = "between";
-    public static final String OPERATOR_NOT_BETWEEN = "not_between";
+@ToString
+public class CreateBizSetReq extends EsbReq {
 
     /**
-     * 业务字段名
+     * 业务集字段集合
      */
-    private String field;
+    @JsonProperty("bk_biz_set_attr")
+    private BizSetAttr attr;
 
     /**
-     * 操作符，可选值 equal,not_equal,in,not_in,
-     * less,less_or_equal,greater,greater_or_equal,
-     * between,not_between
+     * 业务集的业务选择范围
      */
-    private String operator;
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 
-    /**
-     * 业务字段取值，根据字段不同可为不同类型
-     */
-    private Object value;
 }

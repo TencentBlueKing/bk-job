@@ -313,7 +313,7 @@ public class TopologyHelper {
             InstanceTopologyDTO topology = getTopologyTreeByApplication(username, appInfo);
             processTopologyNodeName(topology, null);
         }
-        if (CcNodeTypeEnum.APP.getType().equals(nodeType)) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {
             return appInfo.getName();
         }
         nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
@@ -402,7 +402,7 @@ public class TopologyHelper {
         InstanceTopologyDTO topology,
         Map<String, Map<Long, String>> nodeTypeNameMap
     ) {
-        if (CcNodeTypeEnum.APP.getType().equals(topology.getObjectId())) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(topology.getObjectId())) {
             Long appId = topology.getInstanceId();
             if (BIZ_NODE_TYPE_NAME_MAP.get(appId) == null) {
                 BIZ_NODE_TYPE_NAME_MAP.put(appId, new ConcurrentHashMap<>(3));

@@ -22,31 +22,82 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.upgrader.model.cmdb;
+package com.tencent.bk.job.common.cc.model.bizset;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
+import lombok.ToString;
 
 /**
- * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ * CMDB接口响应实体类，定义业务集字段
  */
 @Setter
 @Getter
-public class BizSetFilter {
-
-    public static final String CONDITION_AND = "AND";
-    public static final String CONDITION_OR = "OR";
+@ToString
+public class BizSetInfo {
 
     /**
-     * 多个规则之间的组合条件，取值为：AND/OR
+     * ID
      */
-    private String condition;
+    @JsonProperty("bk_biz_set_id")
+    private Long id;
 
     /**
-     * 规则列表
+     * 名称
      */
-    private List<Rule> rules;
+    @JsonProperty("bk_biz_set_name")
+    private String name;
 
+    /**
+     * 描述
+     */
+    @JsonProperty("bk_biz_set_desc")
+    private String desc;
+
+    /**
+     * 运维人员
+     */
+    @JsonProperty("bk_biz_maintainer")
+    private String maintainer;
+
+    /**
+     * 创建时间
+     */
+    @JsonProperty("create_time")
+    private String createTime;
+
+    /**
+     * 最后修改时间
+     */
+    @JsonProperty("last_time")
+    private String lastTime;
+
+    /**
+     * 运维部门ID
+     */
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+
+    /**
+     * 运维部门ID
+     */
+    @JsonProperty("bk_operate_dept_id")
+    private Long operateDeptId;
+
+    /**
+     * 时区
+     */
+    private String timezone;
+
+    /**
+     * 语言
+     */
+    private String language;
+
+    /**
+     * 业务范围
+     */
+    @JsonProperty("bk_scope")
+    private BizSetScope scope;
 }

@@ -80,6 +80,7 @@ import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -92,6 +93,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -189,14 +191,14 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private MeterRegistry meterRegistry;
     private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-            build(new CacheLoader<String, InstanceTopologyDTO>() {
-                      @Override
-                      public InstanceTopologyDTO load(String searchKey) throws Exception {
-                          String[] keys = searchKey.split(":");
-                          return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
-                      }
+        build(new CacheLoader<String, InstanceTopologyDTO>() {
+                  @Override
+                  public InstanceTopologyDTO load(String searchKey) throws Exception {
+                      String[] keys = searchKey.split(":");
+                      return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
                   }
-            );
+              }
+        );
 
     public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, QueryAgentStatusClient queryAgentStatusClient,
                        MeterRegistry meterRegistry) {
@@ -848,7 +850,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      * @return
      */
     @Override
-    public List<ApplicationDTO> getAllApps() {
+    public List<ApplicationDTO> getAllBizApps() {
         List<ApplicationDTO> appList = new ArrayList<>();
         int limit = 200;
         int start = 0;
@@ -884,6 +886,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         return appList;
     }
 
+    @Override
+    public List<ApplicationDTO> getAllBizSetApps() {
+        // TODO:拉取CMDB业务集
+        return Collections.emptyList();
+    }
+
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setId(businessInfo.getAppId());
@@ -892,6 +900,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setAppType(AppTypeEnum.NORMAL);
+        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, appInfo.getId().toString()));
         appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;

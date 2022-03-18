@@ -22,47 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.esb.config.EsbConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+@Configuration
+public class BizSetCmdbClientAutoConfig {
 
-
-public interface ApplicationDAO {
-
-    ApplicationDTO getCacheAppById(long appId);
-
-    ApplicationDTO getAppById(long appId);
-
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
-
-    List<ApplicationDTO> listAllBizApps();
-
-    List<ApplicationDTO> listAllBizSetApps();
-
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
-
-    ApplicationDTO getAppByScope(ResourceScope scope);
+    @Bean
+    @Autowired
+    public BizSetCmdbClient bizSetCmdbClient(EsbConfig esbConfig, CcConfig ccConfig) {
+        return new BizSetCmdbClient(esbConfig, ccConfig);
+    }
 }

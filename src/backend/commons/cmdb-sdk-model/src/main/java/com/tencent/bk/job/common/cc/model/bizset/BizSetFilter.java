@@ -22,47 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ */
+@Setter
+@Getter
+@ToString
+public class BizSetFilter {
 
-public interface ApplicationDAO {
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
 
-    ApplicationDTO getCacheAppById(long appId);
+    /**
+     * 多个规则之间的组合条件，取值为：AND/OR
+     */
+    private String condition;
 
-    ApplicationDTO getAppById(long appId);
+    /**
+     * 规则列表
+     */
+    private List<Rule> rules;
 
-    AppTypeEnum getAppTypeById(long appId);
-
-    List<Long> getSubAppIds(long appId);
-
-    List<Long> getNormalAppIdsByOptDeptId(Long optDeptId);
-
-    List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
-
-    List<ApplicationDTO> listAllBizApps();
-
-    List<ApplicationDTO> listAllBizSetApps();
-
-    List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
-
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
-
-    int deleteAppInfoById(DSLContext dslContext, long appId);
-
-    int updateMaintainers(long appId, String maintainers);
-
-    int updateSubAppIds(long appId, String subAppIds);
-
-    Integer countApps();
-
-    ApplicationDTO getAppByScope(ResourceScope scope);
 }

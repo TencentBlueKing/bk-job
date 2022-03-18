@@ -40,6 +40,7 @@ dependencies {
     api project(":commons:common-iam")
     api project(":commons:common-utils")
     api project(":commons:esb-sdk")
+    api project(":commons:cmdb-sdk-model")
     api project(":commons:artifactory-sdk")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
