@@ -29,7 +29,7 @@
     <div
         class="choose-ip-dinamic-business-topology"
         v-bkloading="{
-            isLoading: topologyLoading || isLoading,
+            isLoading: topologyLoading,
         }">
         <div class="node-search">
             <bk-input
@@ -74,9 +74,7 @@
 </template>
 <script>
     import _ from 'lodash';
-    import AppService from '@service/app-manage';
     import UserService from '@service/user';
-    import { ALL_APP_TYPE } from '@utils/constants';
     import { topoNodeCache } from '@utils/cache-helper';
     import Empty from '@components/empty';
     import {
@@ -108,11 +106,11 @@
         },
         data () {
             return {
-                isLoading: false,
                 currentUser: {},
                 isRenderEmptyTopoNode: false,
                 isSearchEmpty: false,
-                emptyTopologyOfAllBusiness: true,
+                // 业务集下没有动态拓扑
+                emptyTopologyOfAllBusiness: window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set',
             };
         },
         watch: {
@@ -145,7 +143,16 @@
             this.fetchUserInfo();
         },
         mounted () {
-            this.fetchAppList();
+            if (this.emptyTopologyOfAllBusiness) {
+                return;
+            }
+            this.$nextTick(() => {
+                this.$refs.tree.setData(this.topologyNodeTree);
+                this.$refs.tree.setExpanded(this.topologyNodeTree[0].id, {
+                    expanded: true,
+                });
+                this.recoverTreeState(this.topoNodeList);
+            });
         },
         methods: {
             /**
@@ -156,32 +163,6 @@
                     .then((data) => {
                         this.currentUser = Object.freeze(data);
                         this.isRenderEmptyTopoNode = topoNodeCache.getItem(data.username);
-                    });
-            },
-            /**
-             * @desc 获取业务列表
-             *
-             * 判断是否是全业务，全业务下没有动态拓扑
-             */
-            fetchAppList () {
-                this.isLoading = true;
-                AppService.fetchAppList()
-                    .then((data) => {
-                        const currentApp = _.find(data, _ => _.id === window.PROJECT_CONFIG.APP_ID);
-                        this.emptyTopologyOfAllBusiness = currentApp.type === ALL_APP_TYPE;
-                        if (this.emptyTopologyOfAllBusiness) {
-                            return;
-                        }
-                        this.$nextTick(() => {
-                            this.$refs.tree.setData(this.topologyNodeTree);
-                            this.$refs.tree.setExpanded(this.topologyNodeTree[0].id, {
-                                expanded: true,
-                            });
-                            this.recoverTreeState(this.topoNodeList);
-                        });
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
                     });
             },
             /**

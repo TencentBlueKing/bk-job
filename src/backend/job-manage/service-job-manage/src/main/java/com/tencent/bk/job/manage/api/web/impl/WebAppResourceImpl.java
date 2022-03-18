@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
@@ -191,7 +191,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                       Integer pageSize,
                                                       Long moduleType,
                                                       String ipCondition) {
-        ApplicationHostInfoDTO applicationHostInfoCondition = new ApplicationHostInfoDTO();
+        ApplicationHostDTO applicationHostInfoCondition = new ApplicationHostDTO();
         applicationHostInfoCondition.setAppId(appResourceScope.getAppId());
         applicationHostInfoCondition.setIp(ipCondition);
         if (moduleType != null) {
@@ -208,7 +208,7 @@ public class WebAppResourceImpl implements WebAppResource {
         baseSearchCondition.setStart(start);
         baseSearchCondition.setLength(pageSize);
 
-        PageData<ApplicationHostInfoDTO> appHostInfoPageData =
+        PageData<ApplicationHostDTO> appHostInfoPageData =
             hostService.listAppHost(applicationHostInfoCondition, baseSearchCondition);
         PageData<HostInfoVO> finalHostInfoPageData = new PageData<>();
         finalHostInfoPageData.setTotal(appHostInfoPageData.getTotal());

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -199,7 +199,7 @@ public class TopologyHelper {
      * @param hostInfo 作业平台内主机信息
      * @return 展示用主机信息
      */
-    public static HostInfoVO convertToHostInfoVO(ApplicationHostInfoDTO hostInfo) {
+    public static HostInfoVO convertToHostInfoVO(ApplicationHostDTO hostInfo) {
         if (hostInfo == null) {
             return null;
         }
@@ -313,7 +313,7 @@ public class TopologyHelper {
             InstanceTopologyDTO topology = getTopologyTreeByApplication(username, appInfo);
             processTopologyNodeName(topology, null);
         }
-        if (CcNodeTypeEnum.APP.getType().equals(nodeType)) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {
             return appInfo.getName();
         }
         nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
@@ -374,15 +374,15 @@ public class TopologyHelper {
      * @param ipList IP 地址列表
      * @return 机器 Agent 状态信息列表
      */
-    public List<ApplicationHostInfoDTO> getIpStatusListByIps(long appId, List<String> ipList) {
-        List<ApplicationHostInfoDTO> ipInfoList = new ArrayList<>();
+    public List<ApplicationHostDTO> getIpStatusListByIps(long appId, List<String> ipList) {
+        List<ApplicationHostDTO> ipInfoList = new ArrayList<>();
         if (CollectionUtils.isEmpty(ipList)) {
             return ipInfoList;
         }
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
             queryAgentStatusClient.batchGetAgentStatus(ipList);
         for (String ip : ipList) {
-            ApplicationHostInfoDTO ipInfo = new ApplicationHostInfoDTO();
+            ApplicationHostDTO ipInfo = new ApplicationHostDTO();
             ipInfo.setCloudAreaId(Long.valueOf(ip.split(":")[0]));
             ipInfo.setAppId(appId);
             ipInfo.setIp(ip.split(":")[1]);
@@ -402,7 +402,7 @@ public class TopologyHelper {
         InstanceTopologyDTO topology,
         Map<String, Map<Long, String>> nodeTypeNameMap
     ) {
-        if (CcNodeTypeEnum.APP.getType().equals(topology.getObjectId())) {
+        if (CcNodeTypeEnum.BIZ.getType().equals(topology.getObjectId())) {
             Long appId = topology.getInstanceId();
             if (BIZ_NODE_TYPE_NAME_MAP.get(appId) == null) {
                 BIZ_NODE_TYPE_NAME_MAP.put(appId, new ConcurrentHashMap<>(3));

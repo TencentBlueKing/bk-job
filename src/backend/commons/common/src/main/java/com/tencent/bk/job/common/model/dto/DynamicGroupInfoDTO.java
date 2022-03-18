@@ -57,6 +57,6 @@ public class DynamicGroupInfoDTO {
 
     private List<String> ipList;
 
-    private List<ApplicationHostInfoDTO> ipListStatus = new ArrayList<>();
+    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
 
 }

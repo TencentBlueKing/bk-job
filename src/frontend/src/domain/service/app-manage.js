@@ -35,8 +35,8 @@ import AppManageSource from '../source/app-manage';
 
 export default {
     fetchAppList () {
-        return AppManageSource.getAllApp()
-            .then(({ data }) => Object.freeze(data));
+        return AppManageSource.getWholeAppList()
+            .then(({ data }) => Object.freeze(data.data));
     },
     fetchWholeAppList () {
         return AppManageSource.getWholeAppList()

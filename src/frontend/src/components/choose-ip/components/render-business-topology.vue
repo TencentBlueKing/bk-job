@@ -178,7 +178,7 @@
     import HostTable from './host-table';
     import DropdownMenu from './dropdown-menu';
 
-    const ROOT_NODE_ID = `#biz#${window.PROJECT_CONFIG.APP_ID}`;
+    const ROOT_NODE_ID = `#${window.PROJECT_CONFIG.SCOPE_TYPE}#${window.PROJECT_CONFIG.SCOPE_ID}`;
 
     export default {
         name: '',

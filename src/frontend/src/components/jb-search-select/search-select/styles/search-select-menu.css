@@ -14,7 +14,7 @@
     outline: none;
     resize: none;
 
-    &-condition {
+    .search-condition {
         padding: 0 10px 0 16px;
         pointer-events: auto;
         border-bottom: 1px solid #dcdee5;
@@ -26,7 +26,7 @@
         }
     }
 
-    &-menu {
+    .search-menu {
         max-height: 200px;
         min-height: 32px;
         padding: 0;
@@ -41,7 +41,7 @@
             border-bottom: 1px solid #dcdee5;
         }
 
-        &-item {
+        .search-menu-item {
             display: flex;
             padding: 0 10px 0 16px;
             overflow: hidden;
@@ -94,19 +94,19 @@
         }
     }
 
-    &-loading {
+    .search-loading {
         padding: 0 16px;
         line-height: 32px;
         text-align: center;
     }
 
-    &-error {
+    .search--error {
         padding: 0 10px 0 16px;
         font-weight: bold;
         line-height: 32px;
     }
 
-    &-footer {
+    .search-list-footer {
         display: flex;
         margin-bottom: -6px;
         line-height: 32px;

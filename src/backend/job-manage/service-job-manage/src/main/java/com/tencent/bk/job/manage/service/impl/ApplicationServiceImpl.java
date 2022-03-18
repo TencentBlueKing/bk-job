@@ -189,7 +189,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
-        return applicationDAO.listAllApps();
+        return applicationDAO.listAllBizApps();
     }
 
     @Override
