@@ -89,7 +89,9 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl
         EsbGetJobInstanceGlobalVarValueV3Request newRequest = new EsbGetJobInstanceGlobalVarValueV3Request();
         newRequest.setAppCode(request.getAppCode());
         newRequest.setUserName(request.getUserName());
-        newRequest.setBkBizId(request.getAppId());
+        newRequest.setBkBizId(request.getBkBizId());
+        newRequest.setScopeType(request.getScopeType());
+        newRequest.setScopeId(request.getScopeId());
         newRequest.setTaskInstanceId(request.getTaskInstanceId());
         return newRequest;
     }

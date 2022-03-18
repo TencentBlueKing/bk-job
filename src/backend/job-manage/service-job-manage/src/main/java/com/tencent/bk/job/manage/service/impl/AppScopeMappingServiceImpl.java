@@ -22,11 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

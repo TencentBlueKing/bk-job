@@ -84,7 +84,7 @@ public class HostCache {
      *
      * @param applicationHostDTO 主机
      */
-    public void addOrUpdateApp(ApplicationHostDTO applicationHostDTO) {
+    public void addOrUpdateHost(ApplicationHostDTO applicationHostDTO) {
         String hostKey = buildHostKey(applicationHostDTO);
         CacheHostDO cacheHost = new CacheHostDO();
         cacheHost.setAppId(applicationHostDTO.getAppId());
