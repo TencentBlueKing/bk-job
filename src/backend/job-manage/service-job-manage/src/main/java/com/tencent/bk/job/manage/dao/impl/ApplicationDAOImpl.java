@@ -32,6 +32,7 @@ import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -194,7 +195,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .where(conditions)
             .fetch();
         List<ApplicationDTO> applicationList = new ArrayList<>();
-        if (result.size() > 0) {
+        if (CollectionUtils.isNotEmpty(result)) {
             result.map(record -> applicationList.add(extract(record)));
         }
         return applicationList;
