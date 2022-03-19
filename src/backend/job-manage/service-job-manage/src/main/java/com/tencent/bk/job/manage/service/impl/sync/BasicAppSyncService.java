@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -64,7 +64,7 @@ public class BasicAppSyncService {
         //先删Job业务对应主机
         applicationHostDAO.deleteAppHostInfoByAppId(dslContext, applicationDTO.getId());
         //再删Job业务本身
-        applicationDAO.deleteAppInfoById(dslContext, applicationDTO.getId());
+        applicationDAO.deleteAppByIdSoftly(dslContext, applicationDTO.getId());
     }
 
     protected void addAppToDb(ApplicationDTO applicationDTO) {
@@ -86,6 +86,7 @@ public class BasicAppSyncService {
         updateList.forEach(applicationInfoDTO -> {
             try {
                 applicationDAO.updateApp(dslContext, applicationInfoDTO);
+                applicationDAO.restoreDeletedApp(dslContext, applicationInfoDTO.getId());
             } catch (Throwable t) {
                 log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
             }

@@ -32,7 +32,6 @@ import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -42,6 +41,7 @@ import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Application;
+import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -161,9 +161,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
+    private List<Condition> getBasicNotDeletedConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(0)));
+        return conditions;
+    }
+
     @Override
     public List<Long> getNormalAppIdsByOptDeptId(Long optDeptId) {
-        List<Condition> conditions = new ArrayList<>();
+        List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_TYPE.eq(JooqDataTypeUtil.getByteFromInteger(AppTypeEnum.NORMAL.getValue())));
         if (optDeptId == null) {
             conditions.add(T_APP.BK_OPERATE_DEPT_ID.isNull());
@@ -178,61 +184,68 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
-    @Override
-    public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+    private List<ApplicationDTO> listAppsByConditions(List<Condition> conditions) {
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+        }
         Result<Record> result = context
             .select(ALL_FIELDS)
             .from(T_APP)
             .where(conditions)
             .fetch();
         List<ApplicationDTO> applicationList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(result)) {
+        if (result.size() > 0) {
             result.map(record -> applicationList.add(extract(record)));
         }
         return applicationList;
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllApps() {
+        List<Condition> conditions = new ArrayList<>();
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        return listAppsByConditions(conditions);
     }
 
     @Override
     public List<ApplicationDTO> listAllBizApps() {
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(T_APP)
-            .fetch();
-        List<ApplicationDTO> applicationList = new ArrayList<>();
-        if (result.size() > 0) {
-            result.map(record -> applicationList.add(extract(record)));
-        }
-        return applicationList;
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
+        return listAppsByConditions(conditions);
     }
 
     @Override
     public List<ApplicationDTO> listAllBizSetApps() {
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(T_APP)
-            .where(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()))
-            .fetch();
-        List<ApplicationDTO> applicationList = new ArrayList<>();
-        if (result.size() > 0) {
-            result.map(record -> applicationList.add(extract(record)));
-        }
-        return applicationList;
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
     }
 
     @Override
     public List<ApplicationDTO> listAppsByType(AppTypeEnum appType) {
-        Result<Record> result = context
-            .select(ALL_FIELDS)
-            .from(T_APP)
-            .where(T_APP.APP_TYPE.eq((byte) appType.getValue()))
-            .fetch();
-        List<ApplicationDTO> applicationInfoList = new ArrayList<>();
-        if (result.size() > 0) {
-            result.map(record -> applicationInfoList.add(extract(record)));
-        }
-        return applicationInfoList;
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.APP_TYPE.eq((byte) appType.getValue()));
+        return listAppsByConditions(conditions);
     }
 
     private void setDefaultValue(ApplicationDTO applicationDTO) {
@@ -323,7 +336,31 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     @CacheEvict(value = "appInfoCache", key = "#appId")
-    public int deleteAppInfoById(DSLContext dslContext, long appId) {
+    public int restoreDeletedApp(DSLContext dslContext, long appId) {
+        val query = dslContext.update(T_APP)
+            .set(T_APP.IS_DELETED, UByte.valueOf(0))
+            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
+        int affectedNum = query.execute();
+        if (log.isDebugEnabled()) {
+            log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        }
+        return affectedNum;
+    }
+
+    @Override
+    @CacheEvict(value = "appInfoCache", key = "#appId")
+    public int deleteAppByIdSoftly(DSLContext dslContext, long appId) {
+        val query = dslContext.update(T_APP)
+            .set(T_APP.IS_DELETED, UByte.valueOf(1))
+            .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
+        int affectedNum = query.execute();
+        if (log.isDebugEnabled()) {
+            log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        }
+        return affectedNum;
+    }
+
+    public int deleteAppInfoByIdHardly(DSLContext dslContext, long appId) {
         return dslContext.deleteFrom(T_APP)
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
             .execute();

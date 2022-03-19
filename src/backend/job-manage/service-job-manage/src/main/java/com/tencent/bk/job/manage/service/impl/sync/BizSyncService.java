@@ -63,7 +63,7 @@ public class BizSyncService extends BasicAppSyncService {
         List<ApplicationDTO> updateList;
         List<ApplicationDTO> deleteList;
         // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizApps();
+        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted();
         // CMDB业务ScopeId
         Set<String> ccBizAppScopeIds = ccBizApps.stream()
             .map(ccBizApp -> ccBizApp.getScope().getId())
@@ -100,9 +100,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地-CMDB：计算需要删除的业务
         deleteList =
             localBizApps.stream().filter(bizAppInfoDTO ->
-                    // TODO:暂时兼容获取全部Job业务的底层方法
-                    bizAppInfoDTO.isBiz()
-                        && !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->

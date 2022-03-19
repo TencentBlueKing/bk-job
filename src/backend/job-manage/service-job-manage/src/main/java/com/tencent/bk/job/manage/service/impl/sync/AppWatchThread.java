@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -119,7 +119,7 @@ public class AppWatchThread extends Thread {
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationDAO.deleteAppInfoById(dslContext, appInfoDTO.getId());
+                applicationDAO.deleteAppByIdSoftly(dslContext, appInfoDTO.getId());
                 applicationCache.deleteApp(appInfoDTO.getScope());
                 break;
             default:
