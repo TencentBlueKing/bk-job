@@ -191,14 +191,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private MeterRegistry meterRegistry;
     private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<String, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(String searchKey) throws Exception {
-                      String[] keys = searchKey.split(":");
-                      return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
+            build(new CacheLoader<String, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(String searchKey) throws Exception {
+                          String[] keys = searchKey.split(":");
+                          return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
+                      }
                   }
-              }
-        );
+            );
 
     public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
                          MeterRegistry meterRegistry) {
@@ -236,7 +236,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     public static void init() {
-        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(), cmdbConfig.getFindHostRelationLongTermConcurrency());
+        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
+            cmdbConfig.getFindHostRelationLongTermConcurrency());
     }
 
     public static void setCcConfig(CmdbConfig cmdbConfig) {
@@ -888,13 +889,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
-        appInfo.setId(businessInfo.getAppId());
-        appInfo.setName(businessInfo.getAppName());
+        appInfo.setName(businessInfo.getBizName());
         appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setAppType(AppTypeEnum.NORMAL);
-        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, appInfo.getId().toString()));
+        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
         appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
