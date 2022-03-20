@@ -252,7 +252,7 @@ public class BizSetWatchThread extends Thread {
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationDAO.deleteAppInfoById(dslContext, application.getId());
+                applicationDAO.deleteAppByIdSoftly(dslContext, application.getId());
                 applicationCache.deleteApp(application.getScope());
                 break;
             default:
