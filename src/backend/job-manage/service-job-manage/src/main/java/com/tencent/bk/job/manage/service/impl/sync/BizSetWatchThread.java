@@ -47,7 +47,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 业务集事件监听
@@ -63,8 +62,8 @@ public class BizSetWatchThread extends Thread {
             //进程重启首先尝试释放上次加上的锁避免死锁
             LockUtils.releaseDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK, machineIp);
         } catch (Throwable t) {
-            log.info("Redis key:" + REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK + " does not need to be released, " +
-                "ignore");
+            log.info("Redis key:" + REDIS_KEY_RESOURCE_WATCH_BIZ_SET_JOB_LOCK +
+                " does not need to be released ignore");
         }
     }
 
@@ -74,7 +73,6 @@ public class BizSetWatchThread extends Thread {
     private final IBizSetCmdbClient bizSetCmdbClient;
     private final ApplicationDAO applicationDAO;
     private final Tracing tracing;
-    private final AtomicBoolean bizSetWatchFlag = new AtomicBoolean(true);
 
     public BizSetWatchThread(DSLContext dslContext,
                              RedisTemplate<String, String> redisTemplate,
@@ -88,10 +86,6 @@ public class BizSetWatchThread extends Thread {
         this.applicationDAO = applicationDAO;
         this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetWatchThread-");
-    }
-
-    public void setWatchFlag(boolean value) {
-        bizSetWatchFlag.set(value);
     }
 
     @Override
@@ -145,19 +139,17 @@ public class BizSetWatchThread extends Thread {
                 Span span = null;
                 try {
                     ResourceWatchResult<BizSetEventDetail> bizSetWatchResult;
-                    while (bizSetWatchFlag.get()) {
-                        span = this.tracing.tracer().newTrace();
-                        if (cursor == null) {
-                            log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                            bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, null);
-                        } else {
-                            bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
-                        }
-                        log.info("bizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
-                        cursor = handleBizSetWatchResult(bizSetWatchResult);
-                        // 10s/watch一次
-                        sleep(10000);
+                    span = this.tracing.tracer().newTrace();
+                    if (cursor == null) {
+                        log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
+                        bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, null);
+                    } else {
+                        bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
                     }
+                    log.info("bizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
+                    cursor = handleBizSetWatchResult(bizSetWatchResult);
+                    // 10s/watch一次
+                    sleep(10000);
                 } catch (Throwable t) {
                     if (span != null) {
                         span.error(t);
@@ -180,10 +172,8 @@ public class BizSetWatchThread extends Thread {
                 cursor = null;
             } finally {
                 try {
-                    do {
-                        // 5s/重试一次
-                        sleep(5000);
-                    } while (!bizSetWatchFlag.get());
+                    // 5s/重试一次
+                    sleep(5000);
                 } catch (InterruptedException e) {
                     log.error("sleep interrupted", e);
                 }
@@ -222,7 +212,7 @@ public class BizSetWatchThread extends Thread {
     }
 
     private void handleEvent(ResourceEvent<BizSetEventDetail> event) {
-        log.info("Begin to handle BizSetEvent: {}", event);
+        log.info("Handle BizSetEvent: {}", event);
         ApplicationDTO application = event.getDetail().toApplicationDTO();
         String eventType = event.getEventType();
         switch (eventType) {

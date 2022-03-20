@@ -52,20 +52,22 @@ public class BizSetEventDetail {
     /**
      * 业务集名称
      */
-    @JsonProperty("bk_biz_name")
+    @JsonProperty("bk_biz_set_name")
     private String bizSetName;
     /**
      * 业务运维
      */
-    @JsonProperty("biz_set_maintainer")
+    @JsonProperty("bk_biz_set_maintainer")
     private String maintainers;
     /**
      * 时区
      */
+    @JsonProperty("time_zone")
     private String timezone;
     /**
      * 语言
      */
+    @JsonProperty("language")
     private String language;
 
     public ApplicationDTO toApplicationDTO() {

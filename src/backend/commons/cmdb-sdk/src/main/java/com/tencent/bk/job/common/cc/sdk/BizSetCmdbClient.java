@@ -276,7 +276,8 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     @Override
     public ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
-        req.setFields(Arrays.asList("bk_biz_set_id", "bk_biz_set_name"));
+        req.setFields(Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_maintainer", "time_zone",
+            "language"));
         req.setResource("biz_set");
         req.setCursor(cursor);
         req.setStartTime(startTime);

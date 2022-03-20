@@ -48,7 +48,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -66,9 +65,8 @@ public class BizSetRelationWatchThread extends Thread {
             //进程重启首先尝试释放上次加上的锁避免死锁
             LockUtils.releaseDistributedLock(REDIS_KEY_RESOURCE_WATCH_BIZ_SET_RELATION_JOB_LOCK, machineIp);
         } catch (Throwable t) {
-            log.info("Redis key:" + REDIS_KEY_RESOURCE_WATCH_BIZ_SET_RELATION_JOB_LOCK + " does not need to be " +
-                "released, " +
-                "ignore");
+            log.info("Redis key:" + REDIS_KEY_RESOURCE_WATCH_BIZ_SET_RELATION_JOB_LOCK
+                + " does not need to be released ignore");
         }
     }
 
@@ -77,7 +75,6 @@ public class BizSetRelationWatchThread extends Thread {
     private final IBizSetCmdbClient bizSetCmdbClient;
     private final ApplicationDAO applicationDAO;
     private final Tracing tracing;
-    private final AtomicBoolean bizSetRelationWatchFlag = new AtomicBoolean(true);
 
     public BizSetRelationWatchThread(RedisTemplate<String, String> redisTemplate,
                                      ApplicationCache applicationCache,
@@ -89,10 +86,6 @@ public class BizSetRelationWatchThread extends Thread {
         this.applicationDAO = applicationDAO;
         this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetRelationWatchThread-");
-    }
-
-    public void setWatchFlag(boolean value) {
-        bizSetRelationWatchFlag.set(value);
     }
 
     @Override
@@ -146,19 +139,17 @@ public class BizSetRelationWatchThread extends Thread {
                 Span span = null;
                 try {
                     ResourceWatchResult<BizSetRelationEventDetail> bizSetRelationWatchResult;
-                    while (bizSetRelationWatchFlag.get()) {
-                        span = this.tracing.tracer().newTrace();
-                        if (cursor == null) {
-                            log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                            bizSetRelationWatchResult = bizSetCmdbClient.getBizSetRelationEvents(startTime, null);
-                        } else {
-                            bizSetRelationWatchResult = bizSetCmdbClient.getBizSetRelationEvents(null, cursor);
-                        }
-                        log.info("bizSetRelationWatchResult={}", JsonUtils.toJson(bizSetRelationWatchResult));
-                        cursor = handleBizSetRelationWatchResult(bizSetRelationWatchResult);
-                        // 5s/watch一次
-                        sleep(5000);
+                    span = this.tracing.tracer().newTrace();
+                    if (cursor == null) {
+                        log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
+                        bizSetRelationWatchResult = bizSetCmdbClient.getBizSetRelationEvents(startTime, null);
+                    } else {
+                        bizSetRelationWatchResult = bizSetCmdbClient.getBizSetRelationEvents(null, cursor);
                     }
+                    log.info("bizSetRelationWatchResult={}", JsonUtils.toJson(bizSetRelationWatchResult));
+                    cursor = handleBizSetRelationWatchResult(bizSetRelationWatchResult);
+                    // 5s/watch一次
+                    sleep(5000);
                 } catch (Throwable t) {
                     log.error("bizSetRelationWatch thread fail", t);
                     if (span != null) {
@@ -181,10 +172,8 @@ public class BizSetRelationWatchThread extends Thread {
                 cursor = null;
             } finally {
                 try {
-                    do {
-                        // 5s/重试一次
-                        sleep(5000);
-                    } while (!bizSetRelationWatchFlag.get());
+                    // 5s/重试一次
+                    sleep(5000);
                 } catch (InterruptedException e) {
                     log.error("sleep interrupted", e);
                 }
@@ -224,7 +213,7 @@ public class BizSetRelationWatchThread extends Thread {
     }
 
     private void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
-        log.info("Begin to handle BizSetRelationEvent: {}", event);
+        log.info("Handle BizSetRelationEvent: {}", event);
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
