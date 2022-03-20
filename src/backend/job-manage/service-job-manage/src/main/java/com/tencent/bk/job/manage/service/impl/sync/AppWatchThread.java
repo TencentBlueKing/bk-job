@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
-import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.CcClient;
@@ -91,9 +91,9 @@ public class AppWatchThread extends Thread {
         appWatchFlag.set(value);
     }
 
-    private void handleOneEvent(ResourceEvent<AppEventDetail> event) {
+    private void handleOneEvent(ResourceEvent<BizEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationDTO appInfoDTO = AppEventDetail.toAppInfoDTO(event.getDetail());
+        ApplicationDTO appInfoDTO = BizEventDetail.toAppInfoDTO(event.getDetail());
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -125,18 +125,18 @@ public class AppWatchThread extends Thread {
             default:
                 break;
         }
-        AppEventDetail detail = event.getDetail();
+        BizEventDetail detail = event.getDetail();
         log.debug("eventType=" + eventType);
         log.debug(JsonUtils.toJson(detail));
     }
 
-    public String handleAppWatchResult(ResourceWatchResult<AppEventDetail> appWatchResult) {
+    public String handleAppWatchResult(ResourceWatchResult<BizEventDetail> appWatchResult) {
         String cursor = null;
         boolean isWatched = appWatchResult.getWatched();
         if (isWatched) {
-            List<ResourceEvent<AppEventDetail>> events = appWatchResult.getEvents();
+            List<ResourceEvent<BizEventDetail>> events = appWatchResult.getEvents();
             //解析事件，进行处理
-            for (ResourceEvent<AppEventDetail> event : events) {
+            for (ResourceEvent<BizEventDetail> event : events) {
                 handleOneEvent(event);
             }
             if (events.size() > 0) {
@@ -148,7 +148,7 @@ public class AppWatchThread extends Thread {
             }
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
-            List<ResourceEvent<AppEventDetail>> events = appWatchResult.getEvents();
+            List<ResourceEvent<BizEventDetail>> events = appWatchResult.getEvents();
             if (events != null && events.size() > 0) {
                 cursor = events.get(0).getCursor();
                 log.info("refresh cursor(fail):{}", cursor);
@@ -208,7 +208,7 @@ public class AppWatchThread extends Thread {
                 watch.start("total");
                 try {
                     CcClient ccClient = CcClientFactory.getCcClient();
-                    ResourceWatchResult<AppEventDetail> appWatchResult;
+                    ResourceWatchResult<BizEventDetail> appWatchResult;
                     while (appWatchFlag.get()) {
                         if (cursor == null) {
                             appWatchResult = ccClient.getAppEvents(startTime, cursor);

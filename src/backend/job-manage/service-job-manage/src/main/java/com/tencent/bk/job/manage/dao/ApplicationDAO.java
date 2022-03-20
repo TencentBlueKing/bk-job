@@ -65,4 +65,19 @@ public interface ApplicationDAO {
     Integer countApps();
 
     ApplicationDTO getAppByScope(ResourceScope scope);
+
+    /**
+     * 根据资源范围获取业务，包含已经被逻辑删除的业务
+     *
+     * @param scope 资源范围
+     * @return 业务
+     */
+    ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
+
+    /**
+     * 恢复被逻辑删除的业务
+     *
+     * @param appId 业务ID
+     */
+    void restoreApp(Long appId);
 }

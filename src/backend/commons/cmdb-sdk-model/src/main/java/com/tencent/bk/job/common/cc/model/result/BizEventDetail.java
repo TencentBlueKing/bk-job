@@ -22,92 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.model.result;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.List;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * Job业务
+ * 业务事件详情
  */
-@NoArgsConstructor
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationDTO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 业务ID
-     */
-    private Long id;
-
-    /**
-     * 资源范围
-     */
-    private ResourceScope scope;
-
-    /**
-     * 业务名称
-     */
-    private String name;
-
-    /**
-     * 业务类型
-     */
-    @DeprecatedAppLogic
-    private AppTypeEnum appType;
-
-    /**
-     * 子业务
-     */
-    @DeprecatedAppLogic
-    private List<Long> subAppIds;
-
-    /**
-     * 业务运维
-     */
-    @DeprecatedAppLogic
+@Getter
+@Setter
+@ToString
+public class BizEventDetail {
+    @JsonProperty("bk_biz_id")
+    private Long appId;
+    @JsonProperty("bk_biz_name")
+    private String appName;
+    @JsonProperty("bk_biz_maintainer")
     private String maintainers;
-
-    /**
-     * 开发商账号
-     */
-    private transient String bkSupplierAccount;
-
-    /**
-     * 业务时区
-     */
-    private String timeZone;
-
-    /**
-     * 初始运维部门Id
-     */
-    @DeprecatedAppLogic
+    @JsonProperty("bk_supplier_account")
+    private String supplierAccount;
+    @JsonProperty("time_zone")
+    private String timezone;
+    @JsonProperty("bk_operate_dept_id")
     private Long operateDeptId;
-
-    /**
-     * 语言
-     */
+    @JsonProperty("bk_operate_dept_name")
+    private String operateDeptName;
+    @JsonProperty("language")
     private String language;
 
-    /**
-     * 业务是否已经被删除
-     */
-    private boolean isDeleted;
-
-    @JsonIgnore
-    public boolean isBiz() {
-        return (scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ) ||
-            getAppType() == AppTypeEnum.NORMAL;
+    public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
+        ApplicationDTO applicationDTO = new ApplicationDTO();
+        applicationDTO.setId(bizEventDetail.getAppId());
+        applicationDTO.setAppType(AppTypeEnum.NORMAL);
+        applicationDTO.setName(bizEventDetail.getAppName());
+        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(bizEventDetail.getMaintainers()));
+        applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
+        applicationDTO.setTimeZone(bizEventDetail.getTimezone());
+        applicationDTO.setOperateDeptId(bizEventDetail.getOperateDeptId());
+        applicationDTO.setLanguage(bizEventDetail.getLanguage());
+        return applicationDTO;
     }
-
 }

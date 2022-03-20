@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -114,6 +115,7 @@ public class SyncServiceImpl implements SyncService {
     private AppWatchThread appWatchThread = null;
     private HostWatchThread hostWatchThread = null;
     private HostRelationWatchThread hostRelationWatchThread = null;
+    private BizSetWatchThread bizSetWatchThread = null;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
@@ -121,6 +123,7 @@ public class SyncServiceImpl implements SyncService {
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
@@ -137,7 +140,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache) {
+                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -156,6 +159,7 @@ public class SyncServiceImpl implements SyncService {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
+        this.bizSetCmdbClient = bizSetCmdbClient;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -195,14 +199,21 @@ public class SyncServiceImpl implements SyncService {
             appWatchThread = new AppWatchThread(dslContext, applicationDAO, applicationService, applicationCache,
                 redisTemplate);
             appWatchThread.start();
+
             // 开一个常驻线程监听主机资源变动事件
             hostWatchThread = new HostWatchThread(dslContext, applicationHostDAO, queryAgentStatusClient,
                 redisTemplate, appHostsUpdateHelper, hostCache);
             hostWatchThread.start();
+
             // 开一个常驻线程监听主机关系资源变动事件
             hostRelationWatchThread = new HostRelationWatchThread(dslContext, applicationHostDAO, hostTopoDAO,
                 redisTemplate, this, appHostsUpdateHelper);
             hostRelationWatchThread.start();
+
+            // 开一个常驻线程监听业务集变动事件
+            bizSetWatchThread = new BizSetWatchThread(dslContext, redisTemplate, applicationCache, bizSetCmdbClient,
+                applicationDAO);
+            bizSetWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
         }
@@ -395,7 +406,7 @@ public class SyncServiceImpl implements SyncService {
                     List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
                     Set<Long> localAppIds =
                         localApps.stream().filter(app ->
-                                app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
+                            app.getAppType() == AppTypeEnum.NORMAL).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));

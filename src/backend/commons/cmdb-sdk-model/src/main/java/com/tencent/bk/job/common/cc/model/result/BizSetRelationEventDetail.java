@@ -22,42 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.sdk;
+package com.tencent.bk.job.common.cc.model.result;
 
-import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
-import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
- * CMDB业务集相关接口
+ * 业务集与业务关系事件详情
  */
-public interface IBizSetCmdbClient {
-
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class BizSetRelationEventDetail {
     /**
-     * 从CC获取所有业务集信息
-     *
-     * @return 业务集App列表
+     * 业务集和业务的关系发生了变化的业务集ID
      */
-    List<ApplicationDTO> getAllBizSetApps();
-
+    @JsonProperty("bk_biz_set_id")
+    private Long bizSetId;
     /**
-     * 根据游标获取业务集事件
-     *
-     * @param startTime 监听事件的起始时间
-     * @param cursor    监听事件的游标
-     * @return 事件
+     * 该业务集所包含的所有业务的ID列表
      */
-    ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor);
-
-    /**
-     * 根据游标获取业务集与业务关系事件
-     *
-     * @param startTime 监听事件的起始时间
-     * @param cursor    监听事件的游标
-     * @return 事件
-     */
-    ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor);
+    @JsonProperty("bk_biz_ids")
+    private List<Long> bizIds;
 }

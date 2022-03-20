@@ -62,7 +62,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
-import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
 import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
@@ -1479,7 +1479,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     @Override
-    public ResourceWatchResult<AppEventDetail> getAppEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_biz_maintainer", "bk_supplier_account",
@@ -1487,8 +1487,8 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<AppEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-            req, new TypeReference<EsbResp<ResourceWatchResult<AppEventDetail>>>() {
+        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
+            req, new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
             }, HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }

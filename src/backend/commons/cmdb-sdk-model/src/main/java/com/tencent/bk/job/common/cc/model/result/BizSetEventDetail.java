@@ -24,49 +24,49 @@
 
 package com.tencent.bk.job.common.cc.model.result;
 
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @description
- * @date 2019/3/4
+ * 业务集事件详情
  */
 @Getter
 @Setter
 @ToString
-public class AppEventDetail {
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+@NoArgsConstructor
+public class BizSetEventDetail {
+    /**
+     * 业务集ID
+     */
+    @JsonProperty("bk_biz_set_id")
+    private Long bizSetId;
+    /**
+     * 业务集名称
+     */
     @JsonProperty("bk_biz_name")
-    private String appName;
-    @JsonProperty("bk_biz_maintainer")
+    private String bizSetName;
+    /**
+     * 业务运维
+     */
+    @JsonProperty("biz_set_maintainer")
     private String maintainers;
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-    @JsonProperty("time_zone")
-    private String timezone;
-    @JsonProperty("bk_operate_dept_id")
-    private Long operateDeptId;
-    @JsonProperty("bk_operate_dept_name")
-    private String operateDeptName;
-    @JsonProperty("language")
-    private String language;
 
-    public static ApplicationDTO toAppInfoDTO(AppEventDetail appEventDetail) {
+    public ApplicationDTO toApplicationDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setId(appEventDetail.getAppId());
-        applicationDTO.setAppType(AppTypeEnum.NORMAL);
-        applicationDTO.setName(appEventDetail.getAppName());
-        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(appEventDetail.getMaintainers()));
-        applicationDTO.setBkSupplierAccount(appEventDetail.getSupplierAccount());
-        applicationDTO.setTimeZone(appEventDetail.getTimezone());
-        applicationDTO.setOperateDeptId(appEventDetail.getOperateDeptId());
-        applicationDTO.setLanguage(appEventDetail.getLanguage());
+        ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(bizSetId));
+        applicationDTO.setScope(resourceScope);
+        applicationDTO.setAppType(AppTypeEnum.APP_SET);
+        applicationDTO.setName(bizSetName);
+        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(maintainers));
         return applicationDTO;
     }
 }
