@@ -771,7 +771,6 @@ public class HostServiceImpl implements HostService {
     public CcTopologyNodeVO listAppTopologyHostCountTree(String username,
                                                          AppResourceScope appResourceScope) {
         StopWatch watch = new StopWatch("listAppTopologyHostCountTree");
-        ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         watch.start("listAppTopologyHostCountTree");
         CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appResourceScope);
         watch.stop();
