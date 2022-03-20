@@ -203,6 +203,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllAppsWithDeleted() {
         List<Condition> conditions = new ArrayList<>();
         return listAppsByConditions(conditions);
     }
@@ -250,9 +256,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getId() == null) {
-            applicationDTO.setId(-1L);
-        }
         if (applicationDTO.getAppType() == null) {
             applicationDTO.setAppType(AppTypeEnum.NORMAL);
         }
@@ -283,7 +286,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.BK_SCOPE_TYPE,
             T_APP.BK_SCOPE_ID
         ).values(
-            ULong.valueOf(applicationDTO.getId()),
+            JooqDataTypeUtil.buildULong(applicationDTO.getId()),
             applicationDTO.getName(),
             (byte) (applicationDTO.getAppType().getValue()),
             applicationDTO.getBkSupplierAccount(),
