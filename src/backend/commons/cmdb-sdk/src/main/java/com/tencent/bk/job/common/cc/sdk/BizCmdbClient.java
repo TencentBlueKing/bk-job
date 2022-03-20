@@ -337,7 +337,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             uin = defaultUin;
         }
         GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
             new TypeReference<EsbResp<BriefTopologyDTO>>() {
             });
@@ -353,7 +353,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             uin = defaultUin;
         }
         GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
             req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
             });
@@ -476,7 +476,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             uin = defaultUin;
         }
         GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(HttpGet.METHOD_NAME,
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
@@ -577,7 +577,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private FindModuleHostRelationReq genFindModuleHostRelationReq(long appId, List<Long> moduleIdList, int start,
                                                                    int limit, String uin, String owner) {
         FindModuleHostRelationReq req = makeBaseReq(FindModuleHostRelationReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         req.setModuleIdList(moduleIdList);
         Page page = new Page(start, limit);
         req.setPage(page);
@@ -787,7 +787,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
         List<ListBizHostsTopoResult.HostInfo> hostInfoList = new ArrayList<>();
         ListBizHostsTopoReq req = makeBaseReq(ListBizHostsTopoReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
 
         int limit = 200;
         int start = 0;
@@ -894,7 +894,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
         appInfo.setAppType(AppTypeEnum.NORMAL);
-        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, appInfo.getId().toString()));
+        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
         appInfo.setOperateDeptId(businessInfo.getOperateDeptId());
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
@@ -997,7 +997,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         owner = defaultSupplierAccount;
         uin = defaultUin;
         SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         int start = 0;
         int limit = 200;
         req.getPage().setStart(start);
@@ -1054,7 +1054,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         owner = defaultSupplierAccount;
         uin = defaultUin;
         ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, uin, owner);
-        req.setAppId(appId);
+        req.setBizId(appId);
         req.setGroupId(groupId);
         int limit = 200;
         int start = 0;
@@ -1244,7 +1244,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         input.uin = defaultUin;
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
         ListBizHostReq req = makeBaseReq(ListBizHostReq.class, input.uin, input.owner);
-        req.setAppId(input.appId);
+        req.setBizId(input.appId);
         ConditionDTO condition = new ConditionDTO();
         condition.setCondition("AND");
         List<BaseConditionDTO> rules = new ArrayList<>();
@@ -1405,7 +1405,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
 
         req.setTopoNodes(nonAppNodes);
-        req.setAppId(getTopoNodePathReq.getAppId());
+        req.setBizId(getTopoNodePathReq.getBizId());
 
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {

@@ -37,7 +37,7 @@ import java.util.List;
 @ToString
 public class FindHostTopoRelationReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
     @JsonProperty("bk_set_ids")
     private List<Long> setIds;
     @JsonProperty("bk_module_ids")

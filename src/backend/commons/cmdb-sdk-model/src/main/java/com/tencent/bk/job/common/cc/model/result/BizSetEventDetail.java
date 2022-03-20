@@ -59,6 +59,14 @@ public class BizSetEventDetail {
      */
     @JsonProperty("biz_set_maintainer")
     private String maintainers;
+    /**
+     * 时区
+     */
+    private String timezone;
+    /**
+     * 语言
+     */
+    private String language;
 
     public ApplicationDTO toApplicationDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();
@@ -67,6 +75,8 @@ public class BizSetEventDetail {
         applicationDTO.setAppType(AppTypeEnum.APP_SET);
         applicationDTO.setName(bizSetName);
         applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(maintainers));
+        applicationDTO.setTimeZone(timezone);
+        applicationDTO.setLanguage(language);
         return applicationDTO;
     }
 }

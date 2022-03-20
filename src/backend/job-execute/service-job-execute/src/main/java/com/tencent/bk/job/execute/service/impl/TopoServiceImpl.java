@@ -61,7 +61,7 @@ public class TopoServiceImpl implements TopoService {
     @Override
     public List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long appId, List<DynamicServerTopoNodeDTO> topoNodes) {
         GetTopoNodePathReq req = new GetTopoNodePathReq();
-        req.setAppId(appId);
+        req.setBizId(appId);
         topoNodes.forEach(topoNode -> req.add(topoNode.getNodeType(), topoNode.getTopoNodeId()));
         List<InstanceTopologyDTO> hierarchyNodes = ccClient.getTopoInstancePath(req);
         log.debug("Get topo node hierarchy, req:{}, result:{}", req, hierarchyNodes);

@@ -43,7 +43,7 @@ public class GetTopoNodePathReq extends EsbReq {
      * 业务ID
      */
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
 
     @JsonProperty("bk_nodes")
     private List<InstanceTopologyDTO> topoNodes;

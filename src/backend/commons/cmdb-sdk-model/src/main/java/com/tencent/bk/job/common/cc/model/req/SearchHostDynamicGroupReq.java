@@ -36,7 +36,7 @@ import lombok.Setter;
 @Setter
 public class SearchHostDynamicGroupReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     private HostCondition condition = new HostCondition();
     private Page page = new Page();
 }
