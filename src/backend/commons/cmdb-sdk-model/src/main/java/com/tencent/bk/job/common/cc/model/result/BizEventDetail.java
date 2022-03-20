@@ -27,7 +27,9 @@ package com.tencent.bk.job.common.cc.model.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,7 +42,7 @@ import lombok.ToString;
 @ToString
 public class BizEventDetail {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     @JsonProperty("bk_biz_name")
     private String appName;
     @JsonProperty("bk_biz_maintainer")
@@ -58,7 +60,8 @@ public class BizEventDetail {
 
     public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setId(bizEventDetail.getAppId());
+        applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
+            String.valueOf(bizEventDetail.getBizId())));
         applicationDTO.setAppType(AppTypeEnum.NORMAL);
         applicationDTO.setName(bizEventDetail.getAppName());
         applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(bizEventDetail.getMaintainers()));

@@ -250,9 +250,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     private void setDefaultValue(ApplicationDTO applicationDTO) {
-        if (applicationDTO.getId() == null) {
-            applicationDTO.setId(-1L);
-        }
         if (applicationDTO.getAppType() == null) {
             applicationDTO.setAppType(AppTypeEnum.NORMAL);
         }
@@ -263,6 +260,49 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
+        setDefaultValue(applicationDTO);
+        val subAppIds = applicationDTO.getSubAppIds();
+        String subAppIdsStr = null;
+        if (subAppIds != null) {
+            subAppIdsStr = subAppIds.stream().map(Object::toString).collect(Collectors.joining(";"));
+        }
+        ResourceScope scope = applicationDTO.getScope();
+        val query = dslContext.insertInto(T_APP,
+            T_APP.APP_NAME,
+            T_APP.APP_TYPE,
+            T_APP.BK_SUPPLIER_ACCOUNT,
+            T_APP.MAINTAINERS,
+            T_APP.SUB_APP_IDS,
+            T_APP.TIMEZONE,
+            T_APP.BK_OPERATE_DEPT_ID,
+            T_APP.LANGUAGE,
+            T_APP.BK_SCOPE_TYPE,
+            T_APP.BK_SCOPE_ID,
+            T_APP.IS_DELETED
+        ).values(
+            applicationDTO.getName(),
+            (byte) (applicationDTO.getAppType().getValue()),
+            applicationDTO.getBkSupplierAccount(),
+            applicationDTO.getMaintainers(),
+            subAppIdsStr,
+            applicationDTO.getTimeZone(),
+            applicationDTO.getOperateDeptId(),
+            applicationDTO.getLanguage(),
+            scope == null ? null : scope.getType().getValue(),
+            scope == null ? null : scope.getId(),
+            UByte.valueOf(Bool.FALSE.getValue())
+        );
+        try {
+            query.execute();
+        } catch (Exception e) {
+            log.info("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+        }
+        return applicationDTO.getId();
+    }
+
+    @Override
+    public Long insertAppWithSpecifiedAppId(DSLContext dslContext,
+                                            ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
         val subAppIds = applicationDTO.getSubAppIds();
         String subAppIdsStr = null;

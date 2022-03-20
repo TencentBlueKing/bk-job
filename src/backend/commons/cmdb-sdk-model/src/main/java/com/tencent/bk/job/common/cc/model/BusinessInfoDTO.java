@@ -38,7 +38,7 @@ import lombok.ToString;
 @ToString
 public class BusinessInfoDTO {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     @JsonProperty("bk_biz_name")
     private String appName;
     @JsonProperty("bk_biz_maintainer")

@@ -237,14 +237,14 @@ public class BizSetRelationWatchThread extends Thread {
                     if (cacheApplication == null || cacheApplication.isDeleted()) {
                         return;
                     }
-                    String maintainers;
+                    String subBizIds;
                     if (CollectionUtils.isEmpty(latestSubBizIds)) {
-                        maintainers = null;
+                        subBizIds = null;
                     } else {
-                        maintainers = latestSubBizIds.stream().map(String::valueOf).collect(Collectors.joining(";"));
+                        subBizIds = latestSubBizIds.stream().map(String::valueOf).collect(Collectors.joining(";"));
                     }
                     cacheApplication.setSubAppIds(latestSubBizIds);
-                    applicationDAO.updateMaintainers(cacheApplication.getId(), maintainers);
+                    applicationDAO.updateSubAppIds(cacheApplication.getId(), subBizIds);
                     applicationCache.addOrUpdateApp(cacheApplication);
                 } catch (Throwable t) {
                     log.error("Handle biz_set_relation event fail", t);

@@ -54,6 +54,8 @@ public interface ApplicationDAO {
 
     Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
+    Long insertAppWithSpecifiedAppId(DSLContext dslContext, ApplicationDTO applicationDTO);
+
     int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
     int deleteAppInfoById(DSLContext dslContext, long appId);

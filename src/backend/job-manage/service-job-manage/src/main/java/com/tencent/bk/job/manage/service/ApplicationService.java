@@ -148,6 +148,15 @@ public interface ApplicationService {
     Long createApp(ApplicationDTO application);
 
     /**
+     * 创建业务-指定业务ID
+     *
+     * @param application 业务
+     * @return 业务ID
+     */
+    @DeprecatedAppLogic
+    Long createAppWithSpecifiedAppId(ApplicationDTO application);
+
+    /**
      * 获取Job业务数量
      *
      * @return 业务数量
