@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import brave.ScopedSpan;
+import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
@@ -71,18 +73,20 @@ public class BizSetWatchThread extends Thread {
     private final ApplicationCache applicationCache;
     private final IBizSetCmdbClient bizSetCmdbClient;
     private final ApplicationDAO applicationDAO;
+    private final Tracing tracing;
     private final AtomicBoolean bizSetWatchFlag = new AtomicBoolean(true);
 
     public BizSetWatchThread(DSLContext dslContext,
                              RedisTemplate<String, String> redisTemplate,
                              ApplicationCache applicationCache,
                              IBizSetCmdbClient bizSetCmdbClient,
-                             ApplicationDAO applicationDAO) {
+                             ApplicationDAO applicationDAO, Tracing tracing) {
         this.dslContext = dslContext;
         this.redisTemplate = redisTemplate;
         this.applicationCache = applicationCache;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.applicationDAO = applicationDAO;
+        this.tracing = tracing;
         this.setName("[" + getId() + "]-BizSetWatchThread-");
     }
 
@@ -138,21 +142,26 @@ public class BizSetWatchThread extends Thread {
                     System.currentTimeMillis());
                 StopWatch watch = new StopWatch("bizSetWatch");
                 watch.start("total");
+                ScopedSpan span = null;
                 try {
                     ResourceWatchResult<BizSetEventDetail> bizSetWatchResult;
                     while (bizSetWatchFlag.get()) {
+                        span = this.tracing.tracer().startScopedSpan("biz_set_relation_watch");
                         if (cursor == null) {
                             log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                            bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, cursor);
+                            bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(startTime, null);
                         } else {
                             bizSetWatchResult = bizSetCmdbClient.getBizSetEvents(null, cursor);
                         }
                         log.info("bizSetWatchResult={}", JsonUtils.toJson(bizSetWatchResult));
                         cursor = handleBizSetWatchResult(bizSetWatchResult);
-                        // 1s/watch一次
-                        sleep(1000);
+                        // 10s/watch一次
+                        sleep(10000);
                     }
                 } catch (Throwable t) {
+                    if (span != null) {
+                        span.error(t);
+                    }
                     log.error("bizSetWatch thread fail", t);
                     // 重置Watch起始位置为10分钟前
                     startTime = System.currentTimeMillis() / 1000 - 10 * 60;
@@ -161,6 +170,10 @@ public class BizSetWatchThread extends Thread {
                     bizSetWatchRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
                     log.info("bizSetWatch time consuming:" + watch.toString());
+                    if (span != null) {
+                        span.finish();
+                        ;
+                    }
                 }
             } catch (Throwable t) {
                 log.error("BizSetWatchThread quit unexpectedly", t);

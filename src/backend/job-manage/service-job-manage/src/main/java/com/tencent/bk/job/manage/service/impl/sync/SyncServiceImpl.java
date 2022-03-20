@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import brave.Tracing;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
@@ -125,6 +126,7 @@ public class SyncServiceImpl implements SyncService {
     private final AgentStatusSyncService agentStatusSyncService;
     private final HostCache hostCache;
     private final IBizSetCmdbClient bizSetCmdbClient;
+    private final Tracing tracing;
 
     @Autowired
     public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
@@ -141,7 +143,7 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient) {
+                           HostCache hostCache, IBizSetCmdbClient bizSetCmdbClient, Tracing tracing) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -161,6 +163,7 @@ public class SyncServiceImpl implements SyncService {
         this.agentStatusSyncService = agentStatusSyncService;
         this.hostCache = hostCache;
         this.bizSetCmdbClient = bizSetCmdbClient;
+        this.tracing = tracing;
         // 同步业务的线程池配置
         syncAppExecutor = new ThreadPoolExecutor(5, 5, 1L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<>(20), (r, executor) ->
@@ -213,12 +216,12 @@ public class SyncServiceImpl implements SyncService {
 
             // 开一个常驻线程监听业务集变动事件
             bizSetWatchThread = new BizSetWatchThread(dslContext, redisTemplate, applicationCache, bizSetCmdbClient,
-                applicationDAO);
+                applicationDAO, tracing);
             bizSetWatchThread.start();
 
             // 开一个常驻线程监听业务集与业务关系变动事件
             bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationCache, bizSetCmdbClient,
-                applicationDAO);
+                applicationDAO, tracing);
             bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
