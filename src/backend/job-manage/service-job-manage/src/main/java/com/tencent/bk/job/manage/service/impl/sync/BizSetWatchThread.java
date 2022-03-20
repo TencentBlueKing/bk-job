@@ -163,7 +163,7 @@ public class BizSetWatchThread extends Thread {
                     log.info("bizSetWatch time consuming:" + watch.toString());
                 }
             } catch (Throwable t) {
-                log.error("HostWatchThread quit unexpectedly", t);
+                log.error("BizSetWatchThread quit unexpectedly", t);
                 startTime = System.currentTimeMillis() / 1000 - 10 * 60;
                 cursor = null;
             } finally {

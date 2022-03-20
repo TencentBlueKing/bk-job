@@ -116,6 +116,7 @@ public class SyncServiceImpl implements SyncService {
     private HostWatchThread hostWatchThread = null;
     private HostRelationWatchThread hostRelationWatchThread = null;
     private BizSetWatchThread bizSetWatchThread = null;
+    private BizSetRelationWatchThread bizSetRelationWatchThread;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
@@ -214,6 +215,11 @@ public class SyncServiceImpl implements SyncService {
             bizSetWatchThread = new BizSetWatchThread(dslContext, redisTemplate, applicationCache, bizSetCmdbClient,
                 applicationDAO);
             bizSetWatchThread.start();
+
+            // 开一个常驻线程监听业务集与业务关系变动事件
+            bizSetRelationWatchThread = new BizSetRelationWatchThread(redisTemplate, applicationCache, bizSetCmdbClient,
+                applicationDAO);
+            bizSetRelationWatchThread.start();
         } else {
             log.info("resourceWatch not enabled, you can enable it in config file");
         }
