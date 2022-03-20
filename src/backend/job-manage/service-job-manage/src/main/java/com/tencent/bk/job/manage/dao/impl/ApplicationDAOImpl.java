@@ -349,9 +349,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @CacheEvict(value = "appInfoCache", key = "#applicationDTO.getId()")
     public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
         setDefaultValue(applicationDTO);
-        if (applicationDTO.getId() == -1L) {
-            return -1;
-        }
         val subAppIds = applicationDTO.getSubAppIds();
         String subAppIdsStr = null;
         if (subAppIds != null) {
