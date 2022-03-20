@@ -889,7 +889,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
-        appInfo.setName(businessInfo.getAppName());
+        appInfo.setName(businessInfo.getBizName());
         appInfo.setMaintainers(VersionCompatUtil.convertMaintainers(businessInfo.getMaintainers()));
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());

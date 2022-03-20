@@ -119,7 +119,7 @@ public class AppWatchThread extends Thread {
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                applicationDAO.deleteAppInfoById(dslContext, appInfoDTO.getId());
+                applicationDAO.deleteAppByIdSoftly(dslContext, appInfoDTO.getId());
                 applicationCache.deleteApp(appInfoDTO.getScope());
                 break;
             default:

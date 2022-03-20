@@ -40,7 +40,7 @@ public class BusinessInfoDTO {
     @JsonProperty("bk_biz_id")
     private Long bizId;
     @JsonProperty("bk_biz_name")
-    private String appName;
+    private String bizName;
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     @JsonProperty("bk_supplier_account")

@@ -70,7 +70,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         List<ApplicationDTO> updateList;
         List<ApplicationDTO> deleteList;
         // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetApps();
+        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted();
         // CMDB业务ScopeId
         Set<String> ccBizSetAppScopeIds = ccBizSetApps.stream()
             .map(ccBizApp -> ccBizApp.getScope().getId())
@@ -96,7 +96,6 @@ public class BizSetSyncService extends BasicAppSyncService {
         log.info("Insert bizSetIds: {}", String.join(",",
             insertList.stream().map(bizSetAppInfoDTO -> bizSetAppInfoDTO.getScope().getId())
                 .collect(Collectors.toSet())));
-
         // 本地&CMDB交集：计算需要更新的业务集
         updateList =
             ccBizSetApps.stream().filter(ccBizSetAppInfoDTO ->

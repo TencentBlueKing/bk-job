@@ -72,11 +72,19 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        return getAppByScope(resourceScope).getId();
+        ApplicationDTO applicationDTO = getAppByScope(resourceScope);
+        if (applicationDTO == null) {
+            return null;
+        }
+        return applicationDTO.getId();
     }
 
     @Override
     public ResourceScope getScopeByAppId(Long appId) {
+        ApplicationDTO applicationDTO = getAppByAppId(appId);
+        if (applicationDTO == null) {
+            return null;
+        }
         return getAppByAppId(appId).getScope();
     }
 
@@ -193,7 +201,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public List<ApplicationDTO> listAllApps() {
-        return applicationDAO.listAllBizApps();
+        return applicationDAO.listAllApps();
     }
 
     @Override

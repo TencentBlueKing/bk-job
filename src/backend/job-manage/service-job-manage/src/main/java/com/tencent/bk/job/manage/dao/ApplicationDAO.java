@@ -46,9 +46,17 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
 
+    List<ApplicationDTO> listAllApps();
+
+    List<ApplicationDTO> listAllAppsWithDeleted();
+
     List<ApplicationDTO> listAllBizApps();
 
     List<ApplicationDTO> listAllBizSetApps();
+
+    List<ApplicationDTO> listAllBizAppsWithDeleted();
+
+    List<ApplicationDTO> listAllBizSetAppsWithDeleted();
 
     List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
 
@@ -58,7 +66,23 @@ public interface ApplicationDAO {
 
     int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
 
-    int deleteAppInfoById(DSLContext dslContext, long appId);
+    /**
+     * 恢复已删除的Job业务
+     *
+     * @param dslContext DB操作删上下文
+     * @param appId      Job业务ID
+     * @return 受影响数据行数
+     */
+    int restoreDeletedApp(DSLContext dslContext, long appId);
+
+    /**
+     * 对Job业务进行软删除
+     *
+     * @param dslContext DB操作删上下文
+     * @param appId      Job业务ID
+     * @return 受影响数据行数
+     */
+    int deleteAppByIdSoftly(DSLContext dslContext, long appId);
 
     int updateMaintainers(long appId, String maintainers);
 

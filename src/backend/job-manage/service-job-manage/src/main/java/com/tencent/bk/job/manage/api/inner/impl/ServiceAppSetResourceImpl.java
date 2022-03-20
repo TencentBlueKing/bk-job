@@ -114,7 +114,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             log.warn("App-set is not exist!");
             throw new NotFoundException(ErrorCode.WRONG_APP_ID);
         }
-        applicationDAO.deleteAppInfoById(dslContext, appId);
+        applicationDAO.deleteAppByIdSoftly(dslContext, appId);
         return InternalResponse.buildSuccessResp(null);
     }
 
@@ -230,8 +230,8 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
         String maintainers = request.getAddMaintainers();
         log.info("Add app-set maintainers, appId:{}, maintainers:{}", appId, maintainers);
         if (appId == null) {
-           throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
-               ArrayUtil.toArray("Param appId is empty"));
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                ArrayUtil.toArray("Param appId is empty"));
         }
         if (StringUtils.isEmpty(maintainers)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
