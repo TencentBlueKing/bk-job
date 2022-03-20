@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpPost;
 
@@ -285,7 +286,8 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 RESOURCE_WATCH,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
-                });
+                },
+                HttpHelperFactory.getLongRetryableHttpHelper());
             if (!resp.getResult()) {
                 throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
@@ -308,7 +310,8 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 RESOURCE_WATCH,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
-                });
+                },
+                HttpHelperFactory.getLongRetryableHttpHelper());
             if (!resp.getResult()) {
                 throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }

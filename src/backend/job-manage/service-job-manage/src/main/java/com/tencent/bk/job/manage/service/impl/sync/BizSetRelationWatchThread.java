@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import brave.ScopedSpan;
+import brave.Span;
 import brave.Tracing;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
@@ -143,11 +143,11 @@ public class BizSetRelationWatchThread extends Thread {
                     System.currentTimeMillis());
                 StopWatch watch = new StopWatch("bizSetRelationWatch");
                 watch.start("total");
-                ScopedSpan span = null;
+                Span span = null;
                 try {
                     ResourceWatchResult<BizSetRelationEventDetail> bizSetRelationWatchResult;
                     while (bizSetRelationWatchFlag.get()) {
-                        span = this.tracing.tracer().startScopedSpan("biz_set_relation_watch");
+                        span = this.tracing.tracer().newTrace();
                         if (cursor == null) {
                             log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
                             bizSetRelationWatchResult = bizSetCmdbClient.getBizSetRelationEvents(startTime, null);
@@ -173,7 +173,6 @@ public class BizSetRelationWatchThread extends Thread {
                     log.info("bizSetRelationWatch time consuming:" + watch.toString());
                     if (span != null) {
                         span.finish();
-                        ;
                     }
                 }
             } catch (Throwable t) {
