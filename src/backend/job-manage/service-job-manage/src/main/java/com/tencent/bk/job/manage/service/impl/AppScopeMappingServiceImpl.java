@@ -81,4 +81,9 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
         return applicationService.getScopeByAppIds(appIds);
     }
+
+    @Override
+    public Map<ResourceScope, Long> getAppIdByScopeList(Collection<ResourceScope> scopeList) {
+        return applicationService.getAppIdByScopeList(scopeList);
+    }
 }

@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -278,13 +278,13 @@ public class HostRelationWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostRelationWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
                     ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
                     while (hostRelationWatchFlag.get()) {
                         if (cursor == null) {
-                            hostRelationWatchResult = ccClient.getHostRelationEvents(startTime, cursor);
+                            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, cursor);
                         } else {
-                            hostRelationWatchResult = ccClient.getHostRelationEvents(null, cursor);
+                            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(null, cursor);
                         }
                         log.info("hostRelationWatchResult={}", JsonUtils.toJson(hostRelationWatchResult));
                         cursor = handleHostRelationWatchResult(hostRelationWatchResult);

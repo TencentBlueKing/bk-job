@@ -25,14 +25,14 @@
 package com.tencent.bk.job.common.esb.model.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.dto.CCTopoNodeDTO;
+import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import lombok.Data;
 
 /**
- * CMDB topo 节点
+ * ESB接口 CMDB topo节点实体类
  */
 @Data
-public class EsbCCTopoNodeDTO {
+public class EsbCmdbTopoNodeDTO {
     /**
      * topo节点ID
      */
@@ -45,13 +45,13 @@ public class EsbCCTopoNodeDTO {
     @JsonProperty("node_type")
     private String nodeType;
 
-    public static EsbCCTopoNodeDTO fromCCTopoNode(CCTopoNodeDTO ccTopoNode) {
+    public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {
         if (ccTopoNode == null) {
             return null;
         }
-        EsbCCTopoNodeDTO esbCCTopoNode = new EsbCCTopoNodeDTO();
-        esbCCTopoNode.setId(ccTopoNode.getId());
-        esbCCTopoNode.setNodeType(ccTopoNode.getNodeType());
-        return esbCCTopoNode;
+        EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
+        esbCmdbTopoNodeDTO.setId(ccTopoNode.getId());
+        esbCmdbTopoNodeDTO.setNodeType(ccTopoNode.getNodeType());
+        return esbCmdbTopoNodeDTO;
     }
 }

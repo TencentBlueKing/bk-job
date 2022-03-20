@@ -128,7 +128,7 @@ public class TaskTargetDTO {
             }
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getNodeInfoList())) {
                 esbServer.setTopoNodes(taskTarget.getHostNodeList().getNodeInfoList().parallelStream()
-                    .map(TaskNodeInfoDTO::toEsbCCTopoNode).collect(Collectors.toList()));
+                    .map(TaskNodeInfoDTO::toEsbCmdbTopoNode).collect(Collectors.toList()));
             }
         }
         return esbServer;

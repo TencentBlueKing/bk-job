@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.cc.config.CcConfig;
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.encrypt.Encryptor;
 import com.tencent.bk.job.common.encrypt.RSAEncryptor;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
@@ -51,14 +51,15 @@ public class JobManageAutoConfiguration {
     }
 
     @Bean
-    public CcConfigSetter ccConfigSetter(@Autowired CcConfig ccConfig) {
-        EsbCcClient.setCcConfig(ccConfig);
-        EsbCcClient.init();
-        return new CcConfigSetter();
+    public CmdbConfigSetter cmdbConfigSetter(@Autowired CmdbConfig cmdbConfig) {
+        BizCmdbClient.setCcConfig(cmdbConfig);
+        BizCmdbClient.init();
+        return new CmdbConfigSetter();
     }
 
-    static class CcConfigSetter {
-        CcConfigSetter() {}
+    static class CmdbConfigSetter {
+        CmdbConfigSetter() {
+        }
     }
 
     @Bean

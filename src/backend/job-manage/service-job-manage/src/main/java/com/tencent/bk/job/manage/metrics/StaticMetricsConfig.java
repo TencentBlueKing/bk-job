@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.metrics;
 
-import com.tencent.bk.job.common.cc.sdk.EsbCcClient;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -48,7 +48,7 @@ public class StaticMetricsConfig {
         RedisSlideWindowFlowController cmdbGlobalFlowController
     ) {
         // CMDB请求线程池大小
-        ThreadPoolExecutor cmdbQueryThreadPool = EsbCcClient.threadPoolExecutor;
+        ThreadPoolExecutor cmdbQueryThreadPool = BizCmdbClient.threadPoolExecutor;
         meterRegistry.gauge(
             MetricsConstants.NAME_CMDB_QUERY_POOL_SIZE,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_MODULE, MetricsConstants.VALUE_MODULE_CMDB)),

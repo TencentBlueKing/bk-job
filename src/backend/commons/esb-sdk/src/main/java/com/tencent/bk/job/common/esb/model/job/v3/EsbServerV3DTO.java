@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.job.EsbCCTopoNodeDTO;
+import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
 
@@ -58,5 +58,5 @@ public class EsbServerV3DTO {
      * 分布式拓扑节点列表
      */
     @JsonProperty("topo_node_list")
-    private List<EsbCCTopoNodeDTO> topoNodes;
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
 }

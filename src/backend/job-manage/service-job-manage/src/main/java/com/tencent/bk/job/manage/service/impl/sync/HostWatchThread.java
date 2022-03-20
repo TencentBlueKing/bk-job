@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.CcClient;
-import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -308,14 +308,14 @@ public class HostWatchThread extends Thread {
                 StopWatch watch = new StopWatch("hostWatch");
                 watch.start("total");
                 try {
-                    CcClient ccClient = CcClientFactory.getCcClient();
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
                     ResourceWatchResult<HostEventDetail> hostWatchResult;
                     while (hostWatchFlag.get()) {
                         if (cursor == null) {
                             log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                            hostWatchResult = ccClient.getHostEvents(startTime, cursor);
+                            hostWatchResult = bizCmdbClient.getHostEvents(startTime, cursor);
                         } else {
-                            hostWatchResult = ccClient.getHostEvents(null, cursor);
+                            hostWatchResult = bizCmdbClient.getHostEvents(null, cursor);
                         }
                         log.info("hostWatchResult={}", JsonUtils.toJson(hostWatchResult));
                         cursor = handleHostWatchResult(hostWatchResult);

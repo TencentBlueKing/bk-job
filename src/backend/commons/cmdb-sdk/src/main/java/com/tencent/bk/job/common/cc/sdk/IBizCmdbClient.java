@@ -51,7 +51,7 @@ import java.util.Set;
 /**
  * @since 11/11/2019 12:06
  */
-public interface CcClient {
+public interface IBizCmdbClient {
     /**
      * 获取topo
      *
@@ -121,13 +121,6 @@ public interface CcClient {
      * @return
      */
     List<ApplicationDTO> getAllBizApps();
-
-    /**
-     * 从CC获取所有业务集信息
-     *
-     * @return
-     */
-    List<ApplicationDTO> getAllBizSetApps();
 
     /**
      * 获取用户的业务

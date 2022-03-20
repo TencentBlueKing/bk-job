@@ -22,42 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.model.vo.TargetNodeVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("业务拓扑节点")
-public class CCTopoNodeDTO {
-    @ApiModelProperty("节点ID")
-    private Long id;
-    @ApiModelProperty("节点类型，module-模块，set-集群，biz-业务")
-    private String nodeType;
+@Component
+public class CmdbConfig {
 
-    public static TargetNodeVO toVO(CCTopoNodeDTO ccTopoNode) {
-        if (ccTopoNode == null) {
-            return null;
-        }
-        TargetNodeVO targetNode = new TargetNodeVO();
-        targetNode.setId(ccTopoNode.getId());
-        targetNode.setType(ccTopoNode.getNodeType());
-        return targetNode;
-    }
+    @Value("${cmdb.default.supplier.account:0}")
+    private String defaultSupplierAccount;
 
-    public static CCTopoNodeDTO fromVO(TargetNodeVO targetNode) {
-        if (targetNode == null) {
-            return null;
-        }
-        CCTopoNodeDTO ccTopoNode = new CCTopoNodeDTO();
-        ccTopoNode.setId(targetNode.getId());
-        ccTopoNode.setNodeType(targetNode.getType());
-        return ccTopoNode;
-    }
+    @Value("${cmdb.query.threads.num:20}")
+    private int cmdbQueryThreadsNum;
+
+    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
+    private Boolean enableInterfaceBriefCacheTopo;
+
+    @Value("${cmdb.interface.retry.enabled:false}")
+    private Boolean enableInterfaceRetry;
+
+    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
+    private Integer findHostRelationLongTermConcurrency;
+
+    @Value("${cmdb.interface.optimize.lock.enabled:false}")
+    private Boolean enableLockOptimize;
+
+    @Value("${cmdb.interface.flowControl.enabled:false}")
+    private Boolean enableFlowControl;
+
+    @Value("${cmdb.interface.flowControl.precision:20}")
+    private Integer flowControlPrecision;
+
+    @Value("${cmdb.interface.flowControl.default.limit:500}")
+    private Integer flowControlDefaultLimit;
+
+    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
+    private String flowControlResourcesStr;
 }

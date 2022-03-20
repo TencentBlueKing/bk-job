@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
-import com.tencent.bk.job.common.esb.model.job.EsbCCTopoNodeDTO;
+import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskNodeInfoDTO;
 import lombok.AllArgsConstructor;
@@ -57,14 +57,14 @@ public class TaskNodeInfoDTO {
         return nodeInfo;
     }
 
-    public static EsbCCTopoNodeDTO toEsbCCTopoNode(TaskNodeInfoDTO taskNodeInfo) {
+    public static EsbCmdbTopoNodeDTO toEsbCmdbTopoNode(TaskNodeInfoDTO taskNodeInfo) {
         if (taskNodeInfo == null) {
             return null;
         }
-        EsbCCTopoNodeDTO esbCCTopoNode = new EsbCCTopoNodeDTO();
-        esbCCTopoNode.setId(taskNodeInfo.getId());
-        esbCCTopoNode.setNodeType(taskNodeInfo.getType());
-        return esbCCTopoNode;
+        EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
+        esbCmdbTopoNodeDTO.setId(taskNodeInfo.getId());
+        esbCmdbTopoNodeDTO.setNodeType(taskNodeInfo.getType());
+        return esbCmdbTopoNodeDTO;
     }
 
     public TargetNodeVO toVO() {

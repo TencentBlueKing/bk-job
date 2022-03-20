@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.config.CcConfig;
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BaseConditionDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
@@ -134,7 +134,7 @@ import java.util.stream.Collectors;
  * ESB-CC接口调用客户端
  */
 @Slf4j
-public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
+public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClient {
 
     private static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
     private static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
@@ -161,7 +161,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private static final ConcurrentHashMap<String, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
     public static ThreadPoolExecutor threadPoolExecutor = null;
     public static ThreadPoolExecutor longTermThreadPoolExecutor = null;
-    public static CcConfig ccConfig = null;
+    public static CmdbConfig cmdbConfig = null;
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
@@ -191,25 +191,25 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     private MeterRegistry meterRegistry;
     private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<String, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(String searchKey) throws Exception {
-                      String[] keys = searchKey.split(":");
-                      return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
+            build(new CacheLoader<String, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(String searchKey) throws Exception {
+                          String[] keys = searchKey.split(":");
+                          return getBizInstCompleteTopology(Long.parseLong(keys[0]), keys[1], keys[2]);
+                      }
                   }
-              }
-        );
+            );
 
-    public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, QueryAgentStatusClient queryAgentStatusClient,
-                       MeterRegistry meterRegistry) {
-        this(esbConfig, ccConfig, null, queryAgentStatusClient, meterRegistry);
+    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, QueryAgentStatusClient queryAgentStatusClient,
+                         MeterRegistry meterRegistry) {
+        this(esbConfig, cmdbConfig, null, queryAgentStatusClient, meterRegistry);
     }
 
-    public EsbCcClient(EsbConfig esbConfig, CcConfig ccConfig, String lang,
-                       QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
+    public BizCmdbClient(EsbConfig esbConfig, CmdbConfig cmdbConfig, String lang,
+                         QueryAgentStatusClient queryAgentStatusClient, MeterRegistry meterRegistry) {
         super(esbConfig.getEsbUrl(), esbConfig.getAppCode(), esbConfig.getAppSecret(), lang,
             esbConfig.isUseEsbTestEnv());
-        this.defaultSupplierAccount = ccConfig.getDefaultSupplierAccount();
+        this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.meterRegistry = meterRegistry;
     }
@@ -236,11 +236,12 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     }
 
     public static void init() {
-        initThreadPoolExecutor(ccConfig.getCmdbQueryThreadsNum(), ccConfig.getFindHostRelationLongTermConcurrency());
+        initThreadPoolExecutor(cmdbConfig.getCmdbQueryThreadsNum(),
+            cmdbConfig.getFindHostRelationLongTermConcurrency());
     }
 
-    public static void setCcConfig(CcConfig ccConfig) {
-        EsbCcClient.ccConfig = ccConfig;
+    public static void setCcConfig(CmdbConfig cmdbConfig) {
+        BizCmdbClient.cmdbConfig = cmdbConfig;
     }
 
     public void setQueryAgentStatusClient(QueryAgentStatusClient queryAgentStatusClient) {
@@ -260,7 +261,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
     public InstanceTopologyDTO getBizInstCompleteTopology(long appId, String owner,
                                                           String uin) throws ServiceException {
         InstanceTopologyDTO completeTopologyDTO;
-        if (ccConfig.getEnableInterfaceBriefCacheTopo()) {
+        if (cmdbConfig.getEnableInterfaceBriefCacheTopo()) {
             log.debug("getBriefCacheTopo({},{},{})", appId, owner, uin);
             completeTopologyDTO = getBriefCacheTopo(appId, owner, uin);
         } else {
@@ -287,7 +288,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
 
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopo(long appId, String owner,
                                                                      String uin) throws ServiceException {
-        if (ccConfig.getEnableLockOptimize()) {
+        if (cmdbConfig.getEnableLockOptimize()) {
             return getBizInstTopologyWithoutInternalTopoWithLock(appId, owner, uin);
         } else {
             return getBizInstTopologyWithoutInternalTopoFromCMDB(appId, owner, uin);
@@ -377,7 +378,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
                                          ExtHttpHelper httpHelper) {
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
-        if (ccConfig != null && ccConfig.getEnableFlowControl()) {
+        if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
             if (globalFlowController != null) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
@@ -425,7 +426,7 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
      */
     @Override
     public InstanceTopologyDTO getBizInternalModule(long appId, String owner, String uin) throws ServiceException {
-        if (ccConfig.getEnableLockOptimize()) {
+        if (cmdbConfig.getEnableLockOptimize()) {
             return getBizInternalModuleWithLock(appId, owner, uin);
         } else {
             return getBizInternalModuleFromCMDB(appId, owner, uin);
@@ -884,12 +885,6 @@ public class EsbCcClient extends AbstractEsbSdkClient implements CcClient {
             }
         }
         return appList;
-    }
-
-    @Override
-    public List<ApplicationDTO> getAllBizSetApps() {
-        // TODO:拉取CMDB业务集
-        return Collections.emptyList();
     }
 
     private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {

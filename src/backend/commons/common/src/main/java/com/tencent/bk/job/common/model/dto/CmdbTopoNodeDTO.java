@@ -22,43 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.config;
+package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
 
 @Data
-@Component
-public class CcConfig {
+@NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("业务拓扑节点")
+public class CmdbTopoNodeDTO {
+    @ApiModelProperty("节点ID")
+    private Long id;
+    @ApiModelProperty("节点类型，module-模块，set-集群，biz-业务")
+    private String nodeType;
 
-    @Value("${cmdb.default.supplier.account:0}")
-    private String defaultSupplierAccount;
+    public static TargetNodeVO toVO(CmdbTopoNodeDTO cmdbTopoNodeDTO) {
+        if (cmdbTopoNodeDTO == null) {
+            return null;
+        }
+        TargetNodeVO targetNode = new TargetNodeVO();
+        targetNode.setId(cmdbTopoNodeDTO.getId());
+        targetNode.setType(cmdbTopoNodeDTO.getNodeType());
+        return targetNode;
+    }
 
-    @Value("${cmdb.query.threads.num:20}")
-    private int cmdbQueryThreadsNum;
-
-    @Value("${cmdb.interface.briefCacheTopo.enabled:false}")
-    private Boolean enableInterfaceBriefCacheTopo;
-
-    @Value("${cmdb.interface.retry.enabled:false}")
-    private Boolean enableInterfaceRetry;
-
-    @Value("${cmdb.interface.findHostRelation.longTerm.concurrency:20}")
-    private Integer findHostRelationLongTermConcurrency;
-
-    @Value("${cmdb.interface.optimize.lock.enabled:false}")
-    private Boolean enableLockOptimize;
-
-    @Value("${cmdb.interface.flowControl.enabled:false}")
-    private Boolean enableFlowControl;
-
-    @Value("${cmdb.interface.flowControl.precision:20}")
-    private Integer flowControlPrecision;
-
-    @Value("${cmdb.interface.flowControl.default.limit:500}")
-    private Integer flowControlDefaultLimit;
-
-    @Value("${cmdb.interface.flowControl.resources:get_biz_brief_cache_topo:1500}")
-    private String flowControlResourcesStr;
+    public static CmdbTopoNodeDTO fromVO(TargetNodeVO targetNode) {
+        if (targetNode == null) {
+            return null;
+        }
+        CmdbTopoNodeDTO cmdbTopoNodeDTO = new CmdbTopoNodeDTO();
+        cmdbTopoNodeDTO.setId(targetNode.getId());
+        cmdbTopoNodeDTO.setNodeType(targetNode.getType());
+        return cmdbTopoNodeDTO;
+    }
 }
