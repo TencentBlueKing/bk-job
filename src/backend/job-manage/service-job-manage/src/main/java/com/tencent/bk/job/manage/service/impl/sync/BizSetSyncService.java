@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -55,8 +56,9 @@ public class BizSetSyncService extends BasicAppSyncService {
     public BizSetSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
                              ApplicationHostDAO applicationHostDAO,
                              ApplicationService applicationService,
-                             IBizSetCmdbClient bizSetCmdbClient) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService);
+                             IBizSetCmdbClient bizSetCmdbClient,
+                             ApplicationCache applicationCache) {
+        super(dslContext, applicationDAO, applicationHostDAO, applicationService, applicationCache);
         this.applicationDAO = applicationDAO;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }

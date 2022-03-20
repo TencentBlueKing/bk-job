@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -49,8 +50,9 @@ public class BizSyncService extends BasicAppSyncService {
     @Autowired
     public BizSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
-                          ApplicationService applicationService) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService);
+                          ApplicationService applicationService,
+                          ApplicationCache applicationCache) {
+        super(dslContext, applicationDAO, applicationHostDAO, applicationService, applicationCache);
         this.applicationDAO = applicationDAO;
     }
 
@@ -92,7 +94,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地&CMDB交集：计算需要更新的业务
         updateList =
             ccBizApps.stream().filter(ccBizAppInfoDTO ->
-                    localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
+                localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("biz app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->

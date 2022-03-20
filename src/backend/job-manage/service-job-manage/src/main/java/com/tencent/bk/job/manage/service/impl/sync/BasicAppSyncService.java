@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -47,16 +48,19 @@ public class BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
+    private final ApplicationCache applicationCache;
     protected final IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCcClient();
 
     @Autowired
     public BasicAppSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
                                ApplicationHostDAO applicationHostDAO,
-                               ApplicationService applicationService) {
+                               ApplicationService applicationService,
+                               ApplicationCache applicationCache) {
         this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
+        this.applicationCache = applicationCache;
     }
 
     protected void deleteAppFromDb(ApplicationDTO applicationDTO) {
@@ -79,6 +83,7 @@ public class BasicAppSyncService {
         insertList.forEach(applicationInfoDTO -> {
             try {
                 addAppToDb(applicationInfoDTO);
+                applicationCache.addOrUpdateApp(applicationInfoDTO);
             } catch (Throwable t) {
                 log.error("FATAL: insertApp fail:appId=" + applicationInfoDTO.getId(), t);
             }
@@ -87,6 +92,7 @@ public class BasicAppSyncService {
             try {
                 applicationDAO.updateApp(dslContext, applicationInfoDTO);
                 applicationDAO.restoreDeletedApp(dslContext, applicationInfoDTO.getId());
+                applicationCache.addOrUpdateApp(applicationInfoDTO);
             } catch (Throwable t) {
                 log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
             }
@@ -94,6 +100,7 @@ public class BasicAppSyncService {
         deleteList.forEach(applicationInfoDTO -> {
             try {
                 deleteAppFromDb(applicationInfoDTO);
+                applicationCache.deleteApp(applicationInfoDTO.getScope());
             } catch (Throwable t) {
                 log.error("FATAL: deleteApp fail:appId=" + applicationInfoDTO.getId(), t);
             }

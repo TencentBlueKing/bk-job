@@ -804,7 +804,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private Collection<IpDTO> checkHostsNotInApp(Long appId, Collection<IpDTO> hosts) {
         List<IpDTO> notInAppHosts = hostService.checkAppHosts(appId, hosts);
-        log.info("Check host, appId:{}, not in current app hosts:{}", appId, notInAppHosts);
+        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+            log.info("Check host, appId:{}, not in current app hosts:{}", appId, notInAppHosts);
+        }
         return notInAppHosts;
     }
 

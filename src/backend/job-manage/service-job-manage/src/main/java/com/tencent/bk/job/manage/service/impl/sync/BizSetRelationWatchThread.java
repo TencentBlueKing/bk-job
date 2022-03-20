@@ -224,6 +224,7 @@ public class BizSetRelationWatchThread extends Thread {
     }
 
     private void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
+        log.info("Begin to handle BizSetRelationEvent: {}", event);
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:

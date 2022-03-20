@@ -222,6 +222,7 @@ public class BizSetWatchThread extends Thread {
     }
 
     private void handleEvent(ResourceEvent<BizSetEventDetail> event) {
+        log.info("Begin to handle BizSetEvent: {}", event);
         ApplicationDTO application = event.getDetail().toApplicationDTO();
         String eventType = event.getEventType();
         switch (eventType) {
