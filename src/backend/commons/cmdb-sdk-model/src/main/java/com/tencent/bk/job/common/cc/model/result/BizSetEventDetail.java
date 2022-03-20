@@ -57,7 +57,7 @@ public class BizSetEventDetail {
     /**
      * 业务运维
      */
-    @JsonProperty("bk_biz_set_maintainer")
+    @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     /**
      * 时区
