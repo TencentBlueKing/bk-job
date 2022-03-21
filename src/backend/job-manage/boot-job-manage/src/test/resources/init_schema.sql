@@ -507,6 +507,7 @@ CREATE TABLE `application`
     `timezone`            VARCHAR(128)                 DEFAULT 'Asia/Shanghai',
     `bk_operate_dept_id`  BIGINT(20)          NULL,
     `language`            VARCHAR(20)                  DEFAULT NULL,
+    `is_deleted`           TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     PRIMARY KEY (`app_id`),
     KEY (`app_type`)
 ) ENGINE = INNODB

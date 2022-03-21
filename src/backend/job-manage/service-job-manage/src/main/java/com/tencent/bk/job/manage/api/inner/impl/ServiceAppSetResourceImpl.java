@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.annotation.DeprecatedAppLogic;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceAppSetResource;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -54,6 +57,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
+@DeprecatedAppLogic
 public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
     private final ApplicationDAO applicationDAO;
@@ -155,6 +159,8 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
 
         ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setId(request.getId());
+        // 使用appId作为scopeId，等cmdb业务集上线之后需要废除这个API
+        appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(request.getId())));
         appInfo.setName(request.getName());
         appInfo.setBkSupplierAccount("tencent");
         appInfo.setAppType(AppTypeEnum.APP_SET);
@@ -175,7 +181,7 @@ public class ServiceAppSetResourceImpl implements ServiceAppSetResource {
             appInfo.setTimeZone(request.getTimeZone());
         }
         appInfo.setLanguage("1");
-        applicationService.createApp(appInfo);
+        applicationService.createAppWithSpecifiedAppId(appInfo);
 
         ServiceApplicationDTO newAppSet = convertToServiceApp(applicationDAO.getAppById(request.getId()));
         return InternalResponse.buildSuccessResp(newAppSet);

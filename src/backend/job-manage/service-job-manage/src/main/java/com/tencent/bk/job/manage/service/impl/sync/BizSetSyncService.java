@@ -52,7 +52,8 @@ public class BizSetSyncService extends BasicAppSyncService {
     protected final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
-    public BizSetSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
+    public BizSetSyncService(DSLContext dslContext,
+                             ApplicationDAO applicationDAO,
                              ApplicationHostDAO applicationHostDAO,
                              ApplicationService applicationService,
                              IBizSetCmdbClient bizSetCmdbClient) {
@@ -62,7 +63,7 @@ public class BizSetSyncService extends BasicAppSyncService {
     }
 
     public void syncBizSetFromCMDB() {
-        log.info(Thread.currentThread().getName() + ":begin to sync bizSet from cc");
+        log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
         List<ApplicationDTO> ccBizSetApps = bizSetCmdbClient.getAllBizSetApps();
 
         // 对比业务集信息，分出要新增的/要改的/要删的分别处理
@@ -77,29 +78,29 @@ public class BizSetSyncService extends BasicAppSyncService {
             .collect(Collectors.toSet());
         // CMDB接口空数据保护
         if (ccBizSetAppScopeIds.isEmpty()) {
-            log.warn("CMDB BizSet App data is empty, quit sync");
+            log.warn("CMDB BizSet data is empty, quit sync");
             return;
         }
-        log.info(String.format("ccBizSetAppScopeIds:%s", String.join(",",
-            ccBizSetAppScopeIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        log.info("Cmdb sync bizSetIds: {}", String.join(",", ccBizSetAppScopeIds));
+
         // 本地业务ScopeId
         Set<String> localBizSetAppScopeIds =
             localBizSetApps.stream().
                 map(localBizSetApp -> localBizSetApp.getScope().getId())
                 .collect(Collectors.toSet());
-        log.info(String.format("localBizSetAppScopeIds:%s", String.join(",",
-            localBizSetAppScopeIds.stream().map(Object::toString).collect(Collectors.toSet()))));
+        log.info("Local bizSetIds: {}", String.join(",", localBizSetAppScopeIds));
+
         // CMDB-本地：计算新增业务集
         insertList =
             ccBizSetApps.stream().filter(ccBizSetApp ->
                 !localBizSetAppScopeIds.contains(ccBizSetApp.getScope().getId())).collect(Collectors.toList());
-        log.info(String.format("bizSet app insertList scopeIds:%s", String.join(",",
+        log.info("Insert bizSetIds: {}", String.join(",",
             insertList.stream().map(bizSetAppInfoDTO -> bizSetAppInfoDTO.getScope().getId())
-                .collect(Collectors.toSet()))));
+                .collect(Collectors.toSet())));
         // 本地&CMDB交集：计算需要更新的业务集
         updateList =
             ccBizSetApps.stream().filter(ccBizSetAppInfoDTO ->
-                    localBizSetAppScopeIds.contains(ccBizSetAppInfoDTO.getScope().getId()))
+                localBizSetAppScopeIds.contains(ccBizSetAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("bizSet app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
@@ -120,7 +121,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         // 本地-CMDB：计算需要删除的业务集
         deleteList =
             localBizSetApps.stream().filter(bizSetAppInfoDTO ->
-                    !ccBizSetAppScopeIds.contains(bizSetAppInfoDTO.getScope().getId()))
+                !ccBizSetAppScopeIds.contains(bizSetAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("bizSet app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->

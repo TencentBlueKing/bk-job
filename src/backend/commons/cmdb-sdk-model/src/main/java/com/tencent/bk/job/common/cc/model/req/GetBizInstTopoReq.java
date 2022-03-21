@@ -39,5 +39,5 @@ import lombok.Setter;
 @Setter
 public class GetBizInstTopoReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
 }

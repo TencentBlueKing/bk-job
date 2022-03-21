@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,18 +20,35 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-/* eslint-disable no-extra-semi */
-export const ROUTER_HISTORY_CACHE = 'router_history';
+package com.tencent.bk.job.common.cc.model.result;
 
-export const SCRIPT_SOURCE_TYPE_LOCAL = 1;
-export const SCRIPT_SOURCE_TYPE_REFER = 2;
-export const SCRIPT_SOURCE_TYPE_BUSINESS = 2;
-export const SCRIPT_SOURCE_TYPE_PUBLIC = 3;
 
-export const EXEC_FILE_HISTORY_KEY = 'exec_file_history';
-export const EXEC_SCRIPT_HISTORY_KEY = 'exec_script_history';
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-export const APP_GROUP_TYPE = 2;
-export const ALL_APP_TYPE = 3;
+import java.util.List;
+
+/**
+ * 业务集与业务关系事件详情
+ */
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class BizSetRelationEventDetail {
+    /**
+     * 业务集和业务的关系发生了变化的业务集ID
+     */
+    @JsonProperty("bk_biz_set_id")
+    private Long bizSetId;
+    /**
+     * 该业务集所包含的所有业务的ID列表
+     */
+    @JsonProperty("bk_biz_ids")
+    private List<Long> bizIds;
+}

@@ -182,5 +182,6 @@ export default {
         个脚本使用: ' of the selected scripts applied it.',
         新建标签: 'New',
         编辑标签成功: 'New tag has been created',
+        '已有[未上线]版本': '「Stand-by」version is exists',
     },
 };

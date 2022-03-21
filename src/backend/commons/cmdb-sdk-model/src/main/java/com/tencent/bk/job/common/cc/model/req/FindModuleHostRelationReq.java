@@ -38,7 +38,7 @@ import java.util.List;
 @ToString
 public class FindModuleHostRelationReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
     @JsonProperty("bk_module_ids")
     private List<Long> moduleIdList;
 

@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
-import com.tencent.bk.job.common.cc.model.result.AppEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.FindHostBizRelationsResult;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
@@ -245,5 +245,5 @@ public interface IBizCmdbClient {
      *
      * @return
      */
-    ResourceWatchResult<AppEventDetail> getAppEvents(Long startTime, String cursor);
+    ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
 }

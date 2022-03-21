@@ -36,7 +36,7 @@ import lombok.ToString;
 public class GetGroupIpReq extends EsbReq {
 
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
 
     @JsonProperty("id")
     private String groupId;

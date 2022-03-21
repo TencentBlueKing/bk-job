@@ -30,7 +30,9 @@
         <script-basic />
         <div class="version-list-wraper">
             <list-action-layout>
-                <bk-button @click="handlNewVersion">
+                <bk-button
+                    ref="newVersion"
+                    @click="handlNewVersion">
                     {{ $t('script.新建版本') }}
                 </bk-button>
                 <bk-button
@@ -187,31 +189,34 @@
                                 </jb-popover-confirm>
                                 <auth-button
                                     v-if="row.isDraft"
+                                    class="mr10"
                                     :permission="row.canManage"
                                     :resource-id="row.id"
                                     auth="script/edit"
-                                    class="mr10"
                                     text
                                     @click="handleEdit(row)">
                                     {{ $t('script.编辑') }}
                                 </auth-button>
-                                <auth-button
+                                <span
                                     v-if="!row.isDraft"
-                                    :permission="row.canClone"
-                                    :resource-id="row.id"
-                                    auth="script/clone"
                                     class="mr10"
-                                    text
-                                    @click="handleToggleCopyCreate(row)">
-                                    {{ $t('script.复制并新建') }}
-                                </auth-button>
+                                    :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+                                    <auth-button
+                                        :permission="row.canClone"
+                                        :resource-id="row.id"
+                                        auth="script/clone"
+                                        :disabled="isCopyCreateDisabled"
+                                        text
+                                        @click="handleToggleCopyCreate(row)">
+                                        {{ $t('script.复制并新建') }}
+                                    </auth-button>
+                                </span>
                                 <auth-button
-                                    v-if="row.isOnline && row.isSyncEnable"
+                                    v-if="row.isOnline"
                                     text
                                     :permission="row.canManage"
                                     auth="script/execute"
                                     :resource-id="row.id"
-                                    class="mr10"
                                     :disabled="row.isExecuteDisable"
                                     @click="handleGoExce(row)">
                                     {{ $t('script.去执行') }}
@@ -222,7 +227,7 @@
                                         :permission="row.canManage"
                                         :resource-id="row.id"
                                         auth="script/edit"
-                                        class="mr10"
+                                        class="ml10"
                                         :disabled="!row.syncEnabled"
                                         @click="handleSync(row)"
                                         text>
@@ -270,9 +275,38 @@
                 </layout>
             </div>
         </div>
+        <div style="display: none;">
+            <div id="newVersionDisableActions" style="padding: 16px 12px;">
+                <div style="margin-bottom: 17px; font-size: 14px; line-height: 22px; color: #313238;">
+                    {{ $t('script.已有[未上线]版本') }}
+                </div>
+                <div>
+                    <bk-button
+                        theme="primary"
+                        size="small"
+                        style="margin-right: 8px;"
+                        @click="handleEditDraftVersion">
+                        {{ $t('script.前往编辑') }}
+                    </bk-button>
+                    <bk-button
+                        size="small"
+                        @click="handleNewVersionClose">
+                        {{ $t('script.取消') }}
+                    </bk-button>
+                </div>
+            </div>
+        </div>
         <element-teleport v-if="currentVersionName">
             <span> - {{ currentVersionName }}</span>
         </element-teleport>
+        <Diff
+            v-if="showDiff"
+            :title="$t('script.版本对比')"
+            :data="dataMemo"
+            :old-version-id="diffInfo.oldVersionId"
+            :new-version-id="diffInfo.newVersionId"
+            @on-change="handleDiffVersionChange"
+            @close="handleDiffClose" />
         <jb-sideslider
             :is-show.sync="showRelated"
             :show-footer="false"
@@ -293,21 +327,13 @@
             <new-version
                 :version-list="data"
                 @on-close="handleNewVersionClose"
-                @on-edit="handleEdit"
                 @on-create="handleToggleCopyCreate" />
         </jb-dialog>
-        <Diff
-            v-if="showDiff"
-            :title="$t('script.版本对比')"
-            :data="dataMemo"
-            :old-version-id="diffInfo.oldVersionId"
-            :new-version-id="diffInfo.newVersionId"
-            @on-change="handleDiffVersionChange"
-            @close="handleDiffClose" />
     </div>
 </template>
 <script>
     import _ from 'lodash';
+    import Tippy from 'bk-magic-vue/lib/utils/tippy';
     import I18n from '@/i18n';
     import ScriptService from '@service/script-manage';
     import PublicScriptService from '@service/public-script-manage';
@@ -393,17 +419,6 @@
                 return comMap[this.displayCom];
             },
             /**
-             * @desc 选中的脚本版本
-             * @returns { Object }
-             */
-            selectVersion () {
-                const current = _.find(this.renderList, _ => _.scriptVersionId === this.selectVersionId);
-                if (!current) {
-                    return {};
-                }
-                return _.find(this.renderList, _ => _.scriptVersionId === this.selectVersionId);
-            },
-            /**
              * @desc 列表数据
              * @returns { Array }
              */
@@ -412,6 +427,24 @@
                     ...this.dataAppendList,
                     ...this.data,
                 ];
+            },
+            /**
+             * @desc 已存在未上线版本不允许新建版本
+             * @returns { Boolean }
+             */
+            isCopyCreateDisabled () {
+                return !!_.find(this.dataMemo, scriptVersion => scriptVersion.isDraft);
+            },
+            /**
+             * @desc 选中的脚本版本
+             * @returns { Object }
+             */
+            selectVersion () {
+                const current = _.find(this.renderList, _ => _.scriptVersionId === this.selectVersionId);
+                if (!current) {
+                    return {};
+                }
+                return current;
             },
             /**
              * @desc 需要选中两个脚本才能对比
@@ -595,12 +628,47 @@
             },
             /**
              * @desc 新建脚本版本
-             * @returns { Boolean }
              */
             handlNewVersion () {
-                this.isShowNewVersion = true;
+                if (!this.isCopyCreateDisabled) {
+                    this.isShowNewVersion = true;
+                    return;
+                }
+                // 已有未上线脚本给出提示
+                if (!this.newVersionPopperInstance) {
+                    this.newVersionPopperInstance = Tippy(this.$refs.newVersion.$el, {
+                        arrow: true,
+                        width: 192,
+                        placement: 'bottom-start',
+                        trigger: 'manual',
+                        theme: 'light',
+                        interactive: true,
+                        animation: 'slide-toggle',
+                        content: document.querySelector('#newVersionDisableActions'),
+                        boundary: 'window',
+                        distance: 20,
+                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+                    });
+                    this.$once('hook:beforeDestroy', () => {
+                        this.newVersionPopperInstance.hide();
+                        this.newVersionPopperInstance.destroy();
+                    });
+                }
+                this.newVersionPopperInstance.show();
             },
+            /**
+             * @desc 编辑最新的未上线脚本版本
+             */
+            handleEditDraftVersion () {
+                const lastestDraftScriptVersion = _.find(this.dataMemo, scriptVersion => scriptVersion.isDraft);
+                this.handleEdit(lastestDraftScriptVersion);
+                this.newVersionPopperInstance.hide();
+            },
+            /**
+             * @desc 取消新建版本
+             */
             handleNewVersionClose () {
+                this.newVersionPopperInstance && this.newVersionPopperInstance.hide();
                 this.isShowNewVersion = false;
             },
             /**
@@ -764,10 +832,10 @@
             },
             /**
              * @desc 编辑脚本版本
-             * @param {Object} payload 脚本数据
+             * @param {Object} scriptInfo 脚本数据
              */
-            handleEdit (payload) {
-                this.selectVersionId = payload.scriptVersionId;
+            handleEdit (scriptInfo) {
+                this.selectVersionId = scriptInfo.scriptVersionId;
                 this.displayCom = 'edit';
                 this.isListFlod = true;
                 this.isShowNewVersion = false;
