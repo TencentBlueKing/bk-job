@@ -66,11 +66,11 @@ public class HostSyncService {
     private List<ApplicationHostDTO> getHostsByAppInfo(IBizCmdbClient bizCmdbClient, ApplicationDTO applicationDTO) {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
         ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), applicationDTO.getId()));
-        List<ApplicationHostDTO> ApplicationHostDTOList = bizCmdbClient.getHosts(applicationDTO.getId(),
+        List<ApplicationHostDTO> hosts = bizCmdbClient.getHosts(applicationDTO.getBizIdIfBizApp(),
             ccInstanceDTOList);
         // 获取Agent状态
-        hostService.fillAgentStatus(ApplicationHostDTOList);
-        return ApplicationHostDTOList;
+        hostService.fillAgentStatus(hosts);
+        return hosts;
     }
 
     private List<ApplicationHostDTO> computeInsertList(
