@@ -27,9 +27,11 @@ package com.tencent.bk.job.manage;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -59,16 +61,11 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
             .build(new CacheLoader<Long, ResourceScope>() {
                        @Override
                        public ResourceScope load(Long appId) {
-                           try {
-                               ServiceApplicationDTO app = applicationResource.queryAppById(appId);
-                               if (app == null) {
-                                   return null;
-                               }
-                               return new ResourceScope(app.getScopeType(), app.getScopeId());
-                           } catch (NotFoundException e) {
-                               log.error("App not found for appId: {}", appId);
-                               return null;
+                           ServiceApplicationDTO app = applicationResource.queryAppById(appId);
+                           if (app == null) {
+                               throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
                            }
+                           return new ResourceScope(app.getScopeType(), app.getScopeId());
                        }
                    }
             );
@@ -82,18 +79,13 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
             .build(new CacheLoader<ResourceScope, Long>() {
                        @Override
                        public Long load(ResourceScope resourceScope) {
-                           try {
-                               ServiceApplicationDTO app = applicationResource.queryAppByScope(
-                                   resourceScope.getType().getValue(),
-                                   resourceScope.getId());
-                               if (app == null) {
-                                   return null;
-                               }
-                               return app.getId();
-                           } catch (NotFoundException e) {
-                               log.error("App not found for scope: {}", resourceScope);
-                               return null;
+                           ServiceApplicationDTO app = applicationResource.queryAppByScope(
+                               resourceScope.getType().getValue(),
+                               resourceScope.getId());
+                           if (app == null) {
+                               throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
                            }
+                           return app.getId();
                        }
                    }
             );
@@ -109,8 +101,18 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         try {
             return scopeAndAppIdCache.get(resourceScope);
         } catch (ExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
             log.error("Get appId from cache error", e);
             throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
+        } catch (UncheckedExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
+            Throwable t = e.getCause();
+            if (t instanceof ServiceException) {
+                throw (ServiceException) e.getCause();
+            } else {
+                log.error("Get appId from cache error", e);
+                throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
+            }
         }
     }
 
@@ -123,8 +125,18 @@ public class AppScopeMappingServiceImpl implements AppScopeMappingService {
         try {
             return appIdAndScopeCache.get(appId);
         } catch (ExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
             log.error("Get scope from cache error", e);
             throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
+        } catch (UncheckedExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
+            Throwable t = e.getCause();
+            if (t instanceof ServiceException) {
+                throw (ServiceException) e.getCause();
+            } else {
+                log.error("Get scope from cache error", e);
+                throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
+            }
         }
     }
 
