@@ -25,10 +25,6 @@
 
 /* eslint-disable no-param-reassign */
 
-import _ from 'lodash';
-import {
-    ALL_APP_TYPE,
-} from '@utils/constants';
 import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
 import NodeInfoVO from '@domain/variable-object/node-info';
 import AppManageSource from '../source/app-manage';
@@ -49,20 +45,6 @@ export default {
     cancelFavorApp (params) {
         return AppManageSource.updateCancelFavorApp(params)
             .then(({ data }) => data);
-    },
-    fetchAppListWholeBusiness () {
-        return AppManageSource.getAllApp()
-            .then(({ data }) => Object.freeze(data.filter(item => item.type !== ALL_APP_TYPE)));
-    },
-    fetchWholeBusinessId () {
-        return AppManageSource.getAllApp()
-            .then(({ data }) => {
-                const wholeBusiness = _.find(data, item => item.type === ALL_APP_TYPE);
-                if (wholeBusiness) {
-                    return wholeBusiness.id;
-                }
-                return '';
-            });
     },
     // 获取拓扑节点树
     fetchTopology () {
