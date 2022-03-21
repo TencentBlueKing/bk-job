@@ -131,7 +131,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CC接口调用客户端
+ * ESB-CMDB接口调用客户端
  */
 @Slf4j
 public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClient {
@@ -188,8 +188,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     protected String defaultSupplierAccount;
     protected String defaultUin = "admin";
     private QueryAgentStatusClient queryAgentStatusClient;
-    private MeterRegistry meterRegistry;
-    private LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
+    private final MeterRegistry meterRegistry;
+    private final LoadingCache<String, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
             build(new CacheLoader<String, InstanceTopologyDTO>() {
                       @Override
@@ -248,15 +248,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         this.queryAgentStatusClient = queryAgentStatusClient;
     }
 
-    /**
-     * 获取业务完整topo（含内置模块空闲机/故障机等）
-     *
-     * @param appId
-     * @param uin
-     * @param owner
-     * @return
-     * @throws ServiceException
-     */
     @Override
     public InstanceTopologyDTO getBizInstCompleteTopology(long appId, String owner,
                                                           String uin) throws ServiceException {
@@ -558,7 +549,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             List<Long> moduleIdSubList = moduleIdList.subList(start, end);
             if (moduleIdSubList.size() > 0) {
                 // 使用find_module_host_relation接口
-                resultList.addAll(findModuleHostRelationConcurrently(appId, moduleIdSubList, uin, owner));
+                resultList.addAll(findModuleHostRelationConcurrently(appId, moduleIdSubList));
             }
             start += batchSize;
             end = start + batchSize;
@@ -587,33 +578,30 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     /**
      * 并发：按模块加载主机
      *
-     * @param appId
-     * @param moduleIdList
-     * @param uin
-     * @param owner
-     * @return
+     * @param bizId        cmdb业务ID
+     * @param moduleIdList 模块ID列表
+     * @return 主机列表
      */
-    public List<ApplicationHostDTO> findModuleHostRelationConcurrently(long appId, List<Long> moduleIdList,
-                                                                       String uin, String owner) {
+    private List<ApplicationHostDTO> findModuleHostRelationConcurrently(long bizId, List<Long> moduleIdList) {
         if (moduleIdList == null || moduleIdList.isEmpty()) {
             return Collections.emptyList();
         }
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
+        String owner = defaultSupplierAccount;
+        String uin = defaultUin;
         LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue = new LinkedBlockingQueue<>();
 
         List<ApplicationHostDTO> applicationHostDTOList;
         int start = 0;
         //已调优
         int limit = 500;
-        FindModuleHostRelationReq req = genFindModuleHostRelationReq(appId, moduleIdList, start, limit, uin, owner);
+        FindModuleHostRelationReq req = genFindModuleHostRelationReq(bizId, moduleIdList, start, limit, uin, owner);
         //先拉一次获取总数
         FindModuleHostRelationResult pageData = getHostsByReq(req);
         List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList = pageData.getRelation();
         resultQueue.addAll(hostWithModulesList);
         // 如果该页未达到limit，说明是最后一页
         if (pageData.getCount() <= limit) {
-            log.info("appId {}:{} hosts in total, {} hosts indeed", appId, pageData.getCount(), resultQueue.size());
+            log.info("appId {}:{} hosts in total, {} hosts indeed", bizId, pageData.getCount(), resultQueue.size());
         } else if (pageData.getCount() > limit && hostWithModulesList.size() <= limit) {
             int totalCount = pageData.getCount() - limit;
             List<Future> futures = new ArrayList<>();
@@ -621,7 +609,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             while (totalCount > 0) {
                 start += limit;
                 FindModuleHostRelationTask task = new FindModuleHostRelationTask(resultQueue,
-                    genFindModuleHostRelationReq(appId, moduleIdList, start, limit, uin, owner),
+                    genFindModuleHostRelationReq(bizId, moduleIdList, start, limit, uin, owner),
                     JobContextUtil.getRequestId());
                 if (totalCount > 10000) {
                     //主机数太多，防止将CMDB拉挂了
@@ -647,11 +635,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.info("find module hosts concurrently time consuming:" + (endTime - startTime));
         } else {
             //limit参数不起效，可能拉到了全量数据，直接跳出
-            log.warn("appId {}:{} hosts in total, {} hosts indeed, CMDB interface params invalid", appId,
+            log.warn("appId {}:{} hosts in total, {} hosts indeed, CMDB interface params invalid", bizId,
                 pageData.getCount(), resultQueue.size());
         }
         Long startTime = System.currentTimeMillis();
-        applicationHostDTOList = convertToHostInfoDTOList(appId, new ArrayList<>(resultQueue));
+        applicationHostDTOList = convertToHostInfoDTOList(bizId, new ArrayList<>(resultQueue));
         Long endTime = System.currentTimeMillis();
         long timeConsuming = endTime - startTime;
         if (timeConsuming >= 1000) {
@@ -845,11 +833,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ipInfo;
     }
 
-    /**
-     * 从CC获取所有业务信息
-     *
-     * @return
-     */
     @Override
     public List<ApplicationDTO> getAllBizApps() {
         List<ApplicationDTO> appList = new ArrayList<>();
@@ -900,14 +883,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return appInfo;
     }
 
-    /**
-     * 获取用户的业务
-     *
-     * @param uin
-     * @param owner
-     * @return
-     * @throws ServiceException
-     */
     @Override
     public List<ApplicationDTO> getAppByUser(String uin, String owner) throws ServiceException {
         List<ApplicationDTO> appList = new ArrayList<>();
@@ -949,14 +924,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return appList;
     }
 
-    /**
-     * 获取业务详细信息
-     *
-     * @param uin
-     * @param appId
-     * @param owner
-     * @return
-     */
     @Override
     public ApplicationDTO getAppById(long appId, String owner, String uin) {
         owner = defaultSupplierAccount;
@@ -979,25 +946,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return convertToAppInfo(businessInfos.get(0));
     }
 
-    /**
-     * 查询自定义分组
-     *
-     * @param owner
-     * @param uin
-     * @param appId
-     * @return
-     */
     @Override
-    public List<CcGroupDTO> getCustomGroupList(long appId, String owner, String uin) {
-        // Job只需要目标资源为主机类型的动态分组
-        return getHostDynamicGroupListFromCMDB(appId, owner, uin);
-    }
-
-    public List<CcGroupDTO> getHostDynamicGroupListFromCMDB(long appId, String owner, String uin) {
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, uin, owner);
-        req.setBizId(appId);
+    public List<CcGroupDTO> getCustomGroupList(long bizId) {
+        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
+            defaultSupplierAccount);
+        req.setBizId(bizId);
         int start = 0;
         int limit = 200;
         req.getPage().setStart(start);
@@ -1034,27 +987,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ccGroupDTO;
     }
 
-    /**
-     * 获取自定义分组下面的IP
-     *
-     * @param owner
-     * @param uin
-     * @param appId
-     * @param groupId
-     * @return
-     */
+
     @Override
-    public List<CcGroupHostPropDTO> getCustomGroupIp(long appId, String owner, String uin,
-                                                     String groupId) throws ServiceException {
-        return getDynamicGroupIpFromCMDB(appId, owner, uin, groupId);
+    public List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId) {
+        return getDynamicGroupIpFromCMDB(bizId, groupId);
     }
 
-    public List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long appId, String owner, String uin,
-                                                              String groupId) throws ServiceException {
-        owner = defaultSupplierAccount;
-        uin = defaultUin;
-        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, uin, owner);
-        req.setBizId(appId);
+    private List<CcGroupHostPropDTO> getDynamicGroupIpFromCMDB(long bizId, String groupId) {
+        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
+        req.setBizId(bizId);
         req.setGroupId(groupId);
         int limit = 200;
         int start = 0;

@@ -143,25 +143,21 @@ public interface IBizCmdbClient {
     ApplicationDTO getAppById(long appId, String owner, String uin);
 
     /**
-     * 查询自定义分组
+     * 查询业务下的动态分组
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @return
+     * @param bizId cmdb业务ID
+     * @return 动态分组
      */
-    List<CcGroupDTO> getCustomGroupList(long appId, String owner, String uin);
+    List<CcGroupDTO> getCustomGroupList(long bizId);
 
     /**
-     * 获取自定义分组下面的IP
+     * 获取自定义分组下面的主机
      *
-     * @param appId
-     * @param owner
-     * @param uin
-     * @param groupId
-     * @return
+     * @param bizId   cmdb业务ID
+     * @param groupId 动态分组ID
+     * @return 自定义分组下的主机
      */
-    List<CcGroupHostPropDTO> getCustomGroupIp(long appId, String owner, String uin, String groupId);
+    List<CcGroupHostPropDTO> getCustomGroupIp(long bizId, String groupId);
 
     List<CcCloudAreaInfoDTO> getCloudAreaList();
 

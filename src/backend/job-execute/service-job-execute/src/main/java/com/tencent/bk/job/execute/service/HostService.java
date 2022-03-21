@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 
@@ -71,4 +72,31 @@ public interface HostService {
      * @return 非法的主机
      */
     List<IpDTO> checkAppHosts(Long appId, Collection<IpDTO> hostIps);
+
+    /**
+     * 获取动态分组主机
+     *
+     * @param appId   业务ID
+     * @param groupId 动态分组ID
+     * @return
+     */
+    List<IpDTO> getIpByDynamicGroupId(long appId, String groupId);
+
+    /**
+     * 根据topo节点获取主机
+     *
+     * @param appId   业务ID
+     * @param ccInsts topo节点列表
+     * @return 主机列表
+     */
+    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInsts);
+
+    /**
+     * 获取主机云区域名称
+     *
+     * @param appId       业务ID
+     * @param cloudAreaId 云区域ID
+     * @return 云区域名称
+     */
+    String getCloudAreaName(long appId, long cloudAreaId);
 }
