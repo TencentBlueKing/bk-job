@@ -87,7 +87,7 @@ public class CloudAreaService {
 
     public String getCloudAreaName(Long cloudAreaId) {
         if (cloudAreaId == null) {
-            return "null";
+            return "Unknown";
         }
 
         if (MapUtils.isNotEmpty(CLOUD_AREA_NAME_MAP)) {

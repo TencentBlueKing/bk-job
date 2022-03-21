@@ -30,23 +30,29 @@ import lombok.Data;
 
 /**
  * CC动态分组
- *
- * @description
- * @date 2019/3/7
  */
 @Data
 public class CcGroupDTO {
+    /**
+     * cmdb 业务ID
+     */
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
 
+    /**
+     * 动态分组ID
+     */
     private String id;
 
+    /**
+     * 动态分组名称
+     */
     private String name;
 
     public DynamicGroupInfoDTO toDynamicGroupInfo() {
         DynamicGroupInfoDTO dynamicGroupInfoDTO = new DynamicGroupInfoDTO();
         dynamicGroupInfoDTO.setId(this.getId());
-        dynamicGroupInfoDTO.setAppId(this.getAppId());
+        dynamicGroupInfoDTO.setAppId(this.getBizId());
         dynamicGroupInfoDTO.setName(this.getName());
         return dynamicGroupInfoDTO;
     }

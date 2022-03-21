@@ -126,4 +126,22 @@ public class ApplicationDTO implements Serializable {
         this.language = updateApplication.getLanguage();
     }
 
+    /**
+     * 返回对应的cmdb业务ID
+     *
+     * @return cmdb业务ID
+     */
+    public Long getBizIdIfBizApp() {
+        return Long.valueOf(this.scope.getId());
+    }
+
+    /**
+     * 返回对应的cmdb业务集ID
+     *
+     * @return cmdb业务集ID
+     */
+    public Long getBizSetIdIfBizSetApp() {
+        return Long.valueOf(this.scope.getId());
+    }
+
 }

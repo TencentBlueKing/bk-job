@@ -78,25 +78,24 @@ public interface HostService {
      *
      * @param appId   业务ID
      * @param groupId 动态分组ID
-     * @return
+     * @return 主机列表
      */
     List<IpDTO> getIpByDynamicGroupId(long appId, String groupId);
 
     /**
      * 根据topo节点获取主机
      *
-     * @param appId   业务ID
-     * @param ccInsts topo节点列表
+     * @param appId       Job业务ID
+     * @param ccInstances topo节点列表
      * @return 主机列表
      */
-    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInsts);
+    List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInstances);
 
     /**
      * 获取主机云区域名称
      *
-     * @param appId       业务ID
      * @param cloudAreaId 云区域ID
      * @return 云区域名称
      */
-    String getCloudAreaName(long appId, long cloudAreaId);
+    String getCloudAreaName(long cloudAreaId);
 }

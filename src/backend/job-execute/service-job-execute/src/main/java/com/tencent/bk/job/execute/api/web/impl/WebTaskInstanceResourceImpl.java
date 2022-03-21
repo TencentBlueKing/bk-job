@@ -344,7 +344,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                     host.setIp(ip.getIp());
                     host.setAlive(ip.getAlive());
                     ExecuteCloudAreaInfoVO cloudAreaInfoVO = new ExecuteCloudAreaInfoVO(ip.getCloudAreaId(),
-                        hostService.getCloudAreaName(appId, ip.getCloudAreaId()));
+                        hostService.getCloudAreaName(ip.getCloudAreaId()));
                     host.setCloudAreaInfo(cloudAreaInfoVO);
                     hosts.add(host);
                 }

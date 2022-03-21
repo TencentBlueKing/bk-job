@@ -34,11 +34,20 @@ import java.util.List;
  */
 @Data
 public class CcDynamicGroupDTO {
+    /**
+     * cmdb业务ID
+     */
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
 
+    /**
+     * cmdb动态分组ID
+     */
     private String id;
 
+    /**
+     * cmdb动态分组名称
+     */
     private String name;
 
     @JsonProperty("bk_obj_id")

@@ -278,13 +278,9 @@ public class TopologyHelper {
 
     }
 
-    public InstanceTopologyDTO getTopologyTreeByApplication(String username, ApplicationDTO applicationInfo) {
+    public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
         InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCcClient(JobContextUtil.getUserLang())
-            .getBizInstTopology(
-                Long.parseLong(applicationInfo.getScope().getId()),
-                applicationInfo.getBkSupplierAccount(),
-                username
-            );
+            .getBizInstTopology(Long.parseLong(applicationInfo.getScope().getId()));
         if (instanceTopology == null) {
             return null;
         }
@@ -307,14 +303,14 @@ public class TopologyHelper {
      * @param nodeType 节点类型
      * @return 节点名称
      */
-    public String getTopologyNodeName(String username, Long appId, Long nodeId, String nodeType) {
+    public String getTopologyNodeName(Long appId, Long nodeId, String nodeType) {
         Map<String, Map<Long, String>> nodeTypeNameMap = BIZ_NODE_TYPE_NAME_MAP.get(appId);
         ApplicationDTO appInfo = applicationDAO.getCacheAppById(appId);
         if (appInfo == null) {
             return String.valueOf(nodeId);
         }
         if (nodeTypeNameMap == null || nodeTypeNameMap.get(nodeType) == null) {
-            InstanceTopologyDTO topology = getTopologyTreeByApplication(username, appInfo);
+            InstanceTopologyDTO topology = getTopologyTreeByApplication(appInfo);
             processTopologyNodeName(topology, null);
         }
         if (CcNodeTypeEnum.BIZ.getType().equals(nodeType)) {

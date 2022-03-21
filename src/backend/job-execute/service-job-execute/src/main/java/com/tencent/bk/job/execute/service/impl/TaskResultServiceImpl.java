@@ -412,7 +412,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         agentTaskExecution.setCloudIp(gseTaskIpLog.getCloudAreaAndIp());
         long cloudAreaId = Long.parseLong(gseTaskIpLog.getCloudAreaAndIp().split(":")[0]);
         agentTaskExecution.setCloudAreaId(cloudAreaId);
-        agentTaskExecution.setCloudAreaName(hostService.getCloudAreaName(appId, cloudAreaId));
+        agentTaskExecution.setCloudAreaName(hostService.getCloudAreaName(cloudAreaId));
         agentTaskExecution.setDisplayIp(gseTaskIpLog.getDisplayIp());
         agentTaskExecution.setStatus(gseTaskIpLog.getStatus());
         agentTaskExecution.setTag(gseTaskIpLog.getTag());
@@ -481,7 +481,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTaskExecutionDTO.setCloudIp(ipDTO.getCloudAreaId() + ":" + ipDTO.getIp());
                     Long cloudAreaId = ipDTO.getCloudAreaId();
                     agentTaskExecutionDTO.setCloudAreaId(cloudAreaId);
-                    agentTaskExecutionDTO.setCloudAreaName(hostService.getCloudAreaName(appId, cloudAreaId));
+                    agentTaskExecutionDTO.setCloudAreaName(hostService.getCloudAreaName(cloudAreaId));
                     agentTaskExecutionDTO.setDisplayIp(ipDTO.getIp());
                     agentTaskExecutionDTO.setStatus(IpStatus.WAITING.getValue());
                     agentTaskExecutionDTO.setTag(null);
