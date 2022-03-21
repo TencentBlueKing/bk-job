@@ -24,22 +24,48 @@
 
 package com.tencent.bk.job.crontab.auth.impl;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
+import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
+import com.tencent.bk.sdk.iam.util.PathBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 定时任务相关操作鉴权接口实现
  */
 @Service
 public class CronAuthServiceImpl implements CronAuthService {
+
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
+
+    @Autowired
+    public CronAuthServiceImpl(AuthService authService,
+                               AppAuthService appAuthService) {
+        this.authService = authService;
+        this.appAuthService = appAuthService;
+    }
+
+    private PathInfoDTO buildScopeResourcePath(AppResourceScope appResourceScope,
+                                               String resourceId) {
+        return PathBuilder.newBuilder(IamUtil.getIamResourceTypeIdForResourceScope(appResourceScope),
+            appResourceScope.getId()).child(ResourceTypeEnum.CRON.getId(), resourceId).build();
+    }
+
     @Override
     public AuthResult authCreateCron(String username, AppResourceScope appResourceScope) {
-        // TODO
-        return AuthResult.pass();
+        return appAuthService.auth(true, username, ActionId.CREATE_CRON, appResourceScope);
     }
 
     @Override
@@ -47,15 +73,20 @@ public class CronAuthServiceImpl implements CronAuthService {
                                      AppResourceScope appResourceScope,
                                      Long cronId,
                                      String cronName) {
-        // TODO
-        return AuthResult.pass();
+        return authService.auth(
+            true, username,
+            ActionId.MANAGE_CRON, ResourceTypeEnum.CRON, cronId.toString(),
+            buildScopeResourcePath(appResourceScope, cronId.toString()));
     }
 
     @Override
     public List<Long> batchAuthManageCron(String username,
                                           AppResourceScope appResourceScope,
                                           List<Long> cronIdList) {
-        // TODO
-        return cronIdList;
+
+        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_CRON,
+            appResourceScope, ResourceTypeEnum.CRON,
+            cronIdList.parallelStream().map(Objects::toString).collect(Collectors.toList()));
+        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
     }
 }

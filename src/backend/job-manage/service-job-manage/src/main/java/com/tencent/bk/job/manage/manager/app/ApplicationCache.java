@@ -218,7 +218,7 @@ public class ApplicationCache {
                 return;
             }
 
-            List<ApplicationDTO> allApps = applicationDAO.listAllApps();
+            List<ApplicationDTO> allApps = applicationDAO.listAllBizApps();
             if (CollectionUtils.isEmpty(allApps)) {
                 log.warn("Get empty app list from MySQL, skip refresh");
                 return;

@@ -35,7 +35,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BasicAppInfo {
-    private Long id;
+
+    private String scopeType;
+
+    private String scopeId;
+
+    private Long appId;
 
     private String name;
 }

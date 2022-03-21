@@ -31,14 +31,18 @@ export default class ModuleBase {
     }
 
     get path () {
-        const appId = window.PROJECT_CONFIG.APP_ID;
+        const {
+            SCOPE_TYPE,
+            SCOPE_ID,
+        } = window.PROJECT_CONFIG;
+
         const moduleName = _.trim(this.module, '/');
-        if (!appId) {
+        if (!SCOPE_TYPE || !SCOPE_ID) {
             return `/${moduleName}`;
         }
         if (!moduleName) {
-            return `/app/${appId}`;
+            return `/scope/${SCOPE_TYPE}/${SCOPE_ID}`;
         }
-        return `/${moduleName}/app/${appId}`;
+        return `/${moduleName}/scope/${SCOPE_TYPE}/${SCOPE_ID}`;
     }
 }

@@ -44,7 +44,10 @@ public interface EsbFastPushFileResource {
 
     @PostMapping("/fast_push_file")
     EsbResp<EsbJobExecuteDTO> fastPushFile(
-        @RequestBody @Validated EsbFastPushFileRequest request);
+        @RequestBody
+        @Validated
+            EsbFastPushFileRequest request
+    );
 
 
 }

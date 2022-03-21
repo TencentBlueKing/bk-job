@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,10 +44,16 @@ public interface EsbFileSourceV3Resource {
 
     @PostMapping("/create_file_source")
     EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(
-        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+        @RequestBody
+        @Validated
+            EsbCreateOrUpdateFileSourceV3Req req
+    );
 
     @PostMapping("/update_file_source")
     EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(
-        @RequestBody EsbCreateOrUpdateFileSourceV3Req req);
+        @RequestBody
+        @Validated
+            EsbCreateOrUpdateFileSourceV3Req req
+    );
 
 }

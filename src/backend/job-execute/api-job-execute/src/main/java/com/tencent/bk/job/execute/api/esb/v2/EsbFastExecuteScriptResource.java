@@ -43,7 +43,11 @@ import org.springframework.web.bind.annotation.RestController;
 public interface EsbFastExecuteScriptResource {
 
     @PostMapping("/fast_execute_script")
-    EsbResp<EsbJobExecuteDTO> fastExecuteScript(@RequestBody @Validated EsbFastExecuteScriptRequest request);
+    EsbResp<EsbJobExecuteDTO> fastExecuteScript(
+        @RequestBody
+        @Validated
+            EsbFastExecuteScriptRequest request
+    );
 
 
 }

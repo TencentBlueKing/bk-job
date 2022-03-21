@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,13 +50,18 @@ public interface EsbGetJobInstanceLogResource {
 
     @PostMapping("/get_job_instance_log")
     EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
-        @RequestBody EsbGetJobInstanceLogRequest request);
+        @RequestBody
+        @Validated
+            EsbGetJobInstanceLogRequest request
+    );
 
     @GetMapping("/get_job_instance_log")
     EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestParam(value = "bk_biz_id") Long appId,
+        @RequestParam(value = "bk_biz_id", required = false) Long bkBizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId);
 
 

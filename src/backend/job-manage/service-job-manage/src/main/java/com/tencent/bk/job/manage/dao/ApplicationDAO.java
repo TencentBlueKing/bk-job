@@ -46,7 +46,9 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList);
 
-    List<ApplicationDTO> listAllApps();
+    List<ApplicationDTO> listAllBizApps();
+
+    List<ApplicationDTO> listAllBizSetApps();
 
     List<ApplicationDTO> listAppsByType(AppTypeEnum appType);
 

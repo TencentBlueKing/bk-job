@@ -24,20 +24,20 @@
 
 package com.tencent.bk.job.manage.model.dto.converter;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 
 public class HostInfoConverter {
-    public static ServiceHostInfoDTO convertToServiceHostInfoDTO(ApplicationHostInfoDTO applicationHostInfoDTO) {
-        if (applicationHostInfoDTO == null) {
+    public static ServiceHostInfoDTO convertToServiceHostInfoDTO(ApplicationHostDTO applicationHostDTO) {
+        if (applicationHostDTO == null) {
             return null;
         }
         ServiceHostInfoDTO serviceHostInfoDTO = new ServiceHostInfoDTO();
-        serviceHostInfoDTO.setAppId(applicationHostInfoDTO.getAppId());
-        serviceHostInfoDTO.setCloudAreaId(applicationHostInfoDTO.getCloudAreaId());
-        serviceHostInfoDTO.setHostId(applicationHostInfoDTO.getHostId());
-        serviceHostInfoDTO.setIp(applicationHostInfoDTO.getIp());
-        serviceHostInfoDTO.setDisplayIp(applicationHostInfoDTO.getDisplayIp());
+        serviceHostInfoDTO.setAppId(applicationHostDTO.getAppId());
+        serviceHostInfoDTO.setCloudAreaId(applicationHostDTO.getCloudAreaId());
+        serviceHostInfoDTO.setHostId(applicationHostDTO.getHostId());
+        serviceHostInfoDTO.setIp(applicationHostDTO.getIp());
+        serviceHostInfoDTO.setDisplayIp(applicationHostDTO.getDisplayIp());
         return serviceHostInfoDTO;
     }
 }

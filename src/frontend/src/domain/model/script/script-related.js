@@ -29,6 +29,8 @@ export default class ScriptRelated extends BaseModel {
     constructor (payload) {
         super();
         this.appId = payload.appId;
+        this.scopeType = payload.scopeType;
+        this.scopeId = payload.scopeId;
         this.scriptStatus = payload.scriptStatus;
         this.scriptStatusDesc = payload.scriptStatusDesc;
         this.scriptVersion = payload.scriptVersion;

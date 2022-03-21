@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.sdk.CcClient;
 import com.tencent.bk.job.common.cc.sdk.CcClientFactory;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.exception.ObtainHostServiceException;
@@ -119,12 +119,12 @@ public class ServerServiceImpl implements ServerService {
     @Override
     public List<IpDTO> getIpByTopoNodes(long appId, List<CcInstanceDTO> ccInsts) {
         CcClient ccClient = CcClientFactory.getCcClient();
-        List<ApplicationHostInfoDTO> apphostInfos = ccClient.getHosts(appId, ccInsts);
+        List<ApplicationHostDTO> apphostInfos = ccClient.getHosts(appId, ccInsts);
         List<IpDTO> ips = new ArrayList<>();
         if (apphostInfos == null || apphostInfos.isEmpty()) {
             return ips;
         }
-        for (ApplicationHostInfoDTO hostProp : apphostInfos) {
+        for (ApplicationHostDTO hostProp : apphostInfos) {
             IpDTO ip = new IpDTO(hostProp.getCloudAreaId(), hostProp.getIp());
             ips.add(ip);
         }

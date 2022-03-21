@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -57,17 +58,21 @@ public class EsbExecuteJobPlanV3ResourceImpl
     implements EsbExecuteJobPlanV3Resource {
 
     private final TaskExecuteService taskExecuteService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbExecuteJobPlanV3ResourceImpl(TaskExecuteService taskExecuteService) {
+    public EsbExecuteJobPlanV3ResourceImpl(TaskExecuteService taskExecuteService,
+                                           AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_execute_job_plan"})
     public EsbResp<EsbJobExecuteV3DTO> executeJobPlan(EsbExecuteJobV3Request request) {
-        log.info("Execute task, request={}", JsonUtils.toJson(request));
+        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkExecuteTaskRequest(request);
+        log.info("Execute task, request={}", JsonUtils.toJson(request));
         if (!checkResult.isPass()) {
             log.warn("Execute job request is illegal!");
             throw new InvalidParamException(checkResult);

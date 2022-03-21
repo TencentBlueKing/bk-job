@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbOperateJobInstanceV3Request;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +44,10 @@ public interface EsbOperateJobInstanceV3Resource {
 
     @PostMapping("/operate_job_instance")
     EsbResp<EsbJobExecuteV3DTO> operateJobInstance(
-        @RequestBody EsbOperateJobInstanceV3Request request);
+        @RequestBody
+        @Validated
+            EsbOperateJobInstanceV3Request request
+    );
 
 
 }

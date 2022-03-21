@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class AccountServiceImpl implements AccountService {
     private final AccountResourceClient accountResourceClient;
 
-    private LoadingCache<String, AccountDTO> accountCache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, AccountDTO> accountCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.MINUTES).
             build(new CacheLoader<String, AccountDTO>() {
                       @Override

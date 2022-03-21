@@ -60,6 +60,8 @@ export default class SourceFile extends Model {
         this.id = payload.id;
         this.alias = payload.alias;
         this.appId = payload.appId;
+        this.scopeType = payload.scopeType;
+        this.scopeId = payload.scopeId;
         this.code = payload.code;
         this.createTime = payload.createTime;
         this.creator = payload.creator;

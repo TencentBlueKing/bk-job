@@ -37,8 +37,6 @@ import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
-import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,9 +48,9 @@ import java.util.StringJoiner;
 @Slf4j
 @Service
 public class WebAuthServiceImpl implements WebAuthService {
-    private MessageI18nService i18nService;
-    private AuthService authService;
-    private AppAuthService appAuthService;
+    private final MessageI18nService i18nService;
+    private final AuthService authService;
+    private final AppAuthService appAuthService;
 
     @Autowired
     public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService,
@@ -63,52 +61,15 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
-    public AuthService getAuthService() {
-        return authService;
-    }
-
-    @Override
     public void setResourceAppInfoQueryService(ResourceAppInfoQueryService resourceAppInfoQueryService) {
         this.authService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
         this.appAuthService.setResourceAppInfoQueryService(resourceAppInfoQueryService);
     }
 
     @Override
-    public AuthResultVO auth(boolean returnApplyUrl, String username, String actionId) {
-        return toAuthResultVO(authService.auth(returnApplyUrl, username, actionId));
-    }
-
-    @Override
-    public AuthResultVO auth(boolean returnApplyUrl, String username, String actionId, ResourceTypeEnum resourceType,
-                             String resourceId, PathInfoDTO pathInfo) {
-        return toAuthResultVO(authService.auth(returnApplyUrl, username, actionId, resourceType, resourceId, pathInfo));
-    }
-
-    @Override
     public AuthResultVO auth(boolean isReturnApplyUrl, String username,
                              List<PermissionActionResource> actionResources) {
         return toAuthResultVO(authService.auth(isReturnApplyUrl, username, actionResources));
-    }
-
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, ResourceTypeEnum resourceType,
-                                  List<String> resourceIds) {
-        return appAuthService.batchAuth(username, actionId, appId, resourceType, resourceIds);
-    }
-
-    @Override
-    public List<String> batchAuth(String username, String actionId, Long appId, List<PermissionResource> resourceList) {
-        return appAuthService.batchAuth(username, actionId, appId, resourceList);
-    }
-
-    @Override
-    public String getApplyUrl(String actionId) {
-        return authService.getApplyUrl(actionId);
-    }
-
-    @Override
-    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType, String resourceId) {
-        return authService.getApplyUrl(actionId, resourceType, resourceId);
     }
 
     @Override
@@ -146,11 +107,6 @@ public class WebAuthServiceImpl implements WebAuthService {
         return vo;
     }
 
-    @Override
-    public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors) {
-        return authService.registerResource(id, name, type, creator, ancestors);
-    }
-
     private String buildResourceName(PermissionResourceGroup resourceGroup) {
         ResourceTypeEnum resourceType = resourceGroup.getResourceType();
         if (resourceType == ResourceTypeEnum.HOST) {
@@ -158,6 +114,7 @@ public class WebAuthServiceImpl implements WebAuthService {
             int hostCount = 0;
             int topoNodeCount = 0;
             int dynamicGroupCount = 0;
+            int bizSetCount = 0;
             for (PermissionResource resource : resourceGroup.getPermissionResources()) {
                 String subResourceType = resource.getSubResourceType();
                 switch (subResourceType) {
@@ -170,6 +127,9 @@ public class WebAuthServiceImpl implements WebAuthService {
                     case "dynamic_group":
                         dynamicGroupCount++;
                         break;
+                    case "biz_set":
+                        bizSetCount++;
+                        break;
                 }
             }
             StringJoiner stringJoiner = new StringJoiner(",");
@@ -181,6 +141,9 @@ public class WebAuthServiceImpl implements WebAuthService {
             }
             if (dynamicGroupCount > 0) {
                 stringJoiner.add(dynamicGroupCount + " " + i18nService.getI18n("resource.dynamic_group.name"));
+            }
+            if (bizSetCount > 0) {
+                stringJoiner.add(bizSetCount + " " + i18nService.getI18n("resource.biz_set.name"));
             }
             return stringJoiner.toString();
         } else {

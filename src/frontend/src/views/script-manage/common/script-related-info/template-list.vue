@@ -119,7 +119,7 @@
              * @desc 查看引用脚本的作业模板详情
              * @param {Object} payload 应用字段数据
              *
-             * 需要解析资源的appid
+             * 需要解析资源的 scopeType、scopeId
              */
             handleGoTemplateDetail (payload) {
                 const { href } = this.$router.resolve({
@@ -128,7 +128,7 @@
                         id: payload.taskTemplateId,
                     },
                 });
-                window.open(href.replace(/^\/\d+/, `/${payload.appId}`));
+                window.open(href.replace(/^\/[^/]+\/\d+/, `/${payload.scopeType}/${payload.scopeId}`));
             },
         },
     };

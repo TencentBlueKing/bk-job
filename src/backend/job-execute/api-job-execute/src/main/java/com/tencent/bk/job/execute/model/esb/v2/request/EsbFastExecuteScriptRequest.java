@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model.esb.v2.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import lombok.Getter;
@@ -40,12 +40,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class EsbFastExecuteScriptRequest extends EsbReq {
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
 
     /**
      * 脚本执行任务名称

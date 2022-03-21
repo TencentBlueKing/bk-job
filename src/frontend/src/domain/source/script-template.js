@@ -56,7 +56,9 @@ class ScriptTemplate {
         return Request.get(`${this.module}/rendered`, {
             params: {
                 ...params,
-                appId: window.PROJECT_CONFIG.APP_ID,
+                // appId: window.PROJECT_CONFIG.APP_ID,
+                scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
+                scopeId: window.PROJECT_CONFIG.SCOPE_ID,
             },
         });
     }

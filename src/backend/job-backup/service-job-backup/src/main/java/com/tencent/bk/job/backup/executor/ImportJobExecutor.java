@@ -59,7 +59,6 @@ import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
-import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskFileDestinationInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
@@ -303,7 +302,7 @@ public class ImportJobExecutor {
     private void processAccount(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo) {
         Map<Long, Long> finalAccountIdMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(jobBackupInfo.getAccountList())) {
-            List<AccountVO> appAccountList = accountService.listAccountByAppId(importJob.getCreator(),
+            List<ServiceAccountDTO> appAccountList = accountService.listAccountByAppId(importJob.getCreator(),
                 importJob.getAppId());
             Map<String, Long> appAccountIdMap = new ConcurrentHashMap<>();
             appAccountList.parallelStream().forEach(account -> appAccountIdMap.put(account.getAlias(),

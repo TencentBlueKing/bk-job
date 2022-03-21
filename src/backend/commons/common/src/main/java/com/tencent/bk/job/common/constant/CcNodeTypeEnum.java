@@ -48,7 +48,7 @@ public enum CcNodeTypeEnum {
     /**
      * 业务
      */
-    APP("biz", "业务"),
+    BIZ("biz", "业务"),
     ;
 
     @JsonValue

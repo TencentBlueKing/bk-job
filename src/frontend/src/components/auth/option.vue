@@ -30,7 +30,9 @@
         <auth-component
             :permission="permission"
             :resource-id="resourceId"
-            :auth="auth">
+            :auth="auth"
+            :scope-type="scopeType"
+            :scope-id="scopeId">
             <slot>
                 {{ name }}
             </slot>
@@ -58,6 +60,8 @@
             resourceId: {
                 type: [Number, String],
             },
+            scopeType: String,
+            scopeId: String,
             name: {
                 type: [Number, String],
             },

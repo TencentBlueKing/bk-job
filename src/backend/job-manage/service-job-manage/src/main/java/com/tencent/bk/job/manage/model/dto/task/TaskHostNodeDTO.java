@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostInfoDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -50,7 +50,7 @@ public class TaskHostNodeDTO {
 
     private List<String> dynamicGroupId;
 
-    private List<ApplicationHostInfoDTO> hostList;
+    private List<ApplicationHostDTO> hostList;
 
     public static TaskHostNodeVO toVO(TaskHostNodeDTO hostNode) {
         if (hostNode == null) {

@@ -132,7 +132,7 @@
             return {
                 isSubmiting: false,
                 formData: {
-                    packageName: genDefaultName(`bk_job_export_${window.PROJECT_CONFIG.APP_ID}`).slice(0, 40),
+                    packageName: genDefaultName(`bk_job_export_${window.PROJECT_CONFIG.SCOPE_TYPE}_${window.PROJECT_CONFIG.SCOPE_ID}`).slice(0, 40),
                     secretHandler: 1,
                     isEncrypt: 2,
                     password: '',
