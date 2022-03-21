@@ -58,7 +58,8 @@ public class JobManageAutoConfiguration {
     }
 
     static class CmdbConfigSetter {
-        CmdbConfigSetter() {}
+        CmdbConfigSetter() {
+        }
     }
 
     @Bean

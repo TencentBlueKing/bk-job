@@ -27,21 +27,22 @@ package com.tencent.bk.job.common.cc.model.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @description
- * @date 2019/3/4
+ * 业务事件详情
  */
 @Getter
 @Setter
 @ToString
-public class AppEventDetail {
+public class BizEventDetail {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     @JsonProperty("bk_biz_name")
     private String appName;
     @JsonProperty("bk_biz_maintainer")
@@ -57,16 +58,17 @@ public class AppEventDetail {
     @JsonProperty("language")
     private String language;
 
-    public static ApplicationDTO toAppInfoDTO(AppEventDetail appEventDetail) {
+    public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setId(appEventDetail.getAppId());
+        applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
+            String.valueOf(bizEventDetail.getBizId())));
         applicationDTO.setAppType(AppTypeEnum.NORMAL);
-        applicationDTO.setName(appEventDetail.getAppName());
-        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(appEventDetail.getMaintainers()));
-        applicationDTO.setBkSupplierAccount(appEventDetail.getSupplierAccount());
-        applicationDTO.setTimeZone(appEventDetail.getTimezone());
-        applicationDTO.setOperateDeptId(appEventDetail.getOperateDeptId());
-        applicationDTO.setLanguage(appEventDetail.getLanguage());
+        applicationDTO.setName(bizEventDetail.getAppName());
+        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(bizEventDetail.getMaintainers()));
+        applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
+        applicationDTO.setTimeZone(bizEventDetail.getTimezone());
+        applicationDTO.setOperateDeptId(bizEventDetail.getOperateDeptId());
+        applicationDTO.setLanguage(bizEventDetail.getLanguage());
         return applicationDTO;
     }
 }

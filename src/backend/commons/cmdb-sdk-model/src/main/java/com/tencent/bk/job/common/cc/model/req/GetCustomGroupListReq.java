@@ -39,7 +39,7 @@ import lombok.Setter;
 @Setter
 public class GetCustomGroupListReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
     private Integer start;
     private Integer limit = 200;
 }

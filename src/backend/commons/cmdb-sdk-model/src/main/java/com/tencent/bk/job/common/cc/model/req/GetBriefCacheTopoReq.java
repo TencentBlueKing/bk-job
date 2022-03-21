@@ -36,5 +36,5 @@ import lombok.Setter;
 @Setter
 public class GetBriefCacheTopoReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
 }

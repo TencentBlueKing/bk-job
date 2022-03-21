@@ -22,40 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model.result;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 批量获取topo节点path请求
+ * 业务集与业务关系事件详情
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class GetTopoNodePathReq extends EsbReq {
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class BizSetRelationEventDetail {
     /**
-     * 业务ID
+     * 业务集和业务的关系发生了变化的业务集ID
      */
-    @JsonProperty("bk_biz_id")
-    private long bizId;
-
-    @JsonProperty("bk_nodes")
-    private List<InstanceTopologyDTO> topoNodes;
-
-    public void add(String objectType, long instanceId) {
-        if (topoNodes == null) {
-            topoNodes = new ArrayList<>();
-        }
-        InstanceTopologyDTO topoInst = new InstanceTopologyDTO();
-        topoInst.setInstanceId(instanceId);
-        topoInst.setObjectId(objectType);
-        this.topoNodes.add(topoInst);
-    }
-
+    @JsonProperty("bk_biz_set_id")
+    private Long bizSetId;
+    /**
+     * 该业务集所包含的所有业务的ID列表
+     */
+    @JsonProperty("bk_biz_ids")
+    private List<Long> bizIds;
 }

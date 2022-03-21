@@ -42,7 +42,7 @@ import java.util.List;
 @Setter
 public class ListBizHostReq extends EsbReq {
     @JsonProperty("bk_biz_id")
-    private long appId;
+    private long bizId;
 
     @JsonProperty("set_ids")
     private List<Long> setIds;

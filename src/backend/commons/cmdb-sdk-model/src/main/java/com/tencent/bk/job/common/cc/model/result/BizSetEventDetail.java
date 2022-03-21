@@ -22,27 +22,63 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model.result;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.cc.util.VersionCompatUtil;
+import com.tencent.bk.job.common.constant.AppTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * 业务集事件详情
+ */
 @Getter
 @Setter
 @ToString
-public class ListBizHostsTopoReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private long bizId;
+@NoArgsConstructor
+public class BizSetEventDetail {
+    /**
+     * 业务集ID
+     */
+    @JsonProperty("bk_biz_set_id")
+    private Long bizSetId;
+    /**
+     * 业务集名称
+     */
+    @JsonProperty("bk_biz_set_name")
+    private String bizSetName;
+    /**
+     * 业务运维
+     */
+    @JsonProperty("bk_biz_maintainer")
+    private String maintainers;
+    /**
+     * 时区
+     */
+    @JsonProperty("time_zone")
+    private String timezone;
+    /**
+     * 语言
+     */
+    @JsonProperty("language")
+    private String language;
 
-    @JsonProperty("fields")
-    private List<String> fields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name",
-        "bk_cloud_id");
-
-    private Page page;
+    public ApplicationDTO toApplicationDTO() {
+        ApplicationDTO applicationDTO = new ApplicationDTO();
+        ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(bizSetId));
+        applicationDTO.setScope(resourceScope);
+        applicationDTO.setAppType(AppTypeEnum.APP_SET);
+        applicationDTO.setName(bizSetName);
+        applicationDTO.setMaintainers(VersionCompatUtil.convertMaintainers(maintainers));
+        applicationDTO.setTimeZone(timezone);
+        applicationDTO.setLanguage(language);
+        return applicationDTO;
+    }
 }

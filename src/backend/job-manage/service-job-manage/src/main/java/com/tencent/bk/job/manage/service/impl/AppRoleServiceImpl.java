@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import lombok.extern.slf4j.Slf4j;

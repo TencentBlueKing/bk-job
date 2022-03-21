@@ -39,7 +39,7 @@ import java.util.List;
 public class ExecuteDynamicGroupReq extends EsbReq {
 
     @JsonProperty("bk_biz_id")
-    private Long appId;
+    private Long bizId;
 
     @JsonProperty("id")
     private String groupId;

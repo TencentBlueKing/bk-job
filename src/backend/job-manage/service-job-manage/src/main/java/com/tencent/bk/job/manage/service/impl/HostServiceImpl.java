@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.cc.model.CcGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.AppTypeEnum;
@@ -1114,7 +1114,8 @@ public class HostServiceImpl implements HostService {
         if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
-            InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
+            InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(appId,
+                appInfo.getBkSupplierAccount(),
                 username);
             if (appTopologyTree == null) {
                 throw new InternalException("Fail to getBizTopo of appId " + appId + " from CMDB",
@@ -1152,7 +1153,8 @@ public class HostServiceImpl implements HostService {
         if (appInfo.getAppType() == AppTypeEnum.NORMAL) {
             // 普通业务可能根据各级自定义节点查主机，必须先根据拓扑树转为moduleId再查
             // 查业务拓扑树
-            InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(appId, appInfo.getBkSupplierAccount(),
+            InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(appId,
+                appInfo.getBkSupplierAccount(),
                 username);
             for (AppTopologyTreeNode treeNode : appTopoNodeList) {
                 CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());

@@ -47,7 +47,8 @@ public class BizSyncService extends BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
 
     @Autowired
-    public BizSyncService(DSLContext dslContext, ApplicationDAO applicationDAO,
+    public BizSyncService(DSLContext dslContext,
+                          ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
                           ApplicationService applicationService) {
         super(dslContext, applicationDAO, applicationHostDAO, applicationService);
@@ -92,7 +93,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地&CMDB交集：计算需要更新的业务
         updateList =
             ccBizApps.stream().filter(ccBizAppInfoDTO ->
-                    localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
+                localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("biz app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
@@ -100,7 +101,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地-CMDB：计算需要删除的业务
         deleteList =
             localBizApps.stream().filter(bizAppInfoDTO ->
-                    !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->
